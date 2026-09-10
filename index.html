@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniSalon Men Barbershop — Chuỗi Salon Nam Đa Chi Nhánh & Trải Nghiệm Thử Tóc & Râu AI 3D</title>
+  
+  <!-- Modern Inter Font & Design System Tokens -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Master Shop Design System CSS -->
+  <link rel="stylesheet" href="styles.css?v=5.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235433eb'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z'/></svg>">
+</head>
+<body>
+
+  <!-- Fullscreen App Master Frame (Sidebar Rail + Main Content Canvas) -->
+  <div class="app-master-frame" id="app">
+    
+    <!-- Left Sidebar Rail (64px width, white surface, vertical icon alignment) -->
+    <aside class="sidebar-rail">
+      <!-- Top Brand Logo -->
+      <div class="sidebar-top-logo" onclick="window.mainApp.navigateTo('services')" title="OmniSalon Men Barbershop Hệ Thống Đa Chi Nhánh">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
+        </svg>
+      </div>
+
+      <!-- Customer Navigation Group -->
+      <div class="sidebar-nav-list" id="customerNavGroup">
+        <!-- 1. Home / Khám Phá -->
+        <button class="sidebar-nav-btn active" data-view="services" onclick="window.mainApp.navigateTo('services')" title="Trang Chủ & Khám Phá">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          </svg>
+        </button>
+
+        <!-- 2. Danh Mục Sản Phẩm / Store -->
+        <button class="sidebar-nav-btn" data-view="products" onclick="window.mainApp.navigateTo('products')" title="Cửa Hàng Sáp & Gôm Barbershop Nam">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M4 11h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1zm1-6h4v4H5V5zm10-2h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zm-1 6h-4V5h4v4zm-9 4H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1zm-1 6H5v-4h4v4zm10-6h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1zm-1 6h-4v-4h4v4z"/>
+          </svg>
+        </button>
+
+        <!-- 3. AI Hairstyle Consultation & 3D Virtual Try-On Studio (Flagship) -->
+        <button class="sidebar-nav-btn" data-view="aiConsultation" onclick="window.mainApp.navigateTo('aiConsultation')" title="Tư Vấn Tóc & Râu Nam AI 3D/AR (Mục 3)">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+          </svg>
+        </button>
+
+        <!-- 4. Giỏ Hàng -->
+        <button class="sidebar-nav-btn" id="cartToggleBtn" title="Giỏ Hàng Mua Sắm">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+          <span class="badge-pill" id="cartBadgeCount" style="display: none;">0</span>
+        </button>
+
+        <!-- 5. Lịch Hẹn Của Tôi / Theo Dõi Đơn -->
+        <button class="sidebar-nav-btn" data-view="myBookings" onclick="window.mainApp.navigateTo('myBookings')" title="Lịch Hẹn Của Tôi">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/>
+          </svg>
+        </button>
+
+        <!-- 6. Yêu Thích -->
+        <button class="sidebar-nav-btn" data-view="favorites" onclick="window.mainApp.navigateTo('favorites')" title="Mục Yêu Thích (❤️)">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Admin Navigation Group (11 Modules) -->
+      <div class="sidebar-nav-list" id="adminNavGroup" style="display: none;">
+        <!-- 1. Dashboard -->
+        <button class="sidebar-nav-btn active" data-view="adminDashboard" onclick="window.mainApp.navigateTo('adminDashboard')" title="1. Báo Cáo & Thống Kê KPI">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        </button>
+        <!-- 2. Bookings -->
+        <button class="sidebar-nav-btn" data-view="adminBookings" onclick="window.mainApp.navigateTo('adminBookings')" title="2. Quản Lý Lịch Hẹn & Điều Phối">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+        </button>
+        <!-- 3. Services -->
+        <button class="sidebar-nav-btn" data-view="adminServices" onclick="window.mainApp.navigateTo('adminServices')" title="3. Quản Lý Dịch Vụ & Combo VIP">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6-7.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5zM19 3l-6 6 2 2 7-7V3h-3z"/></svg>
+        </button>
+        <!-- 4. Staff & Shifts -->
+        <button class="sidebar-nav-btn" data-view="adminShifts" onclick="window.mainApp.navigateTo('adminShifts')" title="4. Nhân Viên & Phân Ca">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        </button>
+        <!-- 5. Branches (NEW) -->
+        <button class="sidebar-nav-btn" data-view="adminBranches" onclick="window.mainApp.navigateTo('adminBranches')" title="5. Quản Lý Chi Nhánh Chuỗi">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        </button>
+        <!-- 6. Customers CRM (NEW) -->
+        <button class="sidebar-nav-btn" data-view="adminCustomers" onclick="window.mainApp.navigateTo('adminCustomers')" title="6. Khách Hàng & CRM">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </button>
+        <!-- 7. Inventory -->
+        <button class="sidebar-nav-btn" data-view="adminInventory" onclick="window.mainApp.navigateTo('adminInventory')" title="7. Quản Lý Kho Đa Chi Nhánh">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/></svg>
+        </button>
+        <!-- 8. Orders POS -->
+        <button class="sidebar-nav-btn" data-view="adminOrders" onclick="window.mainApp.navigateTo('adminOrders')" title="8. Đơn Bán Lẻ POS & Online">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+        </button>
+        <!-- 9. Promotions -->
+        <button class="sidebar-nav-btn" data-view="adminPromotions" onclick="window.mainApp.navigateTo('adminPromotions')" title="9. Khuyến Mãi & Voucher">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>
+        </button>
+        <!-- 10. AI Analytics (NEW) -->
+        <button class="sidebar-nav-btn" data-view="adminAiConsultations" onclick="window.mainApp.navigateTo('adminAiConsultations')" title="10. Thống Kê Tư Vấn AI">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+        </button>
+        <!-- 11. Audit Logs (NEW) -->
+        <button class="sidebar-nav-btn" data-view="adminAuditLogs" onclick="window.mainApp.navigateTo('adminAuditLogs')" title="11. Nhật Ký Kiểm Toán Audit Logs">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+        </button>
+      </div>
+
+      <!-- Bottom User Auth Action Button -->
+      <button class="sidebar-auth-bottom" id="sidebarAuthBtn" title="Tài Khoản / Đăng Nhập">
+        <div class="sidebar-avatar-icon">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
+        <span>Sign in</span>
+      </button>
+    </aside>
+
+    <!-- Main Viewport Area -->
+    <main class="main-viewport">
+      <!-- Top Sticky Header Control Strip -->
+      <header class="top-header-strip">
+        <div style="display: flex; align-items: center; gap: 14px; flex: 1;">
+          <!-- Active Branch Dropdown Selector (Shop Pill Design) -->
+          <div class="branch-select-pill">
+            <svg width="18" height="18" fill="var(--color-shop-violet)" viewBox="0 0 24 24">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+            <select id="headerBranchSelect" class="branch-select-dropdown" onchange="window.mainApp.handleBranchChange(this.value)">
+              <!-- Populated dynamically via store -->
+            </select>
+          </div>
+
+          <!-- Top Search Pill Container -->
+          <div class="search-pill-container">
+            <input type="text" class="search-input" id="topSearchInput" placeholder="Tìm kiếm cắt tóc nam, uốn con sâu, cạo râu, sáp pomade...">
+            <button class="search-submit-btn" onclick="window.mainApp.handleTopSearch()" title="Tìm kiếm">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <!-- Notification Bell Button -->
+          <button class="header-icon-btn" id="headerNotifBtn" title="Trung tâm thông báo & nhắc hẹn">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+            </svg>
+            <span class="badge-pill notif-badge" id="headerNotifBadge" style="display: none;">0</span>
+          </button>
+
+          <!-- User Profile Status Pill -->
+          <div class="user-status-pill" id="headerUserBtn">
+            <span>Đăng Nhập</span>
+          </div>
+
+          <!-- Mode Switcher Pill (Customer vs Admin) -->
+          <div class="mode-switcher-pill">
+            <button class="mode-pill-btn active" id="btnModeCustomer">Khách Hàng</button>
+            <button class="mode-pill-btn" id="btnModeAdmin">Quản Trị</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- ========================================================
+           CUSTOMER VIEWS
+           ======================================================== -->
+      <!-- Customer View 1: Main Discovery View (1:1 Shop Reference) -->
+      <div class="content-canvas view-panel" id="servicesView">
+        <!-- 1. Hero Constellation Stage (Dynamic rotating spotlight cards) -->
+        <div id="heroShopConstellation"></div>
+
+        <!-- 2. 4-Quadrant Category Mosaics Row -->
+        <div id="categoryMosaicsGrid"></div>
+
+        <!-- 3. Hair Models Showcase Section -->
+        <div class="catalog-section-header">
+          <h2 class="catalog-section-title">Bộ Sưu Tập Mẫu Tóc Hot Trend 2026</h2>
+          <span style="font-size: 13px; color: var(--color-muted-gray);">Lướt xem các mẫu đẹp nhất →</span>
+        </div>
+        <div class="hair-gallery-scroll" id="hairGalleryScroll"></div>
+
+        <!-- 4. Services Catalog Section -->
+        <div class="catalog-section-header" style="margin-top: 40px;">
+          <h2 class="catalog-section-title">Bảng Giá Dịch Vụ & Combo Ưu Đãi</h2>
+        </div>
+        <div class="cards-grid-3" id="servicesGrid"></div>
+      </div>
+
+      <!-- Customer View 2: Products Store View -->
+      <div class="content-canvas view-panel" id="productsView" style="display: none;">
+        <div class="catalog-section-header" style="margin-top: 20px;">
+          <div>
+            <h2 class="catalog-section-title">Cửa Hàng Mỹ Phẩm Tóc Chính Hãng</h2>
+            <div style="font-size:13px; color:var(--color-muted-gray); margin-top:4px;">Dầu gội, serum phục hồi, kem hấp và sáp vuốt tóc cao cấp nhập khẩu theo từng chi nhánh</div>
+          </div>
+        </div>
+        <div class="cards-grid-4" id="productsGrid"></div>
+      </div>
+
+      <!-- Customer View 3: AI Consultation & 3D Try-On Studio (Mục 3 Kiến trúc) -->
+      <div class="content-canvas view-panel" id="aiConsultationView" style="display: none;"></div>
+
+      <!-- Customer View 4: Customer My Bookings Management -->
+      <div class="content-canvas view-panel" id="myBookingsView" style="display: none;"></div>
+
+      <!-- Customer View 5: Customer Favorites -->
+      <div class="content-canvas view-panel" id="favoritesView" style="display: none;"></div>
+
+      <!-- ========================================================
+           ADMIN VIEWS (11 Modules)
+           ======================================================== -->
+      <!-- Admin 1: Dashboard KPI & Reports -->
+      <div class="content-canvas view-panel" id="adminDashboardView" style="display: none;"></div>
+
+      <!-- Admin 2: Bookings & Scheduling -->
+      <div class="content-canvas view-panel" id="adminBookingsView" style="display: none;"></div>
+
+      <!-- Admin 3: Services & Combos Pricing -->
+      <div class="content-canvas view-panel" id="adminServicesView" style="display: none;"></div>
+
+      <!-- Admin 4: Stylists & Shifts Scheduler -->
+      <div class="content-canvas view-panel" id="adminShiftsView" style="display: none;"></div>
+
+      <!-- Admin 5: Branches Management (NEW) -->
+      <div class="content-canvas view-panel" id="adminBranchesView" style="display: none;"></div>
+
+      <!-- Admin 6: Customers CRM (NEW) -->
+      <div class="content-canvas view-panel" id="adminCustomersView" style="display: none;"></div>
+
+      <!-- Admin 7: Inventory Management per Branch (UPGRADED) -->
+      <div class="content-canvas view-panel" id="adminInventoryView" style="display: none;"></div>
+
+      <!-- Admin 8: Retail Sales Orders (POS) -->
+      <div class="content-canvas view-panel" id="adminOrdersView" style="display: none;"></div>
+
+      <!-- Admin 9: Promotions & Vouchers -->
+      <div class="content-canvas view-panel" id="adminPromotionsView" style="display: none;"></div>
+
+      <!-- Admin 10: AI Consultation Statistics (NEW) -->
+      <div class="content-canvas view-panel" id="adminAiConsultationsView" style="display: none;"></div>
+
+      <!-- Admin 11: Audit Logs (NEW) -->
+      <div class="content-canvas view-panel" id="adminAuditLogsView" style="display: none;"></div>
+    </main>
+  </div>
+
+  <!-- Global Modal Dialog (Booking Wizard, Reschedule, Auth, Invoice) -->
+  <div class="modal-overlay" id="bookingModal">
+    <div class="modal-content">
+      <button class="modal-close-btn" id="closeBookingModalBtn" title="Đóng">✕</button>
+      <div id="bookingModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Slide-out Shopping Cart Drawer -->
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h3 style="font-size: 18px; font-weight: 700;">Giỏ Hàng Của Bạn</h3>
+      <button style="border:none; background:none; font-size:20px; cursor:pointer;" id="closeCartBtn">✕</button>
+    </div>
+    <div class="cart-items-list" id="cartItemsList"></div>
+    <div class="cart-footer">
+      <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 16px;">
+        <span>Tổng cộng:</span>
+        <span id="cartTotalAmount">0đ</span>
+      </div>
+      <button class="pill-btn" style="justify-content: center; width: 100%; font-size: 15px;" onclick="UICustomer.checkoutCart()">
+        Thanh Toán Ngay →
+      </button>
+    </div>
+  </div>
+
+  <!-- Slide-out Notifications Drawer -->
+  <div class="cart-drawer" id="notificationsDrawer">
+    <div class="cart-header">
+      <h3 style="font-size: 18px; font-weight: 700;">🔔 Trung Tâm Thông Báo</h3>
+      <button style="border:none; background:none; font-size:20px; cursor:pointer;" id="closeNotifBtn">✕</button>
+    </div>
+    <div style="padding: 10px 20px; border-bottom: 1px solid var(--color-faint-border); display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 12px; color: var(--color-muted-gray);">Cập nhật trạng thái lịch hẹn & ưu đãi</span>
+      <button class="pill-btn pill-btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="window.store.markAllNotificationsAsRead(); window.mainApp.renderNotifications();">
+        Đã đọc tất cả
+      </button>
+    </div>
+    <div class="cart-items-list" id="notificationsList" style="padding: 12px 16px;"></div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Three.js 3D WebGL Library for Ultra-Realistic AI Try-On Studio -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Core JavaScript Architecture Modules with Cache Busting -->
+  <script src="js/data.js?v=5.3"></script>
+  <script src="js/store.js?v=5.3"></script>
+  <script src="js/ui-customer.js?v=5.3"></script>
+  <script src="js/ui-admin.js?v=5.3"></script>
+  <script src="js/main.js?v=5.3"></script>
+</body>
+</html>

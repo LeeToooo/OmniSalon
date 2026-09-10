@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D Photorealistic Head Test</title>
+  <style>
+    body { margin: 0; background: #0f1117; overflow: hidden; }
+    canvas { width: 100vw; height: 100vh; display: block; }
+    #info { position: absolute; top: 10px; left: 10px; color: #fff; font-family: sans-serif; font-size: 14px; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div id="info">Testing LeePerrySmith 3D Realistic Head</div>
+  <canvas id="c"></canvas>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/GLTFLoader.js"></script>
+  <script>
+    const canvas = document.getElementById('c');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f1117);
+
+    const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 50);
+    camera.position.set(0, 0.2, 3.2);
+
+    // Studio Lighting
+    const amb = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(amb);
+    const key = new THREE.DirectionalLight(0xfffaed, 2.0);
+    key.position.set(2, 3, 3);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xa5c9eb, 1.2);
+    fill.position.set(-2.5, 0.5, 2);
+    scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xffffff, 2.5);
+    rim.position.set(0, 3, -3);
+    scene.add(rim);
+
+    const loader = new THREE.GLTFLoader();
+    const texLoader = new THREE.TextureLoader();
+    const skinTex = texLoader.load('textures/head-skin.jpg');
+
+    let headMesh = null;
+    const modelGroup = new THREE.Group();
+    scene.add(modelGroup);
+
+    const hairGroup = new THREE.Group();
+    modelGroup.add(hairGroup);
+
+    const beardGroup = new THREE.Group();
+    modelGroup.add(beardGroup);
+
+    // Hair material
+    const hairMat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color('#221711'),
+      roughness: 0.38,
+      metalness: 0.22,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.25,
+      side: THREE.DoubleSide
+    });
+
+    loader.load('models/head.glb', (gltf) => {
+      const mesh = gltf.scene.getObjectByName('LeePerrySmith');
+      if (mesh) {
+        mesh.material = new THREE.MeshPhysicalMaterial({
+          map: skinTex,
+          roughness: 0.58,
+          metalness: 0.04,
+          clearcoat: 0.12,
+          clearcoatRoughness: 0.4
+        });
+        mesh.scale.set(0.18, 0.18, 0.18);
+        mesh.position.set(0, 0, 0);
+        modelGroup.add(mesh);
+        headMesh = modelGroup;
+        
+        buildTestHair();
+        document.getElementById('info').textContent = 'Head & Hair loaded successfully!';
+      }
+    });
+
+    function buildTestHair() {
+      // 1. Scalp cap base fitted to skull (Top y: 0.72, Hairline y: 0.36)
+      const scalpGeo = new THREE.SphereGeometry(0.29, 32, 24, 0, Math.PI * 2, 0, Math.PI * 0.54);
+      scalpGeo.scale(0.96, 0.78, 1.05);
+      const scalpMesh = new THREE.Mesh(scalpGeo, hairMat);
+      scalpMesh.position.set(0, 0.48, -0.02);
+      hairGroup.add(scalpMesh);
+
+      // 2. Realistic Pompadour Volume Crest
+      for (let i = -10; i <= 10; i++) {
+        const t = i / 10;
+        const x = t * 0.22;
+        const crestHeight = (1 - t * t) * 0.14;
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(x * 0.75, 0.38 + crestHeight * 0.2, 0.32),
+          new THREE.Vector3(x * 0.88, 0.58 + crestHeight, 0.24),
+          new THREE.Vector3(x * 0.95, 0.64 + crestHeight * 0.7, 0.02),
+          new THREE.Vector3(x * 0.90, 0.56 + crestHeight * 0.3, -0.18),
+          new THREE.Vector3(x * 0.75, 0.42, -0.32)
+        ]);
+        const tubeGeo = new THREE.TubeGeometry(curve, 18, 0.022 + (1 - t * t) * 0.014, 8, false);
+        hairGroup.add(new THREE.Mesh(tubeGeo, hairMat));
+      }
+
+      // 3. Natural temple & sideburn fade
+      [-1, 1].forEach(side => {
+        for (let j = 0; j < 3; j++) {
+          const sideCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(side * (0.24 + j * 0.02), 0.42, 0.20 - j * 0.08),
+            new THREE.Vector3(side * (0.27 + j * 0.02), 0.32, 0.10 - j * 0.08),
+            new THREE.Vector3(side * (0.28 + j * 0.02), 0.20, -0.02 - j * 0.08)
+          ]);
+          const sideTube = new THREE.TubeGeometry(sideCurve, 12, 0.018, 6, false);
+          hairGroup.add(new THREE.Mesh(sideTube, hairMat));
+        }
+      });
+    }
+
+    let isDown = false, px = 0, py = 0, ry = 0, rx = 0;
+    window.addEventListener('mousedown', e => { isDown = true; px = e.clientX; py = e.clientY; });
+    window.addEventListener('mousemove', e => {
+      if (!isDown || !headMesh) return;
+      ry += (e.clientX - px) * 0.01;
+      rx += (e.clientY - py) * 0.01;
+      px = e.clientX; py = e.clientY;
+      headMesh.rotation.y = ry;
+      headMesh.rotation.x = rx;
+    });
+    window.addEventListener('mouseup', () => isDown = false);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (headMesh && !isDown) {
+        headMesh.rotation.y += 0.005;
+      }
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
