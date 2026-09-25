@@ -1,0 +1,26 @@
+{
+  "appId": "com.omnisalon.barbershop",
+  "appName": "4RAU Barbershop",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#121214",
+      "showSpinner": true,
+      "spinnerColor": "#c85a44"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#121214"
+    }
+  }
+}

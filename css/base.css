@@ -1,0 +1,88 @@
+/* =========================================================================
+   OmniSalon / 4RAU Barbershop — MASTER STYLESHEET
+   100% Khớp Thiết Kế Ảnh Mẫu ngon.png & Ứng Dụng Android CH Play
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  /* ── Bảng màu chuẩn ảnh ngon.png ── */
+  --color-terracotta: #c85a44;       /* Màu nút ĐẶT LỊCH và giá tiền đỏ */
+  --color-terracotta-dark: #b04632;
+  --color-brown-leather: #6e4c36;     /* Màu nút MUA SẮM */
+  --color-brown-dark: #583c2a;
+  --color-ink-black: #111111;         /* Màu đen chuẩn chữ & nút XEM THÊM */
+  --color-pure-white: #ffffff;
+  --color-bg-gray: #f7f7f8;
+  --color-border-faint: #e5e5e5;
+  --color-text-muted: #737373;
+  --color-branch-pill: #8a8d8c;       /* Màu xám nút chi nhánh ngon.png */
+  --color-branch-pill-hover: #6c6f6e;
+  --color-collab-gray: #888888;       /* Màu hộp hợp tác thương hiệu */
+  --color-footer-bg: #111111;
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* ── Shadows & Radius ── */
+  --radius-pill: 9999px;
+  --radius-card: 8px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #ffffff;
+  color: var(--color-ink-black);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+

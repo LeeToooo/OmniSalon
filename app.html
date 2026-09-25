@@ -2,12 +2,14 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4RAU Barbershop — Hệ Thống Chuỗi Cắt Tóc Nam Chuyên Nghiệp & AI Photo Restyle Vision</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>4RAU Barbershop Mobile App — Đặt Lịch & AI Đổi Kiểu Tóc</title>
   
-  <!-- SEO & Social Meta Tags -->
-  <meta name="description" content="Chuỗi Barbershop 4RAU phong cách đường phố và underground. Đặt lịch cắt tóc toàn quốc, cạo khăn nóng, uốn con sâu, sáp Brosh chính hãng và công nghệ đổi kiểu tóc AI bằng ảnh thật.">
-  <meta name="theme-color" content="#c85a44">
+  <!-- SEO & Mobile Web App Meta -->
+  <meta name="description" content="Ứng dụng di động chính thức của chuỗi 4RAU Barbershop. Đặt lịch cắt tóc theo chi nhánh, thử kiểu tóc AI bằng ảnh thật, mua sáp vuốt tóc chính hãng.">
+  <meta name="theme-color" content="#121214">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23c85a44'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='32'>4R</text></svg>">
 
@@ -16,42 +18,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Master Stylesheet (Giao diện Web Hiện Đại, Glassmorphism & Micro-animations) -->
+  <!-- Master Stylesheet -->
   <link rel="stylesheet" href="styles.css?v=11.0">
 </head>
-<body>
+<body class="mobile-app-body">
 
-  <!-- ========================================================
-       1. THANH THÔNG BÁO TẢI APP MOBILE & CHUỖI HỆ THỐNG
-       ======================================================== -->
-  <div class="web-top-announcement-bar">
-    <div class="announcement-inner">
-      <div class="announcement-left">
-        <span class="announcement-badge">HOT</span>
-        <span>HỆ THỐNG 18+ CHI NHÁNH 4RAU TOÀN QUỐC • TỔNG ĐÀI ĐẶT LỊCH: <strong style="color: #ff9d88;">1900 4407</strong></span>
-      </div>
-      <div class="announcement-actions">
-        <a href="app.html" class="link-open-mobile-app" target="_blank" title="Mở bản giao diện di động">
-          📱 Mở Bản Mobile App
-        </a>
-        <a href="HUONG_DAN_CAI_DAT_DATABASE_VA_BUILD_APP.md" target="_blank" class="link-dev-docs" title="Xem cẩm nang hướng dẫn">
-          📘 Cẩm Nang Cài Đặt & Build App
-        </a>
-      </div>
-    </div>
+  <!-- THANH BÁO XEM THỬ MOBILE TRÊN MÁY TÍNH (ẨN TRÊN ĐIỆN THOẠI) -->
+  <div class="app-desktop-preview-bar">
+    <span>📱 <strong>4RAU Mobile App</strong> (Bản xem trước di động)</span>
+    <a href="index.html">🌐 Mở Bản Web Desktop →</a>
   </div>
 
-  <!-- ========================================================
-       2. NỀN TẢNG BẢN WEB (DESKTOP & RESPONSIVE PORTAL)
-       ======================================================== -->
-  <div id="webPlatformSection">
-    <div id="webHeaderContainer"></div>
-    <main id="webMainContainer"></main>
-  </div>
+  <!-- NỀN TẢNG MOBILE NATIVE (TỰ ĐỘNG FULL MÀN HÌNH KHI MỞ TRÊN ĐIỆN THOẠI HOẶC APP APK) -->
+  <div id="appMobileContainer" class="mobile-app-standalone-container"></div>
 
-  <!-- ========================================================
-       3. GLOBAL MODAL DIALOG (BOOKING WIZARD, AI PHOTO RESTYLE, AUTH)
-       ======================================================== -->
+  <!-- GLOBAL MODAL DIALOG (BOOKING, AI STUDIO, AUTH) -->
   <div class="modal-overlay" id="globalModal">
     <div class="modal-content-shell">
       <button class="modal-close-icon-btn" onclick="UICommon.closeGlobalModal()" title="Đóng">✕</button>
@@ -59,9 +40,7 @@
     </div>
   </div>
 
-  <!-- ========================================================
-       4. SHOPPING CART DRAWER (GIỎ HÀNG)
-       ======================================================== -->
+  <!-- SHOPPING CART DRAWER / BOTTOM SHEET -->
   <div class="cart-drawer-shell" id="cartDrawer">
     <div class="cart-drawer-header">
       <h3 style="font-size: 16px; font-weight: 800; text-transform: uppercase;">Giỏ Hàng Của Bạn</h3>
@@ -79,9 +58,7 @@
     </div>
   </div>
 
-  <!-- ========================================================
-       5. HỆ THỐNG TOAST NOTIFICATIONS
-       ======================================================== -->
+  <!-- TOAST NOTIFICATIONS -->
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- ========================================================
@@ -91,19 +68,19 @@
        3. js/core/store.js        -> Reactive State Engine, Đặt lịch, Giỏ hàng, POS
        4. js/core/api.js          -> Tầng API REST & AI Vision Service
        5. js/components/ui-common.js -> UI chung (Product cards, Booking wizard, Cart)
-       6. js/web/ui-web.js        -> Giao diện Web Portal & Trung tâm Quản trị Admin
+       6. js/app/ui-app.js        -> Giao diện Mobile App (5 Tabs, AI Studio, Profile)
        ======================================================== -->
   <script src="js/core/data.js?v=11.0"></script>
   <script src="js/core/utils.js?v=11.0"></script>
   <script src="js/core/store.js?v=11.0"></script>
   <script src="js/core/api.js?v=11.0"></script>
   <script src="js/components/ui-common.js?v=11.0"></script>
-  <script src="js/web/ui-web.js?v=11.0"></script>
+  <script src="js/app/ui-app.js?v=11.0"></script>
 
-  <!-- Khởi động giao diện Web Portal -->
+  <!-- Khởi chạy trực tiếp bản Mobile App -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      UIWeb.init();
+      UIApp.init();
     });
   </script>
 </body>
