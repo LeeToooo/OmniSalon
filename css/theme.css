@@ -1,0 +1,1443 @@
+/* =========================================================================
+   Omni Salon — CENTRALIZED THEME SYSTEM (DARK & LIGHT MODES)
+   Nordic Minimalist Luxury Edition
+   - Dark Mode: Obsidian Gold (#0B0D13 / #131722 / #D4AF37)
+   - Light Mode: Nordic Clean Cream (#F8F9FA / #FFFFFF / #C59B27)
+   Tuân thủ: .antigravity/rules/04_refactor.md, 07_ponytail.md
+   ========================================================================= */
+
+/* ── 1. DARK MODE (Obsidian Gold - Default) ── */
+:root,
+[data-theme="dark"] {
+  /* Core Semantic Palette (WCAG AAA High-Contrast Edition) */
+  --bg-primary: #0B0D13;
+  /* Nền siêu tối sâu thẳm #0B0D13 (Obsidian Black) */
+  --surface-card: #131722;
+  /* Bề mặt Card Than Tuyền Sâu Thẳm #131722 */
+  --surface-elevated: #161A26;
+  /* Thẻ nổi / Modal / Drawer #161A26 */
+  --border-color: rgba(212, 175, 55, 0.15);
+  /* Viền kính ánh vàng siêu mỏng */
+  --text-primary: #FFFFFF;
+  /* Tiêu đề trắng tuyết #FFFFFF thuần khiết, sắc sảo */
+  --text-secondary: #CBD5E1;
+  /* Mô tả Light Slate sáng rõ #CBD5E1, không mờ đục */
+  --brand-accent: #D4AF37;
+  /* Vàng Champagne kim loại rực rỡ #D4AF37 */
+  --brand-accent-hover: #D97706;
+  /* Hover Vàng Champagne #D97706 */
+  --brand-accent-gold: #E5B869;
+  /* Vàng Champagne Gold #E5B869 */
+  --brand-accent-subtle: rgba(245, 158, 11, 0.15);
+  --brand-accent-border: rgba(245, 158, 11, 0.45);
+  --input-bg: #141722;
+  /* Nền input #141722 */
+  --input-border: rgba(255, 255, 255, 0.15);
+
+  /* Status Colors */
+  --color-status-emerald: #10B981;
+  /* Xanh Emerald (Slot trống) */
+  --color-status-rose: #F43F5E;
+  /* Đỏ Rose (Slot kín) */
+  --color-success: #10B981;
+  --color-danger: #F43F5E;
+
+  /* Shadows */
+  --theme-shadow-card: 0 8px 28px rgba(0, 0, 0, 0.6);
+  --theme-shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.75);
+  --theme-shadow-glow: 0 0 24px rgba(245, 158, 11, 0.35);
+
+  /* Legacy & Existing Tokens Aliases */
+  --color-bg-obsidian: var(--bg-primary);
+  --color-bg-onyx: var(--bg-primary);
+  --color-bg-deep-slate: #0B0D13;
+  --color-surface-navy: var(--surface-card);
+  --color-surface-card: var(--surface-card);
+  --color-surface-card-hover: #161A28;
+  --color-surface-container-high: var(--surface-elevated);
+  --color-border-glass: var(--border-color);
+  --color-border-thin: rgba(255, 255, 255, 0.12);
+  --color-border-hover: rgba(245, 158, 11, 0.55);
+  --color-border-gold-glow: rgba(245, 158, 11, 0.7);
+  --color-accent-gold: var(--brand-accent);
+  --color-accent-champagne: var(--brand-accent);
+  --color-accent-silver: #CBD5E1;
+  --color-text-white: #FFFFFF;
+  --color-text-muted: var(--text-secondary);
+  --color-terracotta: var(--brand-accent);
+  --color-terracotta-dark: var(--brand-accent-hover);
+  --color-brown-leather: #10131C;
+  --color-brown-dark: #10131C;
+  --color-footer-bg: #050608;
+  --theme-toggle-icon: '🌙';
+}
+
+/* ── 2. LIGHT MODE (Nordic Clean Cream) ── */
+[data-theme="light"],
+html.light,
+body.light {
+  /* Core Semantic Palette */
+  --bg-primary: #F8F9FA;
+  /* Trắng kem ngà, không chói mắt */
+  --surface-card: #FFFFFF;
+  /* Bề mặt thẻ trắng thuần khiết */
+  --surface-elevated: #F1F3F5;
+  /* Thẻ nổi / Modal / Drawer xám nhạt */
+  --border-color: rgba(0, 0, 0, 0.08);
+  /* Viền mỏng 1px đen mờ */
+  --text-primary: #111827;
+  /* Đen than cao cấp #111827 */
+  --text-secondary: #64748B;
+  /* Mô tả xám thanh nhã #64748B */
+  --brand-accent: #C59B27;
+  /* Vàng Champagne đậm / Bronze Luxury */
+  --brand-accent-hover: #B48D20;
+  /* Hover Vàng Champagne đậm */
+  --brand-accent-subtle: rgba(197, 155, 39, 0.12);
+  --brand-accent-border: rgba(197, 155, 39, 0.35);
+  --input-bg: #FFFFFF;
+  /* Nền input trắng */
+  --input-border: rgba(0, 0, 0, 0.15);
+
+  /* Status Colors */
+  --color-status-emerald: #059669;
+  /* Xanh Emerald dịu mắt */
+  --color-status-rose: #E11D48;
+  /* Đỏ Rose chuẩn tương phản */
+  --color-success: #059669;
+  --color-danger: #E11D48;
+
+  /* Shadows */
+  --theme-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --theme-shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.10);
+  --theme-shadow-glow: 0 0 18px rgba(197, 155, 39, 0.22);
+
+  /* Legacy & Existing Tokens Aliases */
+  --color-bg-obsidian: var(--bg-primary);
+  --color-bg-onyx: var(--bg-primary);
+  --color-surface-navy: var(--surface-card);
+  --color-surface-card: var(--surface-card);
+  --color-surface-card-hover: #F3F4F6;
+  --color-surface-container-high: var(--surface-elevated);
+  --color-border-glass: var(--border-color);
+  --color-border-thin: rgba(0, 0, 0, 0.08);
+  --color-border-hover: rgba(197, 155, 39, 0.45);
+  --color-border-gold-glow: rgba(197, 155, 39, 0.5);
+  --color-accent-gold: var(--brand-accent);
+  --color-accent-champagne: var(--brand-accent);
+  --color-accent-silver: #475569;
+  --color-text-white: var(--text-primary);
+  --color-text-muted: var(--text-secondary);
+  --color-terracotta: var(--brand-accent);
+  --color-terracotta-dark: var(--brand-accent-hover);
+  --color-brown-leather: #F1F3F5;
+  --color-brown-dark: #E2E8F0;
+  --color-footer-bg: #EAECEF;
+  --theme-toggle-icon: '☀️';
+}
+
+/* ── 3. SMOOTH THEME TRANSITION (Không chớp giật màn hình) ── */
+html,
+body,
+header,
+footer,
+nav,
+section,
+main,
+aside,
+button,
+input,
+select,
+textarea,
+.interactive-card,
+.md3-service-card,
+.md3-stylist-card,
+.admin-kpi-card-rich,
+.admin-table-container,
+.modal-content-shell,
+.cart-drawer-shell,
+.staff-card,
+.android-phone-outer,
+.android-screen-surface,
+.android-top-app-bar,
+.android-bottom-nav,
+.android-scroll-content,
+.web-main-header,
+.announcement-bar,
+.hero-magazine-container,
+.booking-wizard-shell,
+.ai-studio-shell,
+.shop-product-card,
+.admin-full-wrapper,
+.admin-hub-header {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* ── 4. THEME TOGGLE SWITCH BUTTON STYLING ── */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--theme-shadow-card);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, background-color 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.06);
+  border-color: var(--brand-accent);
+  box-shadow: var(--theme-shadow-glow);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.94);
+}
+
+.theme-toggle-btn .theme-icon {
+  font-size: 17px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+/* Biểu tượng hiển thị theo Theme */
+[data-theme="dark"] .theme-toggle-btn .icon-moon {
+  display: inline-block;
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+[data-theme="dark"] .theme-toggle-btn .icon-sun {
+  display: none;
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
+[data-theme="light"] .theme-toggle-btn .icon-moon {
+  display: none;
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+[data-theme="light"] .theme-toggle-btn .icon-sun {
+  display: inline-block;
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  color: #D97706;
+}
+
+/* Theme Switcher Row (Trong Profile / Settings Mobile App) */
+.theme-switcher-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--theme-shadow-card);
+}
+
+.theme-switcher-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-switcher-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--brand-accent-subtle);
+  color: var(--brand-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.theme-switcher-text-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.theme-switcher-text-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Segmented Theme Switch Tabs */
+.theme-segmented-ctrl {
+  display: inline-flex;
+  background: var(--surface-elevated);
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  gap: 2px;
+}
+
+.theme-segment-btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.theme-segment-btn.active {
+  background: var(--surface-card);
+  color: var(--brand-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* ── 5. LIGHT MODE COMPONENT ADAPTATIONS ── */
+:root.light,
+html.light,
+body.light,
+[data-theme="light"] {
+  --bg-primary: #F8F9FA;
+  --surface-card: #FFFFFF;
+  --surface-elevated: #F1F5F9;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --text-primary: #111827;
+  --text-secondary: #475569;
+  --brand-accent: #C59B27;
+  --brand-accent-hover: #B48D20;
+}
+
+html.light body,
+body.light,
+[data-theme="light"] body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light #webPlatformSection,
+html.light #webMainContainer,
+html.light .home-page-dark-shell,
+html.light .page-view,
+body.light #webPlatformSection,
+body.light #webMainContainer,
+body.light .home-page-dark-shell,
+body.light .page-view,
+[data-theme="light"] #webPlatformSection,
+[data-theme="light"] #webMainContainer,
+[data-theme="light"] .home-page-dark-shell,
+[data-theme="light"] .page-view {
+  background-color: #F8F9FA !important;
+  color: #111827 !important;
+}
+
+/* Light Mode Navbar */
+html.light .web-main-header,
+body.light .web-main-header,
+[data-theme="light"] .web-main-header {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+html.light .logo-text-omni,
+body.light .logo-text-omni,
+[data-theme="light"] .logo-text-omni {
+  color: #0F172A !important;
+}
+
+html.light .nav-link,
+body.light .nav-link,
+[data-theme="light"] .nav-link {
+  color: #334155 !important;
+}
+
+html.light .nav-link:hover,
+html.light .nav-link.active,
+body.light .nav-link:hover,
+body.light .nav-link.active,
+[data-theme="light"] .nav-link:hover,
+[data-theme="light"] .nav-link.active {
+  color: #D97706 !important;
+}
+
+html.light .web-search-box-wrap,
+body.light .web-search-box-wrap,
+[data-theme="light"] .web-search-box-wrap {
+  background: #F1F5F9 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .web-search-input,
+body.light .web-search-input,
+[data-theme="light"] .web-search-input {
+  background: transparent !important;
+  color: #0F172A !important;
+}
+
+/* Light Mode Cards: ServiceCard, StylistCard, BranchCard, BentoCard */
+html.light .service-card-item,
+html.light .stylist-nordic-card,
+html.light .service-bento-card,
+html.light .product-nordic-card,
+html.light .branch-card,
+html.light .booking-service-card,
+html.light .service-select-card,
+body.light .service-card-item,
+body.light .stylist-nordic-card,
+body.light .service-bento-card,
+body.light .product-nordic-card,
+body.light .branch-card,
+body.light .booking-service-card,
+body.light .service-select-card,
+[data-theme="light"] .service-card-item,
+[data-theme="light"] .stylist-nordic-card,
+[data-theme="light"] .service-bento-card,
+[data-theme="light"] .product-nordic-card,
+[data-theme="light"] .branch-card,
+[data-theme="light"] .booking-service-card,
+[data-theme="light"] .service-select-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .service-card-body,
+html.light .service-bento-body,
+body.light .service-card-body,
+body.light .service-bento-body,
+[data-theme="light"] .service-card-body,
+[data-theme="light"] .service-bento-body {
+  background: #FFFFFF !important;
+}
+
+html.light .service-card-title,
+html.light .stylist-name,
+html.light .service-bento-title,
+html.light .nordic-hero-title,
+html.light .section-title-clean,
+html.light h1:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+html.light h2:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+html.light h3:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-card-title),
+html.light h4:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+body.light .service-card-title,
+body.light .stylist-name,
+body.light .service-bento-title,
+body.light .nordic-hero-title,
+body.light .section-title-clean,
+body.light h1:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+body.light h2:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+body.light h3:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-card-title),
+body.light h4:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+[data-theme="light"] .service-card-title,
+[data-theme="light"] .stylist-name,
+[data-theme="light"] .service-bento-title,
+[data-theme="light"] .nordic-hero-title,
+[data-theme="light"] .section-title-clean,
+[data-theme="light"] h1:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+[data-theme="light"] h2:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+[data-theme="light"] h3:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-card-title),
+[data-theme="light"] h4:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *) {
+  color: #0F172A !important;
+}
+
+html.light .service-card-desc,
+html.light .service-bento-desc,
+html.light .nordic-hero-tagline,
+html.light p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-address-text),
+body.light .service-card-desc,
+body.light .service-bento-desc,
+body.light .nordic-hero-tagline,
+body.light p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-address-text),
+[data-theme="light"] .service-card-desc,
+[data-theme="light"] .service-bento-desc,
+[data-theme="light"] .nordic-hero-tagline,
+[data-theme="light"] p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-address-text) {
+  color: #475569 !important;
+}
+
+/* Explicit high-contrast preservation on dark surfaces */
+html.light .card-3d-tilt h3,
+html.light .hero-showcase-title,
+html.light .hero-visual-card h3,
+html.light .text-white,
+body.light .text-white,
+[data-theme="light"] .text-white {
+  color: #FFFFFF !important;
+}
+
+html.light .card-3d-tilt h3.text-amber-400,
+html.light .branch-card-title,
+html.light .text-amber-400,
+body.light .text-amber-400,
+[data-theme="light"] .text-amber-400 {
+  color: #F59E0B !important;
+}
+
+html.light .card-3d-tilt p,
+html.light .hero-showcase-desc,
+html.light .text-slate-300,
+body.light .text-slate-300,
+[data-theme="light"] .text-slate-300 {
+  color: #CBD5E1 !important;
+}
+
+html.light .branch-address-text,
+html.light .text-slate-200,
+body.light .text-slate-200,
+[data-theme="light"] .text-slate-200 {
+  color: #E2E8F0 !important;
+}
+
+html.light .nordic-btn-secondary,
+body.light .nordic-btn-secondary,
+[data-theme="light"] .nordic-btn-secondary {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+  border: 1px solid rgba(217, 119, 6, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+html.light .nordic-btn-secondary:hover,
+body.light .nordic-btn-secondary:hover,
+[data-theme="light"] .nordic-btn-secondary:hover {
+  background: #E2E8F0 !important;
+  border-color: #D97706 !important;
+  color: #0F172A !important;
+}
+
+html.light .theme-toggle-btn,
+body.light .theme-toggle-btn,
+[data-theme="light"] .theme-toggle-btn {
+  background: #F1F5F9 !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: #D97706 !important;
+}
+
+html.light .nordic-metrics-strip,
+body.light .nordic-metrics-strip,
+[data-theme="light"] .nordic-metrics-strip {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light .nordic-metric-value,
+body.light .nordic-metric-value,
+[data-theme="light"] .nordic-metric-value {
+  color: #D97706 !important;
+}
+
+html.light .nordic-metric-label,
+body.light .nordic-metric-label,
+[data-theme="light"] .nordic-metric-label {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .announcement-bar {
+  background: #111827;
+  color: #F8F9FA;
+}
+
+[data-theme="light"] .hero-magazine-container {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F1F3F5 100%);
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .hero-tagline,
+[data-theme="light"] .hero-title-main {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .hero-desc {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .header-lookup-btn,
+[data-theme="light"] .header-branch-pill,
+[data-theme="light"] .header-user-btn,
+[data-theme="light"] .header-action-btn {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .header-search-input {
+  background: #FFFFFF;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .md3-service-card,
+[data-theme="light"] .md3-stylist-card,
+[data-theme="light"] .interactive-card,
+[data-theme="light"] .product-shop-card,
+[data-theme="light"] .admin-kpi-card-rich,
+[data-theme="light"] .admin-table-container,
+[data-theme="light"] .staff-card,
+[data-theme="light"] .branch-luxury-card {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  box-shadow: var(--theme-shadow-card);
+}
+
+[data-theme="light"] .md3-service-card:hover,
+[data-theme="light"] .md3-stylist-card:hover {
+  background: #FFFFFF;
+  border-color: var(--brand-accent);
+}
+
+[data-theme="light"] .kpi-label-text,
+[data-theme="light"] .kpi-sub-detail,
+[data-theme="light"] .service-desc,
+[data-theme="light"] .stylist-specialty-tag {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .kpi-big-value,
+[data-theme="light"] .service-title,
+[data-theme="light"] .stylist-name {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .modal-content-shell {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  box-shadow: var(--theme-shadow-elevated);
+}
+
+[data-theme="light"] .cart-drawer-shell {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  box-shadow: var(--theme-shadow-elevated);
+}
+
+[data-theme="light"] .android-phone-outer {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .android-screen-surface {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .android-top-app-bar,
+[data-theme="light"] .android-bottom-nav {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .bottom-nav-item {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .bottom-nav-item.active {
+  color: var(--brand-accent);
+}
+
+[data-theme="light"] .digital-invoice-card {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .member-vip-card {
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .shimmer-wave,
+[data-theme="light"] .md3-shimmer {
+  background: linear-gradient(90deg, #E2E8F0 20%, #CBD5E1 50%, #E2E8F0 80%) !important;
+  background-size: 200% 100% !important;
+}
+
+/* ── 6. BOOKING WIZARD & AI STUDIO LIGHT/DARK CONTRAST FIX (WCAG AAA) ── */
+.booking-step-title {
+  color: #FFFFFF !important;
+}
+
+.booking-step-subtitle {
+  color: #CBD5E1 !important;
+}
+
+html.light .booking-step-panel,
+body.light .booking-step-panel,
+[data-theme="light"] .booking-step-panel {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .booking-step-title,
+body.light .booking-step-title,
+[data-theme="light"] .booking-step-title {
+  color: #0F172A !important;
+}
+
+html.light .booking-step-subtitle,
+body.light .booking-step-subtitle,
+[data-theme="light"] .booking-step-subtitle {
+  color: #334155 !important;
+}
+
+html.light .glass-digital-receipt,
+body.light .glass-digital-receipt,
+[data-theme="light"] .glass-digital-receipt {
+  background: #FFFFFF !important;
+  border: 1.5px solid rgba(197, 155, 39, 0.4) !important;
+}
+
+html.light .glass-digital-receipt .digital-receipt-row .label,
+body.light .glass-digital-receipt .digital-receipt-row .label,
+[data-theme="light"] .glass-digital-receipt .digital-receipt-row .label {
+  color: #475569 !important;
+}
+
+html.light .glass-digital-receipt .digital-receipt-row .value,
+body.light .glass-digital-receipt .digital-receipt-row .value,
+[data-theme="light"] .glass-digital-receipt .digital-receipt-row .value {
+  color: #0F172A !important;
+}
+
+html.light .booking-stylist-option-card,
+body.light .booking-stylist-option-card,
+[data-theme="light"] .booking-stylist-option-card {
+  background: #F8FAFC !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .booking-stylist-option-card h4,
+body.light .booking-stylist-option-card h4,
+[data-theme="light"] .booking-stylist-option-card h4 {
+  color: #0F172A !important;
+}
+
+html.light .booking-stylist-item-card,
+body.light .booking-stylist-item-card,
+[data-theme="light"] .booking-stylist-item-card {
+  background: #FFFFFF !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html.light .booking-stylist-item-card h4,
+body.light .booking-stylist-item-card h4,
+[data-theme="light"] .booking-stylist-item-card h4 {
+  color: #0F172A !important;
+}
+
+html.light .booking-date-item-card,
+body.light .booking-date-item-card,
+[data-theme="light"] .booking-date-item-card {
+  background: #F8FAFC !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .booking-date-item-card span,
+body.light .booking-date-item-card span,
+[data-theme="light"] .booking-date-item-card span {
+  color: #0F172A !important;
+}
+
+html.light .booking-payment-toggle-btn,
+body.light .booking-payment-toggle-btn,
+[data-theme="light"] .booking-payment-toggle-btn {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Secondary CTA Buttons on Light Mode: Nền sáng chữ đậm nét #0F172A */
+html.light .nordic-btn-secondary,
+html.light .hero-cta-secondary,
+body.light .nordic-btn-secondary,
+body.light .hero-cta-secondary,
+[data-theme="light"] .nordic-btn-secondary,
+[data-theme="light"] .hero-cta-secondary {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1.5px solid #CBD5E1 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  font-weight: 700 !important;
+}
+
+html.light .nordic-btn-secondary:hover,
+html.light .hero-cta-secondary:hover,
+body.light .nordic-btn-secondary:hover,
+body.light .hero-cta-secondary:hover,
+[data-theme="light"] .nordic-btn-secondary:hover,
+[data-theme="light"] .hero-cta-secondary:hover {
+  background: #F1F5F9 !important;
+  color: #D97706 !important;
+  border-color: #D97706 !important;
+}
+
+/* AI Studio Surface Contrast Preserved across all modes */
+html.light .ai-studio-panel,
+body.light .ai-studio-panel,
+[data-theme="light"] .ai-studio-panel {
+  background: #10131C !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.light .ai-studio-panel strong,
+body.light .ai-studio-panel strong,
+[data-theme="light"] .ai-studio-panel strong {
+  color: #FFFFFF !important;
+}
+
+html.light .ai-studio-panel .nordic-pill-tab {
+  background: #161B26 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.light .ai-studio-panel .nordic-pill-tab.active {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: #F59E0B !important;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   LIGHT & DARK MODE EXPLICIT COMPONENT CONTRAST GUARDS
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* 1. Services Bento Grid Cards & Titles */
+[data-theme="light"] .service-bento-card,
+html.light .service-bento-card,
+body.light .service-bento-card,
+[data-theme="light"] .service-bento-body,
+html.light .service-bento-body,
+body.light .service-bento-body {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .service-bento-title,
+html.light .service-bento-title,
+body.light .service-bento-title,
+[data-theme="light"] h3.service-bento-title,
+html.light h3.service-bento-title,
+body.light h3.service-bento-title {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .service-bento-desc,
+html.light .service-bento-desc,
+body.light .service-bento-desc {
+  color: #475569 !important;
+}
+
+/* 2. Stylists Nordic Cards & Names */
+[data-theme="light"] .stylist-nordic-card,
+html.light .stylist-nordic-card,
+body.light .stylist-nordic-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .stylist-name,
+html.light .stylist-name,
+body.light .stylist-name,
+[data-theme="light"] h3.stylist-name,
+html.light h3.stylist-name,
+body.light h3.stylist-name,
+[data-theme="light"] .stylist-nordic-card h3,
+html.light .stylist-nordic-card h3,
+body.light .stylist-nordic-card h3 {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .stylist-role,
+html.light .stylist-role,
+body.light .stylist-role {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] .stylist-rating-row,
+html.light .stylist-rating-row,
+body.light .stylist-rating-row {
+  background: #F8FAFC !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .stylist-pill-tag,
+html.light .stylist-pill-tag,
+body.light .stylist-pill-tag {
+  background: #F1F5F9 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #334155 !important;
+}
+
+/* 3. Shop Product Nordic Cards & Titles */
+[data-theme="light"] .product-nordic-card,
+html.light .product-nordic-card,
+body.light .product-nordic-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .product-card-title,
+html.light .product-card-title,
+body.light .product-card-title,
+[data-theme="light"] .product-nordic-card h3,
+html.light .product-nordic-card h3,
+body.light .product-nordic-card h3,
+[data-theme="light"] .product-nordic-card h4,
+html.light .product-nordic-card h4,
+body.light .product-nordic-card h4 {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .product-card-desc,
+html.light .product-card-desc,
+body.light .product-card-desc,
+[data-theme="light"] .product-nordic-card p,
+html.light .product-nordic-card p,
+body.light .product-nordic-card p {
+  color: #475569 !important;
+}
+
+/* 3b. Shop Page Filter & Search Toolbar Light Mode */
+[data-theme="light"] .shop-header-title,
+html.light .shop-header-title,
+body.light .shop-header-title {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .shop-header-desc,
+html.light .shop-header-desc,
+body.light .shop-header-desc {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .shop-filter-panel,
+html.light .shop-filter-panel,
+body.light .shop-filter-panel {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .shop-search-input,
+html.light .shop-search-input,
+body.light .shop-search-input {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border: 1.5px solid #E2E8F0 !important;
+}
+
+[data-theme="light"] .shop-search-input:focus,
+html.light .shop-search-input:focus,
+body.light .shop-search-input:focus {
+  border-color: #F59E0B !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15) !important;
+}
+
+[data-theme="light"] .shop-search-input::placeholder,
+html.light .shop-search-input::placeholder,
+body.light .shop-search-input::placeholder {
+  color: #94A3B8 !important;
+}
+
+[data-theme="light"] .shop-filter-label,
+html.light .shop-filter-label,
+body.light .shop-filter-label {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] .nordic-pill-tab,
+html.light .nordic-pill-tab,
+body.light .nordic-pill-tab {
+  background: #F1F5F9 !important;
+  color: #334155 !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .nordic-pill-tab:hover,
+html.light .nordic-pill-tab:hover,
+body.light .nordic-pill-tab:hover {
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] .nordic-pill-tab.active,
+html.light .nordic-pill-tab.active,
+body.light .nordic-pill-tab.active {
+  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+  color: #FFFFFF !important;
+  border-color: #F59E0B !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+}
+
+/* 3c. Booking Stepper Bar Light Mode */
+[data-theme="light"] .booking-stepper-bar,
+html.light .booking-stepper-bar,
+body.light .booking-stepper-bar {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .stepper-step:hover,
+html.light .stepper-step:hover,
+body.light .stepper-step:hover {
+  background: #F1F5F9 !important;
+}
+
+[data-theme="light"] .stepper-step.active,
+html.light .stepper-step.active,
+body.light .stepper-step.active {
+  background: rgba(245, 158, 11, 0.08) !important;
+}
+
+[data-theme="light"] .stepper-num,
+html.light .stepper-num,
+body.light .stepper-num {
+  background: #F1F5F9 !important;
+  color: #64748B !important;
+  border: 1.5px solid #E2E8F0 !important;
+}
+
+[data-theme="light"] .stepper-step.active .stepper-num,
+html.light .stepper-step.active .stepper-num,
+body.light .stepper-step.active .stepper-num {
+  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4) !important;
+}
+
+[data-theme="light"] .stepper-text,
+html.light .stepper-text,
+body.light .stepper-text {
+  color: #64748B !important;
+}
+
+[data-theme="light"] .stepper-step.active .stepper-text,
+html.light .stepper-step.active .stepper-text,
+body.light .stepper-step.active .stepper-text {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .stepper-line,
+html.light .stepper-line,
+body.light .stepper-line {
+  background: #E2E8F0 !important;
+}
+
+[data-theme="light"] .stepper-line.active,
+html.light .stepper-line.active,
+body.light .stepper-line.active {
+  background: linear-gradient(90deg, #F59E0B, rgba(245, 158, 11, 0.5)) !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.25) !important;
+}
+
+[data-theme="light"] .booking-page-title,
+html.light .booking-page-title,
+body.light .booking-page-title {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .booking-page-desc,
+html.light .booking-page-desc,
+body.light .booking-page-desc {
+  color: #475569 !important;
+}
+
+/* 4. Branches Cards & Addresses */
+[data-theme="light"] .branch-card-item,
+html.light .branch-card-item,
+body.light .branch-card-item,
+[data-theme="light"] .branch-card,
+html.light .branch-card,
+body.light .branch-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .branch-address-text,
+html.light .branch-address-text,
+body.light .branch-address-text {
+  color: #334155 !important;
+}
+
+/* 5. Top Announcement Bar Consistency */
+.web-top-announcement-bar,
+.announcement-inner {
+  background: #0B0D13 !important;
+  color: #CBD5E1 !important;
+}
+.web-top-announcement-bar a,
+.link-open-mobile-app,
+.link-dev-docs {
+  color: #F59E0B !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+/* 6. Stepper in Booking Wizard */
+[data-theme="light"] .booking-wizard-stepper {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .stepper-text {
+  color: #334155 !important;
+}
+[data-theme="light"] .stepper-step.active .stepper-text {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+/* 7. Home Page 18+ Branches Preview & AI Studio Preview */
+.home-branch-card {
+  background: #10131C;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+.home-ai-card {
+  background: #10131C;
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+.home-ai-upload-box {
+  background: #0B0D13;
+  border: 1.5px dashed rgba(245, 158, 11, 0.4);
+}
+.home-ai-file-name {
+  color: #CBD5E1;
+}
+.branch-card-title {
+  color: #F59E0B !important;
+}
+.branch-hours-text {
+  color: #94A3B8;
+}
+
+[data-theme="light"] .home-branch-card,
+html.light .home-branch-card,
+body.light .home-branch-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="light"] .home-branch-card .branch-card-title,
+html.light .home-branch-card .branch-card-title,
+body.light .home-branch-card .branch-card-title {
+  color: #0F172A !important;
+}
+[data-theme="light"] .home-branch-card .branch-address-text,
+html.light .home-branch-card .branch-address-text,
+body.light .home-branch-card .branch-address-text {
+  color: #334155 !important;
+}
+[data-theme="light"] .home-branch-card .branch-hours-text,
+html.light .home-branch-card .branch-hours-text,
+body.light .home-branch-card .branch-hours-text {
+  color: #64748B !important;
+}
+
+[data-theme="light"] .home-ai-card,
+html.light .home-ai-card,
+body.light .home-ai-card {
+  background: #FFFFFF !important;
+  border: 1.5px solid rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+}
+[data-theme="light"] .home-ai-card .home-section-title,
+html.light .home-ai-card .home-section-title,
+body.light .home-ai-card .home-section-title,
+[data-theme="light"] .home-section-title,
+html.light .home-section-title,
+body.light .home-section-title {
+  color: #0F172A !important;
+}
+[data-theme="light"] .home-ai-card .home-section-desc,
+html.light .home-ai-card .home-section-desc,
+body.light .home-ai-card .home-section-desc,
+[data-theme="light"] .home-section-desc,
+html.light .home-section-desc,
+body.light .home-section-desc {
+  color: #475569 !important;
+}
+[data-theme="light"] .home-ai-upload-box,
+html.light .home-ai-upload-box,
+body.light .home-ai-upload-box {
+  background: #F8FAFC !important;
+  border: 1.5px dashed rgba(245, 158, 11, 0.4) !important;
+}
+[data-theme="light"] .home-ai-file-name,
+html.light .home-ai-file-name,
+body.light .home-ai-file-name {
+  color: #334155 !important;
+}
+
+/* 8. Header User Dropdown & Button Light Mode Guard */
+[data-theme="light"] .header-user-btn,
+html.light .header-user-btn,
+body.light .header-user-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+[data-theme="light"] .header-user-btn:hover,
+html.light .header-user-btn:hover,
+body.light .header-user-btn:hover,
+[data-theme="light"] .header-user-menu-wrapper.open .header-user-btn,
+html.light .header-user-menu-wrapper.open .header-user-btn,
+body.light .header-user-menu-wrapper.open .header-user-btn {
+  background: #F1F5F9 !important;
+  border-color: #D4AF37 !important;
+}
+[data-theme="light"] .user-name-text,
+html.light .user-name-text,
+body.light .user-name-text {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+/* 9. Global Modal & Auth Modal Box */
+.auth-modal-box h2 {
+  color: var(--text-primary, #FFFFFF);
+}
+.auth-modal-box p {
+  color: var(--text-secondary, #94A3B8);
+}
+.sub-label {
+  color: var(--text-secondary, #CBD5E1);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+[data-theme="light"] .auth-modal-box h2,
+html.light .auth-modal-box h2,
+body.light .auth-modal-box h2 {
+  color: #0F172A !important;
+}
+[data-theme="light"] .auth-modal-box p,
+html.light .auth-modal-box p,
+body.light .auth-modal-box p {
+  color: #64748B !important;
+}
+[data-theme="light"] .sub-label,
+html.light .sub-label,
+body.light .sub-label {
+  color: #334155 !important;
+}
+[data-theme="light"] .form-control-custom,
+html.light .form-control-custom,
+body.light .form-control-custom {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border: 1px solid #CBD5E1 !important;
+}
+[data-theme="light"] .form-control-custom:focus,
+html.light .form-control-custom:focus,
+body.light .form-control-custom:focus {
+  border-color: #D4AF37 !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25) !important;
+  background: #FFFFFF !important;
+}
+
+/* ── Admin Portal Light Theme Overrides ── */
+[data-theme="light"] .admin-hub-header,
+html.light .admin-hub-header {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="light"] .admin-hub-title,
+html.light .admin-hub-title {
+  color: #0F172A !important;
+}
+[data-theme="light"] .admin-filter-bar,
+html.light .admin-filter-bar {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .admin-filter-bar label,
+html.light .admin-filter-bar label {
+  color: #475569 !important;
+}
+[data-theme="light"] .admin-select-filter,
+html.light .admin-select-filter {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+[data-theme="light"] .admin-tab-btn,
+html.light .admin-tab-btn {
+  color: #64748B !important;
+}
+[data-theme="light"] .admin-tab-btn:hover,
+html.light .admin-tab-btn:hover {
+  color: #0F172A !important;
+}
+[data-theme="light"] .admin-tab-btn.active,
+html.light .admin-tab-btn.active {
+  color: #C59B27 !important;
+  border-bottom-color: #C59B27 !important;
+}
+[data-theme="light"] .admin-table-container,
+html.light .admin-table-container {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .admin-table-toolbar,
+html.light .admin-table-toolbar {
+  background: #F8FAFC !important;
+  border-bottom-color: #E2E8F0 !important;
+}
+[data-theme="light"] .admin-enterprise-table th,
+html.light .admin-enterprise-table th {
+  background: #F8FAFC !important;
+  color: #64748B !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+[data-theme="light"] .admin-enterprise-table td,
+html.light .admin-enterprise-table td {
+  border-bottom: 1px solid #F1F5F9 !important;
+  color: #0F172A !important;
+}
+[data-theme="light"] .admin-enterprise-table tr:hover td,
+html.light .admin-enterprise-table tr:hover td {
+  background: #F8FAFC !important;
+}
+[data-theme="light"] .admin-kpi-card-rich,
+html.light .admin-kpi-card-rich {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .kpi-label-text,
+html.light .kpi-label-text {
+  color: #64748B !important;
+}
+[data-theme="light"] .kpi-big-value,
+html.light .kpi-big-value {
+  color: #0F172A !important;
+}
+[data-theme="light"] .kpi-sub-detail,
+html.light .kpi-sub-detail {
+  color: #64748B !important;
+}
+[data-theme="light"] .admin-chart-card,
+html.light .admin-chart-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .chart-box-title,
+html.light .chart-box-title {
+  color: #0F172A !important;
+}
+[data-theme="light"] .gauge-meta-row,
+html.light .gauge-meta-row {
+  color: #334155 !important;
+}
+[data-theme="light"] .gauge-bar-track,
+html.light .gauge-bar-track {
+  background: #E2E8F0 !important;
+}
+
+/* ── Kinetic Marquee Light Theme ── */
+[data-theme="light"] .kinetic-marquee-wrapper,
+html.light .kinetic-marquee-wrapper,
+body.light .kinetic-marquee-wrapper {
+  background: #FFFFFF !important;
+  border-top: 1px solid rgba(197, 155, 39, 0.35) !important;
+  border-bottom: 1px solid rgba(197, 155, 39, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .kinetic-word,
+html.light .kinetic-word,
+body.light .kinetic-word {
+  color: #0F172A !important;
+}
+[data-theme="light"] .kinetic-word.outline,
+html.light .kinetic-word.outline,
+body.light .kinetic-word.outline {
+  -webkit-text-stroke: 1.5px rgba(15, 23, 42, 0.35) !important;
+  color: transparent !important;
+}
+[data-theme="light"] .kinetic-word.accent,
+html.light .kinetic-word.accent,
+body.light .kinetic-word.accent {
+  color: #D97706 !important;
+}
+
+/* ── Section 3 Brand Philosophy Cards Light Theme ── */
+[data-theme="light"] .philosophy-section-title,
+html.light .philosophy-section-title,
+body.light .philosophy-section-title {
+  color: #0F172A !important;
+}
+[data-theme="light"] .philosophy-section-desc,
+html.light .philosophy-section-desc,
+body.light .philosophy-section-desc {
+  color: #475569 !important;
+}
+[data-theme="light"] .philosophy-card,
+html.light .philosophy-card,
+body.light .philosophy-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="light"] .philosophy-card:hover,
+html.light .philosophy-card:hover,
+body.light .philosophy-card:hover {
+  background: #FFFFFF !important;
+  border-color: #D97706 !important;
+  box-shadow: 0 10px 28px rgba(217, 119, 6, 0.12) !important;
+}
+[data-theme="light"] .philosophy-icon-wrap,
+html.light .philosophy-icon-wrap,
+body.light .philosophy-icon-wrap {
+  background: #FEF3C7 !important;
+  border: 1px solid rgba(217, 119, 6, 0.3) !important;
+  color: #D97706 !important;
+}
+[data-theme="light"] .philosophy-card-title,
+html.light .philosophy-card-title,
+body.light .philosophy-card-title {
+  color: #0F172A !important;
+}
+[data-theme="light"] .philosophy-card-desc,
+html.light .philosophy-card-desc,
+body.light .philosophy-card-desc {
+  color: #475569 !important;
+}

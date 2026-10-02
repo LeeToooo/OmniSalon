@@ -1,10 +1,13 @@
 /* =========================================================================
-   OmniSalon / 4RAU Barbershop — MASTER STYLESHEET
+   Omni Salon — MASTER STYLESHEET
    Mô hình CSS Module Hóa: Base -> Common -> Web -> Mobile App
-   100% Khớp Thiết Kế 4RAU Barbershop & Ứng Dụng Android CH Play
+   Nordic Minimalist Luxury Edition
    ========================================================================= */
 
 @import url('css/base.css');
+@import url('css/theme.css');
 @import url('css/common.css');
 @import url('css/web.css');
 @import url('css/app.css');
+@import url('css/pages-3d.css');
+

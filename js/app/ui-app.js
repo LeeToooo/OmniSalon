@@ -5,6 +5,7 @@
 
 const UIApp = {
   currentTab: 'home', // 'home' | 'booking' | 'ai' | 'shop' | 'profile'
+  mode: 'customer', // 'customer' | 'staff'
   isFramed: true, // true: hiển thị trong khung điện thoại Android; false: toàn màn hình điện thoại
 
   init() {
@@ -60,50 +61,95 @@ const UIApp = {
             </div>
 
             <!-- 2. Android Top App Bar -->
-            <div class="android-top-app-bar">
-              <div class="app-bar-left" onclick="UIApp.switchTab('home')">
-                <span class="app-4rau-badge">4RAU</span>
-                <span class="app-bar-title">Barbershop</span>
+            ${this.mode === 'staff' && window.AdminApp && window.AdminApp.isActive ? `
+              <div class="android-top-app-bar staff-mode-topbar">
+                <div class="app-bar-left">
+                  <span class="app-4rau-badge" style="background:var(--brand-accent); color:var(--bg-primary);">STAFF</span>
+                  <span class="app-bar-title" style="font-size:13px;">${window.AdminApp.getCurrentUser()?.role || 'Console'}</span>
+                </div>
+                <div class="app-bar-right" style="display:flex; align-items:center; gap:6px;">
+                  <!-- Theme Toggle Button -->
+                  <button type="button" class="app-icon-btn theme-toggle-btn" onclick="window.ThemeEngine && window.ThemeEngine.toggleTheme()" title="Chuyển chế độ Sáng / Tối" style="width:30px;height:30px;border:none;box-shadow:none;background:transparent;">
+                    <span class="theme-icon icon-moon">🌙</span>
+                    <span class="theme-icon icon-sun">☀️</span>
+                  </button>
+                  <button type="button" class="app-btn-switch-customer" onclick="AdminApp.exitStaffMode()" title="Chuyển về khách hàng">
+                    🔄 Khách
+                  </button>
+                </div>
               </div>
-              <div class="app-bar-right">
-                <!-- Nút mở chi nhánh -->
-                <button class="app-icon-btn" onclick="UICommon.openBranchModal('br-dbp')" title="Chi nhánh">📍</button>
-                <!-- Nút mở giỏ hàng -->
-                <button class="app-icon-btn cart-btn-wrap" onclick="UICommon.openCartDrawer()" title="Giỏ hàng">
-                  🛒
-                  <span class="cart-badge-count" id="appCartBadge" style="display:none;">0</span>
-                </button>
+            ` : `
+              <div class="android-top-app-bar">
+                <div class="app-bar-left" onclick="UIApp.switchTab('home')">
+                  <span class="app-4rau-badge">OMNI</span>
+                  <span class="app-bar-title">Salon</span>
+                </div>
+                <div class="app-bar-right" style="display:flex; align-items:center; gap:6px;">
+                  <!-- Theme Toggle Button -->
+                  <button type="button" class="app-icon-btn theme-toggle-btn" onclick="window.ThemeEngine && window.ThemeEngine.toggleTheme()" title="Chuyển chế độ Sáng / Tối" style="width:32px;height:32px;border:none;box-shadow:none;background:transparent;">
+                    <span class="theme-icon icon-moon">🌙</span>
+                    <span class="theme-icon icon-sun">☀️</span>
+                  </button>
+                  <!-- Nút mở chi nhánh -->
+                  <button class="app-icon-btn" onclick="UICommon.openBranchModal('br-dbp')" title="Chi nhánh">📍</button>
+                  <!-- Nút mở giỏ hàng -->
+                  <button class="app-icon-btn cart-btn-wrap" onclick="UICommon.openCartDrawer()" title="Giỏ hàng">
+                    🛒
+                    <span class="cart-badge-count" id="appCartBadge" style="display:none;">0</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            `}
 
             <!-- 3. Nội dung cuộn chính của App Android -->
             <div class="android-scroll-content" id="androidScrollContent">
               ${this.renderActiveTabContent()}
             </div>
 
-            <!-- 4. Android Bottom Navigation Bar (5 Tabs chuẩn Material You) -->
-            <div class="android-bottom-nav">
-              <button class="bottom-nav-item ${this.currentTab === 'home' ? 'active' : ''}" onclick="UIApp.switchTab('home')">
-                <div class="nav-indicator"><span class="nav-icon">🏠</span></div>
-                <span class="nav-label">Trang Chủ</span>
-              </button>
-              <button class="bottom-nav-item ${this.currentTab === 'booking' ? 'active' : ''}" onclick="UIApp.switchTab('booking')">
-                <div class="nav-indicator"><span class="nav-icon">📅</span></div>
-                <span class="nav-label">Đặt Lịch</span>
-              </button>
-              <button class="bottom-nav-item ${this.currentTab === 'ai' ? 'active' : ''}" onclick="UIApp.switchTab('ai')">
-                <div class="nav-indicator"><span class="nav-icon">💈</span></div>
-                <span class="nav-label">Thử Tóc AI</span>
-              </button>
-              <button class="bottom-nav-item ${this.currentTab === 'shop' ? 'active' : ''}" onclick="UIApp.switchTab('shop')">
-                <div class="nav-indicator"><span class="nav-icon">🛍️</span></div>
-                <span class="nav-label">Cửa Hàng</span>
-              </button>
-              <button class="bottom-nav-item ${this.currentTab === 'profile' ? 'active' : ''}" onclick="UIApp.switchTab('profile')">
-                <div class="nav-indicator"><span class="nav-icon">👤</span></div>
-                <span class="nav-label">Cá Nhân</span>
-              </button>
-            </div>
+            <!-- 4. Android Bottom Navigation Bar (5 Tabs Khách hoặc 4 Tabs Staff) -->
+            ${this.mode === 'staff' && window.AdminApp && window.AdminApp.isActive ? `
+              <div class="android-bottom-nav staff-bottom-nav">
+                <button class="bottom-nav-item staff-bottom-nav-item ${window.AdminApp.activeTab === 'queue' ? 'active' : ''}" onclick="AdminApp.switchTab('queue')">
+                  <div class="nav-indicator"><span class="nav-icon">📋</span></div>
+                  <span class="nav-label">Ca Hôm Nay</span>
+                </button>
+                <button class="bottom-nav-item staff-bottom-nav-item ${window.AdminApp.activeTab === 'pos' ? 'active' : ''}" onclick="AdminApp.switchTab('pos')">
+                  <div class="nav-indicator"><span class="nav-icon">💳</span></div>
+                  <span class="nav-label">Mobile POS</span>
+                </button>
+                <button class="bottom-nav-item staff-bottom-nav-item ${window.AdminApp.activeTab === 'inventory' ? 'active' : ''}" onclick="AdminApp.switchTab('inventory')">
+                  <div class="nav-indicator"><span class="nav-icon">📦</span></div>
+                  <span class="nav-label">Kiểm Kho</span>
+                </button>
+                <button class="bottom-nav-item staff-bottom-nav-item ${window.AdminApp.activeTab === 'wallet' ? 'active' : ''}" onclick="AdminApp.switchTab('wallet')">
+                  <div class="nav-indicator"><span class="nav-icon">💰</span></div>
+                  <span class="nav-label">Ví Barber</span>
+                </button>
+              </div>
+            ` : `
+              <div class="android-bottom-nav">
+                <button class="bottom-nav-item ${this.currentTab === 'home' ? 'active' : ''}" onclick="UIApp.switchTab('home')">
+                  <div class="nav-indicator"><span class="nav-icon">🏠</span></div>
+                  <span class="nav-label">Trang Chủ</span>
+                </button>
+                <button class="bottom-nav-item ${this.currentTab === 'booking' ? 'active' : ''}" onclick="UIApp.switchTab('booking')">
+                  <div class="nav-indicator"><span class="nav-icon">📅</span></div>
+                  <span class="nav-label">Đặt Lịch</span>
+                </button>
+                <button class="bottom-nav-item ${this.currentTab === 'ai' ? 'active' : ''}" onclick="UIApp.switchTab('ai')">
+                  <div class="nav-indicator"><span class="nav-icon">💈</span></div>
+                  <span class="nav-label">Thử Tóc AI</span>
+                </button>
+                <button class="bottom-nav-item ${this.currentTab === 'shop' ? 'active' : ''}" onclick="UIApp.switchTab('shop')">
+                  <div class="nav-indicator"><span class="nav-icon">🛍️</span></div>
+                  <span class="nav-label">Cửa Hàng</span>
+                </button>
+                <button class="bottom-nav-item ${this.currentTab === 'profile' ? 'active' : ''}" onclick="UIApp.switchTab('profile')">
+                  <div class="nav-indicator"><span class="nav-icon">👤</span></div>
+                  <span class="nav-label">Cá Nhân</span>
+                </button>
+              </div>
+            `}
           </div>
         </div>
       </div>
@@ -125,12 +171,24 @@ const UIApp = {
 
   switchTab(tabName) {
     this.currentTab = tabName;
+    if (window.CustomerApp) {
+      window.CustomerApp.activeTab = tabName;
+    }
     const scrollContainer = document.getElementById('androidScrollContent');
     if (scrollContainer) {
       scrollContainer.innerHTML = this.renderActiveTabContent();
       scrollContainer.scrollTop = 0;
-      if (tabName === 'ai' && this.aiState.resultImage && !this.aiState.isProcessing) {
-        setTimeout(() => this.initCompareSlider(), 60);
+      if (tabName === 'ai') {
+        const aiState = (window.CustomerApp && window.CustomerApp.aiState) || this.aiState;
+        if (aiState.resultImage && !aiState.isProcessing) {
+          setTimeout(() => {
+            if (window.CustomerApp && typeof window.CustomerApp.initCompareSlider === 'function') {
+              window.CustomerApp.initCompareSlider();
+            } else {
+              this.initCompareSlider();
+            }
+          }, 60);
+        }
       }
     }
     const items = document.querySelectorAll('.bottom-nav-item');
@@ -140,7 +198,25 @@ const UIApp = {
     });
   },
 
+  switchToStaffMode() {
+    if (window.AdminApp && typeof window.AdminApp.init === 'function') {
+      return window.AdminApp.init();
+    }
+  },
+
+  switchToCustomerMode() {
+    if (window.AdminApp && typeof window.AdminApp.exitStaffMode === 'function') {
+      return window.AdminApp.exitStaffMode();
+    }
+  },
+
   renderActiveTabContent() {
+    if (this.mode === 'staff' && window.AdminApp && typeof window.AdminApp.renderActiveTabContent === 'function') {
+      return window.AdminApp.renderActiveTabContent();
+    }
+    if (window.CustomerApp && typeof window.CustomerApp.renderTabContent === 'function') {
+      return window.CustomerApp.renderTabContent(this.currentTab);
+    }
     switch (this.currentTab) {
       case 'home':
         return this.renderHomeTab();
@@ -652,7 +728,8 @@ const UIApp = {
 
   bookAiHairstyle() {
     const note = `[AI Studio App] Khách muốn cắt kiểu: ${this.aiState.selectedStyle} - Màu: ${this.aiState.selectedColorName}`;
-    if (window.store && window.store.bookingDraft) {
+    if (window.store) {
+      if (!window.store.bookingDraft) window.store.bookingDraft = {};
       window.store.bookingDraft.notes = note;
     }
     this.switchTab('booking');
@@ -738,11 +815,11 @@ const UIApp = {
 
         <!-- Chi tiết App -->
         <div class="playstore-app-intro">
-          <div class="playstore-app-icon">4R</div>
+          <div class="playstore-app-icon" style="background:var(--brand-accent); color:var(--bg-primary);">OS</div>
           <div class="playstore-app-meta">
-            <h3 class="app-title">4RAU Barbershop</h3>
-            <span class="app-dev">4RAU Barber CutClub & Co.</span>
-            <div class="app-tags">Chứa quảng cáo • Mua hàng trong ứng dụng</div>
+            <h3 class="app-title">Omni Salon Mobile</h3>
+            <span class="app-dev">Omni Salon Enterprise Co.</span>
+            <div class="app-tags">Chứa trải nghiệm dịch vụ 5 sao • Đặt lịch trực tuyến</div>
           </div>
         </div>
 
@@ -767,8 +844,8 @@ const UIApp = {
           Cài Đặt Ứng Dụng (Download APK / PWA)
         </button>
 
-        <div style="font-size: 13px; color: #5f6368; line-height: 1.5; margin-top: 16px;">
-          Ứng dụng chính thức của chuỗi <strong>4RAU Barbershop</strong>. Cho phép bạn đặt lịch hẹn cắt tóc chống trùng giờ với Master Barber Hà Hiền, đổi kiểu tóc bằng AI và mua sắm sáp Pomade Brosh chính hãng.
+        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-top: 16px;">
+          Ứng dụng di động chính thức của hệ thống <strong>Omni Salon — The Art of Modern Hair Care & Grooming</strong>. Đặt lịch trải nghiệm salon 5 sao, Stylist bậc thầy, đổi kiểu tóc bằng AI và mua sắm sáp Pomade cao cấp chính hãng.
         </div>
       </div>
     `;

@@ -1,25 +1,28 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4RAU Barbershop — Hệ Thống Chuỗi Cắt Tóc Nam Chuyên Nghiệp & AI Photo Restyle Vision</title>
+  <title>Omni Salon — The Art of Modern Hair Care & Grooming</title>
   
   <!-- SEO & Social Meta Tags -->
-  <meta name="description" content="Chuỗi Barbershop 4RAU phong cách đường phố và underground. Đặt lịch cắt tóc toàn quốc, cạo khăn nóng, uốn con sâu, sáp Brosh chính hãng và công nghệ đổi kiểu tóc AI bằng ảnh thật.">
-  <meta name="theme-color" content="#c85a44">
+  <meta name="description" content="Omni Salon - The Art of Modern Hair Care & Grooming. Đặt lịch trải nghiệm salon 5 sao, styling cao cấp, uốn phục hồi, sản phẩm chăm sóc tóc quốc tế và công nghệ AI Studio.">
+  <meta name="theme-color" content="#0B0D13">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23c85a44'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='32'>4R</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230B0D13'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' fill='%23D4AF37' font-family='sans-serif' font-weight='900' font-size='32'>OS</text></svg>">
 
-  <!-- Modern Inter Google Font -->
+  <!-- Modern Inter & Plus Jakarta Sans Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Master Stylesheet (Giao diện Web Hiện Đại, Glassmorphism & Micro-animations) -->
-  <link rel="stylesheet" href="styles.css?v=11.0">
+  <!-- Master Stylesheet (Modern High-End Salon & Spa Luxury Edition) -->
+  <link rel="stylesheet" href="styles.css?v=12.0">
+
+  <!-- Centralized Theme Engine (Zero FOUC) -->
+  <script src="js/core/theme.js?v=1.0"></script>
 </head>
-<body>
+<body data-theme="dark">
 
   <!-- ========================================================
        1. THANH THÔNG BÁO TẢI APP MOBILE & CHUỖI HỆ THỐNG
@@ -27,8 +30,8 @@
   <div class="web-top-announcement-bar">
     <div class="announcement-inner">
       <div class="announcement-left">
-        <span class="announcement-badge">HOT</span>
-        <span>HỆ THỐNG 18+ CHI NHÁNH 4RAU TOÀN QUỐC • TỔNG ĐÀI ĐẶT LỊCH: <strong style="color: #ff9d88;">1900 4407</strong></span>
+        <span class="announcement-badge">OMNI VIP</span>
+        <span>HỆ THỐNG 18+ CHI NHÁNH OMNI SALON TOÀN QUỐC • TỔNG ĐÀI ĐẶT LỊCH: <strong style="color: #D4AF37;">1900 8899</strong></span>
       </div>
       <div class="announcement-actions">
         <a href="app.html" class="link-open-mobile-app" target="_blank" title="Mở bản giao diện di động">
@@ -44,9 +47,9 @@
   <!-- ========================================================
        2. NỀN TẢNG BẢN WEB (DESKTOP & RESPONSIVE PORTAL)
        ======================================================== -->
-  <div id="webPlatformSection">
+  <div id="webPlatformSection" style="min-height: 100vh;">
     <div id="webHeaderContainer"></div>
-    <main id="webMainContainer"></main>
+    <main id="webMainContainer" style="min-height: calc(100vh - 120px);"></main>
   </div>
 
   <!-- ========================================================
@@ -88,23 +91,94 @@
        CẤU TRÚC MODULES KIẾN TRÚC PHÂN LỚP (LAYERED ARCHITECTURE):
        1. js/core/data.js         -> Dữ liệu hạt giống (18+ Chi nhánh, dịch vụ, sản phẩm)
        2. js/core/utils.js        -> Tiện ích định dạng, Platform Manager
-       3. js/core/store.js        -> Reactive State Engine, Đặt lịch, Giỏ hàng, POS
-       4. js/core/api.js          -> Tầng API REST & AI Vision Service
-       5. js/components/ui-common.js -> UI chung (Product cards, Booking wizard, Cart)
-       6. js/web/ui-web.js        -> Giao diện Web Portal & Trung tâm Quản trị Admin
+       3. js/core/pricing.js      -> Công cụ tính giá & phụ phí
+       4. js/core/auth.js         -> Tầng xác thực & Phân quyền bảo mật JWT RBAC
+       5. js/core/store.js        -> Reactive State Engine, Đặt lịch, Giỏ hàng, POS
+       6. js/core/api.js          -> Tầng API REST & AI Vision Service
+       7. js/components/ui-common.js -> UI chung (Product cards, Booking wizard, Cart)
+       8. js/modules/customer/web/customer-web.js -> Phân hệ Khách hàng trên Web Portal
+       9. js/web/ui-web.js        -> Giao diện Web Portal & Trung tâm Quản trị Admin
        ======================================================== -->
-  <script src="js/core/data.js?v=11.0"></script>
-  <script src="js/core/utils.js?v=11.0"></script>
-  <script src="js/core/store.js?v=11.0"></script>
-  <script src="js/core/api.js?v=11.0"></script>
-  <script src="js/components/ui-common.js?v=11.0"></script>
-  <script src="js/web/ui-web.js?v=11.0"></script>
+  <script src="js/core/data.js?v=12.0"></script>
+  <script src="js/core/utils.js?v=12.0"></script>
+  <script src="js/core/pricing.js?v=12.0"></script>
+  <script src="js/core/auth.js?v=12.0"></script>
+  <script src="js/core/store.js?v=12.0"></script>
+  <script src="js/core/api.js?v=12.0"></script>
+  <script src="js/app/app-state.js?v=12.0"></script>
+  <script src="js/widgets/service-card-widget.js?v=12.0"></script>
+  <script src="js/widgets/stylist-card-widget.js?v=12.0"></script>
+  <script src="js/widgets/time-slot-chips-widget.js?v=12.0"></script>
+  <script src="js/widgets/booking-slot-picker.js?v=12.0"></script>
+  <script src="js/widgets/stat-card-widget.js?v=12.0"></script>
+  <script src="js/widgets/shimmer-loading-widget.js?v=12.0"></script>
+  <script src="js/widgets/widgets-bundle.js?v=12.0"></script>
+  <script src="js/components/ui-common.js?v=12.0"></script>
+  <script src="js/modules/customer/web/customer-web.js?v=12.0"></script>
+  <script src="js/modules/admin/web/admin-web.js?v=12.0"></script>
+  <script src="js/web/ui-web.js?v=12.0"></script>
 
-  <!-- Khởi động giao diện Web Portal -->
+  <!-- Modular Page Components (Multi-Page Architecture) -->
+  <script src="pages/home-page.js?v=12.0"></script>
+  <script src="pages/services-page.js?v=12.0"></script>
+  <script src="pages/stylists-page.js?v=12.0"></script>
+  <script src="pages/booking-page.js?v=12.0"></script>
+  <script src="pages/shop-page.js?v=12.0"></script>
+  <script src="pages/branches-page.js?v=12.0"></script>
+  <script src="pages/ai-studio-page.js?v=12.0"></script>
+  <script src="pages/admin-portal.js?v=12.0"></script>
+
+  <!-- 3D Perspective Client Router -->
+  <script src="js/core/router.js?v=12.0"></script>
+
+  <!-- Khởi động giao diện Web Portal & 3D Multi-Page Router -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    // Hỗ trợ tham số URL trực quan: ?openMenu=1&openAuth=1&openCart=1&theme=dark|light&category=cat
+    const _searchParams = new URLSearchParams(window.location.search);
+    if (_searchParams.get('theme') && typeof ThemeEngine !== 'undefined') {
+      ThemeEngine.setTheme(_searchParams.get('theme'));
+    }
+    if (_searchParams.get('loginAs') && typeof AuthEngine !== 'undefined') {
+      const roleOrUser = _searchParams.get('loginAs');
+      const seed = AuthEngine.getSeedAccounts().find(u => u.username === roleOrUser || u.role === roleOrUser);
+      if (seed) {
+        AuthEngine.login(seed.username, seed.password);
+      }
+    }
+
+    if (typeof CustomerWeb !== 'undefined' && typeof CustomerWeb.init === 'function') {
+      CustomerWeb.init();
+    } else if (typeof UIWeb !== 'undefined' && typeof UIWeb.init === 'function') {
       UIWeb.init();
-    });
+    }
+    if (typeof AppRouter !== 'undefined' && typeof AppRouter.init === 'function') {
+      AppRouter.init();
+    }
+    if (_searchParams.get('openMenu') === '1') {
+      setTimeout(() => {
+        const btn = document.getElementById('headerUserBtn');
+        if (btn) btn.click();
+        else if (typeof CustomerWeb !== 'undefined') CustomerWeb.toggleUserMenu();
+      }, 350);
+    }
+    if (_searchParams.get('openAuth') === '1') {
+      setTimeout(() => {
+        if (typeof UICommon !== 'undefined') UICommon.openAuthModal(_searchParams.get('authTab') || 'login');
+      }, 350);
+    }
+    if (_searchParams.get('openCart') === '1') {
+      setTimeout(() => {
+        if (typeof UICommon !== 'undefined') UICommon.openCartDrawer();
+      }, 350);
+    }
+    if (_searchParams.get('category') && typeof ServicesPage !== 'undefined') {
+      setTimeout(() => ServicesPage.setCategory(_searchParams.get('category')), 250);
+    }
+    if (_searchParams.get('adminTab') && typeof AdminWeb !== 'undefined') {
+      setTimeout(() => {
+        if (typeof AdminWeb.switchSubTab === 'function') AdminWeb.switchSubTab(_searchParams.get('adminTab'));
+      }, 300);
+    }
   </script>
 </body>
 </html>

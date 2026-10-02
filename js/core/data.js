@@ -1,712 +1,1158 @@
 // =========================================================================
-// OmniSalon / 4RAU Barbershop — CORE DATA SEED MODULE
-// (18+ Chi Nhánh Toàn Quốc, Dịch Vụ, Combos VIP, Sản Phẩm, Tin Tức, Stylists)
+// OmniSalon — CORE DATA RE-SYNCHRONIZED (QL_SALONTOC / QL_SALON_2.sql)
+// Ánh xạ 100% toàn bộ cơ sở dữ liệu: ChiNhanh, NhanVien, KhachHang, TaiKhoan,
+// DichVu, DanhMucSanPham, SanPham, PhieuNhapKho, TonKho, KhuyenMai, vw_GiaBanTheoLoHienTai
 // =========================================================================
 
 const INITIAL_SALON_DATA = {
-  // 1. Hệ thống chi nhánh toàn quốc (15 Chi nhánh CutClub + 3 Tiệm Tóc Chủ Tịch)
+  // =========================================================================
+  // 1. HỆ THỐNG CHI NHÁNH (Bảng ChiNhanh) - Khớp 100% QL_SALONTOC
+  // =========================================================================
   branches: [
-    // --- 4RAU BARBER CUTCLUB (15 Chi nhánh) ---
     {
-      id: 'br-nb',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB NHÀ BÈ — CẮT TÓC NAM SUNRISE RIVERSIDE',
-      address: 'Tháp G Sunrise Riverside, Nguyễn Hữu Thọ, Phước Kiển, Nhà Bè, TP.HCM',
-      phone: '1900 4407 (Phím 1)',
-      hours: '08:30 - 21:00',
-      totalChairs: 14,
-      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-      manager: 'Trần Văn Hoàng'
-    },
-    {
-      id: 'br-q5',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB QUẬN 5 — CẮT TÓC NAM CHỢ LỚN',
-      address: '286 An Dương Vương, Phường 4, Quận 5, TP.HCM',
-      phone: '1900 4407 (Phím 2)',
-      hours: '08:30 - 21:00',
-      totalChairs: 16,
-      image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80',
-      manager: 'Nguyễn Thành Nam'
-    },
-    {
-      id: 'br-btan',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB BÌNH TÂN — CẮT TÓC NAM PRIVIA KHANG ĐIỀN',
-      address: '158 An Dương Vương, An Lạc, Bình Tân, TP.HCM',
-      phone: '1900 4407 (Phím 3)',
-      hours: '08:30 - 21:00',
-      totalChairs: 12,
-      image: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80',
-      manager: 'Lê Quốc Đạt'
-    },
-    {
-      id: 'br-q11',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB QUẬN 11 — CẮT TÓC NAM TRẦN QUANG KHẢI',
-      address: '634 Điện Biên Phủ, Phường Vườn Lài, Quận 10 / Q11, TP.HCM',
-      phone: '1900 4407 (Phím 4)',
+      id: 'CN01',
+      MaChiNhanh: 'CN01',
+      TenChiNhanh: 'Salon Tóc Chi Nhánh 1 - Quận 1',
+      name: 'Salon Tóc Chi Nhánh 1 - Quận 1',
+      DiaChi: '120 Lê Lợi, Phường Bến Thành, Quận 1, TP.HCM',
+      address: '120 Lê Lợi, Phường Bến Thành, Quận 1, TP.HCM',
+      SoDienThoai: '0901111222',
+      phone: '0901111222',
+      GioMoCua: '08:30:00',
+      GioDongCua: '21:30:00',
       hours: '08:30 - 21:30',
+      TrangThai: 'Hoạt động',
+      city: 'TP. HỒ CHÍ MINH',
+      group: 'OMNI SALON FLAGSHIP',
       totalChairs: 18,
-      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-      manager: 'Vũ Đức Thành'
+      image: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80',
+      manager: 'Trần Minh Hoàng (NV01)'
     },
     {
-      id: 'br-tt',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB THỦ THIÊM — POPUP THỦ THIÊM PARK',
-      address: 'Khu Đô Thị Mới Thủ Thiêm, TP. Thủ Đức, TP.HCM',
-      phone: '1900 4407 (Phím 5)',
-      hours: '09:00 - 21:00',
-      totalChairs: 10,
-      image: 'https://images.unsplash.com/photo-1517832606589-7157462939ac?auto=format&fit=crop&w=600&q=80',
-      manager: 'Hoàng Minh Tuấn'
-    },
-    {
-      id: 'br-q9',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB QUẬN 9 — VINHOMES GRAND PARK',
-      address: 'Phân khu Rainbow, Vinhomes Grand Park, Long Thạnh Mỹ, TP. Thủ Đức, TP.HCM',
-      phone: '1900 4407 (Phím 6)',
+      id: 'CN02',
+      MaChiNhanh: 'CN02',
+      TenChiNhanh: 'Salon Tóc Chi Nhánh 2 - Tân Bình',
+      name: 'Salon Tóc Chi Nhánh 2 - Tân Bình',
+      DiaChi: '45 Cộng Hòa, Phường 4, Quận Tân Bình, TP.HCM',
+      address: '45 Cộng Hòa, Phường 4, Quận Tân Bình, TP.HCM',
+      SoDienThoai: '0903333444',
+      phone: '0903333444',
+      GioMoCua: '08:30:00',
+      GioDongCua: '21:00:00',
       hours: '08:30 - 21:00',
-      totalChairs: 14,
-      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
-      manager: 'Đặng Quốc Bảo'
-    },
-    {
-      id: 'br-tp',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB TÂN PHÚ — CẮT TÓC NAM ĐƯỜNG ĐỘC LẬP',
-      address: '77 Độc Lập, Tân Thành, Tân Phú, TP.HCM',
-      phone: '1900 4407 (Phím 7)',
-      hours: '08:30 - 21:00',
-      totalChairs: 12,
-      image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',
-      manager: 'Trương Tuấn Kiệt'
-    },
-    {
-      id: 'br-tb',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB TÂN BÌNH — CẮT TÓC NAM GẦN SÂN BAY TÂN SƠN NHẤT',
-      address: '19 Hồng Hà, Phường 2, Tân Bình, TP.HCM',
-      phone: '1900 4407 (Phím 8)',
-      hours: '08:00 - 21:30',
+      TrangThai: 'Hoạt động',
+      city: 'TP. HỒ CHÍ MINH',
+      group: 'OMNI SALON SUITE',
       totalChairs: 15,
-      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-      manager: 'Bùi Anh Tuấn'
-    },
-    {
-      id: 'br-q2',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB QUẬN 2 — CẮT TÓC NAM ONE VERANDAH',
-      address: 'Bát Nàn, Phường Thạnh Mỹ Lợi, TP. Thủ Đức, TP.HCM',
-      phone: '1900 4407 (Phím 9)',
-      hours: '08:30 - 21:00',
-      totalChairs: 12,
-      image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80',
-      manager: 'Phan Minh Khang'
-    },
-    {
-      id: 'br-gv',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB GÒ VẤP — CẮT TÓC NAM PHAN VĂN TRỊ',
-      address: '537 Phan Văn Trị, Phường 5, Gò Vấp, TP.HCM',
-      phone: '1900 4407 (Phím 10)',
-      hours: '08:30 - 21:30',
-      totalChairs: 14,
-      image: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80',
-      manager: 'Trịnh Thế Hùng'
-    },
-    {
-      id: 'br-q4',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB QUẬN 4 — CẮT TÓC NAM BẾN VÂN ĐỒN',
-      address: '360 Bến Vân Đồn, Phường 1, Quận 4, TP.HCM',
-      phone: '1900 4407 (Phím 11)',
-      hours: '08:30 - 21:00',
-      totalChairs: 12,
-      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-      manager: 'Đỗ Hữu Thắng'
-    },
-    {
-      id: 'br-td',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB QUẬN 2 — CẮT TÓC NAM THẢO ĐIỀN',
-      address: '24 Xuân Thủy, Thảo Điền, TP. Thủ Đức, TP.HCM',
-      phone: '1900 4407 (Phím 12)',
-      hours: '09:00 - 21:30',
-      totalChairs: 16,
       image: 'https://images.unsplash.com/photo-1517832606589-7157462939ac?auto=format&fit=crop&w=600&q=80',
-      manager: 'Cao Đình Trọng'
+      manager: 'Phạm Thu Thảo (NV04)'
     },
     {
-      id: 'br-bth',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB BÌNH THẠNH — CẮT TÓC NAM HÀNG XANH',
-      address: '475 Điện Biên Phủ, Phường 25, Bình Thạnh, TP.HCM',
-      phone: '1900 4407 (Phím 13)',
-      hours: '08:30 - 21:00',
-      totalChairs: 14,
-      image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80',
-      manager: 'Ngô Xuân Trường'
-    },
-    {
-      id: 'br-pmh',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB QUẬN 7 — CẮT TÓC NAM PHÚ MỸ HƯNG',
-      address: '102 Nguyễn Đức Cảnh, Tân Phong, Quận 7, TP.HCM',
-      phone: '1900 4407 (Phím 14)',
-      hours: '08:30 - 21:30',
+      id: 'CN03',
+      MaChiNhanh: 'CN03',
+      TenChiNhanh: 'Salon Tóc Chi Nhánh 3 - Bình Thạnh',
+      name: 'Salon Tóc Chi Nhánh 3 - Bình Thạnh',
+      DiaChi: '88 Điện Biên Phủ, Phường 15, Bình Thạnh, TP.HCM',
+      address: '88 Điện Biên Phủ, Phường 15, Bình Thạnh, TP.HCM',
+      SoDienThoai: '0905555666',
+      phone: '0905555666',
+      GioMoCua: '09:00:00',
+      GioDongCua: '22:00:00',
+      hours: '09:00 - 22:00',
+      TrangThai: 'Hoạt động',
+      city: 'TP. HỒ CHÍ MINH',
+      group: 'OMNI SALON SUITE',
       totalChairs: 16,
       image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-      manager: 'Phạm Quang Huy'
-    },
-    {
-      id: 'br-dbp',
-      group: '4RAU BARBER CUTCLUB',
-      name: '4RAU CUTCLUB QUẬN 10 — CẮT TÓC NAM ĐIỆN BIÊN PHỦ (HQ)',
-      address: '634 Điện Biên Phủ, Phường 11, Quận 10, TP.HCM',
-      phone: '1900 4407 (Phím 15)',
-      hours: '08:30 - 22:00',
-      totalChairs: 20,
-      image: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80',
-      manager: 'Hà Văn Lộc'
-    },
-
-    // --- TIỆM TÓC CỦA CHỦ TỊCH (3 Chi nhánh VIP) ---
-    {
-      id: 'br-ct-q1',
-      group: 'TIỆM TÓC CỦA CHỦ TỊCH',
-      name: 'TIỆM TÓC CỦA CHỦ TỊCH — BARBER DELUXE ĐÔNG DU, QUẬN 1',
-      address: '18 Đông Du, Phường Bến Nghé, Quận 1, TP.HCM',
-      phone: '1900 4407 (VIP Q1)',
-      hours: '09:00 - 22:00',
-      totalChairs: 8,
-      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-      manager: 'Chủ Tịch Hà Hiền & Master Barbers'
-    },
-    {
-      id: 'br-ct-q3',
-      group: 'TIỆM TÓC CỦA CHỦ TỊCH',
-      name: 'TIỆM TÓC CỦA CHỦ TỊCH — BARBER DELUXE ĐIỆN BIÊN PHỦ, Q3',
-      address: '220 Điện Biên Phủ, Phường Võ Thị Sáu, Quận 3, TP.HCM',
-      phone: '1900 4407 (VIP Q3)',
-      hours: '09:00 - 21:30',
-      totalChairs: 8,
-      image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80',
-      manager: 'Master Barber Vũ Nam'
-    },
-    {
-      id: 'br-ct-yersin',
-      group: 'TIỆM TÓC CỦA CHỦ TỊCH',
-      name: 'TIỆM TÓC CỦA CHỦ TỊCH — BARBER DELUXE YERSIN, QUẬN 1',
-      address: '72 Yersin, Phường Cầu Ông Lãnh, Quận 1, TP.HCM',
-      phone: '1900 4407 (VIP Yersin)',
-      hours: '09:00 - 21:30',
-      totalChairs: 8,
-      image: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80',
-      manager: 'Master Barber Alex Tùng'
+      manager: 'Võ Quốc Bảo (NV05)'
     }
   ],
 
-  // 2. Dịch vụ (OUR SERVICE — Khớp 100% ticker pills trong ảnh ngon.png)
+  // =========================================================================
+  // 2. NHÂN VIÊN & STYLISTS (Bảng NhanVien & DanhGia)
+  // =========================================================================
+  employees: [
+    {
+      MaNhanVien: 'NV01',
+      MaChiNhanh: 'CN01',
+      HoTen: 'Trần Minh Hoàng',
+      SoDienThoai: '0912000001',
+      Email: 'hoang.tm@salontoc.vn',
+      CapBac: 'Quản lý',
+      ChucVu: 'Quản lý chi nhánh',
+      TrangThai: 'Đang làm việc'
+    },
+    {
+      MaNhanVien: 'NV02',
+      MaChiNhanh: 'CN01',
+      HoTen: 'Lê Thị Hương',
+      SoDienThoai: '0912000002',
+      Email: 'huong.lt@salontoc.vn',
+      CapBac: 'Senior Stylist',
+      ChucVu: 'Thợ chính',
+      TrangThai: 'Đang làm việc'
+    },
+    {
+      MaNhanVien: 'NV03',
+      MaChiNhanh: 'CN01',
+      HoTen: 'Nguyễn Văn Nam',
+      SoDienThoai: '0912000003',
+      Email: 'nam.nv@salontoc.vn',
+      CapBac: 'Junior Stylist',
+      ChucVu: 'Thợ phụ',
+      TrangThai: 'Đang làm việc'
+    },
+    {
+      MaNhanVien: 'NV04',
+      MaChiNhanh: 'CN02',
+      HoTen: 'Phạm Thu Thảo',
+      SoDienThoai: '0912000004',
+      Email: 'thao.pt@salontoc.vn',
+      CapBac: 'Senior Stylist',
+      ChucVu: 'Thợ chính',
+      TrangThai: 'Đang làm việc'
+    },
+    {
+      MaNhanVien: 'NV05',
+      MaChiNhanh: 'CN03',
+      HoTen: 'Võ Quốc Bảo',
+      SoDienThoai: '0912000005',
+      Email: 'bao.vq@salontoc.vn',
+      CapBac: 'Master Stylist',
+      ChucVu: 'Thợ chính',
+      TrangThai: 'Đang làm việc'
+    }
+  ],
+
+  // Đội ngũ Stylists công khai (3 thợ tiêu biểu đưa lên Home: Hương, Bảo, Thảo)
+  stylists: [
+    {
+      id: 'NV02',
+      MaNhanVien: 'NV02',
+      branchId: 'CN01',
+      MaChiNhanh: 'CN01',
+      name: 'Lê Thị Hương',
+      HoTen: 'Lê Thị Hương',
+      level: 'Senior Stylist',
+      title: 'Senior Stylist & Thợ chính Chi Nhánh 1 (Quận 1)',
+      role: 'Thợ chính',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+      rating: 5.0,
+      reviewCount: 520,
+      reviewsCount: 520,
+      specialty: 'Cắt tạo kiểu Layer nữ, Uốn phục hồi sóng lơi chuẩn Hàn & Nhuộm Balayage',
+      specialties: ['Cắt Layer Nữ', 'Uốn Sóng Lơi', 'Nhuộm Balayage', 'Phục Hồi Olaplex'],
+      experience: '8 năm kinh nghiệm',
+      commissionRate: 0.15,
+      isAvailable: true
+    },
+    {
+      id: 'NV05',
+      MaNhanVien: 'NV05',
+      branchId: 'CN03',
+      MaChiNhanh: 'CN03',
+      name: 'Võ Quốc Bảo',
+      HoTen: 'Võ Quốc Bảo',
+      level: 'Master Stylist',
+      title: 'Master Stylist & Art Director Chi Nhánh 3 (Bình Thạnh)',
+      role: 'Thợ chính',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+      rating: 5.0,
+      reviewCount: 580,
+      reviewsCount: 580,
+      specialty: 'Fade nghệ thuật Châu Âu, Cắt tóc nam thời trang, Uốn Texture & Scissor Art',
+      specialties: ['Cắt Tóc Nam', 'European Fade', 'Uốn Texture', 'Tạo Kiểu Pomade'],
+      experience: '10 năm kinh nghiệm',
+      commissionRate: 0.20,
+      isAvailable: true
+    },
+    {
+      id: 'NV04',
+      MaNhanVien: 'NV04',
+      branchId: 'CN02',
+      MaChiNhanh: 'CN02',
+      name: 'Phạm Thu Thảo',
+      HoTen: 'Phạm Thu Thảo',
+      level: 'Senior Stylist',
+      title: 'Senior Stylist Chi Nhánh 2 (Tân Bình)',
+      role: 'Thợ chính',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80',
+      rating: 5.0,
+      reviewCount: 510,
+      reviewsCount: 510,
+      specialty: 'Nhuộm Ombre thời trang, Liệu trình phục hồi chuyên sâu Olaplex & Cắt bob',
+      specialties: ['Nhuộm Ombre', 'Olaplex Chuyên Sâu', 'Tạo Kiểu Thời Trang'],
+      experience: '7 năm kinh nghiệm',
+      commissionRate: 0.15,
+      isAvailable: true
+    },
+    {
+      id: 'NV03',
+      MaNhanVien: 'NV03',
+      branchId: 'CN01',
+      MaChiNhanh: 'CN01',
+      name: 'Nguyễn Văn Nam',
+      HoTen: 'Nguyễn Văn Nam',
+      level: 'Junior Stylist',
+      title: 'Junior Stylist & Thợ phụ Chi Nhánh 1',
+      role: 'Thợ phụ',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+      rating: 4.9,
+      reviewCount: 240,
+      reviewsCount: 240,
+      specialty: 'Gội đầu dưỡng sinh, massage bấm huyệt và sấy vuốt phom sáp cao cấp',
+      specialties: ['Gội Dưỡng Sinh', 'Massage Cổ Vai Gáy', 'Sấy Tạo Kiểu'],
+      experience: '3 năm kinh nghiệm',
+      commissionRate: 0.10,
+      isAvailable: true
+    }
+  ],
+
+  // =========================================================================
+  // 3. KHÁCH HÀNG (Bảng KhachHang)
+  // =========================================================================
+  customers: [
+    {
+      MaKhachHang: 'KH01',
+      HoTen: 'Ngô Văn Tuấn',
+      SoDienThoai: '0988000001',
+      Email: 'vantuan@omnisalon.vn',
+      NgaySinh: '1998-05-14'
+    },
+    {
+      MaKhachHang: 'KH02',
+      HoTen: 'Trần Mỹ Linh',
+      SoDienThoai: '0988000002',
+      Email: 'mylinh.tran@omnisalon.vn',
+      NgaySinh: '2001-11-20'
+    },
+    {
+      MaKhachHang: 'KH03',
+      HoTen: 'Đặng Thanh Tùng',
+      SoDienThoai: '0988000003',
+      Email: 'thanhtung.dang@omnisalon.vn',
+      NgaySinh: '1995-03-08'
+    },
+    {
+      MaKhachHang: 'KH04',
+      HoTen: 'Vũ Phương Thảo',
+      SoDienThoai: '0988000004',
+      Email: 'phuongthao.vu@omnisalon.vn',
+      NgaySinh: '2000-09-12'
+    },
+    {
+      MaKhachHang: 'KH05',
+      HoTen: 'Lê Minh Khôi',
+      SoDienThoai: '0988000005',
+      Email: 'minhkhoi.le@omnisalon.vn',
+      NgaySinh: '1992-07-24'
+    }
+  ],
+
+  // =========================================================================
+  // 4. DANH MỤC DỊCH VỤ (Bảng DichVu) - Khớp 100% 5 Dịch Vụ Chuẩn
+  // =========================================================================
   services: [
     {
-      id: 'srv-1',
-      name: 'CẮT TẠO KIỂU FADE & CHUẨN BARBER',
-      category: 'cut',
-      type: 'single',
-      price: 180000,
-      oldPrice: 220000,
+      id: 'DV01',
+      MaDichVu: 'DV01',
+      TenDichVu: 'Cắt tóc nam thời trang',
+      name: 'Cắt tóc nam thời trang',
+      category: 'haircut',
+      Gia: 120000,
+      price: 120000,
+      ThoiLuong: 45,
       duration: 45,
+      MoTa: 'Bao gồm gội, massage và tạo kiểu bằng sáp cao cấp',
+      description: 'Bao gồm gội, massage và tạo kiểu bằng sáp cao cấp',
+      TrangThai: 'Kinh doanh',
       image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-      description: 'Tư vấn form tóc theo dáng mặt, cạo fade viền sắc nét, cạo mặt êm ái và sấy vuốt tạo kiểu pomade.',
-      rating: 4.98,
+      rating: 5.0,
       reviewsCount: 520
     },
     {
-      id: 'srv-2',
-      name: 'GỘI ĐẦU MASSAGE ĐẦU / RELAX CỔ VAI GÁY',
-      category: 'spa',
-      type: 'single',
-      price: 120000,
-      oldPrice: 150000,
-      duration: 35,
-      image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',
-      description: 'Liệu trình gội đầu sảng khoái với bấm huyệt kinh lạc, massage cổ vai gáy giải tỏa căng thẳng sau giờ làm.',
-      rating: 4.96,
+      id: 'DV02',
+      MaDichVu: 'DV02',
+      TenDichVu: 'Cắt & Tạo kiểu tóc nữ',
+      name: 'Cắt & Tạo kiểu tóc nữ',
+      category: 'haircut',
+      Gia: 250000,
+      price: 250000,
+      ThoiLuong: 60,
+      duration: 60,
+      MoTa: 'Tư vấn kiểu tóc hợp khuôn mặt, tỉa layer chuẩn form',
+      description: 'Tư vấn kiểu tóc hợp khuôn mặt, tỉa layer chuẩn form',
+      TrangThai: 'Kinh doanh',
+      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
+      rating: 5.0,
+      reviewsCount: 460
+    },
+    {
+      id: 'DV03',
+      MaDichVu: 'DV03',
+      TenDichVu: 'Uốn tóc phục hồi sóng lơi',
+      name: 'Uốn tóc phục hồi sóng lơi',
+      category: 'perm',
+      Gia: 650000,
+      price: 650000,
+      originalPrice: 650000,
+      discountPrice: 600000,
+      promotionApplied: 'KM01',
+      promotionNote: 'Áp dụng mã KM01 giảm ngay 50.000đ',
+      ThoiLuong: 120,
+      duration: 120,
+      MoTa: 'Sử dụng thuốc uốn hữu cơ không khô xơ, tặng hấp collagen (Có áp dụng KM01 giảm 50.000đ)',
+      description: 'Sử dụng thuốc uốn hữu cơ không khô xơ, tặng hấp collagen (Có áp dụng KM01 giảm 50.000đ)',
+      TrangThai: 'Kinh doanh',
+      image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80',
+      rating: 4.98,
       reviewsCount: 380
     },
     {
-      id: 'srv-3',
-      name: 'CẠO MẶT VỚI KHĂN NÓNG / HOT TOWEL SHAVE',
-      category: 'shave',
-      type: 'single',
-      price: 150000,
-      oldPrice: 180000,
-      duration: 30,
-      image: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80',
-      description: 'Ủ khăn nóng thảo mộc truyền thống, bọt cạo tuyết mịn màng Proraso và thoa dưỡng ẩm phục hồi da.',
-      rating: 4.99,
-      reviewsCount: 410
-    },
-    {
-      id: 'srv-4',
-      name: 'UỐN TÓC NAM / HAIR PERM & TEXTURE',
-      category: 'perm',
-      type: 'single',
-      price: 450000,
-      oldPrice: 550000,
-      duration: 75,
-      image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80',
-      description: 'Uốn phồng chân tóc, uốn sóng lơi nhẹ nhàng chuẩn soái ca hoặc uốn con sâu giấy bạc cá tính.',
-      rating: 4.95,
-      reviewsCount: 340
-    },
-    {
-      id: 'srv-5',
-      name: 'ÉP SIDE TÓC / SIDE HAIR STRAIGHTENING',
-      category: 'perm',
-      type: 'single',
-      price: 250000,
-      oldPrice: 300000,
-      duration: 40,
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80',
-      description: 'Ép xẹp hoàn toàn 2 bên side tóc bị chỉa, giúp form tóc ôm sát đầu gọn gàng từ 2 đến 3 tháng.',
-      rating: 4.94,
-      reviewsCount: 290
-    },
-    {
-      id: 'srv-6',
-      name: 'NHUỘM TÓC THỜI TRANG & TẨY TÓC AN TOÀN',
+      id: 'DV04',
+      MaDichVu: 'DV04',
+      TenDichVu: 'Nhuộm màu thời trang Balayage/Ombre',
+      name: 'Nhuộm màu thời trang Balayage/Ombre',
       category: 'color',
-      type: 'single',
-      price: 550000,
-      oldPrice: 700000,
-      duration: 90,
-      image: 'https://images.unsplash.com/photo-1517832606589-7157462939ac?auto=format&fit=crop&w=600&q=80',
-      description: 'Nhuộm các tông màu hot trend: Nâu khói, xám khói, nâu tây lạnh, xanh đen nam tính không rát da đầu.',
-      rating: 4.92,
-      reviewsCount: 260
+      Gia: 950000,
+      price: 950000,
+      originalPrice: 950000,
+      discountPrice: 900000,
+      promotionApplied: 'KM01',
+      promotionNote: 'Áp dụng mã KM01 giảm ngay 50.000đ',
+      ThoiLuong: 150,
+      duration: 150,
+      MoTa: 'Kỹ thuật phối màu chuẩn Tây kèm khử ánh sắc (Có áp dụng KM01 giảm 50.000đ)',
+      description: 'Kỹ thuật phối màu chuẩn Tây kèm khử ánh sắc (Có áp dụng KM01 giảm 50.000đ)',
+      TrangThai: 'Kinh doanh',
+      image: 'https://images.unsplash.com/photo-1560869713-7d0a29430803?auto=format&fit=crop&w=600&q=80',
+      rating: 4.95,
+      reviewsCount: 310
     },
     {
-      id: 'srv-7',
-      name: 'UỐN GIẤY BẠC ZIC-ZAC / PREMLOCK HIPHOP',
-      category: 'perm',
-      type: 'single',
-      price: 650000,
-      oldPrice: 800000,
+      id: 'DV05',
+      MaDichVu: 'DV05',
+      TenDichVu: 'Liệu trình phục hồi Olaplex chuyên sâu',
+      name: 'Liệu trình phục hồi Olaplex chuyên sâu',
+      category: 'spa',
+      Gia: 800000,
+      price: 800000,
+      originalPrice: 800000,
+      discountPrice: 700000,
+      promotionApplied: 'KM02',
+      promotionNote: 'Áp dụng mã KM02 giảm ngay 100.000đ',
+      ThoiLuong: 90,
       duration: 90,
-      image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80',
-      description: 'Kỹ thuật uốn zic-zac đường phố bụi bặm, tạo độ xù phồng cực ngầu cho các bạn trẻ underground.',
-      rating: 4.97,
-      reviewsCount: 195
+      MoTa: 'Phục hồi cấp tốc 5 bước cho tóc nát, tóc xơ tẩy (Có áp dụng KM02 giảm 100.000đ)',
+      description: 'Phục hồi cấp tốc 5 bước cho tóc nát, tóc xơ tẩy (Có áp dụng KM02 giảm 100.000đ)',
+      TrangThai: 'Kinh doanh',
+      image: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=600&q=80',
+      rating: 5.0,
+      reviewsCount: 420
     }
   ],
 
-  // 3. Gói Combo VIP
+  // Combos gói cao cấp kế thừa dịch vụ chuẩn
   combos: [
     {
       id: 'cmb-1',
-      name: 'COMBO 4RAU SIGNATURE (Cắt + Cạo Khăn Nóng + Gội + Sáp)',
+      name: 'COMBO OMNI SIGNATURE SUITE (Cắt Nam + Gội Spa + Tạo Kiểu Sáp)',
       category: 'combo',
       type: 'combo',
       price: 390000,
+      originalPrice: 520000,
       oldPrice: 520000,
       duration: 70,
       image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-      description: 'Trải nghiệm barbershop trọn gói: Tư vấn dáng tóc + Cắt fade + Cạo mặt ủ khăn nóng + Gội đầu sảng khoái + Vuốt Pomade xịn.',
+      description: 'Trọn gói cắt phom tóc thiết kế, gội thư giãn bấm huyệt kinh lạc và tạo kiểu sáp chuẩn salon.',
       rating: 5.0,
       reviewsCount: 780
     },
     {
       id: 'cmb-2',
-      name: 'COMBO ĐẾ VƯƠNG (Cắt + Uốn Phồng Chân + Ép Side + Gội Spa)',
+      name: 'COMBO ĐẾ VƯƠNG (Cắt + Uốn Sóng Lơi + Phục Hồi Olaplex)',
       category: 'combo',
       type: 'combo',
-      price: 850000,
-      oldPrice: 1100000,
-      duration: 110,
+      price: 1350000,
+      originalPrice: 1700000,
+      oldPrice: 1700000,
+      duration: 180,
       image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80',
-      description: 'Lột xác hoàn hảo cho mái tóc chỉa, khó vào nếp: Cắt form thời trang + Uốn bồng bềnh + Ép ôm sát 2 bên + Dưỡng phục hồi.',
-      rating: 4.98,
+      description: 'Combo hoàn hảo cho mái tóc hư tổn: Cắt layer chuẩn form + Uốn sóng lơi hữu cơ + Liệu trình phục hồi Olaplex 5 bước.',
+      rating: 5.0,
       reviewsCount: 430
     }
   ],
 
-  // 4. Sản phẩm (100% khớp danh sách SẢN PHẨM MỚI & SẢN PHẨM BÁN CHẠY trong ảnh ngon.png)
+  // =========================================================================
+  // 5. DANH MỤC SẢN PHẨM (Bảng DanhMucSanPham: DM01 -> DM06)
+  // =========================================================================
+  categories: [
+    { id: 'DM01', MaDanhMuc: 'DM01', TenDanhMuc: 'Dầu gội & Dầu xả', name: 'Dầu gội & Dầu xả', MoTa: 'Chăm sóc làm sạch sâu và cấp ẩm da đầu' },
+    { id: 'DM02', MaDanhMuc: 'DM02', TenDanhMuc: 'Tinh dầu & Dưỡng tóc', name: 'Tinh dầu & Dưỡng tóc', MoTa: 'Serum, tinh dầu phục hồi và chống nhiệt' },
+    { id: 'DM03', MaDanhMuc: 'DM03', TenDanhMuc: 'Kem ủ & Mặt nạ tóc', name: 'Kem ủ & Mặt nạ tóc', MoTa: 'Phục hồi hư tổn tóc xơ rối do hóa chất' },
+    { id: 'DM04', MaDanhMuc: 'DM04', TenDanhMuc: 'Sáp vuốt tóc & Pomade', name: 'Sáp vuốt tóc & Pomade', MoTa: 'Tạo kiểu giữ nếp tóc nam' },
+    { id: 'DM05', MaDanhMuc: 'DM05', TenDanhMuc: 'Xịt giữ nếp & Gôm xịt tóc', name: 'Xịt giữ nếp & Gôm xịt tóc', MoTa: 'Tạo kiểu định hình tóc thời trang' },
+    { id: 'DM06', MaDanhMuc: 'DM06', TenDanhMuc: 'Nhuộm & Tẩy tóc chuyên nghiệp', name: 'Nhuộm & Tẩy tóc chuyên nghiệp', MoTa: 'Màu nhuộm thời trang cao cấp' }
+  ],
+
+  // =========================================================================
+  // 6. NHÀ CUNG CẤP (Bảng NhaCungCap)
+  // =========================================================================
+  suppliers: [
+    { MaNhaCungCap: 'NCC01', TenNhaCungCap: 'Công ty TNHH Phân Phối Mỹ Phẩm L’Oréal VN', SoDienThoai: '02838221199', Email: 'contact@loreal.vn', DiaChi: 'Tầng 10, Bitexco, Q.1, TP.HCM' },
+    { MaNhaCungCap: 'NCC02', TenNhaCungCap: 'Moroccanoil Việt Nam', SoDienThoai: '02839102233', Email: 'support@moroccanoil.vn', DiaChi: '26 Nguyễn Thị Minh Khai, Q.1, TP.HCM' },
+    { MaNhaCungCap: 'NCC03', TenNhaCungCap: 'Davines International VN', SoDienThoai: '02839445566', Email: 'orders@davines.vn', DiaChi: '15 Lê Duẩn, Q.1, TP.HCM' },
+    { MaNhaCungCap: 'NCC04', TenNhaCungCap: 'Olaplex Global Distribution', SoDienThoai: '02838997788', Email: 'supply@olaplex.vn', DiaChi: '72 Lê Thánh Tôn, Q.1, TP.HCM' }
+  ],
+
+  // =========================================================================
+  // 7. SẢN PHẨM & GIÁ BÁN THEO LÔ CẬN HẠN (SanPham + vw_GiaBanTheoLoHienTai)
+  // 20 sản phẩm mỹ phẩm từ database (L’Oréal, Olaplex, Moroccanoil, Davines, Volcanic Clay...)
+  // =========================================================================
   products: [
-    // --- SẢN PHẨM MỚI (NEW ARRIVALS) ---
     {
-      id: 'prod-new-1',
-      section: 'new',
-      name: 'BROSH x WACKO MARIA GREASE',
-      brand: 'BROSH JAPAN',
-      category: 'Pomade / Sáp',
-      price: 580000,
-      image: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=600&q=80',
-      description: 'Bản collab giới hạn giữa Brosh Pomade Nhật Bản và nhãn hàng thời trang đường phố Wacko Maria. Giữ nếp cực tốt, hương thơm quyến rũ.'
+      id: 'SP01',
+      MaSanPham: 'SP01',
+      MaDanhMuc: 'DM01',
+      categoryId: 'DM01',
+      MaNhaCungCap: 'NCC01',
+      TenSanPham: 'Dầu gội L’Oréal Professionnel Absolut Repair 500ml',
+      name: 'Dầu gội L’Oréal Professionnel Absolut Repair 500ml',
+      brand: 'L’Oréal Professionnel',
+      GiaNhap: 360000,
+      GiaBan: 480000,
+      GiaNiemYetGoc: 480000,
+      price: 288000, // Giá bán thực tế theo lô cận hạn
+      originalPrice: 480000,
+      GiaBanThucTe: 288000,
+      PhanTramGiam: 40,
+      badge: 'Cận Hạn - Giảm 40%',
+      isNearExpiry: true,
+      batchCode: 'LO2608A1',
+      batchExpiry: '2026-11-15',
+      daysRemaining: 45,
+      batchRemaining: 15,
+      MoTa: 'Phục hồi tóc hư tổn nặng với Protein diêm mạch vàng (Lô CTPN01 cận hạn <45 ngày giảm 40%)',
+      description: 'Phục hồi tóc hư tổn nặng với Protein diêm mạch vàng (Lô CTPN01 cận hạn <45 ngày giảm 40%)',
+      HinhAnh: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600',
+      image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.9
     },
     {
-      id: 'prod-new-2',
-      section: 'new',
-      name: '4RAU RAGLAN LONGTEE - RED',
-      brand: '4RAU APPAREL',
-      category: 'Thời Trang',
-      price: 490000,
-      image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
-      description: 'Áo thun tay dài Raglan phối màu đỏ trắng phong cách Vintage đường phố, chất vải cotton 100% định lượng cao dày dặn, thoáng mát.'
+      id: 'SP02',
+      MaSanPham: 'SP02',
+      MaDanhMuc: 'DM01',
+      categoryId: 'DM01',
+      MaNhaCungCap: 'NCC01',
+      TenSanPham: 'Dầu xả L’Oréal Absolut Repair Gold Conditioner 500ml',
+      name: 'Dầu xả L’Oréal Absolut Repair Gold Conditioner 500ml',
+      brand: 'L’Oréal Professionnel',
+      GiaNhap: 380000,
+      GiaBan: 510000,
+      GiaNiemYetGoc: 510000,
+      price: 510000,
+      GiaBanThucTe: 510000,
+      PhanTramGiam: 0,
+      batchCode: 'LO2608A2',
+      batchExpiry: '2027-08-01',
+      MoTa: 'Cung cấp độ bóng mượt vượt trội mà không làm nặng tóc',
+      description: 'Cung cấp độ bóng mượt vượt trội mà không làm nặng tóc',
+      HinhAnh: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600',
+      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.9
     },
     {
-      id: 'prod-new-3',
-      section: 'new',
-      name: '4RAU Winter Tote 2025',
-      brand: '4RAU ACCESSORIES',
-      category: 'Phụ Kiện',
-      price: 99000,
-      image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80',
-      description: 'Túi tote canvas đỏ nổi bật với logo 4RAU in nổi, quai đeo chịu lực tốt, ngăn chứa đồ rộng rãi cho các hoạt động thường ngày.'
+      id: 'SP03',
+      MaSanPham: 'SP03',
+      MaDanhMuc: 'DM01',
+      categoryId: 'DM01',
+      MaNhaCungCap: 'NCC03',
+      TenSanPham: 'Dầu gội Davines Naturaltech Purifying Anti-Dandruff 250ml',
+      name: 'Dầu gội Davines Naturaltech Purifying Anti-Dandruff 250ml',
+      brand: 'Davines',
+      GiaNhap: 290000,
+      GiaBan: 395000,
+      GiaNiemYetGoc: 395000,
+      price: 395000,
+      GiaBanThucTe: 395000,
+      PhanTramGiam: 0,
+      MoTa: 'Dầu gội đặc trị gàu và cân bằng tuyến dầu da đầu',
+      description: 'Dầu gội đặc trị gàu và cân bằng tuyến dầu da đầu',
+      HinhAnh: 'https://images.unsplash.com/photo-1608248597359-597546e9dfd0?w=600',
+      image: 'https://images.unsplash.com/photo-1608248597359-597546e9dfd0?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.85
     },
     {
-      id: 'prod-new-4',
-      section: 'new',
-      name: '4RAU Winter Trucker Hat 2025 - RED',
-      brand: '4RAU APPAREL',
-      category: 'Mũ Nón',
-      price: 450000,
-      image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=600&q=80',
-      description: 'Nón lưỡi trai Trucker form chuẩn Snapback phối lưới đỏ, thêu logo 4RAU sắc sảo, chống gãy form, phong cách Hip-Hop cá tính.'
+      id: 'SP04',
+      MaSanPham: 'SP04',
+      MaDanhMuc: 'DM01',
+      categoryId: 'DM01',
+      MaNhaCungCap: 'NCC04',
+      TenSanPham: 'Dầu gội phục hồi liên kết tóc Olaplex No.4 Bond Maintenance 250ml',
+      name: 'Dầu gội phục hồi liên kết tóc Olaplex No.4 Bond Maintenance 250ml',
+      brand: 'Olaplex',
+      GiaNhap: 520000,
+      GiaBan: 690000,
+      GiaNiemYetGoc: 690000,
+      price: 552000, // Lô CTPN04 (<110 ngày: giảm 20%)
+      originalPrice: 690000,
+      GiaBanThucTe: 552000,
+      PhanTramGiam: 20,
+      badge: 'Giảm 20%',
+      isNearExpiry: true,
+      batchCode: 'LO2608B1',
+      batchExpiry: '2027-01-20',
+      daysRemaining: 110,
+      batchRemaining: 10,
+      MoTa: 'Tái tạo cấu trúc tóc yếu, dễ gãy rụng do uốn nhuộm (Lô CTPN04 hạn <110 ngày giảm 20%)',
+      description: 'Tái tạo cấu trúc tóc yếu, dễ gãy rụng do uốn nhuộm (Lô CTPN04 hạn <110 ngày giảm 20%)',
+      HinhAnh: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
+      image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 5.0
     },
     {
-      id: 'prod-new-5',
-      section: 'new',
-      name: '4RAU Winter Trucker Hat 2025 - BLACK',
-      brand: '4RAU APPAREL',
-      category: 'Mũ Nón',
-      price: 450000,
-      image: 'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?auto=format&fit=crop&w=600&q=80',
-      description: 'Nón Trucker tông đen Black sang trọng bụi bặm, phối lưới thoáng khí phía sau, khóa cài bấm dễ dàng điều chỉnh kích cỡ.'
+      id: 'SP05',
+      MaSanPham: 'SP05',
+      MaDanhMuc: 'DM01',
+      categoryId: 'DM01',
+      MaNhaCungCap: 'NCC04',
+      TenSanPham: 'Dầu xả Olaplex No.5 Bond Maintenance Conditioner 250ml',
+      name: 'Dầu xả Olaplex No.5 Bond Maintenance Conditioner 250ml',
+      brand: 'Olaplex',
+      GiaNhap: 520000,
+      GiaBan: 690000,
+      GiaNiemYetGoc: 690000,
+      price: 690000,
+      GiaBanThucTe: 690000,
+      PhanTramGiam: 0,
+      MoTa: 'Cấp ẩm chuyên sâu và bảo vệ biểu bì tóc chắc khỏe',
+      description: 'Cấp ẩm chuyên sâu và bảo vệ biểu bì tóc chắc khỏe',
+      HinhAnh: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600',
+      image: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.95
     },
-
-    // --- SẢN PHẨM BÁN CHẠY (BEST SELLERS) ---
     {
-      id: 'prod-best-1',
-      section: 'best',
-      name: 'BROSH TONIC SPRAY',
-      brand: 'BROSH JAPAN',
-      category: 'Chăm Sóc & Dưỡng',
-      price: 500000,
-      image: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=600&q=80',
-      description: 'Nước dưỡng kích thích mọc tóc và làm mát da đầu tức thì, khử mùi hôi nón bảo hiểm, tạo độ phồng nhẹ tự nhiên trước khi sấy tóc.'
+      id: 'SP06',
+      MaSanPham: 'SP06',
+      MaDanhMuc: 'DM02',
+      categoryId: 'DM02',
+      MaNhaCungCap: 'NCC02',
+      TenSanPham: 'Tinh dầu dưỡng tóc Moroccanoil Treatment Original 100ml',
+      name: 'Tinh dầu dưỡng tóc Moroccanoil Treatment Original 100ml',
+      brand: 'Moroccanoil',
+      GiaNhap: 650000,
+      GiaBan: 890000,
+      GiaNiemYetGoc: 890000,
+      price: 890000,
+      GiaBanThucTe: 890000,
+      PhanTramGiam: 0,
+      MoTa: 'Tinh chất dầu Argan tự nhiên nuôi dưỡng ngọn tóc suôn mềm',
+      description: 'Tinh chất dầu Argan tự nhiên nuôi dưỡng ngọn tóc suôn mềm',
+      HinhAnh: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600',
+      image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 5.0
     },
     {
-      id: 'prod-best-2',
-      section: 'best',
-      name: 'KBP Original Pomade',
-      brand: 'KBP BARBER',
-      category: 'Pomade',
+      id: 'SP07',
+      MaSanPham: 'SP07',
+      MaDanhMuc: 'DM02',
+      categoryId: 'DM02',
+      MaNhaCungCap: 'NCC02',
+      TenSanPham: 'Tinh dầu Moroccanoil Light Treatment 100ml',
+      name: 'Tinh dầu Moroccanoil Light Treatment 100ml',
+      brand: 'Moroccanoil',
+      GiaNhap: 650000,
+      GiaBan: 890000,
+      GiaNiemYetGoc: 890000,
+      price: 890000,
+      GiaBanThucTe: 890000,
+      PhanTramGiam: 0,
+      MoTa: 'Công thức chuyên biệt dành cho tóc tẩy, mỏng và sáng màu',
+      description: 'Công thức chuyên biệt dành cho tóc tẩy, mỏng và sáng màu',
+      HinhAnh: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
+      image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.9
+    },
+    {
+      id: 'SP08',
+      MaSanPham: 'SP08',
+      MaDanhMuc: 'DM02',
+      categoryId: 'DM02',
+      MaNhaCungCap: 'NCC04',
+      TenSanPham: 'Dầu dưỡng tái tạo tóc Olaplex No.7 Bonding Oil 30ml',
+      name: 'Dầu dưỡng tái tạo tóc Olaplex No.7 Bonding Oil 30ml',
+      brand: 'Olaplex',
+      GiaNhap: 490000,
+      GiaBan: 670000,
+      GiaNiemYetGoc: 670000,
+      price: 670000,
+      GiaBanThucTe: 670000,
+      PhanTramGiam: 0,
+      MoTa: 'Bảo vệ tóc trước nhiệt độ cao tới 230 độ C và tia UV',
+      description: 'Bảo vệ tóc trước nhiệt độ cao tới 230 độ C và tia UV',
+      HinhAnh: 'https://images.unsplash.com/photo-1608248597359-597546e9dfd0?w=600',
+      image: 'https://images.unsplash.com/photo-1608248597359-597546e9dfd0?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.95
+    },
+    {
+      id: 'SP09',
+      MaSanPham: 'SP09',
+      MaDanhMuc: 'DM02',
+      categoryId: 'DM02',
+      MaNhaCungCap: 'NCC01',
+      TenSanPham: 'Serum dưỡng tóc L’Oréal Mythic Oil Huile Originale 100ml',
+      name: 'Serum dưỡng tóc L’Oréal Mythic Oil Huile Originale 100ml',
+      brand: 'L’Oréal Professionnel',
+      GiaNhap: 320000,
+      GiaBan: 440000,
+      GiaNiemYetGoc: 440000,
       price: 440000,
-      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
-      description: 'Dòng Pomade gốc nước huyền thoại dành riêng cho khí hậu nóng ẩm Việt Nam, độ giữ nếp Strong Hold bền bỉ 12 giờ.'
+      GiaBanThucTe: 440000,
+      PhanTramGiam: 0,
+      MoTa: 'Chiết xuất dầu bơ và hạt nho tăng cường độ đàn hồi',
+      description: 'Chiết xuất dầu bơ và hạt nho tăng cường độ đàn hồi',
+      HinhAnh: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600',
+      image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.88
     },
     {
-      id: 'prod-best-3',
-      section: 'best',
-      name: 'BROSH SUPER HARD GEL',
-      brand: 'BROSH JAPAN',
-      category: 'Gel Tạo Kiểu',
-      price: 600000,
-      image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?auto=format&fit=crop&w=600&q=80',
-      description: 'Gel siêu cứng khóa nếp thần tốc, tạo độ bóng tinh tế, không bong tróc vảy trắng, dễ dàng tái tạo nếp sau khi đội mũ.'
+      id: 'SP10',
+      MaSanPham: 'SP10',
+      MaDanhMuc: 'DM03',
+      categoryId: 'DM03',
+      MaNhaCungCap: 'NCC04',
+      TenSanPham: 'Kem ủ tái kết nối Olaplex No.3 Hair Perfector 100ml',
+      name: 'Kem ủ tái kết nối Olaplex No.3 Hair Perfector 100ml',
+      brand: 'Olaplex',
+      GiaNhap: 520000,
+      GiaBan: 690000,
+      GiaNiemYetGoc: 690000,
+      price: 690000,
+      GiaBanThucTe: 690000,
+      PhanTramGiam: 0,
+      MoTa: 'Sản phẩm điều trị cấu trúc phân tử tóc bán chạy nhất thế giới',
+      description: 'Sản phẩm điều trị cấu trúc phân tử tóc bán chạy nhất thế giới',
+      HinhAnh: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
+      image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 5.0
     },
     {
-      id: 'prod-best-4',
-      section: 'best',
-      name: '4RAU 4EVER WHITE TEE',
-      brand: '4RAU APPAREL',
-      category: 'Thời Trang',
-      price: 189000,
-      image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
-      description: 'Áo phông trắng basic cổ tròn biểu tượng của 4RAU Barber, form suông nam tính, in logo trước ngực và sau lưng sắc nét.'
+      id: 'SP11',
+      MaSanPham: 'SP11',
+      MaDanhMuc: 'DM03',
+      categoryId: 'DM03',
+      MaNhaCungCap: 'NCC02',
+      TenSanPham: 'Mặt nạ tóc Moroccanoil Intense Hydrating Mask 250ml',
+      name: 'Mặt nạ tóc Moroccanoil Intense Hydrating Mask 250ml',
+      brand: 'Moroccanoil',
+      GiaNhap: 580000,
+      GiaBan: 780000,
+      GiaNiemYetGoc: 780000,
+      price: 780000,
+      GiaBanThucTe: 780000,
+      PhanTramGiam: 0,
+      MoTa: 'Ủ tóc dưỡng ẩm sâu cho tóc xoăn lọn và tóc khô ráp',
+      description: 'Ủ tóc dưỡng ẩm sâu cho tóc xoăn lọn và tóc khô ráp',
+      HinhAnh: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600',
+      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.92
     },
     {
-      id: 'prod-best-5',
-      section: 'best',
-      name: 'Bột Tạo Phồng Brosh Powder Magic',
-      brand: 'BROSH JAPAN',
-      category: 'Pre-styling',
-      price: 420000,
-      image: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=600&q=80',
-      description: 'Hút sạch dầu thừa bết dính ở chân tóc, mang lại độ bồng bềnh tự nhiên tối đa, không lộ bột, giữ nếp phồng suốt cả ngày.'
+      id: 'SP12',
+      MaSanPham: 'SP12',
+      MaDanhMuc: 'DM03',
+      categoryId: 'DM03',
+      MaNhaCungCap: 'NCC03',
+      TenSanPham: 'Mặt nạ Davines The Renaissance Circle 250ml',
+      name: 'Mặt nạ Davines The Renaissance Circle 250ml',
+      brand: 'Davines',
+      GiaNhap: 380000,
+      GiaBan: 520000,
+      GiaNiemYetGoc: 520000,
+      price: 520000,
+      GiaBanThucTe: 520000,
+      PhanTramGiam: 0,
+      MoTa: 'Mặt nạ phục hồi kỳ diệu cho tóc hư tổn do xử lý nhiệt',
+      description: 'Mặt nạ phục hồi kỳ diệu cho tóc hư tổn do xử lý nhiệt',
+      HinhAnh: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600',
+      image: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.87
+    },
+    {
+      id: 'SP13',
+      MaSanPham: 'SP13',
+      MaDanhMuc: 'DM04',
+      categoryId: 'DM04',
+      MaNhaCungCap: 'NCC01',
+      TenSanPham: 'Sáp vuốt tóc nam L’Oréal Homme Clay Strong Hold 50ml',
+      name: 'Sáp vuốt tóc nam L’Oréal Homme Clay Strong Hold 50ml',
+      brand: 'L’Oréal Professionnel',
+      GiaNhap: 210000,
+      GiaBan: 310000,
+      GiaNiemYetGoc: 310000,
+      price: 310000,
+      GiaBanThucTe: 310000,
+      PhanTramGiam: 0,
+      MoTa: 'Độ giữ nếp cực cao, hoàn thiện mờ tự nhiên không bóng',
+      description: 'Độ giữ nếp cực cao, hoàn thiện mờ tự nhiên không bóng',
+      HinhAnh: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600',
+      image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.91
+    },
+    {
+      id: 'SP14',
+      MaSanPham: 'SP14',
+      MaDanhMuc: 'DM04',
+      categoryId: 'DM04',
+      MaNhaCungCap: 'NCC01',
+      TenSanPham: 'Sáp vuốt tóc Volcanic Clay Version V5 80ml',
+      name: 'Sáp vuốt tóc Volcanic Clay Version V5 80ml',
+      brand: 'Volcanic Clay',
+      GiaNhap: 230000,
+      GiaBan: 340000,
+      GiaNiemYetGoc: 340000,
+      price: 340000,
+      GiaBanThucTe: 340000,
+      PhanTramGiam: 0,
+      MoTa: 'Giữ nếp trên 14 tiếng, hút dầu thừa tốt cho khí hậu nóng ẩm',
+      description: 'Giữ nếp trên 14 tiếng, hút dầu thừa tốt cho khí hậu nóng ẩm',
+      HinhAnh: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600',
+      image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.96
+    },
+    {
+      id: 'SP15',
+      MaSanPham: 'SP15',
+      MaDanhMuc: 'DM04',
+      categoryId: 'DM04',
+      MaNhaCungCap: 'NCC02',
+      TenSanPham: 'Pomade tạo kiểu Moroccanoil Styling Clay 75ml',
+      name: 'Pomade tạo kiểu Moroccanoil Styling Clay 75ml',
+      brand: 'Moroccanoil',
+      GiaNhap: 390000,
+      GiaBan: 540000,
+      GiaNiemYetGoc: 540000,
+      price: 540000,
+      GiaBanThucTe: 540000,
+      PhanTramGiam: 0,
+      MoTa: 'Tạo kiểu linh hoạt, dễ gội rửa với thành phần dầu Argan tự nhiên',
+      description: 'Tạo kiểu linh hoạt, dễ gội rửa với thành phần dầu Argan tự nhiên',
+      HinhAnh: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600',
+      image: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.93
+    },
+    {
+      id: 'SP16',
+      MaSanPham: 'SP16',
+      MaDanhMuc: 'DM05',
+      categoryId: 'DM05',
+      MaNhaCungCap: 'NCC01',
+      TenSanPham: 'Gôm xịt tóc L’Oréal Infinium Pure Strong 500ml',
+      name: 'Gôm xịt tóc L’Oréal Infinium Pure Strong 500ml',
+      brand: 'L’Oréal Professionnel',
+      GiaNhap: 250000,
+      GiaBan: 360000,
+      GiaNiemYetGoc: 360000,
+      price: 360000,
+      GiaBanThucTe: 360000,
+      PhanTramGiam: 0,
+      MoTa: 'Keo xịt giữ nếp chuẩn salon, khô tức thì, không để lại bụi trắng',
+      description: 'Keo xịt giữ nếp chuẩn salon, khô tức thì, không để lại bụi trắng',
+      HinhAnh: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=600',
+      image: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.9
+    },
+    {
+      id: 'SP17',
+      MaSanPham: 'SP17',
+      MaDanhMuc: 'DM05',
+      categoryId: 'DM05',
+      MaNhaCungCap: 'NCC02',
+      TenSanPham: 'Xịt bóng Moroccanoil Glimmer Shine Spray 100ml',
+      name: 'Xịt bóng Moroccanoil Glimmer Shine Spray 100ml',
+      brand: 'Moroccanoil',
+      GiaNhap: 430000,
+      GiaBan: 590000,
+      GiaNiemYetGoc: 590000,
+      price: 590000,
+      GiaBanThucTe: 590000,
+      PhanTramGiam: 0,
+      MoTa: 'Lớp phủ hoàn thiện tạo hiệu ứng bắt sáng rạng rỡ cho tóc',
+      description: 'Lớp phủ hoàn thiện tạo hiệu ứng bắt sáng rạng rỡ cho tóc',
+      HinhAnh: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
+      image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.9
+    },
+    {
+      id: 'SP18',
+      MaSanPham: 'SP18',
+      MaDanhMuc: 'DM06',
+      categoryId: 'DM06',
+      MaNhaCungCap: 'NCC01',
+      TenSanPham: 'Kem nhuộm tóc L’Oréal Majirel Cool Cover 50ml',
+      name: 'Kem nhuộm tóc L’Oréal Majirel Cool Cover 50ml',
+      brand: 'L’Oréal Professionnel',
+      GiaNhap: 160000,
+      GiaBan: 240000,
+      GiaNiemYetGoc: 240000,
+      price: 240000,
+      GiaBanThucTe: 240000,
+      PhanTramGiam: 0,
+      MoTa: 'Màu nhuộm phủ bạc và ánh sắc lạnh bền lâu không hại sợi tóc',
+      description: 'Màu nhuộm phủ bạc và ánh sắc lạnh bền lâu không hại sợi tóc',
+      HinhAnh: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600',
+      image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.88
+    },
+    {
+      id: 'SP19',
+      MaSanPham: 'SP19',
+      MaDanhMuc: 'DM06',
+      categoryId: 'DM06',
+      MaNhaCungCap: 'NCC01',
+      TenSanPham: 'Bột tẩy tóc L’Oréal Blond Studio 9 Levels 500g',
+      name: 'Bột tẩy tóc L’Oréal Blond Studio 9 Levels 500g',
+      brand: 'L’Oréal Professionnel',
+      GiaNhap: 580000,
+      GiaBan: 790000,
+      GiaNiemYetGoc: 790000,
+      price: 790000,
+      GiaBanThucTe: 790000,
+      PhanTramGiam: 0,
+      MoTa: 'Bột tẩy nâng sáng lên đến 9 tông nhẹ dịu với da đầu',
+      description: 'Bột tẩy nâng sáng lên đến 9 tông nhẹ dịu với da đầu',
+      HinhAnh: 'https://images.unsplash.com/photo-1585232351009-aa87416fca90?w=600',
+      image: 'https://images.unsplash.com/photo-1585232351009-aa87416fca90?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.94
+    },
+    {
+      id: 'SP20',
+      MaSanPham: 'SP20',
+      MaDanhMuc: 'DM06',
+      categoryId: 'DM06',
+      MaNhaCungCap: 'NCC03',
+      TenSanPham: 'Màu nhuộm tóc Davines Mask with Vibrachrom 100ml',
+      name: 'Màu nhuộm tóc Davines Mask with Vibrachrom 100ml',
+      brand: 'Davines',
+      GiaNhap: 180000,
+      GiaBan: 270000,
+      GiaNiemYetGoc: 270000,
+      price: 270000,
+      GiaBanThucTe: 270000,
+      PhanTramGiam: 0,
+      MoTa: 'Màu nhuộm hữu cơ chứa tinh dầu hạt diêm mạch bảo vệ sợi tóc',
+      description: 'Màu nhuộm hữu cơ chứa tinh dầu hạt diêm mạch bảo vệ sợi tóc',
+      HinhAnh: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600',
+      image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 4.91
+    },
+    {
+      id: 'SP21',
+      MaSanPham: 'SP21',
+      MaDanhMuc: 'DM06',
+      categoryId: 'DM06',
+      MaNhaCungCap: 'NCC01',
+      TenSanPham: 'Khăn choàng cắt tóc Omni Barber Cape Luxury',
+      name: 'Khăn choàng cắt tóc Omni Barber Cape Luxury',
+      brand: 'OMNI APPAREL & ACCESSORIES',
+      GiaNhap: 150000,
+      GiaBan: 250000,
+      GiaNiemYetGoc: 250000,
+      price: 250000,
+      GiaBanThucTe: 250000,
+      PhanTramGiam: 0,
+      MoTa: 'Khăn choàng vải trượt nước cao cấp phụ kiện salon độc quyền Omni Salon',
+      description: 'Khăn choàng vải trượt nước cao cấp phụ kiện salon độc quyền Omni Salon',
+      HinhAnh: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600',
+      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600',
+      TrangThaiKinhDoanh: 'Đang bán',
+      rating: 5.0
     }
   ],
 
-  // 5. Bài viết Blog (TIN TÓC UNDERGROUND — 100% đúng tiêu đề và nội dung ảnh ngon.png)
-  newsArticles: [
+  // =========================================================================
+  // 8. PHIẾU NHẬP KHO & CHI TIẾT PHIẾU NHẬP (PhieuNhapKho, ChiTietPhieuNhap)
+  // =========================================================================
+  purchaseOrders: [
+    { MaPhieuNhap: 'PN01', MaNhanVien: 'NV01', MaNguoiDuyet: 'NV01', MaNhaCungCap: 'NCC01', MaChiNhanh: 'CN01', NgayLap: '2026-08-10', TongTien: 15000000, NgayDuyet: '2026-08-11', TrangThai: 'Đã duyệt' },
+    { MaPhieuNhap: 'PN02', MaNhanVien: 'NV01', MaNguoiDuyet: 'NV01', MaNhaCungCap: 'NCC04', MaChiNhanh: 'CN01', NgayLap: '2026-08-20', TongTien: 15300000, NgayDuyet: '2026-08-21', TrangThai: 'Đã duyệt' },
+    { MaPhieuNhap: 'PN03', MaNhanVien: 'NV01', MaNguoiDuyet: 'NV01', MaNhaCungCap: 'NCC02', MaChiNhanh: 'CN01', NgayLap: '2026-09-01', TongTien: 13000000, NgayDuyet: '2026-09-02', TrangThai: 'Đã duyệt' }
+  ],
+
+  purchaseOrderDetails: [
+    { MaChiTietPhieuNhap: 'CTPN01', MaPhieuNhap: 'PN01', MaSanPham: 'SP01', SoLo: 'LO2608A1', HanSuDung: '2026-11-15', SoLuong: 20, SoLuongConLai: 15, DonGiaNhap: 360000, ThanhTien: 7200000, note: 'Lô cận hạn <45 ngày giảm 40%' },
+    { MaChiTietPhieuNhap: 'CTPN02', MaPhieuNhap: 'PN01', MaSanPham: 'SP02', SoLo: 'LO2608A2', HanSuDung: '2027-08-01', SoLuong: 15, SoLuongConLai: 12, DonGiaNhap: 380000, ThanhTien: 5700000 },
+    { MaChiTietPhieuNhap: 'CTPN03', MaPhieuNhap: 'PN01', MaSanPham: 'SP13', SoLo: 'LO2608A3', HanSuDung: '2027-10-20', SoLuong: 10, SoLuongConLai: 8, DonGiaNhap: 210000, ThanhTien: 2100000 },
+    { MaChiTietPhieuNhap: 'CTPN04', MaPhieuNhap: 'PN02', MaSanPham: 'SP04', SoLo: 'LO2608B1', HanSuDung: '2027-01-20', SoLuong: 15, SoLuongConLai: 10, DonGiaNhap: 520000, ThanhTien: 7800000, note: 'Lô cận hạn <110 ngày giảm 20%' },
+    { MaChiTietPhieuNhap: 'CTPN05', MaPhieuNhap: 'PN02', MaSanPham: 'SP08', SoLo: 'LO2608B2', HanSuDung: '2027-12-30', SoLuong: 10, SoLuongConLai: 8, DonGiaNhap: 490000, ThanhTien: 4900000 },
+    { MaChiTietPhieuNhap: 'CTPN06', MaPhieuNhap: 'PN02', MaSanPham: 'SP10', SoLo: 'LO2608B3', HanSuDung: '2027-12-30', SoLuong: 5, SoLuongConLai: 4, DonGiaNhap: 520000, ThanhTien: 2600000 },
+    { MaChiTietPhieuNhap: 'CTPN07', MaPhieuNhap: 'PN03', MaSanPham: 'SP06', SoLo: 'LO2609C1', HanSuDung: '2028-02-15', SoLuong: 20, SoLuongConLai: 18, DonGiaNhap: 650000, ThanhTien: 13000000 }
+  ],
+
+  // =========================================================================
+  // 9. QUY TẮC GIẢM GIÁ THEO HẠN (Bảng QuyTacGiamGiaTheoHan)
+  // =========================================================================
+  discountRules: [
+    { MaQuyTac: 'QT01', TenQuyTac: 'Còn trên 4 tháng (Hạn tiêu chuẩn)', SoNgayConLaiToiThieu: 121, SoNgayConLaiToiDa: 9999, PhanTramGiam: 0.00, TrangThai: 'Đang áp dụng' },
+    { MaQuyTac: 'QT02', TenQuyTac: 'Còn 2 đến 4 tháng (Giảm nhẹ giải phóng kho)', SoNgayConLaiToiThieu: 61, SoNgayConLaiToiDa: 120, PhanTramGiam: 20.00, TrangThai: 'Đang áp dụng' },
+    { MaQuyTac: 'QT03', TenQuyTac: 'Còn 1 đến 2 tháng (Cận hạn sâu)', SoNgayConLaiToiThieu: 31, SoNgayConLaiToiDa: 60, PhanTramGiam: 40.00, TrangThai: 'Đang áp dụng' },
+    { MaQuyTac: 'QT04', TenQuyTac: 'Còn dưới 1 tháng (Cận hạn gấp)', SoNgayConLaiToiThieu: 1, SoNgayConLaiToiDa: 30, PhanTramGiam: 70.00, TrangThai: 'Đang áp dụng' },
+    { MaQuyTac: 'QT05', TenQuyTac: 'Đã hết hạn (Thu hồi tiêu hủy)', SoNgayConLaiToiThieu: -9999, SoNgayConLaiToiDa: 0, PhanTramGiam: 100.00, TrangThai: 'Đang áp dụng' }
+  ],
+
+  // =========================================================================
+  // 10. TỒN KHO THEO CHI NHÁNH (Bảng TonKho)
+  // =========================================================================
+  inventory: [
+    { id: 'TK_SP01_CN01', MaTonKho: 'TK_SP01_CN01', productId: 'SP01', MaSanPham: 'SP01', branchId: 'CN01', MaChiNhanh: 'CN01', stock: 15, SoLuongTon: 15, minAlert: 5, MucCanhBao: 5 },
+    { id: 'TK_SP02_CN01', MaTonKho: 'TK_SP02_CN01', productId: 'SP02', MaSanPham: 'SP02', branchId: 'CN01', MaChiNhanh: 'CN01', stock: 12, SoLuongTon: 12, minAlert: 5, MucCanhBao: 5 },
+    { id: 'TK_SP04_CN01', MaTonKho: 'TK_SP04_CN01', productId: 'SP04', MaSanPham: 'SP04', branchId: 'CN01', MaChiNhanh: 'CN01', stock: 10, SoLuongTon: 10, minAlert: 5, MucCanhBao: 5 },
+    { id: 'TK_SP06_CN01', MaTonKho: 'TK_SP06_CN01', productId: 'SP06', MaSanPham: 'SP06', branchId: 'CN01', MaChiNhanh: 'CN01', stock: 18, SoLuongTon: 18, minAlert: 5, MucCanhBao: 5 },
+    { id: 'TK_SP13_CN01', MaTonKho: 'TK_SP13_CN01', productId: 'SP13', MaSanPham: 'SP13', branchId: 'CN01', MaChiNhanh: 'CN01', stock: 8, SoLuongTon: 8, minAlert: 5, MucCanhBao: 5 },
+    { id: 'TK_SP14_CN02', MaTonKho: 'TK_SP14_CN02', productId: 'SP14', MaSanPham: 'SP14', branchId: 'CN02', MaChiNhanh: 'CN02', stock: 20, SoLuongTon: 20, minAlert: 5, MucCanhBao: 5 },
+    { id: 'TK_SP15_CN03', MaTonKho: 'TK_SP15_CN03', productId: 'SP15', MaSanPham: 'SP15', branchId: 'CN03', MaChiNhanh: 'CN03', stock: 14, SoLuongTon: 14, minAlert: 5, MucCanhBao: 5 }
+  ],
+
+  // =========================================================================
+  // 11. KHUYẾN MÃI (Bảng KhuyenMai, KhuyenMai_DichVu, KhuyenMai_SanPham)
+  // =========================================================================
+  promotions: [
     {
-      id: 'news-feature',
-      isFeature: true,
-      title: 'Erling Haaland cắt Buzz Cut: Khi "người Viking" trở lại với mái tóc quân đội',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-      date: 'Tháng 9, 2026',
-      author: '4RAU Editorial',
-      excerpt: 'Erling Haaland bất ngờ cắt Buzz Cut sau nhiều năm để tóc dài. Cùng 4RAU tìm hiểu kiểu tóc mới, Buzz Cut là gì và kiểu tóc này có phù hợp với bạn không.'
+      id: 'KM01',
+      MaKhuyenMai: 'KM01',
+      code: 'KM01',
+      TenKhuyenMai: 'Ưu đãi Khai Trương Mùa Cắt Tóc',
+      HinhThuc: 'TienMat',
+      discountType: 'fixed',
+      GiaTriGiam: 50000,
+      discountValue: 50000,
+      DoiTuongApDung: 'DichVu',
+      NgayBatDau: '2026-09-01',
+      NgayKetThuc: '2026-12-31',
+      expiry: '2026-12-31',
+      TrangThai: 'Hoạt động',
+      description: 'Giảm ngay 50.000đ khi đặt lịch Uốn sóng lơi (DV03) hoặc Nhuộm Balayage (DV04)'
     },
     {
-      id: 'news-side-1',
-      isFeature: false,
-      title: 'Ngày Đẹp Cắt Tóc Tháng 9/2026 Ngày Nào Tốt? 5 Ngày Đẹp Nhất Theo Lịch Vạn Niên',
-      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80',
-      date: 'Tháng 9, 2026',
-      excerpt: 'Lịch cắt tóc tháng 9/2026: ngày nào hết tháng có hồn, các ngày hoàng đạo, 5 ngày...'
+      id: 'KM02',
+      MaKhuyenMai: 'KM02',
+      code: 'KM02',
+      TenKhuyenMai: 'Tri Ân Khách Hàng - Phục Hồi Olaplex',
+      HinhThuc: 'TienMat',
+      discountType: 'fixed',
+      GiaTriGiam: 100000,
+      discountValue: 100000,
+      DoiTuongApDung: 'DichVu',
+      NgayBatDau: '2026-09-15',
+      NgayKetThuc: '2026-11-30',
+      expiry: '2026-11-30',
+      TrangThai: 'Hoạt động',
+      description: 'Giảm 100.000đ trực tiếp khi trải nghiệm Liệu trình Olaplex chuyên sâu (DV05)'
     },
     {
-      id: 'news-side-2',
-      isFeature: false,
-      title: 'Pomade Gốc Dầu Khó Gội? Đây Là Cách Barber 4RAU Vẫn Làm Mỗi Ngày',
-      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=80',
-      date: 'Tháng 9, 2026',
-      excerpt: 'Pomade gốc dầu khó tan trong nước nên gội mãi vẫn bết. Barber 4RAU chỉ quy trình...'
-    },
-    {
-      id: 'news-side-3',
-      isFeature: false,
-      title: 'Warrior Cut Là Gì? Kiểu Tóc James (CORTIS) Đang Gây Sốt TikTok 2026',
-      image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=400&q=80',
-      date: 'Tháng 9, 2026',
-      excerpt: 'Warrior cut viral TikTok nhờ màn cắt trọc bớt ngố của James (CORTIS) trước MV "T...'
-    },
-    {
-      id: 'news-grid-1',
-      title: 'HAIR HỌC TRÒ 2026: 10 Kiểu Tóc Nam Đi Học Đẹp, Gọn, Chuẩn Trend',
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
-      date: 'Tháng 9, 2026',
-      excerpt: 'HAIR HỌC TRÒ 2026: Khám phá 10 kiểu tóc nam đi học đẹp, gọn và trendy...'
-    },
-    {
-      id: 'news-grid-2',
-      title: 'Himesh Patel sở hữu bộ râu đẹp nhất trong The Odyssey — Không phải đại nhất, mà là cân đối nhất',
-      image: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=400&q=80',
-      date: 'Tháng 9, 2026',
-      excerpt: 'Khi nhắc đến The Odyssey của đạo diễn Christopher Nolan, khán giả sẽ n...'
-    },
-    {
-      id: 'news-grid-3',
-      title: 'Kiểu tóc Lionel Messi: Vì sao gần 20 năm vẫn không lỗi thời? Góc nhìn của barber 4RAU',
-      image: 'https://images.unsplash.com/photo-1517832606589-7157462939ac?auto=format&fit=crop&w=400&q=80',
-      date: 'Tháng 9, 2026',
-      excerpt: 'Nếu Lionel Messi bước vào 4RAU Barber trước trận chung kết World Cup 2...'
-    },
-    {
-      id: 'news-grid-4',
-      title: 'Kiểu tóc Erling Haaland: Vì sao Man Bún trở thành biểu tượng của World Cup 2026?',
-      image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=400&q=80',
-      date: 'Tháng 9, 2026',
-      excerpt: 'Không chỉ ghi bàn, Erling Haaland còn gây sốt với kiểu tóc Man Bún đặc...'
+      id: 'KM03',
+      MaKhuyenMai: 'KM03',
+      code: 'KM03',
+      TenKhuyenMai: 'Đại Tiệc Dầu Dưỡng Moroccanoil',
+      HinhThuc: 'PhanTram',
+      discountType: 'percent',
+      GiaTriGiam: 10,
+      discountValue: 10,
+      DoiTuongApDung: 'SanPham',
+      NgayBatDau: '2026-09-01',
+      NgayKetThuc: '2026-10-31',
+      expiry: '2026-10-31',
+      TrangThai: 'Hoạt động',
+      description: 'Giảm 10% cho tất cả sản phẩm thuộc thương hiệu Moroccanoil'
     }
   ],
 
-  // 6. Bạn Đến Nhà (Khoảnh khắc khách hàng và barber tại shop — ngon.png)
-  moments: [
-    {
-      id: 'm-1',
-      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=500&q=80',
-      caption: 'Khách quen cùng Master Barber Hà Hiền tại chi nhánh Điện Biên Phủ'
-    },
-    {
-      id: 'm-2',
-      image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=500&q=80',
-      caption: 'Check-in góc tường gạch cổ điển đặc trưng của 4RAU Barbershop'
-    },
-    {
-      id: 'm-3',
-      image: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=500&q=80',
-      caption: 'Anh em thợ cắt tóc đeo tạp dề da thương hiệu sẵn sàng phục vụ'
-    },
-    {
-      id: 'm-4',
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80',
-      caption: 'Rapper và nghệ sĩ underground ghé tút lại diện mạo trước show diễn'
-    },
-    {
-      id: 'm-5',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
-      caption: 'Nụ cười hài lòng với kiểu tóc Fade bén ngót và cạo râu êm dịu'
-    }
-  ],
-
-  // 7. Các hợp tác thương hiệu (Brand Collaborations — ngon.png)
-  brandCollabs: [
-    { id: 'collab-1', title: '4RAU x XANHSM', linkText: 'GET THE LOOK >' },
-    { id: 'collab-2', title: '4RAU x ECKSAIGON', linkText: 'GET THE LOOK >' },
-    { id: 'collab-3', title: '4RAU x Clear Men 2025', linkText: 'GET THE LOOK >' },
-    { id: 'collab-4', title: 'BST 4RAU x GAMBLE WORLDWIDE', linkText: 'GET THE LOOK >' },
-    { id: 'collab-5', title: '4RAU x REDBULL', linkText: 'GET THE LOOK >' },
-    { id: 'collab-6', title: '4RAU x RUNAM CAFE', linkText: 'GET THE LOOK >' }
-  ],
-
-  // 8. Tác phẩm trong tháng (Hairstyles Gallery & AI Try-On)
-  hairstyles: [
-    {
-      id: 'hs-1',
-      title: 'Buzz Cut Quân Đội (Erling Haaland 2026)',
-      gender: 'Nam',
-      styleCategory: 'Buzz Cut',
-      matchFaceShapes: ['Square', 'Oval', 'Diamond'],
-      description: 'Cắt cua ngắn ôm sát hộp sọ, fade bén mượt mà hai bên tạo vẻ phong trần, quyền lực và góc cạnh.',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
-      serviceSuggestionId: 'srv-1',
-      baseMatchScore: 98,
-      suitableColors: [
-        { name: 'Đen Tự Nhiên', hex: '#1c1b18' },
-        { name: 'Xám Bạc Smokey', hex: '#9ca3af' }
-      ]
-    },
-    {
-      id: 'hs-2',
-      title: 'Warrior Cut James (CORTIS Viral TikTok)',
-      gender: 'Nam',
-      styleCategory: 'Warrior/Crop',
-      matchFaceShapes: ['Oval', 'Round', 'Square'],
-      description: 'Mái crop ngắn phá cách kết hợp fade cao sắc sảo, siêu phẩm viral đang gây sốt trong giới trẻ.',
-      image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80',
-      serviceSuggestionId: 'srv-1',
-      baseMatchScore: 97,
-      suitableColors: [
-        { name: 'Nâu Khói Lạnh', hex: '#4a3728' },
-        { name: 'Đen Mực', hex: '#111827' }
-      ]
-    },
-    {
-      id: 'hs-3',
-      title: 'Side Part 7/3 Phồng Rủ Lãng Tử',
-      gender: 'Nam',
-      styleCategory: 'Side Part',
-      matchFaceShapes: ['Oval', 'Heart', 'Diamond'],
-      description: 'Rẽ ngôi 7/3 vuốt phồng nhẹ nhàng, phần mái rủ bồng bềnh giúp khuôn mặt thanh thoát và điển trai.',
-      image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80',
-      serviceSuggestionId: 'srv-4',
-      baseMatchScore: 96,
-      suitableColors: [
-        { name: 'Nâu Hạt Dẻ', hex: '#5a3825' },
-        { name: 'Nâu Sôcôla', hex: '#3d2314' }
-      ]
-    },
-    {
-      id: 'hs-4',
-      title: 'Modern Undercut Pompadour Quý Ông',
-      gender: 'Nam',
-      styleCategory: 'Pompadour',
-      matchFaceShapes: ['Round', 'Square', 'Oval'],
-      description: 'Fade chuẩn barber hai bên, phần đỉnh vuốt ngược phồng bóng sang trọng với pomade gốc nước.',
-      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-      serviceSuggestionId: 'srv-1',
-      baseMatchScore: 95,
-      suitableColors: [
-        { name: 'Nâu Tây', hex: '#4a3728' },
-        { name: 'Đen Tự Nhiên', hex: '#1e1e1e' }
-      ]
-    }
-  ],
-
-  // 9. Stylists & Barbers
-  stylists: [
-    {
-      id: 'st-1',
-      branchId: 'br-dbp',
-      name: 'Master Barber Hà Hiền',
-      role: 'Founder & Giám Đốc Sáng Tạo 4RAU',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-      rating: 5.0,
-      specialty: 'Fade đỉnh cao, tạo hình râu cổ điển & Phong cách Underground',
-      experience: '15 năm kinh nghiệm'
-    },
-    {
-      id: 'st-2',
-      branchId: 'br-q11',
-      name: 'Barber Dennis Hoàng',
-      role: 'Head Barber & Texture Master',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-      rating: 4.98,
-      specialty: 'Uốn con sâu, Side part rủ & Chuyên gia cạo mặt khăn nóng',
-      experience: '9 năm kinh nghiệm'
-    },
-    {
-      id: 'st-3',
-      branchId: 'br-td',
-      name: 'Barber Alex Vũ',
-      role: 'Senior Barber Thảo Điền',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-      rating: 4.96,
-      specialty: 'Skin fade, Mullet hiện đại & Ép side tự nhiên',
-      experience: '8 năm kinh nghiệm'
-    }
-  ],
-
-  // 10. Lịch hẹn & Booking
+  // =========================================================================
+  // 12. LỊCH HẸN & ĐẶT LỊCH (Bảng LichHen & ChiTietLichHen)
+  // =========================================================================
   bookings: [
     {
-      id: 'BK-4RAU-101',
-      branchId: 'br-dbp',
-      branchName: '4RAU CUTCLUB QUẬN 10 — CẮT TÓC NAM ĐIỆN BIÊN PHỦ (HQ)',
-      customerName: 'Nguyễn Văn Hải',
-      customerPhone: '0908123456',
-      serviceId: 'srv-1',
-      serviceName: 'CẮT TẠO KIỂU FADE & CHUẨN BARBER',
-      stylistId: 'st-1',
-      stylistName: 'Master Barber Hà Hiền',
-      date: '2026-09-12',
-      timeSlot: '10:30',
-      totalPrice: 180000,
-      status: 'confirmed',
-      createdAt: '2026-09-11 14:00'
+      id: 'LH01',
+      MaLichHen: 'LH01',
+      bookingCode: 'LH01',
+      customerId: 'KH01',
+      MaKhachHang: 'KH01',
+      customerName: 'Ngô Văn Tuấn',
+      customerPhone: '0988000001',
+      customerEmail: 'vantuan@omnisalon.vn',
+      stylistId: 'NV02',
+      MaNhanVien: 'NV02',
+      stylistName: 'Lê Thị Hương',
+      branchId: 'CN01',
+      MaChiNhanh: 'CN01',
+      branchName: 'Salon Tóc Chi Nhánh 1 - Quận 1',
+      serviceId: 'DV01',
+      serviceName: 'Cắt tóc nam thời trang',
+      date: '2026-10-02',
+      timeSlot: '09:00',
+      totalPrice: 120000,
+      TongTien: 120000,
+      TienCoc: 0,
+      status: 'Confirmed',
+      TrangThai: 'Đã hoàn thành',
+      GhiChu: 'Khách yêu cầu tỉa phom gọn gàng',
+      createdAt: '2026-09-25 08:30:00'
+    },
+    {
+      id: 'LH02',
+      MaLichHen: 'LH02',
+      bookingCode: 'LH02',
+      customerId: 'KH02',
+      MaKhachHang: 'KH02',
+      customerName: 'Trần Mỹ Linh',
+      customerPhone: '0988000002',
+      customerEmail: 'mylinh.tran@omnisalon.vn',
+      stylistId: 'NV02',
+      MaNhanVien: 'NV02',
+      stylistName: 'Lê Thị Hương',
+      branchId: 'CN01',
+      MaChiNhanh: 'CN01',
+      branchName: 'Salon Tóc Chi Nhánh 1 - Quận 1',
+      serviceId: 'DV02',
+      serviceName: 'Cắt & Tạo kiểu tóc nữ',
+      date: '2026-10-02',
+      timeSlot: '14:30',
+      totalPrice: 250000,
+      TongTien: 250000,
+      TienCoc: 50000,
+      status: 'In_Progress',
+      TrangThai: 'Đang phục vụ',
+      GhiChu: 'Tư vấn cắt layer chuẩn form',
+      createdAt: '2026-09-28 10:00:00'
     }
   ],
 
-  // 11. Đơn hàng bán lẻ
-  orders: [],
-
-  // 12. Khuyến mãi & Vouchers
-  promotions: [
-    { code: '4RAUWELCOME', discountType: 'fixed', discountValue: 50000, minOrder: 150000, expiry: '2026-12-31', description: 'Giảm ngay 50k cho khách hàng đặt lịch lần đầu' },
-    { code: 'VIPGENTLEMAN', discountType: 'percent', discountValue: 15, minOrder: 300000, expiry: '2026-12-31', description: 'Giảm 15% cho combo hoặc hóa đơn mỹ phẩm từ 300k' }
+  // =========================================================================
+  // 13. ĐƠN HÀNG (Bảng DonHang & ChiTietDonHang)
+  // =========================================================================
+  orders: [
+    {
+      id: 'DH01',
+      MaDonHang: 'DH01',
+      orderCode: 'DH01',
+      customerId: 'KH03',
+      MaKhachHang: 'KH03',
+      customerName: 'Đặng Thanh Tùng',
+      customerPhone: '0988000003',
+      branchId: 'CN01',
+      MaChiNhanh: 'CN01',
+      shippingAddress: '158 An Dương Vương, TP.HCM',
+      items: [
+        { productId: 'SP14', name: 'Sáp vuốt tóc Volcanic Clay Version V5 80ml', price: 340000, quantity: 1, subtotal: 340000 }
+      ],
+      totalAmount: 340000,
+      TongTienGoc: 340000,
+      TongGiamGia: 0,
+      TongThanhToan: 340000,
+      TrangThaiDonHang: 'Đã hoàn thành',
+      orderStatus: 'Delivered',
+      PhuongThucThanhToan: 'ChuyenKhoan',
+      paymentMethod: 'VietQR',
+      createdAt: '2026-09-27 15:00:00'
+    }
   ],
 
-  // 13. Thông báo
+  // =========================================================================
+  // 14. ĐÁNH GIÁ (Bảng DanhGia)
+  // =========================================================================
+  reviews: [
+    {
+      MaDanhGia: 'DG01',
+      MaKhachHang: 'KH01',
+      customerName: 'Ngô Văn Tuấn',
+      MaLichHen: 'LH01',
+      SoSao: 5,
+      NoiDung: 'Thợ cắt rất có tâm, tư vấn kỹ dáng mặt và vuốt sáp đẹp.',
+      NgayDanhGia: '2026-09-25 11:30:00',
+      TrangThai: 'Hiển thị',
+      stylistName: 'Lê Thị Hương'
+    },
+    {
+      MaDanhGia: 'DG02',
+      MaKhachHang: 'KH03',
+      customerName: 'Đặng Thanh Tùng',
+      MaDonHang: 'DH01',
+      SoSao: 4,
+      NoiDung: 'Sản phẩm đóng gói cẩn thận, sáp giữ nếp tốt tự nhiên.',
+      NgayDanhGia: '2026-09-27 18:00:00',
+      TrangThai: 'Hiển thị'
+    }
+  ],
+
+  // =========================================================================
+  // 15. THÔNG BÁO (Bảng ThongBao)
+  // =========================================================================
   notifications: [
     {
-      id: 'notif-1',
-      userId: 'usr-1',
-      title: '💈 Chào mừng bạn đến với 4RAU Barbershop!',
-      content: 'Nhập mã 4RAUWELCOME khi đặt lịch để được giảm ngay 50.000đ cho lần cắt tóc đầu tiên.',
+      id: 'TB01',
+      MaThongBao: 'TB01',
+      title: 'Chào mừng bạn đến với OmniSalon!',
+      TieuDe: 'Chào mừng bạn đến với OmniSalon!',
+      content: 'Trải nghiệm hệ thống salon đẳng cấp tại 3 chi nhánh Quận 1, Tân Bình, Bình Thạnh.',
+      NoiDung: 'Trải nghiệm hệ thống salon đẳng cấp tại 3 chi nhánh Quận 1, Tân Bình, Bình Thạnh.',
       type: 'promo',
       isRead: false,
-      createdAt: '2026-09-12 08:00'
+      createdAt: '2026-09-01 08:00:00'
     }
   ],
 
-  // 14. Tồn kho chi nhánh
-  inventory: [
-    { id: 'inv-1', productId: 'prod-new-1', branchId: 'br-dbp', stock: 45, minAlert: 10 },
-    { id: 'inv-2', productId: 'prod-new-2', branchId: 'br-dbp', stock: 25, minAlert: 5 },
-    { id: 'inv-3', productId: 'prod-best-1', branchId: 'br-dbp', stock: 30, minAlert: 8 }
-  ],
-
-  // 15. Audit logs
-  auditLogs: [
+  // =========================================================================
+  // 16. BÀI VIẾT TIN TỨC & GƯƠNG MẶT
+  // =========================================================================
+  newsArticles: [
     {
-      id: 'log-1',
-      timestamp: '2026-09-12 08:00',
-      operatorName: 'Hệ Thống 4RAU',
-      action: 'SYSTEM_BOOT',
-      entity: 'Platform V5',
-      details: 'Khởi chạy hệ sinh thái 4RAU Barbershop (Web & Android CH Play App)'
+      id: 'news-1',
+      title: 'Xu Hướng Tóc Nam & Nữ Thịnh Hành 2026: Layer Bay & Texture Hiện Đại',
+      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
+      date: 'Tháng 10, 2026',
+      author: 'Master Stylist Võ Quốc Bảo',
+      excerpt: 'Cùng chuyên gia OmniSalon khám phá phong cách tạo mẫu Bắc Âu tinh giản nhưng đầy cuốn hút.'
+    },
+    {
+      id: 'news-2',
+      title: 'Quy Trình 5 Bước Phục Hồi Olaplex Cho Mái Tóc Cháy Xơ Do Hóa Chất',
+      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
+      date: 'Tháng 10, 2026',
+      author: 'Senior Stylist Lê Thị Hương',
+      excerpt: 'Liệu trình độc quyền giúp liên kết lại các chuỗi disulfide bị đứt gãy trong sợi tóc.'
     }
+  ],
+
+  brandCollabs: [
+    { id: 'collab-1', title: 'OMNI x L’ORÉAL PROFESSIONNEL', linkText: 'GET THE LOOK >' },
+    { id: 'collab-2', title: 'OMNI x OLAPLEX GLOBAL', linkText: 'GET THE LOOK >' },
+    { id: 'collab-3', title: 'OMNI x MOROCCANOIL', linkText: 'GET THE LOOK >' },
+    { id: 'collab-4', title: 'OMNI x DAVINES', linkText: 'GET THE LOOK >' }
   ]
 };
 
-// -------------------------------------------------------------------------
-// 2. CÁC HÀM TIỆN ÍCH CHUNG (HELPER UTILITIES)
-// -------------------------------------------------------------------------
-
+// Gán biến toàn cục
 window.INITIAL_DATA = INITIAL_SALON_DATA;
+window.INITIAL_SALON_DATA = INITIAL_SALON_DATA;
+window.RAW_DATA = INITIAL_SALON_DATA;

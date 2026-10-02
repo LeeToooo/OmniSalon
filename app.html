@@ -3,29 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>4RAU Barbershop Mobile App — Đặt Lịch & AI Đổi Kiểu Tóc</title>
+  <title>Omni Salon Mobile App — The Art of Modern Hair Care & Grooming</title>
   
   <!-- SEO & Mobile Web App Meta -->
-  <meta name="description" content="Ứng dụng di động chính thức của chuỗi 4RAU Barbershop. Đặt lịch cắt tóc theo chi nhánh, thử kiểu tóc AI bằng ảnh thật, mua sáp vuốt tóc chính hãng.">
-  <meta name="theme-color" content="#121214">
+  <meta name="description" content="Ứng dụng di động chính thức của hệ thống Omni Salon — The Art of Modern Hair Care & Grooming. Đặt lịch trải nghiệm, Stylist 5 sao, AI Studio.">
+  <meta name="theme-color" content="#0B0D13">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23c85a44'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='32'>4R</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230B0D13'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' fill='%23D4AF37' font-family='sans-serif' font-weight='900' font-size='32'>OS</text></svg>">
 
-  <!-- Modern Inter Google Font -->
+  <!-- Modern Inter & Plus Jakarta Sans Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Master Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=11.0">
+  <link rel="stylesheet" href="styles.css?v=12.0">
+
+  <!-- Centralized Theme Engine (Zero FOUC) -->
+  <script src="js/core/theme.js?v=1.0"></script>
 </head>
 <body class="mobile-app-body">
 
   <!-- THANH BÁO XEM THỬ MOBILE TRÊN MÁY TÍNH (ẨN TRÊN ĐIỆN THOẠI) -->
   <div class="app-desktop-preview-bar">
-    <span>📱 <strong>4RAU Mobile App</strong> (Bản xem trước di động)</span>
+    <span>📱 <strong>Omni Salon Mobile App</strong> (Bản xem trước di động)</span>
     <a href="index.html">🌐 Mở Bản Web Desktop →</a>
   </div>
 
@@ -70,11 +73,23 @@
        5. js/components/ui-common.js -> UI chung (Product cards, Booking wizard, Cart)
        6. js/app/ui-app.js        -> Giao diện Mobile App (5 Tabs, AI Studio, Profile)
        ======================================================== -->
-  <script src="js/core/data.js?v=11.0"></script>
-  <script src="js/core/utils.js?v=11.0"></script>
-  <script src="js/core/store.js?v=11.0"></script>
-  <script src="js/core/api.js?v=11.0"></script>
+  <script src="js/core/data.js?v=12.0"></script>
+  <script src="js/core/utils.js?v=12.0"></script>
+  <script src="js/core/pricing.js?v=12.0"></script>
+  <script src="js/core/auth.js?v=12.0"></script>
+  <script src="js/core/store.js?v=12.0"></script>
+  <script src="js/core/api.js?v=12.0"></script>
+  <script src="js/app/app-state.js?v=12.0"></script>
+  <script src="js/widgets/service-card-widget.js?v=12.0"></script>
+  <script src="js/widgets/stylist-card-widget.js?v=12.0"></script>
+  <script src="js/widgets/time-slot-chips-widget.js?v=12.0"></script>
+  <script src="js/widgets/booking-slot-picker.js?v=12.0"></script>
+  <script src="js/widgets/stat-card-widget.js?v=12.0"></script>
+  <script src="js/widgets/shimmer-loading-widget.js?v=12.0"></script>
+  <script src="js/widgets/widgets-bundle.js?v=12.0"></script>
   <script src="js/components/ui-common.js?v=11.0"></script>
+  <script src="js/modules/customer/app/customer-app.js?v=11.0"></script>
+  <script src="js/modules/admin/app/admin-app.js?v=11.0"></script>
   <script src="js/app/ui-app.js?v=11.0"></script>
 
   <!-- Khởi chạy trực tiếp bản Mobile App -->

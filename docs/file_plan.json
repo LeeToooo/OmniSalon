@@ -1,0 +1,261 @@
+{
+  "project_name": "OmniSalon & 4RAU Barbershop Enterprise Suite",
+  "version": "2.1.0",
+  "generated_by": "Agent 2 - File System Mapper & Project Scaffolder",
+  "reference_specification": "docs/analysis.md",
+  "architecture_pattern": "Layered Modular Architecture with Role-Based Access Control (RBAC)",
+  "system_modules": [
+    "modules/customer (Web & Mobile)",
+    "modules/admin (Web & Mobile)"
+  ],
+  "file_classification": {
+    "unchanged_files": [
+      {
+        "file_path": "manifest.json",
+        "description": "Cấu hình Web App Manifest cho PWA (Tên ứng dụng, biểu tượng 4R, màu sắc thương hiệu, chế độ standalone)."
+      },
+      {
+        "file_path": "capacitor.config.json",
+        "description": "Cấu hình Capacitor Android Native Wrapper (AppId com.omnisalon.barbershop, Splash Screen, Status Bar)."
+      },
+      {
+        "file_path": "package.json",
+        "description": "Quản lý gói phụ thuộc npm Capacitor (@capacitor/core, @capacitor/android, @capacitor/camera) và scripts phục vụ ứng dụng."
+      },
+      {
+        "file_path": "styles.css",
+        "description": "Tập tin CSS gốc nạp tuần tự các stylesheet phân hệ."
+      },
+      {
+        "file_path": "css/base.css",
+        "description": "Thiết lập CSS Variables màu Terracotta, Dark Mode, Typography Inter và reset nền tảng."
+      },
+      {
+        "file_path": "css/common.css",
+        "description": "Hệ thống style dùng chung: Modal Shell, Drawer giỏ hàng, Animations, Toast Pills, Micro-interactions."
+      }
+    ],
+    "modified_files": [
+      {
+        "file_path": "database_schema.sql",
+        "change_type": "EXPAND_SCHEMA_AND_SEEDS",
+        "description": "Bổ sung cấu trúc bảng DDL đầy đủ: roles, permissions, role_permissions, combos, combo_services, booking_items, branch_inventory, vouchers; nâng cấp bảng users, stylists (user_id, commission_rate), bookings (ràng buộc unique chống trùng lịch) và nạp toàn bộ seed data chuẩn."
+      },
+      {
+        "file_path": "js/core/data.js",
+        "change_type": "EXTEND_SEED_DATA",
+        "description": "Cập nhật seed data đồng bộ với Database: Danh sách tài khoản đa vai trò (SuperAdmin, BranchManager, Stylist, Cashier, Customer), danh mục gói Combos, tồn kho chi tiết theo 18 chi nhánh (branch_inventory) và danh mục mã khuyến mãi (vouchers)."
+      },
+      {
+        "file_path": "js/core/store.js",
+        "change_type": "REACTIVE_STATE_ENHANCEMENT",
+        "description": "Nâng cấp Reactive State Engine: Quản lý đăng nhập/đăng xuất theo JWT User Session, xử lý tồn kho nguyên tử theo chi nhánh, hỗ trợ đặt combo và dịch vụ kèm, thuật toán khóa slot chống trùng ca (Slot Locking), lưu trữ đơn hàng POS tại quầy."
+      },
+      {
+        "file_path": "js/core/api.js",
+        "change_type": "RESTFUL_API_IMPLEMENTATION",
+        "description": "Hiện thực hóa toàn bộ các hàm gọi API RESTful (Auth, Branches, Stylists, Services, Combos, Bookings, Products, Inventory, Orders, POS, AI Studio, Analytics) kèm Header Authorization Bearer JWT và cơ chế fallback tự động về Store."
+      },
+      {
+        "file_path": "js/core/utils.js",
+        "change_type": "ADD_HELPER_FUNCTIONS",
+        "description": "Bổ sung các hàm tiện ích: Sinh mã QR vé đặt lịch hẹn (SVG QR Helper), tính toán giờ kết thúc ca hẹn từ tổng thời lượng, kiểm tra quyền hạn (hasPermission), validate dữ liệu đầu vào."
+      },
+      {
+        "file_path": "js/components/ui-common.js",
+        "change_type": "INTEGRATE_MODULAR_COMPONENTS",
+        "description": "Nâng cấp Booking Wizard hỗ trợ chọn Combo VIP và cộng dồn thời lượng; nâng cấp Auth Modal hỗ trợ đăng nhập nhanh chuyển đổi giữa các vai trò (Role Switcher); nâng cấp Drawer Giỏ hàng hỗ trợ chọn chi nhánh nhận hàng / giao tận nhà."
+      },
+      {
+        "file_path": "index.html",
+        "change_type": "IMPORT_MODULAR_SCRIPTS",
+        "description": "Nhúng các script module hóa mới: js/core/auth.js, js/modules/customer/web/customer-web.js, js/modules/admin/web/admin-web.js; cập nhật Header hiển thị Huy hiệu vai trò tài khoản (Role Badge) và nút Quản trị điều kiện."
+      },
+      {
+        "file_path": "app.html",
+        "change_type": "SUPPORT_MOBILE_ADMIN_STAFF",
+        "description": "Nhúng các script module hóa di động: js/core/auth.js, js/modules/customer/app/customer-app.js, js/modules/admin/app/admin-app.js; hỗ trợ vùng chứa giao diện phân hệ Admin/Staff Native trên ứng dụng di động."
+      },
+      {
+        "file_path": "css/web.css",
+        "change_type": "ADD_ADMIN_AND_POS_STYLES",
+        "description": "Bổ sung CSS cho màn hình Catalog CRUD (thêm sửa dịch vụ/combo/sản phẩm), giao diện POS tính tiền tại quầy chia 2 cột, bảng thống kê hoa hồng thợ."
+      },
+      {
+        "file_path": "css/app.css",
+        "change_type": "ADD_MOBILE_STAFF_STYLES",
+        "description": "Bổ sung CSS cho phân hệ Mobile Staff: Hàng đợi ca làm việc của thợ (Stylist Queue Card), nút bấm 1-chạm (Check-in, Bắt đầu, Hoàn thành), thanh điều hướng Staff Bottom Nav, màn hình Mobile POS tính tiền nhanh."
+      }
+    ],
+    "created_files": [
+      {
+        "file_path": "js/core/auth.js",
+        "module": "core",
+        "description": "Tầng xác thực & Phân quyền bảo mật JWT (Auth Engine): Quản lý AccessToken, RefreshToken, giải mã Token Payload, lưu trữ phiên đăng nhập, cung cấp hàm kiểm tra vai trò (hasRole) và Role Guards chặn truy cập trái phép."
+      },
+      {
+        "file_path": "js/modules/customer/web/customer-web.js",
+        "module": "modules/customer/web",
+        "description": "Phân hệ Khách hàng trên Web: Hiển thị Hero banner, danh mục dịch vụ & combo, cửa hàng sản phẩm, live search, tra cứu lịch, inline AI Restyle Studio và trang cá nhân theo dõi lịch hẹn / đơn hàng của khách."
+      },
+      {
+        "file_path": "js/modules/admin/web/admin-web.js",
+        "module": "modules/admin/web",
+        "description": "Phân hệ Quản trị Admin/Staff trên Web (Enterprise Hub): Tổng quan doanh thu theo chi nhánh, điều phối lịch hẹn, quản lý đội ngũ thợ, CRUD bảng giá & sản phẩm, quản lý kho hàng liên cơ sở, màn hình POS tính tiền tại quầy, Audit logs."
+      },
+      {
+        "file_path": "js/modules/customer/app/customer-app.js",
+        "module": "modules/customer/app",
+        "description": "Phân hệ Khách hàng trên Mobile App: Trải nghiệm cảm ứng 5 tabs (Trang chủ, Đặt lịch, Thử tóc AI Trước/Sau, Cửa hàng, Cá nhân & Điểm thưởng), hiển thị mã QR vé cắt tóc, thông báo đẩy."
+      },
+      {
+        "file_path": "js/modules/admin/app/admin-app.js",
+        "module": "modules/admin/app",
+        "description": "Phân hệ Quản trị & Nhân viên trên Mobile App (GIẢI PHÁP CHO KHOẢNG TRỐNG LỚN NHẤT): Cho phép Thợ và Quản lý cơ sở đăng nhập trực tiếp trên điện thoại để xem hàng đợi ca làm hôm nay, check-in khách đến, bấm hoàn tất ca, xem hoa hồng tạm tính và tạo nhanh hóa đơn POS tại ghế."
+      }
+    ]
+  },
+  "implementation_tasks": [
+    {
+      "task_id": "TASK-01-DATABASE",
+      "phase": "Phase 1: Backend & Data Foundation",
+      "target_file": "database_schema.sql",
+      "action": "MODIFY",
+      "description": "Mở rộng cấu trúc Database Schema và nạp dữ liệu mẫu hoàn chỉnh theo tài liệu docs/analysis.md.",
+      "detailed_requirements": [
+        "Tạo bảng roles (SUPER_ADMIN, BRANCH_MANAGER, STYLIST, CASHIER, CUSTOMER).",
+        "Tạo bảng permissions và role_permissions phục vụ RBAC.",
+        "Cập nhật bảng users có khóa ngoại role_id và branch_id, mật khẩu mã hóa.",
+        "Tạo bảng service_categories, combos và bảng liên kết combo_services.",
+        "Cập nhật bảng stylists có user_id (liên kết tài khoản thợ) và commission_rate.",
+        "Tạo bảng stylist_schedules quản lý ca làm hàng tuần của thợ.",
+        "Cập nhật bảng bookings có ràng buộc UNIQUE (stylist_id, booking_date, time_slot) chống trùng lịch.",
+        "Tạo bảng booking_items lưu chi tiết dịch vụ/combo của từng lịch hẹn.",
+        "Tạo bảng product_categories và branch_inventory quản lý tồn kho theo từng chi nhánh.",
+        "Tạo bảng vouchers và cập nhật bảng orders hỗ trợ cả đơn online và đơn quầy POS."
+      ]
+    },
+    {
+      "task_id": "TASK-02-CORE-AUTH",
+      "phase": "Phase 1: Backend & Data Foundation",
+      "target_file": "js/core/auth.js",
+      "action": "CREATE",
+      "description": "Xây dựng Tầng xác thực & Phân quyền bảo mật JWT (Auth Engine) dùng chung cho Web và Mobile.",
+      "detailed_requirements": [
+        "Quản lý lưu trữ AccessToken và RefreshToken trong LocalStorage an toàn.",
+        "Giả lập tạo và giải mã JWT Token Payload chứa: sub, username, fullName, role, branchId, permissions, exp.",
+        "Phương thức login(identifier, password): Xác thực tài khoản, sinh Token, cập nhật currentUser.",
+        "Phương thức register(userData): Đăng ký tài khoản khách hàng, sinh Token tự động.",
+        "Phương thức logout(): Hủy Token và đưa về trạng thái khách vãng lai.",
+        "Phương thức hasRole(requiredRoles): Kiểm tra quyền của người dùng hiện tại.",
+        "Phương thức hasPermission(permissionCode): Kiểm tra quyền nguyên tử.",
+        "Phương thức getAuthHeader(): Trả về Header Authorization: Bearer <token>.",
+        "Cung cấp danh sách tài khoản mẫu sẵn sàng (SuperAdmin, BranchManager, Stylist, Cashier, Customer) để tiện đăng nhập thử nghiệm."
+      ]
+    },
+    {
+      "task_id": "TASK-03-CORE-DATA-STORE",
+      "phase": "Phase 1: Backend & Data Foundation",
+      "target_file": "js/core/data.js và js/core/store.js và js/core/utils.js",
+      "action": "MODIFY",
+      "description": "Nâng cấp Tầng Lưu trữ Trạng thái (Reactive Store) và Tiện ích hỗ trợ đa phân hệ.",
+      "detailed_requirements": [
+        "js/core/data.js: Bổ sung seed data chuẩn về vai trò, tài khoản thợ có user_id, danh mục combos, tồn kho theo chi nhánh (branch_inventory), mã voucher.",
+        "js/core/store.js: Hỗ trợ CRUD Combos, quản lý tồn kho theo chi nhánh (atomic decrement khi đặt hàng/POS), kiểm tra slot trống chống trùng giờ với thời lượng linh hoạt.",
+        "js/core/store.js: Tích hợp hàm tạo đơn POS tại quầy createPosOrder() và cập nhật trạng thái lịch hẹn nhiều bước (Confirmed -> In_Progress -> Completed).",
+        "js/core/utils.js: Thêm hàm generateQrSvgCode() tạo mã QR vé lịch hẹn hoặc chuyển khoản VietQR, hàm tính giờ kết thúc ca hẹn calculateEndTime()."
+      ]
+    },
+    {
+      "task_id": "TASK-04-CORE-API",
+      "phase": "Phase 1: Backend & Data Foundation",
+      "target_file": "js/core/api.js",
+      "action": "MODIFY",
+      "description": "Mở rộng Tầng API RESTful Client đầy đủ 7 nhóm Endpoints theo đúng đặc tả docs/analysis.md.",
+      "detailed_requirements": [
+        "Module 1 Auth: register(), login(), refreshToken(), getCurrentUser(), updateProfile().",
+        "Module 2 Branches & Stylists: getBranches(), getStylists(), getStylistSchedule(), getTodayQueue().",
+        "Module 3 Services & Combos: getServices(), getCombos(), createService(), createCombo().",
+        "Module 4 Bookings: getAvailableSlots(), createBooking(), lookupBooking(), updateBookingStatus(), checkinBooking().",
+        "Module 5 Products, Inventory & POS: getProducts(), getInventory(), updateStock(), createOrder(), createPosCheckout().",
+        "Module 6 AI Studio: restyleHairPhoto() (bảo tồn Canvas thông minh + API connectors).",
+        "Module 7 Analytics: getRevenueOverview(), getStylistCommissions().",
+        "Tự động gắn Header Authorization: Bearer <JWT> khi gọi các endpoint có phân quyền và fallback về Store khi offline."
+      ]
+    },
+    {
+      "task_id": "TASK-05-COMMON-COMPONENTS",
+      "phase": "Phase 2: Common UI Layer",
+      "target_file": "js/components/ui-common.js",
+      "action": "MODIFY",
+      "description": "Nâng cấp các thành phần giao diện dùng chung hỗ trợ đặt Combo, đăng nhập đa vai trò và giỏ hàng.",
+      "detailed_requirements": [
+        "Nâng cấp Booking Wizard: Cho phép chọn Dịch vụ đơn lẻ HOẶC Gói Combo VIP; hiển thị tổng thời lượng và tự động tính khung giờ kết thúc; hiển thị mã QR vé sau khi đặt thành công.",
+        "Nâng cấp Auth Modal: Tích hợp nút chuyển đổi nhanh (Role Switcher) cho phép 1-chạm đăng nhập với các vai trò: SuperAdmin, Quản lý chi nhánh, Thợ Barber, Khách hàng.",
+        "Nâng cấp Cart Drawer: Hỗ trợ chọn hình thức nhận hàng (Đến lấy tại chi nhánh hoặc Giao hàng tận nơi), nhập mã Voucher giảm giá.",
+        "Hiển thị Toast Notification và Modal Dialog thích ứng responsive."
+      ]
+    },
+    {
+      "task_id": "TASK-06-WEB-CUSTOMER",
+      "phase": "Phase 3: Web Platform Implementation",
+      "target_file": "js/modules/customer/web/customer-web.js và index.html",
+      "action": "CREATE & MODIFY",
+      "description": "Hiện thực hóa Phân hệ Khách hàng trên Web Portal chuẩn hóa theo kiến trúc module.",
+      "detailed_requirements": [
+        "Tạo file js/modules/customer/web/customer-web.js chứa toàn bộ logic giao diện khách hàng Web (Hero, 18+ Chi nhánh, Menu Dịch vụ & Combo, Sàn Sản phẩm, AI Photo Studio, Live Search, Tra cứu lịch).",
+        "Bổ sung màn hình Trang cá nhân khách hàng (Customer Portal): Xem lịch sử cắt tóc, tình trạng đơn hàng, điểm tích lũy thành viên 4RAU Member, bộ sưu tập ảnh tóc AI đã tạo.",
+        "Cập nhật index.html nhúng module customer-web.js và liên kết chặt chẽ với auth.js."
+      ]
+    },
+    {
+      "task_id": "TASK-07-WEB-ADMIN",
+      "phase": "Phase 3: Web Platform Implementation",
+      "target_file": "js/modules/admin/web/admin-web.js và css/web.css",
+      "action": "CREATE & MODIFY",
+      "description": "Xây dựng Trung tâm Quản trị Salon Đẳng cấp (Enterprise Admin Hub) trên Web với phân quyền Role Guard chặt chẽ.",
+      "detailed_requirements": [
+        "Tạo file js/modules/admin/web/admin-web.js với Role Guard: Chỉ cho phép SUPER_ADMIN, BRANCH_MANAGER, CASHIER truy cập.",
+        "Màn hình 1: Tổng quan Doanh thu & KPIs (Bộ lọc theo chi nhánh phụ trách, biểu đồ phân tích 7 ngày, tỉ trọng dịch vụ).",
+        "Màn hình 2: Điều phối lịch hẹn (Lọc theo chi nhánh, thợ; chuyển trạng thái Xác nhận -> Khách đến Check-in -> Đang cắt -> Hoàn tất; hủy lịch).",
+        "Màn hình 3: Quản lý Đội ngũ Thợ (Danh sách thợ theo chi nhánh, gán ca làm việc, xem thống kê hoa hồng thợ).",
+        "Màn hình 4: Quản lý Danh mục (Catalog CRUD: Thêm/Sửa/Khóa dịch vụ, combo gói và sản phẩm).",
+        "Màn hình 5: Quản lý Kho hàng (Xem tồn kho thực tế từng chi nhánh, cảnh báo hết hàng, điều chỉnh số lượng tồn).",
+        "Màn hình 6: Quầy POS Thu ngân tại chỗ (Tạo nhanh hóa đơn cho khách cắt tóc + mua sáp tại quầy, xuất mã VietQR thanh toán).",
+        "Màn hình 7: Nhật ký kiểm toán hệ thống (Audit Logs).",
+        "css/web.css: Bổ sung layout dashboard 2 cột, bảng danh mục, modal form thêm mới dịch vụ/sản phẩm."
+      ]
+    },
+    {
+      "task_id": "TASK-08-MOBILE-CUSTOMER",
+      "phase": "Phase 4: Mobile Platform Implementation",
+      "target_file": "js/modules/customer/app/customer-app.js",
+      "action": "CREATE",
+      "description": "Hiện thực hóa Phân hệ Khách hàng trên Mobile App tối ưu trải nghiệm di động Native.",
+      "detailed_requirements": [
+        "Tạo file js/modules/customer/app/customer-app.js đảm nhiệm toàn bộ 5 Tabs Khách hàng trên ứng dụng di động.",
+        "Tab 1 (Trang chủ): Banner slider, lối tắt đặt lịch nhanh, dịch vụ nổi bật, sản phẩm hot.",
+        "Tab 2 (Đặt lịch): Wizard đặt lịch tối ưu thao tác vuốt chạm (chọn dịch vụ/combo, chi nhánh, thợ, slot giờ còn trống).",
+        "Tab 3 (Thử tóc AI): Studio so sánh Before/After cảm ứng kéo trượt mượt mà, lưu ảnh HD và chuyển thẳng sang đặt lịch.",
+        "Tab 4 (Cửa hàng): Danh mục sản phẩm dạng lưới 2 cột, thêm nhanh vào giỏ, lọc theo thương hiệu Brosh/4RAU.",
+        "Tab 5 (Cá nhân): Xem vé cắt tóc mã QR, tiến trình đơn hàng (Đang xử lý -> Đang giao), điểm thưởng thành viên, nút chuyển sang Chế độ Nhân viên (nếu tài khoản là Staff/Admin)."
+      ]
+    },
+    {
+      "task_id": "TASK-09-MOBILE-ADMIN-STAFF",
+      "phase": "Phase 4: Mobile Platform Implementation",
+      "target_file": "js/modules/admin/app/admin-app.js và app.html và css/app.css",
+      "action": "CREATE & MODIFY",
+      "description": "Xây dựng Phân hệ Quản trị & Nhân viên trên Mobile App (XÓA BỎ HOÀN TOÀN KHOẢNG TRỐNG CHUYỂN HƯỚNG WEB).",
+      "detailed_requirements": [
+        "Tạo file js/modules/admin/app/admin-app.js chuyên biệt cho Thợ cắt tóc, Tiếp tân và Quản lý cơ sở trên điện thoại.",
+        "Cơ chế Role-Switching: Khi tài khoản đăng nhập có quyền Staff (Stylist, Cashier, Manager, Admin), ứng dụng hiển thị Console Quản trị Di Động hoặc thanh gạt chuyển chế độ (Khách hàng <-> Nhân viên).",
+        "Màn hình 1 - Ca làm hôm nay của Barber (Stylist Today Queue): Danh sách khách hàng đã đặt theo khung giờ, thông tin dịch vụ, nút 1-chạm: [Nhận khách Check-in] -> [Bắt đầu cắt] -> [Hoàn tất ca].",
+        "Màn hình 2 - Mobile POS Thu ngân: Tìm kiếm lịch của khách hoặc tạo nhanh hóa đơn tại ghế cắt tóc, tính tiền tiền mặt / mã VietQR động.",
+        "Màn hình 3 - Kiểm kho nhanh (Quick Inventory): Quét hoặc kiểm đếm nhanh lượng sáp Pomade trên kệ quầy chi nhánh.",
+        "Màn hình 4 - Thu nhập & Hoa hồng thợ (Stylist Wallet): Xem doanh thu ca phục vụ trong ngày, hoa hồng tạm tính (15%) và số lượt khách đã phục vụ.",
+        "app.html & css/app.css: Cấu hình vùng chứa Mobile Admin Console, thanh điều hướng Staff Bottom Navigation và các thẻ tương tác nhanh chuẩn Material Design."
+      ]
+    }
+  ]
+}
