@@ -1,6 +1,6 @@
 # OmniSalon Enterprise .gitignore
 
-# Environment & Secret files
+# Environment & Secret files (Chứa thông tin cá nhân & mật khẩu)
 .env
 .env.*
 !.env.example
@@ -8,10 +8,34 @@
 *.key
 *.cert
 *.pfx
+email_config.json
+email_config.*.json
+!email_config.example.json
+
+# Internal agent configurations & metadata
+.agents/
+.antigravity/
+
+# Documentation & internal project docs
+docs/
+
+# Test suites, local QA benchmarks & test run artifacts
+tests/
+
+# External cloned repositories (Ponytail / Caveman sources)
+repos/
 
 # Dependency directories
 node_modules/
 jspm_packages/
+
+# Flutter & Dart build cache & tooling
+.dart_tool/
+mobile/.dart_tool/
+.packages
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
 
 # Production builds & artifacts
 dist/
@@ -30,12 +54,6 @@ yarn-debug.log*
 yarn-error.log*
 *.log
 test_theme_out.txt
-
-# External cloned repositories (Ponytail / Caveman sources)
-repos/
-
-# Test suites, local QA benchmarks & test run artifacts
-tests/
 
 # IDE and Editor directories
 .idea/

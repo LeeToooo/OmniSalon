@@ -1,7 +1,7 @@
 {
   "name": "omnisalon-barbershop",
   "version": "2.0.0",
-  "description": "OmniSalon & 4RAU Barbershop Enterprise Suite — Web Portal & Mobile App Suite",
+  "description": "OmniSalon & Omni Salon Enterprise Suite — Web Portal & Mobile App Suite",
   "main": "index.html",
   "scripts": {
     "start": "python -m http.server 5500",
@@ -18,14 +18,15 @@
     "mobile-app",
     "ai-hair-restyle"
   ],
-  "author": "4RAU Barbershop Team",
+  "author": "Omni Salon Team",
   "license": "MIT",
   "dependencies": {
     "@capacitor/android": "^6.1.2",
+    "@capacitor/camera": "^6.0.2",
     "@capacitor/cli": "^6.1.2",
     "@capacitor/core": "^6.1.2",
-    "@capacitor/camera": "^6.0.2",
     "@capacitor/splash-screen": "^6.0.2",
-    "@capacitor/status-bar": "^6.0.2"
+    "@capacitor/status-bar": "^6.0.2",
+    "nodemailer": "^10.0.16"
   }
 }

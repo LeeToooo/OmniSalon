@@ -1,0 +1,1297 @@
+/* =========================================================================
+   Omni Salon — 3D SCENE & SIGNATURE MICRO-INTERACTIONS
+   WCAG AAA High-Contrast Edition:
+   - Deep Obsidian Black (#07080B)
+   - Surface Card (#10131C, 1px border: rgba(212, 175, 55, 0.15))
+   - Pure Snow White Headings (#FFFFFF, 700-800 font-weight)
+   - Light Slate Body Text (#CBD5E1)
+   - Radiant Champagne Gold (#F59E0B / #E5B869)
+   - Primary CTA: linear-gradient(135deg, #F59E0B, #D97706), text #000000 font-bold
+   - Spotlight Border Effect • Magnetic Buttons • Kinetic Marquee • Floating Showcase • Slot Ripple
+   ========================================================================= */
+
+/* ── 1. PERSPECTIVE CONTAINER & 3D ROUTE TRANSITIONS ── */
+#webMainContainer,
+.page-perspective-wrapper {
+  perspective: 1200px;
+  -webkit-perspective: 1200px;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 120px);
+  background-color: var(--bg-primary, #07080B);
+  overflow-x: hidden;
+}
+
+/* Base Page View Wrapper */
+.page-view {
+  width: 100%;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+/* 3D Exit: Shrink slightly along Z-axis, move back, rotate and fade */
+.page-exit {
+  transform: scale(0.94) rotateY(-4deg) translateZ(-100px) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* 3D Enter Init: Prepared slightly in front / scaled */
+.page-enter-init {
+  transform: scale(1.04) rotateY(4deg) translateZ(50px);
+  opacity: 0;
+}
+
+/* 3D Enter Active: Glides smoothly to neutral equilibrium */
+.page-enter-active {
+  transform: scale(1) rotateY(0deg) translateZ(0px);
+  opacity: 1;
+}
+
+/* ── 2. SPOTLIGHT BORDER EFFECT & MICRO 3D PARALLAX TILT ── */
+.card-3d-tilt {
+  position: relative;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  will-change: transform;
+  border-radius: 18px;
+  background: var(--surface-card, #10131C);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(212, 175, 55, 0.05);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.card-3d-tilt:hover {
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.75), 0 0 28px rgba(245, 158, 11, 0.3);
+}
+
+/* Spotlight Highlight Follower (Thẻ rọi đèn chuột) */
+.card-3d-glare,
+.card-spotlight {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 10;
+  background: radial-gradient(circle 320px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(245, 158, 11, 0.2) 0%, rgba(255, 255, 255, 0.08) 35%, transparent 75%);
+  mix-blend-mode: screen;
+  transition: opacity 0.25s ease;
+}
+
+.card-3d-tilt:hover .card-3d-glare,
+.card-3d-tilt:hover .card-spotlight {
+  opacity: 1;
+}
+
+/* Dynamic Spotlight Border Highlight */
+.card-3d-tilt::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(circle 280px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(245, 158, 11, 0.8) 0%, rgba(255, 255, 255, 0.3) 40%, transparent 75%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 11;
+}
+
+.card-3d-tilt:hover::before {
+  opacity: 1;
+}
+
+/* 3D Layer Float: Pops children elements out in 3D space */
+.layer-3d-float {
+  transform: translateZ(28px);
+  -webkit-transform: translateZ(28px);
+  transform-style: preserve-3d;
+}
+
+.layer-3d-badge {
+  transform: translateZ(36px);
+  -webkit-transform: translateZ(36px);
+}
+
+/* ── 2.1. CỐ ĐỊNH THẺ DỊCH VỤ ĐẶT LỊCH (LOẠI BỎ MÉO / CO GIẬT KHUNG) ── */
+.booking-service-card {
+  position: relative !important;
+  transform: none !important;
+  perspective: none !important;
+  will-change: auto !important;
+  box-sizing: border-box !important;
+  border-radius: 16px !important;
+  cursor: pointer !important;
+  background: #10131C;
+  border: 2px solid rgba(212, 175, 55, 0.15) !important;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+/* Hover: Đứng yên hoàn toàn, không scale, không transform, chỉ đổi viền và nền nhẹ */
+.booking-service-card:hover {
+  transform: none !important;
+  border-color: rgba(251, 191, 36, 0.6) !important;
+  /* hover:border-amber-400/60 */
+  background: #181D29 !important;
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.12) !important;
+}
+
+/* Thẻ được chọn (selected): Giữ nguyên kích thước và viền vàng amber-500 */
+.booking-service-card.selected,
+.booking-service-card.active {
+  transform: none !important;
+  border-color: #F59E0B !important;
+  /* amber-500 */
+  background: rgba(245, 158, 11, 0.12) !important;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25) !important;
+}
+
+/* ── 3. MAGNETIC BUTTON EFFECT (NÚT HÚT NAM CHÂM) ── */
+.btn-magnetic,
+.nordic-btn-primary,
+.nordic-btn-secondary,
+.stylist-book-btn {
+  position: relative;
+  will-change: transform;
+  transform-style: preserve-3d;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.nordic-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 36px;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 10px 28px rgba(245, 158, 11, 0.45), 0 0 12px rgba(245, 158, 11, 0.3) !important;
+}
+
+.nordic-btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 14px 38px rgba(245, 158, 11, 0.65), 0 0 20px rgba(245, 158, 11, 0.5) !important;
+  color: #000000 !important;
+}
+
+/* Nút CTA phụ (Khám Phá Dịch Vụ, Đội Ngũ Stylists): Nền Card nổi bật, viền sáng rõ, chữ trắng tuyết */
+.nordic-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: #161B26 !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  cursor: pointer;
+  text-decoration: none;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.nordic-btn-secondary:hover {
+  background: #1E2536 !important;
+  border-color: #FBBF24 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.25);
+}
+
+/* ── 4. KINETIC LUXURY MARQUEE (DÒNG CHỮ CHẠY VÔ TẬN - FULL BLEED 100%) ── */
+.kinetic-marquee-wrapper {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100% !important;
+  max-width: 100% !important;
+  position: relative;
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--surface-card);
+  padding: 16px 0;
+  margin-top: 36px;
+  margin-bottom: 36px;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.kinetic-marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  animation: kineticMarqueeSlide 35s linear infinite;
+  will-change: transform;
+  white-space: nowrap;
+}
+
+.kinetic-marquee-track span {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+}
+
+.kinetic-marquee-track .marquee-dot {
+  color: var(--brand-accent) !important;
+  font-size: 12px;
+}
+
+.kinetic-marquee-wrapper:hover .kinetic-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes kineticMarqueeSlide {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-item-outline {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.4);
+  transition: -webkit-text-stroke 0.25s ease;
+}
+
+.marquee-item-outline:hover {
+  -webkit-text-stroke: 1.5px #F59E0B;
+}
+
+.marquee-item-accent {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #F59E0B;
+  text-shadow: 0 0 16px rgba(245, 158, 11, 0.45);
+}
+
+.marquee-bullet {
+  color: #F59E0B;
+  font-size: 16px;
+  margin: 0 10px;
+}
+
+/* ── 5. FLOATING PARALLAX SHOWCASE ── */
+@keyframes floatingLuxury {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(0.6deg);
+  }
+}
+
+.floating-showcase {
+  animation: floatingLuxury 5s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ── 6. INTERACTIVE SLOT RIPPLE (HIỆU ỨNG SÓNG NƯỚC CHỌN KHUNG GIỜ) ── */
+.slot-chip-interactive {
+  position: relative;
+  overflow: hidden;
+}
+
+.slot-pulse-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.65) 0%, rgba(245, 158, 11, 0.1) 50%, transparent 70%);
+  transform: scale(0);
+  animation: slotRipplePulse 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes slotRipplePulse {
+  to {
+    transform: scale(3.5);
+    opacity: 0;
+  }
+}
+
+/* ── 7. NORDIC LUXURY EDITORIAL SYSTEM (BALANCED GRID & HIGH CONTRAST) ── */
+.nordic-editorial-hero {
+  position: relative;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0;
+  padding: 80px 0 60px;
+  overflow: hidden;
+  background-color: var(--bg-primary, #0B0D13);
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .nordic-editorial-hero {
+    padding: 48px 0 40px;
+  }
+}
+
+/* Hiệu ứng vệt sáng vàng mờ nhẹ phía sau ảnh Hero (Glow effect khử u ám) */
+.nordic-editorial-hero::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  right: 5%;
+  width: 650px;
+  height: 650px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.04) 50%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 2. CÂN BẰNG KHỐI HERO SECTION (DÀN RỘNG 2 CỘT: TRÁI 55%, PHẢI 45%, GAP-12) */
+.nordic-hero-split-grid {
+  display: grid;
+  grid-template-columns: 55fr 45fr;
+  gap: 48px;
+  /* gap-12 = 48px */
+  align-items: center;
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 32px;
+  padding-right: 32px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 992px) {
+  .nordic-hero-split-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .nordic-hero-split-grid {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+/* Cột trái: Văn bản & Nút bấm */
+.nordic-hero-content-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.75rem;
+  width: 100%;
+}
+
+.nordic-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #D4AF37;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.nordic-hero-title {
+  font-size: clamp(34px, 4.2vw, 62px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.nordic-hero-title .text-gold {
+  background: linear-gradient(135deg, #FFF0C2 0%, #D4AF37 50%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nordic-hero-tagline {
+  font-size: clamp(15px, 1.5vw, 19px);
+  color: #CBD5E1;
+  max-width: 700px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.nordic-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+/* Cột phải: Hình ảnh Showcase dàn rộng thoáng đãng */
+.nordic-hero-visual-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.floating-showcase {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.hero-visual-card {
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.35) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(212, 175, 55, 0.2) !important;
+  background: #10131C;
+  position: relative;
+}
+
+.hero-showcase-img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-showcase-overlay {
+  position: absolute;
+  bottom: 0;
+  inset-inline: 0;
+  padding: 28px 24px;
+  background: linear-gradient(180deg, transparent 0%, rgba(16, 19, 28, 0.96) 100%);
+}
+
+.hero-showcase-badge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #D4AF37;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: block;
+}
+
+.hero-showcase-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #FFFFFF;
+  margin-top: 4px;
+}
+
+.hero-showcase-desc {
+  font-size: 15px;
+  color: #CBD5E1;
+  margin-top: 4px;
+}
+
+/* ── 3. DÀN ĐỀU THANH THỐNG KÊ (STATS BAR: 4 CỘT CHIA ĐỀU 25% CĂN GIỮA) ── */
+.nordic-metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-top: 56px;
+  padding: 28px 32px;
+  background: #10131C !important;
+  border: 1px solid rgba(212, 175, 55, 0.18) !important;
+  border-radius: 20px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.08);
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 992px) {
+  .nordic-metrics-strip {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 20px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nordic-metrics-strip {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nordic-metrics-strip {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px 12px;
+  }
+}
+
+.nordic-metric-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 8px 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nordic-metric-value {
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 900;
+  color: #F59E0B;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
+  line-height: 1.1;
+  text-align: center;
+}
+
+.nordic-metric-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #CBD5E1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ── 8. BENTO GRID ARCHITECTURE (SERVICES, STYLISTS, SHOP - 100% RESPONSIVE) ── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.bento-grid-wide {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .bento-grid-wide {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .bento-grid-wide {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Booking Step 4 Confirmation Grid: 50/50 Desktop, 1 Col Mobile */
+.booking-confirmation-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 32px;
+  align-items: start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 868px) {
+  .booking-confirmation-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* Service Bento Card */
+.service-bento-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  height: 100% !important;
+  background: #11141D !important;
+  border: 1px solid rgba(212, 175, 55, 0.15) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
+}
+
+.service-bento-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.2) !important;
+  border-color: rgba(212, 175, 55, 0.4) !important;
+}
+
+.service-bento-img-wrap {
+  position: relative !important;
+  width: 100% !important;
+  height: 192px !important;
+  /* h-48 */
+  overflow: hidden !important;
+  background: #0B0D13;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.service-bento-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 0.4s ease;
+}
+
+.card-3d-tilt:hover .service-bento-img {
+  transform: scale(1.05);
+}
+
+.service-bento-duration {
+  position: absolute !important;
+  top: 12px !important;
+  left: 12px !important;
+  background: rgba(7, 8, 11, 0.88) !important;
+  backdrop-filter: blur(8px) !important;
+  color: #FFFFFF !important;
+  padding: 5px 12px !important;
+  border-radius: 9999px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.service-bento-badge-save {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: #FFFFFF;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.service-bento-body {
+  padding: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  justify-content: space-between !important;
+  background: var(--surface-card, #11141D);
+}
+
+.service-bento-title {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: var(--text-primary, #FFFFFF);
+  margin-bottom: 8px !important;
+  line-height: 1.35 !important;
+}
+
+.service-bento-desc {
+  font-size: 15px !important;
+  color: var(--text-secondary, #CBD5E1);
+  line-height: 1.6 !important;
+  margin-bottom: 16px !important;
+  flex: 1;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.service-bento-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding-top: 14px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.service-bento-price {
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  color: #F59E0B !important;
+  letter-spacing: -0.01em;
+}
+
+.service-bento-btn {
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+  color: #000000 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  text-decoration: none !important;
+}
+
+.service-bento-btn:hover {
+  filter: brightness(1.1) !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5) !important;
+  transform: translateY(-1px) !important;
+}
+
+.service-bento-btn:active {
+  transform: scale(0.98) !important;
+}
+
+/* ── 9. MASTER STYLIST PROFILE CARD (STRICT 3-COLUMNS EQUAL ALIGNMENT) ── */
+.stylists-3col-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 32px !important;
+  max-width: 1152px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1024px) {
+  .stylists-3col-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 24px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .stylists-3col-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* Home Page Spotlight Stylists Grid (Synchronized with Services & Products Bento Grid) */
+.bento-grid.stylists-3col-grid,
+#homeStylistsGrid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 24px !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1024px) {
+
+  .bento-grid.stylists-3col-grid,
+  #homeStylistsGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .bento-grid.stylists-3col-grid,
+  #homeStylistsGrid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+.stylist-nordic-card {
+  padding: 28px 24px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center;
+  text-align: center;
+  height: 100% !important;
+  justify-content: space-between !important;
+  box-sizing: border-box !important;
+  background: var(--surface-card, #11141D) !important;
+  border: 1px solid var(--border-color, rgba(212, 175, 55, 0.15)) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
+  transform: none !important;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.stylist-nordic-card:hover {
+  transform: none !important;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.25) !important;
+  border-color: #FBBF24 !important;
+}
+
+.product-nordic-card,
+.shop-nordic-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.stylist-avatar-frame {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin-bottom: 18px;
+}
+
+.stylist-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #F59E0B;
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.4);
+  transition: transform 0.3s ease;
+}
+
+.card-3d-tilt:hover .stylist-avatar-img {
+  transform: scale(1.05);
+  box-shadow: 0 0 32px rgba(245, 158, 11, 0.6);
+}
+
+.stylist-exp-badge {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #07080B;
+  color: #F59E0B;
+  border: 1px solid #F59E0B;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 12px;
+  white-space: nowrap;
+}
+
+.stylist-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary, #FFFFFF);
+  margin-bottom: 4px;
+}
+
+.stylist-role {
+  font-size: 14px;
+  font-weight: 700;
+  color: #F59E0B;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.stylist-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stylist-rating-star {
+  color: #F59E0B;
+}
+
+.stylist-tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.stylist-pill-tag {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #CBD5E1;
+}
+
+/* Stylist Mini Portfolio Gallery */
+.stylist-portfolio-mini {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.stylist-portfolio-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.stylist-portfolio-thumb:hover {
+  transform: scale(1.08);
+  border-color: #F59E0B;
+  z-index: 2;
+}
+
+.stylist-book-btn {
+  width: 100%;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+  color: #000000 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  border: none !important;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.stylist-book-btn:hover {
+  filter: brightness(1.1) !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5) !important;
+  transform: translateY(-1px) !important;
+}
+
+.stylist-book-btn:active {
+  transform: scale(0.98) !important;
+}
+
+/* ── 10. PILL TABS CATEGORY FILTER ── */
+.nordic-filter-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0 20px;
+  scrollbar-width: none;
+}
+
+.nordic-filter-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.nordic-pill-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 24px;
+  background: rgba(15, 18, 28, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  color: #CBD5E1;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.nordic-pill-tab:hover {
+  background: rgba(22, 26, 38, 0.95);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.nordic-pill-tab.active {
+  background: #F59E0B;
+  color: #000000;
+  border-color: #F59E0B;
+  font-weight: 800;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+}
+
+/* ── 11. NAVBAR LUMINOUS UNDERLINE & GLASS ── */
+.web-main-header {
+  background: rgba(7, 8, 11, 0.92) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.web-nav-links .nav-link {
+  position: relative;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #CBD5E1;
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.web-nav-links .nav-link:hover,
+.web-nav-links .nav-link.active {
+  color: #FFFFFF !important;
+}
+
+.web-nav-links .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #F59E0B, transparent);
+  transform: translateX(-50%);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px #F59E0B;
+}
+
+.web-nav-links .nav-link:hover::after,
+.web-nav-links .nav-link.active::after {
+  width: 80%;
+}
+
+/* ── 12. DIGITAL RECEIPT (GLASSMORPHISM) ── */
+.glass-digital-receipt {
+  background: rgba(15, 18, 28, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 28px rgba(245, 158, 11, 0.2);
+}
+
+.digital-receipt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.16);
+  margin-bottom: 20px;
+}
+
+.digital-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+.digital-receipt-row .label {
+  color: #CBD5E1;
+}
+
+.digital-receipt-row .value {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.digital-receipt-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 16px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.digital-receipt-total .total-amount {
+  font-size: 26px;
+  font-weight: 900;
+  color: #F59E0B;
+}
+
+/* ── 13. NORDIC BALANCED FOOTER GRID (4 EQUAL 25% COLUMNS) ── */
+.nordic-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 36px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .nordic-footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .nordic-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* ── 14. TRIỆT TIÊU 100% HIỆU ỨNG NGHIÊNG/MÉO 3D BẢNG ĐẶT LỊCH (FLAT & PARALLEL) ── */
+#bookingContainer,
+.booking-page-shell,
+.booking-step-container,
+.booking-form-box,
+#bookingStepContent,
+.booking-step-panel,
+.booking-confirmation-grid,
+.booking-service-card,
+.booking-stylist-option-card,
+.booking-stylist-item-card,
+.booking-date-item-card,
+.booking-payment-toggle-btn,
+.glass-digital-receipt {
+  transform: none !important;
+  perspective: none !important;
+  rotate: none !important;
+  transform-style: flat !important;
+  will-change: auto !important;
+  box-sizing: border-box;
+}
+
+#bookingStepContent:hover,
+.booking-step-panel:hover,
+.booking-confirmation-grid:hover,
+.glass-digital-receipt:hover,
+.booking-service-card:hover,
+.booking-stylist-option-card:hover,
+.booking-stylist-item-card:hover,
+.booking-date-item-card:hover {
+  transform: none !important;
+  border-color: rgba(251, 191, 36, 0.6) !important;
+}
+
+/* ── 15. AI HAIR STUDIO 3D & NEURAL SCANNING ANIMATIONS ── */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes laserScan {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+
+  50% {
+    top: 96%;
+    opacity: 1;
+  }
+
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+.ai-laser-line {
+  animation: laserScan 2.4s ease-in-out infinite;
+  box-shadow: 0 0 16px #10B981, 0 0 32px #F59E0B;
+}
+
+.ai-radar-ring {
+  animation: spin 1.2s linear infinite;
+}
+
+@media (max-width: 900px) {
+  .ai-studio-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

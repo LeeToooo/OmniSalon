@@ -1,0 +1,1674 @@
+/* =========================================================================
+   Omni Salon — CENTRALIZED THEME SYSTEM (DARK & LIGHT MODES)
+   Nordic Minimalist Luxury Edition
+   - Dark Mode: Obsidian Gold (#0B0D13 / #131722 / #D4AF37)
+   - Light Mode: Nordic Clean Cream (#F8F9FA / #FFFFFF / #C59B27)
+   Tuân thủ: .antigravity/rules/04_refactor.md, 07_ponytail.md
+   ========================================================================= */
+
+/* ── 1. ROOT & FULL-LIGHT MODE (Comfortable Off-White & High-Contrast Nordic Luxury) ── */
+:root,
+[data-theme="light"],
+html.light,
+body.light {
+  /* Core Semantic Palette (Sáng dịu êm mắt, giảm hắt sáng, không dùng màu đen) */
+  --bg-primary: #f3f4f6;
+  --surface-card: #f8fafc;
+  --surface-elevated: #e2e8f0;
+  --border-color: #cbd5e1;
+  --text-primary: #1e293b;
+  --text-secondary: #334155;
+  --brand-accent: #b48312;
+  --brand-accent-hover: #966b0a;
+  --brand-accent-gold: #c59b27;
+  --brand-accent-subtle: rgba(180, 131, 18, 0.12);
+  --brand-accent-border: rgba(180, 131, 18, 0.4);
+  --input-bg: #f8fafc;
+  --input-border: #94a3b8;
+
+  /* Status Colors */
+  --color-status-emerald: #059669;
+  --color-status-rose: #dc2626;
+  --color-success: #059669;
+  --color-danger: #dc2626;
+
+  /* Shadows */
+  --theme-shadow-card: 0 4px 18px rgba(0, 0, 0, 0.05);
+  --theme-shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.08);
+  --theme-shadow-glow: 0 0 18px rgba(180, 131, 18, 0.2);
+
+  /* Legacy & Existing Tokens Aliases - Light Mapping */
+  --color-bg-obsidian: var(--bg-primary);
+  --color-bg-onyx: var(--bg-primary);
+  --color-bg-deep-slate: var(--bg-primary);
+  --color-surface-navy: var(--surface-card);
+  --color-surface-card: var(--surface-card);
+  --color-surface-card-hover: #f8fafc;
+  --color-surface-container-high: var(--surface-elevated);
+  --color-border-glass: var(--border-color);
+  --color-border-thin: #e2e8f0;
+  --color-border-hover: rgba(180, 131, 18, 0.6);
+  --color-border-gold-glow: rgba(180, 131, 18, 0.65);
+  --color-accent-gold: var(--brand-accent);
+  --color-accent-champagne: var(--brand-accent);
+  --color-accent-silver: #475569;
+  --color-text-white: #0f172a;
+  --color-text-muted: var(--text-secondary);
+  --color-terracotta: #be4d25;
+  --color-terracotta-dark: #9a3412;
+  --color-brown-leather: #ffffff;
+  --color-brown-dark: #f1f3f6;
+  --color-footer-bg: #e2e8f0;
+  --theme-toggle-icon: 'ðŸŒ™';
+}
+
+/* â”€â”€ 2. DARK MODE (Obsidian Gold Luxury - Äáº³ng cáº¥p bÃ³ng Ä‘Ãªm) â”€â”€ */
+[data-theme="dark"],
+html.dark,
+body.dark {
+  --bg-primary: #0b0d13;
+  --surface-card: #131722;
+  --surface-elevated: #1a1f2e;
+  --border-color: rgba(212, 175, 55, 0.25);
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+  --brand-accent: #d4af37;
+  --brand-accent-hover: #f59e0b;
+  --brand-accent-gold: #f59e0b;
+  --brand-accent-subtle: rgba(212, 175, 55, 0.15);
+  --brand-accent-border: rgba(212, 175, 55, 0.4);
+  --input-bg: #161b26;
+  --input-border: rgba(255, 255, 255, 0.15);
+
+  --color-status-emerald: #10b981;
+  --color-status-rose: #ef4444;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+
+  --theme-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --theme-shadow-elevated: 0 16px 40px rgba(0, 0, 0, 0.7);
+  --theme-shadow-glow: 0 0 20px rgba(212, 175, 55, 0.35);
+
+  --color-bg-obsidian: #0b0d13;
+  --color-bg-onyx: #131722;
+  --color-bg-deep-slate: #0b0d13;
+  --color-surface-navy: #131722;
+  --color-surface-card: #131722;
+  --color-surface-card-hover: #1e2436;
+  --color-surface-container-high: #1a1f2e;
+  --color-border-glass: rgba(212, 175, 55, 0.2);
+  --color-border-thin: rgba(255, 255, 255, 0.1);
+  --color-border-hover: rgba(212, 175, 55, 0.6);
+  --color-border-gold-glow: rgba(212, 175, 55, 0.7);
+  --color-accent-gold: #d4af37;
+  --color-accent-champagne: #f59e0b;
+  --color-accent-silver: #94a3b8;
+  --color-text-white: #ffffff;
+  --color-text-muted: #cbd5e1;
+  --color-terracotta: #d97706;
+  --color-terracotta-dark: #b45309;
+  --color-brown-leather: #1c1511;
+  --color-brown-dark: #120e0b;
+  --color-footer-bg: #07080c;
+  --theme-toggle-icon: 'â˜€ï¸';
+}
+
+/* â”€â”€ 3. SMOOTH THEME TRANSITION (KhÃ´ng chá»›p giáº­t mÃ n hÃ¬nh) â”€â”€ */
+html,
+body,
+header,
+footer,
+nav,
+section,
+main,
+aside,
+button,
+input,
+select,
+textarea,
+.interactive-card,
+.md3-service-card,
+.md3-stylist-card,
+.admin-kpi-card-rich,
+.admin-table-container,
+.modal-content-shell,
+.cart-drawer-shell,
+.staff-card,
+.android-phone-outer,
+.android-screen-surface,
+.android-top-app-bar,
+.android-bottom-nav,
+.android-scroll-content,
+.web-main-header,
+.announcement-bar,
+.hero-magazine-container,
+.booking-wizard-shell,
+.ai-studio-shell,
+.shop-product-card,
+.admin-full-wrapper,
+.admin-hub-header {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* â”€â”€ 4. THEME TOGGLE SWITCH BUTTON STYLING â”€â”€ */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--theme-shadow-card);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, background-color 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.06);
+  border-color: var(--brand-accent);
+  box-shadow: var(--theme-shadow-glow);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.94);
+}
+
+.theme-toggle-btn .theme-icon {
+  font-size: 17px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+/* Biá»ƒu tÆ°á»£ng hiá»ƒn thá»‹ theo Theme */
+[data-theme="dark"] .theme-toggle-btn .icon-moon,
+html.dark .theme-toggle-btn .icon-moon,
+body.dark .theme-toggle-btn .icon-moon {
+  display: none !important;
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+[data-theme="dark"] .theme-toggle-btn .icon-sun,
+html.dark .theme-toggle-btn .icon-sun,
+body.dark .theme-toggle-btn .icon-sun {
+  display: inline-block !important;
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  color: var(--brand-accent-gold) !important;
+}
+
+[data-theme="light"] .theme-toggle-btn .icon-moon,
+html.light .theme-toggle-btn .icon-moon,
+body.light .theme-toggle-btn .icon-moon {
+  display: inline-block !important;
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .theme-toggle-btn .icon-sun,
+html.light .theme-toggle-btn .icon-sun,
+body.light .theme-toggle-btn .icon-sun {
+  display: none !important;
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
+/* Theme Switcher Row (Trong Profile / Settings Mobile App) */
+.theme-switcher-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--theme-shadow-card);
+}
+
+.theme-switcher-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-switcher-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--brand-accent-subtle);
+  color: var(--brand-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.theme-switcher-text-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.theme-switcher-text-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Segmented Theme Switch Tabs */
+.theme-segmented-ctrl {
+  display: inline-flex;
+  background: var(--surface-elevated);
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  gap: 2px;
+}
+
+.theme-segment-btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.theme-segment-btn.active {
+  background: var(--surface-card);
+  color: var(--brand-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* â”€â”€ 5. LIGHT MODE COMPONENT ADAPTATIONS â”€â”€ */
+:root.light,
+html.light,
+body.light,
+[data-theme="light"] {
+  --bg-primary: #f3f4f6;
+  --surface-card: #f8fafc;
+  --surface-elevated: #e2e8f0;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --text-primary: #1e293b;
+  --text-secondary: #334155;
+  --brand-accent: #C59B27;
+  --brand-accent-hover: #B48D20;
+}
+
+html.light body,
+body.light,
+[data-theme="light"] body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light #webPlatformSection,
+html.light #webMainContainer,
+html.light .home-page-dark-shell,
+html.light .page-view,
+body.light #webPlatformSection,
+body.light #webMainContainer,
+body.light .home-page-dark-shell,
+body.light .page-view,
+[data-theme="light"] #webPlatformSection,
+[data-theme="light"] #webMainContainer,
+[data-theme="light"] .home-page-dark-shell,
+[data-theme="light"] .page-view {
+  background-color: #f3f4f6 !important;
+  color: var(--text-primary) !important;
+}
+
+/* Light Mode Navbar */
+html.light .web-main-header,
+body.light .web-main-header,
+[data-theme="light"] .web-main-header {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+html.light .logo-text-omni,
+body.light .logo-text-omni,
+[data-theme="light"] .logo-text-omni {
+  color: var(--text-primary) !important;
+}
+
+html.light .nav-link,
+body.light .nav-link,
+[data-theme="light"] .nav-link {
+  color: var(--text-secondary) !important;
+}
+
+html.light .nav-link:hover,
+html.light .nav-link.active,
+body.light .nav-link:hover,
+body.light .nav-link.active,
+[data-theme="light"] .nav-link:hover,
+[data-theme="light"] .nav-link.active {
+  color: var(--brand-accent) !important;
+}
+
+html.light .web-search-box-wrap,
+body.light .web-search-box-wrap,
+[data-theme="light"] .web-search-box-wrap {
+  background: var(--surface-elevated) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .web-search-input,
+body.light .web-search-input,
+[data-theme="light"] .web-search-input {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+/* Light Mode Cards: ServiceCard, StylistCard, BranchCard, BentoCard */
+html.light .service-card-item,
+html.light .stylist-nordic-card,
+html.light .service-bento-card,
+html.light .product-nordic-card,
+html.light .branch-card,
+html.light .booking-service-card,
+html.light .service-select-card,
+body.light .service-card-item,
+body.light .stylist-nordic-card,
+body.light .service-bento-card,
+body.light .product-nordic-card,
+body.light .branch-card,
+body.light .booking-service-card,
+body.light .service-select-card,
+[data-theme="light"] .service-card-item,
+[data-theme="light"] .stylist-nordic-card,
+[data-theme="light"] .service-bento-card,
+[data-theme="light"] .product-nordic-card,
+[data-theme="light"] .branch-card,
+[data-theme="light"] .booking-service-card,
+[data-theme="light"] .service-select-card {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .service-card-body,
+html.light .service-bento-body,
+body.light .service-card-body,
+body.light .service-bento-body,
+[data-theme="light"] .service-card-body,
+[data-theme="light"] .service-bento-body {
+  background: var(--surface-card) !important;
+}
+
+html.light .service-card-title,
+html.light .stylist-name,
+html.light .service-bento-title,
+html.light .nordic-hero-title,
+html.light .section-title-clean,
+html.light h1:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+html.light h2:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+html.light h3:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-card-title),
+html.light h4:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+body.light .service-card-title,
+body.light .stylist-name,
+body.light .service-bento-title,
+body.light .nordic-hero-title,
+body.light .section-title-clean,
+body.light h1:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+body.light h2:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+body.light h3:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-card-title),
+body.light h4:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+[data-theme="light"] .service-card-title,
+[data-theme="light"] .stylist-name,
+[data-theme="light"] .service-bento-title,
+[data-theme="light"] .nordic-hero-title,
+[data-theme="light"] .section-title-clean,
+[data-theme="light"] h1:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+[data-theme="light"] h2:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *),
+[data-theme="light"] h3:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-card-title),
+[data-theme="light"] h4:not(.text-white):not(.text-amber-400):not(.card-3d-tilt *):not(.hero-visual-card *) {
+  color: var(--text-primary) !important;
+}
+
+html.light .service-card-desc,
+html.light .service-bento-desc,
+html.light .nordic-hero-tagline,
+html.light p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-address-text),
+body.light .service-card-desc,
+body.light .service-bento-desc,
+body.light .nordic-hero-tagline,
+body.light p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-address-text),
+[data-theme="light"] .service-card-desc,
+[data-theme="light"] .service-bento-desc,
+[data-theme="light"] .nordic-hero-tagline,
+[data-theme="light"] p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.card-3d-tilt *):not(.hero-visual-card *):not(.branch-address-text) {
+  color: var(--text-secondary) !important;
+}
+
+/* Explicit high-contrast preservation on dark surfaces */
+html.light .card-3d-tilt h3,
+html.light .hero-showcase-title,
+html.light .hero-visual-card h3,
+html.light .text-white,
+body.light .text-white,
+[data-theme="light"] .text-white {
+  color: var(--text-primary) !important;
+}
+
+html.light .card-3d-tilt h3.text-amber-400,
+html.light .branch-card-title,
+html.light .text-amber-400,
+body.light .text-amber-400,
+[data-theme="light"] .text-amber-400 {
+  color: var(--brand-accent-gold) !important;
+}
+
+html.light .card-3d-tilt p,
+html.light .hero-showcase-desc,
+html.light .text-slate-300,
+body.light .text-slate-300,
+[data-theme="light"] .text-slate-300 {
+  color: var(--text-secondary) !important;
+}
+
+html.light .branch-address-text,
+html.light .text-slate-200,
+body.light .text-slate-200,
+[data-theme="light"] .text-slate-200 {
+  color: #E2E8F0 !important;
+}
+
+html.light .nordic-btn-secondary,
+body.light .nordic-btn-secondary,
+[data-theme="light"] .nordic-btn-secondary {
+  background: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid rgba(217, 119, 6, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+html.light .nordic-btn-secondary:hover,
+body.light .nordic-btn-secondary:hover,
+[data-theme="light"] .nordic-btn-secondary:hover {
+  background: #E2E8F0 !important;
+  border-color: var(--brand-accent) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light .theme-toggle-btn,
+body.light .theme-toggle-btn,
+[data-theme="light"] .theme-toggle-btn {
+  background: var(--surface-elevated) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: var(--brand-accent) !important;
+}
+
+html.light .nordic-metrics-strip,
+body.light .nordic-metrics-strip,
+[data-theme="light"] .nordic-metrics-strip {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light .nordic-metric-value,
+body.light .nordic-metric-value,
+[data-theme="light"] .nordic-metric-value {
+  color: var(--brand-accent) !important;
+}
+
+html.light .nordic-metric-label,
+body.light .nordic-metric-label,
+[data-theme="light"] .nordic-metric-label {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .announcement-bar {
+  background: #111827;
+  color: #F8F9FA;
+}
+
+[data-theme="light"] .hero-magazine-container {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F1F3F5 100%);
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .hero-tagline,
+[data-theme="light"] .hero-title-main {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .hero-desc {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .header-lookup-btn,
+[data-theme="light"] .header-branch-pill,
+[data-theme="light"] .header-user-btn,
+[data-theme="light"] .header-action-btn {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .header-search-input {
+  background: #FFFFFF;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .md3-service-card,
+[data-theme="light"] .md3-stylist-card,
+[data-theme="light"] .interactive-card,
+[data-theme="light"] .product-shop-card,
+[data-theme="light"] .admin-kpi-card-rich,
+[data-theme="light"] .admin-table-container,
+[data-theme="light"] .staff-card,
+[data-theme="light"] .branch-luxury-card {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  box-shadow: var(--theme-shadow-card);
+}
+
+[data-theme="light"] .md3-service-card:hover,
+[data-theme="light"] .md3-stylist-card:hover {
+  background: #FFFFFF;
+  border-color: var(--brand-accent);
+}
+
+[data-theme="light"] .kpi-label-text,
+[data-theme="light"] .kpi-sub-detail,
+[data-theme="light"] .service-desc,
+[data-theme="light"] .stylist-specialty-tag {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .kpi-big-value,
+[data-theme="light"] .service-title,
+[data-theme="light"] .stylist-name {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .modal-content-shell {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  box-shadow: var(--theme-shadow-elevated);
+}
+
+[data-theme="light"] .cart-drawer-shell {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  box-shadow: var(--theme-shadow-elevated);
+}
+
+[data-theme="light"] .android-phone-outer {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .android-screen-surface {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .android-top-app-bar,
+[data-theme="light"] .android-bottom-nav {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .bottom-nav-item {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .bottom-nav-item.active {
+  color: var(--brand-accent);
+}
+
+[data-theme="light"] .digital-invoice-card {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .member-vip-card {
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .shimmer-wave,
+[data-theme="light"] .md3-shimmer {
+  background: linear-gradient(90deg, #E2E8F0 20%, #CBD5E1 50%, #E2E8F0 80%) !important;
+  background-size: 200% 100% !important;
+}
+
+/* â”€â”€ 6. BOOKING WIZARD & AI STUDIO LIGHT/DARK CONTRAST FIX (WCAG AAA) â”€â”€ */
+.booking-step-title {
+  color: var(--text-primary) !important;
+}
+
+.booking-step-subtitle {
+  color: var(--text-secondary) !important;
+}
+
+html.light .booking-step-panel,
+body.light .booking-step-panel,
+[data-theme="light"] .booking-step-panel {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .booking-step-title,
+body.light .booking-step-title,
+[data-theme="light"] .booking-step-title {
+  color: var(--text-primary) !important;
+}
+
+html.light .booking-step-subtitle,
+body.light .booking-step-subtitle,
+[data-theme="light"] .booking-step-subtitle {
+  color: var(--text-secondary) !important;
+}
+
+html.light .glass-digital-receipt,
+body.light .glass-digital-receipt,
+[data-theme="light"] .glass-digital-receipt {
+  background: var(--surface-card) !important;
+  border: 1.5px solid rgba(197, 155, 39, 0.4) !important;
+}
+
+html.light .glass-digital-receipt .digital-receipt-row .label,
+body.light .glass-digital-receipt .digital-receipt-row .label,
+[data-theme="light"] .glass-digital-receipt .digital-receipt-row .label {
+  color: var(--text-secondary) !important;
+}
+
+html.light .glass-digital-receipt .digital-receipt-row .value,
+body.light .glass-digital-receipt .digital-receipt-row .value,
+[data-theme="light"] .glass-digital-receipt .digital-receipt-row .value {
+  color: var(--text-primary) !important;
+}
+
+html.light .booking-stylist-option-card,
+body.light .booking-stylist-option-card,
+[data-theme="light"] .booking-stylist-option-card {
+  background: var(--surface-elevated) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .booking-stylist-option-card h4,
+body.light .booking-stylist-option-card h4,
+[data-theme="light"] .booking-stylist-option-card h4 {
+  color: var(--text-primary) !important;
+}
+
+html.light .booking-stylist-item-card,
+body.light .booking-stylist-item-card,
+[data-theme="light"] .booking-stylist-item-card {
+  background: var(--surface-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+html.light .booking-stylist-item-card h4,
+body.light .booking-stylist-item-card h4,
+[data-theme="light"] .booking-stylist-item-card h4 {
+  color: var(--text-primary) !important;
+}
+
+html.light .booking-date-item-card,
+body.light .booking-date-item-card,
+[data-theme="light"] .booking-date-item-card {
+  background: var(--surface-elevated) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .booking-date-item-card span,
+body.light .booking-date-item-card span,
+[data-theme="light"] .booking-date-item-card span {
+  color: var(--text-primary) !important;
+}
+
+html.light .booking-payment-toggle-btn,
+body.light .booking-payment-toggle-btn,
+[data-theme="light"] .booking-payment-toggle-btn {
+  background: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Secondary CTA Buttons on Light Mode: Ná»n sÃ¡ng chá»¯ Ä‘áº­m nÃ©t #1e293b */
+html.light .nordic-btn-secondary,
+html.light .hero-cta-secondary,
+body.light .nordic-btn-secondary,
+body.light .hero-cta-secondary,
+[data-theme="light"] .nordic-btn-secondary,
+[data-theme="light"] .hero-cta-secondary {
+  background: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1.5px solid #CBD5E1 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  font-weight: 700 !important;
+}
+
+html.light .nordic-btn-secondary:hover,
+html.light .hero-cta-secondary:hover,
+body.light .nordic-btn-secondary:hover,
+body.light .hero-cta-secondary:hover,
+[data-theme="light"] .nordic-btn-secondary:hover,
+[data-theme="light"] .hero-cta-secondary:hover {
+  background: var(--surface-elevated) !important;
+  color: var(--brand-accent) !important;
+  border-color: var(--brand-accent) !important;
+}
+
+/* AI Studio Surface Contrast Preserved across all modes */
+html.light .ai-studio-panel,
+body.light .ai-studio-panel,
+[data-theme="light"] .ai-studio-panel {
+  background: #10131C !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.light .ai-studio-panel strong,
+body.light .ai-studio-panel strong,
+[data-theme="light"] .ai-studio-panel strong {
+  color: var(--text-primary) !important;
+}
+
+html.light .ai-studio-panel .nordic-pill-tab {
+  background: #161B26 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.light .ai-studio-panel .nordic-pill-tab.active {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: var(--brand-accent-gold) !important;
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   LIGHT & DARK MODE EXPLICIT COMPONENT CONTRAST GUARDS
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+/* 1. Services Bento Grid Cards & Titles */
+[data-theme="light"] .service-bento-card,
+html.light .service-bento-card,
+body.light .service-bento-card,
+[data-theme="light"] .service-bento-body,
+html.light .service-bento-body,
+body.light .service-bento-body {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .service-bento-title,
+html.light .service-bento-title,
+body.light .service-bento-title,
+[data-theme="light"] h3.service-bento-title,
+html.light h3.service-bento-title,
+body.light h3.service-bento-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .service-bento-desc,
+html.light .service-bento-desc,
+body.light .service-bento-desc {
+  color: var(--text-secondary) !important;
+}
+
+/* 2. Stylists Nordic Cards & Names */
+[data-theme="light"] .stylist-nordic-card,
+html.light .stylist-nordic-card,
+body.light .stylist-nordic-card {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .stylist-name,
+html.light .stylist-name,
+body.light .stylist-name,
+[data-theme="light"] h3.stylist-name,
+html.light h3.stylist-name,
+body.light h3.stylist-name,
+[data-theme="light"] .stylist-nordic-card h3,
+html.light .stylist-nordic-card h3,
+body.light .stylist-nordic-card h3 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .stylist-role,
+html.light .stylist-role,
+body.light .stylist-role {
+  color: var(--brand-accent) !important;
+}
+
+[data-theme="light"] .stylist-rating-row,
+html.light .stylist-rating-row,
+body.light .stylist-rating-row {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .stylist-pill-tag,
+html.light .stylist-pill-tag,
+body.light .stylist-pill-tag {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* 3. Shop Product Nordic Cards & Titles */
+[data-theme="light"] .product-nordic-card,
+html.light .product-nordic-card,
+body.light .product-nordic-card {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .product-card-title,
+html.light .product-card-title,
+body.light .product-card-title,
+[data-theme="light"] .product-nordic-card h3,
+html.light .product-nordic-card h3,
+body.light .product-nordic-card h3,
+[data-theme="light"] .product-nordic-card h4,
+html.light .product-nordic-card h4,
+body.light .product-nordic-card h4 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .product-card-desc,
+html.light .product-card-desc,
+body.light .product-card-desc,
+[data-theme="light"] .product-nordic-card p,
+html.light .product-nordic-card p,
+body.light .product-nordic-card p {
+  color: var(--text-secondary) !important;
+}
+
+/* 3b. Shop Page Filter & Search Toolbar Light Mode */
+[data-theme="light"] .shop-header-title,
+html.light .shop-header-title,
+body.light .shop-header-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .shop-header-desc,
+html.light .shop-header-desc,
+body.light .shop-header-desc {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .shop-filter-panel,
+html.light .shop-filter-panel,
+body.light .shop-filter-panel {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .shop-search-input,
+html.light .shop-search-input,
+body.light .shop-search-input {
+  background: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1.5px solid #E2E8F0 !important;
+}
+
+[data-theme="light"] .shop-search-input:focus,
+html.light .shop-search-input:focus,
+body.light .shop-search-input:focus {
+  border-color: var(--brand-accent-gold) !important;
+  background: var(--surface-card) !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15) !important;
+}
+
+[data-theme="light"] .shop-search-input::placeholder,
+html.light .shop-search-input::placeholder,
+body.light .shop-search-input::placeholder {
+  color: #94A3B8 !important;
+}
+
+[data-theme="light"] .shop-filter-label,
+html.light .shop-filter-label,
+body.light .shop-filter-label {
+  color: var(--brand-accent) !important;
+}
+
+[data-theme="light"] .nordic-pill-tab,
+html.light .nordic-pill-tab,
+body.light .nordic-pill-tab {
+  background: var(--surface-elevated) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .nordic-pill-tab:hover,
+html.light .nordic-pill-tab:hover,
+body.light .nordic-pill-tab:hover {
+  background: #E2E8F0 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="light"] .nordic-pill-tab.active,
+html.light .nordic-pill-tab.active,
+body.light .nordic-pill-tab.active {
+  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--brand-accent-gold) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+}
+
+/* 3c. Booking Stepper Bar Light Mode */
+[data-theme="light"] .booking-stepper-bar,
+html.light .booking-stepper-bar,
+body.light .booking-stepper-bar {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .stepper-step:hover,
+html.light .stepper-step:hover,
+body.light .stepper-step:hover {
+  background: var(--surface-elevated) !important;
+}
+
+[data-theme="light"] .stepper-step.active,
+html.light .stepper-step.active,
+body.light .stepper-step.active {
+  background: rgba(245, 158, 11, 0.08) !important;
+}
+
+[data-theme="light"] .stepper-num,
+html.light .stepper-num,
+body.light .stepper-num {
+  background: var(--surface-elevated) !important;
+  color: var(--text-secondary) !important;
+  border: 1.5px solid #E2E8F0 !important;
+}
+
+[data-theme="light"] .stepper-step.active .stepper-num,
+html.light .stepper-step.active .stepper-num,
+body.light .stepper-step.active .stepper-num {
+  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+  color: var(--text-primary) !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4) !important;
+}
+
+[data-theme="light"] .stepper-text,
+html.light .stepper-text,
+body.light .stepper-text {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .stepper-step.active .stepper-text,
+html.light .stepper-step.active .stepper-text,
+body.light .stepper-step.active .stepper-text {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .stepper-line,
+html.light .stepper-line,
+body.light .stepper-line {
+  background: #E2E8F0 !important;
+}
+
+[data-theme="light"] .stepper-line.active,
+html.light .stepper-line.active,
+body.light .stepper-line.active {
+  background: linear-gradient(90deg, #F59E0B, rgba(245, 158, 11, 0.5)) !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.25) !important;
+}
+
+[data-theme="light"] .booking-page-title,
+html.light .booking-page-title,
+body.light .booking-page-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .booking-page-desc,
+html.light .booking-page-desc,
+body.light .booking-page-desc {
+  color: var(--text-secondary) !important;
+}
+
+/* 4. Branches Cards & Addresses */
+[data-theme="light"] .branch-card-item,
+html.light .branch-card-item,
+body.light .branch-card-item,
+[data-theme="light"] .branch-card,
+html.light .branch-card,
+body.light .branch-card {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .branch-address-text,
+html.light .branch-address-text,
+body.light .branch-address-text {
+  color: var(--text-secondary) !important;
+}
+
+/* 5. Top Announcement Bar Consistency */
+.web-top-announcement-bar,
+.announcement-inner {
+  background: var(--bg-primary) !important;
+  color: var(--text-secondary) !important;
+}
+.web-top-announcement-bar a,
+.link-open-mobile-app,
+.link-dev-docs {
+  color: var(--brand-accent-gold) !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+/* 6. Stepper in Booking Wizard */
+[data-theme="light"] .booking-wizard-stepper {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .stepper-text {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .stepper-step.active .stepper-text {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+
+/* 7. Home Page 18+ Branches Preview & AI Studio Preview */
+.home-branch-card {
+  background: #10131C;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+.home-ai-card {
+  background: #10131C;
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+.home-ai-upload-box {
+  background: #0B0D13;
+  border: 1.5px dashed rgba(245, 158, 11, 0.4);
+}
+.home-ai-file-name {
+  color: #CBD5E1;
+}
+.branch-card-title {
+  color: var(--brand-accent-gold) !important;
+}
+.branch-hours-text {
+  color: #94A3B8;
+}
+
+[data-theme="light"] .home-branch-card,
+html.light .home-branch-card,
+body.light .home-branch-card {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="light"] .home-branch-card .branch-card-title,
+html.light .home-branch-card .branch-card-title,
+body.light .home-branch-card .branch-card-title {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .home-branch-card .branch-address-text,
+html.light .home-branch-card .branch-address-text,
+body.light .home-branch-card .branch-address-text {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .home-branch-card .branch-hours-text,
+html.light .home-branch-card .branch-hours-text,
+body.light .home-branch-card .branch-hours-text {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .home-ai-card,
+html.light .home-ai-card,
+body.light .home-ai-card {
+  background: var(--surface-card) !important;
+  border: 1.5px solid rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+}
+[data-theme="light"] .home-ai-card .home-section-title,
+html.light .home-ai-card .home-section-title,
+body.light .home-ai-card .home-section-title,
+[data-theme="light"] .home-section-title,
+html.light .home-section-title,
+body.light .home-section-title {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .home-ai-card .home-section-desc,
+html.light .home-ai-card .home-section-desc,
+body.light .home-ai-card .home-section-desc,
+[data-theme="light"] .home-section-desc,
+html.light .home-section-desc,
+body.light .home-section-desc {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .home-ai-upload-box,
+html.light .home-ai-upload-box,
+body.light .home-ai-upload-box {
+  background: var(--surface-elevated) !important;
+  border: 1.5px dashed rgba(245, 158, 11, 0.4) !important;
+}
+[data-theme="light"] .home-ai-file-name,
+html.light .home-ai-file-name,
+body.light .home-ai-file-name {
+  color: var(--text-secondary) !important;
+}
+
+/* 8. Header User Dropdown & Button Light Mode Guard */
+[data-theme="light"] .header-user-btn,
+html.light .header-user-btn,
+body.light .header-user-btn {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+[data-theme="light"] .header-user-btn:hover,
+html.light .header-user-btn:hover,
+body.light .header-user-btn:hover,
+[data-theme="light"] .header-user-menu-wrapper.open .header-user-btn,
+html.light .header-user-menu-wrapper.open .header-user-btn,
+body.light .header-user-menu-wrapper.open .header-user-btn {
+  background: var(--surface-elevated) !important;
+  border-color: #D4AF37 !important;
+}
+[data-theme="light"] .user-name-text,
+html.light .user-name-text,
+body.light .user-name-text {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+
+/* 9. Global Modal & Auth Modal Box */
+.auth-modal-box h2 {
+  color: var(--text-primary, #FFFFFF);
+}
+.auth-modal-box p {
+  color: var(--text-secondary, #94A3B8);
+}
+.sub-label {
+  color: var(--text-secondary, #CBD5E1);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+[data-theme="light"] .auth-modal-box h2,
+html.light .auth-modal-box h2,
+body.light .auth-modal-box h2 {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .auth-modal-box p,
+html.light .auth-modal-box p,
+body.light .auth-modal-box p {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .sub-label,
+html.light .sub-label,
+body.light .sub-label {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .form-control-custom,
+html.light .form-control-custom,
+body.light .form-control-custom {
+  background: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+[data-theme="light"] .form-control-custom:focus,
+html.light .form-control-custom:focus,
+body.light .form-control-custom:focus {
+  border-color: #D4AF37 !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25) !important;
+  background: var(--surface-card) !important;
+}
+
+/* â”€â”€ Admin Portal Light Theme Overrides â”€â”€ */
+[data-theme="light"] .admin-hub-header,
+html.light .admin-hub-header {
+  background: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="light"] .admin-hub-title,
+html.light .admin-hub-title {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .admin-filter-bar,
+html.light .admin-filter-bar {
+  background: var(--surface-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .admin-filter-bar label,
+html.light .admin-filter-bar label {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .admin-select-filter,
+html.light .admin-select-filter {
+  background: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="light"] .admin-tab-btn,
+html.light .admin-tab-btn {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .admin-tab-btn:hover,
+html.light .admin-tab-btn:hover {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .admin-tab-btn.active,
+html.light .admin-tab-btn.active {
+  color: #C59B27 !important;
+  border-bottom-color: #C59B27 !important;
+}
+[data-theme="light"] .admin-table-container,
+html.light .admin-table-container {
+  background: var(--surface-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .admin-table-toolbar,
+html.light .admin-table-toolbar {
+  background: var(--surface-elevated) !important;
+  border-bottom-color: #E2E8F0 !important;
+}
+[data-theme="light"] .admin-enterprise-table th,
+html.light .admin-enterprise-table th {
+  background: var(--surface-elevated) !important;
+  color: var(--text-secondary) !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+[data-theme="light"] .admin-enterprise-table td,
+html.light .admin-enterprise-table td {
+  border-bottom: 1px solid #F1F5F9 !important;
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .admin-enterprise-table tr:hover td,
+html.light .admin-enterprise-table tr:hover td {
+  background: var(--surface-elevated) !important;
+}
+[data-theme="light"] .admin-kpi-card-rich,
+html.light .admin-kpi-card-rich {
+  background: var(--surface-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .kpi-label-text,
+html.light .kpi-label-text {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .kpi-big-value,
+html.light .kpi-big-value {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .kpi-sub-detail,
+html.light .kpi-sub-detail {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .admin-chart-card,
+html.light .admin-chart-card,
+[data-theme="light"] .admin-chart-box,
+html.light .admin-chart-box,
+[data-theme="light"] .admin-hub-header,
+html.light .admin-hub-header {
+  background: var(--surface-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .chart-box-title,
+html.light .chart-box-title {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .gauge-meta-row,
+html.light .gauge-meta-row {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .gauge-bar-track,
+html.light .gauge-bar-track {
+  background: #E2E8F0 !important;
+}
+
+/* â”€â”€ Kinetic Marquee Light Theme â”€â”€ */
+[data-theme="light"] .kinetic-marquee-wrapper,
+html.light .kinetic-marquee-wrapper,
+body.light .kinetic-marquee-wrapper {
+  background: var(--surface-card) !important;
+  border-top: 1px solid rgba(197, 155, 39, 0.35) !important;
+  border-bottom: 1px solid rgba(197, 155, 39, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="light"] .kinetic-word,
+html.light .kinetic-word,
+body.light .kinetic-word {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .kinetic-word.outline,
+html.light .kinetic-word.outline,
+body.light .kinetic-word.outline {
+  -webkit-text-stroke: 1.5px rgba(15, 23, 42, 0.35) !important;
+  color: transparent !important;
+}
+[data-theme="light"] .kinetic-word.accent,
+html.light .kinetic-word.accent,
+body.light .kinetic-word.accent {
+  color: var(--brand-accent) !important;
+}
+
+/* â”€â”€ Section 3 Brand Philosophy Cards Light Theme â”€â”€ */
+[data-theme="light"] .philosophy-section-title,
+html.light .philosophy-section-title,
+body.light .philosophy-section-title {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .philosophy-section-desc,
+html.light .philosophy-section-desc,
+body.light .philosophy-section-desc {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .philosophy-card,
+html.light .philosophy-card,
+body.light .philosophy-card {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="light"] .philosophy-card:hover,
+html.light .philosophy-card:hover,
+body.light .philosophy-card:hover {
+  background: var(--surface-card) !important;
+  border-color: var(--brand-accent) !important;
+  box-shadow: 0 10px 28px rgba(217, 119, 6, 0.12) !important;
+}
+[data-theme="light"] .philosophy-icon-wrap,
+html.light .philosophy-icon-wrap,
+body.light .philosophy-icon-wrap {
+  background: #FEF3C7 !important;
+  border: 1px solid rgba(217, 119, 6, 0.3) !important;
+  color: var(--brand-accent) !important;
+}
+[data-theme="light"] .philosophy-card-title,
+html.light .philosophy-card-title,
+body.light .philosophy-card-title {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .philosophy-card-desc,
+html.light .philosophy-card-desc,
+body.light .philosophy-card-desc {
+  color: var(--text-secondary) !important;
+}
+
+/* â”€â”€ Universal Header, Modal, Cart & Card Alignment Light Enforcement â”€â”€ */
+.header-user-btn,
+[data-theme="light"] .header-user-btn,
+html.light .header-user-btn {
+  background: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+.header-user-btn:hover {
+  background: var(--surface-elevated) !important;
+  border-color: #b48312 !important;
+}
+.user-dropdown-menu,
+[data-theme="light"] .user-dropdown-menu {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-primary) !important;
+}
+[data-theme="dark"] .user-dropdown-menu {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8) !important;
+  color: var(--text-primary) !important;
+}
+.cart-drawer-shell {
+  background: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+  border-left: 1px solid var(--border-color) !important;
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.2) !important;
+}
+.cart-drawer-header {
+  border-bottom: 1px solid var(--border-color) !important;
+  background: var(--surface-elevated) !important;
+}
+.cart-drawer-header h3 {
+  color: var(--text-primary) !important;
+}
+.cart-drawer-footer {
+  border-top: 1px solid var(--border-color) !important;
+  background: var(--surface-elevated) !important;
+}
+.cart-drawer-footer span {
+  color: var(--text-secondary) !important;
+}
+.modal-content-shell {
+  background: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--theme-shadow-elevated) !important;
+}
+.modal-close-icon-btn {
+  background: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* â”€â”€ STRICT CARD BALANCE & EQUAL HEIGHT (CÃ¢n báº±ng tháº» tuyá»‡t Ä‘á»‘i, khÃ´ng lá»‡ch dÃ²ng) â”€â”€ */
+.service-card-item,
+.product-nordic-card,
+.stylist-nordic-card,
+.home-branch-card,
+.branch-card,
+.card-pillar,
+.service-bento-card,
+.bento-card,
+.interactive-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--theme-shadow-card) !important;
+  color: var(--text-primary) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+
+/* Äáº£m báº£o tháº» con dÃ­nh Ä‘Ã¡y Ä‘á»u nhau */
+.service-card-item > div:first-child,
+.product-nordic-card > div:first-child,
+.stylist-nordic-card > div:first-child,
+.home-branch-card > div:first-child,
+.branch-card > div:first-child,
+.card-pillar > div:first-child,
+.service-bento-card > div:first-child {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.service-card-item:hover,
+.product-nordic-card:hover,
+.stylist-nordic-card:hover,
+.home-branch-card:hover,
+.branch-card:hover,
+.service-bento-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12) !important;
+  border-color: var(--brand-accent) !important;
+}
+
+/* Dark mode explicit card guards */
+[data-theme="dark"] .service-card-item,
+[data-theme="dark"] .product-nordic-card,
+[data-theme="dark"] .stylist-nordic-card,
+[data-theme="dark"] .home-branch-card,
+[data-theme="dark"] .branch-card,
+[data-theme="dark"] .card-pillar,
+[data-theme="dark"] .service-bento-card,
+[data-theme="dark"] .service-card-body,
+[data-theme="dark"] .service-bento-body,
+[data-theme="dark"] .booking-cascade-block,
+[data-theme="dark"] .cascade-header,
+[data-theme="dark"] .nordic-metric-card {
+  background: var(--surface-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .service-card-title,
+[data-theme="dark"] .service-bento-title,
+[data-theme="dark"] .stylist-name,
+[data-theme="dark"] .product-card-title,
+[data-theme="dark"] .branch-card-title,
+[data-theme="dark"] .nordic-hero-title,
+[data-theme="dark"] .card-pillar h3,
+[data-theme="dark"] .cascade-header h3,
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .service-card-desc,
+[data-theme="dark"] .service-bento-desc,
+[data-theme="dark"] .product-card-desc,
+[data-theme="dark"] .branch-address,
+[data-theme="dark"] .card-pillar p,
+[data-theme="dark"] .nordic-hero-tagline,
+[data-theme="dark"] p {
+  color: var(--text-secondary) !important;
+}
+
+/* Light mode explicit card guards */
+[data-theme="light"] .service-card-item,
+[data-theme="light"] .product-nordic-card,
+[data-theme="light"] .stylist-nordic-card,
+[data-theme="light"] .home-branch-card,
+[data-theme="light"] .branch-card,
+[data-theme="light"] .card-pillar,
+[data-theme="light"] .service-bento-card,
+[data-theme="light"] .service-card-body,
+[data-theme="light"] .service-bento-body,
+[data-theme="light"] .booking-cascade-block,
+[data-theme="light"] .cascade-header,
+[data-theme="light"] .nordic-metric-card {
+  background: var(--surface-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .service-card-title,
+[data-theme="light"] .service-bento-title,
+[data-theme="light"] .stylist-name,
+[data-theme="light"] .product-card-title,
+[data-theme="light"] .branch-card-title,
+[data-theme="light"] .nordic-hero-title,
+[data-theme="light"] .card-pillar h3,
+[data-theme="light"] .cascade-header h3,
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .service-card-desc,
+[data-theme="light"] .service-bento-desc,
+[data-theme="light"] .product-card-desc,
+[data-theme="light"] .branch-address,
+[data-theme="light"] .card-pillar p,
+[data-theme="light"] .nordic-hero-tagline,
+[data-theme="light"] p {
+  color: var(--text-secondary) !important;
+}
+
+/* â”€â”€ Mobile Responsive Bottom Navigation Bar â”€â”€ */
+.mobile-bottom-nav {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: var(--surface-card);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    z-index: 9999;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 8px;
+  }
+  .mobile-bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    flex: 1;
+    height: 100%;
+    transition: color 0.15s ease;
+  }
+  .mobile-bottom-nav a.active,
+  .mobile-bottom-nav a:hover {
+    color: var(--brand-accent);
+  }
+  .mobile-bottom-nav a svg,
+  .mobile-bottom-nav a .nav-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+  /* BÃ¹ khoáº£ng trá»‘ng cuá»‘i trang cho mobile bottom nav */
+  body {
+    padding-bottom: 70px !important;
+  }
+}

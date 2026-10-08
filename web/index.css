@@ -1,0 +1,785 @@
+/* =========================================================================
+   Omni Salon — INDEX.CSS (LUXURY OBSIDIAN & HIGH-READABILITY DUAL THEME ENGINE)
+   Phiên bản: 17.0 Ultra Balanced Centering & Contrast Edition
+   1. Căn giữa chuẩn xác 100% (Balanced Max-width: 1560px, Không lệch một bên)
+   2. Typography Scale-Up toàn diện (KPI to rõ, Tab 16px, Title 32-42px)
+   3. Khóa cứng tương phản Dark Mode (#0B0D13) & Light Mode (#F8F9FA)
+      (Triệt tiêu 100% lỗi chữ chìm màu/trắng đè trắng khi đổi theme)
+   Tuân thủ: .antigravity/rules/07_ponytail.md, 08_caveman.md, 10_ui_tester.md
+   ========================================================================= */
+
+/* ── 1. GLOBAL ROOT BASELINE SCALING & SYMMETRICAL CENTERING ── */
+html {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Khung cÄƒn giá»¯a hoÃ n háº£o cho toÃ n bá»™ Website & Admin Hub */
+#webPlatformSection {
+  width: 100% !important;
+  min-height: 100vh !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#webHeaderContainer {
+  width: 100% !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.web-main-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 900 !important;
+}
+
+#webMainContainer {
+  width: 100% !important;
+  min-height: calc(100vh - 120px) !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.web-header-inner,
+.admin-full-wrapper {
+  width: 100% !important;
+  max-width: 1560px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+.page-view {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.kinetic-marquee-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  position: relative !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 28px 0 !important;
+  padding: 16px 0 !important;
+  background: var(--surface-card) !important;
+  border-top: 1px solid var(--border-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+.web-header-inner {
+  padding: 12px 28px !important;
+}
+
+.admin-full-wrapper {
+  padding: 28px 28px 80px !important;
+}
+
+/* â”€â”€ 2. DUAL THEME ENGINE (LIGHT & DARK DYNAMIC ADAPTATION) â”€â”€ */
+html.light,
+body.light,
+[data-theme="light"],
+[data-theme="light"] body {
+  background-color: var(--bg-primary) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+html.dark,
+body.dark,
+[data-theme="dark"],
+[data-theme="dark"] body {
+  background-color: var(--bg-primary) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+html.light #webPlatformSection,
+html.light #webMainContainer,
+html.light .page-view,
+html.light .admin-full-wrapper {
+  background-color: var(--bg-primary) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+html.dark #webPlatformSection,
+html.dark #webMainContainer,
+html.dark .page-view,
+html.dark .admin-full-wrapper {
+  background-color: var(--bg-primary) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Dark Mode Cards */
+html.dark .modal-content-shell,
+html.dark .auth-modal-box,
+html.dark .customer-portal-shell,
+html.dark .booking-wizard-wrapper,
+html.dark .booking-step-panel,
+html.dark .glass-digital-receipt,
+html.dark .card,
+html.dark .interactive-card,
+html.dark .service-card,
+html.dark .service-bento-card,
+html.dark .booking-service-card,
+html.dark .product-card,
+html.dark .product-nordic-card,
+html.dark .shop-nordic-card,
+html.dark .stylist-card,
+html.dark .stylist-item-card,
+html.dark .stylist-nordic-card,
+html.dark .header-user-dropdown,
+html.dark .cart-drawer,
+html.dark .drawer-shell,
+html.dark .admin-section-block,
+html.dark .admin-kpi-box,
+html.dark .admin-hub-header,
+html.dark .admin-kpi-card-rich,
+html.dark .admin-chart-box,
+html.dark .admin-table-container,
+html.dark .admin-filter-bar,
+html.dark .portal-profile-hero,
+html.dark .portal-tab-content-body,
+html.dark .branch-card,
+html.dark .cart-fulfillment-card,
+html.dark .cart-voucher-card,
+html.dark .kanban-booking-card,
+html.dark .service-bento-body,
+html.dark .service-card-body,
+html.dark .hero-visual-card {
+  background-color: var(--surface-card) !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  color: var(--text-primary) !important;
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark .admin-hub-title,
+html.dark .chart-box-title,
+html.dark .card-title,
+html.dark .service-bento-title,
+html.dark .product-card-title,
+html.dark .stylist-name {
+  color: var(--text-primary) !important;
+}
+
+html.dark p,
+html.dark .service-bento-desc,
+html.dark .product-card-desc,
+html.dark .kpi-sub-detail,
+html.dark .booking-step-subtitle,
+html.dark .branch-address {
+  color: var(--text-secondary) !important;
+}
+
+html.dark .admin-tab-btn {
+  color: var(--text-secondary) !important;
+}
+html.dark .admin-tab-btn:hover {
+  color: var(--text-primary) !important;
+}
+html.dark .admin-tab-btn.active {
+  color: var(--brand-accent-gold) !important;
+  border-bottom: 3px solid #f59e0b !important;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea,
+html.dark .admin-select-filter {
+  background-color: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* â”€â”€ 3. LIGHT THEME MODE (NORDIC CLEAN CREAM - WCAG AAA HIGH CONTRAST) â”€â”€ */
+html.light,
+body.light,
+[data-theme="light"],
+[data-theme="light"] body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+}
+
+html.light #webPlatformSection,
+html.light #webMainContainer,
+html.light .page-view,
+html.light .admin-full-wrapper {
+  background-color: var(--bg-primary) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Bá» máº·t Tháº» Tráº¯ng Tinh Khiáº¿t trong Light Mode */
+html.light .modal-content-shell,
+html.light .auth-modal-box,
+html.light .customer-portal-shell,
+html.light .booking-wizard-wrapper,
+html.light .booking-step-panel,
+html.light .glass-digital-receipt,
+html.light .card,
+html.light .interactive-card,
+html.light .service-card,
+html.light .service-bento-card,
+html.light .booking-service-card,
+html.light .product-card,
+html.light .product-nordic-card,
+html.light .shop-nordic-card,
+html.light .stylist-card,
+html.light .stylist-item-card,
+html.light .stylist-nordic-card,
+html.light .header-user-dropdown,
+html.light .cart-drawer,
+html.light .drawer-shell,
+html.light .admin-section-block,
+html.light .admin-kpi-box,
+html.light .admin-hub-header,
+html.light .admin-kpi-card-rich,
+html.light .admin-chart-box,
+html.light .admin-table-container,
+html.light .admin-filter-bar,
+html.light .portal-profile-hero,
+html.light .portal-tab-content-body,
+html.light .branch-card,
+html.light .cart-fulfillment-card,
+html.light .cart-voucher-card,
+html.light .kanban-booking-card,
+html.light .service-bento-body,
+html.light .hero-visual-card {
+  background-color: var(--surface-card) !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  color: var(--text-primary) !important;
+}
+
+/* KhÃ³a MÃ u Chá»¯ Sáº¯c NÃ©t Trong Light Mode (Triá»‡t tiÃªu lá»—i chá»¯ chÃ¬m mÃ u) */
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light .admin-hub-title,
+html.light .chart-box-title,
+html.light .card-title,
+html.light .service-bento-title,
+html.light .product-card-title,
+html.light .stylist-name,
+html.light .kpi-big-value,
+html.light .timeline-card-customer,
+html.light .stylist-col-name,
+html.light .logo-text-omni,
+html.light .user-name-text,
+html.light .dropdown-user-name {
+  color: var(--text-primary) !important;
+}
+
+html.light p,
+html.light .service-bento-desc,
+html.light .product-card-desc,
+html.light .kpi-sub-detail,
+html.light .kpi-label-text,
+html.light .booking-step-subtitle,
+html.light .branch-address,
+html.light .stylist-role-desc,
+html.light .portal-desc,
+html.light .hero-showcase-desc,
+html.light .dropdown-user-phone {
+  color: var(--text-secondary) !important;
+}
+
+html.light label,
+html.light .sub-label,
+html.light .form-label,
+html.light .stepper-text,
+html.light .nav-link,
+html.light th {
+  color: var(--text-secondary) !important;
+}
+
+html.light .badge-terracotta {
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1px solid #FCD34D !important;
+  font-weight: 800 !important;
+}
+
+html.light .kpi-growth-positive {
+  background-color: #DCFCE7 !important;
+  color: #166534 !important;
+  border: 1px solid #86EFAC !important;
+  font-weight: 800 !important;
+}
+
+html.light .kpi-growth-warning {
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1px solid #FCD34D !important;
+  font-weight: 800 !important;
+}
+
+html.light .pill-btn-outline {
+  background-color: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+  border: 1.5px solid #CBD5E1 !important;
+  font-weight: 700 !important;
+}
+html.light .pill-btn-outline:hover {
+  background-color: var(--surface-elevated) !important;
+  border-color: #94A3B8 !important;
+  color: var(--text-primary) !important;
+}
+
+html.light .quick-booking-badge {
+  background-color: #DCFCE7 !important;
+  color: #166534 !important;
+  border: 1px solid #86EFAC !important;
+  font-weight: 800 !important;
+}
+
+/* Báº£ng Dá»¯ Liá»‡u Enterprise Trong Light Mode */
+html.light .admin-enterprise-table {
+  background-color: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light .admin-enterprise-table th,
+html.light .admin-table th {
+  background-color: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+  border-bottom: 2px solid #CBD5E1 !important;
+}
+
+html.light .admin-enterprise-table td,
+html.light .admin-table td {
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  font-weight: 600 !important;
+}
+
+html.light .admin-enterprise-table tr:hover td,
+html.light .admin-table tr:hover td {
+  background-color: var(--surface-elevated) !important;
+}
+
+/* Äiá»u Phá»‘i Gháº¿ Cáº¯t (Workstations Kanban) Trong Light Mode */
+html.light .admin-workstation-column {
+  background-color: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+}
+html.light .workstation-column-header {
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+html.light .stylist-col-name {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+html.light .stylist-col-badge {
+  color: var(--text-secondary) !important;
+}
+html.light .timeline-booking-card {
+  background-color: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+html.light .timeline-booking-card.in-progress {
+  border-color: var(--brand-accent) !important;
+  background-color: #FFFBEB !important;
+}
+html.light .timeline-card-time span {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+html.light .timeline-card-customer {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+html.light .timeline-card-service {
+  color: var(--brand-accent) !important;
+  font-weight: 700 !important;
+}
+html.light .timeline-empty-notice {
+  background-color: var(--surface-elevated) !important;
+  border: 1px dashed #CBD5E1 !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Quáº§y Thu NgÃ¢n POS Trong Light Mode */
+html.light .pos-panel {
+  background-color: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+html.light .pos-panel-header {
+  border-bottom: 1px solid #E2E8F0 !important;
+  color: var(--text-primary) !important;
+}
+html.light .pos-item-card {
+  background-color: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+html.light .pos-summary-row.total-row {
+  color: var(--brand-accent) !important;
+  font-weight: 900 !important;
+}
+html.light .stylist-status-available {
+  background-color: #DCFCE7 !important;
+  color: #166534 !important;
+  border: 1px solid #86EFAC !important;
+  font-weight: 800 !important;
+}
+html.light .stylist-status-busy {
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1px solid #FCD34D !important;
+  font-weight: 800 !important;
+}
+
+/* Tabs & Filters trong Light Mode */
+html.light .admin-tab-btn {
+  color: var(--text-secondary) !important;
+  border-bottom: 3px solid transparent !important;
+  font-weight: 800 !important;
+}
+html.light .admin-tab-btn:hover {
+  color: var(--text-primary) !important;
+}
+html.light .admin-tab-btn.active {
+  color: var(--brand-accent) !important;
+  border-bottom: 3px solid #B45309 !important;
+  font-weight: 900 !important;
+}
+
+html.light .admin-subnav-bar {
+  border-bottom: 2px solid #E2E8F0 !important;
+}
+
+html.light input,
+html.light select,
+html.light textarea,
+html.light .admin-select-filter,
+html.light .form-control-custom,
+html.light .web-search-input {
+  background-color: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+html.light .web-main-header {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+html.light .web-nav-links .nav-link {
+  color: var(--text-secondary) !important;
+}
+html.light .web-nav-links .nav-link:hover {
+  color: var(--brand-accent) !important;
+  background: rgba(180, 83, 9, 0.08) !important;
+}
+
+html.light .header-user-btn {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light .web-top-announcement-bar {
+  background: #0F172A !important;
+  color: var(--text-primary) !important;
+}
+
+html.light .gauge-bar-track {
+  background: #E2E8F0 !important;
+}
+html.light .gauge-meta-row {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+}
+html.light .gauge-meta-row span:first-child {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+}
+
+html.light .nordic-pill-tab {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+html.light .nordic-pill-tab.active {
+  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+  color: #000000 !important;
+}
+
+/* â”€â”€ 4. TYPOGRAPHY SCALE UP (CHá»® TO RÃ• NÃ‰T, Dá»„ Äá»ŒC TOÃ€N DIá»†N) â”€â”€ */
+/* TiÃªu Ä‘á» H1: 34px - 56px */
+h1,
+.hero-title,
+.nordic-hero-title,
+.section-heading-lg,
+.page-main-title {
+  font-size: clamp(34px, 4.2vw, 56px) !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* TiÃªu Ä‘á» H2 & Admin Hub Title: 30px - 44px */
+h2,
+.section-title,
+.booking-title,
+.portal-section-title,
+.auth-title,
+.admin-hub-title {
+  font-size: clamp(30px, 3.5vw, 44px) !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* TiÃªu Ä‘á» H3 / H4 / Card Titles / Dá»‹ch vá»¥ / Stylist / Sáº£n pháº©m / KPI: 21px - 24px */
+h3,
+h4,
+.card-title,
+.service-title,
+.service-bento-title,
+.service-card-title,
+.product-title,
+.product-card-title,
+.stylist-name,
+.booking-step-title,
+.booking-service-title,
+.chart-box-title,
+.kpi-title,
+.hero-showcase-title {
+  font-size: 21px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.35 !important;
+}
+
+/* Menu Äiá»u HÆ°á»›ng (Navbar Links) */
+.web-nav-links .nav-link {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  padding: 7px 12px !important;
+  letter-spacing: 0.01em !important;
+  white-space: nowrap !important;
+}
+
+/* Admin Tabs: 17px font-extrabold */
+.admin-tab-btn {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  padding: 14px 28px !important;
+  min-height: 52px !important;
+}
+
+/* NhÃ£n (Labels), Tab buttons, Table headers: 15px - 16px */
+label,
+.sub-label,
+.form-label,
+.stepper-text,
+.kpi-label,
+.kpi-label-text,
+.dropdown-item-btn,
+.portal-tab-btn,
+.nordic-pill-tab {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+.admin-enterprise-table th,
+.admin-table th {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  padding: 16px 20px !important;
+  letter-spacing: 0.04em !important;
+}
+
+.admin-enterprise-table td,
+.admin-table td {
+  font-size: 15px !important;
+  padding: 16px 20px !important;
+  font-weight: 600 !important;
+}
+
+/* Khá»‘i KPI Äá»™t PhÃ¡ KÃ­ch ThÆ°á»›c */
+.kpi-big-value {
+  font-size: clamp(34px, 3.6vw, 46px) !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+  margin: 10px 0 !important;
+}
+
+.kpi-sub-detail {
+  font-size: 14.5px !important;
+  font-weight: 500 !important;
+}
+
+.kpi-growth-tag {
+  font-size: 13.5px !important;
+  font-weight: 800 !important;
+  padding: 5px 14px !important;
+}
+
+.svg-bar-chart-container {
+  height: 250px !important;
+}
+
+.admin-kpi-card-rich {
+  padding: 26px 28px !important;
+  border-radius: 20px !important;
+}
+
+.admin-chart-box {
+  padding: 28px 32px !important;
+  border-radius: 20px !important;
+}
+
+/* DÃ²ng mÃ´ táº£ chi tiáº¿t, phá»¥ Ä‘á»: 15px - 16px */
+p,
+.service-desc,
+.service-bento-desc,
+.service-card-desc,
+.product-desc,
+.product-card-desc,
+.booking-step-subtitle,
+.booking-subtitle,
+.branch-address,
+.stylist-role-desc,
+.portal-desc,
+.nordic-hero-tagline,
+.hero-showcase-desc {
+  font-size: 15px !important;
+  line-height: 1.65 !important;
+  font-weight: 400 !important;
+}
+
+/* Badges & Chips: 13px - 14px */
+.badge-terracotta,
+.announcement-badge,
+.tag-pill,
+.role-badge,
+.header-role-badge,
+.status-badge,
+.nordic-hero-badge,
+.hero-showcase-badge,
+.service-bento-badge-save,
+.stylist-exp-badge,
+.stylist-pill-tag,
+.stylist-rating-row,
+.stylist-role {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  padding: 5px 12px !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* â”€â”€ 5. NÃšT Báº¤M & INPUTS (PROPORTIONAL SCALING) â”€â”€ */
+.btn-submit-terracotta,
+.btn-hero-terracotta,
+.btn-primary-nordic,
+.nordic-btn-primary,
+.nordic-btn-secondary,
+.btn-black-solid,
+.header-admin-pill-btn,
+.service-card-cta-btn,
+.product-buy-btn,
+.booking-action-btn,
+.cta-btn-main {
+  min-height: 50px !important;
+  height: auto !important;
+  padding: 13px 26px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  line-height: 1.25 !important;
+  box-sizing: border-box !important;
+}
+
+.form-control-custom,
+.quick-booking-pill-select,
+.admin-select-filter,
+.modal-content-shell input,
+.modal-content-shell select,
+.modal-content-shell textarea {
+  min-height: 48px !important;
+  height: 48px !important;
+  padding: 0 16px !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  border-radius: 12px !important;
+  box-sizing: border-box !important;
+}
+
+.web-search-input {
+  min-height: 38px !important;
+  height: 38px !important;
+  max-height: 38px !important;
+  padding: 0 14px 0 36px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 9999px !important;
+  box-sizing: border-box !important;
+}
+
+.header-branch-select {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+}
+
+.header-user-btn {
+  height: 42px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  padding: 4px 14px 4px 6px !important;
+  border-radius: 9999px !important;
+}
+
+.time-slot-btn,
+.slot-chip-interactive {
+  min-height: 48px !important;
+  padding: 12px 20px !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+}
+
