@@ -146,29 +146,28 @@ OmniSalon/
 │   ├── run_theme_tests.ps1  # Runner kiểm thử độ tương phản Theme Sáng/Tối
 │   ├── run_pentest.ps1      # Runner kiểm thử bảo mật & an toàn thông tin
 │   └── *.html / *.ps1       # Các kịch bản kiểm thử độc lập cho từng module
-├── web/                     # Ứng dụng Web Portal (HTML5/CSS3/Vanilla JS)
-│   ├── admin/index.html     # Cổng truy cập trực tiếp trang Quản trị Salon
-│   ├── booking/index.html   # Cổng truy cập trực tiếp trang Đặt lịch hẹn
-│   ├── services/index.html  # Cổng truy cập trực tiếp trang Bảng giá dịch vụ
-│   ├── shop/index.html      # Cổng truy cập trực tiếp Cửa hàng mỹ phẩm
-│   ├── stylists/index.html  # Cổng truy cập trực tiếp Đội ngũ thợ tạo mẫu
-│   ├── css/                 # Các tệp CSS mô-đun (base, theme, web, app, pages-3d)
-│   ├── js/                  # Mã nguồn JavaScript mô-đun hóa
-│   │   ├── core/            # api.js, auth.js, router.js, store.js, theme.js
-│   │   ├── components/      # ui-common.js (render cards, modals, toast...)
-│   │   ├── modules/         # Logic phân quyền Admin và Customer
-│   │   └── widgets/         # Slot picker, Stylist card, Shimmer loading...
-│   ├── pages/               # Bộ điều khiển view SPA (home, booking, shop, admin...)
-│   ├── index.html           # File giao diện trung tâm của Web Portal
-│   ├── styles.css           # Bảng mã CSS hợp nhất toàn hệ thống (Version 20.0)
-│   └── manifest.json        # Cấu hình PWA (Progressive Web App)
-├── Men_Grooming_Products/   # Kho tài nguyên DUY NHẤT chứa 130 ảnh sản phẩm (dùng chung 100% cho Web & Mobile)
+├── web/                     # Bộ mã nguồn Web (Front End & Back End)
+│   ├── backend/             # Toàn bộ Back End (REST API & SQL Server)
+│   │   ├── server.js        # REST API Server Node.js (14 endpoint, kết nối SSMS 20)
+│   │   ├── setup_db.js      # Script tự động tạo & nạp CSDL QL_SALONTOC
+│   │   ├── QL_SALON.sql     # File CSDL SQL Server (Schema, Triggers, Dữ liệu mẫu)
+│   │   └── email_config.json# Cấu hình dịch vụ gửi email xác nhận
+│   └── frontend/            # Toàn bộ Front End (Web Desktop & Web Mobile Responsive)
+│       ├── index.html       # File giao diện trung tâm hợp nhất duy nhất (SPA Router)
+│       ├── styles.css       # Bảng mã CSS hợp nhất duy nhất toàn hệ thống (All-In-One Master)
+│       ├── js/              # Mã nguồn JavaScript mô-đun hóa
+│       │   ├── core/        # api.js, auth.js, pricing.js, router.js, store.js, theme.js, utils.js
+│       │   ├── components/  # ui-common.js (render cards, modals, toast...)
+│       │   ├── modules/     # Phân hệ khách hàng & quản trị (customer-web.js, admin-web.js)
+│       │   ├── web/         # ui-web.js
+│       │   └── widgets/     # widgets-bundle.js (bundle hợp nhất tất cả widget)
+│       ├── pages/           # Bộ điều khiển view SPA (home, services, booking, shop, admin...)
+│       ├── app.html         # Tệp chuyển hướng nhanh về index.html
+│       └── manifest.json    # Cấu hình PWA (Progressive Web App)
+├── mobile/                  # Native Mobile App (Dự án Flutter phát triển riêng)
+├── Men_Grooming_Products/   # Kho tài nguyên ảnh sản phẩm & dịch vụ tóc
 ├── AGENTS.md                # Quy định vai trò các Agent trong hệ thống
-├── index.html               # File chuyển hướng thông minh ở root (vào /web)
-├── package.json             # Cấu hình dự án & scripts Capacitor
-├── QL_SALON.sql             # Cơ sở dữ liệu trung tâm (Schema, Triggers, Data)
-├── server.js                # REST API Server nền tảng Node.js (Liên kết trực tiếp QL_SALON.sql)
-├── start_server.bat         # File thực thi 1-Click khởi chạy server.js
+├── start_server.bat         # File thực thi 1-Click khởi chạy tự động toàn hệ thống
 └── README.md                # Tài liệu hướng dẫn sử dụng chi tiết (tệp này)
 ```
 

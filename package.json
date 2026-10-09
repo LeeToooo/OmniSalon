@@ -2,14 +2,10 @@
   "name": "omnisalon-barbershop",
   "version": "2.0.0",
   "description": "OmniSalon & Omni Salon Enterprise Suite — Web Portal & Mobile App Suite",
-  "main": "index.html",
+  "main": "web/backend/server.js",
   "scripts": {
-    "start": "python -m http.server 5500",
-    "serve": "npx serve -l 5500 .",
-    "cap:add:android": "cap add android",
-    "cap:sync": "cap sync",
-    "cap:open:android": "cap open android",
-    "cap:build": "cap sync && cap open android"
+    "start": "node web/backend/server.js",
+    "setup-db": "node web/backend/setup_db.js"
   },
   "keywords": [
     "barbershop",
@@ -27,6 +23,8 @@
     "@capacitor/core": "^6.1.2",
     "@capacitor/splash-screen": "^6.0.2",
     "@capacitor/status-bar": "^6.0.2",
+    "msnodesqlv8": "^5.5.0",
+    "mssql": "^12.7.4",
     "nodemailer": "^10.0.16"
   }
 }
