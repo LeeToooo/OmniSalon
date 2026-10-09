@@ -203,9 +203,11 @@
         const user = (window.AuthEngine && typeof window.AuthEngine.getCurrentUser === 'function')
           ? window.AuthEngine.getCurrentUser()
           : (window.store && typeof window.store.getCurrentUser === 'function' ? window.store.getCurrentUser() : null);
-        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO', 'BRANCH_MANAGER', 'CASHIER', 'THU_NGÂN', 'INVENTORY_MANAGER', 'THỦ_KHO'];
-        const role = String(user?.role || '').toUpperCase();
-        const isAllowed = user && (allowedRoles.includes(role) || role.includes('ADMIN') || role.includes('CASHIER') || role.includes('THU_NGÂN') || role.includes('KHO') || role.includes('MANAGER') || username === 'admin');
+        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO', 'BRANCH_MANAGER', 'QUẢN LÝ', 'QUẢN LÝ CHI NHÁNH', 'CASHIER', 'THU NGÂN', 'THU_NGÂN'];
+        const role = String(user?.role || user?.vaiTroSql || user?.VaiTro || '').toUpperCase();
+        const chucVu = String(user?.ChucVu || user?.chucVuSql || '').toUpperCase();
+        const username = String(user?.username || '').toLowerCase();
+        const isAllowed = user && (allowedRoles.includes(role) || chucVu.includes('QUẢN LÝ') || chucVu.includes('THU NGÂN') || chucVu.includes('QUẢN TRỊ') || username === 'admin');
 
         if (!isAllowed) {
           if (window.AdminWeb && typeof window.AdminWeb.renderAccessDenied === 'function') {

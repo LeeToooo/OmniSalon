@@ -281,6 +281,23 @@
       } catch (_) { }
     }
 
+    async syncPosCheckoutToLiveServer(posOrder) {
+      if (typeof fetch === 'undefined') return;
+      try {
+        await fetch(`${this.liveServerUrl}/pos/checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: posOrder.userId || 'KH01',
+            branchId: posOrder.branchId || 'CN01',
+            staffId: posOrder.cashierId || 'NV61',
+            total: posOrder.totalAmount,
+            paymentMethod: posOrder.paymentMethod || 'Tiền mặt'
+          })
+        });
+      } catch (_) { }
+    }
+
 
     getSqlBaselineData() {
       // 20 Chi Nhánh chính thức từ CSDL QL_SALON.sql
@@ -1582,6 +1599,7 @@
 
       this.logAudit('POS_CHECKOUT', `Hóa đơn quầy: #${orderCode}`, `Thu ngân xuất đơn: ${SalonUtils.formatCurrency(posOrder.totalAmount)}`);
       this.saveState();
+      this.syncPosCheckoutToLiveServer(posOrder);
       return posOrder;
     }
 

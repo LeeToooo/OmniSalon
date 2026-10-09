@@ -63,52 +63,50 @@
       return null;
     },
 
-    activeRoleOverride: null,
-
     getActiveRole(user) {
-      if (this.activeRoleOverride) return this.activeRoleOverride;
-      const r = String(user?.role || '').toUpperCase();
+      const targetUser = user || this.getCurrentUser();
+      const r = String(targetUser?.role || targetUser?.vaiTroSql || targetUser?.ChucVu || '').toUpperCase();
       if (r === 'CASHIER' || r.includes('THU NGÂN') || r.includes('THU_NGÂN')) return 'CASHIER';
-      if (r === 'INVENTORY_MANAGER' || r.includes('KHO') || r.includes('THỦ_KHO')) return 'INVENTORY_MANAGER';
+      if (r === 'BRANCH_MANAGER' || r.includes('QUẢN LÝ') || r.includes('QUAN_LY') || r.includes('MANAGER')) return 'BRANCH_MANAGER';
       return 'SUPER_ADMIN';
-    },
-
-    switchActiveRole(newRole) {
-      this.activeRoleOverride = newRole;
-      if (newRole === 'CASHIER') {
-        this.adminSubTab = 'pos';
-        if (window.UICommon) window.UICommon.showToast('💳 Đã chuyển sang vai trò: THU NGÂN (Mở quầy POS & Hóa Đơn)!');
-      } else if (newRole === 'INVENTORY_MANAGER') {
-        this.adminSubTab = 'inventory';
-        if (window.UICommon) window.UICommon.showToast('📦 Đã chuyển sang vai trò: QUẢN LÝ KHO (Hiện đủ 130 sản phẩm & Tồn kho)!');
-      } else {
-        if (this.adminSubTab === 'pos') this.adminSubTab = 'overview';
-        if (window.UICommon) window.UICommon.showToast('👑 Đã chuyển sang vai trò: QUẢN TRỊ VIÊN (Quản lý chung salon)!');
-      }
-      const container = document.getElementById('webMainContainer');
-      if (container) this.render(container);
     },
 
     canAccess(user) {
       const targetUser = user || this.getCurrentUser();
-      if (!targetUser || !targetUser.role) return false;
-      const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO', 'BRANCH_MANAGER', 'CASHIER', 'THU_NGÂN', 'INVENTORY_MANAGER', 'THỦ_KHO'];
-      const role = String(targetUser.role).toUpperCase();
-      return allowedRoles.includes(role) || role.includes('ADMIN') || role.includes('CASHIER') || role.includes('THU_NGÂN') || role.includes('KHO') || role.includes('MANAGER') || username === 'admin';
+      if (!targetUser) return false;
+      const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO', 'BRANCH_MANAGER', 'QUẢN LÝ', 'QUẢN LÝ CHI NHÁNH', 'CASHIER', 'THU NGÂN', 'THU_NGÂN'];
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || '').toUpperCase();
+      const chucVu = String(targetUser.ChucVu || targetUser.chucVuSql || '').toUpperCase();
+      const username = String(targetUser.username || '').toLowerCase();
+      return allowedRoles.includes(role) || chucVu.includes('QUẢN LÝ') || chucVu.includes('THU NGÂN') || chucVu.includes('QUẢN TRỊ') || username === 'admin';
     },
 
     isSuperAdmin(user) {
-      return user && (user.role === 'SUPER_ADMIN' || (window.AuthEngine && window.AuthEngine.hasRole('SUPER_ADMIN')));
+      const targetUser = user || this.getCurrentUser();
+      if (!targetUser) return false;
+      const role = String(targetUser.role || targetUser.vaiTroSql || '').toUpperCase();
+      return role === 'SUPER_ADMIN' || role === 'QUẢN TRỊ VIÊN' || targetUser.username === 'admin' || (window.AuthEngine && window.AuthEngine.hasRole('SUPER_ADMIN'));
     },
 
     isBranchManager(user) {
-      return user && user.role === 'BRANCH_MANAGER';
+      const targetUser = user || this.getCurrentUser();
+      if (!targetUser) return false;
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.ChucVu || '').toUpperCase();
+      return role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || role.includes('QUẢN LÝ');
+    },
+
+    isCashier(user) {
+      const targetUser = user || this.getCurrentUser();
+      if (!targetUser) return false;
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.ChucVu || '').toUpperCase();
+      return role === 'CASHIER' || role.includes('THU NGÂN') || role.includes('THU_NGÂN');
     },
 
     syncBranchScope(user) {
-      if (this.isBranchManager(user) && user.branchId) {
-        this.filterBranch = user.branchId;
-        this.posState.branchId = user.branchId;
+      if (this.isBranchManager(user) || this.isCashier(user)) {
+        const branchId = (user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01';
+        this.filterBranch = branchId;
+        this.posState.branchId = branchId;
       }
     },
 
@@ -410,8 +408,10 @@
 
       const branchMap = new Map(branches.map(b => [b.id, b]));
       const branchName = this.isBranchManager(user)
-        ? this._getBranchShortName(user.branchId, branchMap)
-        : `Toàn Hệ Thống Cơ Sở`;
+        ? (this._getBranchShortName((user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01', branchMap) || 'Chi Nhánh Q1 - Bến Thành')
+        : (this.isCashier(user)
+            ? (this._getBranchShortName((user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01', branchMap) || 'Quầy Thu Ngân Chi Nhánh Q1')
+            : `Toàn Hệ Thống Cơ Sở`);
 
       const activeRole = this.getActiveRole(user);
       let visibleTabs = [];
@@ -425,18 +425,23 @@
         if (!['pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
           this.adminSubTab = 'pos';
         }
-      } else if (activeRole === 'INVENTORY_MANAGER') {
+      } else if (activeRole === 'BRANCH_MANAGER') {
         visibleTabs = [
+          { id: 'pos', icon: '💳', label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'inventory', icon: '📦', label: 'Quản Lý Kho & Sản Phẩm' },
-          { id: 'overview', icon: '📊', label: 'Báo Cáo Tồn Kho & Doanh Thu' },
-          { id: 'branches', icon: '🏢', label: 'Hệ Thống Chi Nhánh' }
+          { id: 'bookings', icon: '📅', label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
+          { id: 'overview', icon: '📊', label: 'Báo Cáo Doanh Thu & Kho' },
+          { id: 'stylists', icon: '💈', label: 'Đội Ngũ Thợ & Phân Ca' },
+          { id: 'audit', icon: '📜', label: 'Lịch Sử Đơn Hàng & POS' }
         ];
-        if (!['inventory', 'overview', 'branches'].includes(this.adminSubTab)) {
-          this.adminSubTab = 'inventory';
+        if (!['pos', 'inventory', 'bookings', 'overview', 'stylists', 'audit'].includes(this.adminSubTab)) {
+          this.adminSubTab = 'pos';
         }
       } else {
+        // SUPER_ADMIN: Toàn quyền tất cả các phân hệ
         visibleTabs = [
           { id: 'overview', icon: '📊', label: 'Báo Cáo Doanh Thu & Kho' },
+          { id: 'pos', icon: '💳', label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'branches', icon: '🏢', label: 'Quản Lý Chi Nhánh' },
           { id: 'bookings', icon: '📅', label: 'Điều Phối Lịch Hẹn' },
           { id: 'stylists', icon: '💈', label: 'Đội Ngũ Thợ & Phân Ca' },
@@ -446,9 +451,11 @@
         ];
       }
 
-      const roleDisplay = activeRole === 'CASHIER' 
-        ? 'Nguyễn Thị Lan (Thu Ngân POS)' 
-        : (activeRole === 'INVENTORY_MANAGER' ? 'Trần Văn Kho (Quản Lý Kho)' : `${this.escapeHtml(user.fullName || user.username)} (${this.escapeHtml(user.role)})`);
+      const roleBadge = activeRole === 'CASHIER'
+        ? '💳 Thu Ngân POS (Chỉ Quầy POS & Lịch Hẹn)'
+        : (activeRole === 'BRANCH_MANAGER' ? '🏢 Quản Lý Chi Nhánh (Quyền Thu Ngân & Kho)' : '👑 Quản Trị Tối Cao (Toàn Quyền Hệ Thống)');
+
+      const roleDisplay = `${this.escapeHtml(user?.fullName || user?.username || 'Nhân sự')} [${this.escapeHtml(user?.ChucVu || user?.vaiTroSql || user?.role || 'Quản trị viên')}]`;
 
       container.innerHTML = `
         <div class="admin-full-wrapper">
@@ -467,20 +474,11 @@
                 </span>
                 <span>Phạm vi: <strong style="color: var(--text-primary, #FFFFFF);">${this.escapeHtml(branchName)}</strong></span>
                 <span>• Nhân sự: <strong style="color: var(--brand-accent, #D4AF37);">${roleDisplay}</strong></span>
+                <span class="badge-terracotta" style="font-size: 11px; padding: 2px 8px;">${roleBadge}</span>
               </div>
             </div>
 
             <div style="display:flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-              <!-- Role Switcher cho Demo Phân Quyền Đồ Án -->
-              <div style="display: flex; align-items: center; gap: 6px; background: var(--surface-card); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                <span style="font-size: 11.5px; font-weight: 800; color: var(--text-secondary);">🎭 Vai Trò:</span>
-                <select style="padding: 4px 8px; font-size: 12px; font-weight: 800; border-radius: 8px; background: var(--surface-elevated); color: var(--brand-accent); border: 1px solid var(--border-color); cursor: pointer;" onchange="AdminWeb.switchActiveRole(this.value)">
-                  <option value="SUPER_ADMIN" ${activeRole === 'SUPER_ADMIN' ? 'selected' : ''}>👑 Quản Trị Tối Cao (Tất Cả Tab)</option>
-                  <option value="CASHIER" ${activeRole === 'CASHIER' ? 'selected' : ''}>💳 Thu Ngân (Chỉ POS & Lịch Hẹn)</option>
-                  <option value="INVENTORY_MANAGER" ${activeRole === 'INVENTORY_MANAGER' ? 'selected' : ''}>📦 Quản Lý Kho (Chuyên 130 Sản Phẩm)</option>
-                </select>
-              </div>
-
               <!-- Theme Toggle Switch (Dark / Light) -->
               <button type="button" class="theme-toggle-btn" onclick="window.ThemeEngine && window.ThemeEngine.toggleTheme()" title="Chuyển chế độ Sáng / Tối">
                 <span class="theme-icon icon-moon">🌙</span>
@@ -489,6 +487,10 @@
               <button class="pill-btn-outline" style="color: inherit; border-color: var(--border-color);" 
                       onclick="if(confirm('Khôi phục toàn bộ dữ liệu mẫu demo ban đầu?')) { window.store.resetToDefault(); if(window.UICommon) window.UICommon.showToast('🔄 Đã khôi phục dữ liệu gốc!'); AdminWeb.render(document.getElementById('webMainContainer')); }">
                 🔄 Khôi Phục Dữ Liệu
+              </button>
+              <button class="pill-btn-outline" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171;" 
+                      onclick="if(window.AuthEngine) { window.AuthEngine.logout(); if(window.CustomerWeb) window.CustomerWeb.switchTab('home'); }">
+                🚪 Đăng Xuất (${this.escapeHtml(user?.username || '')})
               </button>
               <button class="btn-submit-terracotta" onclick="AdminWeb._goToCustomerPortal()">
                 ← Giao Diện Khách Hàng
@@ -545,6 +547,16 @@
     },
 
     switchSubTab(tabName) {
+      const user = this.getCurrentUser();
+      const activeRole = this.getActiveRole(user);
+      if (activeRole === 'CASHIER' && !['pos', 'bookings', 'audit'].includes(tabName)) {
+        if (window.UICommon) window.UICommon.showToast('⚠️ Thu ngân chỉ có quyền sử dụng Quầy POS, Lịch hẹn và Lịch sử đơn!', 'warning');
+        return;
+      }
+      if (activeRole === 'BRANCH_MANAGER' && !['pos', 'inventory', 'bookings', 'overview', 'stylists', 'audit'].includes(tabName)) {
+        if (window.UICommon) window.UICommon.showToast('⚠️ Quản lý chi nhánh có quyền Thu ngân, Quản lý kho, Lịch hẹn & Thợ cơ sở!', 'warning');
+        return;
+      }
       this.adminSubTab = tabName;
       const container = document.getElementById('webMainContainer');
       if (container) this.render(container);
@@ -552,6 +564,14 @@
 
     renderSubTabContent(user, bookings, products, branches, stylists, auditLogs, services, combos, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
+      const activeRole = this.getActiveRole(user);
+
+      if (activeRole === 'CASHIER' && !['pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
+        this.adminSubTab = 'pos';
+      } else if (activeRole === 'BRANCH_MANAGER' && !['pos', 'inventory', 'bookings', 'overview', 'stylists', 'audit'].includes(this.adminSubTab)) {
+        this.adminSubTab = 'pos';
+      }
+
       switch (this.adminSubTab) {
         case 'overview':
           return this.renderOverviewTab(user, branches, stylists, products, bookings, bMap);
@@ -570,7 +590,9 @@
         case 'audit':
           return this.renderAuditTab(auditLogs);
         default:
-          return this.renderOverviewTab(user, branches, stylists, products, bookings, bMap);
+          return (activeRole === 'CASHIER' || activeRole === 'BRANCH_MANAGER')
+            ? this.renderPosTab(user, services, combos, products, branches, stylists, bMap)
+            : this.renderOverviewTab(user, branches, stylists, products, bookings, bMap);
       }
     },
 
@@ -2609,7 +2631,7 @@
       const pos = this.posState;
 
       // Đặt mặc định branchId và stylistId nếu chưa có
-      if (this.isBranchManager(user) && user.branchId) {
+      if ((this.isBranchManager(user) || this.isCashier(user)) && user?.branchId && user.branchId !== 'ALL') {
         pos.branchId = user.branchId;
       } else if (!pos.branchId && branches.length > 0) {
         pos.branchId = branches[0].id;
@@ -2705,9 +2727,9 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
               <div>
                 <label class="sub-label">Cơ Sở Phục Vụ:</label>
-                ${this.isBranchManager(user) ? `
+                ${(this.isBranchManager(user) || this.isCashier(user)) ? `
                   <div style="font-size: 12px; font-weight: 800; color: var(--text-primary, #333); padding: 6px 8px; background: var(--surface-elevated, #f4f4f7); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-radius: 6px;">
-                    🔒 ${this.escapeHtml(this._getBranchShortName(user.branchId, bMap))}
+                    🔒 ${this.escapeHtml(this._getBranchShortName((user?.branchId && user.branchId !== 'ALL') ? user.branchId : (pos.branchId || 'CN01'), bMap))}
                   </div>
                 ` : `
                   <select class="form-control-custom" style="font-size: 12px; padding: 6px 8px;" 

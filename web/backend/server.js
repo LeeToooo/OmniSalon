@@ -797,13 +797,18 @@ const server = http.createServer(async (req, res) => {
             message: 'Đăng nhập Quản Trị thành công!',
             user: {
               id: 'TK_ADMIN',
+              MaNhanVien: 'NV00',
               username: 'admin',
-              fullName: 'Tổng Quản Trị Hệ Thống',
+              fullName: 'Lê Minh Hoàng',
               role: 'SUPER_ADMIN',
               roleName: 'Quản Trị Tối Cao',
+              vaiTroSql: 'Quản trị viên',
+              chucVuSql: 'Quản trị viên',
+              capBacSql: 'Chủ Tịch HĐQT',
               branchId: 'ALL',
               branchName: 'Toàn Hệ Thống',
-              email: 'admin@omnisalon.vn'
+              email: 'admin@omnisalon.vn',
+              phone: '19008899'
             },
             token: 'JWT_SUPER_ADMIN_' + Date.now()
           }));
@@ -836,13 +841,14 @@ const server = http.createServer(async (req, res) => {
 
             if (matched.MaNhanVien) {
               const roleMap = {
+                'Quản trị viên': 'SUPER_ADMIN',
                 'Quản lý chi nhánh': 'BRANCH_MANAGER',
                 'Thợ chính': 'STYLIST',
                 'Thợ phụ': 'STYLIST',
                 'Thu ngân': 'CASHIER'
               };
-              role = roleMap[matched.ChucVu] || 'STAFF';
-              roleName = matched.ChucVu || 'Nhân Viên';
+              role = roleMap[matched.ChucVu] || (matched.VaiTro === 'Quản trị viên' ? 'SUPER_ADMIN' : (matched.VaiTro === 'Quản lý' ? 'BRANCH_MANAGER' : (matched.VaiTro === 'Thu ngân' ? 'CASHIER' : 'STYLIST')));
+              roleName = matched.ChucVu || matched.VaiTro || 'Nhân Viên';
               userObj = {
                 id: matched.MaTaiKhoan,
                 MaNhanVien: matched.MaNhanVien,
@@ -850,6 +856,11 @@ const server = http.createServer(async (req, res) => {
                 fullName: matched.HoTenNV,
                 role,
                 roleName,
+                vaiTroSql: matched.VaiTro,
+                chucVuSql: matched.ChucVu,
+                capBacSql: matched.CapBac,
+                CapBac: matched.CapBac,
+                ChucVu: matched.ChucVu,
                 branchId: matched.MaChiNhanh,
                 branchName: 'Chi Nhánh ' + matched.MaChiNhanh,
                 phone: matched.SdtNV,
@@ -863,6 +874,7 @@ const server = http.createServer(async (req, res) => {
                 fullName: matched.HoTenKH,
                 role: 'CUSTOMER',
                 roleName: 'Khách Hàng Thành Viên',
+                vaiTroSql: matched.VaiTro || 'Khách hàng',
                 phone: matched.SdtKH,
                 email: matched.EmailKH
               };

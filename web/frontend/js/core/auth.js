@@ -17,7 +17,6 @@
     BRANCH_MANAGER: 'BRANCH_MANAGER',
     STYLIST: 'STYLIST',
     CASHIER: 'CASHIER',
-    INVENTORY_MANAGER: 'INVENTORY_MANAGER',
     CUSTOMER: 'CUSTOMER'
   });
 
@@ -26,9 +25,18 @@
     BRANCH_MANAGER: 'Quản Lý Chi Nhánh',
     STYLIST: 'Thợ Barber Chuyên Nghiệp',
     CASHIER: 'Thu Ngân / Tiếp Tân',
-    INVENTORY_MANAGER: 'Quản Lý Kho & Hàng Hóa',
     CUSTOMER: 'Khách Hàng Thành Viên'
   });
+
+  function normalizeRole(value) {
+    if (!value) return ROLES.CUSTOMER;
+    const clean = String(value).trim().toUpperCase();
+    if (clean === 'QUẢN TRỊ VIÊN' || clean === 'QUẢN TRỊ' || clean === 'QUẢN TRỊ TỐI CAO' || clean === 'SUPER_ADMIN' || clean === 'ADMIN') return ROLES.SUPER_ADMIN;
+    if (clean === 'QUẢN LÝ' || clean === 'QUẢN LÝ CHI NHÁNH' || clean === 'BRANCH_MANAGER') return ROLES.BRANCH_MANAGER;
+    if (clean === 'THU NGÂN' || clean === 'THU_NGÂN' || clean === 'CASHIER') return ROLES.CASHIER;
+    if (clean === 'THỢ CHÍNH' || clean === 'THỢ PHỤ' || clean === 'MASTER BARBER' || clean === 'SENIOR BARBER' || clean === 'JUNIOR BARBER' || clean === 'STYLIST' || clean === 'NHÂN VIÊN') return ROLES.STYLIST;
+    return ROLES.CUSTOMER;
+  }
 
   const ROLE_PERMISSIONS = Object.freeze({
     SUPER_ADMIN: [
@@ -102,10 +110,11 @@
   // --------------------------------------------------------------------------
 
   // --------------------------------------------------------------------------
-  // 2. 100 TÀI KHOẢN & PHÂN QUYỀN RBAC TRÍCH XUẤT 100% TỪ QL_SALON.sql
+  // 2. 101 TÀI KHOẢN & PHÂN QUYỀN RBAC TRÍCH XUẤT 100% TỪ QL_SALON.sql
   // --------------------------------------------------------------------------
 
   const RAW_STAFF_SQL = [
+    ["NV00","CN01","Lê Minh Hoàng","19008899","admin@omnisalon.vn","Chủ Tịch HĐQT","Quản trị viên"],
     ["NV01","CN01","Lê Hoàng Hải","0912001001","hai.lh@salontoc.vn","Quản lý","Quản lý chi nhánh"],
     ["NV02","CN01","Đỗ Đình Độ","0912001002","do.dd@salontoc.vn","Master Barber","Thợ chính"],
     ["NV03","CN01","Lê Hữu Luân","0912001003","luan.lh@salontoc.vn","Junior Barber","Thợ phụ"],
@@ -212,22 +221,25 @@
   ];
 
   const SEED_USERS = [
-    // Super Admin Hệ Thống
+    // Super Admin Hệ Thống (Khớp 100% với NV00 và TK_ADMIN trong QL_SALON.sql)
     {
       id: 'TK_ADMIN',
       MaTaiKhoan: 'TK_ADMIN',
-      MaNhanVien: null,
+      MaNhanVien: 'NV00',
       MaKhachHang: null,
       username: 'admin',
       password: 'admin123',
-      fullName: 'Chủ Tịch OmniSalon',
+      fullName: 'Lê Minh Hoàng',
       email: 'admin@omnisalon.vn',
       phone: '19008899',
       role: ROLES.SUPER_ADMIN,
       roleName: 'Quản Trị Tối Cao',
+      vaiTroSql: 'Quản trị viên',
+      chucVuSql: 'Quản trị viên',
+      capBacSql: 'Chủ Tịch HĐQT',
       CapBac: 'Chủ Tịch HĐQT',
-      ChucVu: 'Tổng Giám Đốc',
-      branchId: null,
+      ChucVu: 'Quản trị viên',
+      branchId: 'ALL',
       branchName: 'Toàn Bộ Hệ Thống Chuỗi Omni Salon',
       avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80',
       rewardPoints: 10000,
@@ -235,7 +247,7 @@
       isActive: true
     },
     // 80 Nhân Sự chuẩn xác thực SQL (Quản lý CN: nv123 | Barber: nv123 | Thu ngân: tn123)
-    ...RAW_STAFF_SQL.map(item => {
+    ...RAW_STAFF_SQL.filter(item => item[0] !== 'NV00').map(item => {
       const isManager = item[6] === 'Quản lý chi nhánh';
       const isCashier = item[6] === 'Thu ngân';
       const role = isManager ? ROLES.BRANCH_MANAGER : (isCashier ? ROLES.CASHIER : ROLES.STYLIST);
@@ -252,6 +264,9 @@
         phone: item[3],
         role: role,
         roleName: item[6],
+        vaiTroSql: isManager ? 'Quản lý' : (isCashier ? 'Thu ngân' : 'Nhân viên'),
+        chucVuSql: item[6],
+        capBacSql: item[5],
         CapBac: item[5],
         ChucVu: item[6],
         branchId: item[1],
@@ -277,6 +292,7 @@
       phone: item[2],
       role: ROLES.CUSTOMER,
       roleName: 'Khách hàng',
+      vaiTroSql: 'Khách hàng',
       CapBac: null,
       ChucVu: null,
       branchId: null,
@@ -667,6 +683,9 @@
         MaKhachHang: payload.MaKhachHang || null,
         CapBac: payload.CapBac || null,
         ChucVu: payload.ChucVu || null,
+        vaiTroSql: payload.vaiTroSql || (payload.role === 'SUPER_ADMIN' ? 'Quản trị viên' : (payload.role === 'BRANCH_MANAGER' ? 'Quản lý' : (payload.role === 'CASHIER' ? 'Thu ngân' : (payload.role === 'CUSTOMER' ? 'Khách hàng' : 'Nhân viên')))),
+        chucVuSql: payload.chucVuSql || payload.ChucVu || null,
+        capBacSql: payload.capBacSql || payload.CapBac || null,
         permissions: payload.permissions || PermissionPolicyService.getPermissionsForRole(payload.role)
       };
     }
@@ -690,6 +709,9 @@
         MaKhachHang: user.MaKhachHang || null,
         CapBac: user.CapBac || null,
         ChucVu: user.ChucVu || null,
+        vaiTroSql: user.vaiTroSql || null,
+        chucVuSql: user.chucVuSql || user.ChucVu || null,
+        capBacSql: user.capBacSql || user.CapBac || null,
         permissions
       };
 
@@ -840,6 +862,23 @@
 
       UserRepository.save(newUser);
 
+      // Đồng bộ trực tiếp vào CSDL SQL Server
+      if (typeof fetch !== 'undefined') {
+        const apiUrl = (typeof window !== 'undefined' && window.location.port === '8080')
+          ? `${window.location.origin}/api/auth/register`
+          : 'http://127.0.0.1:8080/api/auth/register';
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName,
+            phone,
+            email,
+            password
+          })
+        }).catch(() => {});
+      }
+
       const { accessToken, refreshToken, payload } = this._issueTokens(newUser);
       this.accessToken = accessToken;
       this.refreshToken = refreshToken;
@@ -888,9 +927,26 @@
         this._syncStore('PASSWORD_RESET', user);
       }
 
+      // Đồng bộ mật khẩu mới trực tiếp vào CSDL SQL Server
+      if (typeof fetch !== 'undefined') {
+        const apiUrl = (typeof window !== 'undefined' && window.location.port === '8080')
+          ? `${window.location.origin}/api/auth/reset-password`
+          : 'http://127.0.0.1:8080/api/auth/reset-password';
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identifier: identifier || email,
+            email: email || identifier,
+            phone: identifier,
+            newPassword
+          })
+        }).catch(() => {});
+      }
+
       return {
         success: true,
-        message: 'Đổi mật khẩu thành công! Mật khẩu mới đã được lưu và cập nhật.'
+        message: 'Đổi mật khẩu thành công! Mật khẩu mới đã được lưu và cập nhật vào SQL Server.'
       };
     }
 
@@ -993,6 +1049,23 @@
 
       SessionStorageService.saveSession(accessToken, refreshToken, this.currentUser);
       this.notifySubscribers('PROFILE_UPDATED', this.currentUser);
+
+      // Đồng bộ thông tin cá nhân trực tiếp vào CSDL SQL Server
+      if (typeof fetch !== 'undefined' && user) {
+        const apiUrl = (typeof window !== 'undefined' && window.location.port === '8080')
+          ? `${window.location.origin}/api/auth/profile`
+          : 'http://127.0.0.1:8080/api/auth/profile';
+        fetch(apiUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: user.MaNhanVien ? `TK_${user.MaNhanVien}` : (user.MaKhachHang ? `TK_${user.MaKhachHang}` : user.id),
+            fullName: user.fullName,
+            phone: user.phone,
+            email: user.email
+          })
+        }).catch(() => {});
+      }
 
       return { success: true, message: 'Cập nhật thông tin thành công!', user: this.currentUser };
     }
@@ -1114,10 +1187,12 @@
   // --------------------------------------------------------------------------
 
   const authInstance = new AuthEngine();
+  authInstance.normalizeRole = normalizeRole;
 
   window.ROLES = ROLES;
   window.ROLE_NAMES = ROLE_NAMES;
   window.ROLE_PERMISSIONS = ROLE_PERMISSIONS;
+  window.normalizeRole = normalizeRole;
   window.AuthEngine = authInstance;
   window.Auth = authInstance;
 

@@ -171,30 +171,32 @@
     },
 
     getRoleBadgeText(user) {
-      if (!user || !user.role) return 'Khách Vãng Lai';
-      const role = user.role.toUpperCase();
-      switch (role) {
-        case 'SUPER_ADMIN':
-          return '👑 Quản Trị Tối Cao';
-        case 'BRANCH_MANAGER':
-          return '🏢 Quản Lý Chi Nhánh';
-        case 'STYLIST':
-          return '💈 Master Stylist (Barber Chuyên Nghiệp)';
-        case 'CASHIER':
-          return '💵 Thu Ngân Tiếp Tân';
-        case 'INVENTORY_MANAGER':
-          return '📦 Quản Lý Kho & Hàng Hóa';
-        case 'CUSTOMER':
-        default:
-          return `★ ${user.tier && !user.tier.includes('OMNI') ? user.tier : 'Omni VIP'}`;
+      if (!user) return 'Khách Vãng Lai';
+      const role = String(user.role || user.vaiTroSql || user.VaiTro || '').toUpperCase();
+      const chucVu = String(user.ChucVu || user.chucVuSql || '').toUpperCase();
+      
+      if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'QUẢN TRỊ VIÊN' || chucVu === 'QUẢN TRỊ VIÊN' || user.username === 'admin') {
+        return '👑 Quản Trị Tối Cao';
       }
+      if (role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || chucVu === 'QUẢN LÝ CHI NHÁNH') {
+        return '🏢 Quản Lý Chi Nhánh';
+      }
+      if (role === 'STYLIST' || role === 'NHÂN VIÊN' || chucVu === 'THỢ CHÍNH' || chucVu === 'THỢ PHỤ') {
+        return user.CapBac ? `💈 ${user.CapBac} (${user.ChucVu || 'Thợ Tóc'})` : '💈 Thợ Barber Chuyên Nghiệp';
+      }
+      if (role === 'CASHIER' || role === 'THU NGÂN' || chucVu === 'THU NGÂN') {
+        return '💵 Thu Ngân Tiếp Tân';
+      }
+      return `★ ${user.tier && !user.tier.includes('OMNI') ? user.tier : 'Khách Hàng VIP'}`;
     },
 
     isAdminUser(user) {
-      if (!user || !user.role) return false;
-      const role = String(user.role).toUpperCase();
+      if (!user) return false;
+      const role = String(user.role || user.vaiTroSql || user.VaiTro || '').toUpperCase();
+      const chucVu = String(user.ChucVu || user.chucVuSql || '').toUpperCase();
       const username = String(user.username || '').toLowerCase();
-      return staffRoles.includes(role) || role.includes('ADMIN') || role.includes('CASHIER') || role.includes('THU_NGÂN') || role.includes('KHO') || role.includes('MANAGER') || username === 'admin';
+      const staffRoles = ['SUPER_ADMIN', 'ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'QUẢN TRỊ VIÊN', 'QUẢN LÝ', 'QUẢN LÝ CHI NHÁNH', 'THU NGÂN'];
+      return staffRoles.includes(role) || chucVu.includes('QUẢN LÝ') || chucVu.includes('THU NGÂN') || chucVu.includes('QUẢN TRỊ') || username === 'admin';
     },
 
     // -----------------------------------------------------------------------
@@ -239,7 +241,11 @@
               <a href="/ai-studio" data-route="/ai-studio" class="nav-link nav-link-optional text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('ai')">⚡ AI TẠO KIỂU TÓC</a>
               ${isAdmin ? `
                 <a href="/admin" data-route="/admin" class="nav-link nav-link-admin ${this.currentTab === 'admin' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('admin')">
-                  ${user && (String(user.role).toUpperCase().includes('CASHIER') || String(user.role).toUpperCase().includes('THU_NGÂN')) ? '💳 THU NGÂN POS' : (user && (String(user.role).toUpperCase().includes('INVENTORY') || String(user.role).toUpperCase().includes('KHO')) ? '📦 QUẢN LÝ KHO' : '👑 QUẢN TRỊ')}
+                  ${user && (String(user.role).toUpperCase().includes('CASHIER') || String(user.vaiTroSql || '').toUpperCase().includes('THU NGÂN') || String(user.ChucVu || '').toUpperCase().includes('THU NGÂN'))
+                    ? '💳 THU NGÂN POS'
+                    : (user && (String(user.role).toUpperCase().includes('BRANCH') || String(user.vaiTroSql || '').toUpperCase().includes('QUẢN LÝ') || String(user.ChucVu || '').toUpperCase().includes('QUẢN LÝ'))
+                        ? '🏢 QUẢN LÝ'
+                        : '👑 QUẢN TRỊ')}
                 </a>
               ` : ''}
             </nav>
@@ -375,9 +381,9 @@
 
     renderAdminButtonHTML(user, isAdmin) {
       if (isAdmin || this.isAdminUser(user)) {
-        const isCashier = user && (String(user.role).toUpperCase().includes('CASHIER') || String(user.role).toUpperCase().includes('THU_NGÂN'));
-        const isInv = user && (String(user.role).toUpperCase().includes('INVENTORY') || String(user.role).toUpperCase().includes('KHO'));
-        const label = isCashier ? '💳 Quầy Thu Ngân POS' : (isInv ? '📦 Quản Lý Kho & Hàng Hóa' : '👑 Bảng Quản Trị Salon');
+        const isCashier = user && (String(user.role).toUpperCase().includes('CASHIER') || String(user.vaiTroSql || '').toUpperCase().includes('THU NGÂN') || String(user.ChucVu || '').toUpperCase().includes('THU NGÂN'));
+        const isManager = user && (String(user.role).toUpperCase().includes('BRANCH') || String(user.vaiTroSql || '').toUpperCase().includes('QUẢN LÝ') || String(user.ChucVu || '').toUpperCase().includes('QUẢN LÝ'));
+        const label = isCashier ? '💳 Quầy Thu Ngân POS' : (isManager ? '🏢 Bàn Làm Việc Quản Lý' : '👑 Bảng Quản Trị Tối Cao');
         return `
           <button class="dropdown-admin-btn ${this.currentTab === 'admin' ? 'active' : ''}" 
                   onclick="CustomerWeb.closeUserMenu(); CustomerWeb.switchTab('${this.currentTab === 'admin' ? 'home' : 'admin'}');" 

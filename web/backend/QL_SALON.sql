@@ -1,4 +1,4 @@
-﻿USE master;
+USE master;
 GO
 
 IF DB_ID(N'QL_SALONTOC') IS NOT NULL
@@ -1116,8 +1116,10 @@ INSERT INTO SanPham (MaSanPham, MaDanhMuc, MaNhaCungCap, TenSanPham, MoTa, HinhA
 -- 8. 80 NHÂN VIÊN, 20 KHÁCH HÀNG & 100 TÀI KHOẢN
 -- =========================================================================
 
--- 80 Nhân sự (20 Quản lý, 20 Thợ chính, 20 Thợ phụ, 20 Thu ngân)
+-- 81 Nhân sự (1 Tổng quản trị, 20 Quản lý, 20 Thợ chính, 20 Thợ phụ, 20 Thu ngân)
 INSERT INTO NhanVien (MaNhanVien, MaChiNhanh, HoTen, SoDienThoai, Email, CapBac, ChucVu, TrangThai) VALUES
+-- Ban Điều Hành Quản Trị Hệ Thống
+('NV00', 'CN01', N'Lê Minh Hoàng',     '19008899',   'admin@omnisalon.vn',   N'Chủ Tịch HĐQT',  N'Quản trị viên',     N'Đang làm việc'),
 -- CN01
 ('NV01', 'CN01', N'Lê Hoàng Hải',     '0912001001', 'hai.lh@salontoc.vn',    N'Quản lý',        N'Quản lý chi nhánh', N'Đang làm việc'),
 ('NV02', 'CN01', N'Đỗ Đình Độ',       '0912001002', 'do.dd@salontoc.vn',     N'Master Barber',  N'Thợ chính',         N'Đang làm việc'),
@@ -1242,18 +1244,20 @@ INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh) VALUES
 ('KH19', N'Hồ Văn Cường',    '0988000019', 'vancuong.ho@gmail.com', '2001-10-14'),
 ('KH20', N'Trịnh Công Minh', '0988000020', 'congminh.trinh@gmail.com','1996-08-08');
 
--- 100 Tài khoản (80 Nhân sự + 20 Khách hàng)
+-- 101 Tài khoản (81 Nhân sự + 20 Khách hàng)
 INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao)
 SELECT 
-    CONCAT('TK_', MaNhanVien),
+    CASE WHEN MaNhanVien = 'NV00' THEN 'TK_ADMIN' ELSE CONCAT('TK_', MaNhanVien) END,
     MaNhanVien,
     NULL,
-    LOWER(CONCAT('user_', MaNhanVien)),
+    CASE WHEN MaNhanVien = 'NV00' THEN 'admin' ELSE LOWER(CONCAT('user_', MaNhanVien)) END,
     CASE 
+        WHEN MaNhanVien = 'NV00' THEN 'admin123'
         WHEN ChucVu = N'Thu ngân' THEN 'tn123'
         ELSE 'nv123'
     END,
     CASE 
+        WHEN ChucVu = N'Quản trị viên' THEN N'Quản trị viên'
         WHEN ChucVu = N'Quản lý chi nhánh' THEN N'Quản lý' 
         WHEN ChucVu = N'Thu ngân' THEN N'Thu ngân'
         ELSE N'Nhân viên' 
