@@ -232,6 +232,93 @@ function formatDate(val) {
   return String(val).substring(0, 10);
 }
 
+function computeEndTime(startTimeStr, durationMinutes = 45) {
+  const parts = (startTimeStr || '09:00').split(':');
+  const h = parseInt(parts[0], 10) || 9;
+  const m = parseInt(parts[1], 10) || 0;
+  const total = h * 60 + m + parseInt(durationMinutes || 45, 10);
+  const endH = Math.floor(total / 60) % 24;
+  const endM = total % 60;
+  return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:00`;
+}
+
+async function resolveOrCreateCustomer({ customerId, customerName, customerPhone, customerEmail }) {
+  if (customerId) {
+    let cleanId = String(customerId).trim();
+    if (cleanId.startsWith('TK_KH')) cleanId = cleanId.replace('TK_', '');
+    const found = await querySql('SELECT MaKhachHang FROM KhachHang WHERE MaKhachHang = ?', [cleanId]);
+    if (found && found.length > 0) return found[0].MaKhachHang;
+  }
+
+  const cleanPhone = (customerPhone || '').replace(/\s+/g, '').trim();
+  if (cleanPhone) {
+    const byPhone = await querySql('SELECT MaKhachHang FROM KhachHang WHERE SoDienThoai = ?', [cleanPhone]);
+    if (byPhone && byPhone.length > 0) return byPhone[0].MaKhachHang;
+  }
+
+  const maxRows = await querySql("SELECT TOP 1 MaKhachHang FROM KhachHang WHERE MaKhachHang LIKE 'KH%' ORDER BY LEN(MaKhachHang) DESC, MaKhachHang DESC");
+  let nextNum = 21;
+  if (maxRows && maxRows.length > 0) {
+    const match = maxRows[0].MaKhachHang.match(/KH(\d+)/i);
+    if (match) nextNum = parseInt(match[1], 10) + 1;
+  }
+  const newKhId = 'KH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+  const fullName = (customerName || 'Khách Hàng Mới').trim();
+  const phone = cleanPhone || ('09' + Math.floor(10000000 + Math.random() * 90000000));
+  const email = (customerEmail || `${newKhId.toLowerCase()}@omnisalon.vn`).trim();
+
+  await querySql(
+    'INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh) VALUES (?, ?, ?, ?, NULL)',
+    [newKhId, fullName, phone, email]
+  );
+
+  try {
+    await querySql(
+      `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) 
+       VALUES (?, NULL, ?, ?, 'kh123', N'Khách hàng', N'Hoạt động', GETDATE())`,
+      [`TK_${newKhId}`, newKhId, `user_${newKhId.toLowerCase()}`]
+    );
+  } catch (_) {}
+
+  return newKhId;
+}
+
+async function generateNextBookingId() {
+  const rows = await querySql("SELECT TOP 1 MaLichHen FROM LichHen WHERE MaLichHen LIKE 'LH%' AND LEN(MaLichHen) <= 6 ORDER BY LEN(MaLichHen) DESC, MaLichHen DESC");
+  let nextNum = 11;
+  if (rows && rows.length > 0) {
+    const m = rows[0].MaLichHen.match(/LH(\d+)/i);
+    if (m) nextNum = parseInt(m[1], 10) + 1;
+  }
+  return 'LH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+}
+
+async function resolveServiceInfo(serviceId, serviceName) {
+  if (serviceId) {
+    const dv = await querySql('SELECT MaDichVu, TenDichVu, ThoiLuong, Gia FROM DichVu WHERE MaDichVu = ?', [serviceId]);
+    if (dv && dv.length > 0) {
+      return { isCombo: false, id: dv[0].MaDichVu, name: dv[0].TenDichVu, duration: dv[0].ThoiLuong || 45, price: parseFloat(dv[0].Gia || 0) };
+    }
+    const cb = await querySql('SELECT MaCombo, TenCombo, ThoiLuong, GiaCombo FROM ComboDichVu WHERE MaCombo = ?', [serviceId]);
+    if (cb && cb.length > 0) {
+      return { isCombo: true, id: cb[0].MaCombo, name: cb[0].TenCombo, duration: cb[0].ThoiLuong || 90, price: parseFloat(cb[0].GiaCombo || 0) };
+    }
+  }
+
+  if (serviceName) {
+    const dvByName = await querySql('SELECT TOP 1 MaDichVu, TenDichVu, ThoiLuong, Gia FROM DichVu WHERE TenDichVu LIKE ?', [`%${serviceName}%`]);
+    if (dvByName && dvByName.length > 0) {
+      return { isCombo: false, id: dvByName[0].MaDichVu, name: dvByName[0].TenDichVu, duration: dvByName[0].ThoiLuong || 45, price: parseFloat(dvByName[0].Gia || 0) };
+    }
+    const cbByName = await querySql('SELECT TOP 1 MaCombo, TenCombo, ThoiLuong, GiaCombo FROM ComboDichVu WHERE TenCombo LIKE ?', [`%${serviceName}%`]);
+    if (cbByName && cbByName.length > 0) {
+      return { isCombo: true, id: cbByName[0].MaCombo, name: cbByName[0].TenCombo, duration: cbByName[0].ThoiLuong || 90, price: parseFloat(cbByName[0].GiaCombo || 0) };
+    }
+  }
+
+  return { isCombo: false, id: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', duration: 45, price: 120000 };
+}
+
 // -------------------------------------------------------------------------
 // HÀM LẤY TOÀN BỘ SNAPSHOT DATABASE TỪ SQL SERVER CHO FRONTEND
 // -------------------------------------------------------------------------
@@ -285,7 +372,18 @@ async function getFullSqlDatabase() {
                      lh.TrangThai, lh.TongTien, lh.TienCoc, lh.GhiChu, lh.LyDoHuy,
                      kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
                      nv.HoTen AS TenNhanVien,
-                     cn.TenChiNhanh
+                     cn.TenChiNhanh,
+                     (
+                       SELECT TOP 1 dv.TenDichVu 
+                       FROM ChiTietLichHen ctlh 
+                       JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
+                       WHERE ctlh.MaLichHen = lh.MaLichHen
+                     ) AS TenDichVu,
+                     (
+                       SELECT TOP 1 ctlh.MaDichVu 
+                       FROM ChiTietLichHen ctlh 
+                       WHERE ctlh.MaLichHen = lh.MaLichHen
+                     ) AS MaDichVu
               FROM LichHen lh
               LEFT JOIN KhachHang kh ON lh.MaKhachHang = kh.MaKhachHang
               LEFT JOIN NhanVien nv ON lh.MaNhanVien = nv.MaNhanVien
@@ -483,20 +581,9 @@ async function getFullSqlDatabase() {
   });
 
   const bookings = bookingRows.map(r => {
-    let cName = r.TenKhachHang || 'Khách Hàng Omni';
-    let cPhone = r.SdtKhachHang || '0908888999';
-    let sName = 'Dịch vụ chăm sóc tóc Omni';
-    const rawNote = r.GhiChu || '';
-
-    const nameMatch = rawNote.match(/Khách:\s*([^|;]+)/i);
-    if (nameMatch) cName = nameMatch[1].trim();
-
-    const phoneMatch = rawNote.match(/SĐT:\s*([^|;]+)/i);
-    if (phoneMatch) cPhone = phoneMatch[1].trim();
-
-    const srvMatch = rawNote.match(/DV:\s*([^|;]+)/i);
-    if (srvMatch) sName = srvMatch[1].trim();
-
+    const cName = r.TenKhachHang || 'Khách Hàng Omni';
+    const cPhone = r.SdtKhachHang || '0908888999';
+    const sName = r.TenDichVu || 'Dịch vụ chăm sóc tóc Omni';
     const st = r.TrangThai;
     const uiStatus = st === 'Hoàn thành' ? 'Completed' : (st === 'Đã hủy' ? 'Cancelled' : (st === 'In_Progress' ? 'in_progress' : 'Confirmed'));
 
@@ -514,12 +601,14 @@ async function getFullSqlDatabase() {
       bookingDate: formatDate(r.NgayHen),
       date: formatDate(r.NgayHen),
       timeSlot: formatTime(r.GioBatDau),
+      endTime: formatTime(r.GioKetThuc),
       status: uiStatus,
       TrangThai: st,
+      serviceId: r.MaDichVu || 'DV01',
       serviceName: sName,
       totalPrice: parseFloat(r.TongTien || 0),
       TongTien: parseFloat(r.TongTien || 0),
-      notes: rawNote,
+      notes: r.GhiChu || '',
       LyDoHuy: r.LyDoHuy
     };
   });
@@ -1325,16 +1414,27 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/bookings/lookup' && method === 'GET') {
-        const q = parsedUrl.searchParams.get('q') || '';
+        const q = (parsedUrl.searchParams.get('q') || '').trim();
         const rows = await querySql(
-          `SELECT lh.MaLichHen, lh.NgayHen, lh.GioBatDau, lh.TrangThai, lh.TongTien, lh.GhiChu,
+          `SELECT lh.MaLichHen, lh.MaKhachHang, lh.MaNhanVien, lh.MaChiNhanh,
+                  CONVERT(VARCHAR(10), lh.NgayHen, 120) AS NgayHen,
+                  CONVERT(VARCHAR(8), lh.GioBatDau) AS GioBatDau,
+                  CONVERT(VARCHAR(8), lh.GioKetThuc) AS GioKetThuc,
+                  lh.TrangThai, lh.TongTien, lh.GhiChu,
                   kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
-                  nv.HoTen AS TenNhanVien, cn.TenChiNhanh
+                  nv.HoTen AS TenNhanVien, cn.TenChiNhanh,
+                  (
+                    SELECT TOP 1 dv.TenDichVu 
+                    FROM ChiTietLichHen ctlh 
+                    JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
+                    WHERE ctlh.MaLichHen = lh.MaLichHen
+                  ) AS TenDichVu
            FROM LichHen lh
            LEFT JOIN KhachHang kh ON lh.MaKhachHang = kh.MaKhachHang
            LEFT JOIN NhanVien nv ON lh.MaNhanVien = nv.MaNhanVien
            LEFT JOIN ChiNhanh cn ON lh.MaChiNhanh = cn.MaChiNhanh
-           WHERE lh.MaLichHen LIKE ? OR kh.SoDienThoai LIKE ? OR kh.HoTen LIKE ?`,
+           WHERE lh.MaLichHen LIKE ? OR kh.SoDienThoai LIKE ? OR kh.HoTen LIKE ?
+           ORDER BY lh.NgayHen DESC, lh.GioBatDau DESC`,
           [`%${q}%`, `%${q}%`, `%${q}%`]
         );
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -1349,24 +1449,27 @@ const server = http.createServer(async (req, res) => {
                                             lh.TrangThai, lh.TongTien, lh.TienCoc, lh.GhiChu, lh.LyDoHuy,
                                             kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
                                             nv.HoTen AS TenNhanVien,
-                                            cn.TenChiNhanh
+                                            cn.TenChiNhanh,
+                                            (
+                                              SELECT TOP 1 dv.TenDichVu 
+                                              FROM ChiTietLichHen ctlh 
+                                              JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
+                                              WHERE ctlh.MaLichHen = lh.MaLichHen
+                                            ) AS TenDichVu,
+                                            (
+                                              SELECT TOP 1 ctlh.MaDichVu 
+                                              FROM ChiTietLichHen ctlh 
+                                              WHERE ctlh.MaLichHen = lh.MaLichHen
+                                            ) AS MaDichVu
                                      FROM LichHen lh
                                      LEFT JOIN KhachHang kh ON lh.MaKhachHang = kh.MaKhachHang
                                      LEFT JOIN NhanVien nv ON lh.MaNhanVien = nv.MaNhanVien
                                      LEFT JOIN ChiNhanh cn ON lh.MaChiNhanh = cn.MaChiNhanh
                                      ORDER BY lh.NgayHen DESC, lh.GioBatDau DESC`);
         const bookings = rows.map(r => {
-          let cName = r.TenKhachHang || 'Khách Hàng Omni';
-          let cPhone = r.SdtKhachHang || '0908888999';
-          let sName = 'Dịch vụ chăm sóc tóc Omni';
-          const rawNote = r.GhiChu || '';
-          const nameMatch = rawNote.match(/Khách:\s*([^|;]+)/i);
-          if (nameMatch) cName = nameMatch[1].trim();
-          const phoneMatch = rawNote.match(/SĐT:\s*([^|;]+)/i);
-          if (phoneMatch) cPhone = phoneMatch[1].trim();
-          const srvMatch = rawNote.match(/DV:\s*([^|;]+)/i);
-          if (srvMatch) sName = srvMatch[1].trim();
-
+          const cName = r.TenKhachHang || 'Khách Hàng Omni';
+          const cPhone = r.SdtKhachHang || '0908888999';
+          const sName = r.TenDichVu || 'Dịch vụ chăm sóc tóc Omni';
           const uiStatus = r.TrangThai === 'Hoàn thành' ? 'Completed' : (r.TrangThai === 'Đã hủy' ? 'Cancelled' : (r.TrangThai === 'In_Progress' ? 'in_progress' : 'Confirmed'));
 
           return {
@@ -1383,11 +1486,14 @@ const server = http.createServer(async (req, res) => {
             bookingDate: formatDate(r.NgayHen),
             date: formatDate(r.NgayHen),
             timeSlot: formatTime(r.GioBatDau),
+            endTime: formatTime(r.GioKetThuc),
             status: uiStatus,
             TrangThai: r.TrangThai,
+            serviceId: r.MaDichVu || 'DV01',
             serviceName: sName,
             totalPrice: parseFloat(r.TongTien || 0),
-            notes: rawNote
+            notes: r.GhiChu || '',
+            LyDoHuy: r.LyDoHuy
           };
         });
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -1396,25 +1502,106 @@ const server = http.createServer(async (req, res) => {
 
       if (pathname === '/api/bookings' && method === 'POST') {
         const booking = parsedBody || {};
-        const id = booking.id || booking.bookingCode || ('LH' + Date.now().toString().slice(-8));
-        const khId = booking.customerId || 'KH01';
-        const nvId = booking.stylistId || 'NV02';
-        const cnId = booking.branchId || 'CN01';
-        const date = booking.date || booking.bookingDate || new Date().toISOString().split('T')[0];
-        const time = booking.timeSlot ? (booking.timeSlot.includes(':') ? (booking.timeSlot.length === 5 ? `${booking.timeSlot}:00` : booking.timeSlot) : `${booking.timeSlot}:00`) : '09:00:00';
-        const price = parseFloat(booking.totalPrice || 120000);
-        const custName = (booking.customerName || 'Khách Hàng').trim();
-        const custPhone = (booking.customerPhone || '0988123456').trim();
-        const srvName = (booking.serviceName || 'Dịch Vụ Cắt Tóc').trim();
-        const extraNotes = (booking.notes || '').trim();
-        const noteText = `Khách: ${custName} | SĐT: ${custPhone} | DV: ${srvName}${extraNotes ? ' | Ghi chú: ' + extraNotes : ''}`;
 
+        // 1. Resolve or generate next MaLichHen adhering to DB format (LH01 -> LH11 -> LH12...)
+        let id = booking.id || booking.bookingCode;
+        if (!id || !id.startsWith('LH') || id.includes('-') || id.length > 20) {
+          id = await generateNextBookingId();
+        } else {
+          const existing = await querySql('SELECT MaLichHen FROM LichHen WHERE MaLichHen = ?', [id]);
+          if (existing && existing.length > 0) {
+            id = await generateNextBookingId();
+          }
+        }
+
+        // 2. Resolve Customer from KhachHang table
+        const custName = (booking.customerName || 'Khách Hàng').trim();
+        const custPhone = (booking.customerPhone || '').replace(/\s+/g, '').trim();
+        const custEmail = (booking.customerEmail || '').trim();
+        const khId = await resolveOrCreateCustomer({
+          customerId: booking.customerId || booking.userId,
+          customerName: custName,
+          customerPhone: custPhone,
+          customerEmail: custEmail
+        });
+
+        // 3. Resolve Branch
+        let cnId = booking.branchId || 'CN01';
+        const validBranch = await querySql('SELECT MaChiNhanh FROM ChiNhanh WHERE MaChiNhanh = ?', [cnId]);
+        if (!validBranch || validBranch.length === 0) {
+          const firstBranch = await querySql(`SELECT TOP 1 MaChiNhanh FROM ChiNhanh WHERE TrangThai = N'Hoạt động'`);
+          cnId = (firstBranch && firstBranch[0]) ? firstBranch[0].MaChiNhanh : 'CN01';
+        }
+
+        // 4. Resolve Stylist
+        let nvId = booking.stylistId;
+        if (nvId) {
+          const validStylist = await querySql('SELECT MaNhanVien FROM NhanVien WHERE MaNhanVien = ?', [nvId]);
+          if (!validStylist || validStylist.length === 0) nvId = null;
+        }
+        if (!nvId) {
+          const defaultStylist = await querySql(`SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaChiNhanh = ? AND TrangThai = N'Đang làm việc'`, [cnId]);
+          nvId = (defaultStylist && defaultStylist[0]) ? defaultStylist[0].MaNhanVien : 'NV02';
+        }
+
+        // 5. Resolve Service or Combo from DB
+        const srvInfo = await resolveServiceInfo(booking.serviceId, booking.serviceName);
+
+        // 6. Time calculation (GioBatDau and GioKetThuc based on actual duration)
+        const date = booking.date || booking.bookingDate || new Date().toISOString().split('T')[0];
+        const rawTime = booking.timeSlot || '09:00';
+        const startTime = rawTime.includes(':') ? (rawTime.length === 5 ? `${rawTime}:00` : rawTime) : `${rawTime}:00`;
+        const duration = parseInt(booking.duration || booking.durationMinutes || srvInfo.duration || 45, 10);
+        const endTime = computeEndTime(startTime, duration);
+
+        // 7. Clean notes (strictly user instructions, no regex metadata hack)
+        const cleanNotes = (booking.notes || '').replace(/^Khách:\s*[^|;]+(\|.*)?$/i, '').trim();
+
+        // 8. Price calculation
+        const price = parseFloat(booking.totalPrice || srvInfo.price || 120000);
+        const deposit = parseFloat(booking.depositAmount || 0);
+
+        // 9. INSERT INTO LichHen
         await querySql(
-          `INSERT INTO LichHen (MaLichHen, MaKhachHang, MaNhanVien, MaChiNhanh, NgayHen, GioBatDau, GioKetThuc, TrangThai, TongTien, TienCoc, GhiChu, LyDoHuy) VALUES (?, ?, ?, ?, ?, ?, ?, N'Đã xác nhận', ?, 0, ?, NULL)`,
-          [id, khId, nvId, cnId, date, time, time, price, noteText]
+          `INSERT INTO LichHen (MaLichHen, MaKhachHang, MaNhanVien, MaChiNhanh, NgayHen, GioBatDau, GioKetThuc, TrangThai, TongTien, TienCoc, GhiChu, LyDoHuy) VALUES (?, ?, ?, ?, ?, ?, ?, N'Đã xác nhận', ?, ?, ?, NULL)`,
+          [id, khId, nvId, cnId, date, startTime, endTime, price, deposit, cleanNotes || null]
         );
 
-        console.log(`[SQL EXEC] Đặt lịch hẹn mới ${id} (${custName}) thành công vào SQL Server!`);
+        // 10. INSERT INTO ChiTietLichHen (100% database relation)
+        if (srvInfo.isCombo) {
+          const comboServices = await querySql(
+            `SELECT ctc.MaDichVu, dv.Gia 
+             FROM ChiTietComboDichVu ctc 
+             JOIN DichVu dv ON ctc.MaDichVu = dv.MaDichVu 
+             WHERE ctc.MaCombo = ?`,
+            [srvInfo.id]
+          );
+          if (comboServices && comboServices.length > 0) {
+            for (let i = 0; i < comboServices.length; i++) {
+              const cs = comboServices[i];
+              const ctlhId = `CTLH_${id}_${i + 1}`.slice(0, 30);
+              const singlePrice = parseFloat(cs.Gia || 0);
+              await querySql(
+                `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, 1, ?, ?)`,
+                [ctlhId, id, cs.MaDichVu, singlePrice, singlePrice]
+              );
+            }
+          } else {
+            const ctlhId = `CTLH_${id}`.slice(0, 30);
+            await querySql(
+              `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, 'DV01', 1, ?, ?)`,
+              [ctlhId, id, price, price]
+            );
+          }
+        } else {
+          const ctlhId = `CTLH_${id}`.slice(0, 30);
+          await querySql(
+            `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, 1, ?, ?)`,
+            [ctlhId, id, srvInfo.id, price, price]
+          );
+        }
+
+        console.log(`[SQL EXEC] Đặt lịch hẹn mới chuẩn CSDL ${id} (Khách: ${khId}, Thợ: ${nvId}, Giờ: ${startTime} - ${endTime})`);
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
@@ -1423,11 +1610,18 @@ const server = http.createServer(async (req, res) => {
             id,
             MaLichHen: id,
             bookingCode: id,
+            customerId: khId,
             customerName: custName,
             customerPhone: custPhone,
+            stylistId: nvId,
+            branchId: cnId,
             date,
-            timeSlot: time.substring(0, 5),
+            timeSlot: startTime.substring(0, 5),
+            endTime: endTime.substring(0, 5),
+            serviceId: srvInfo.id,
+            serviceName: srvInfo.name,
             totalPrice: price,
+            notes: cleanNotes,
             status: 'Confirmed'
           }
         }));
@@ -1446,7 +1640,9 @@ const server = http.createServer(async (req, res) => {
         } else if (b.date || b.timeSlot) {
           const newDate = b.date || b.bookingDate || new Date().toISOString().split('T')[0];
           const newTime = b.timeSlot ? (b.timeSlot.length === 5 ? `${b.timeSlot}:00` : b.timeSlot) : '09:00:00';
-          await querySql(`UPDATE LichHen SET NgayHen = ?, GioBatDau = ?, GioKetThuc = ?, TrangThai = N'Đã xác nhận' WHERE MaLichHen = ?`, [newDate, newTime, newTime, id]);
+          const dur = parseInt(b.duration || b.durationMinutes || 45, 10);
+          const newEndTime = computeEndTime(newTime, dur);
+          await querySql(`UPDATE LichHen SET NgayHen = ?, GioBatDau = ?, GioKetThuc = ?, TrangThai = N'Đã xác nhận' WHERE MaLichHen = ?`, [newDate, newTime, newEndTime, id]);
         } else {
           await querySql(`UPDATE LichHen SET TrangThai = ? WHERE MaLichHen = ?`, [b.status || 'Đã xác nhận', id]);
         }
@@ -1488,36 +1684,53 @@ const server = http.createServer(async (req, res) => {
 
       if (pathname === '/api/orders' && method === 'POST') {
         const order = parsedBody || {};
-        const id = order.id || ('DH' + Date.now().toString().slice(-8));
-        const khId = order.customerId || 'KH03';
+        const maxDh = await querySql(`SELECT TOP 1 MaDonHang FROM DonHang WHERE MaDonHang LIKE 'DH%' ORDER BY LEN(MaDonHang) DESC, MaDonHang DESC`);
+        let nextN = 11;
+        if (maxDh && maxDh[0]) {
+          const nm = maxDh[0].MaDonHang.match(/DH(\d+)/i);
+          if (nm) nextN = parseInt(nm[1], 10) + 1;
+        }
+        const id = order.id && order.id.startsWith('DH') && order.id.length <= 20 ? order.id : ('DH' + (nextN < 10 ? '0' + nextN : nextN));
+        
+        const khId = await resolveOrCreateCustomer({
+          customerId: order.customerId || order.userId,
+          customerName: order.customerName,
+          customerPhone: order.customerPhone,
+          customerEmail: order.customerEmail
+        });
+
         const cnId = order.branchId || 'CN01';
-        const total = parseFloat(order.totalAmount || 500000);
-        const addr = order.shippingAddress || 'Giao tận nơi';
-        const methodStr = order.receiveMethod || 'Giao tận nơi';
-        const notes = order.notes || 'Đơn hàng online';
+        const total = parseFloat(order.totalAmount || order.totalPrice || 500000);
+        const addr = (order.shippingAddress || 'Nhận tại quầy').trim();
+        const methodStr = (order.receiveMethod || 'Giao hàng tận nơi').trim();
+        const notes = (order.notes || 'Đơn hàng online').trim();
 
         await querySql(
           `INSERT INTO DonHang (MaDonHang, MaKhachHang, MaChiNhanh, NgayDat, TongTien, DiaChiGiaoHang, HinhThucNhan, TrangThai, GhiChu) VALUES (?, ?, ?, GETDATE(), ?, ?, ?, N'Đang xử lý', ?)`,
           [id, khId, cnId, total, addr, methodStr, notes]
         );
 
-        console.log(`[SQL EXEC] Tạo đơn hàng mới ${id} thành công vào SQL Server!`);
+        console.log(`[SQL EXEC] Tạo đơn hàng mới chuẩn CSDL ${id} (Khách: ${khId}) vào SQL Server!`);
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, order: { id, totalAmount: total, status: 'Processing' } }));
+        return res.end(JSON.stringify({ success: true, order: { id, customerId: khId, totalAmount: total, status: 'Processing' } }));
       }
 
       // --- 17. POS CHECKOUT (HÓA ĐƠN & THANH TOÁN TẠI QUẦY) ---
       if (pathname === '/api/pos/checkout' && method === 'POST') {
         const pos = parsedBody || {};
         const maxHd = await querySql(`SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaHoaDon LIKE 'HD%' ORDER BY LEN(MaHoaDon) DESC, MaHoaDon DESC`);
-        let nextN = 3;
+        let nextN = 11;
         if (maxHd && maxHd[0]) {
           const nm = maxHd[0].MaHoaDon.match(/HD(\d+)/i);
           if (nm) nextN = parseInt(nm[1], 10) + 1;
         }
         const hdId = 'HD' + (nextN < 10 ? '0' + nextN : nextN);
-        const khId = pos.customerId || 'KH01';
+        const khId = await resolveOrCreateCustomer({
+          customerId: pos.customerId || pos.userId,
+          customerName: pos.customerName,
+          customerPhone: pos.customerPhone
+        });
         const lhId = pos.bookingId || null;
         const cnId = pos.branchId || 'CN01';
         const staffId = pos.staffId || 'NV61';
@@ -1601,19 +1814,24 @@ const server = http.createServer(async (req, res) => {
       if (pathname === '/api/reviews' && method === 'POST') {
         const r = parsedBody || {};
         const maxDg = await querySql(`SELECT TOP 1 MaDanhGia FROM DanhGia WHERE MaDanhGia LIKE 'DG%' ORDER BY LEN(MaDanhGia) DESC, MaDanhGia DESC`);
-        let nextN = 3;
+        let nextN = 11;
         if (maxDg && maxDg[0]) {
           const nm = maxDg[0].MaDanhGia.match(/DG(\d+)/i);
           if (nm) nextN = parseInt(nm[1], 10) + 1;
         }
         const dgId = 'DG' + (nextN < 10 ? '0' + nextN : nextN);
-        const khId = r.customerId || 'KH01';
+        const khId = await resolveOrCreateCustomer({
+          customerId: r.customerId || r.userId,
+          customerName: r.customerName,
+          customerPhone: r.customerPhone
+        });
         const stars = parseInt(r.rating || 5, 10);
-        const comment = r.comment || 'Dịch vụ rất tốt!';
+        const comment = (r.comment || 'Dịch vụ rất tốt!').trim();
+        const lhId = r.bookingId || null;
 
         await querySql(
-          `INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag) VALUES (?, ?, NULL, NULL, ?, ?, NULL, GETDATE(), N'Hiển thị', 0)`,
-          [dgId, khId, stars, comment]
+          `INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag) VALUES (?, ?, ?, NULL, ?, ?, NULL, GETDATE(), N'Hiển thị', 0)`,
+          [dgId, khId, lhId, stars, comment]
         );
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
