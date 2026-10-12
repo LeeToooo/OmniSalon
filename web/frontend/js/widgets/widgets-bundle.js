@@ -215,15 +215,16 @@
 
     renderChip(slot, selectedSlot, onSelectFnName) {
       const isSelected = (selectedSlot === slot.time) && slot.available;
+      const isPast = slot.isPast === true;
       const isDisabled = !slot.available;
       const clickAction = slot.available ? `${onSelectFnName}('${slot.time}')` : '';
       const title = slot.available 
         ? `Khung giờ ${slot.time} khả dụng — Chạm để chọn` 
-        : `Khung giờ ${slot.time} đã kín lịch hoặc đã được đặt`;
+        : (isPast ? `Khung giờ ${slot.time} đã trôi qua so với thời gian hiện tại` : `Khung giờ ${slot.time} đã kín lịch`);
 
       return `
         <button type="button" 
-                class="time-slot-btn md3-time-chip booking-slot-chip ${isSelected ? 'active' : ''} ${isDisabled ? 'disabled' : ''}"
+                class="time-slot-btn md3-time-chip booking-slot-chip ${isSelected ? 'active' : ''} ${isDisabled ? 'disabled' : ''} ${isPast ? 'slot-past' : ''}"
                 ${isDisabled ? 'disabled' : `onclick="${clickAction}"`}
                 title="${title}">
           ${slot.time}

@@ -11,9 +11,9 @@
     constructor() {
       this.storageKey = 'OMNISALON_SQL_DIRECT_V12';
       this.listeners = [];
-      this.liveServerUrl = (typeof window !== 'undefined' && window.location.port === '8080')
+      this.liveServerUrl = (typeof window !== 'undefined' && window.location.origin && (window.location.origin.startsWith('http://') || window.location.origin.startsWith('https://')))
         ? `${window.location.origin}/api`
-        : 'http://127.0.0.1:8080/api';
+        : 'http://127.0.0.1:3000/api';
       this.initStore();
       this.initLiveSync();
     }
@@ -302,26 +302,26 @@
     getSqlBaselineData() {
       // 20 Chi Nhánh chính thức từ CSDL QL_SALON.sql
       const branches = [
-        { id: 'CN01', MaChiNhanh: 'CN01', name: 'Men Salon Barber Q1 - Bến Thành', TenChiNhanh: 'Men Salon Barber Q1 - Bến Thành', address: '120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM', DiaChi: '120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM', phone: '0901111001', SoDienThoai: '0901111001', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN02', MaChiNhanh: 'CN02', name: 'Men Salon Barber Tân Bình - Cộng Hòa', TenChiNhanh: 'Men Salon Barber Tân Bình - Cộng Hòa', address: '45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM', DiaChi: '45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM', phone: '0901111002', SoDienThoai: '0901111002', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN03', MaChiNhanh: 'CN03', name: 'Men Salon Barber Bình Thạnh - Điện Biên Phủ', TenChiNhanh: 'Men Salon Barber Bình Thạnh - Điện Biên Phủ', address: '88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM', DiaChi: '88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM', phone: '0901111003', SoDienThoai: '0901111003', openHours: '09:00 - 22:00', openTime: '09:00:00', closeTime: '22:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN04', MaChiNhanh: 'CN04', name: 'Men Salon Barber Q3 - Nam Kỳ Khởi Nghĩa', TenChiNhanh: 'Men Salon Barber Q3 - Nam Kỳ Khởi Nghĩa', address: '215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM', DiaChi: '215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM', phone: '0901111004', SoDienThoai: '0901111004', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN05', MaChiNhanh: 'CN05', name: 'Men Salon Barber Q5 - Trần Hưng Đạo', TenChiNhanh: 'Men Salon Barber Q5 - Trần Hưng Đạo', address: '105 Trần Hưng Đạo, P.6, Q.5, TP.HCM', DiaChi: '105 Trần Hưng Đạo, P.6, Q.5, TP.HCM', phone: '0901111005', SoDienThoai: '0901111005', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN06', MaChiNhanh: 'CN06', name: 'Men Salon Barber Q7 - Nguyễn Thị Thập', TenChiNhanh: 'Men Salon Barber Q7 - Nguyễn Thị Thập', address: '480 Nguyễn Thị Thập, P.Tân Quy, Q.7, TP.HCM', DiaChi: '480 Nguyễn Thị Thập, P.Tân Quy, Q.7, TP.HCM', phone: '0901111006', SoDienThoai: '0901111006', openHours: '09:00 - 21:30', openTime: '09:00:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1560869713-7d0a29430803?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN07', MaChiNhanh: 'CN07', name: 'Men Salon Barber Q10 - 3 Tháng 2', TenChiNhanh: 'Men Salon Barber Q10 - 3 Tháng 2', address: '324 Ba Tháng Hai, P.12, Q.10, TP.HCM', DiaChi: '324 Ba Tháng Hai, P.12, Q.10, TP.HCM', phone: '0901111007', SoDienThoai: '0901111007', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN08', MaChiNhanh: 'CN08', name: 'Men Salon Barber Phú Nhuận - Phan Xích Long', TenChiNhanh: 'Men Salon Barber Phú Nhuận - Phan Xích Long', address: '150 Phan Xích Long, P.2, Q.Phú Nhuận, TP.HCM', DiaChi: '150 Phan Xích Long, P.2, Q.Phú Nhuận, TP.HCM', phone: '0901111008', SoDienThoai: '0901111008', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN09', MaChiNhanh: 'CN09', name: 'Men Salon Barber Gò Vấp - Quang Trung', TenChiNhanh: 'Men Salon Barber Gò Vấp - Quang Trung', address: '68 Quang Trung, P.10, Q.Gò Vấp, TP.HCM', DiaChi: '68 Quang Trung, P.10, Q.Gò Vấp, TP.HCM', phone: '0901111009', SoDienThoai: '0901111009', openHours: '09:00 - 21:30', openTime: '09:00:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN10', MaChiNhanh: 'CN10', name: 'Men Salon Barber Thủ Đức - Võ Văn Ngân', TenChiNhanh: 'Men Salon Barber Thủ Đức - Võ Văn Ngân', address: '98 Võ Văn Ngân, P.Linh Chiểu, TP.Thủ Đức, TP.HCM', DiaChi: '98 Võ Văn Ngân, P.Linh Chiểu, TP.Thủ Đức, TP.HCM', phone: '0901111010', SoDienThoai: '0901111010', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN11', MaChiNhanh: 'CN11', name: 'Men Salon Barber Thảo Điền - Xuân Thủy', TenChiNhanh: 'Men Salon Barber Thảo Điền - Xuân Thủy', address: '55 Xuân Thủy, P.Thảo Điền, TP.Thủ Đức, TP.HCM', DiaChi: '55 Xuân Thủy, P.Thảo Điền, TP.Thủ Đức, TP.HCM', phone: '0901111011', SoDienThoai: '0901111011', openHours: '09:00 - 22:00', openTime: '09:00:00', closeTime: '22:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN12', MaChiNhanh: 'CN12', name: 'Men Salon Barber Q4 - Hoàng Diệu', TenChiNhanh: 'Men Salon Barber Q4 - Hoàng Diệu', address: '12 Hoàng Diệu, P.9, Q.4, TP.HCM', DiaChi: '12 Hoàng Diệu, P.9, Q.4, TP.HCM', phone: '0901111012', SoDienThoai: '0901111012', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN13', MaChiNhanh: 'CN13', name: 'Men Salon Barber Q6 - Hậu Giang', TenChiNhanh: 'Men Salon Barber Q6 - Hậu Giang', address: '260 Hậu Giang, P.4, Q.6, TP.HCM', DiaChi: '260 Hậu Giang, P.4, Q.6, TP.HCM', phone: '0901111013', SoDienThoai: '0901111013', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN14', MaChiNhanh: 'CN14', name: 'Men Salon Barber Q8 - Phạm Hùng', TenChiNhanh: 'Men Salon Barber Q8 - Phạm Hùng', address: '180 Phạm Hùng, P.5, Q.8, TP.HCM', DiaChi: '180 Phạm Hùng, P.5, Q.8, TP.HCM', phone: '0901111014', SoDienThoai: '0901111014', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN15', MaChiNhanh: 'CN15', name: 'Men Salon Barber Q11 - Ông Ích Khiêm', TenChiNhanh: 'Men Salon Barber Q11 - Ông Ích Khiêm', address: '85 Ông Ích Khiêm, P.10, Q.11, TP.HCM', DiaChi: '85 Ông Ích Khiêm, P.10, Q.11, TP.HCM', phone: '0901111015', SoDienThoai: '0901111015', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1560869713-7d0a29430803?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN16', MaChiNhanh: 'CN16', name: 'Men Salon Barber Q12 - Lê Văn Khương', TenChiNhanh: 'Men Salon Barber Q12 - Lê Văn Khương', address: '45 Lê Văn Khương, P.Thới An, Q.12, TP.HCM', DiaChi: '45 Lê Văn Khương, P.Thới An, Q.12, TP.HCM', phone: '0901111016', SoDienThoai: '0901111016', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN17', MaChiNhanh: 'CN17', name: 'Men Salon Barber Tân Phú - Lũy Bán Bích', TenChiNhanh: 'Men Salon Barber Tân Phú - Lũy Bán Bích', address: '72 Lũy Bán Bích, P.Tân Thới Hòa, Q.Tân Phú, TP.HCM', DiaChi: '72 Lũy Bán Bích, P.Tân Thới Hòa, Q.Tân Phú, TP.HCM', phone: '0901111017', SoDienThoai: '0901111017', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN18', MaChiNhanh: 'CN18', name: 'Men Salon Barber Bình Tân - Tên Lửa', TenChiNhanh: 'Men Salon Barber Bình Tân - Tên Lửa', address: '110 Tên Lửa, P.Bình Trị Đông B, Q.Bình Tân, TP.HCM', DiaChi: '110 Tên Lửa, P.Bình Trị Đông B, Q.Bình Tân, TP.HCM', phone: '0901111018', SoDienThoai: '0901111018', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN19', MaChiNhanh: 'CN19', name: 'Men Salon Barber Bình Chánh - Quốc Lộ 50', TenChiNhanh: 'Men Salon Barber Bình Chánh - Quốc Lộ 50', address: '35 Quốc lộ 50, X.Bình Hưng, H.Bình Chánh, TP.HCM', DiaChi: '35 Quốc lộ 50, X.Bình Hưng, H.Bình Chánh, TP.HCM', phone: '0901111019', SoDienThoai: '0901111019', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' },
-        { id: 'CN20', MaChiNhanh: 'CN20', name: 'Men Salon Barber Hóc Môn - Lý Thường Kiệt', TenChiNhanh: 'Men Salon Barber Hóc Môn - Lý Thường Kiệt', address: '52 Lý Thường Kiệt, TT.Hóc Môn, H.Hóc Môn, TP.HCM', DiaChi: '52 Lý Thường Kiệt, TT.Hóc Môn, H.Hóc Môn, TP.HCM', phone: '0901111020', SoDienThoai: '0901111020', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80', status: 'Hoạt động' }
+        { id: 'CN01', MaChiNhanh: 'CN01', name: 'Omni Salon Barber Q1 - Bến Thành', TenChiNhanh: 'Omni Salon Barber Q1 - Bến Thành', address: '120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM', DiaChi: '120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM', phone: '0901111001', SoDienThoai: '0901111001', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN1.jpg', HinhAnh: 'ChiNhanh_Omni/CN1.jpg', status: 'Hoạt động' },
+        { id: 'CN02', MaChiNhanh: 'CN02', name: 'Omni Salon Barber Tân Bình - Cộng Hòa', TenChiNhanh: 'Omni Salon Barber Tân Bình - Cộng Hòa', address: '45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM', DiaChi: '45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM', phone: '0901111002', SoDienThoai: '0901111002', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN2.jpg', HinhAnh: 'ChiNhanh_Omni/CN2.jpg', status: 'Hoạt động' },
+        { id: 'CN03', MaChiNhanh: 'CN03', name: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ', TenChiNhanh: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ', address: '88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM', DiaChi: '88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM', phone: '0901111003', SoDienThoai: '0901111003', openHours: '09:00 - 22:00', openTime: '09:00:00', closeTime: '22:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN3.jpg', HinhAnh: 'ChiNhanh_Omni/CN3.jpg', status: 'Hoạt động' },
+        { id: 'CN04', MaChiNhanh: 'CN04', name: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa', TenChiNhanh: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa', address: '215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM', DiaChi: '215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM', phone: '0901111004', SoDienThoai: '0901111004', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN4.jpg', HinhAnh: 'ChiNhanh_Omni/CN4.jpg', status: 'Hoạt động' },
+        { id: 'CN05', MaChiNhanh: 'CN05', name: 'Omni Salon Barber Q5 - Trần Hưng Đạo', TenChiNhanh: 'Omni Salon Barber Q5 - Trần Hưng Đạo', address: '105 Trần Hưng Đạo, P.6, Q.5, TP.HCM', DiaChi: '105 Trần Hưng Đạo, P.6, Q.5, TP.HCM', phone: '0901111005', SoDienThoai: '0901111005', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN5.jpg', HinhAnh: 'ChiNhanh_Omni/CN5.jpg', status: 'Hoạt động' },
+        { id: 'CN06', MaChiNhanh: 'CN06', name: 'Omni Salon Barber Q7 - Nguyễn Thị Thập', TenChiNhanh: 'Omni Salon Barber Q7 - Nguyễn Thị Thập', address: '480 Nguyễn Thị Thập, P.Tân Quy, Q.7, TP.HCM', DiaChi: '480 Nguyễn Thị Thập, P.Tân Quy, Q.7, TP.HCM', phone: '0901111006', SoDienThoai: '0901111006', openHours: '09:00 - 21:30', openTime: '09:00:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN6.jpg', HinhAnh: 'ChiNhanh_Omni/CN6.jpg', status: 'Hoạt động' },
+        { id: 'CN07', MaChiNhanh: 'CN07', name: 'Omni Salon Barber Q10 - 3 Tháng 2', TenChiNhanh: 'Omni Salon Barber Q10 - 3 Tháng 2', address: '324 Ba Tháng Hai, P.12, Q.10, TP.HCM', DiaChi: '324 Ba Tháng Hai, P.12, Q.10, TP.HCM', phone: '0901111007', SoDienThoai: '0901111007', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN7.jpg', HinhAnh: 'ChiNhanh_Omni/CN7.jpg', status: 'Hoạt động' },
+        { id: 'CN08', MaChiNhanh: 'CN08', name: 'Omni Salon Barber Phú Nhuận - Phan Xích Long', TenChiNhanh: 'Omni Salon Barber Phú Nhuận - Phan Xích Long', address: '150 Phan Xích Long, P.2, Q.Phú Nhuận, TP.HCM', DiaChi: '150 Phan Xích Long, P.2, Q.Phú Nhuận, TP.HCM', phone: '0901111008', SoDienThoai: '0901111008', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN8.jpg', HinhAnh: 'ChiNhanh_Omni/CN8.jpg', status: 'Hoạt động' },
+        { id: 'CN09', MaChiNhanh: 'CN09', name: 'Omni Salon Barber Gò Vấp - Quang Trung', TenChiNhanh: 'Omni Salon Barber Gò Vấp - Quang Trung', address: '68 Quang Trung, P.10, Q.Gò Vấp, TP.HCM', DiaChi: '68 Quang Trung, P.10, Q.Gò Vấp, TP.HCM', phone: '0901111009', SoDienThoai: '0901111009', openHours: '09:00 - 21:30', openTime: '09:00:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN9.jpg', HinhAnh: 'ChiNhanh_Omni/CN9.jpg', status: 'Hoạt động' },
+        { id: 'CN10', MaChiNhanh: 'CN10', name: 'Omni Salon Barber Thủ Đức - Võ Văn Ngân', TenChiNhanh: 'Omni Salon Barber Thủ Đức - Võ Văn Ngân', address: '98 Võ Văn Ngân, P.Linh Chiểu, TP.Thủ Đức, TP.HCM', DiaChi: '98 Võ Văn Ngân, P.Linh Chiểu, TP.Thủ Đức, TP.HCM', phone: '0901111010', SoDienThoai: '0901111010', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN10.jpg', HinhAnh: 'ChiNhanh_Omni/CN10.jpg', status: 'Hoạt động' },
+        { id: 'CN11', MaChiNhanh: 'CN11', name: 'Omni Salon Barber Thảo Điền - Xuân Thủy', TenChiNhanh: 'Omni Salon Barber Thảo Điền - Xuân Thủy', address: '55 Xuân Thủy, P.Thảo Điền, TP.Thủ Đức, TP.HCM', DiaChi: '55 Xuân Thủy, P.Thảo Điền, TP.Thủ Đức, TP.HCM', phone: '0901111011', SoDienThoai: '0901111011', openHours: '09:00 - 22:00', openTime: '09:00:00', closeTime: '22:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN11.jpg', HinhAnh: 'ChiNhanh_Omni/CN11.jpg', status: 'Hoạt động' },
+        { id: 'CN12', MaChiNhanh: 'CN12', name: 'Omni Salon Barber Q4 - Hoàng Diệu', TenChiNhanh: 'Omni Salon Barber Q4 - Hoàng Diệu', address: '12 Hoàng Diệu, P.9, Q.4, TP.HCM', DiaChi: '12 Hoàng Diệu, P.9, Q.4, TP.HCM', phone: '0901111012', SoDienThoai: '0901111012', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN12.jpg', HinhAnh: 'ChiNhanh_Omni/CN12.jpg', status: 'Hoạt động' },
+        { id: 'CN13', MaChiNhanh: 'CN13', name: 'Omni Salon Barber Q6 - Hậu Giang', TenChiNhanh: 'Omni Salon Barber Q6 - Hậu Giang', address: '260 Hậu Giang, P.4, Q.6, TP.HCM', DiaChi: '260 Hậu Giang, P.4, Q.6, TP.HCM', phone: '0901111013', SoDienThoai: '0901111013', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN13.jpg', HinhAnh: 'ChiNhanh_Omni/CN13.jpg', status: 'Hoạt động' },
+        { id: 'CN14', MaChiNhanh: 'CN14', name: 'Omni Salon Barber Q8 - Phạm Hùng', TenChiNhanh: 'Omni Salon Barber Q8 - Phạm Hùng', address: '180 Phạm Hùng, P.5, Q.8, TP.HCM', DiaChi: '180 Phạm Hùng, P.5, Q.8, TP.HCM', phone: '0901111014', SoDienThoai: '0901111014', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN14.jpg', HinhAnh: 'ChiNhanh_Omni/CN14.jpg', status: 'Hoạt động' },
+        { id: 'CN15', MaChiNhanh: 'CN15', name: 'Omni Salon Barber Q11 - Ông Ích Khiêm', TenChiNhanh: 'Omni Salon Barber Q11 - Ông Ích Khiêm', address: '85 Ông Ích Khiêm, P.10, Q.11, TP.HCM', DiaChi: '85 Ông Ích Khiêm, P.10, Q.11, TP.HCM', phone: '0901111015', SoDienThoai: '0901111015', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN15.jpg', HinhAnh: 'ChiNhanh_Omni/CN15.jpg', status: 'Hoạt động' },
+        { id: 'CN16', MaChiNhanh: 'CN16', name: 'Omni Salon Barber Q12 - Lê Văn Khương', TenChiNhanh: 'Omni Salon Barber Q12 - Lê Văn Khương', address: '45 Lê Văn Khương, P.Thới An, Q.12, TP.HCM', DiaChi: '45 Lê Văn Khương, P.Thới An, Q.12, TP.HCM', phone: '0901111016', SoDienThoai: '0901111016', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN16.jpg', HinhAnh: 'ChiNhanh_Omni/CN16.jpg', status: 'Hoạt động' },
+        { id: 'CN17', MaChiNhanh: 'CN17', name: 'Omni Salon Barber Tân Phú - Lũy Bán Bích', TenChiNhanh: 'Omni Salon Barber Tân Phú - Lũy Bán Bích', address: '72 Lũy Bán Bích, P.Tân Thới Hòa, Q.Tân Phú, TP.HCM', DiaChi: '72 Lũy Bán Bích, P.Tân Thới Hòa, Q.Tân Phú, TP.HCM', phone: '0901111017', SoDienThoai: '0901111017', openHours: '08:30 - 21:30', openTime: '08:30:00', closeTime: '21:30:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN17.jpg', HinhAnh: 'ChiNhanh_Omni/CN17.jpg', status: 'Hoạt động' },
+        { id: 'CN18', MaChiNhanh: 'CN18', name: 'Omni Salon Barber Bình Tân - Tên Lửa', TenChiNhanh: 'Omni Salon Barber Bình Tân - Tên Lửa', address: '110 Tên Lửa, P.Bình Trị Đông B, Q.Bình Tân, TP.HCM', DiaChi: '110 Tên Lửa, P.Bình Trị Đông B, Q.Bình Tân, TP.HCM', phone: '0901111018', SoDienThoai: '0901111018', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN18.jpg', HinhAnh: 'ChiNhanh_Omni/CN18.jpg', status: 'Hoạt động' },
+        { id: 'CN19', MaChiNhanh: 'CN19', name: 'Omni Salon Barber Bình Chánh - Quốc Lộ 50', TenChiNhanh: 'Omni Salon Barber Bình Chánh - Quốc Lộ 50', address: '35 Quốc lộ 50, X.Bình Hưng, H.Bình Chánh, TP.HCM', DiaChi: '35 Quốc lộ 50, X.Bình Hưng, H.Bình Chánh, TP.HCM', phone: '0901111019', SoDienThoai: '0901111019', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN19.jpg', HinhAnh: 'ChiNhanh_Omni/CN19.jpg', status: 'Hoạt động' },
+        { id: 'CN20', MaChiNhanh: 'CN20', name: 'Omni Salon Barber Hóc Môn - Lý Thường Kiệt', TenChiNhanh: 'Omni Salon Barber Hóc Môn - Lý Thường Kiệt', address: '52 Lý Thường Kiệt, TT.Hóc Môn, H.Hóc Môn, TP.HCM', DiaChi: '52 Lý Thường Kiệt, TT.Hóc Môn, H.Hóc Môn, TP.HCM', phone: '0901111020', SoDienThoai: '0901111020', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN20.jpg', HinhAnh: 'ChiNhanh_Omni/CN20.jpg', status: 'Hoạt động' }
       ];
 
       // 10 Lịch Hẹn từ CSDL QL_SALON.sql (Tổng: 5.540.000 đ)
@@ -595,7 +595,7 @@
         if (Array.isArray(this.state.stylists)) {
           this.state.stylists.forEach((st, idx) => {
             if (isBadImg(st.avatar)) {
-              st.avatar = avatarPresets[idx % avatarPresets.length];
+              st.avatar = baseline.stylists[idx]?.avatar || '';
             }
           });
         }
@@ -985,12 +985,37 @@
       return h * 60 + m;
     }
 
+    _getTodayIso() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    _getCurrentMinutes() {
+      const now = new Date();
+      return now.getHours() * 60 + now.getMinutes();
+    }
+
     isSlotAvailable(stylistId, date, timeSlot, durationMinutes = 45) {
+      const todayIso = this._getTodayIso();
+      const currentMinutes = this._getCurrentMinutes();
       const startMin = this._timeToMinutes(timeSlot);
+
+      // 1. Kiểm tra thời gian thực (Real-time Past Check):
+      // Tuyệt đối không cho chọn giờ đã trôi qua trong ngày hôm nay hoặc các ngày trong quá khứ!
+      if (date < todayIso) {
+        return false;
+      }
+      if (date === todayIso && startMin <= currentMinutes) {
+        return false;
+      }
+
       const endMin = startMin + Number(durationMinutes);
 
       const existingBookings = (this.state.bookings || []).filter(b =>
-        b.stylistId === stylistId &&
+        (!stylistId || b.stylistId === stylistId) &&
         b.date === date &&
         String(b.status || '').toLowerCase() !== 'cancelled' &&
         String(b.status || '').toLowerCase() !== 'no_show'
@@ -1016,10 +1041,15 @@
         '17:30', '18:30', '19:30', '20:30'
       ];
 
+      const todayIso = this._getTodayIso();
+      const currentMinutes = this._getCurrentMinutes();
+      const isToday = (date === todayIso);
+      const isPastDate = (date < todayIso);
+
       // Tối ưu N+1: Trích xuất trước khoảng thời gian các ca đã đặt trong ngày 1 lần duy nhất
       const dur = Number(durationMinutes || 45);
       const bookedIntervals = (this.state.bookings || [])
-        .filter(b => b.stylistId === stylistId && b.date === date && String(b.status || '').toLowerCase() !== 'cancelled' && String(b.status || '').toLowerCase() !== 'no_show')
+        .filter(b => (!stylistId || b.stylistId === stylistId) && b.date === date && String(b.status || '').toLowerCase() !== 'cancelled' && String(b.status || '').toLowerCase() !== 'no_show')
         .map(b => {
           const start = this._timeToMinutes(b.timeSlot);
           const bDur = Number(b.durationMinutes || (b.estimatedEndTime ? this._timeToMinutes(b.estimatedEndTime) - start : 45));
@@ -1030,16 +1060,32 @@
         const slotStart = this._timeToMinutes(time);
         const slotEnd = slotStart + dur;
         const hasConflict = bookedIntervals.some(iv => slotStart < iv.end && slotEnd > iv.start);
+        
+        // Khung giờ đã trôi qua: nếu là ngày trong quá khứ, HOẶC là ngày hôm nay và giờ bắt đầu <= giờ hiện tại
+        const isPast = isPastDate || (isToday && slotStart <= currentMinutes);
+        const available = !isPast && !hasConflict;
+
         return {
           time,
-          available: !hasConflict
+          available,
+          isPast,
+          isBooked: hasConflict,
+          reason: isPast ? 'Đã qua' : (hasConflict ? 'Kín lịch' : 'Còn chỗ')
         };
       });
     }
 
     addBooking(bookingData) {
-      if (!bookingData || !bookingData.date || !bookingData.timeSlot || !bookingData.stylistId) {
+      if (!bookingData || !bookingData.date || !bookingData.timeSlot) {
         throw new Error('Vui lòng chọn ngày, giờ và Barber phục vụ.');
+      }
+
+      const todayIso = this._getTodayIso();
+      const currentMinutes = this._getCurrentMinutes();
+      const startMin = this._timeToMinutes(bookingData.timeSlot);
+
+      if (bookingData.date < todayIso || (bookingData.date === todayIso && startMin <= currentMinutes)) {
+        throw new Error(`Khung giờ ${bookingData.timeSlot} ngày ${bookingData.date} đã trôi qua so với thời gian hiện tại! Vui lòng chọn khung giờ khác hoặc ngày tiếp theo.`);
       }
 
       if (bookingData.customerPhone && !/^[0-9+() -]{8,20}$/.test(String(bookingData.customerPhone).trim())) {
@@ -1074,7 +1120,9 @@
         customerName: (bookingData.customerName || '').trim(),
         customerPhone: (bookingData.customerPhone || '').trim(),
         customerEmail: (bookingData.customerEmail || '').trim(),
-        serviceId: bookingData.serviceId || null,
+        serviceId: bookingData.serviceId || (bookingData.serviceIds?.[0]) || null,
+        serviceIds: bookingData.serviceIds || (bookingData.serviceId ? [bookingData.serviceId] : []),
+        servicesList: bookingData.servicesList || [],
         serviceName: bookingData.serviceName || 'Dịch Vụ Cắt Tóc',
         comboId: bookingData.comboId || null,
         date: bookingData.date,
@@ -1134,6 +1182,34 @@
 
     checkinBooking(bookingId) {
       return this.updateBookingStatus(bookingId, 'In_Progress');
+    }
+
+    checkinBookingEarlyToday(bookingId) {
+      const b = (this.state.bookings || []).find(x => x.id === bookingId || x.bookingCode === bookingId);
+      if (!b) return false;
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+      const nowH = String(today.getHours()).padStart(2, '0');
+      const nowM = String(today.getMinutes()).padStart(2, '0');
+      const nowTime = `${nowH}:${nowM}`;
+
+      const oldDate = b.date || b.bookingDate;
+      const oldTime = b.timeSlot;
+      b.date = todayStr;
+      b.bookingDate = todayStr;
+      b.timeSlot = nowTime;
+      b.status = 'In_Progress';
+      b.checkedInAt = new Date().toISOString();
+      const noteSuffix = `[Đến làm sớm hôm nay lúc ${nowTime} (Lịch gốc: ${oldDate} ${oldTime})]`;
+      b.notes = b.notes ? `${b.notes} • ${noteSuffix}` : noteSuffix;
+
+      this.logAudit('EARLY_CHECKIN', `Lịch: #${b.bookingCode || b.id}`, `Khách làm sớm hôm nay: ${b.customerName} (${todayStr} ${nowTime})`);
+      this.saveState();
+      this.syncBookingStatusToLiveServer(b.id, 'In_Progress', { note: b.notes });
+      return b;
     }
 
     cancelBooking(bookingId, reason = '') {
@@ -1242,12 +1318,18 @@
           ? Number(invItem.stock)
           : Number(prod.stock !== undefined ? prod.stock : (prod.SoLuongTon !== undefined ? prod.SoLuongTon : 25));
 
+        const actualPrice = prod.price || prod.GiaBanThucTe || 350000;
+        const actualCost = prod.costPrice !== undefined ? prod.costPrice : (prod.GiaNhap !== undefined ? prod.GiaNhap : Math.round(actualPrice * 0.7));
+
         return {
           id: invItem ? invItem.id : `inv-${prod.id}`,
           productId: prod.id,
           productName: prod.name || prod.TenSanPham || prod.id,
           brand: prod.brand || 'CHÍNH HÃNG',
-          price: prod.price || prod.GiaBanThucTe || 350000,
+          price: actualPrice,
+          costPrice: actualCost,
+          GiaNhap: actualCost,
+          oldPrice: prod.oldPrice || actualCost,
           image: prod.image || prod.HinhAnh || '',
           stock: actualStock,
           minAlert: invItem ? invItem.minAlert : 5,
@@ -1372,14 +1454,18 @@
       }
       const nextNum = (this.state.products || []).length + 1;
       const nextId = `SP${nextNum.toString().padStart(2, '0')}`;
+      const price = Number(productData.price);
+      const costPrice = Number(productData.costPrice !== undefined ? productData.costPrice : (productData.GiaNhap !== undefined ? productData.GiaNhap : Math.round(price * 0.7)));
       const newProd = {
         id: productData.id || nextId,
         MaSanPham: productData.id || nextId,
         name: productData.name.trim(),
         TenSanPham: productData.name.trim(),
         brand: productData.brand || 'CHÍNH HÃNG',
-        price: Number(productData.price),
-        oldPrice: Number(productData.oldPrice || productData.price),
+        price: price,
+        costPrice: costPrice,
+        GiaNhap: costPrice,
+        oldPrice: Number(productData.oldPrice || costPrice),
         stock: Number(productData.stock !== undefined ? productData.stock : 20),
         section: productData.section || 'new',
         image: productData.image || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
@@ -1410,7 +1496,15 @@
       Object.assign(p, updates);
       if (updates.name) p.TenSanPham = updates.name;
       if (updates.brand) p.brand = updates.brand;
-      if (updates.price) p.GiaBanThucTe = updates.price;
+      if (updates.price) {
+        p.price = Number(updates.price);
+        p.GiaBanThucTe = Number(updates.price);
+      }
+      if (updates.costPrice !== undefined) {
+        p.costPrice = Number(updates.costPrice);
+        p.GiaNhap = Number(updates.costPrice);
+      }
+      if (updates.oldPrice !== undefined) p.oldPrice = Number(updates.oldPrice);
       if (updates.image) p.HinhAnh = updates.image;
       if (updates.stock !== undefined) {
         p.SoLuongTon = updates.stock;

@@ -203,6 +203,22 @@
         return;
       }
 
+      if (src.includes('ChiNhanh_Omni')) {
+        const fileMatch = src.match(/(CN\d+)\.(jpg|jpeg|png|webp)/i);
+        const fileName = fileMatch ? fileMatch[0] : 'CN1.jpg';
+        const target = 'Men_Grooming_Products/ChiNhanh_Omni/' + fileName;
+        if (imgEl._retryStep === 1) {
+          imgEl.src = '/' + target;
+          return;
+        } else if (imgEl._retryStep === 2) {
+          imgEl.src = '/' + 'ChiNhanh_Omni/' + fileName;
+          return;
+        } else if (imgEl._retryStep === 3) {
+          imgEl.src = '../../' + target;
+          return;
+        }
+      }
+
       if (src.includes('Men_Grooming_Products')) {
         const clean = src.replace(/.*Men_Grooming_Products/, 'Men_Grooming_Products');
         if (imgEl._retryStep === 1) {

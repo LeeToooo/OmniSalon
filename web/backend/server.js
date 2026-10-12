@@ -9,15 +9,15 @@ const fs = require('fs');
 const path = require('path');
 const sql = require('msnodesqlv8');
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 const DB_NAME = process.env.SQL_DATABASE || 'QL_SALONTOC';
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 const FRONTEND_DIR = path.resolve(__dirname, '..', 'frontend');
-const SQL_FILE = fs.existsSync(path.join(__dirname, 'QL_SALON.sql')) 
-  ? path.join(__dirname, 'QL_SALON.sql') 
+const SQL_FILE = fs.existsSync(path.join(__dirname, 'QL_SALON.sql'))
+  ? path.join(__dirname, 'QL_SALON.sql')
   : (fs.existsSync(path.join(ROOT_DIR, 'web', 'backend', 'QL_SALON.sql')) ? path.join(ROOT_DIR, 'web', 'backend', 'QL_SALON.sql') : path.join(ROOT_DIR, 'QL_SALON.sql'));
-const EMAIL_CONFIG_FILE = fs.existsSync(path.join(__dirname, 'email_config.json')) 
-  ? path.join(__dirname, 'email_config.json') 
+const EMAIL_CONFIG_FILE = fs.existsSync(path.join(__dirname, 'email_config.json'))
+  ? path.join(__dirname, 'email_config.json')
   : path.join(ROOT_DIR, 'email_config.json');
 
 // Danh sách các instance SQL Server thông dụng
@@ -167,45 +167,10 @@ async function sendRealGmailOtp(toEmail, otp) {
 }
 
 // -------------------------------------------------------------------------
-// ASSETS & HÌNH ẢNH MẶC ĐỊNH
+// CẤU HÌNH DANH MỤC & THƯƠNG HIỆU SẢN PHẨM
+// Toàn bộ hình ảnh Chi nhánh, Dịch vụ, Combo, Sản phẩm được truy vấn trực tiếp
+// từ cột HinhAnh trong CSDL SQL Server QL_SALONTOC (không hardcode mapping).
 // -------------------------------------------------------------------------
-const branchImgs = {
-  CN01: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80',
-  CN02: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80',
-  CN03: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-  CN04: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80',
-  CN06: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80',
-  CN07: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-  CN08: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80'
-};
-
-const serviceImgs = {
-  DV01: 'Men_Grooming_Products/DichVu_Men/DV1.jpg',
-  DV02: 'Men_Grooming_Products/DichVu_Men/DV2.jpg',
-  DV03: 'Men_Grooming_Products/DichVu_Men/DV3.jpg',
-  DV04: 'Men_Grooming_Products/DichVu_Men/DV4.jpg',
-  DV05: 'Men_Grooming_Products/DichVu_Men/DV5.jpg',
-  DV06: 'Men_Grooming_Products/DichVu_Men/DV6.jpg',
-  DV07: 'Men_Grooming_Products/DichVu_Men/DV7.jpg',
-  DV08: 'Men_Grooming_Products/DichVu_Men/DV8.jpg',
-  DV09: 'Men_Grooming_Products/DichVu_Men/DV9.jpg',
-  DV10: 'Men_Grooming_Products/DichVu_Men/DV10.jpg'
-};
-
-const comboImgs = {
-  CB01: 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg',
-  CB02: 'Men_Grooming_Products/DichVu_Men/CBDV2.jpg',
-  CB03: 'Men_Grooming_Products/DichVu_Men/CBDV3.jpg',
-  CB04: 'Men_Grooming_Products/DichVu_Men/CBDV4.jpg'
-};
-
-const stylistAvatars = {
-  NV01: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
-  NV02: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
-  NV03: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80',
-  NV04: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
-  NV05: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
-};
 
 const catIcons = {
   DM01: '💈', DM02: '✨', DM03: '💨', DM04: '🧴', DM05: '🧼',
@@ -278,7 +243,7 @@ async function resolveOrCreateCustomer({ customerId, customerName, customerPhone
        VALUES (?, NULL, ?, ?, 'kh123', N'Khách hàng', N'Hoạt động', GETDATE())`,
       [`TK_${newKhId}`, newKhId, `user_${newKhId.toLowerCase()}`]
     );
-  } catch (_) {}
+  } catch (_) { }
 
   return newKhId;
 }
@@ -340,7 +305,7 @@ async function getFullSqlDatabase() {
     querySql(`SELECT MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, 
                      CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
                      CONVERT(VARCHAR(8), GioDongCua) AS GioDongCua, 
-                     TrangThai FROM ChiNhanh`),
+                     HinhAnh, TrangThai FROM ChiNhanh`),
     querySql(`SELECT MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, 
                      CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu`),
     querySql(`SELECT MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`),
@@ -432,7 +397,8 @@ async function getFullSqlDatabase() {
       openHours: `${formatTime(r.GioMoCua)} - ${formatTime(r.GioDongCua)}`,
       city,
       region: city === 'Hà Nội' ? 'hn' : city === 'Đà Nẵng' ? 'dn' : 'hcm',
-      image: branchImgs[r.MaChiNhanh] || branchImgs.CN01,
+      image: r.HinhAnh || '',
+      HinhAnh: r.HinhAnh || '',
       status: r.TrangThai || 'Hoạt động'
     };
   });
@@ -449,8 +415,8 @@ async function getFullSqlDatabase() {
     ThoiLuong: parseInt(r.ThoiLuong || 45, 10),
     description: r.MoTa,
     MoTa: r.MoTa,
-    image: r.HinhAnh || serviceImgs[r.MaDichVu] || 'Men_Grooming_Products/DichVu_Men/DV1.jpg',
-    HinhAnh: r.HinhAnh || serviceImgs[r.MaDichVu] || 'Men_Grooming_Products/DichVu_Men/DV1.jpg',
+    image: r.HinhAnh || '',
+    HinhAnh: r.HinhAnh || '',
     category: ['DV01', 'DV02', 'DV06'].includes(r.MaDichVu) ? 'Cắt & Tạo Kiểu' : ['DV03', 'DV04', 'DV05', 'DV08', 'DV09'].includes(r.MaDichVu) ? 'Uốn & Nhuộm' : 'Chăm Sóc & Phục Hồi',
     rating: 4.95,
     reviewCount: 280,
@@ -468,8 +434,8 @@ async function getFullSqlDatabase() {
     durationMinutes: r.ThoiLuong || 90,
     description: r.MoTa,
     MoTa: r.MoTa,
-    image: r.HinhAnh || comboImgs[r.MaCombo] || 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg',
-    HinhAnh: r.HinhAnh || comboImgs[r.MaCombo] || 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg',
+    image: r.HinhAnh || '',
+    HinhAnh: r.HinhAnh || '',
     status: r.TrangThai
   }));
 
@@ -486,7 +452,8 @@ async function getFullSqlDatabase() {
     level: r.CapBac || 'Master Barber',
     title: `${r.CapBac || 'Master Barber'} • ${r.ChucVu || 'Thợ chính'}`,
     role: r.ChucVu || 'Thợ chính',
-    avatar: stylistAvatars[r.MaNhanVien] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+    avatar: r.HinhAnh || '',
+    HinhAnh: r.HinhAnh || '',
     rating: 4.95,
     reviewCount: 350,
     specialty: r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn',
@@ -995,7 +962,7 @@ const server = http.createServer(async (req, res) => {
         const rows = await querySql(`SELECT MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, 
                                             CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
                                             CONVERT(VARCHAR(8), GioDongCua) AS GioDongCua, 
-                                            TrangThai FROM ChiNhanh`);
+                                            HinhAnh, TrangThai FROM ChiNhanh`);
         const branches = rows.map(r => ({
           id: r.MaChiNhanh,
           MaChiNhanh: r.MaChiNhanh,
@@ -1006,7 +973,8 @@ const server = http.createServer(async (req, res) => {
           phone: r.SoDienThoai,
           SoDienThoai: r.SoDienThoai,
           openHours: `${formatTime(r.GioMoCua)} - ${formatTime(r.GioDongCua)}`,
-          image: branchImgs[r.MaChiNhanh] || branchImgs.CN01,
+          image: r.HinhAnh || '',
+          HinhAnh: r.HinhAnh || '',
           status: r.TrangThai || 'Hoạt động'
         }));
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -1027,25 +995,27 @@ const server = http.createServer(async (req, res) => {
         const phone = b.phone || b.SoDienThoai || '0901111000';
         const openTime = b.openTime || b.GioMoCua || '08:30:00';
         const closeTime = b.closeTime || b.GioDongCua || '21:30:00';
+        const img = b.image || b.HinhAnh || '';
 
         await querySql(
-          `INSERT INTO ChiNhanh (MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, GioMoCua, GioDongCua, TrangThai) VALUES (?, ?, ?, ?, ?, ?, N'Hoạt động')`,
-          [cnId, name, addr, phone, openTime, closeTime]
+          `INSERT INTO ChiNhanh (MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, GioMoCua, GioDongCua, HinhAnh, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?, N'Hoạt động')`,
+          [cnId, name, addr, phone, openTime, closeTime, img]
         );
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
           success: true,
-          branch: { id: cnId, MaChiNhanh: cnId, name, TenChiNhanh: name, address: addr, phone, openHours: `${openTime} - ${closeTime}` }
+          branch: { id: cnId, MaChiNhanh: cnId, name, TenChiNhanh: name, address: addr, phone, openHours: `${openTime} - ${closeTime}`, image: img, HinhAnh: img }
         }));
       }
 
       if (pathname.startsWith('/api/branches/') && method === 'PUT') {
         const id = pathname.replace('/api/branches/', '').trim();
         const b = parsedBody || {};
+        const img = b.image !== undefined ? b.image : b.HinhAnh;
         await querySql(
-          `UPDATE ChiNhanh SET TenChiNhanh = ?, DiaChi = ?, SoDienThoai = ? WHERE MaChiNhanh = ?`,
-          [b.name || b.TenChiNhanh, b.address || b.DiaChi, b.phone || b.SoDienThoai, id]
+          `UPDATE ChiNhanh SET TenChiNhanh = COALESCE(?, TenChiNhanh), DiaChi = COALESCE(?, DiaChi), SoDienThoai = COALESCE(?, SoDienThoai), HinhAnh = COALESCE(?, HinhAnh) WHERE MaChiNhanh = ?`,
+          [b.name || b.TenChiNhanh || null, b.address || b.DiaChi || null, b.phone || b.SoDienThoai || null, img !== undefined ? img : null, id]
         );
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, id }));
@@ -1085,7 +1055,8 @@ const server = http.createServer(async (req, res) => {
           level: r.CapBac,
           title: `${r.CapBac} • ${r.ChucVu}`,
           role: r.ChucVu,
-          avatar: stylistAvatars[r.MaNhanVien] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+          avatar: r.HinhAnh || '',
+          HinhAnh: r.HinhAnh || '',
           rating: 4.95,
           reviewCount: 350,
           specialty: r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn',
@@ -1155,11 +1126,12 @@ const server = http.createServer(async (req, res) => {
           durationMinutes: r.ThoiLuong,
           description: r.MoTa,
           MoTa: r.MoTa,
-          image: r.HinhAnh || serviceImgs[r.MaDichVu] || 'Men_Grooming_Products/DichVu_Men/DV1.jpg',
-          HinhAnh: r.HinhAnh || serviceImgs[r.MaDichVu] || 'Men_Grooming_Products/DichVu_Men/DV1.jpg',
+          image: r.HinhAnh || '',
+          HinhAnh: r.HinhAnh || '',
           category: ['DV01', 'DV02', 'DV06'].includes(r.MaDichVu) ? 'Cắt & Tạo Kiểu' : ['DV03', 'DV04', 'DV05', 'DV08', 'DV09'].includes(r.MaDichVu) ? 'Uốn & Nhuộm' : 'Chăm Sóc & Phục Hồi',
           rating: 4.95,
-          reviewCount: 280
+          reviewCount: 280,
+          status: r.TrangThai
         }));
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify(services));
@@ -1178,17 +1150,30 @@ const server = http.createServer(async (req, res) => {
         const desc = srv.description || srv.MoTa || 'Dịch vụ chuẩn Omni';
         const duration = parseInt(srv.duration || srv.ThoiLuong || 45, 10);
         const price = parseFloat(srv.price || srv.Gia || 150000);
+        const img = srv.image || srv.HinhAnh || '';
 
         await querySql(
-          `INSERT INTO DichVu (MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, TrangThai, NgayApDung) VALUES (?, ?, ?, ?, ?, N'Kinh doanh', GETDATE())`,
-          [dvId, name, desc, duration, price]
+          `INSERT INTO DichVu (MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, NgayApDung) VALUES (?, ?, ?, ?, ?, ?, N'Kinh doanh', GETDATE())`,
+          [dvId, name, desc, duration, price, img]
         );
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
           success: true,
-          service: { id: dvId, MaDichVu: dvId, name, TenDichVu: name, price, duration: `${duration} phút`, description: desc }
+          service: { id: dvId, MaDichVu: dvId, name, TenDichVu: name, price, duration: `${duration} phút`, description: desc, image: img, HinhAnh: img }
         }));
+      }
+
+      if (pathname.startsWith('/api/services/') && method === 'PUT') {
+        const id = pathname.replace('/api/services/', '').trim();
+        const srv = parsedBody || {};
+        const img = srv.image !== undefined ? srv.image : srv.HinhAnh;
+        await querySql(
+          `UPDATE DichVu SET TenDichVu = COALESCE(?, TenDichVu), MoTa = COALESCE(?, MoTa), ThoiLuong = COALESCE(?, ThoiLuong), Gia = COALESCE(?, Gia), HinhAnh = COALESCE(?, HinhAnh) WHERE MaDichVu = ?`,
+          [srv.name || srv.TenDichVu || null, srv.description || srv.MoTa || null, srv.duration || srv.ThoiLuong || null, srv.price || srv.Gia || null, img !== undefined ? img : null, id]
+        );
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, id }));
       }
 
       if (pathname.startsWith('/api/services/') && method === 'DELETE') {
@@ -1212,8 +1197,8 @@ const server = http.createServer(async (req, res) => {
           durationMinutes: r.ThoiLuong || 90,
           description: r.MoTa,
           MoTa: r.MoTa,
-          image: r.HinhAnh || comboImgs[r.MaCombo] || 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg',
-          HinhAnh: r.HinhAnh || comboImgs[r.MaCombo] || 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg',
+          image: r.HinhAnh || '',
+          HinhAnh: r.HinhAnh || '',
           status: r.TrangThai
         }));
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -1233,7 +1218,7 @@ const server = http.createServer(async (req, res) => {
         const desc = cb.description || cb.MoTa || 'Combo dịch vụ cao cấp';
         const price = parseFloat(cb.price || cb.GiaCombo || 300000);
         const duration = parseInt(cb.duration || cb.ThoiLuong || 90, 10);
-        const img = cb.image || cb.HinhAnh || 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg';
+        const img = cb.image || cb.HinhAnh || '';
 
         await querySql(
           `INSERT INTO ComboDichVu (MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai) VALUES (?, ?, ?, ?, ?, ?, N'Đang kinh doanh')`,
@@ -1241,7 +1226,19 @@ const server = http.createServer(async (req, res) => {
         );
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, combo: { id: cbId, name, price, duration, description: desc } }));
+        return res.end(JSON.stringify({ success: true, combo: { id: cbId, name, price, duration, description: desc, image: img, HinhAnh: img } }));
+      }
+
+      if (pathname.startsWith('/api/combos/') && method === 'PUT') {
+        const id = pathname.replace('/api/combos/', '').trim();
+        const cb = parsedBody || {};
+        const img = cb.image !== undefined ? cb.image : cb.HinhAnh;
+        await querySql(
+          `UPDATE ComboDichVu SET TenCombo = COALESCE(?, TenCombo), MoTa = COALESCE(?, MoTa), GiaCombo = COALESCE(?, GiaCombo), ThoiLuong = COALESCE(?, ThoiLuong), HinhAnh = COALESCE(?, HinhAnh) WHERE MaCombo = ?`,
+          [cb.name || cb.TenCombo || null, cb.description || cb.MoTa || null, cb.price || cb.GiaCombo || null, cb.duration || cb.ThoiLuong || null, img !== undefined ? img : null, id]
+        );
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, id }));
       }
 
       if (pathname.startsWith('/api/combos/') && method === 'DELETE') {
@@ -1297,7 +1294,11 @@ const server = http.createServer(async (req, res) => {
             category: r.TenDanhMuc || 'Sản phẩm tạo kiểu',
             price: finalPrice,
             originalPrice: price,
-            image: r.HinhAnh,
+            costPrice: parseFloat(r.GiaNhap || 0),
+            GiaNhap: parseFloat(r.GiaNhap || 0),
+            GiaBan: price,
+            image: r.HinhAnh || '',
+            HinhAnh: r.HinhAnh || '',
             description: r.MoTa,
             stock: parseInt(r.SoLuongTon || 25, 10),
             isFlashSale,
@@ -1321,7 +1322,7 @@ const server = http.createServer(async (req, res) => {
         const nccId = prod.supplierId || prod.MaNhaCungCap || 'NCC01';
         const name = prod.name || prod.TenSanPham || 'Sản phẩm mới';
         const desc = prod.description || prod.MoTa || 'Sản phẩm chăm sóc tóc';
-        const img = prod.image || prod.HinhAnh || 'Men_Grooming_Products/01_Sap_Vuot_Toc_Pomade/Hanz_de_Fuko/Hanz_de_Fuko_Claymation.jpg';
+        const img = prod.image || prod.HinhAnh || '';
         const price = parseFloat(prod.price || prod.GiaBan || 250000);
         const cost = parseFloat(prod.costPrice || prod.GiaNhap || Math.round(price * 0.7));
 
@@ -1333,8 +1334,25 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
           success: true,
-          product: { id: spId, MaSanPham: spId, name, TenSanPham: name, price, originalPrice: price, image: img, description: desc }
+          product: { id: spId, MaSanPham: spId, name, TenSanPham: name, price, originalPrice: price, costPrice: cost, GiaNhap: cost, image: img, HinhAnh: img, description: desc }
         }));
+      }
+
+      if (pathname.startsWith('/api/products/') && method === 'PUT') {
+        const id = pathname.replace('/api/products/', '').trim();
+        const prod = parsedBody || {};
+        const name = prod.name || prod.TenSanPham;
+        const price = parseFloat(prod.price || prod.GiaBan || 0);
+        const costPrice = parseFloat(prod.costPrice || prod.GiaNhap || (price > 0 ? Math.round(price * 0.7) : 0));
+        const desc = prod.description || prod.MoTa || '';
+        const img = prod.image !== undefined ? prod.image : prod.HinhAnh;
+
+        await querySql(
+          `UPDATE SanPham SET TenSanPham = COALESCE(?, TenSanPham), GiaBan = CASE WHEN ? > 0 THEN ? ELSE GiaBan END, GiaNhap = CASE WHEN ? > 0 THEN ? ELSE GiaNhap END, MoTa = COALESCE(?, MoTa), HinhAnh = COALESCE(?, HinhAnh) WHERE MaSanPham = ?`,
+          [name || null, price, price, costPrice, costPrice, desc || null, img !== undefined ? img : null, id]
+        );
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, message: 'Đã cập nhật sản phẩm thành công', id, costPrice, price }));
       }
 
       if (pathname.startsWith('/api/products/') && method === 'DELETE') {
@@ -1395,7 +1413,14 @@ const server = http.createServer(async (req, res) => {
 
       // --- 15. BOOKINGS / ĐẶT LỊCH ---
       if (pathname === '/api/bookings/available-slots' && method === 'GET') {
-        const date = parsedUrl.searchParams.get('date') || new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const todayIso = `${y}-${m}-${d}`;
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const date = parsedUrl.searchParams.get('date') || todayIso;
         const stylistId = parsedUrl.searchParams.get('stylistId') || 'NV02';
         const bookedRows = await querySql(
           `SELECT CONVERT(VARCHAR(8), GioBatDau) AS GioBatDau 
@@ -1404,11 +1429,23 @@ const server = http.createServer(async (req, res) => {
           [stylistId, date]
         );
         const bookedTimes = new Set(bookedRows.map(r => formatTime(r.GioBatDau)));
-        const allSlots = ['08:30', '09:15', '10:00', '10:45', '11:30', '13:30', '14:15', '15:00', '15:45', '16:30', '17:15', '18:00', '18:45', '19:30', '20:15'];
-        const slots = allSlots.map(t => ({
-          time: t,
-          available: !bookedTimes.has(t)
-        }));
+        const allSlots = ['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30', '19:30', '20:30'];
+        const isToday = (date === todayIso);
+        const isPastDate = (date < todayIso);
+
+        const slots = allSlots.map(t => {
+          const [h, min] = t.split(':').map(Number);
+          const slotStart = (h || 0) * 60 + (min || 0);
+          const isPast = isPastDate || (isToday && slotStart <= currentMinutes);
+          const isBooked = bookedTimes.has(t);
+          return {
+            time: t,
+            available: !isPast && !isBooked,
+            isPast,
+            isBooked,
+            reason: isPast ? 'Đã qua' : (isBooked ? 'Kín lịch' : 'Còn chỗ')
+          };
+        });
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify(slots));
       }
@@ -1548,11 +1585,29 @@ const server = http.createServer(async (req, res) => {
         const srvInfo = await resolveServiceInfo(booking.serviceId, booking.serviceName);
 
         // 6. Time calculation (GioBatDau and GioKetThuc based on actual duration)
-        const date = booking.date || booking.bookingDate || new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const todayIso = `${y}-${m}-${d}`;
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const date = booking.date || booking.bookingDate || todayIso;
         const rawTime = booking.timeSlot || '09:00';
         const startTime = rawTime.includes(':') ? (rawTime.length === 5 ? `${rawTime}:00` : rawTime) : `${rawTime}:00`;
         const duration = parseInt(booking.duration || booking.durationMinutes || srvInfo.duration || 45, 10);
         const endTime = computeEndTime(startTime, duration);
+
+        // Validation chống đặt lịch ở quá khứ
+        const [slotH, slotMin] = rawTime.split(':').map(Number);
+        const slotMinutes = (slotH || 0) * 60 + (slotMin || 0);
+        if (date < todayIso || (date === todayIso && slotMinutes <= currentMinutes)) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({
+            success: false,
+            error: `Khung giờ ${rawTime} ngày ${date} đã trôi qua so với thời gian hiện tại! Vui lòng chọn khung giờ khác.`
+          }));
+        }
 
         // 7. Clean notes (strictly user instructions, no regex metadata hack)
         const cleanNotes = (booking.notes || '').replace(/^Khách:\s*[^|;]+(\|.*)?$/i, '').trim();
@@ -1691,7 +1746,7 @@ const server = http.createServer(async (req, res) => {
           if (nm) nextN = parseInt(nm[1], 10) + 1;
         }
         const id = order.id && order.id.startsWith('DH') && order.id.length <= 20 ? order.id : ('DH' + (nextN < 10 ? '0' + nextN : nextN));
-        
+
         const khId = await resolveOrCreateCustomer({
           customerId: order.customerId || order.userId,
           customerName: order.customerName,
@@ -1909,42 +1964,51 @@ const server = http.createServer(async (req, res) => {
         }));
       }
 
-      // --- 21. STATIC FILES & SPA FALLBACK (WEB FRONTEND) ---
-      let relPath = pathname.replace(/^\//, '');
+      // --- 21. PHỤC VỤ FILE TĨNH (STATIC FILES) & SPA FALLBACK ---
+      let rawPath = pathname.replace(/^\/+/, '');
+      try { rawPath = decodeURIComponent(rawPath); } catch (_) {}
+
+      // Hỗ trợ truy cập file tĩnh qua prefix /static/... tương đương app.use('/static', express.static(...))
+      let relPath = rawPath;
+      if (relPath.startsWith('static/')) {
+        relPath = relPath.substring(7);
+      }
       // Chuẩn hóa đường dẫn: loại bỏ tiền tố web/, frontend/, web/frontend/
       relPath = relPath.replace(/^web\/frontend\//, '').replace(/^frontend\//, '').replace(/^web\//, '');
 
-      // 1. Phục vụ ảnh DichVu_Men (lấy trực tiếp và duy nhất từ Men_Grooming_Products/DichVu_Men)
-      if (relPath.includes('DichVu_Men')) {
-        const fileName = path.basename(relPath);
-        const targetPath = path.join(ROOT_DIR, 'Men_Grooming_Products', 'DichVu_Men', fileName);
-        if (fs.existsSync(targetPath) && fs.statSync(targetPath).isFile()) {
-          const ext = path.extname(targetPath).toLowerCase();
-          res.writeHead(200, { 'Content-Type': MIME_MAP[ext] || 'image/jpeg' });
-          return fs.createReadStream(targetPath).pipe(res);
+      // Danh sách các vị trí tìm kiếm tệp tĩnh (phục vụ trực tiếp từ ROOT_DIR nơi chứa các folder ảnh)
+      const candidatePaths = [
+        path.join(ROOT_DIR, relPath),
+        path.join(ROOT_DIR, 'Men_Grooming_Products', relPath),
+        path.join(FRONTEND_DIR, relPath)
+      ];
+
+      if (relPath.startsWith('ChiNhanh_Omni/')) {
+        candidatePaths.push(path.join(ROOT_DIR, 'Men_Grooming_Products', 'ChiNhanh_Omni', path.basename(relPath)));
+      }
+      if (relPath.startsWith('DichVu_Men/')) {
+        candidatePaths.push(path.join(ROOT_DIR, 'Men_Grooming_Products', 'DichVu_Men', path.basename(relPath)));
+      }
+
+      for (const targetPath of candidatePaths) {
+        if (fs.existsSync(targetPath)) {
+          try {
+            const stat = fs.statSync(targetPath);
+            if (stat.isFile()) {
+              const ext = path.extname(targetPath).toLowerCase();
+              const mime = MIME_MAP[ext] || 'application/octet-stream';
+              res.writeHead(200, {
+                'Content-Type': mime,
+                'Content-Length': stat.size,
+                'Cache-Control': 'public, max-age=86400'
+              });
+              return fs.createReadStream(targetPath).pipe(res);
+            }
+          } catch (_) {}
         }
       }
 
-      // 2. Phục vụ ảnh Men_Grooming_Products
-      if (relPath.startsWith('Men_Grooming_Products/')) {
-        const prodPath = path.join(ROOT_DIR, relPath);
-        if (fs.existsSync(prodPath) && fs.statSync(prodPath).isFile()) {
-          const ext = path.extname(prodPath).toLowerCase();
-          res.writeHead(200, { 'Content-Type': MIME_MAP[ext] || 'image/jpeg' });
-          return fs.createReadStream(prodPath).pipe(res);
-        }
-      }
-
-      // 3. Tìm file tĩnh trong FRONTEND_DIR
-      let fullPath = path.join(FRONTEND_DIR, relPath);
-      if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
-        const ext = path.extname(fullPath).toLowerCase();
-        const mime = MIME_MAP[ext] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': mime });
-        return fs.createReadStream(fullPath).pipe(res);
-      }
-
-      // 4. SPA Fallback: Phục vụ index.html cho các route (/services, /booking, /shop, /stylists, /admin...)
+      // SPA Fallback: Phục vụ index.html cho các route (/services, /booking, /shop, /stylists, /admin...)
       const fileExt = path.extname(relPath).toLowerCase();
       if (!fileExt || fileExt === '.html') {
         const indexPath = path.join(FRONTEND_DIR, 'index.html');
@@ -1968,25 +2032,58 @@ const server = http.createServer(async (req, res) => {
 async function startServer() {
   await initDbConnection();
 
-  server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`\n[LỖI CỔNG] Cổng ${PORT} đang bị chiếm dụng bởi một tiến trình Node khác.`);
-      console.error(`Giải pháp: Hãy đóng cửa sổ CMD/Terminal cũ hoặc chạy lại start_server.bat để tự động giải phóng cổng.\n`);
-      process.exit(1);
-    } else {
-      console.error('[SERVER LỖI]', err);
-    }
-  });
+  const CANDIDATE_PORTS = [
+    process.env.PORT ? parseInt(process.env.PORT, 10) : 3000,
+    3000,
+    3001,
+    3002,
+    8080,
+    8081,
+    8082,
+    5000
+  ].filter((p, idx, arr) => p && arr.indexOf(p) === idx);
 
-  server.listen(PORT, '0.0.0.0', () => {
-    console.log(`=========================================================================`);
-    console.log(`  OMNISALON DIRECT SQL SERVER (SSMS 20) BACKEND DANG HOAT DONG`);
-    console.log(`  - Local Web Portal:  http://localhost:${PORT}`);
-    console.log(`  - SQL Server:        ${activeDbConfig?.server || '.\\SQLEXPRESS'}`);
-    console.log(`  - Database:          ${DB_NAME} (100% Ket noi SSMS truc tiep)`);
-    console.log(`  - API Health:        http://localhost:${PORT}/api/health`);
-    console.log(`=========================================================================`);
-  });
+  let portIdx = 0;
+
+  function tryListen() {
+    const currentPort = CANDIDATE_PORTS[portIdx];
+    server.removeAllListeners('error');
+    server.removeAllListeners('listening');
+
+    server.once('error', (err) => {
+      if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
+        console.warn(`\n[THÔNG BÁO CỔNG] Cổng ${currentPort} đang bị chiếm hoặc hạn chế (${err.code}).`);
+        portIdx++;
+        if (portIdx < CANDIDATE_PORTS.length) {
+          console.log(`  -> Đang tự động kết nối cổng dự phòng: http://localhost:${CANDIDATE_PORTS[portIdx]} để website hoạt động ngay...\n`);
+          tryListen();
+        } else {
+          console.error(`\n[LỖI CỔNG] Toàn bộ các cổng dự phòng (${CANDIDATE_PORTS.join(', ')}) đều không khả dụng.`);
+          process.exit(1);
+        }
+      } else {
+        console.error('[SERVER LỖI]', err);
+      }
+    });
+
+    server.once('listening', () => {
+      console.log(`=========================================================================`);
+      console.log(`  OMNISALON DIRECT SQL SERVER (SSMS 20) BACKEND DANG HOAT DONG`);
+      console.log(`  - Local Web Portal:  http://localhost:${currentPort}`);
+      console.log(`  - SQL Server:        ${activeDbConfig?.server || '.\\SQLEXPRESS'}`);
+      console.log(`  - Database:          ${DB_NAME} (100% Ket noi SSMS truc tiep)`);
+      console.log(`  - API Health:        http://localhost:${currentPort}/api/health`);
+      console.log(`=========================================================================`);
+      try {
+        const { exec } = require('child_process');
+        exec(`start http://localhost:${currentPort}`);
+      } catch (_) {}
+    });
+
+    server.listen(currentPort, '0.0.0.0');
+  }
+
+  tryListen();
 }
 
 startServer();

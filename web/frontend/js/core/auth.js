@@ -864,9 +864,9 @@
 
       // Đồng bộ trực tiếp vào CSDL SQL Server
       if (typeof fetch !== 'undefined') {
-        const apiUrl = (typeof window !== 'undefined' && window.location.port === '8080')
+        const apiUrl = (typeof window !== 'undefined' && window.location.origin)
           ? `${window.location.origin}/api/auth/register`
-          : 'http://127.0.0.1:8080/api/auth/register';
+          : 'http://localhost:3000/api/auth/register';
         fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -929,9 +929,9 @@
 
       // Đồng bộ mật khẩu mới trực tiếp vào CSDL SQL Server
       if (typeof fetch !== 'undefined') {
-        const apiUrl = (typeof window !== 'undefined' && window.location.port === '8080')
+        const apiUrl = (typeof window !== 'undefined' && window.location.origin)
           ? `${window.location.origin}/api/auth/reset-password`
-          : 'http://127.0.0.1:8080/api/auth/reset-password';
+          : 'http://localhost:3000/api/auth/reset-password';
         fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1052,9 +1052,9 @@
 
       // Đồng bộ thông tin cá nhân trực tiếp vào CSDL SQL Server
       if (typeof fetch !== 'undefined' && user) {
-        const apiUrl = (typeof window !== 'undefined' && window.location.port === '8080')
+        const apiUrl = (typeof window !== 'undefined' && window.location.origin)
           ? `${window.location.origin}/api/auth/profile`
-          : 'http://127.0.0.1:8080/api/auth/profile';
+          : 'http://localhost:3000/api/auth/profile';
         fetch(apiUrl, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },

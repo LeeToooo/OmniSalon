@@ -52,20 +52,18 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM 5. Tu dong giai phong cong 8080 neu co tien trinh dang chiem dung
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8080 ^| findstr LISTENING 2^>nul') do (
+REM 5. Tu dong giai phong cong 3000 neu co tien trinh dang chiem dung
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :3000 ^| findstr LISTENING 2^>nul') do (
     taskkill /f /pid %%a >nul 2>&1
 )
 
 echo.
 echo =========================================================================
-echo    KHOI CHAY THANH CONG!
-echo    Web Portal:  http://localhost:8080
+echo    DANG KHOI DONG OMNISALON TREN PORT 3000...
+echo    Web Portal:  http://localhost:3000
 echo    Database:    QL_SALONTOC (Ket noi truc tiep SSMS 20 va SQL Express)
 echo =========================================================================
 echo.
-
-start http://localhost:8080
 
 "%NODE_BIN%" "%~dp0web\backend\server.js"
 

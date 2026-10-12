@@ -10,7 +10,7 @@
 
   const SalonApi = {
     config: {
-      baseUrl: (typeof location !== 'undefined' && location.origin && location.origin.includes(':8080')) ? '/api' : 'http://localhost:8080/api',
+      baseUrl: (typeof location !== 'undefined' && location.origin && (location.origin.startsWith('http://') || location.origin.startsWith('https://'))) ? `${location.origin}/api` : 'http://localhost:3000/api',
       useLiveApi: true, // Tự động kết nối Live Database Server thời gian thực
       timeoutMs: 8000,
       ai: {

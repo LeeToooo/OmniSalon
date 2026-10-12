@@ -676,6 +676,14 @@
       const inProgressCount = analytics.inProgressCount;
       const productSalesTotal = analytics.productRevenue;
 
+      // Thống kê kho hàng thực tế phục vụ báo cáo Doanh Thu & Kho
+      const inventoryList = (window.store && typeof window.store.getBranchInventory === 'function') 
+        ? window.store.getBranchInventory(branchId || 'all') 
+        : [];
+      const lowStockCount = inventoryList.filter(p => (Number(p.stock || p.SoLuongTon || 0) <= 5)).length;
+      const totalStockUnits = inventoryList.reduce((acc, p) => acc + Number(p.stock || p.SoLuongTon || 0), 0);
+      const totalInventoryCost = inventoryList.reduce((acc, p) => acc + (Number(p.stock || p.SoLuongTon || 0) * Number(p.costPrice || p.GiaNhap || p.price || 0)), 0);
+
       return `
         <!-- Filter Toolbar -->
         <div class="admin-filter-bar" style="background: var(--surface-card, #14171F); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -699,33 +707,33 @@
           </div>
         </div>
 
-        <!-- 4 High-Contrast KPI Cards (Glassmorphism Luxury - 100% Real Database Metrics) -->
+        <!-- 4 Thẻ KPI Chuẩn Mực: Doanh Thu, Tổng Lịch Hẹn, Khách Đang Làm, Doanh Số Sản Phẩm -->
         <div class="admin-kpi-grid">
           <div class="admin-kpi-card-rich">
             <div class="kpi-top-row">
-              <span class="kpi-label-text">Doanh Thu Dịch Vụ & POS</span>
+              <span class="kpi-label-text">Doanh Thu</span>
               <span class="kpi-growth-tag kpi-growth-positive" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35);">✓ CSDL Thực Tế</span>
             </div>
-            <div class="kpi-big-value">${SalonUtils.formatCurrency(analytics.bookingRevenue)}</div>
+            <div class="kpi-big-value">${SalonUtils.formatCurrency(analytics.totalRevenue)}</div>
             <div class="kpi-sub-detail">
-              <span>Bao gồm ${analytics.confirmedCount} phiếu hẹn dịch vụ & POS</span>
+              <span>Dịch vụ & POS: ${SalonUtils.formatCurrency(analytics.bookingRevenue)}</span>
             </div>
           </div>
 
           <div class="admin-kpi-card-rich">
             <div class="kpi-top-row">
-              <span class="kpi-label-text">Tổng Lịch Hẹn Đã Chốt</span>
+              <span class="kpi-label-text">Tổng Lịch Hẹn</span>
               <span class="kpi-growth-tag kpi-growth-positive" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35);">Tỉ lệ ${analytics.completionRate}%</span>
             </div>
-            <div class="kpi-big-value">${analytics.confirmedCount} Lịch Hẹn</div>
+            <div class="kpi-big-value">${allBookings.length} Lịch Hẹn</div>
             <div class="kpi-sub-detail">
-              <span>${analytics.cancelledCount} ca hủy • Hoàn tất ${analytics.completionRate}%</span>
+              <span>${analytics.confirmedCount} thành công • ${analytics.cancelledCount} hủy</span>
             </div>
           </div>
 
           <div class="admin-kpi-card-rich">
             <div class="kpi-top-row">
-              <span class="kpi-label-text">Khách Đang Làm Tại Ghế</span>
+              <span class="kpi-label-text">Khách Đang Làm</span>
               <span class="kpi-growth-tag kpi-growth-warning">⚡ ${inProgressCount > 0 ? 'Đang Phục Vụ' : 'Sẵn Sàng Tiếp Khách'}</span>
             </div>
             <div class="kpi-big-value">${inProgressCount} Khách Đang Làm</div>
@@ -736,14 +744,28 @@
 
           <div class="admin-kpi-card-rich">
             <div class="kpi-top-row">
-              <span class="kpi-label-text">Doanh Số Sản Phẩm Bán Lẻ</span>
-              <span class="kpi-growth-tag kpi-growth-positive" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35);">✓ CSDL Thực Tế</span>
+              <span class="kpi-label-text">Doanh Số Sản Phẩm</span>
+              <span class="kpi-growth-tag kpi-growth-positive" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35);">✓ Bán Lẻ & POS</span>
             </div>
             <div class="kpi-big-value">${SalonUtils.formatCurrency(productSalesTotal)}</div>
             <div class="kpi-sub-detail">
-              <span>${analytics.totalOrders} đơn hàng bán lẻ & tồn kho thực tế</span>
+              <span>${analytics.totalOrders || 0} đơn hàng bán lẻ & quầy</span>
             </div>
           </div>
+        </div>
+
+        <!-- Tình Trạng Kho Hàng Nhanh Trong Báo Cáo Doanh Thu & Kho -->
+        <div style="background: var(--surface-card, #14171F); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 12px; padding: 12px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <span style="font-weight: 800; color: #f59e0b; font-size: 13px;">📦 Tình Trạng Kho Hàng:</span>
+            <span style="font-size: 12.5px; color: #cbd5e1;">Mặt hàng: <strong>${inventoryList.length}</strong></span>
+            <span style="font-size: 12.5px; color: #cbd5e1;">Tổng tồn kho: <strong>${totalStockUnits}</strong> món</span>
+            <span style="font-size: 12.5px; color: #cbd5e1;">Vốn tồn kho (giá nhập): <strong>${SalonUtils.formatCurrency(totalInventoryCost)}</strong></span>
+            ${lowStockCount > 0 ? `<span style="font-size: 12px; color: #ef4444; font-weight: 800; background: rgba(239, 68, 68, 0.15); padding: 2px 8px; border-radius: 6px;">⚠️ ${lowStockCount} mặt hàng sắp hết</span>` : '<span style="font-size: 12px; color: #10b981; font-weight: 700;">✓ Kho hàng ổn định</span>'}
+          </div>
+          <button type="button" class="pill-btn-outline" style="font-size: 11.5px; padding: 4px 12px;" onclick="AdminWeb.switchSubTab('inventory')">
+            Quản Lý Chi Tiết Kho →
+          </button>
         </div>
 
         <!-- Split Charts: Biểu đồ SVG 7 ngày & Tỉ trọng dịch vụ -->
@@ -1030,10 +1052,6 @@
                                   onclick="AdminWeb.openAddBranchModal('${b.id}')" title="Chỉnh sửa thông tin chi nhánh">
                             ✏️ Sửa
                           </button>
-                          <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);"
-                                  onclick="AdminWeb.openUniversalDeleteModal('branches', '${b.id}')" title="Xóa chi nhánh khỏi database">
-                            🗑️ Xóa
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1047,25 +1065,57 @@
       `;
     },
 
-    refreshBranchesView() {
-      const content = document.getElementById('adminSubTabContent');
-      if (content && this.adminSubTab === 'branches') {
-        const user = this.getCurrentUser();
-        const branches = window.store.getBranches();
-        const stylists = window.store.getStylists();
-        const bookings = window.store.getBookings();
-        content.innerHTML = this.renderBranchesTab(user, branches, stylists, bookings);
-      }
-    },
-
     // -----------------------------------------------------------------------
-    // SUB-TAB 2: ĐIỀU PHỐI LỊCH HẸN (BOOKINGS DISPATCHER)
+    // SUB-TAB 2: ĐIỀU PHỐI LỊCH HẸN (BOOKINGS DISPATCHER REALTIME 4RAU)
     // -----------------------------------------------------------------------
     renderBookingsTab(user, bookings, branches, stylists, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
-      let filtered = [...bookings];
 
-      // Lọc theo quyền chi nhánh (Branch Manager) hoặc bộ lọc
+      // 1. Mốc thời gian thực tại Việt Nam (Realtime Local)
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+      const nowH = String(now.getHours()).padStart(2, '0');
+      const nowM = String(now.getMinutes()).padStart(2, '0');
+      const nowTime = `${nowH}:${nowM}`;
+      const nowTimestamp = now.getTime();
+
+      // 2. Xác định lịch gần nhất trong tương lai (Nearest Upcoming Booking)
+      let nearestBookingId = null;
+      let minFutureDiff = Infinity;
+      bookings.forEach(b => {
+        const st = (b.status || '').toLowerCase();
+        if (st === 'completed' || st === 'cancelled') return;
+        const bDate = b.date || b.bookingDate || todayStr;
+        const bTime = (b.timeSlot || '00:00').trim();
+        const dtStr = `${bDate}T${bTime.length === 5 ? bTime + ':00' : bTime}`;
+        const bTimestamp = new Date(dtStr).getTime();
+        if (!isNaN(bTimestamp)) {
+          const diff = bTimestamp - nowTimestamp;
+          // Ca hẹn sắp diễn ra (từ trước 15 phút đến tương lai)
+          if (diff >= -900000 && diff < minFutureDiff) {
+            minFutureDiff = diff;
+            nearestBookingId = b.id;
+          }
+        }
+      });
+
+      // 3. Tra cứu nhanh khách hàng đặt lịch (Quick Customer Search)
+      const lookupQ = (this.customerLookupQuery || '').toLowerCase().trim();
+      let lookupResults = [];
+      if (lookupQ) {
+        lookupResults = bookings.filter(b =>
+          (b.id && b.id.toLowerCase().includes(lookupQ)) ||
+          (b.bookingCode && b.bookingCode.toLowerCase().includes(lookupQ)) ||
+          (b.customerName && b.customerName.toLowerCase().includes(lookupQ)) ||
+          (b.customerPhone && b.customerPhone.includes(lookupQ))
+        );
+      }
+
+      // 4. Lọc danh sách lịch hẹn chung cho bảng
+      let filtered = [...bookings];
       if (this.isBranchManager(user) && user.branchId) {
         filtered = filtered.filter(b => b.branchId === user.branchId);
       } else if (this.filterBranch !== 'all') {
@@ -1091,6 +1141,15 @@
         );
       }
 
+      // 5. Bàn điều phối ghế cắt (Kanban Dispatcher)
+      // CHÚ Ý NGHIỆP VỤ: Ghế cắt phục vụ ca trong ngày được chọn (mặc định là HÔM NAY)
+      // để tránh khách đặt 9h sáng mai bị lẫn vào ghế cắt lúc 9h hôm nay!
+      const workstationDate = this.filterDate || todayStr;
+      const workstationBookings = bookings.filter(b => {
+        const bDate = b.date || b.bookingDate;
+        return bDate === workstationDate;
+      });
+
       this.dispatchBranchFilter = this.dispatchBranchFilter || 'all';
       let scopedStylists = (this.isBranchManager(user) && user.branchId)
         ? stylists.filter(s => s.branchId === user.branchId)
@@ -1109,17 +1168,107 @@
       if (this.dispatchPage > dispatchTotalPages) this.dispatchPage = dispatchTotalPages;
       const pagedWorkstations = scopedStylists.slice((this.dispatchPage - 1) * this.pageSize, this.dispatchPage * this.pageSize);
 
+      // HTML cho khối Tra cứu Khách Hàng Đặt Lịch Nhanh
+      const customerSearchHtml = `
+        <div class="quick-booking-search-panel" style="background: var(--surface-card); border: 2px solid #f59e0b; border-radius: 14px; padding: 18px 22px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 22px;">🔍</span>
+              <div>
+                <strong style="font-size: 16px; color: var(--text-primary); display: block;">Tra Cứu & Tiếp Đón Khách Hàng Đặt Lịch (Realtime)</strong>
+                <span style="font-size: 13px; color: var(--text-secondary);">Gõ Tên, SĐT hoặc Mã vé (#BK...) để kiểm tra ca hẹn và check-in làm ngay</span>
+              </div>
+            </div>
+            <span style="font-size: 12px; font-weight: 700; color: #f59e0b; background: rgba(245, 158, 11, 0.12); padding: 4px 10px; border-radius: 6px;">
+              ⏱️ Hiện tại: ${nowTime} • Hôm Nay: ${SalonUtils.formatDate(todayStr)}
+            </span>
+          </div>
+
+          <div class="quick-search-input-wrap">
+            <input type="text" placeholder="🔍 Nhập Tên khách hàng, Số điện thoại hoặc Mã lịch hẹn..." 
+                   value="${this.escapeHtml(this.customerLookupQuery || '')}"
+                   oninput="AdminWeb.customerLookupQuery = this.value; AdminWeb.refreshBookingsTable();"
+                   style="width: 100%; height: 46px; padding: 0 16px; border-radius: 10px; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 14.5px; font-weight: 600; outline: none; box-sizing: border-box;">
+          </div>
+
+          ${lookupQ ? `
+            <div style="margin-top: 14px;">
+              <div style="font-size: 13px; font-weight: 800; color: #f59e0b; margin-bottom: 8px;">
+                Kết quả tìm kiếm cho "${this.escapeHtml(lookupQ)}" (${lookupResults.length} khách):
+              </div>
+              ${lookupResults.length > 0 ? `
+                <div class="quick-search-results-box" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px;">
+                  ${lookupResults.map(b => {
+                    const bDate = b.date || b.bookingDate;
+                    const isToday = (bDate === todayStr);
+                    const isTomorrow = (new Date(bDate).getDate() === new Date(todayStr).getDate() + 1);
+                    const isInProg = (b.status || '').toLowerCase() === 'in_progress';
+                    const isDone = (b.status || '').toLowerCase() === 'completed';
+
+                    return `
+                      <div class="quick-customer-card ${isToday ? 'today-card' : ''}" style="background: var(--surface-card); border: 1.5px solid ${isToday ? '#f59e0b' : 'var(--border-color)'}; border-radius: 12px; padding: 14px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                          <div>
+                            <strong style="font-size: 15px; color: var(--text-primary);">${this.escapeHtml(b.customerName)}</strong>
+                            <div style="font-size: 13px; color: var(--text-secondary);">${this.escapeHtml(b.customerPhone)} • #${this.escapeHtml(b.bookingCode || b.id)}</div>
+                          </div>
+                          <span style="font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px; ${isToday ? 'background: #f59e0b; color: #000;' : 'background: rgba(255,255,255,0.08); color: var(--text-secondary);'}">
+                            ${isToday ? '🔥 HÔM NAY' : (isTomorrow ? '📅 SÁNG MAI' : `📅 ${SalonUtils.formatDate(bDate)}`)}
+                          </span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-primary); margin: 6px 0;">
+                          ✂️ <strong>${this.escapeHtml(b.serviceName || 'Dịch vụ')}</strong> • ⏰ <strong>${this.escapeHtml(b.timeSlot)}</strong> (${SalonUtils.formatDate(bDate)})
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 8px;">
+                          <span style="font-size: 14px; font-weight: 800; color: #f59e0b;">${SalonUtils.formatCurrency(b.totalPrice)}</span>
+                          <div style="display: flex; gap: 6px;">
+                            ${!isToday && !isDone && !isInProg ? `
+                              <button class="btn-submit-terracotta" style="padding: 5px 12px; font-size: 11px; background: #d97706;" 
+                                      onclick="AdminWeb.checkinEarlyToday('${b.id}')" title="Khách đặt ngày ${SalonUtils.formatDate(bDate)} nhưng hôm nay tới làm luôn">
+                                ⚡ Làm Luôn Hôm Nay
+                              </button>
+                            ` : ''}
+                            ${isToday && !isInProg && !isDone ? `
+                              <button class="btn-submit-terracotta" style="padding: 5px 12px; font-size: 11px;" 
+                                      onclick="AdminWeb.updateBookingStatus('${b.id}', 'In_Progress')">
+                                👉 Vào Ghế Cắt
+                              </button>
+                            ` : ''}
+                            ${isInProg ? `
+                              <button class="btn-submit-terracotta" style="padding: 5px 12px; font-size: 11px; background: #10b981;" 
+                                      onclick="AdminWeb.updateBookingStatus('${b.id}', 'Completed')">
+                                ✓ Hoàn Tất Ca
+                              </button>
+                            ` : ''}
+                            ${isDone ? `<span style="font-size: 12px; color: #10b981; font-weight: 700;">✓ Đã hoàn tất</span>` : ''}
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              ` : `
+                <div style="padding: 12px; background: rgba(0,0,0,0.03); border-radius: 8px; font-size: 13px; color: var(--text-secondary);">
+                  Không tìm thấy lịch hẹn nào của khách hàng với từ khóa "${this.escapeHtml(lookupQ)}".
+                </div>
+              `}
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      // HTML cho Bàn Kanban Điều Phối Ghế Cắt (Workstations Dispatcher)
       const timelineHtml = `
         <div style="margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <span class="quick-booking-badge">WORKSTATIONS DISPATCHER</span>
-              <span style="font-size: 16px; font-weight: 800; color: var(--text-primary, #FFFFFF);">💈 Bàn Điều Phối Ghế Cắt (Kanban Workstation Columns)</span>
+              <span class="quick-booking-badge" style="background: #f59e0b; color: #000; font-weight: 900;">4RAU WORKSTATIONS</span>
+              <span style="font-size: 16px; font-weight: 800; color: var(--text-primary, #FFFFFF);">💈 Bàn Điều Phối Ghế Cắt Theo Ca Hẹn</span>
               <span class="badge-terracotta" style="font-size: 11px;">
-                ${scopedStylists.length} Ghế Đang Hoạt Động
+                Ngày: ${workstationDate === todayStr ? 'Hôm Nay (' + SalonUtils.formatDate(todayStr) + ')' : SalonUtils.formatDate(workstationDate)}
               </span>
 
-              <!-- Lọc nhân viên / ghế cắt theo Chi Nhánh (Ảnh 5) -->
+              <!-- Lọc chi nhánh -->
               ${this.isBranchManager(user) ? `
                 <span class="badge-terracotta" style="font-size: 11px;">🔒 ${this.escapeHtml(this._getBranchShortName(user.branchId, bMap))}</span>
               ` : `
@@ -1130,15 +1279,15 @@
                 </select>
               `}
             </div>
-            <div style="font-size: 13px; color: var(--text-secondary, #64748B);">
-              Click một chạm chuyển trạng thái ca hẹn • Tự động xếp hàng theo khung giờ
+            <div style="font-size: 12.5px; color: var(--text-secondary);">
+              Hiển thị ca hẹn ngày <strong style="color: #f59e0b;">${SalonUtils.formatDate(workstationDate)}</strong> • Tự động highlight ca gần nhất
             </div>
           </div>
 
           <div class="admin-kanban-board stylist-timeline-board">
             ${pagedWorkstations.map((st, sIdx) => {
               const globalChairNum = (this.dispatchPage - 1) * this.pageSize + sIdx + 1;
-              const stBookings = filtered.filter(b => b.stylistId === st.id || (b.stylistName && b.stylistName.includes(st.name)));
+              const stBookings = workstationBookings.filter(b => b.stylistId === st.id || (b.stylistName && b.stylistName.includes(st.name)));
               const hasInProgress = stBookings.some(b => (b.status || '').toLowerCase() === 'in_progress');
               const statusClass = hasInProgress ? 'stylist-status-busy' : 'stylist-status-available';
               const statusText = hasInProgress ? '⚡ Đang Phục Vụ' : '🟢 Ghế Rảnh';
@@ -1157,26 +1306,43 @@
                   <div class="workstation-cards-container stylist-col-cards-list">
                     ${stBookings.length === 0 ? `
                       <div class="timeline-empty-notice" style="padding: 24px 12px; text-align: center; color: var(--text-secondary); font-size: 12px; border: 1px dashed var(--border-color); border-radius: 12px; background: rgba(255,255,255,0.02);">
-                        Ghế đang trống • Sẵn sàng nhận khách Walk-in
+                        Ghế đang trống ca ${SalonUtils.formatDate(workstationDate)} • Sẵn sàng nhận khách Walk-in
                       </div>
                     ` : stBookings.map(b => {
+                      const bDate = b.date || b.bookingDate;
+                      const bTime = (b.timeSlot || '00:00').trim();
                       const isConf = (b.status || '').toLowerCase() === 'confirmed';
                       const isInProg = (b.status || '').toLowerCase() === 'in_progress';
                       const isDone = (b.status || '').toLowerCase() === 'completed';
+                      const isNearest = (b.id === nearestBookingId);
+                      const isPast = (bDate < todayStr) || (bDate === todayStr && bTime < nowTime && isConf);
+                      const isToday = (bDate === todayStr);
+
+                      let cardModifierClass = '';
+                      if (isNearest) cardModifierClass = 'booking-nearest';
+                      else if (isPast) cardModifierClass = 'booking-past';
+                      else if (isToday) cardModifierClass = 'booking-today';
 
                       return `
-                        <div class="kanban-booking-card timeline-booking-card ${isInProg ? 'in-progress' : ''}" style="margin-bottom: 10px; background: var(--surface-card); border: 1px solid ${isInProg ? 'var(--brand-accent)' : 'var(--border-color)'}; border-radius: 14px; padding: 14px;">
+                        <div class="kanban-booking-card timeline-booking-card ${cardModifierClass} ${isInProg ? 'in-progress' : ''}" style="margin-bottom: 10px; background: var(--surface-card); border: 1.5px solid ${isNearest ? '#f59e0b' : (isInProg ? '#f59e0b' : 'var(--border-color)')}; border-radius: 14px; padding: ${isToday ? '16px' : '13px'};">
                           <div class="timeline-card-time" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-weight: 800; font-size: 13.5px; color: var(--text-primary, #FFFFFF);">⏰ ${this.escapeHtml(b.timeSlot || '')}</span>
-                            <span style="font-size: 11px; font-weight: 800; color: ${isInProg ? '#E5B869' : (isDone ? '#10B981' : '#94A3B8')};">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                              <span style="font-weight: 800; font-size: ${isToday ? '15px' : '13.5px'}; color: var(--text-primary, #FFFFFF);">
+                                ⏰ ${this.escapeHtml(b.timeSlot || '')}
+                              </span>
+                              ${isNearest ? `<span class="booking-nearest-tag">⭐ SẮP TỚI</span>` : ''}
+                              ${isPast ? `<span class="booking-past-badge">⏳ Đã qua</span>` : ''}
+                              ${isToday && !isNearest ? `<span style="font-size: 10px; font-weight: 800; background: #f59e0b; color: #000; padding: 2px 5px; border-radius: 4px;">HÔM NAY</span>` : ''}
+                            </div>
+                            <span style="font-size: 11px; font-weight: 800; color: ${isInProg ? '#f59e0b' : (isDone ? '#10B981' : '#94A3B8')};">
                               ${isDone ? '✓ Hoàn tất' : (isInProg ? '⚡ Đang cắt' : '⏳ Chờ đến')}
                             </span>
                           </div>
-                          <div class="timeline-card-customer" style="font-size: 14.5px; font-weight: 800; color: var(--text-primary, #FFFFFF); margin-bottom: 4px;">
+                          <div class="timeline-card-customer" style="font-size: ${isToday ? '15px' : '14px'}; font-weight: 800; color: var(--text-primary, #FFFFFF); margin-bottom: 4px;">
                             ${this.escapeHtml(b.customerName || 'Khách Hàng')} 
                             <span style="font-size: 12px; font-weight: 400; color: var(--text-secondary);">(${this.escapeHtml(b.customerPhone || '')})</span>
                           </div>
-                          <div class="timeline-card-service" style="font-size: 13px; color: var(--brand-accent); font-weight: 700; margin-bottom: 10px;">
+                          <div class="timeline-card-service" style="font-size: 13px; color: #f59e0b; font-weight: 700; margin-bottom: 10px;">
                             ✂️ ${this.escapeHtml(b.serviceName || 'Dịch vụ')} • ${SalonUtils.formatCurrency(b.totalPrice || 0)}
                           </div>
                           <div class="timeline-card-actions" style="display: flex; gap: 8px;">
@@ -1187,7 +1353,7 @@
                               </button>
                             ` : ''}
                             ${isInProg ? `
-                              <button type="button" class="btn-submit-terracotta" style="padding: 6px 12px; font-size: 11.5px; background: #10B981; border-color: #10B981; flex: 1;" 
+                              <button type="button" class="btn-submit-terracotta" style="padding: 6px 12px; font-size: 11.5px; background: #10B981; border-color: #10B981; color: #fff; flex: 1;" 
                                       onclick="AdminWeb.updateBookingStatus('${b.id}', 'Completed')" title="Hoàn tất ca cắt tóc">
                                 ✓ Hoàn Tất Ca Cắt
                               </button>
@@ -1210,19 +1376,22 @@
         </div>
       `;
 
+      // 6. Phân trang cho bảng danh sách lịch hẹn
       this.bookingsPage = this.bookingsPage || 1;
       const bookingsTotalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
       if (this.bookingsPage > bookingsTotalPages) this.bookingsPage = bookingsTotalPages;
       const pagedBookings = filtered.slice((this.bookingsPage - 1) * this.pageSize, this.bookingsPage * this.pageSize);
 
       return `
+        ${customerSearchHtml}
         ${timelineHtml}
+
         <div class="admin-table-container">
-          <!-- Toolbar Bộ Lọc & Tìm Kiếm -->
+          <!-- Toolbar Bộ Lọc & Tìm Kiếm Bảng -->
           <div class="admin-table-toolbar">
             <div class="table-filter-group">
               <input type="text" class="table-search-input" 
-                     placeholder="Tìm theo Mã, Tên, SĐT..." 
+                     placeholder="Lọc bảng theo Mã, Tên, SĐT..." 
                      value="${this.escapeHtml(this.searchQuery)}"
                      oninput="AdminWeb.searchQuery = this.value; AdminWeb.bookingsPage = 1; AdminWeb.refreshBookingsTable();">
 
@@ -1256,7 +1425,7 @@
             </div>
           </div>
 
-          <!-- Bảng Dữ Liệu Enterprise -->
+          <!-- Bảng Dữ Liệu Enterprise (Có phân biệt Highlight, Mờ lịch qua, Lớn lịch hôm nay) -->
           <div style="overflow-x: auto;">
             <table class="admin-enterprise-table">
               <thead>
@@ -1264,10 +1433,10 @@
                   <th>Mã Lịch</th>
                   <th>Khách Hàng</th>
                   <th>Số Điện Thoại</th>
-                  <th>Dịch Vụ / Combo</th>
+                  <th>Dịch Vụ Đã Đặt</th>
                   <th>Chi Nhánh</th>
                   <th>Barber Phục Vụ</th>
-                  <th>Ngày & Giờ</th>
+                  <th>Ngày & Giờ Hẹn</th>
                   <th>Tổng Tiền</th>
                   <th>Trạng Thái</th>
                   <th>Chuyển Trạng Thái Nhanh</th>
@@ -1276,24 +1445,46 @@
               </thead>
               <tbody id="adminBookingsTbody">
                 ${pagedBookings.length > 0 ? pagedBookings.map(b => {
+                  const bDate = b.date || b.bookingDate;
+                  const bTime = (b.timeSlot || '00:00').trim();
                   const statusInfo = SalonUtils.formatBookingStatus(b.status);
                   const isConfirmed = (b.status || '').toLowerCase() === 'confirmed';
                   const isInProgress = (b.status || '').toLowerCase() === 'in_progress';
                   const isCompleted = (b.status || '').toLowerCase() === 'completed';
+                  const isNearest = (b.id === nearestBookingId);
+                  const isPast = (bDate < todayStr) || (bDate === todayStr && bTime < nowTime && isConfirmed);
+                  const isToday = (bDate === todayStr);
+
+                  let rowClass = '';
+                  if (isNearest) rowClass = 'booking-row-nearest';
+                  else if (isPast) rowClass = 'booking-row-past';
+                  else if (isToday) rowClass = 'booking-row-today';
 
                   return `
-                    <tr>
+                    <tr class="${rowClass}">
                       <td><strong>${this.escapeHtml(b.bookingCode || b.id)}</strong></td>
-                      <td style="font-weight: 700;">${this.escapeHtml(b.customerName)}</td>
+                      <td style="font-weight: 700;">
+                        ${isToday ? `<span class="booking-today-badge">HÔM NAY</span>` : ''}
+                        ${isNearest ? `<span class="booking-nearest-tag">⭐ GẦN NHẤT</span>` : ''}
+                        ${this.escapeHtml(b.customerName)}
+                      </td>
                       <td>${this.escapeHtml(b.customerPhone)}</td>
-                      <td>${this.escapeHtml(b.serviceName || 'Dịch vụ')}</td>
+                      <td>
+                        <strong>${this.escapeHtml(b.serviceName || 'Dịch vụ')}</strong>
+                        ${b.servicesList && b.servicesList.length > 1 ? `<div style="font-size: 11px; color: #f59e0b;">(${b.servicesList.length} dịch vụ gộp)</div>` : ''}
+                      </td>
                       <td>${this.escapeHtml(this._getBranchShortName(b.branchName || b.branchId, bMap))}</td>
                       <td><strong>${this.escapeHtml(b.stylistName || 'Barber')}</strong></td>
                       <td>
-                        <strong>${this.escapeHtml(b.timeSlot || '')}</strong>
-                        <div style="font-size: 11px; color: #888;">${SalonUtils.formatDate(b.date || b.bookingDate)}</div>
+                        <strong style="font-size: ${isToday ? '15px' : '13.5px'}; color: ${isNearest ? '#f59e0b' : 'inherit'};">
+                          ⏰ ${this.escapeHtml(b.timeSlot || '')}
+                        </strong>
+                        <div style="font-size: 12px; color: ${isToday ? '#f59e0b; font-weight: 800;' : '#888;'}">
+                          ${isToday ? '🔥 Hôm Nay' : SalonUtils.formatDate(bDate)}
+                          ${isPast ? ' (Quá giờ)' : ''}
+                        </div>
                       </td>
-                      <td style="font-weight: 800; color: #c85a44;">${SalonUtils.formatCurrency(b.totalPrice)}</td>
+                      <td style="font-weight: 900; color: #f59e0b; font-size: ${isToday ? '15px' : '13.5px'};">${SalonUtils.formatCurrency(b.totalPrice)}</td>
                       <td>
                         <span class="status-pill-pulse ${statusInfo.cssClass}">
                           <span class="pulse-dot"></span> ${statusInfo.label}
@@ -1301,7 +1492,15 @@
                       </td>
                       <td>
                         <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
-                          ${isConfirmed ? `
+                          <!-- Nếu khách hẹn ngày mai/ngày khác nhưng hôm nay tới làm sớm lúc 9h -> Nút check-in làm sớm -->
+                          ${!isToday && !isInProgress && !isCompleted ? `
+                            <button class="btn-submit-terracotta" style="padding: 3px 8px; font-size: 10px; background: #d97706;" 
+                                    onclick="AdminWeb.checkinEarlyToday('${b.id}')" title="Khách đặt ngày ${SalonUtils.formatDate(bDate)} nhưng hôm nay tới làm luôn">
+                              ⚡ Làm Hôm Nay
+                            </button>
+                          ` : ''}
+
+                          ${isConfirmed && isToday ? `
                             <button class="btn-submit-terracotta" style="padding: 3px 8px; font-size: 10px;" 
                                     onclick="AdminWeb.updateBookingStatus('${b.id}', 'In_Progress')" title="Nhận khách vào ghế cắt">
                               👉 Check-in
@@ -1362,6 +1561,19 @@
         const stylists = window.store.getStylists();
         content.innerHTML = this.renderBookingsTab(user, bookings, branches, stylists);
       }
+    },
+
+    checkinEarlyToday(bookingId) {
+      if (!bookingId) return;
+      if (window.store && typeof window.store.checkinBookingEarlyToday === 'function') {
+        const b = window.store.checkinBookingEarlyToday(bookingId);
+        if (b && window.UICommon) {
+          window.UICommon.showToast(`⚡ Đã chuyển lịch khách ${b.customerName} sang phục vụ ngay hôm nay (${b.timeSlot})!`, 'success');
+        }
+      } else {
+        window.store.updateBookingStatus(bookingId, 'In_Progress');
+      }
+      this.refreshBookingsTable();
     },
 
     updateBookingStatus(bookingId, newStatus) {
@@ -1914,6 +2126,7 @@
                   <th>Tên Sản Phẩm</th>
                   <th>Thương Hiệu</th>
                   <th>Đơn Giá Bán</th>
+                  <th style="color: #10b981;">Giá Gốc (Nhập)</th>
                   <th>Tồn Kho</th>
                   <th>Tình Trạng Kho</th>
                   <th style="min-width: 175px;">Điều Chỉnh Nhanh</th>
@@ -1923,6 +2136,7 @@
               <tbody>
                 ${pagedInventory.length > 0 ? pagedInventory.map(item => {
                   const stock = item.stock || 0;
+                  const costPriceVal = item.costPrice !== undefined ? item.costPrice : (item.GiaNhap !== undefined ? item.GiaNhap : Math.round((item.price || 250000) * 0.7));
                   let badge = '';
                   if (stock > 5) {
                     badge = `<span class="stock-badge-safe">✓ Còn Hàng (${stock})</span>`;
@@ -1946,7 +2160,8 @@
                           ${this.escapeHtml(item.brand || 'CHÍNH HÃNG')}
                         </span>
                       </td>
-                      <td style="font-weight: 800; color: #c85a44;">${SalonUtils.formatCurrency(item.price)}</td>
+                      <td style="font-weight: 800; color: #f59e0b;">${SalonUtils.formatCurrency(item.price)}</td>
+                      <td style="font-weight: 700; color: #10b981;">${SalonUtils.formatCurrency(costPriceVal)}</td>
                       <td><strong style="font-size: 14px;">${stock}</strong> hộp/cái</td>
                       <td>${badge}</td>
                       <td>
@@ -1977,7 +2192,7 @@
                   `;
                 }).join('') : `
                   <tr>
-                    <td colspan="9" style="text-align: center; padding: 30px; color: #888;">
+                    <td colspan="10" style="text-align: center; padding: 30px; color: #888;">
                       Không tìm thấy bản ghi tồn kho nào phù hợp.
                     </td>
                   </tr>
@@ -2090,12 +2305,14 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                   <div>
-                    <label class="sub-label">Đơn Giá Bán (VNĐ) <span style="color: #ef4444;">*</span>:</label>
+                    <label class="sub-label">Đơn Giá Bán Ra (VNĐ) <span style="color: #ef4444;">*</span>:</label>
                     <input type="number" id="prodPrice" class="form-control-custom" style="font-weight: 700; color: #fbbf24 !important;" placeholder="350000" value="${product?.price || ''}" required min="1000">
+                    <span style="font-size: 11px; color: #94a3b8;">Giá niêm yết bán cho khách</span>
                   </div>
                   <div>
-                    <label class="sub-label">Giá Gốc / So Sánh (VNĐ):</label>
-                    <input type="number" id="prodOldPrice" class="form-control-custom" placeholder="420000" value="${product?.oldPrice || product?.price || ''}">
+                    <label class="sub-label">Giá Gốc / Giá Nhập Kho (VNĐ) <span style="color: #ef4444;">*</span>:</label>
+                    <input type="number" id="prodCostPrice" class="form-control-custom" style="font-weight: 700; color: #10b981 !important;" placeholder="245000" value="${product?.costPrice || product?.GiaNhap || (product?.price ? Math.round(product.price * 0.7) : 245000)}" required min="1000">
+                    <span style="font-size: 11px; color: #10b981;">Giá vốn thực tế khi nhập hàng</span>
                   </div>
                 </div>
 
@@ -2129,7 +2346,8 @@
       const name = (document.getElementById('prodName')?.value || '').trim();
       const brand = (document.getElementById('prodBrand')?.value || '').trim();
       const price = Number(document.getElementById('prodPrice')?.value) || 0;
-      const oldPrice = Number(document.getElementById('prodOldPrice')?.value) || price;
+      const costPrice = Number(document.getElementById('prodCostPrice')?.value) || Math.round(price * 0.7);
+      const oldPrice = costPrice;
       const stock = Math.max(0, parseInt(document.getElementById('prodStock')?.value) || 0);
       const image = (document.getElementById('prodImage')?.value || '').trim();
       const description = (document.getElementById('prodDescription')?.value || '').trim();
@@ -2141,10 +2359,10 @@
       }
 
       if (productId) {
-        window.store.updateProduct(productId, { name, brand, price, oldPrice, stock, image, description });
+        window.store.updateProduct(productId, { name, brand, price, costPrice, GiaNhap: costPrice, oldPrice, stock, image, description });
         if (window.UICommon) window.UICommon.showToast(`✅ Đã cập nhật sản phẩm [${name}]!`);
       } else {
-        window.store.addProduct({ name, brand, price, oldPrice, stock, image, description });
+        window.store.addProduct({ name, brand, price, costPrice, GiaNhap: costPrice, oldPrice, stock, image, description });
         if (window.UICommon) window.UICommon.showToast(`✅ Đã thêm mới sản phẩm [${name}] vào kho hàng!`);
       }
 

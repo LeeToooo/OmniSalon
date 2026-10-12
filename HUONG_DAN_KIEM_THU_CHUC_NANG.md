@@ -1,7 +1,7 @@
 # HƯỚNG DẪN KIỂM THỬ TOÀN DIỆN HỆ THỐNG OMNISALON TRÊN WEB
 
 > **Môi trường chạy thử nghiệm:**
-> - **Địa chỉ Web:** `http://localhost:8080/`
+> - **Địa chỉ Web:** `http://localhost:3000/`
 > - **Cơ sở dữ liệu:** SQL Server Express (`QL_SALON`) đồng bộ REST API Backend.
 > - **Hỗ trợ giao diện:** Giao diện Máy tính (Desktop Web) & Giao diện Điện thoại (Mobile Web / F12 Responsive).
 
@@ -23,12 +23,12 @@
 ## CHỨC NĂNG 1 (WEB): QUẢN LÝ DỊCH VỤ VÀ NHÂN VIÊN
 
 ### 1.1. Quản lý dịch vụ, bảng giá
-- **Đường dẫn truy cập:** Đăng nhập tài khoản `admin` $\rightarrow$ Bấm nút **👑 QUẢN TRỊ** trên Header (hoặc truy cập `http://localhost:8080/admin`) $\rightarrow$ Chọn tab **`✂️ Dịch Vụ & Combo`**.
+- **Đường dẫn truy cập:** Đăng nhập tài khoản `admin` $\rightarrow$ Bấm nút **👑 QUẢN TRỊ** trên Header (hoặc truy cập `http://localhost:3000/admin`) $\rightarrow$ Chọn tab **`✂️ Dịch Vụ & Combo`**.
 - **Các bước kiểm thử:**
   1. **Xem danh sách dịch vụ & bảng giá:** Kiểm tra danh sách dịch vụ hiện ra gồm các danh mục (Cắt tóc tạo kiểu, Uốn texture, Nhuộm màu, Cạo mặt khăn nóng, Combo VIP toàn diện) cùng giá niêm yết rõ ràng.
   2. **Lọc theo danh mục:** Bấm vào các nút danh mục (*Cắt tóc*, *Uốn tóc*, *Nhuộm*, *Combo*) để kiểm tra bộ lọc hoạt động tức thì.
   3. **Chỉnh sửa giá dịch vụ:** Bấm nút **✏️ Sửa** tại một dịch vụ bất kỳ $\rightarrow$ Thay đổi giá bán hoặc thời lượng ca $\rightarrow$ Bấm **Lưu thay đổi** $\rightarrow$ Kiểm tra thông báo Toast thành công và giá mới được cập nhật.
-  4. **Khách hàng xem bảng giá:** Truy cập trang `http://localhost:8080/services` để xác nhận giá vừa cập nhật đã hiển thị đồng bộ cho khách hàng.
+  4. **Khách hàng xem bảng giá:** Truy cập trang `http://localhost:3000/services` để xác nhận giá vừa cập nhật đã hiển thị đồng bộ cho khách hàng.
 
 ---
 
@@ -67,7 +67,7 @@
 ### 1.5. Quản lý khuyến mãi (Voucher & Flash Sale)
 - **Đường dẫn truy cập:**
   - Giao diện Admin: Tab **`✂️ Dịch Vụ & Combo`** (Mục Khuyến Mãi) hoặc Tab **`💳 Thu Ngân POS`**.
-  - Giao diện Cửa hàng: `http://localhost:8080/shop` (Bộ lọc *⚡ Ưu Đãi Flash Sale*).
+  - Giao diện Cửa hàng: `http://localhost:3000/shop` (Bộ lọc *⚡ Ưu Đãi Flash Sale*).
 - **Các bước kiểm thử:**
   1. **Kiểm tra danh sách mã ưu đãi:** Xác nhận các voucher hệ thống:
      - `OMNIWELCOME`: Giảm 50.000 đ cho khách hàng mới.

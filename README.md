@@ -186,7 +186,7 @@ OmniSalon/
 1. Nhấp đúp chuột trái vào tệp: **`start_server.bat`**.
 2. Kịch bản sẽ tự động chạy **`node server.js`** kết nối trực tiếp với `QL_SALON.sql`.
 3. Mở trình duyệt web và truy cập địa chỉ:
-   👉 **`http://localhost:8080`**
+   👉 **`http://localhost:3000`**
 
 ---
 
@@ -194,17 +194,17 @@ OmniSalon/
 1. Mở Terminal / PowerShell tại thư mục `OmniSalon`.
 2. Chạy lệnh:
    ```bash
-   node server.js
+   node web/backend/server.js
    ```
-3. *Tùy chọn*: Thay đổi cổng lắng nghe thông qua biến môi trường (mặc định là `8080`):
+3. *Tùy chọn*: Thay đổi cổng lắng nghe thông qua biến môi trường (mặc định là `3000`):
    ```bash
    # Trên Command Prompt
-   set PORT=3000 && node server.js
+   set PORT=3000 && node web/backend/server.js
 
    # Trên PowerShell
-   $env:PORT=3000; node server.js
+   $env:PORT=3000; node web/backend/server.js
    ```
-4. Truy cập web tại: **`http://localhost:8080`** (hoặc cổng bạn vừa chỉ định).
+4. Truy cập web tại: **`http://localhost:3000`** (hoặc cổng bạn vừa chỉ định).
 
 ---
 

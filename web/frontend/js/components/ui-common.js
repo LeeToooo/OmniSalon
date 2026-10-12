@@ -618,29 +618,33 @@ const UICommon = {
       || window.store.getComboById(this.bookingData.serviceId);
     const stylist = window.store.getStylistById(this.bookingData.stylistId);
     const branch = window.store.getBranchById(this.bookingData.branchId);
-    const duration = Number(service ? (service.duration || service.duration_minutes || 45) : 45);
+    const duration = Number(this.bookingData.durationMinutes || (service ? (service.duration || service.duration_minutes || 45) : 45));
     const user = window.store.getCurrentUser();
 
     const rawNotes = (this.bookingData.notes || '').trim();
     const cleanNotes = rawNotes ? rawNotes.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;' }[c])) : '';
     const paymentMethod = this.bookingData.paymentMethod || 'VietQR';
+    const finalServiceName = this.bookingData.serviceName || (service ? service.name : 'Dịch Vụ Cắt Tóc Barber');
+    const finalPrice = Number(this.bookingData.totalPrice !== undefined ? this.bookingData.totalPrice : (service ? service.price : 180000));
 
     try {
       const newBooking = window.store.addBooking({
         userId: user ? user.id : null,
         serviceId: this.bookingData.serviceId,
-        serviceName: service ? service.name : 'Cắt Tóc Barber',
+        serviceIds: this.bookingData.serviceIds || [this.bookingData.serviceId],
+        servicesList: this.bookingData.servicesList || [],
+        serviceName: finalServiceName,
         comboId: service && service.category === 'combo' ? service.id : null,
         durationMinutes: duration,
         branchId: this.bookingData.branchId,
-        branchName: branch ? branch.name : 'Omni Salon',
+        branchName: branch ? branch.name : 'Omni Salon Central',
         stylistId: this.bookingData.stylistId,
-        stylistName: stylist ? stylist.name : 'Master Barber',
+        stylistName: stylist ? stylist.name : (this.bookingData.stylistName || 'Master Barber Chuyên Nghiệp'),
         date: this.bookingData.date,
         timeSlot: this.bookingData.timeSlot,
         customerName: name,
         customerPhone: phone,
-        totalPrice: service ? service.price : 180000,
+        totalPrice: finalPrice,
         paymentMethod: paymentMethod,
         notes: cleanNotes
       });

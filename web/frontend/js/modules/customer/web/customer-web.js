@@ -224,10 +224,10 @@
       headerEl.innerHTML = `
         <header class="web-main-header">
           <div class="web-header-inner">
-            <!-- CỤM 1 (TRÁI): Brand Logo Omni Salon + Slogan -->
+            <!-- CỤM 1 (TRÁI): Brand Logo Omni Salon + Slogan Barber Style -->
             <div class="brand-logo-wrap flex-shrink-0" onclick="CustomerWeb.switchTab('home')" style="cursor: pointer;" title="Về trang chủ Omni Salon">
-              <span class="logo-text-omni">Omni Salon</span>
-              <span class="logo-sub-text">CHĂM SÓC &amp; TẠO KIỂU TÓC CAO CẤP</span>
+              <span class="logo-text-omni" style="letter-spacing: -0.02em; font-weight: 900;">✂️ OMNI SALON</span>
+              <span class="logo-sub-text" style="color: #f59e0b; font-weight: 800; letter-spacing: 0.04em;">HAIR CARE &amp; AUTHENTIC BARBER CULTURE</span>
             </div>
 
             <!-- CỤM 2 (GIỮA): Navigation Links thuần tiếng Việt -->
