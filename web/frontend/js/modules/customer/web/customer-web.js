@@ -405,10 +405,17 @@
     switchTab(tab) {
       if (tab === 'admin') {
         const user = this.getCurrentUser();
-        const isAuthorized = this.isAdminUser(user);
+        const isAdmin = this.isAdminUser(user);
 
-        if (!isAuthorized) {
-          this.handleAdminDenied();
+        if (!isAdmin) {
+          if (!user) {
+            if (window.UICommon) {
+              window.UICommon.showToast('Vui lòng đăng nhập với tài khoản Quản trị viên (Admin)!', 'warning');
+              window.UICommon.openAuthModal('login');
+            }
+          } else {
+            this.handleAdminDenied();
+          }
           return;
         }
 
@@ -420,10 +427,11 @@
           const main = document.getElementById('webMainContainer');
           if (main) window.AdminWeb.render(main);
         }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
 
-      this.currentTab = tab;
+      this.currentTab = tab || 'home';
       this.renderHeader();
 
       const routeMap = {
@@ -442,6 +450,7 @@
       } else {
         this.renderMainContent();
       }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 
     // -----------------------------------------------------------------------
@@ -795,15 +804,65 @@
       const container = document.getElementById('webMainContainer');
       if (!container) return;
 
+      const routeMap = {
+        'home': '/',
+        'services': '/services',
+        'stylists': '/stylists',
+        'booking': '/booking',
+        'shop': '/shop',
+        'branches': '/branches',
+        'ai': '/ai-studio',
+        'admin': '/admin'
+      };
+      const targetRoute = routeMap[this.currentTab] || '/';
+
+      if (window.AppRouter && window.AppRouter.routes && typeof window.AppRouter.routes[targetRoute] === 'function') {
+        window.AppRouter.resolveRoute(targetRoute, false);
+        return;
+      }
+
       if (this.currentTab === 'admin') {
         if (window.AdminWeb && typeof window.AdminWeb.render === 'function') {
           window.AdminWeb.render(container);
+          return;
+        }
+        if (window.AdminPortal && typeof window.AdminPortal.render === 'function') {
+          window.AdminPortal.render(container);
           return;
         }
         if (window.UIWeb && typeof window.UIWeb.renderAdminView === 'function') {
           window.UIWeb.renderAdminView(container);
           return;
         }
+      }
+
+      if (this.currentTab === 'services' && window.ServicesPage) {
+        window.ServicesPage.render(container);
+        return;
+      }
+      if (this.currentTab === 'stylists' && window.StylistsPage) {
+        window.StylistsPage.render(container);
+        return;
+      }
+      if (this.currentTab === 'booking' && window.BookingPage) {
+        window.BookingPage.render(container);
+        return;
+      }
+      if (this.currentTab === 'shop' && window.ShopPage) {
+        window.ShopPage.render(container);
+        return;
+      }
+      if (this.currentTab === 'branches' && window.BranchesPage) {
+        window.BranchesPage.render(container);
+        return;
+      }
+      if (this.currentTab === 'ai' && window.AiStudioPage) {
+        window.AiStudioPage.render(container);
+        return;
+      }
+      if (window.HomePage && typeof window.HomePage.render === 'function') {
+        window.HomePage.render(container);
+        return;
       }
 
       const newProducts = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts('new') : [];
@@ -2416,82 +2475,6 @@
         this.renderHeader();
         this.renderMainContent();
       }
-    },
-
-    // -----------------------------------------------------------------------
-    // 7. ROLE GUARD CHUYỂN TAB VÀ TƯƠNG THÍCH ĐA PHÂN HỆ
-    // -----------------------------------------------------------------------
-    switchTab(tab) {
-      if (tab === 'admin') {
-        const user = this.getCurrentUser();
-        const isAdmin = this.isAdminUser(user);
-
-        if (!isAdmin) {
-          if (!user) {
-            if (window.UICommon) {
-              window.UICommon.showToast('Vui lòng đăng nhập với tài khoản Quản trị viên (Admin)!', 'warning');
-              window.UICommon.openAuthModal('login');
-            }
-          } else {
-            this.handleAdminDenied();
-          }
-          return;
-        }
-
-        this.currentTab = 'admin';
-        this.renderHeader();
-        if (window.AppRouter && window.AppRouter.currentRoute !== '/admin') {
-          window.AppRouter.navigate('/admin');
-        } else {
-          this.renderMainContent();
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-
-      if (tab === 'services') {
-        this.currentTab = 'services';
-        this.renderHeader();
-        if (window.AppRouter) window.AppRouter.navigate('/services');
-        return;
-      }
-
-      if (tab === 'stylists') {
-        this.currentTab = 'stylists';
-        this.renderHeader();
-        if (window.AppRouter) window.AppRouter.navigate('/stylists');
-        return;
-      }
-
-      if (tab === 'booking') {
-        this.currentTab = 'booking';
-        this.renderHeader();
-        if (window.AppRouter) window.AppRouter.navigate('/booking');
-        return;
-      }
-
-      if (tab === 'shop') {
-        this.currentTab = 'shop';
-        this.renderHeader();
-        if (window.AppRouter) window.AppRouter.navigate('/shop');
-        return;
-      }
-
-      if (tab === 'ai') {
-        if (typeof this.openCustomerPortalModal === 'function') {
-          this.openCustomerPortalModal('gallery');
-        }
-        return;
-      }
-
-      this.currentTab = tab || 'home';
-      this.renderHeader();
-      if (window.AppRouter && window.AppRouter.currentRoute !== '/') {
-        window.AppRouter.navigate('/');
-      } else {
-        this.renderMainContent();
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

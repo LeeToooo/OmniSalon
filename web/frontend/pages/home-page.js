@@ -541,6 +541,28 @@
 
   window.HomePage = HomePage;
 
+  // Tự động lắng nghe và cập nhật giao diện khi CSDL SQL tải xong
+  if (typeof window !== 'undefined') {
+    const attachHomeSync = () => {
+      if (window.store && typeof window.store.subscribe === 'function') {
+        window.store.subscribe((state, event) => {
+          if (event === 'LIVE_SERVER_SYNC' || event === 'STATE_CHANGE') {
+            const container = document.getElementById('webMainContainer');
+            if (container && window.AppRouter && window.AppRouter.currentRoute === '/') {
+              const currentView = container.querySelector('.page-view') || container;
+              HomePage.render(currentView);
+            }
+          }
+        });
+      }
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attachHomeSync);
+    } else {
+      attachHomeSync();
+    }
+  }
+
 })(typeof window !== 'undefined' ? window : this);
 
 
