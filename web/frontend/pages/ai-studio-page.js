@@ -91,7 +91,7 @@
           <!-- Header Hero -->
           <div style="text-align: center; margin-bottom: 36px;">
             <div class="nordic-hero-badge" style="margin-bottom: 12px;">
-              <span>⚡</span> OMNI NEURAL AI VISION STUDIO • 3D HAIR RESTYLE
+              OMNI NEURAL AI VISION STUDIO • 3D HAIR RESTYLE
             </div>
             <h1 style="font-size: clamp(30px, 3.5vw, 46px); font-weight: 900; color: #FFFFFF; letter-spacing: -0.02em;">
               AI Đổi Kiểu Tóc 3D Thực Tế Ảo
@@ -109,7 +109,7 @@
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                   <span style="font-size: 13px; font-weight: 800; color: #F59E0B; letter-spacing: 0.08em; text-transform: uppercase;">
-                    📸 CHÂN DUNG CỦA BẠN (PORTRAIT)
+                    CHÂN DUNG CỦA BẠN (PORTRAIT)
                   </span>
                   <span id="aiUploadStatusBadge" style="font-size: 11px; color: #10B981; font-weight: 700;">
                     ${this.state.uploadedImage ? '✓ Sẵn sàng phân tích' : 'Chưa chọn ảnh'}
@@ -149,8 +149,8 @@
 
                   <!-- Empty Placeholder UI -->
                   <div id="aiEmptyUploadUI" style="display: ${this.state.uploadedImage ? 'none' : 'flex'}; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px;">
-                      📁
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #F59E0B; margin-bottom: 12px;">
+                      FILE
                     </div>
                     <h4 style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">Kéo thả ảnh chân dung vào đây</h4>
                     <p style="font-size: 12px; color: #94A3B8; max-width: 260px; margin-bottom: 10px; line-height: 1.4;">
@@ -184,7 +184,7 @@
               <div>
                 <div style="margin-bottom: 16px;">
                   <span style="font-size: 13px; font-weight: 800; color: #F59E0B; letter-spacing: 0.08em; text-transform: uppercase;">
-                    ✂️ DANH SÁCH 4 PHOM TÓC CHỌN NHANH
+                    DANH SÁCH 4 PHOM TÓC CHỌN NHANH
                   </span>
                   <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">Chọn 1 phom tóc bên dưới để ướm thử cùng công nghệ AI:</p>
                 </div>
@@ -232,20 +232,20 @@
               <!-- NÚT CTA 'Tạo Kiểu Ngay' CÓ LOADING STATE -->
               <div>
                 <button type="button" class="nordic-btn-primary btn-magnetic" id="btnRunAiRestyle" onclick="AiStudioPage.runAiRestyle()"
-                        style="width: 100%; height: 50px; font-size: 14px; font-weight: 900; letter-spacing: 0.03em; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);">
+                        style="width: 100%; height: 50px; font-size: 14px; font-weight: 900; letter-spacing: 0.03em; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: none;">
                   <span id="aiBtnSpinner" style="display: none; width: 18px; height: 18px; border: 2px solid #0F172A; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-                  <span id="aiBtnIcon">⚡</span>
+                  <span id="aiBtnIcon"></span>
                   <span id="aiBtnText">Tạo Kiểu Ngay</span>
                 </button>
 
                 <!-- Result Actions -->
                 <div id="aiResultActions" style="display: ${this.state.hasResult ? 'flex' : 'none'}; gap: 10px; margin-top: 12px;">
                   <button type="button" class="nordic-btn-primary" onclick="AiStudioPage.bookThisHairstyle()"
-                          style="flex: 1; padding: 11px 14px; font-size: 12px; font-weight: 800; background: #10B981; color: #FFFFFF; border: none; border-radius: 10px; cursor: pointer;">
-                    📅 Đặt Lịch Làm Kiểu Này →
+                          style="flex: 1; padding: 11px 14px; font-size: 12px; font-weight: 800; background: #10B981; color: #FFFFFF; border: none; border-radius: 10px; cursor: pointer; box-shadow: none;">
+                    Đặt Lịch Làm Kiểu Này →
                   </button>
-                  <button type="button" class="nordic-btn-secondary" onclick="AiStudioPage.resetAiRestyle()" style="padding: 11px 14px; font-size: 12px; font-weight: 700;">
-                    🔄 Thử Mẫu Khác
+                  <button type="button" class="nordic-btn-secondary" onclick="AiStudioPage.resetAiRestyle()" style="padding: 11px 14px; font-size: 12px; font-weight: 700; box-shadow: none;">
+                    Thử Mẫu Khác
                   </button>
                 </div>
               </div>
@@ -266,7 +266,7 @@
       this.state.selectedHairstyle = styleId;
       const found = this.hairstyles.find(h => h.id === styleId);
       if (found && window.UICommon && typeof window.UICommon.showToast === 'function') {
-        window.UICommon.showToast(`✂️ Đã chọn phom tóc: ${found.name}`, 'info');
+        window.UICommon.showToast(`Đã chọn phom tóc: ${found.name}`, 'info');
       }
       this._updateHairstyleUI();
     },
@@ -275,7 +275,7 @@
       this.state.selectedColor = colorId;
       const found = this.hairColors.find(c => c.id === colorId);
       if (found && window.UICommon && typeof window.UICommon.showToast === 'function') {
-        window.UICommon.showToast(`🎨 Đã chọn màu nhuộm: ${found.name}`, 'info');
+        window.UICommon.showToast(`Đã chọn màu nhuộm: ${found.name}`, 'info');
       }
       this._updateColorUI();
     },
@@ -287,7 +287,7 @@
       if (img) img.src = url;
       this._toggleResultState(false);
       if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-        window.UICommon.showToast('✅ Đã nạp ảnh mẫu chân dung HD', 'success');
+        window.UICommon.showToast('Đã nạp ảnh mẫu chân dung HD', 'success');
       }
     },
 
@@ -316,17 +316,17 @@
       const fileName = (file.name || '').replace(/[\/\\]/g, '');
 
       if (fileName.includes('..') || fileName.includes('<') || fileName.includes('>')) {
-        if (window.UICommon) window.UICommon.showToast('⚠️ Tên tệp chứa ký tự không an toàn!', 'error');
+        if (window.UICommon) window.UICommon.showToast('Tên tệp chứa ký tự không an toàn!', 'error');
         return;
       }
 
       if (!allowedTypes.includes(file.type.toLowerCase()) && !allowedExtensions.test(fileName)) {
-        if (window.UICommon) window.UICommon.showToast('⚠️ Chỉ chấp nhận định dạng ảnh JPG, PNG hoặc WEBP hợp lệ!', 'error');
+        if (window.UICommon) window.UICommon.showToast('Chỉ chấp nhận định dạng ảnh JPG, PNG hoặc WEBP hợp lệ!', 'error');
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        if (window.UICommon) window.UICommon.showToast('⚠️ Dung lượng ảnh không được vượt quá 5MB!', 'error');
+        if (window.UICommon) window.UICommon.showToast('Dung lượng ảnh không được vượt quá 5MB!', 'error');
         return;
       }
 
@@ -346,7 +346,7 @@
           statusBadge.style.color = '#10B981';
         }
         this._toggleResultState(false);
-        if (window.UICommon) window.UICommon.showToast('📸 Đã tải ảnh khuôn mặt lên thành công! Bấm Bắt Đầu Phân Tích để thử kiểu.', 'success');
+        if (window.UICommon) window.UICommon.showToast('Đã tải ảnh khuôn mặt lên thành công! Bấm Bắt Đầu Phân Tích để thử kiểu.', 'success');
       };
       reader.readAsDataURL(file);
     },
@@ -420,7 +420,7 @@
             if (mesh) mesh.style.display = 'none';
             if (hud) hud.style.display = 'none';
             if (spinner) spinner.style.display = 'none';
-            if (icon) icon.style.display = 'inline';
+            if (icon) icon.style.display = 'none';
             if (text) text.textContent = 'Bắt Đầu Phân Tích & Thử Kiểu';
             if (btn) {
               btn.disabled = false;
@@ -436,7 +436,7 @@
             this._toggleResultState(true);
 
             if (window.UICommon) {
-              window.UICommon.showToast(`🎉 Tạo mẫu 3D "${currentStyle ? currentStyle.name : 'Tóc'}" thành công!`, 'success');
+              window.UICommon.showToast(`Tạo mẫu 3D "${currentStyle ? currentStyle.name : 'Tóc'}" thành công!`, 'success');
             }
           }, 400);
         }
@@ -494,7 +494,7 @@
       }
 
       if (window.UICommon) {
-        window.UICommon.showToast('💾 Đã lưu mẫu tóc vào Thư Viện Cá Nhân của bạn!', 'success');
+        window.UICommon.showToast('Đã lưu mẫu tóc vào Thư Viện Cá Nhân của bạn!', 'success');
       }
     },
 

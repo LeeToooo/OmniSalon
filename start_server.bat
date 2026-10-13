@@ -36,8 +36,9 @@ if not exist "%~dp0node_modules\msnodesqlv8" (
 )
 
 REM 3. Kiem tra dich vu SQL Server
-echo [3/4] [SQL] Kiem tra dich vu SQL Server (SQLEXPRESS)...
+echo [3/4] [SQL] Kiem tra dich vu SQL Server (SQLEXPRESS hoac MSSQLSERVER)...
 net start MSSQL$SQLEXPRESS >nul 2>nul
+net start MSSQLSERVER >nul 2>nul
 echo [3/4] [OK] SQL Server da san sang.
 
 REM 4. Kiem tra va tu dong khoi tao CSDL qua setup_db.js

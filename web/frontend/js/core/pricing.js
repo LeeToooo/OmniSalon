@@ -272,15 +272,15 @@
       // Chính sách bí mật salon: ẩn hạn dùng, hiển thị Flash Sale cho khách
       if (days <= 30) {
         discountPercent = 70;
-        customerBadge = '⚡ Flash Sale -70%';
+        customerBadge = 'Flash Sale -70%';
         tier = 'CRITICAL';
       } else if (days <= 90) {
         discountPercent = 40;
-        customerBadge = '⚡ Flash Sale -40%';
+        customerBadge = 'Flash Sale -40%';
         tier = 'WARNING';
       } else if (days <= 180) {
         discountPercent = 20;
-        customerBadge = '⚡ Flash Sale -20%';
+        customerBadge = 'Flash Sale -20%';
         tier = 'NEAR';
       }
 

@@ -13,20 +13,34 @@ const SQL_FILE = fs.existsSync(path.join(__dirname, 'QL_SALON.sql'))
   ? path.join(__dirname, 'QL_SALON.sql') 
   : (fs.existsSync(path.join(ROOT_DIR, 'web', 'backend', 'QL_SALON.sql')) ? path.join(ROOT_DIR, 'web', 'backend', 'QL_SALON.sql') : path.join(ROOT_DIR, 'QL_SALON.sql'));
 const DB_NAME = process.env.SQL_DATABASE || 'QL_SALONTOC';
-const SERVER_INSTANCES = [
-  process.env.SQL_SERVER,
-  '.\\SQLEXPRESS',
-  'localhost\\SQLEXPRESS',
-  '(local)\\SQLEXPRESS',
-  'localhost',
-  '.'
-].filter(Boolean);
 
+// Thứ tự driver thông dụng, ưu tiên Driver 17 và SQL Server để tránh lỗi mã hóa Driver 18
 const DRIVERS = [
-  'ODBC Driver 18 for SQL Server',
   'ODBC Driver 17 for SQL Server',
-  'SQL Server'
+  'SQL Server',
+  'ODBC Driver 18 for SQL Server'
 ];
+
+function getDynamicServerInstances() {
+  const instances = [];
+  if (process.env.SQL_SERVER) instances.push(process.env.SQL_SERVER);
+
+  // Kiểm tra Windows services để ưu tiên đúng instance đang chạy
+  try {
+    const scOut = execSync('powershell -NoProfile -Command "Get-Service -Name *MSSQL* | Select-Object -ExpandProperty Name"', { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', timeout: 3000 });
+    if (scOut.includes('MSSQL$SQLEXPRESS')) {
+      instances.push('.\\SQLEXPRESS', 'localhost\\SQLEXPRESS');
+    }
+    if (scOut.includes('MSSQLSERVER')) {
+      instances.push('.', 'localhost');
+    }
+  } catch (e) {}
+
+  instances.push('.\\SQLEXPRESS', 'localhost\\SQLEXPRESS', '.', 'localhost', '(local)\\SQLEXPRESS');
+  return [...new Set(instances)];
+}
+
+const SERVER_INSTANCES = getDynamicServerInstances();
 
 function findSqlCmd() {
   // 1. Check in PATH
@@ -53,9 +67,20 @@ function findSqlCmd() {
   return null;
 }
 
-function queryPromise(connStr, query) {
+function queryPromise(connStr, query, timeoutMs = 2500) {
   return new Promise((resolve, reject) => {
+    let finished = false;
+    const timer = setTimeout(() => {
+      if (!finished) {
+        finished = true;
+        reject(new Error(`Timeout sau ${timeoutMs}ms`));
+      }
+    }, timeoutMs);
+
     sql.query(connStr, query, (err, rows) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
       if (err) reject(err);
       else resolve(rows);
     });
@@ -63,9 +88,9 @@ function queryPromise(connStr, query) {
 }
 
 async function testConnection(server, driver, db = 'master') {
-  const connStr = `Server=${server};Database=${db};Trusted_Connection=yes;Driver={${driver}};TrustServerCertificate=yes;`;
+  const connStr = `Server=${server};Database=${db};Trusted_Connection=yes;Driver={${driver}};TrustServerCertificate=yes;LoginTimeout=2;Connection Timeout=2;`;
   try {
-    const rows = await queryPromise(connStr, 'SELECT 1 AS ok;');
+    const rows = await queryPromise(connStr, 'SELECT 1 AS ok;', 2500);
     if (rows && rows.length > 0) return { success: true, connStr };
   } catch (err) {
     return { success: false, error: err.message };
@@ -76,8 +101,10 @@ async function testConnection(server, driver, db = 'master') {
 async function detectWorkingConnection(targetDb = 'master') {
   for (const srv of SERVER_INSTANCES) {
     for (const drv of DRIVERS) {
+      process.stdout.write(`  [PROBE] Thử ${srv} (${drv})...\r`);
       const res = await testConnection(srv, drv, targetDb);
       if (res.success) {
+        process.stdout.write(''.padEnd(60) + '\r');
         return { server: srv, driver: drv, connStr: res.connStr };
       }
     }

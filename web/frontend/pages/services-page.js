@@ -23,7 +23,7 @@
             <!-- Header Banner -->
             <div style="text-align: center; margin-bottom: 36px;">
               <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 9999px; background: var(--brand-accent-subtle); border: 1px solid var(--brand-accent-border); color: var(--brand-accent); font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 14px;">
-                <span>✂️</span> BẢNG DỊCH VỤ • OMNI SALON
+                BẢNG DỊCH VỤ • OMNI SALON
               </div>
               <h1 style="font-size: clamp(30px, 4vw, 44px); font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; margin: 0 0 10px;">
                 Bảng Giá Dịch Vụ &amp; Gói Combo Cắt Tóc
@@ -40,23 +40,23 @@
                 </button>
                 <button class="nordic-pill-tab ${this.activeCategory === 'haircut' ? 'active' : ''}" onclick="ServicesPage.setCategory('haircut')"
                         style="padding: 8px 18px; border-radius: 9999px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.5px solid ${this.activeCategory === 'haircut' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.activeCategory === 'haircut' ? 'var(--brand-accent)' : 'var(--surface-card)'}; color: ${this.activeCategory === 'haircut' ? '#ffffff' : 'var(--text-primary)'};">
-                  ✂️ Cắt Tạo Kiểu
+                  Cắt Tạo Kiểu
                 </button>
                 <button class="nordic-pill-tab ${this.activeCategory === 'perm' ? 'active' : ''}" onclick="ServicesPage.setCategory('perm')"
                         style="padding: 8px 18px; border-radius: 9999px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.5px solid ${this.activeCategory === 'perm' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.activeCategory === 'perm' ? 'var(--brand-accent)' : 'var(--surface-card)'}; color: ${this.activeCategory === 'perm' ? '#ffffff' : 'var(--text-primary)'};">
-                  🌀 Uốn Phục Hồi
+                  Uốn Phục Hồi
                 </button>
                 <button class="nordic-pill-tab ${this.activeCategory === 'color' ? 'active' : ''}" onclick="ServicesPage.setCategory('color')"
                         style="padding: 8px 18px; border-radius: 9999px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.5px solid ${this.activeCategory === 'color' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.activeCategory === 'color' ? 'var(--brand-accent)' : 'var(--surface-card)'}; color: ${this.activeCategory === 'color' ? '#ffffff' : 'var(--text-primary)'};">
-                  🎨 Nhuộm Balayage / Ombre
+                  Nhuộm Balayage / Ombre
                 </button>
                 <button class="nordic-pill-tab ${this.activeCategory === 'spa' || this.activeCategory === 'care' ? 'active' : ''}" onclick="ServicesPage.setCategory('spa')"
                         style="padding: 8px 18px; border-radius: 9999px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.5px solid ${this.activeCategory === 'spa' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.activeCategory === 'spa' ? 'var(--brand-accent)' : 'var(--surface-card)'}; color: ${this.activeCategory === 'spa' ? '#ffffff' : 'var(--text-primary)'};">
-                  ✨ Phục Hồi Chuyên Sâu
+                  Phục Hồi Chuyên Sâu
                 </button>
                 <button class="nordic-pill-tab ${this.activeCategory === 'combo' ? 'active' : ''}" onclick="ServicesPage.setCategory('combo')"
                         style="padding: 8px 18px; border-radius: 9999px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.5px solid ${this.activeCategory === 'combo' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.activeCategory === 'combo' ? 'var(--brand-accent)' : 'var(--surface-card)'}; color: ${this.activeCategory === 'combo' ? '#ffffff' : 'var(--text-primary)'};">
-                  👑 Gói Combo Tiết Kiệm
+                  Gói Combo Tiết Kiệm
                 </button>
               </div>
             </div>
@@ -128,11 +128,11 @@
               <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover;" alt="${item.name || item.TenDichVu}" loading="lazy"
                    onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg');">
               <div style="position: absolute; top: 12px; left: 12px; background: var(--surface-card); padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 800; color: var(--brand-accent); border: 1px solid var(--border-color);">
-                ⏱️ ${durationVal} phút
+                ${durationVal} phút
               </div>
               ${isCombo ? `
                 <div style="position: absolute; top: 12px; right: 12px; background: #166534; color: #ffffff; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 800;">
-                  👑 COMBO VIP
+                  COMBO VIP
                 </div>
               ` : ''}
             </div>
@@ -155,8 +155,8 @@
                   ${originalPrice && originalPrice > actualPrice ? `<span style="font-size: 13px; text-decoration: line-through; color: var(--text-secondary); margin-left: 6px;">${SalonUtils.formatCurrency(originalPrice)}</span>` : ''}
                 </div>
                 <button onclick="ServicesPage.selectAndBook('${item.id}')"
-                        style="height: 42px; padding: 0 18px; border-radius: 10px; background: var(--brand-accent); border: none; color: #ffffff; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(180,131,18,0.25);">
-                  📅 Đặt Lịch
+                        style="height: 42px; padding: 0 18px; border-radius: 10px; background: var(--brand-accent); border: none; color: #ffffff; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: none;">
+                  Đặt Lịch
                 </button>
               </div>
             </div>

@@ -215,8 +215,8 @@
           } else {
             container.innerHTML = `
               <div class="omni-container" style="padding: 100px 20px; text-align: center;">
-                <div style="font-size: 64px; margin-bottom: 20px;">🚫</div>
-                <h2 style="font-size: 28px; color: #EF4444; font-weight: 900; margin-bottom: 12px;">403 FORBIDDEN • TRUY CẬP BỊ TỪ CHỐI</h2>
+                <div style="font-size: 48px; font-weight: 900; color: #EF4444; margin-bottom: 20px; letter-spacing: 0.05em;">403</div>
+                <h2 style="font-size: 28px; color: #EF4444; font-weight: 900; margin-bottom: 12px;">TRUY CẬP BỊ TỪ CHỐI</h2>
                 <p style="color: #CBD5E1; max-width: 520px; margin: 0 auto 24px; font-size: 15px;">Khu vực quản trị chỉ dành riêng cho Quản lý &amp; Nhân viên salon có thẩm quyền.</p>
                 <button class="nordic-btn-primary" onclick="AppRouter.navigate('/')">Quay Lại Trang Chủ</button>
               </div>

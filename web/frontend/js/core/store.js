@@ -162,11 +162,20 @@
     async syncBookingToLiveServer(booking) {
       if (typeof fetch === 'undefined') return;
       try {
-        await fetch(`${this.liveServerUrl}/bookings`, {
+        const res = await fetch(`${this.liveServerUrl}/bookings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(booking)
         });
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data && data.booking && data.booking.id) {
+            booking.id = data.booking.id;
+            booking.MaLichHen = data.booking.id;
+            booking.bookingCode = data.booking.id;
+            this.saveState();
+          }
+        }
       } catch (_) { }
     }
 
@@ -239,6 +248,17 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(product)
+        });
+      } catch (_) { }
+    }
+
+    async syncUpdateProductToLiveServer(productId, updates) {
+      if (typeof fetch === 'undefined') return;
+      try {
+        await fetch(`${this.liveServerUrl}/products/${productId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates)
         });
       } catch (_) { }
     }
@@ -376,15 +396,15 @@
 
       // 9 Danh Mục Sản Phẩm
       const categories = [
-        { id: 'DM01', MaDanhMuc: 'DM01', name: 'Sáp vuốt tóc - Clay & Wax', icon: '💈', description: 'Các sản phẩm clay, wax giữ nếp tóc nam' },
-        { id: 'DM02', MaDanhMuc: 'DM02', name: 'Pomade cổ điển & hiện đại', icon: '✨', description: 'Các dòng pomade, paste tạo kiểu bóng/mờ' },
-        { id: 'DM03', MaDanhMuc: 'DM03', name: 'Xịt tạo phồng & Pre-Styling', icon: '💨', description: 'Grooming tonic, xịt bảo vệ nhiệt' },
-        { id: 'DM04', MaDanhMuc: 'DM04', name: 'Gôm xịt giữ nếp tóc nam', icon: '🧴', description: 'Hairspray cố định form tóc' },
-        { id: 'DM05', MaDanhMuc: 'DM05', name: 'Dầu gội & xả nam - trị gàu', icon: '🧼', description: 'Dầu gội sạch sâu, kiểm soát dầu' },
-        { id: 'DM06', MaDanhMuc: 'DM06', name: 'Bột tạo phồng', icon: '🌾', description: 'Bột tăng volume tức thì' },
-        { id: 'DM07', MaDanhMuc: 'DM07', name: 'Thuốc uốn lạnh & ép side', icon: '🧪', description: 'Sản phẩm kỹ thuật uốn và down perm' },
-        { id: 'DM08', MaDanhMuc: 'DM08', name: 'Chăm sóc râu - Beard Care', icon: '🧔', description: 'Dầu dưỡng và bọt làm sạch râu' },
-        { id: 'DM09', MaDanhMuc: 'DM09', name: 'Dụng cụ tạo kiểu nam', icon: '✂', description: 'Lược bán nguyệt, máy sấy ion chuyên nghiệp' }
+        { id: 'DM01', MaDanhMuc: 'DM01', name: 'Sáp vuốt tóc - Clay & Wax', icon: '', description: 'Các sản phẩm clay, wax giữ nếp tóc nam' },
+        { id: 'DM02', MaDanhMuc: 'DM02', name: 'Pomade cổ điển & hiện đại', icon: '', description: 'Các dòng pomade, paste tạo kiểu bóng/mờ' },
+        { id: 'DM03', MaDanhMuc: 'DM03', name: 'Xịt tạo phồng & Pre-Styling', icon: '', description: 'Grooming tonic, xịt bảo vệ nhiệt' },
+        { id: 'DM04', MaDanhMuc: 'DM04', name: 'Gôm xịt giữ nếp tóc nam', icon: '', description: 'Hairspray cố định form tóc' },
+        { id: 'DM05', MaDanhMuc: 'DM05', name: 'Dầu gội & xả nam - trị gàu', icon: '', description: 'Dầu gội sạch sâu, kiểm soát dầu' },
+        { id: 'DM06', MaDanhMuc: 'DM06', name: 'Bột tạo phồng', icon: '', description: 'Bột tăng volume tức thì' },
+        { id: 'DM07', MaDanhMuc: 'DM07', name: 'Thuốc uốn lạnh & ép side', icon: '', description: 'Sản phẩm kỹ thuật uốn và down perm' },
+        { id: 'DM08', MaDanhMuc: 'DM08', name: 'Chăm sóc râu - Beard Care', icon: '', description: 'Dầu dưỡng và bọt làm sạch râu' },
+        { id: 'DM09', MaDanhMuc: 'DM09', name: 'Dụng cụ tạo kiểu nam', icon: '', description: 'Lược bán nguyệt, máy sấy ion chuyên nghiệp' }
       ];
 
       // 60 Stylists chính xác theo 20 chi nhánh
@@ -877,7 +897,7 @@
     // 4. THỢ CẮT TÓC & ĐIỀU PHỐI CA (THỢ CHÍNH, THỢ PHỤ, QUẢN LÝ)
     // -----------------------------------------------------------------------
     getStylists(branchId = null) {
-      const list = this.state.stylists || [];
+      const list = (this.state.stylists || []).filter(s => s.role !== 'Thu ngân' && s.ChucVu !== 'Thu ngân' && !s.title?.toLowerCase().includes('thu ngân'));
       if (!branchId) return list;
       const tb = this.getBranchById(branchId);
       const tid = tb ? tb.id : branchId;
@@ -1106,11 +1126,24 @@
       const stylist = this.getStylistById(bookingData.stylistId);
       const estimatedEndTime = window.SalonUtils ? window.SalonUtils.calculateEndTime(bookingData.timeSlot, duration) : '11:15';
 
-      const bookingId = bookingData.id || `BK-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
-      const bookingCode = bookingData.bookingCode || `BK-${Math.floor(1000 + Math.random() * 9000)}`;
+      // Sinh mã lịch hẹn chuẩn định dạng CSDL SQL Server (LH01 -> LH11 -> LH12...)
+      let bookingCode = bookingData.bookingCode || bookingData.MaLichHen;
+      if (!bookingCode) {
+        const existingLh = (this.state.bookings || [])
+          .map(b => (b.id || b.MaLichHen || b.bookingCode || ''))
+          .filter(code => /^LH\d+$/i.test(code));
+        let maxNum = 10;
+        existingLh.forEach(code => {
+          const num = parseInt(code.replace(/^LH/i, ''), 10);
+          if (num > maxNum) maxNum = num;
+        });
+        bookingCode = 'LH' + (maxNum + 1 < 10 ? '0' + (maxNum + 1) : (maxNum + 1));
+      }
+      const bookingId = bookingData.id || bookingCode;
 
       const newBooking = {
         id: bookingId,
+        MaLichHen: bookingCode,
         bookingCode,
         userId: bookingData.userId || this.getCurrentUser()?.id || null,
         branchId: bookingData.branchId || (branch ? branch.id : 'CN01'),
@@ -1504,7 +1537,11 @@
         p.costPrice = Number(updates.costPrice);
         p.GiaNhap = Number(updates.costPrice);
       }
-      if (updates.oldPrice !== undefined) p.oldPrice = Number(updates.oldPrice);
+      if (updates.oldPrice !== undefined) {
+        p.oldPrice = Number(updates.oldPrice);
+        p.originalPrice = Number(updates.oldPrice);
+        p.GiaBan = Number(updates.oldPrice);
+      }
       if (updates.image) p.HinhAnh = updates.image;
       if (updates.stock !== undefined) {
         p.SoLuongTon = updates.stock;
@@ -1515,6 +1552,7 @@
       }
       this.logAudit('UPDATE_PRODUCT', `Sản phẩm: #${productId}`, 'Cập nhật thông tin sản phẩm');
       this.saveState();
+      this.syncUpdateProductToLiveServer(productId, updates);
       return p;
     }
 

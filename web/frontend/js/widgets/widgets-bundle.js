@@ -42,11 +42,11 @@
                onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg');">
           <div class="md3-service-card-content">
             <div style="display: flex; justify-content: space-between; align-items: baseline;">
-              <h4 class="md3-service-card-title">${isVipCombo ? '👑 ' : ''}${name}</h4>
+              <h4 class="md3-service-card-title">${isVipCombo ? '[VIP] ' : ''}${name}</h4>
               ${isVipCombo ? `<span style="font-size: 10px; font-weight: 800; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 9999px;">-25%</span>` : ''}
             </div>
             <div class="md3-service-card-meta">
-              <span class="md3-service-duration-chip">⏱️ ${duration} phút</span>
+              <span class="md3-service-duration-chip">${duration} phút</span>
               <span style="font-size: 10px; color: var(--text-secondary);">• Omni Salon</span>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
@@ -114,8 +114,7 @@
           <div class="md3-stylist-level-badge">${level}</div>
 
           <div class="md3-stylist-rating-bar">
-            <span class="gold-star">★</span>
-            <span class="rating-value">${rating}</span>
+            <span class="rating-value">${rating} / 5</span>
             <span class="rating-reviews-tag">(${reviews})</span>
           </div>
           <div class="md3-stylist-served-metric">
@@ -245,9 +244,9 @@
       const groups = this.categorizeSlots(slots);
 
       const sections = [
-        { key: 'morning', label: 'Buổi Sáng', timeRange: '08:00 - 11:30', icon: '🌅', items: groups.morning },
-        { key: 'afternoon', label: 'Buổi Chiều', timeRange: '12:00 - 17:30', icon: '☀️', items: groups.afternoon },
-        { key: 'evening', label: 'Buổi Tối', timeRange: '18:00 - 21:00', icon: '🌙', items: groups.evening }
+        { key: 'morning', label: 'Buổi Sáng', timeRange: '08:00 - 11:30', items: groups.morning },
+        { key: 'afternoon', label: 'Buổi Chiều', timeRange: '12:00 - 17:30', items: groups.afternoon },
+        { key: 'evening', label: 'Buổi Tối', timeRange: '18:00 - 21:00', items: groups.evening }
       ];
 
       return `
@@ -265,7 +264,6 @@
             ${sections.filter(sec => sec.items.length > 0).map(sec => `
               <div class="slot-period-group">
                 <div class="period-group-header">
-                  <span class="period-icon">${sec.icon}</span>
                   <span class="period-label">${sec.label}</span>
                   <span class="period-range">(${sec.timeRange})</span>
                 </div>
@@ -292,7 +290,7 @@
       const value = esc(String(stat.value !== undefined ? stat.value : '0'));
       const growth = esc(stat.growth || stat.growthRate || '+0.0%');
       const isPositive = stat.isPositive !== undefined ? Boolean(stat.isPositive) : !growth.startsWith('-');
-      const icon = stat.icon || '💎';
+      const icon = stat.icon || '';
       const defaultGradient = 'linear-gradient(135deg, #D4AF37 0%, #996515 100%)';
       const gradient = stat.iconGradient || defaultGradient;
       const subtext = esc(stat.subtext || stat.detail || 'So với kỳ trước');
@@ -301,9 +299,9 @@
       return `
         <div class="luxury-stat-card ${options.className || ''}" ${cardId}>
           <div class="stat-card-header">
-            <div class="stat-card-icon-wrap" style="background: ${gradient};">
+            ${icon ? `<div class="stat-card-icon-wrap" style="background: ${gradient};">
               <span class="stat-card-icon">${icon}</span>
-            </div>
+            </div>` : ''}
             <div class="stat-card-growth ${isPositive ? 'growth-positive' : 'growth-negative'}">
               <span class="growth-arrow">${isPositive ? '↗' : '↘'}</span>
               <span class="growth-percentage">${growth}</span>

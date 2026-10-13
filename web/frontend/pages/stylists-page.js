@@ -50,7 +50,7 @@
             <!-- Header Banner -->
             <div style="text-align: center; margin-bottom: 36px;">
               <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 9999px; background: var(--brand-accent-subtle); border: 1px solid var(--brand-accent-border); color: var(--brand-accent); font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 14px;">
-                <span>✂️</span> ĐỘI NGŨ THỢ CẮT TÓC &amp; STYLIST • OMNI SALON
+                ĐỘI NGŨ THỢ CẮT TÓC &amp; STYLIST • OMNI SALON
               </div>
               <h1 style="font-size: clamp(30px, 4vw, 44px); font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; margin: 0 0 10px;">
                 Đội Ngũ Stylist &amp; Thợ Cắt Tóc Chuyên Nghiệp
@@ -61,9 +61,8 @@
 
               <!-- NÚT MỞ BONG BÓNG CHỌN CHI NHÁNH (POPUP BUBBLE SELECTOR) -->
               <div style="display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap;">
-                <button type="button" class="btn-bubble-trigger btn-magnetic" onclick="StylistsPage.openBubbleModal()"
-                        style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 9999px; background: var(--surface-card); border: 2px solid var(--brand-accent); color: var(--text-primary); font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 18px rgba(180, 131, 18, 0.2); transition: all 0.25s ease;">
-                  <span style="font-size: 18px;">📍</span>
+                <button type="button" class="btn-bubble-trigger" onclick="StylistsPage.openBubbleModal()"
+                        style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 9999px; background: var(--surface-card); border: 2px solid var(--brand-accent); color: var(--text-primary); font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: none; transition: all 0.25s ease;">
                   <span>Chi Nhánh: <strong style="color: var(--brand-accent);">${selectedBranchLabel}</strong></span>
                   <span style="background: var(--brand-accent); color: #ffffff; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">${currentCount} Thợ</span>
                   <span style="font-size: 11px; opacity: 0.8; margin-left: 2px;">▼ Nhấn để chọn</span>
@@ -97,7 +96,7 @@
 
             <!-- Tiêu đề Popup -->
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px; border-radius: 9999px; background: var(--brand-accent-subtle); color: var(--brand-accent); font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
-              <span>🎈</span> BẢNG BONG BÓNG KHU VỰC
+              BẢNG BONG BÓNG KHU VỰC
             </div>
             <h3 style="font-size: 22px; font-weight: 900; color: var(--text-primary, #0f172a); margin: 0 0 8px;">
               Chọn Chi Nhánh Salon
@@ -111,8 +110,8 @@
               <!-- Bong bóng 1: Tất Cả Chi Nhánh -->
               <button class="branch-bubble-item ${this.selectedBranch === 'all' ? 'active' : ''}" 
                       onclick="StylistsPage.selectBubbleBranch('all')"
-                      style="padding: 12px 22px; border-radius: 9999px; font-size: 14px; font-weight: 800; cursor: pointer; border: 2px solid ${this.selectedBranch === 'all' ? 'var(--brand-accent, #b48312)' : 'var(--border-color, #cbd5e1)'}; background: ${this.selectedBranch === 'all' ? 'linear-gradient(135deg, #b48312, #d97706)' : 'var(--surface-elevated, #f8fafc)'}; color: ${this.selectedBranch === 'all' ? '#ffffff' : 'var(--text-primary, #0f172a)'}; box-shadow: ${this.selectedBranch === 'all' ? '0 4px 14px rgba(180, 131, 18, 0.4)' : '0 2px 6px rgba(0,0,0,0.04)'}; display: inline-flex; align-items: center; gap: 6px;">
-                ✨ Tất Cả Chi Nhánh (${branches.length})
+                      style="padding: 12px 22px; border-radius: 9999px; font-size: 14px; font-weight: 800; cursor: pointer; border: 2px solid ${this.selectedBranch === 'all' ? 'var(--brand-accent, #b48312)' : 'var(--border-color, #cbd5e1)'}; background: ${this.selectedBranch === 'all' ? '#b48312' : 'var(--surface-elevated, #f8fafc)'}; color: ${this.selectedBranch === 'all' ? '#ffffff' : 'var(--text-primary, #0f172a)'}; box-shadow: none; display: inline-flex; align-items: center; gap: 6px;">
+                Tất Cả Chi Nhánh (${branches.length})
               </button>
 
               <!-- Các bong bóng chi nhánh cụ thể -->
@@ -129,8 +128,7 @@
                 return `
                   <button class="branch-bubble-item ${isSelected ? 'active' : ''}" 
                           onclick="StylistsPage.selectBubbleBranch('${b.id}')"
-                          style="padding: 11px 18px; border-radius: 9999px; font-size: 13.5px; font-weight: 700; cursor: pointer; border: 2px solid ${isSelected ? 'var(--brand-accent, #b48312)' : 'var(--border-color, #cbd5e1)'}; background: ${isSelected ? 'linear-gradient(135deg, #b48312, #d97706)' : 'var(--surface-elevated, #f8fafc)'}; color: ${isSelected ? '#ffffff' : 'var(--text-primary, #0f172a)'}; box-shadow: ${isSelected ? '0 4px 14px rgba(180, 131, 18, 0.4)' : '0 2px 6px rgba(0,0,0,0.04)'}; display: inline-flex; align-items: center; gap: 6px;">
-                    <span>📍</span>
+                          style="padding: 11px 18px; border-radius: 9999px; font-size: 13.5px; font-weight: 700; cursor: pointer; border: 2px solid ${isSelected ? 'var(--brand-accent, #b48312)' : 'var(--border-color, #cbd5e1)'}; background: ${isSelected ? '#b48312' : 'var(--surface-elevated, #f8fafc)'}; color: ${isSelected ? '#ffffff' : 'var(--text-primary, #0f172a)'}; box-shadow: none; display: inline-flex; align-items: center; gap: 6px;">
                     <span>${cleanBranch}</span>
                     <span style="font-size: 11px; opacity: ${isSelected ? '1' : '0.8'}; font-weight: 800; background: ${isSelected ? 'rgba(255,255,255,0.25)' : 'var(--surface-card, #e2e8f0)'}; padding: 2px 7px; border-radius: 999px;">${stylistCountInBranch} thợ</span>
                   </button>
@@ -218,15 +216,15 @@
 
         const cleanName = (stylist.name || stylist.HoTen || 'Stylist').trim();
         const isAssis = (stylist.role || '').toLowerCase().includes('phụ');
-        const roleBadgeText = isAssis ? '🧴 Thợ Phụ' : '✂️ Thợ Chính';
+        const roleBadgeText = isAssis ? 'Thợ Phụ' : 'Thợ Chính';
 
         return `
           <div class="stylist-nordic-card" id="stylistCard_${stylist.id}"
-               style="background: var(--surface-card); border: .5px solid var(--border-color); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-shadow: 0 4px 18px rgba(0,0,0,0.04); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+               style="background: var(--surface-card); border: .5px solid var(--border-color); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-shadow: none; transition: transform 0.2s ease;">
             
             <div style="text-align: center;">
               <!-- Avatar Tròn Có Viền Gold -->
-              <div style="position: relative; width: 96px; height: 96px; margin: 0 auto 16px; border-radius: 50%; overflow: hidden; border: 3px solid ${isAssis ? '#0ea5e9' : 'var(--brand-accent)'}; box-shadow: 0 4px 14px rgba(180,131,18,0.25);">
+              <div style="position: relative; width: 96px; height: 96px; margin: 0 auto 16px; border-radius: 50%; overflow: hidden; border: 3px solid ${isAssis ? '#0ea5e9' : 'var(--brand-accent)'};">
                 <img src="${stylist.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80'}"
                      style="width: 100%; height: 100%; object-fit: cover;"
                      alt="${cleanName}"
@@ -245,16 +243,16 @@
                 </span>
                 <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">${stylist.level || (isAssis ? 'Junior Barber' : 'Master Barber')}</span>
               </div>
-              <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 10px;">📍 ${branchName}</span>
+              <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 10px;">${branchName}</span>
 
               <!-- Đánh Giá Sao -->
               <div style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 9999px; background: var(--brand-accent-subtle); border: 1px solid var(--brand-accent-border); margin-bottom: 14px;">
-                <span style="color: var(--brand-accent); font-size: 13px; font-weight: 800;">★ 5.0 (500+ lượt cắt ưng ý)</span>
+                <span style="color: var(--brand-accent); font-size: 13px; font-weight: 800;">5.0 / 5 (500+ lượt cắt ưng ý)</span>
               </div>
 
               <!-- Thẻ Kỹ Thuật Chuyên Sâu -->
               <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px;">
-                ${specialties.slice(0, 3).map(tag => `<span style="font-size: 11px; font-weight: 700; color: var(--text-primary); background: var(--surface-elevated); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-color);">✨ ${tag}</span>`).join('')}
+                ${specialties.slice(0, 3).map(tag => `<span style="font-size: 11px; font-weight: 700; color: var(--text-primary); background: var(--surface-elevated); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-color);">${tag}</span>`).join('')}
               </div>
 
               <!-- Ảnh tác phẩm thực tế -->
@@ -270,8 +268,8 @@
 
             <!-- Nút Đặt Lịch Trực Tiếp -->
             <button onclick="StylistsPage.bookWithStylist('${stylist.id}', '${stylist.branchId || ''}')"
-                    style="width: 100%; height: 44px; border-radius: 10px; background: var(--brand-accent); border: none; color: #ffffff; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(180,131,18,0.25); margin-top: auto;">
-              📅 Đặt Lịch Với ${cleanName.split(' ').pop()}
+                    style="width: 100%; height: 44px; border-radius: 10px; background: var(--brand-accent); border: none; color: #ffffff; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none; margin-top: auto;">
+              Đặt Lịch Với ${cleanName.split(' ').pop()}
             </button>
           </div>
         `;

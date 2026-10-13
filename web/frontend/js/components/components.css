@@ -1,0 +1,783 @@
+/* =========================================================================
+   Omni Salon — SENIOR PRODUCT DESIGN SYSTEM (ANTI-AI CLEAN ARCHITECTURE)
+   Dedicated Component Stylesheet: ProductCard & BranchCard
+   - Triệt tiêu hoàn toàn viền neon/glow sến, bóng drop-shadow mờ ảo
+   - Thiết kế phẳng dứt khoát, độ bo góc vừa phải (radius 6–10px)
+   - Tương thích 100% cả Light Mode (#ffffff/#f3f4f6) và Dark Mode (#121622/#0b0d13)
+   ========================================================================= */
+
+/* ── 1. PRODUCT CLEAN CARD ── */
+.product-clean-card {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: var(--surface-card, #ffffff) !important;
+  border: 1px solid var(--border-color, #e2e8f0) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.2s ease, 
+              box-shadow 0.2s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="dark"] .product-clean-card,
+body.dark .product-clean-card {
+  background: #121622 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.product-clean-card:hover {
+  transform: translateY(-2px) !important;
+  border-color: var(--brand-accent, #b48312) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1) !important;
+}
+
+.product-clean-card.is-out-of-stock {
+  opacity: 0.75 !important;
+}
+
+/* Media wrapper & ảnh (Khung nền trắng sạch sẽ trưng bày hộp sáp) */
+.product-media-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1 !important;
+  background: #ffffff !important;
+  padding: 14px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .product-media-wrapper,
+body.dark .product-media-wrapper {
+  background: #ffffff !important;
+}
+
+.product-clean-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+  transition: transform 0.25s ease !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+.product-clean-card:hover .product-clean-img {
+  transform: scale(1.05) !important;
+}
+
+/* Nút Yêu thích Wishlist */
+.product-wishlist-btn {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: #64748b !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  z-index: 4 !important;
+  transition: all 0.18s ease !important;
+  padding: 0 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+}
+
+[data-theme="dark"] .product-wishlist-btn,
+body.dark .product-wishlist-btn {
+  background: rgba(18, 22, 34, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+
+.product-wishlist-btn:hover {
+  background: #ffffff !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #ef4444 !important;
+  transform: scale(1.08) !important;
+}
+
+[data-theme="dark"] .product-wishlist-btn:hover,
+body.dark .product-wishlist-btn:hover {
+  background: rgba(18, 22, 34, 0.98) !important;
+}
+
+.product-wishlist-btn:active {
+  transform: scale(0.92) !important;
+}
+
+.product-wishlist-btn.active {
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  background: #fef2f2 !important;
+}
+
+[data-theme="dark"] .product-wishlist-btn.active,
+body.dark .product-wishlist-btn.active {
+  background: rgba(239, 68, 68, 0.15) !important;
+}
+
+/* Nhãn Giảm giá Phẳng (No neon) */
+.flat-discount-badge {
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  background: #b91c1c !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  z-index: 3 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Thân Card Sản Phẩm */
+.product-body {
+  padding: 14px 16px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+  flex: 1 !important;
+}
+
+.product-meta-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.product-brand-tag {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: var(--brand-accent, #b48312) !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Tình trạng kho (Stock Indicator) */
+.stock-indicator-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 2px 7px !important;
+  border-radius: 4px !important;
+  line-height: 1.3 !important;
+}
+
+.stock-indicator-badge .stock-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+}
+
+.stock-indicator-badge.in-stock {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #059669 !important;
+}
+.stock-indicator-badge.in-stock .stock-dot {
+  background: #059669 !important;
+}
+
+.stock-indicator-badge.low-stock {
+  background: rgba(245, 158, 11, 0.14) !important;
+  color: #d97706 !important;
+}
+.stock-indicator-badge.low-stock .stock-dot {
+  background: #d97706 !important;
+}
+
+.stock-indicator-badge.out-of-stock {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #dc2626 !important;
+}
+.stock-indicator-badge.out-of-stock .stock-dot {
+  background: #dc2626 !important;
+}
+
+/* Tiêu đề sản phẩm */
+.product-title-clean {
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary, #0f172a) !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  min-height: 40px !important;
+  transition: color 0.15s ease !important;
+}
+
+[data-theme="dark"] .product-title-clean,
+body.dark .product-title-clean {
+  color: #ffffff !important;
+}
+
+.product-title-clean:hover {
+  color: var(--brand-accent, #b48312) !important;
+}
+
+/* Đánh giá sao & lượt mua */
+.product-rating-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+}
+
+.product-star-badge {
+  font-weight: 700 !important;
+  color: #d97706 !important;
+}
+
+.product-sales-count {
+  color: var(--text-secondary, #64748b) !important;
+  font-size: 11.5px !important;
+}
+
+/* Giá sản phẩm (Cố định chiều cao min-height: 28px để chân card thẳng hàng tăm tắp) */
+.product-price-row {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+  min-height: 28px !important;
+  margin-top: 4px !important;
+}
+
+.product-price-current {
+  font-size: 19px !important;
+  font-weight: 900 !important;
+  color: #f59e0b !important;
+  letter-spacing: -0.01em !important;
+}
+
+.product-price-original {
+  font-size: 12.5px !important;
+  color: var(--text-secondary, #64748b) !important;
+  text-decoration: line-through !important;
+}
+
+/* Khối nút hành động */
+.product-actions-footer {
+  padding: 12px 16px 14px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  display: flex !important;
+  gap: 8px !important;
+  margin-top: auto !important;
+}
+
+/* ── NÚT BARBER THÊM VÀO GIỎ HÀNG (FULL-WIDTH, VÀNG HỔ PHÁCH + CHỮ ĐEN ĐẬM TƯƠNG PHẢN CAO) ── */
+.btn-barber-add-cart {
+  width: 100% !important;
+  height: 42px !important;
+  background: #f59e0b !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 13.5px !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  box-sizing: border-box !important;
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease !important;
+  letter-spacing: -0.01em !important;
+}
+
+.btn-barber-add-cart:hover:not(:disabled) {
+  background: #d97706 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+}
+
+.btn-barber-add-cart:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+.btn-barber-add-cart:disabled,
+.btn-barber-add-cart.disabled {
+  background: #27272a !important;
+  color: #71717a !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+/* ── NÚT CTA PHẲNG CHUẨN PRODUCT DESIGN (Radius 6–8px, Flat, No Glow) ── */
+.btn-flat-cta {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  border: 1px solid transparent !important;
+  box-sizing: border-box !important;
+  transition: background-color 0.15s ease, 
+              border-color 0.15s ease, 
+              color 0.15s ease, 
+              transform 0.12s ease !important;
+}
+
+.btn-flat-cta:focus-visible {
+  outline: 2px solid var(--brand-accent, #b48312) !important;
+  outline-offset: 2px !important;
+}
+
+.btn-flat-cta:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+.btn-flat-cta:disabled,
+.btn-flat-cta.disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+.btn-flat-primary {
+  flex: 1 !important;
+  background: var(--brand-accent, #b48312) !important;
+  color: #ffffff !important;
+  border-color: var(--brand-accent, #b48312) !important;
+}
+
+.btn-flat-primary:hover:not(:disabled) {
+  background: var(--brand-accent-hover, #966b0a) !important;
+  border-color: var(--brand-accent-hover, #966b0a) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-flat-outline {
+  background: var(--surface-elevated, #f1f5f9) !important;
+  color: var(--text-primary, #0f172a) !important;
+  border-color: var(--border-color, #cbd5e1) !important;
+}
+
+[data-theme="dark"] .btn-flat-outline,
+body.dark .btn-flat-outline {
+  background: #181d2a !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.btn-flat-outline:hover:not(:disabled) {
+  background: var(--surface-card, #ffffff) !important;
+  border-color: var(--brand-accent, #b48312) !important;
+  color: var(--brand-accent, #b48312) !important;
+  transform: translateY(-1px) !important;
+}
+
+[data-theme="dark"] .btn-flat-outline:hover:not(:disabled),
+body.dark .btn-flat-outline:hover:not(:disabled) {
+  background: #121622 !important;
+}
+
+/* ── 2. BRANCH CLEAN CARD ── */
+.branch-clean-card {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: var(--surface-card, #ffffff) !important;
+  border: 1px solid var(--border-color, #e2e8f0) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.2s ease, 
+              box-shadow 0.2s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="dark"] .branch-clean-card,
+body.dark .branch-clean-card {
+  background: #121622 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.branch-clean-card:hover {
+  transform: translateY(-2px) !important;
+  border-color: var(--brand-accent, #b48312) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1) !important;
+}
+
+.branch-media-box {
+  position: relative !important;
+  width: 100% !important;
+  height: 180px !important;
+  background: var(--surface-elevated, #f1f5f9) !important;
+  overflow: hidden !important;
+}
+
+[data-theme="dark"] .branch-media-box,
+body.dark .branch-media-box {
+  background: #181d2a !important;
+}
+
+.branch-cover-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  transition: transform 0.3s ease !important;
+}
+
+.branch-clean-card:hover .branch-cover-img {
+  transform: scale(1.03) !important;
+}
+
+.branch-badges-top {
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  display: flex !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  z-index: 2 !important;
+}
+
+.branch-district-tag {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  background: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(6px) !important;
+  color: #f59e0b !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.branch-flagship-tag {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  background: #b48312 !important;
+  color: #ffffff !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+}
+
+/* Floating Status */
+.branch-status-floating {
+  position: absolute !important;
+  bottom: 8px !important;
+  left: 10px !important;
+  right: 10px !important;
+  background: rgba(15, 23, 42, 0.9) !important;
+  backdrop-filter: blur(6px) !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-sizing: border-box !important;
+}
+
+.branch-status-floating.status-open {
+  color: #10b981 !important;
+}
+.branch-status-floating.status-open .status-indicator-dot {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  background: #10b981 !important;
+  display: inline-block !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3) !important;
+}
+
+.branch-status-floating.status-closed {
+  color: #94a3b8 !important;
+}
+.branch-status-floating.status-closed .status-indicator-dot {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  background: #64748b !important;
+  display: inline-block !important;
+}
+
+/* Thân Card Chi Nhánh */
+.branch-content-body {
+  padding: 14px 16px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  flex: 1 !important;
+}
+
+.branch-eyebrow-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 6px !important;
+  font-size: 11px !important;
+}
+
+.branch-sub-label {
+  font-weight: 800 !important;
+  color: var(--brand-accent, #b48312) !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+}
+
+.branch-chair-count {
+  font-weight: 700 !important;
+  color: var(--text-secondary, #64748b) !important;
+  background: var(--surface-elevated, #f1f5f9) !important;
+  padding: 2px 7px !important;
+  border-radius: 4px !important;
+}
+
+[data-theme="dark"] .branch-chair-count,
+body.dark .branch-chair-count {
+  background: #181d2a !important;
+  color: #94a3b8 !important;
+}
+
+.branch-name-title {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: var(--text-primary, #0f172a) !important;
+  line-height: 1.3 !important;
+  margin: 0 0 10px !important;
+}
+
+[data-theme="dark"] .branch-name-title,
+body.dark .branch-name-title {
+  color: #ffffff !important;
+}
+
+.branch-info-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+  font-size: 12.5px !important;
+  color: var(--text-secondary, #475569) !important;
+  margin-bottom: 14px !important;
+}
+
+[data-theme="dark"] .branch-info-list,
+body.dark .branch-info-list {
+  color: #cbd5e1 !important;
+}
+
+.branch-info-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  line-height: 1.4 !important;
+}
+
+.branch-info-row .info-icon {
+  flex-shrink: 0 !important;
+  margin-top: 1px !important;
+  color: var(--brand-accent, #b48312) !important;
+}
+
+.branch-address-val {
+  color: var(--text-primary, #1e293b) !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="dark"] .branch-address-val,
+body.dark .branch-address-val {
+  color: #e2e8f0 !important;
+}
+
+.branch-phone-link {
+  color: var(--brand-accent, #b48312) !important;
+  text-decoration: none !important;
+  font-weight: 700 !important;
+}
+.branch-phone-link:hover {
+  text-decoration: underline !important;
+}
+
+/* Hành động Chi nhánh */
+.branch-actions-row {
+  display: flex !important;
+  gap: 8px !important;
+  padding-top: 10px !important;
+  border-top: 1px solid var(--border-color, #e2e8f0) !important;
+  margin-top: auto !important;
+}
+
+[data-theme="dark"] .branch-actions-row,
+body.dark .branch-actions-row {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.branch-map-btn {
+  flex-shrink: 0 !important;
+}
+
+.branch-book-btn {
+  flex: 1 !important;
+}
+
+/* ── 3. FILTER TABS & CHIPS CHUẨN PRODUCT DESIGN (Không dùng 9999px Pill Sến) ── */
+.clean-filter-tabs {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+}
+
+.clean-tab-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 36px !important;
+  padding: 0 12px !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  background: var(--surface-card, #ffffff) !important;
+  border: 1px solid var(--border-color, #cbd5e1) !important;
+  color: var(--text-secondary, #475569) !important;
+  transition: all 0.15s ease !important;
+  user-select: none !important;
+  box-sizing: border-box !important;
+}
+
+[data-theme="dark"] .clean-tab-btn,
+body.dark .clean-tab-btn {
+  background: #121622 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+
+.clean-tab-btn:hover {
+  background: var(--surface-elevated, #f1f5f9) !important;
+  border-color: var(--brand-accent, #b48312) !important;
+  color: var(--text-primary, #0f172a) !important;
+}
+
+[data-theme="dark"] .clean-tab-btn:hover,
+body.dark .clean-tab-btn:hover {
+  background: #181d2a !important;
+  color: #ffffff !important;
+}
+
+.clean-tab-btn.active {
+  background: var(--brand-accent, #b48312) !important;
+  border-color: var(--brand-accent, #b48312) !important;
+  color: #ffffff !important;
+}
+
+.clean-tab-badge {
+  font-size: 11px !important;
+  opacity: 0.85 !important;
+  font-weight: 600 !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+  padding: 1px 5px !important;
+  border-radius: 4px !important;
+}
+
+.clean-tab-btn.active .clean-tab-badge {
+  background: rgba(0, 0, 0, 0.25) !important;
+  color: #ffffff !important;
+}
+
+/* ── 4. RESPONSIVE GRID CHUẨN 4 CỘT CÂN ĐỐI (Lấp đầy 100%, triệt tiêu ô trống thừa) ── */
+.products-clean-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (min-width: 1200px) {
+  .products-clean-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+.branches-clean-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (min-width: 1280px) {
+  .branches-clean-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* ── 5. LOẠI BỎ TRIỆT ĐỂ VIỀN MỜ PHÁT SÁNG & KHỐI ĐEN PHÍA SAU (ANTI-AI GLOW) ── */
+.nordic-btn-primary,
+.nordic-btn-secondary,
+.btn-magnetic,
+.stylist-book-btn,
+.btn-barber-add-cart,
+.service-bento-btn,
+.service-card-cta-btn {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+.nordic-btn-primary:hover,
+.nordic-btn-secondary:hover,
+.btn-magnetic:hover,
+.stylist-book-btn:hover,
+.btn-barber-add-cart:hover {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.nordic-btn-primary::before,
+.nordic-btn-primary::after,
+.btn-magnetic::before,
+.btn-magnetic::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Triệt tiêu khung viền và nền đen bao bọc 4 thẻ tiêu biểu phía sau */
+.nordic-metrics-strip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+

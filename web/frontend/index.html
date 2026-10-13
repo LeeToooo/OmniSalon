@@ -21,10 +21,11 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css?v=53.0">
+  <link rel="stylesheet" href="styles.css?v=59.0">
+  <link rel="stylesheet" href="js/components/components.css?v=59.0">
 
   <!-- Centralized Theme Engine (Zero FOUC) -->
-  <script src="js/core/theme.js?v=53.0"></script>
+  <script src="js/core/theme.js?v=59.0"></script>
 </head>
 
 <body data-theme="dark">
@@ -79,27 +80,27 @@
        ======================================================== -->
   <nav class="mobile-bottom-nav" aria-label="Thanh điều hướng Web Mobile">
     <a href="/" data-route="/" onclick="event.preventDefault(); CustomerWeb.switchTab('home')" class="active" id="mNavHome">
-      <span class="nav-icon">🏠</span>
+      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">01</span>
       <span>Trang Chủ</span>
     </a>
     <a href="/services" data-route="/services" onclick="event.preventDefault(); CustomerWeb.switchTab('services')" id="mNavServices">
-      <span class="nav-icon">✂️</span>
+      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">02</span>
       <span>Dịch Vụ</span>
     </a>
     <a href="/stylists" data-route="/stylists" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists')" id="mNavStylists">
-      <span class="nav-icon">💈</span>
+      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">03</span>
       <span>Thợ Mẫu</span>
     </a>
     <a href="/booking" data-route="/booking" onclick="event.preventDefault(); CustomerWeb.switchTab('booking')" style="color: #b48312; font-weight: 800;" id="mNavBooking">
-      <span class="nav-icon">📅</span>
+      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">04</span>
       <span>Đặt Lịch</span>
     </a>
     <a href="/shop" data-route="/shop" onclick="event.preventDefault(); CustomerWeb.switchTab('shop')" id="mNavShop">
-      <span class="nav-icon">🛍️</span>
+      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">05</span>
       <span>Cửa Hàng</span>
     </a>
     <a href="/branches" data-route="/branches" onclick="event.preventDefault(); CustomerWeb.switchTab('branches')" id="mNavBranches">
-      <span class="nav-icon">📍</span>
+      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">06</span>
       <span>Chi Nhánh</span>
     </a>
   </nav>
@@ -116,30 +117,32 @@
        8. js/modules/customer/web/customer-web.js -> Phân hệ Khách hàng trên Web Portal
        9. js/web/ui-web.js        -> Giao diện Web Portal & Trung tâm Quản trị Admin
        ======================================================== -->
-  <script src="js/core/utils.js?v=53.0"></script>
-  <script src="js/core/validation.js?v=53.0"></script>
-  <script src="js/core/pricing.js?v=53.0"></script>
-  <script src="js/core/auth.js?v=53.0"></script>
-  <script src="js/core/store.js?v=53.0"></script>
-  <script src="js/core/api.js?v=53.0"></script>
-  <script src="js/widgets/widgets-bundle.js?v=53.0"></script>
-  <script src="js/components/ui-common.js?v=53.0"></script>
-  <script src="js/modules/customer/web/customer-web.js?v=53.0"></script>
-  <script src="js/modules/admin/web/admin-web.js?v=53.0"></script>
-  <script src="js/web/ui-web.js?v=53.0"></script>
+  <script src="js/core/utils.js?v=59.0"></script>
+  <script src="js/core/validation.js?v=59.0"></script>
+  <script src="js/core/pricing.js?v=59.0"></script>
+  <script src="js/core/auth.js?v=59.0"></script>
+  <script src="js/core/store.js?v=59.0"></script>
+  <script src="js/core/api.js?v=59.0"></script>
+  <script src="js/widgets/widgets-bundle.js?v=59.0"></script>
+  <script src="js/components/ui-common.js?v=59.0"></script>
+  <script src="js/components/ProductCard.js?v=59.0"></script>
+  <script src="js/components/BranchCard.js?v=59.0"></script>
+  <script src="js/modules/customer/web/customer-web.js?v=59.0"></script>
+  <script src="js/modules/admin/web/admin-web.js?v=59.0"></script>
+  <script src="js/web/ui-web.js?v=59.0"></script>
 
   <!-- Modular Page Components (Multi-Page Architecture) -->
-  <script src="pages/home-page.js?v=53.0"></script>
-  <script src="pages/services-page.js?v=53.0"></script>
-  <script src="pages/stylists-page.js?v=53.0"></script>
-  <script src="pages/booking-page.js?v=53.0"></script>
-  <script src="pages/shop-page.js?v=53.0"></script>
-  <script src="pages/branches-page.js?v=53.0"></script>
-  <script src="pages/ai-studio-page.js?v=53.0"></script>
-  <script src="pages/admin-portal.js?v=53.0"></script>
+  <script src="pages/home-page.js?v=59.0"></script>
+  <script src="pages/services-page.js?v=59.0"></script>
+  <script src="pages/stylists-page.js?v=59.0"></script>
+  <script src="pages/booking-page.js?v=59.0"></script>
+  <script src="pages/shop-page.js?v=59.0"></script>
+  <script src="pages/branches-page.js?v=59.0"></script>
+  <script src="pages/ai-studio-page.js?v=59.0"></script>
+  <script src="pages/admin-portal.js?v=59.0"></script>
 
   <!-- 3D Perspective Client Router -->
-  <script src="js/core/router.js?v=53.0"></script>
+  <script src="js/core/router.js?v=59.0"></script>
 
   <!-- Khởi động giao diện Web Portal & 3D Multi-Page Router -->
   <script>

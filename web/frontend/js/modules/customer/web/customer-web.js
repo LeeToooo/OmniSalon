@@ -176,18 +176,18 @@
       const chucVu = String(user.ChucVu || user.chucVuSql || '').toUpperCase();
       
       if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'QUẢN TRỊ VIÊN' || chucVu === 'QUẢN TRỊ VIÊN' || user.username === 'admin') {
-        return '👑 Quản Trị Tối Cao';
+        return 'Quản Trị Tối Cao';
       }
       if (role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || chucVu === 'QUẢN LÝ CHI NHÁNH') {
-        return '🏢 Quản Lý Chi Nhánh';
+        return 'Quản Lý Chi Nhánh';
       }
       if (role === 'STYLIST' || role === 'NHÂN VIÊN' || chucVu === 'THỢ CHÍNH' || chucVu === 'THỢ PHỤ') {
-        return user.CapBac ? `💈 ${user.CapBac} (${user.ChucVu || 'Thợ Tóc'})` : '💈 Thợ Barber Chuyên Nghiệp';
+        return user.CapBac ? `${user.CapBac} (${user.ChucVu || 'Thợ Tóc'})` : 'Thợ Barber Chuyên Nghiệp';
       }
       if (role === 'CASHIER' || role === 'THU NGÂN' || chucVu === 'THU NGÂN') {
-        return '💵 Thu Ngân Tiếp Tân';
+        return 'Thu Ngân Tiếp Tân';
       }
-      return `★ ${user.tier && !user.tier.includes('OMNI') ? user.tier : 'Khách Hàng VIP'}`;
+      return `${user.tier && !user.tier.includes('OMNI') ? user.tier : 'Khách Hàng VIP'}`;
     },
 
     isAdminUser(user) {
@@ -226,7 +226,7 @@
           <div class="web-header-inner">
             <!-- CỤM 1 (TRÁI): Brand Logo Omni Salon + Slogan Barber Style -->
             <div class="brand-logo-wrap flex-shrink-0" onclick="CustomerWeb.switchTab('home')" style="cursor: pointer;" title="Về trang chủ Omni Salon">
-              <span class="logo-text-omni" style="letter-spacing: -0.02em; font-weight: 900;">✂️ OMNI SALON</span>
+              <span class="logo-text-omni" style="letter-spacing: -0.02em; font-weight: 900;">OMNI SALON</span>
               <span class="logo-sub-text" style="color: #f59e0b; font-weight: 800; letter-spacing: 0.04em;">HAIR CARE &amp; AUTHENTIC BARBER CULTURE</span>
             </div>
 
@@ -235,17 +235,17 @@
               <a href="/" data-route="/" class="nav-link ${this.currentTab === 'home' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('home')">TRANG CHỦ</a>
               <a href="/services" data-route="/services" class="nav-link ${this.currentTab === 'services' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('services')">DỊCH VỤ</a>
               <a href="/stylists" data-route="/stylists" class="nav-link ${this.currentTab === 'stylists' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists')">THỢ TẠO MẪU</a>
-              <a href="/booking" data-route="/booking" class="nav-link ${this.currentTab === 'booking' ? 'active' : ''} text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('booking')">📅 ĐẶT LỊCH</a>
+              <a href="/booking" data-route="/booking" class="nav-link ${this.currentTab === 'booking' ? 'active' : ''} text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('booking')">ĐẶT LỊCH</a>
               <a href="/shop" data-route="/shop" class="nav-link nav-link-optional ${this.currentTab === 'shop' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('shop')">CỬA HÀNG</a>
               <a href="/branches" data-route="/branches" class="nav-link nav-link-optional ${this.currentTab === 'branches' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('branches')">CHI NHÁNH</a>
-              <a href="/ai-studio" data-route="/ai-studio" class="nav-link nav-link-optional text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('ai')">⚡ AI TẠO KIỂU TÓC</a>
+              <a href="/ai-studio" data-route="/ai-studio" class="nav-link nav-link-optional text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('ai')">AI TẠO KIỂU TÓC</a>
               ${isAdmin ? `
                 <a href="/admin" data-route="/admin" class="nav-link nav-link-admin ${this.currentTab === 'admin' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('admin')">
                   ${user && (String(user.role).toUpperCase().includes('CASHIER') || String(user.vaiTroSql || '').toUpperCase().includes('THU NGÂN') || String(user.ChucVu || '').toUpperCase().includes('THU NGÂN'))
-                    ? '💳 THU NGÂN POS'
+                    ? 'THU NGÂN POS'
                     : (user && (String(user.role).toUpperCase().includes('BRANCH') || String(user.vaiTroSql || '').toUpperCase().includes('QUẢN LÝ') || String(user.ChucVu || '').toUpperCase().includes('QUẢN LÝ'))
-                        ? '🏢 QUẢN LÝ'
-                        : '👑 QUẢN TRỊ')}
+                        ? 'QUẢN LÝ'
+                        : 'QUẢN TRỊ')}
                 </a>
               ` : ''}
             </nav>
@@ -266,28 +266,24 @@
                 <div class="search-results-dropdown" id="webSearchDropdown"></div>
               </div>
 
-              <!-- Cart Button với Badge -->
-              <button class="header-action-btn cart-btn-wrap flex-shrink-0" onclick="UICommon && UICommon.openCartDrawer()" title="Xem giỏ hàng">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
-                </svg>
-                <span class="cart-badge-count" style="${cartCount > 0 ? '' : 'display:none;'}">${cartCount}</span>
+              <!-- Cart Button với Badge Typographic -->
+              <button class="header-action-btn cart-btn-wrap flex-shrink-0" onclick="UICommon && UICommon.openCartDrawer()" title="Xem giỏ hàng" style="display: flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 9999px; height: 38px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); font-size: 12px; font-weight: 800; cursor: pointer;">
+                <span>GIỎ HÀNG</span>
+                <span class="cart-badge-count" style="${cartCount > 0 ? '' : 'display:none;'} background: #f59e0b; color: #000000; border-radius: 9999px; padding: 1px 7px; font-size: 11px; font-weight: 900;">${cartCount}</span>
               </button>
 
-              <!-- Nút Chuyển Đổi Chế Độ Sáng / Tối (Theme Toggle Switch) -->
-              <button type="button" class="theme-toggle-btn flex-shrink-0" onclick="window.ThemeEngine && window.ThemeEngine.toggleTheme()" title="Chuyển chế độ Sáng / Tối">
-                <span class="theme-icon icon-moon">🌙</span>
-                <span class="theme-icon icon-sun">☀️</span>
+              <!-- Nút Chuyển Đổi Chế Độ Sáng / Tối Typographic -->
+              <button type="button" class="header-action-btn flex-shrink-0" onclick="window.ThemeEngine && window.ThemeEngine.toggleTheme()" title="Chuyển chế độ Sáng / Tối" style="display: flex; align-items: center; justify-content: center; padding: 0 12px; border-radius: 9999px; height: 38px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); font-size: 11.5px; font-weight: 800; cursor: pointer;">
+                <span>SÁNG / TỐI</span>
               </button>
 
               <!-- User Menu Dropdown (Gom Chi nhánh, Tra cứu & Quản lý vào menu Avatar) -->
               <div class="header-user-menu-wrapper flex-shrink-0">
                 <div class="header-user-btn" id="headerUserBtn" onclick="CustomerWeb.toggleUserMenu(event)" title="Mở menu thành viên &amp; tiện ích">
-                  <span class="user-avatar-text">${user ? SalonUtils.getInitials(user.fullName || user.name || user.username || 'Omni') : '👤'}</span>
+                  <span class="user-avatar-text">${user ? SalonUtils.getInitials(user.fullName || user.name || user.username || 'Omni') : 'OS'}</span>
                   <div class="user-info-text-wrap">
                     <span class="user-name-text">${user ? ((user.fullName || user.name || user.username || 'Tài Khoản').trim().split(' ').slice(-1)[0] || 'Tài Khoản') : 'Đăng Nhập'}</span>
                   </div>
-                  <span class="user-dropdown-arrow">▾</span>
                 </div>
 
                 <!-- Dropdown Content Menu khi bấm vào Avatar -->
@@ -304,14 +300,14 @@
 
                   <!-- 1. Tra cứu lịch hẹn -->
                   <button onclick="CustomerWeb.openLookupModal(); CustomerWeb.closeUserMenu();" class="dropdown-item-btn">
-                    <span style="font-size: 16px;">🔍</span>
+                    
                     <span>Tra Cứu Lịch Hẹn</span>
                   </button>
 
                   <!-- 2. Chọn chi nhánh -->
                   <div class="dropdown-branch-pill">
                     <div class="branch-pill-header">
-                      <span>📍</span>
+                      
                       <span>Chi nhánh phục vụ:</span>
                     </div>
                     <select class="header-branch-select" onchange="window.store && window.store.setSelectedBranch(this.value)">
@@ -325,16 +321,16 @@
                   <!-- 4. Nút Đăng Nhập / Đăng Ký / Cá Nhân -->
                   ${user ? `
                     <button class="dropdown-item-btn" onclick="CustomerWeb.openCustomerPortalModal(); CustomerWeb.closeUserMenu();">
-                      <span>👤</span>
+                      
                       <span>Trang Cá Nhân &amp; Điểm Thưởng</span>
                     </button>
                     <button class="dropdown-logout-btn" onclick="window.AuthEngine ? window.AuthEngine.logout() : (window.store && window.store.logout()); CustomerWeb.currentTab = 'home'; CustomerWeb.renderHeader(); if(window.AppRouter) window.AppRouter.navigate('/'); else CustomerWeb.switchTab('home'); if(window.UICommon) window.UICommon.showToast('Đã đăng xuất tài khoản!'); CustomerWeb.closeUserMenu();">
-                      <span>🚪</span>
+                      
                       <span>Đăng Xuất</span>
                     </button>
                   ` : `
                     <button class="dropdown-primary-btn" onclick="UICommon.openAuthModal('login'); CustomerWeb.closeUserMenu();">
-                      <span>🔑</span>
+                      
                       <span>Đăng Nhập / Đăng Ký</span>
                     </button>
                   `}
@@ -383,7 +379,7 @@
       if (isAdmin || this.isAdminUser(user)) {
         const isCashier = user && (String(user.role).toUpperCase().includes('CASHIER') || String(user.vaiTroSql || '').toUpperCase().includes('THU NGÂN') || String(user.ChucVu || '').toUpperCase().includes('THU NGÂN'));
         const isManager = user && (String(user.role).toUpperCase().includes('BRANCH') || String(user.vaiTroSql || '').toUpperCase().includes('QUẢN LÝ') || String(user.ChucVu || '').toUpperCase().includes('QUẢN LÝ'));
-        const label = isCashier ? '💳 Quầy Thu Ngân POS' : (isManager ? '🏢 Bàn Làm Việc Quản Lý' : '👑 Bảng Quản Trị Tối Cao');
+        const label = isCashier ? 'Quầy Thu Ngân POS' : (isManager ? 'Bàn Làm Việc Quản Lý' : 'Bảng Quản Trị Tối Cao');
         return `
           <button class="dropdown-admin-btn ${this.currentTab === 'admin' ? 'active' : ''}" 
                   onclick="CustomerWeb.closeUserMenu(); CustomerWeb.switchTab('${this.currentTab === 'admin' ? 'home' : 'admin'}');" 
@@ -398,7 +394,7 @@
 
     handleAdminDenied() {
       if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-        window.UICommon.showToast('⛔ [403 Forbidden] Khu vực này chỉ dành riêng cho Quản trị viên (Admin)!', 'error');
+        window.UICommon.showToast('[403 Forbidden] Khu vực này chỉ dành riêng cho Quản trị viên (Admin)!', 'error');
       }
     },
 
@@ -487,14 +483,14 @@
       let html = '';
 
       if (hasServices) {
-        html += `<div class="search-result-group-title">✂️ Dịch Vụ & Combo Trọn Gói (${results.services.length})</div>`;
+        html += `<div class="search-result-group-title">Dịch Vụ & Combo Trọn Gói (${results.services.length})</div>`;
         results.services.slice(0, 5).forEach(s => {
           html += `
             <div class="search-result-item" onclick="CustomerWeb.selectSearchResultService('${s.id}')">
               <img src="${s.image || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=120&q=80'}" class="search-item-thumb" alt="${this.escapeHtml(s.name)}">
               <div style="flex: 1; min-width: 0;">
                 <div class="search-item-name">${this.escapeHtml(s.name)}</div>
-                <div class="search-item-meta">${SalonUtils.formatCurrency(s.price)} • ${s.duration || 45} phút ${s.isCombo ? '• 👑 Gói Combo' : ''}</div>
+                <div class="search-item-meta">${SalonUtils.formatCurrency(s.price)} • ${s.duration || 45} phút ${s.isCombo ? '• [Combo VIP]' : ''}</div>
               </div>
               <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px;">Đặt Lịch</button>
             </div>
@@ -503,7 +499,7 @@
       }
 
       if (hasProducts) {
-        html += `<div class="search-result-group-title">🧴 Sản Phẩm Tóc Chính Hãng (${results.products.length})</div>`;
+        html += `<div class="search-result-group-title">Sản Phẩm Tóc Chính Hãng (${results.products.length})</div>`;
         results.products.slice(0, 5).forEach(p => {
           const pImg = SalonUtils.formatImageUrl(p.image || p.HinhAnh);
           html += `
@@ -565,7 +561,7 @@
                    style="font-size: 14px;"
                    onkeydown="if(event.key === 'Enter') CustomerWeb.searchBookingLookup()">
             <button class="btn-submit-terracotta" style="white-space: nowrap; padding: 10px 22px;" onclick="CustomerWeb.searchBookingLookup()">
-              🔍 Tìm Lịch
+              Tìm Lịch
             </button>
           </div>
 
@@ -591,7 +587,7 @@
 
       const query = input.value.trim();
       if (!query || query.length < 3) {
-        if (window.UICommon) window.UICommon.showToast('⚠️ Vui lòng nhập số điện thoại hoặc mã lịch hẹn hợp lệ!', 'warning');
+        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập số điện thoại hoặc mã lịch hẹn hợp lệ!', 'warning');
         return;
       }
 
@@ -656,7 +652,7 @@
                 </div>
                 <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
                   <button class="pill-btn-outline" style="font-size: 11px; padding: 6px 14px;" onclick="CustomerWeb.showTicketQr('${b.id}')">
-                    🎫 Xem Vé QR
+                    Xem Vé QR
                   </button>
                   ${isCancellable ? `
                     <button class="pill-btn-outline" style="font-size: 11px; padding: 6px 14px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
@@ -665,7 +661,7 @@
                     </button>
                   ` : ''}
                   <button class="btn-submit-terracotta" style="font-size: 11px; padding: 6px 14px;" 
-                          onclick="UICommon.showToast('📍 Hotline hỗ trợ chỉ đường: 1900 4407 (Miễn phí cước gọi)!');">
+                          onclick="UICommon.showToast('Hotline hỗ trợ chỉ đường: 1900 4407 (Miễn phí cước gọi)!');">
                     Chỉ Đường & Hỗ Trợ
                   </button>
                 </div>
@@ -682,7 +678,7 @@
       const user = this.getCurrentUser();
       const booking = this._findBookingById(bookingId);
       if (!booking) {
-        if (window.UICommon) window.UICommon.showToast(`⚠️ Không tìm thấy lịch hẹn #${bookingId}!`, 'warning');
+        if (window.UICommon) window.UICommon.showToast(`Không tìm thấy lịch hẹn #${bookingId}!`, 'warning');
         return;
       }
 
@@ -692,7 +688,7 @@
         const activeLookupPhone = lookupInput ? lookupInput.value.trim() : '';
         const isOwner = Boolean(activeLookupPhone && (activeLookupPhone === booking.customerPhone || activeLookupPhone === booking.id || activeLookupPhone === booking.bookingCode));
         if (!isOwner) {
-          if (window.UICommon) window.UICommon.showToast('⛔ [403 Forbidden] IDOR detected: Vui lòng đăng nhập hoặc tra cứu đúng số điện thoại để hủy lịch!', 'error');
+          if (window.UICommon) window.UICommon.showToast('[403 Forbidden] IDOR detected: Vui lòng đăng nhập hoặc tra cứu đúng số điện thoại để hủy lịch!', 'error');
           return;
         }
       } else if (!['SUPER_ADMIN', 'BRANCH_MANAGER', 'STYLIST', 'CASHIER'].includes(user.role)) {
@@ -701,7 +697,7 @@
           (booking.customerPhone && user.phone && booking.customerPhone.trim() === user.phone.trim()) ||
           (booking.customerEmail && user.email && booking.customerEmail.trim().toLowerCase() === user.email.trim().toLowerCase());
         if (!isOwner) {
-          if (window.UICommon) window.UICommon.showToast('⛔ [403 Forbidden] IDOR detected: Bạn không thể hủy lịch hẹn của khách hàng khác!', 'error');
+          if (window.UICommon) window.UICommon.showToast('[403 Forbidden] IDOR detected: Bạn không thể hủy lịch hẹn của khách hàng khác!', 'error');
           return;
         }
       }
@@ -711,20 +707,20 @@
 
       const cleanReason = reason.trim();
       if (!cleanReason || cleanReason.length < 3) {
-        if (window.UICommon) window.UICommon.showToast('⚠️ Vui lòng cung cấp lý do hủy cụ thể (tối thiểu 3 ký tự)', 'warning');
+        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do hủy cụ thể (tối thiểu 3 ký tự)', 'warning');
         return;
       }
 
       if (window.SalonApi && typeof window.SalonApi.cancelBooking === 'function') {
         window.SalonApi.cancelBooking(bookingId, cleanReason).then(res => {
-          if (window.UICommon) window.UICommon.showToast(`✅ Đã hủy lịch hẹn #${bookingId} thành công!`);
+          if (window.UICommon) window.UICommon.showToast(`Đã hủy lịch hẹn #${bookingId} thành công!`);
           this.searchBookingLookup();
         }).catch(err => {
-          if (window.UICommon) window.UICommon.showToast(`❌ Lỗi hủy lịch: ${err.message}`, 'error');
+          if (window.UICommon) window.UICommon.showToast(`Lỗi hủy lịch: ${err.message}`, 'error');
         });
       } else if (window.store && typeof window.store.updateBookingStatus === 'function') {
         window.store.updateBookingStatus(bookingId, 'cancelled');
-        if (window.UICommon) window.UICommon.showToast(`✅ Đã hủy lịch hẹn #${bookingId}!`);
+        if (window.UICommon) window.UICommon.showToast(`Đã hủy lịch hẹn #${bookingId}!`);
         this.searchBookingLookup();
       }
     },
@@ -740,7 +736,7 @@
         const activeLookupPhone = lookupInput ? lookupInput.value.trim() : '';
         const isOwner = Boolean(activeLookupPhone && (activeLookupPhone === booking.customerPhone || activeLookupPhone === booking.id || activeLookupPhone === booking.bookingCode));
         if (!isOwner) {
-          if (window.UICommon) window.UICommon.showToast('⛔ [403 Forbidden] IDOR detected: Bạn không có quyền xem vé điện tử của khách hàng khác!', 'error');
+          if (window.UICommon) window.UICommon.showToast('[403 Forbidden] IDOR detected: Bạn không có quyền xem vé điện tử của khách hàng khác!', 'error');
           return;
         }
       } else if (!['SUPER_ADMIN', 'BRANCH_MANAGER', 'STYLIST', 'CASHIER'].includes(user.role)) {
@@ -749,7 +745,7 @@
           (booking.customerPhone && user.phone && booking.customerPhone.trim() === user.phone.trim()) ||
           (booking.customerEmail && user.email && booking.customerEmail.trim().toLowerCase() === user.email.trim().toLowerCase());
         if (!isOwner) {
-          if (window.UICommon) window.UICommon.showToast('⛔ [403 Forbidden] IDOR detected: Bạn không có quyền xem vé điện tử của khách hàng khác!', 'error');
+          if (window.UICommon) window.UICommon.showToast('[403 Forbidden] IDOR detected: Bạn không có quyền xem vé điện tử của khách hàng khác!', 'error');
           return;
         }
       }
@@ -896,7 +892,7 @@
                   <div class="hero-editorial-metrics">
                     <div class="metric-item"><strong>18+</strong><span>Suites</span></div>
                     <div class="metric-divider"></div>
-                    <div class="metric-item"><strong>4.9★</strong><span>Rating</span></div>
+                    <div class="metric-item"><strong>4.9 / 5</strong><span>Rating</span></div>
                     <div class="metric-divider"></div>
                     <div class="metric-item"><strong>100%</strong><span>On-time</span></div>
                   </div>
@@ -929,12 +925,12 @@
                   <input type="date" id="quickDateInput" class="quick-booking-pill-select" value="${new Date().toISOString().split('T')[0]}">
                 </div>
                 <button type="button" class="quick-booking-btn-submit" onclick="CustomerWeb.submitQuickBooking()">
-                  ✨ Đặt Lịch Ngay (Khởi Tạo Ca Hẹn)
+                  Đặt Lịch Ngay (Khởi Tạo Ca Hẹn)
                 </button>
                 <div class="quick-booking-footer-links">
-                  <a href="javascript:void(0)" onclick="CustomerWeb.openLookupModal()">🔍 Tra cứu lịch đã đặt</a>
+                  <a href="javascript:void(0)" onclick="CustomerWeb.openLookupModal()">Tra cứu lịch đã đặt</a>
                   <span>•</span>
-                  <a href="#serviceSection">📋 Xem toàn bộ menu</a>
+                  <a href="#serviceSection">Xem toàn bộ menu</a>
                 </div>
               </div>
             </div>
@@ -960,11 +956,11 @@
 
           <div class="services-category-bar">
             <button class="service-cat-pill ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="CustomerWeb.filterServices('all')">Tất Cả Dịch Vụ</button>
-            <button class="service-cat-pill ${this.selectedCategory === 'haircut' ? 'active' : ''}" onclick="CustomerWeb.filterServices('haircut')">✂️ Cắt Tạo Phom Fade</button>
-            <button class="service-cat-pill ${this.selectedCategory === 'perm' ? 'active' : ''}" onclick="CustomerWeb.filterServices('perm')">🌀 Uốn Con Sâu / Texture</button>
-            <button class="service-cat-pill ${this.selectedCategory === 'color' ? 'active' : ''}" onclick="CustomerWeb.filterServices('color')">🎨 Nhuộm &amp; Tẩy Màu Khói</button>
-            <button class="service-cat-pill ${this.selectedCategory === 'shave' ? 'active' : ''}" onclick="CustomerWeb.filterServices('shave')">🪒 Cạo Khăn Nóng Proraso</button>
-            <button class="service-cat-pill ${this.selectedCategory === 'combo' ? 'active' : ''}" onclick="CustomerWeb.filterServices('combo')">👑 Combo VIP Toàn Diện</button>
+            <button class="service-cat-pill ${this.selectedCategory === 'haircut' ? 'active' : ''}" onclick="CustomerWeb.filterServices('haircut')">Cắt Tạo Phom Fade</button>
+            <button class="service-cat-pill ${this.selectedCategory === 'perm' ? 'active' : ''}" onclick="CustomerWeb.filterServices('perm')">Uốn Con Sâu / Texture</button>
+            <button class="service-cat-pill ${this.selectedCategory === 'color' ? 'active' : ''}" onclick="CustomerWeb.filterServices('color')">Nhuộm &amp; Tẩy Màu Khói</button>
+            <button class="service-cat-pill ${this.selectedCategory === 'shave' ? 'active' : ''}" onclick="CustomerWeb.filterServices('shave')">Cạo Khăn Nóng Proraso</button>
+            <button class="service-cat-pill ${this.selectedCategory === 'combo' ? 'active' : ''}" onclick="CustomerWeb.filterServices('combo')">Combo VIP Toàn Diện</button>
           </div>
 
           <div class="services-cards-grid services-bento-grid" id="servicesGridContainer">
@@ -991,19 +987,19 @@
               <div class="stylist-showcase-card">
                 <div class="stylist-showcase-avatar-wrap">
                   <img src="${st.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'}" alt="${this.escapeHtml(st.name)}" class="stylist-showcase-avatar" loading="lazy">
-                  <span class="stylist-master-badge">⭐ Stylist Chuyên Nghiệp</span>
+                  <span class="stylist-master-badge">Stylist Chuyên Nghiệp</span>
                 </div>
                 <div class="stylist-showcase-body">
                   <h4 class="stylist-showcase-name">${this.escapeHtml(st.name)}</h4>
                   <div class="stylist-showcase-role">${this.escapeHtml(st.title || st.role || 'Senior Artisan')}</div>
                   <div class="stylist-showcase-meta">
-                    <span class="stylist-rating-pill">★ ${st.rating || '4.9'} (${st.reviewCount || 128} đánh giá)</span>
+                    <span class="stylist-rating-pill">${st.rating || '4.9'} (${st.reviewCount || 128} đánh giá)</span>
                     <span class="stylist-exp-pill">${st.experience || '6+ năm'}</span>
                   </div>
                   <p class="stylist-showcase-specialty">Chuyên: ${this.escapeHtml((st.specialties || ['Fade Layer', 'Premlock', 'Texture Cut']).join(', '))}</p>
                   <div class="stylist-showcase-actions">
                     <button class="btn-check-availability" onclick="CustomerWeb.openStylistDrawer('${st.id}')">
-                      📅 Xem Lịch Trống
+                      Xem Lịch Trống
                     </button>
                     <button class="btn-quick-pick" onclick="UICommon.openBookingModal(null, null, '${st.id}')">
                       Đặt Ngay
@@ -1054,7 +1050,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 30px;">
-            <button class="btn-black-solid" onclick="UICommon.showToast('📰 Bạn đang xem những tin tức mới nhất từ Omni Salon!')">XEM THÊM BÀI VIẾT</button>
+            <button class="btn-black-solid" onclick="UICommon.showToast('Bạn đang xem những tin tức mới nhất từ Omni Salon!')">XEM THÊM BÀI VIẾT</button>
           </div>
         </section>
 
@@ -1139,18 +1135,18 @@
         <section class="section-container" style="padding-top: 50px; text-align: center;">
           <h2 class="section-title-clean">VIDEO NGẮN HAY NHẤT</h2>
           <div class="videos-preview-row">
-            <div class="video-item-card" onclick="UICommon.showToast('🎬 Đang mở video kỹ thuật tạo kiểu chuẩn Omni Salon!')">
-              <div class="video-play-overlay">▶</div>
+            <div class="video-item-card" onclick="UICommon.showToast('Đang mở video kỹ thuật tạo kiểu chuẩn Omni Salon!')">
+              <div class="video-play-overlay">PHÁT</div>
               <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80" alt="Video 1" class="video-thumb">
               <div class="video-caption">Hành trình lột xác với Warrior Cut 2026</div>
             </div>
-            <div class="video-item-card" onclick="UICommon.showToast('🎬 Đang mở video uốn con sâu Zic-zac cực cháy!')">
-              <div class="video-play-overlay">▶</div>
+            <div class="video-item-card" onclick="UICommon.showToast('Đang mở video uốn con sâu Zic-zac cực cháy!')">
+              <div class="video-play-overlay">PHÁT</div>
               <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=400&q=80" alt="Video 2" class="video-thumb">
               <div class="video-caption">Uốn Con Sâu Premlock cực cháy tại Quận 10</div>
             </div>
-            <div class="video-item-card" onclick="UICommon.showToast('🎬 Đang mở video liệu trình cạo mặt thư giãn!')">
-              <div class="video-play-overlay">▶</div>
+            <div class="video-item-card" onclick="UICommon.showToast('Đang mở video liệu trình cạo mặt thư giãn!')">
+              <div class="video-play-overlay">PHÁT</div>
               <img src="https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=400&q=80" alt="Video 3" class="video-thumb">
               <div class="video-caption">Liệu trình cạo mặt thư giãn quý ông Proraso</div>
             </div>
@@ -1174,7 +1170,7 @@
             <div class="faq-accordion-item ${this.openFaqIndex === 0 ? 'open' : ''}">
               <button class="faq-header-btn" onclick="CustomerWeb.toggleFaq(0)">
                 <span>1. Tôi có cần phải đặt lịch hẹn trước khi đến tiệm cắt không?</span>
-                <span class="faq-icon-caret">▼</span>
+                <span class="faq-icon-caret">+</span>
               </button>
               <div class="faq-body-content">
                 Omni Salon khuyến khích quý khách nên đặt lịch trước qua website hoặc App Mobile để được giữ ghế ưu tiên với đúng Master Stylist yêu thích, đảm bảo phục vụ đúng giờ và không phải chờ đợi vào các khung giờ cao điểm hoặc cuối tuần. Tuy nhiên, nếu bạn ghé trực tiếp (Walk-in), tiệm vẫn luôn bố trí thợ sẵn sàng đón tiếp.
@@ -1271,12 +1267,12 @@
                 <span id="drawerStylistTitle" class="stylist-drawer-title" style="font-size: 12px; color: var(--color-accent-gold, #D4AF37);">Senior Artisan</span>
               </div>
             </div>
-            <button type="button" class="stylist-drawer-close" onclick="CustomerWeb.closeStylistDrawer()">✕</button>
+            <button type="button" class="stylist-drawer-close" onclick="CustomerWeb.closeStylistDrawer()">&times;</button>
           </div>
           <div class="stylist-drawer-body" id="stylistDrawerBody"></div>
           <div class="stylist-drawer-footer" style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08); background: #0B0D13;">
             <button type="button" class="quick-booking-btn-submit" id="drawerBookStylistBtn" style="width: 100%;">
-              ✨ Đặt Lịch Với Stylist Này
+              Đặt Lịch Với Stylist Này
             </button>
           </div>
         </div>
@@ -1362,11 +1358,11 @@
         <div class="service-card-item card-3d-tilt" id="serviceCard_${s.id}">
           <div class="service-card-cover-wrap">
             <img src="${coverImg}" alt="${this.escapeHtml(s.name)}" class="service-card-cover" loading="lazy" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg');">
-            <span class="service-card-duration-badge">⏱️ ${durationVal} phút</span>
+            <span class="service-card-duration-badge">${durationVal} phút</span>
           </div>
           <div class="service-card-body">
             <div style="font-size: 11px; font-weight: 800; color: #F59E0B; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em;">
-              ${s.isCombo ? '👑 COMBO TRỌN GÓI VIP' : '✂️ MASTER STYLIST'}
+              ${s.isCombo ? 'COMBO TRỌN GÓI VIP' : 'MASTER STYLIST'}
             </div>
             <h4 class="service-card-title">${this.escapeHtml(s.name)}</h4>
             <p class="service-card-desc">${this.escapeHtml(s.description || '')}</p>
@@ -1428,7 +1424,7 @@
 
       if (avatar) avatar.src = st.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80';
       if (name) name.textContent = st.name;
-      if (title) title.textContent = `${st.title || st.role || 'Senior Artisan'} • ★ ${st.rating || '4.9'}`;
+      if (title) title.textContent = `${st.title || st.role || 'Senior Artisan'} • ${st.rating || '4.9'}`;
 
       const specialties = st.specialties || ['Cắt Fade', 'Uốn Con Sâu', 'Nhuộm Tẩy'];
       const todaySlots = ['09:00', '10:30', '14:00', '16:30', '19:00'];
@@ -1450,13 +1446,13 @@
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
               <span style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase;">KHUNG GIỜ TRỐNG HÔM NAY</span>
-              <span style="font-size: 11px; color: #10B981; font-weight: 700;">🟢 Còn 5 ca trống</span>
+              <span style="font-size: 11px; color: #10B981; font-weight: 700;">Còn 5 ca trống</span>
             </div>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
               ${todaySlots.map(time => `
                 <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 4px; text-align: center; cursor: pointer;"
                      onclick="CustomerWeb.closeStylistDrawer(); if(window.UICommon) { window.UICommon.bookingData.timeSlot = '${time}'; window.UICommon.openBookingModal(null, null, '${st.id}'); }">
-                  <span style="font-size: 13px; font-weight: 700; color: #FFF;">⏰ ${time}</span>
+                  <span style="font-size: 13px; font-weight: 700; color: #FFF;">${time}</span>
                 </div>
               `).join('')}
             </div>
@@ -1494,14 +1490,14 @@
         : { provider: 'demo_smart', apiKey: '', endpoint: '' };
 
       const stylePresets = [
-        { name: 'Side Part 7/3 Hàn Quốc', icon: '💇‍♂️' },
-        { name: 'Undercut Fade Bén (Hà Hiền)', icon: '💈' },
-        { name: 'Uốn Con Sâu / Texture Wave', icon: '🌀' },
-        { name: 'Mullet Hiện Đại (Wolf Cut)', icon: '🐺' },
-        { name: 'Buzz Cut Quân Đội', icon: '⚡' },
-        { name: 'Crop Warrior Phá Cách', icon: '⚔️' },
-        { name: 'Pompadour Quý Tộc', icon: '👑' },
-        { name: 'Ép Side Tóc Nam (Down Perm)', icon: '✨' }
+        { name: 'Side Part 7/3 Hàn Quốc', icon: '' },
+        { name: 'Undercut Fade Bén (Hà Hiền)', icon: '' },
+        { name: 'Uốn Con Sâu / Texture Wave', icon: '' },
+        { name: 'Mullet Hiện Đại (Wolf Cut)', icon: '' },
+        { name: 'Buzz Cut Quân Đội', icon: '' },
+        { name: 'Crop Warrior Phá Cách', icon: '' },
+        { name: 'Pompadour Quý Tộc', icon: '' },
+        { name: 'Ép Side Tóc Nam (Down Perm)', icon: '' }
       ];
 
       const colorPresets = [
@@ -1533,10 +1529,10 @@
 
                   <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;" onclick="event.stopPropagation();">
                     <button class="btn-sub-action" onclick="document.getElementById('webAiPhotoFileInput').click()">
-                      📁 Chọn Ảnh Từ Máy Tính
+                      Chọn Ảnh Từ Máy Tính
                     </button>
                     <button class="btn-sub-action" onclick="document.getElementById('webAiCameraInput').click()">
-                      📸 Chụp Bằng Camera
+                      Chụp Bằng Camera
                     </button>
                   </div>
 
@@ -1575,7 +1571,7 @@
                 <div class="ai-compare-slider-shell">
                   <div class="ai-image-compare-wrapper" id="webCompareWrapper">
                     <img src="${resultImage}" class="compare-img compare-img-after" alt="Ảnh Sau Khi Đổi Tóc">
-                    <span class="compare-label-after">✨ ẢNH TÓC AI</span>
+                    <span class="compare-label-after">ẢNH TÓC AI</span>
 
                     <div class="compare-before-clip" id="webCompareBeforeClip" style="width: 50%;">
                       <img src="${originalImage}" class="compare-img compare-img-before" alt="Ảnh Gốc">
@@ -1588,15 +1584,15 @@
                   </div>
 
                   <div class="compare-hint-bar">
-                    <span>👈 Kéo thanh tròn sang trái/phải để so sánh Trước &amp; Sau 👉</span>
+                    <span>Kéo thanh tròn sang trái/phải để so sánh Trước &amp; Sau</span>
                   </div>
 
                   <div class="ai-result-actions-strip">
                     <button class="btn-sub-action" onclick="CustomerWeb.downloadAiResult()" title="Tải ảnh về máy">
-                      📥 Tải Ảnh HD Về Máy
+                      Tải Ảnh HD Về Máy
                     </button>
                     <button class="btn-sub-action" onclick="CustomerWeb.resetAi()">
-                      🔄 Đổi Ảnh Khác
+                      Đổi Ảnh Khác
                     </button>
                   </div>
                 </div>
@@ -1628,7 +1624,7 @@
                 ${stylePresets.map(s => `
                   <button class="style-pill-card ${selectedStyle === s.name ? 'active' : ''}" 
                           onclick="CustomerWeb.selectAiStyle('${s.name}')">
-                    <span class="style-icon">${s.icon}</span>
+                    
                     <span class="style-title">${s.name}</span>
                   </button>
                 `).join('')}
@@ -1665,7 +1661,7 @@
             <!-- 4. NÚT MỞ CÀI ĐẶT API -->
             <div class="ai-api-toggle-row">
               <button class="btn-text-toggle" onclick="CustomerWeb.toggleAiApiSettings()">
-                ⚙️ Cài đặt API Key &amp; Endpoint (${this.escapeHtml(aiConfig.provider)})
+                Cài đặt API Key &amp; Endpoint (${this.escapeHtml(aiConfig.provider)})
               </button>
             </div>
 
@@ -1691,7 +1687,7 @@
                   <input type="text" id="webAiEndpointInput" class="api-input-control" placeholder="https://api-inference.huggingface.co/..." value="${this.escapeHtml(aiConfig.endpoint || '')}">
                 </div>
                 <button class="btn-submit-terracotta" style="width: 100%; padding: 8px; margin-top: 8px; font-size: 12px;" onclick="CustomerWeb.saveAiApiSettings()">
-                  💾 Lưu Cấu Hình API
+                  Lưu Cấu Hình API
                 </button>
               </div>
             ` : ''}
@@ -1700,14 +1696,14 @@
             <div class="ai-action-buttons-wrap">
               ${!resultImage ? `
                 <button class="btn-execute-ai" onclick="CustomerWeb.processAiRestyle()" ${!originalImage || isProcessing ? 'disabled style="opacity: 0.6;"' : ''}>
-                  ⚡ BẮT ĐẦU ĐỔI KIỂU TÓC BẰNG AI →
+                  BẮT ĐẦU ĐỔI KIỂU TÓC BẰNG AI →
                 </button>
               ` : `
                 <button class="btn-submit-terracotta btn-book-now-ai" onclick="CustomerWeb.bookAiHairstyle()">
-                  📅 ĐẶT LỊCH CẮT KIỂU TÓC NÀY NGAY →
+                  ĐẶT LỊCH CẮT KIỂU TÓC NÀY NGAY →
                 </button>
                 <button class="btn-execute-ai" style="margin-top: 8px; background: #222;" onclick="CustomerWeb.processAiRestyle()">
-                  ✨ Thử Đổi Màu / Kiểu Tóc Khác
+                  Thử Đổi Màu / Kiểu Tóc Khác
                 </button>
               `}
             </div>
@@ -1729,14 +1725,14 @@
     selectAiStyle(styleName) {
       this.aiState.selectedStyle = styleName;
       this.updateAiStudio();
-      if (window.UICommon) window.UICommon.showToast(`💇 Đã chọn kiểu tóc ${styleName}`);
+      if (window.UICommon) window.UICommon.showToast(`Đã chọn kiểu tóc ${styleName}`);
     },
 
     selectAiColor(colorName, colorHex) {
       this.aiState.selectedColorName = colorName;
       this.aiState.selectedColorHex = colorHex;
       this.updateAiStudio();
-      if (window.UICommon) window.UICommon.showToast(`🎨 Đã chọn màu ${colorName}`);
+      if (window.UICommon) window.UICommon.showToast(`Đã chọn màu ${colorName}`);
     },
 
     handleAiUpload(event) {
@@ -1749,17 +1745,17 @@
       const fileName = (file.name || '').replace(/[\/\\]/g, '');
 
       if (fileName.includes('..') || fileName.includes('<') || fileName.includes('>')) {
-        if (window.UICommon) window.UICommon.showToast('⚠️ Tên tệp chứa ký tự không an toàn!', 'error');
+        if (window.UICommon) window.UICommon.showToast('Tên tệp chứa ký tự không an toàn!', 'error');
         return;
       }
 
       if (!allowedTypes.includes(file.type.toLowerCase()) && !allowedExtensions.test(fileName)) {
-        if (window.UICommon) window.UICommon.showToast('⚠️ Chỉ chấp nhận định dạng ảnh JPG, PNG hoặc WEBP hợp lệ!', 'error');
+        if (window.UICommon) window.UICommon.showToast('Chỉ chấp nhận định dạng ảnh JPG, PNG hoặc WEBP hợp lệ!', 'error');
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        if (window.UICommon) window.UICommon.showToast('⚠️ Dung lượng ảnh không được vượt quá 5MB!', 'error');
+        if (window.UICommon) window.UICommon.showToast('Dung lượng ảnh không được vượt quá 5MB!', 'error');
         return;
       }
 
@@ -1768,7 +1764,7 @@
         this.aiState.originalImage = e.target.result;
         this.aiState.resultImage = null;
         this.updateAiStudio();
-        if (window.UICommon) window.UICommon.showToast('✅ Đã tải ảnh khuôn mặt lên Studio Web!');
+        if (window.UICommon) window.UICommon.showToast('Đã tải ảnh khuôn mặt lên Studio Web!');
       };
       reader.readAsDataURL(file);
     },
@@ -1777,7 +1773,7 @@
       this.aiState.originalImage = imageUrl;
       this.aiState.resultImage = null;
       this.updateAiStudio();
-      if (window.UICommon) window.UICommon.showToast('✅ Đã chọn ảnh mẫu. Bấm "Bắt Đầu Đổi Kiểu Tóc"!');
+      if (window.UICommon) window.UICommon.showToast('Đã chọn ảnh mẫu. Bấm "Bắt Đầu Đổi Kiểu Tóc"!');
     },
 
     toggleAiApiSettings() {
@@ -1791,7 +1787,7 @@
       const endpoint = document.getElementById('webAiEndpointInput')?.value;
       if (window.SalonApi && typeof window.SalonApi.saveAiConfig === 'function') {
         window.SalonApi.saveAiConfig(provider, apiKey, endpoint);
-        if (window.UICommon) window.UICommon.showToast('💾 Đã lưu cấu hình API thành công!');
+        if (window.UICommon) window.UICommon.showToast('Đã lưu cấu hình API thành công!');
         this.aiState.showApiSettings = false;
         this.updateAiStudio();
       }
@@ -1799,7 +1795,7 @@
 
     async processAiRestyle() {
       if (!this.aiState.originalImage) {
-        if (window.UICommon) window.UICommon.showToast('⚠️ Vui lòng tải hoặc chọn ảnh chân dung trước.', 'warning');
+        if (window.UICommon) window.UICommon.showToast('Vui lòng tải hoặc chọn ảnh chân dung trước.', 'warning');
         return;
       }
       this.aiState.isProcessing = true;
@@ -1834,12 +1830,12 @@
           });
 
           this.updateAiStudio();
-          if (window.UICommon) window.UICommon.showToast(`🎉 Đổi kiểu tóc AI thành công (${response.providerUsed})!`);
+          if (window.UICommon) window.UICommon.showToast(`Đổi kiểu tóc AI thành công (${response.providerUsed})!`);
         }
       } catch (err) {
         this.aiState.isProcessing = false;
         this.updateAiStudio();
-        if (window.UICommon) window.UICommon.showToast(`❌ Lỗi AI: ${err.message}`, 'error');
+        if (window.UICommon) window.UICommon.showToast(`Lỗi AI: ${err.message}`, 'error');
       }
     },
 
@@ -1921,7 +1917,7 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      if (window.UICommon) window.UICommon.showToast('📥 Đã tải ảnh kiểu tóc HD về máy tính!');
+      if (window.UICommon) window.UICommon.showToast('Đã tải ảnh kiểu tóc HD về máy tính!');
     },
 
     resetAi() {
@@ -1933,7 +1929,7 @@
     bookAiHairstyle() {
       if (window.UICommon && typeof window.UICommon.openBookingModal === 'function') {
         window.UICommon.openBookingModal();
-        window.UICommon.showToast(`💇 Đã đưa kiểu tóc "${this.aiState.selectedStyle}" vào lịch hẹn!`);
+        window.UICommon.showToast(`Đã đưa kiểu tóc "${this.aiState.selectedStyle}" vào lịch hẹn!`);
       }
     },
 
@@ -1994,12 +1990,12 @@
                     <span class="header-role-badge role-${(user.role || 'customer').toLowerCase()}">${this.getRoleBadgeText(user)}</span>
                   </div>
                   <div style="font-size: 14px; color: var(--text-secondary, #475569); margin-top: 4px; font-weight: 400;">
-                    📞 ${this.escapeHtml(user.phone || 'Chưa cập nhật SĐT')} • ✉️ ${this.escapeHtml(sanitizedEmail)}
+                    ${this.escapeHtml(user.phone || 'Chưa cập nhật SĐT')} • ${this.escapeHtml(sanitizedEmail)}
                   </div>
                 </div>
               </div>
               <div class="portal-tier-pill" style="font-size: 13px; font-weight: 700; padding: 6px 14px; background: var(--surface-elevated, #e2e8f0); color: var(--brand-accent, #b48312); border: 1px solid var(--border-color, #cbd5e1); border-radius: 999px;">
-                ★ ${this.escapeHtml(tierName)}
+                ${this.escapeHtml(tierName)}
               </div>
             </div>
 
@@ -2024,25 +2020,25 @@
             </div>
           </div>
 
-          <!-- [ ⚡ TRUNG TÂM QUẢN TRỊ & DỮ LIỆU CHUỖI SALON ] DÀNH RIÊNG CHO QUẢN TRỊ VIÊN (ADMIN) -->
+          <!-- [ TRUNG TÂM QUẢN TRỊ & DỮ LIỆU CHUỖI SALON ] DÀNH RIÊNG CHO QUẢN TRỊ VIÊN (ADMIN) -->
           ${isAdmin ? `
             <div class="portal-admin-hub-card" onclick="UICommon.closeGlobalModal(); if(window.AppRouter) { window.AppRouter.navigate('/admin'); } else if(window.CustomerWeb) { window.CustomerWeb.switchTab('admin'); } else { window.location.href='/admin'; }" 
-                 style="margin-top: 16px; margin-bottom: 18px; padding: 16px 20px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%); border: 2px solid #F59E0B; border-radius: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15); transition: all 0.25s ease;">
+                 style="margin-top: 16px; margin-bottom: 18px; padding: 16px 20px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%); border: 2px solid #F59E0B; border-radius: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: none; transition: all 0.25s ease;">
               <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; background: #F59E0B; color: #0F172A; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; flex-shrink: 0; box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4);">
-                  ⚡
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #F59E0B; color: #0F172A; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; flex-shrink: 0; box-shadow: none;">
+                  ADM
                 </div>
                 <div>
                   <div style="font-size: 15px; font-weight: 900; color: #b48312; letter-spacing: 0.04em; text-transform: uppercase;">
-                    [ ⚡ TRUNG TÂM QUẢN TRỊ &amp; DỮ LIỆU CHUỖI SALON ]
+                    [ TRUNG TÂM QUẢN TRỊ &amp; DỮ LIỆU CHUỖI SALON ]
                   </div>
                   <div style="font-size: 13.5px; color: var(--text-secondary, #475569); margin-top: 2px; font-weight: 500;">
                     Dành riêng Quản trị viên: Điều phối ghế thợ, Doanh thu, Nhân sự &amp; Lịch đặt toàn chuỗi
                   </div>
                 </div>
               </div>
-              <button type="button" class="btn-primary-nordic" style="min-height: 48px; padding: 12px 22px; font-size: 15px; font-weight: 800; background: linear-gradient(135deg, #F59E0B, #D97706); color: #0F172A; border: none; border-radius: 12px; flex-shrink: 0; cursor: pointer; box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);" onclick="event.stopPropagation(); UICommon.closeGlobalModal(); if(window.AppRouter) { window.AppRouter.navigate('/admin'); } else if(window.CustomerWeb) { window.CustomerWeb.switchTab('admin'); } else { window.location.href='/admin'; }">
-                [ ⚡ Trung Tâm Quản Trị Salon ] →
+              <button type="button" class="btn-primary-nordic" style="min-height: 48px; padding: 12px 22px; font-size: 15px; font-weight: 800; background: linear-gradient(135deg, #F59E0B, #D97706); color: #0F172A; border: none; border-radius: 12px; flex-shrink: 0; cursor: pointer; box-shadow: none;" onclick="event.stopPropagation(); UICommon.closeGlobalModal(); if(window.AppRouter) { window.AppRouter.navigate('/admin'); } else if(window.CustomerWeb) { window.CustomerWeb.switchTab('admin'); } else { window.location.href='/admin'; }">
+                [ Trung Tâm Quản Trị Salon ] →
               </button>
             </div>
           ` : ''}
@@ -2050,19 +2046,19 @@
           <!-- 2. Portal Navigation Tabs -->
           <div class="portal-nav-tabs" style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color, #cbd5e1); margin-bottom: 18px; overflow-x: auto; padding-bottom: 4px;">
             <button class="portal-tab-btn ${this.portalActiveTab === 'bookings' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('bookings')">
-              📅 Lịch Cắt Tóc (${userBookings.length})
+              Lịch Cắt Tóc (${userBookings.length})
             </button>
             <button class="portal-tab-btn ${this.portalActiveTab === 'orders' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('orders')">
-              📦 Đơn Hàng (${userOrders.length})
+              Đơn Hàng (${userOrders.length})
             </button>
             <button class="portal-tab-btn ${this.portalActiveTab === 'gallery' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('gallery')">
-              ⚡ Thư Viện Tóc AI (${galleryItems.length})
+              Thư Viện Tóc AI (${galleryItems.length})
             </button>
             <button class="portal-tab-btn ${this.portalActiveTab === 'rewards' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('rewards')">
-              🪙 Điểm &amp; Hạng
+              Điểm &amp; Hạng
             </button>
             <button class="portal-tab-btn ${this.portalActiveTab === 'profile' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('profile')">
-              ⚙️ Hồ Sơ
+              Hồ Sơ
             </button>
           </div>
 
@@ -2075,7 +2071,7 @@
           <div style="display: flex; gap: 12px; border-top: 1px solid var(--border-color, #cbd5e1); padding-top: 16px; margin-top: 20px; justify-content: space-between; align-items: center;">
             <button type="button" class="btn-cancel" style="min-height: 44px; height: 44px; padding: 0 20px; font-size: 14px; font-weight: 600; border-radius: 12px; background: var(--surface-elevated, #e2e8f0); color: var(--text-primary, #0f172a); border: 1px solid var(--border-color, #cbd5e1);" onclick="UICommon.closeGlobalModal()">Đóng Cửa Sổ</button>
             <button type="button" class="pill-btn-outline" style="min-height: 44px; height: 44px; color: #dc2626; border-color: rgba(220, 38, 38, 0.4); background: rgba(220, 38, 38, 0.08); font-size: 14px; font-weight: 700; padding: 0 20px; border-radius: 12px;" onclick="CustomerWeb.handleLogout()">
-              🚪 Đăng Xuất An Toàn
+              Đăng Xuất An Toàn
             </button>
           </div>
         </div>
@@ -2105,7 +2101,7 @@
       if (!bookings || bookings.length === 0) {
         return `
           <div style="padding: 32px 20px; background: var(--surface-elevated, #f8fafc); border-radius: 10px; text-align: center; color: var(--text-secondary, #64748b); font-size: 13px; border: 1px dashed var(--border-color, #cbd5e1);">
-            <div style="font-size: 32px; margin-bottom: 8px;">📅</div>
+            
             <strong style="color: var(--text-primary, #111);">Bạn chưa có lịch hẹn cắt tóc nào!</strong>
             <p style="margin: 6px auto 14px; max-width: 380px;">Hãy đặt lịch trước để được phục vụ đúng giờ với Master Stylist yêu thích và nhận 50 điểm thưởng thành viên.</p>
             <button class="btn-submit-terracotta" style="padding: 8px 20px;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
@@ -2153,13 +2149,13 @@
                     </span>
                   </div>
                   <div style="font-size: 12px; color: var(--text-secondary, #555); line-height: 1.5;">
-                    <div>🏢 Chi nhánh: <strong>${this.escapeHtml(branchName)}</strong></div>
-                    <div>💈 Master Stylist: <strong>${this.escapeHtml(stylistName)}</strong> • ⏱️ Giờ hẹn: <span style="color: var(--brand-accent, #c85a44); font-weight:800;">${b.timeSlot} (${SalonUtils.formatDate(b.date || b.bookingDate)})</span></div>
-                    <div>💵 Chi phí: <strong>${SalonUtils.formatCurrency(b.totalPrice || 0)}</strong></div>
+                    <div>Chi nhánh: <strong>${this.escapeHtml(branchName)}</strong></div>
+                    <div>Master Stylist: <strong>${this.escapeHtml(stylistName)}</strong> • Giờ hẹn: <span style="color: var(--brand-accent, #c85a44); font-weight:800;">${b.timeSlot} (${SalonUtils.formatDate(b.date || b.bookingDate)})</span></div>
+                    <div>Chi phí: <strong>${SalonUtils.formatCurrency(b.totalPrice || 0)}</strong></div>
                   </div>
                   <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px;">
                     <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px;" onclick="CustomerWeb.showTicketQr('${b.id}')">
-                      🎫 Xem Vé QR
+                      Xem Vé QR
                     </button>
                     ${isCancellable ? `
                       <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #b91c1c; border-color: #fca5a5;" onclick="CustomerWeb.cancelBookingByCustomer('${b.id}')">
@@ -2179,7 +2175,7 @@
       if (!orders || orders.length === 0) {
         return `
           <div style="padding: 32px 20px; background: var(--surface-elevated, #f8fafc); border-radius: 10px; text-align: center; color: var(--text-secondary, #64748b); font-size: 13px; border: 1px dashed var(--border-color, #cbd5e1);">
-            <div style="font-size: 32px; margin-bottom: 8px;">🛍️</div>
+            
             <strong style="color: var(--text-primary, #111);">Bạn chưa có đơn hàng mỹ phẩm nào!</strong>
             <p style="margin: 6px auto 14px; max-width: 380px;">Khám phá các dòng sáp Pomade Brosh Nhật Bản chính hãng, dầu gội giữ màu và áo nón Streetwear.</p>
             <button class="btn-submit-terracotta" style="padding: 8px 20px;" onclick="UICommon.closeGlobalModal(); document.getElementById('newProductsSection').scrollIntoView({behavior:'smooth'});">
@@ -2225,7 +2221,7 @@
                   </div>
 
                   <div style="font-size: 12px; color: var(--text-secondary, #555); line-height: 1.5;">
-                    <div>Hình thức: <strong>${isPickup ? '🏢 Nhận tại chi nhánh Omni Salon' : '🚚 Giao hàng tận nhà'}</strong></div>
+                    <div>Hình thức: <strong>${isPickup ? 'Nhận tại chi nhánh Omni Salon' : 'Giao hàng tận nhà'}</strong></div>
                     <div>Thanh toán: <strong>${this.escapeHtml(o.paymentMethod || 'VietQR')}</strong> • Trạng thái: <strong style="color:${o.paymentStatus === 'Paid' ? '#16a34a' : '#ea580c'}">${o.paymentStatus === 'Paid' ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</strong></div>
                   </div>
 
@@ -2256,11 +2252,11 @@
       if (!gallery || gallery.length === 0) {
         return `
           <div style="padding: 32px 20px; background: var(--surface-elevated, #f8fafc); border-radius: 10px; text-align: center; color: var(--text-secondary, #64748b); font-size: 13px; border: 1px dashed var(--border-color, #cbd5e1);">
-            <div style="font-size: 32px; margin-bottom: 8px;">🎨</div>
+            
             <strong style="color: var(--text-primary, #111);">Bạn chưa có bức ảnh tóc AI nào!</strong>
             <p style="margin: 6px auto 14px; max-width: 380px;">Hãy chụp hoặc tải ảnh khuôn mặt của bạn lên AI Barber Studio để thử phom tóc mới miễn phí.</p>
             <button class="btn-submit-terracotta" style="padding: 8px 20px;" onclick="UICommon.closeGlobalModal(); document.getElementById('aiStudioSection').scrollIntoView({behavior:'smooth'});">
-              ⚡ Thử Đổi Kiểu Tóc AI Ngay
+              Thử Đổi Kiểu Tóc AI Ngay
             </button>
           </div>
         `;
@@ -2294,10 +2290,10 @@
                   </div>
                   <div style="display: flex; gap: 6px; margin-top: 10px;">
                     <a href="${item.resultImageUrl}" download="Omni-AI-Hair.jpg" class="pill-btn-outline" style="flex: 1; font-size: 10px; padding: 4px; text-align: center; text-decoration: none;">
-                      📥 Tải HD
+                      Tải HD
                     </a>
                     <button class="btn-submit-terracotta" style="flex: 1; font-size: 10px; padding: 4px;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
-                      ✂️ Cắt Kiểu Này
+                      Cắt Kiểu Này
                     </button>
                   </div>
                 </div>
@@ -2318,7 +2314,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div>
                 <span style="font-size: 11px; font-weight: 800; color: #b45309; text-transform: uppercase;">HẠNG THÀNH VIÊN HIỆN TẠI</span>
-                <h4 style="font-size: 18px; font-weight: 900; color: #92400e; margin: 2px 0 0;">★ ${this.escapeHtml(tierName)}</h4>
+                <h4 style="font-size: 18px; font-weight: 900; color: #92400e; margin: 2px 0 0;">${this.escapeHtml(tierName)}</h4>
               </div>
               <div style="font-size: 24px; font-weight: 900; color: #d97706;">
                 ${points} <span style="font-size: 12px; color: #b45309;">điểm</span>
@@ -2342,19 +2338,19 @@
           </div>
           <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #444;">
             <div style="display: flex; gap: 8px; align-items: baseline;">
-              <span style="color: #16a34a; font-weight: 800;">✓</span>
+              <span style="color: var(--brand-accent, #F59E0B); font-weight: 800;">•</span>
               <span><strong>Tích điểm tự động:</strong> Nhận 50 điểm cho mỗi ca cắt tóc hoàn thành &amp; 1 điểm cho mỗi 10.000đ mua sắm.</span>
             </div>
             <div style="display: flex; gap: 8px; align-items: baseline;">
-              <span style="color: #16a34a; font-weight: 800;">✓</span>
+              <span style="color: var(--brand-accent, #F59E0B); font-weight: 800;">•</span>
               <span><strong>Ưu tiên đặt ghế:</strong> Được giữ chỗ thợ Master Stylist ưu tiên vào các khung giờ cao điểm cuối tuần.</span>
             </div>
             <div style="display: flex; gap: 8px; align-items: baseline;">
-              <span style="color: #16a34a; font-weight: 800;">✓</span>
+              <span style="color: var(--brand-accent, #F59E0B); font-weight: 800;">•</span>
               <span><strong>Chiết khấu độc quyền:</strong> Giảm giá trực tiếp 5% - 15% khi thanh toán qua cổng mã VietQR.</span>
             </div>
             <div style="display: flex; gap: 8px; align-items: baseline;">
-              <span style="color: #16a34a; font-weight: 800;">✓</span>
+              <span style="color: var(--brand-accent, #F59E0B); font-weight: 800;">•</span>
               <span><strong>Quà sinh nhật:</strong> Tặng 01 lần cạo mặt khăn nóng cổ điển &amp; vuốt sáp miễn phí trong tháng sinh nhật.</span>
             </div>
           </div>
@@ -2396,7 +2392,7 @@
 
               <div style="margin-top: 8px;">
                 <button type="submit" class="btn-submit-terracotta" style="width: 100%; padding: 10px;">
-                  💾 Lưu Thông Tin Cá Nhân
+                  Lưu Thông Tin Cá Nhân
                 </button>
               </div>
             </div>
@@ -2446,7 +2442,7 @@
       if (window.AuthEngine && typeof window.AuthEngine.updateProfile === 'function') {
         const res = window.AuthEngine.updateProfile(updates);
         if (res && res.success) {
-          if (window.UICommon) window.UICommon.showToast('✅ Cập nhật hồ sơ tài khoản thành công!');
+          if (window.UICommon) window.UICommon.showToast('Cập nhật hồ sơ tài khoản thành công!');
           this.renderHeader();
           this.renderCustomerPortalModalBody();
         } else {
@@ -2454,7 +2450,7 @@
         }
       } else if (window.store && typeof window.store.updateCurrentUser === 'function') {
         window.store.updateCurrentUser(updates);
-        if (window.UICommon) window.UICommon.showToast('✅ Đã lưu thông tin tài khoản!');
+        if (window.UICommon) window.UICommon.showToast('Đã lưu thông tin tài khoản!');
         this.renderHeader();
         this.renderCustomerPortalModalBody();
       }

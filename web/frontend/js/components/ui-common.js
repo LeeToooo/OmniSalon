@@ -9,20 +9,18 @@ const UICommon = {
   // 1. RENDER THẺ SẢN PHẨM (CHUẨN 100% ẢNH NGON.PNG)
   // -----------------------------------------------------------------------
   renderProductCard(prod, isMobile = false) {
+    if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.render === 'function') {
+      return window.ProductCard.render(prod, { isMobile });
+    }
     const formattedPrice = SalonUtils.formatCurrency(prod.price);
     return `
-      <div class="product-item-card" data-id="${prod.id}" onclick="UICommon.openProductDetailModal('${prod.id}')">
-        <div class="product-img-box">
-          <img src="${SalonUtils.formatImageUrl(prod.image || prod.HinhAnh)}" alt="${prod.name}" loading="lazy" class="product-thumb" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80');">
-          <button class="quick-add-btn" title="Thêm vào giỏ" onclick="event.stopPropagation(); UICommon.handleAddToCart('${prod.id}')">
-            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M11 9h2V6h3V4h-3V1h-2v3H8v2h3v3zm-4 9c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zm-9.83-3.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.86-7.01L19.42 4h-.01l-1.1 2-2.76 5H8.53l-.13-.27L6.16 6l-.95-2-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.13 0-.25-.11-.25-.25z"/>
-            </svg>
-          </button>
+      <div class="product-clean-card" data-id="${prod.id}" onclick="UICommon.openProductDetailModal('${prod.id}')">
+        <div class="product-media-wrapper">
+          <img src="${SalonUtils.formatImageUrl(prod.image || prod.HinhAnh)}" alt="${prod.name}" loading="lazy" class="product-clean-img" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80');">
         </div>
-        <div class="product-info-box">
-          <h4 class="product-title" title="${prod.name}">${prod.name}</h4>
-          <div class="product-price-red">${formattedPrice}</div>
+        <div class="product-body">
+          <h4 class="product-title-clean" title="${prod.name}">${prod.name}</h4>
+          <div class="product-price-current">${formattedPrice}</div>
         </div>
       </div>
     `;
@@ -72,7 +70,7 @@ const UICommon = {
     return `
       <button class="branch-pill-button" onclick="UICommon.openBranchModal('${branch.id}')" title="${branch.name}">
         <div class="branch-pill-inner">
-          <span class="branch-pill-icon">📍</span>
+          <span class="branch-pill-icon"></span>
           <div class="branch-pill-text-wrap">
             <span class="branch-pill-title">${mainTitle}</span>
             ${subTitle ? `<span class="branch-pill-sub">${subTitle}</span>` : ''}
@@ -152,7 +150,7 @@ const UICommon = {
   // -----------------------------------------------------------------------
   renderBrandCollabCard(collab) {
     return `
-      <div class="collab-box-card" onclick="UICommon.showToast('🚀 Khám phá bộ sưu tập ${collab.title}!')">
+      <div class="collab-box-card" onclick="UICommon.showToast('Khám phá bộ sưu tập ${collab.title}!')">
         <div class="collab-title">${collab.title}</div>
         <div class="collab-link">${collab.linkText}</div>
       </div>
@@ -188,7 +186,7 @@ const UICommon = {
     const best = stylists.slice().sort((a, b) => (Number(b.rating) || 5) - (Number(a.rating) || 5))[0];
     this.bookingData.stylistId = best.id;
     if (window.AppState) window.AppState.updateBooking({ stylistId: best.id });
-    this.showToast(`✨ Đã tự động chọn Chuyên gia: ${best.name} (★ ${best.rating || 5.0})`);
+    this.showToast(`Đã tự động chọn Chuyên gia: ${best.name} (${best.rating || 5.0} / 5)`);
     this.refreshBookingWizardUI();
   },
 
@@ -275,7 +273,7 @@ const UICommon = {
           <div class="wizard-step-panel step-1 ${this.bookingStep === 1 ? 'active' : ''}">
             <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
               <label class="booking-label" style="margin:0;">1. Chọn Dịch Vụ Hoặc Gói Combo VIP</label>
-              <span style="font-size:12px; color:var(--color-accent-gold); font-weight:700;">★ Ưu đãi combo tới 25%</span>
+              <span style="font-size:12px; color:var(--color-accent-gold); font-weight:700;">Ưu đãi combo tới 25%</span>
             </div>
 
             <div style="font-size:11px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:8px; letter-spacing:0.04em;">
@@ -287,7 +285,7 @@ const UICommon = {
                      onclick="UICommon.selectBookingService('${c.id}')">
                   <div class="service-tick-btn">${this.bookingData.serviceId === c.id ? '✓' : ''}</div>
                   <div style="flex: 1; min-width: 0;">
-                    <div style="font-size: 16px; font-weight: 700; color: #fff;">👑 ${c.name}</div>
+                    <div style="font-size: 16px; font-weight: 700; color: #fff;">[VIP] ${c.name}</div>
                     <div style="font-size: 13px; color: var(--color-accent-gold); margin: 3px 0;">⏱️ ${c.duration || 75} phút trọn gói</div>
                     <div style="font-size: 15px; font-weight: 800; color: var(--color-accent-gold);">${SalonUtils.formatCurrency(c.price)}</div>
                   </div>
@@ -340,7 +338,7 @@ const UICommon = {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
               <label class="booking-label" style="margin:0; font-size: 15px; font-weight: 700; color: #fff;">2. Chọn Chuyên Gia Stylist</label>
               <button type="button" class="btn-auto-stylist" style="min-height: 40px; font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 10px;" onclick="UICommon.autoSelectAvailableStylist()">
-                ⚡ Hệ Thống Tự Sắp Xếp Thợ Phù Hợp
+                Tự Động Sắp Xếp Thợ Phù Hợp
               </button>
             </div>
 
@@ -348,7 +346,7 @@ const UICommon = {
               ${window.StylistCardWidget ? window.StylistCardWidget.renderGrid(stylists, this.bookingData.stylistId, 'UICommon.selectBookingStylist') : ''}
               <select class="form-control-custom" id="bookingStylistSelect" style="display:none;" onchange="UICommon.selectBookingStylist(this.value)">
                 ${stylists.map(st => `
-                  <option value="${st.id}" ${st.id === this.bookingData.stylistId ? 'selected' : ''}>${st.name} (5.0★)</option>
+                  <option value="${st.id}" ${st.id === this.bookingData.stylistId ? 'selected' : ''}>${st.name} (5.0 / 5)</option>
                 `).join('')}
               </select>
             </div>
@@ -449,11 +447,11 @@ const UICommon = {
               <div style="display:flex; gap:10px;">
                 <label style="flex:1; display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--surface-card); border:1px solid var(--border-color); border-radius:12px; cursor:pointer;">
                   <input type="radio" name="payMethod" value="VietQR" checked onchange="UICommon.bookingData.paymentMethod = 'VietQR'">
-                  <span style="font-size:12px; font-weight:700; color:var(--text-primary);">💳 VietQR Tự Động</span>
+                  <span style="font-size:12px; font-weight:700; color:var(--text-primary);">VietQR Tự Động</span>
                 </label>
                 <label style="flex:1; display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--surface-card); border:1px solid var(--border-color); border-radius:12px; cursor:pointer;">
                   <input type="radio" name="payMethod" value="Cash" onchange="UICommon.bookingData.paymentMethod = 'Cash'">
-                  <span style="font-size:12px; font-weight:700; color:var(--text-primary);">💵 Thanh Toán Tại Quầy</span>
+                  <span style="font-size:12px; font-weight:700; color:var(--text-primary);">Thanh Toán Tại Quầy</span>
                 </label>
               </div>
             </div>
@@ -494,7 +492,7 @@ const UICommon = {
                 </div>
                 <div class="summary-line" style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12.5px;">
                   <span style="color: #94A3B8;">Chuyên gia:</span>
-                  <strong style="color: #FFF;">★ ${activeStylist?.name || 'Master Stylist'}</strong>
+                  <strong style="color: #FFF;">${activeStylist?.name || 'Master Stylist'}</strong>
                 </div>
                 <div class="summary-line" style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12.5px;">
                   <span style="color: #94A3B8;">Khung giờ:</span>
@@ -590,26 +588,26 @@ const UICommon = {
     const phone = (this.bookingData.customerPhone || '').trim();
 
     if (!rawName) {
-      UICommon.showToast('⚠️ Vui lòng nhập họ và tên khách hàng!', 'warning');
+      UICommon.showToast('Vui lòng nhập họ và tên khách hàng!', 'warning');
       return;
     }
     // OWASP A03 XSS Defense: Chặn script injection và mã hóa HTML Entities
     if (/<script\b|javascript:|onerror=|onload=/i.test(rawName)) {
-      UICommon.showToast('⚠️ Họ và tên chứa ký tự không an toàn!', 'warning');
+      UICommon.showToast('Họ và tên chứa ký tự không an toàn!', 'warning');
       return;
     }
     const name = rawName.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;' }[c]));
 
     if (!phone || !/^[0-9]{9,11}$/.test(phone)) {
-      UICommon.showToast('⚠️ Số điện thoại không hợp lệ (cần 9-11 chữ số)!', 'warning');
+      UICommon.showToast('Số điện thoại không hợp lệ (cần 9-11 chữ số)!', 'warning');
       return;
     }
     if (!this.bookingData.date) {
-      UICommon.showToast('⚠️ Vui lòng chọn ngày hẹn!', 'warning');
+      UICommon.showToast('Vui lòng chọn ngày hẹn!', 'warning');
       return;
     }
     if (!this.bookingData.timeSlot) {
-      UICommon.showToast('⚠️ Vui lòng chọn khung giờ hẹn!', 'warning');
+      UICommon.showToast('Vui lòng chọn khung giờ hẹn!', 'warning');
       return;
     }
 
@@ -661,7 +659,8 @@ const UICommon = {
     const modalBody = document.getElementById('globalModalBody');
     if (!modal || !modalBody) return;
 
-    const qrSvg = SalonUtils.generateQrSvgCode('#BK-' + (booking.bookingCode || booking.id), { size: 160, fg: '#1c1917' });
+    const realCode = booking.MaLichHen || booking.bookingCode || booking.id;
+    const qrSvg = SalonUtils.generateQrSvgCode(realCode, { size: 160, fg: '#1c1917' });
     const endTime = booking.estimatedEndTime || SalonUtils.calculateEndTime(booking.timeSlot, booking.durationMinutes || 45);
 
     modalBody.innerHTML = `
@@ -669,7 +668,7 @@ const UICommon = {
         <div class="success-icon" style="background:#10b981;">✓</div>
         <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 6px; color: var(--text-primary);">ĐẶT LỊCH THÀNH CÔNG!</h2>
         <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
-          Mã vé điện tử: <strong style="color: var(--brand-accent, #c85a44);">#${booking.bookingCode || booking.id}</strong>. Omni Salon cam kết phục vụ đúng giờ!
+          Mã phiếu lịch hẹn: <strong style="color: var(--brand-accent, #c85a44); font-size: 16px;">${realCode}</strong>. Omni Salon cam kết phục vụ đúng giờ!
         </p>
 
         <div class="booking-invoice-card" style="background: var(--surface-elevated, #1a1f2e); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: left;">
@@ -715,11 +714,40 @@ const UICommon = {
     discountAmount: 0
   },
 
-  handleAddToCart(productId) {
-    window.store.addToCart(productId, 1);
-    const prod = window.store.getProducts().find(p => p.id === productId);
-    UICommon.showToast(`🛒 Đã thêm [${prod?.name || 'Sản phẩm'}] vào giỏ!`);
+  addToCart(productId, type = 'product', qty = 1) {
+    if (window.store && typeof window.store.addToCart === 'function') {
+      window.store.addToCart(productId, qty);
+    }
+    const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
+    const prod = products.find(p => p.id === productId || p.MaSanPham === productId);
+    const name = prod?.name || prod?.TenSanPham || 'Sản phẩm';
+    this.showToast(`Đã thêm [${name}] vào giỏ hàng thành công!`, 'success');
     this.updateCartBadges();
+    if (window.ShopPage && typeof window.ShopPage.updateCartBadge === 'function') {
+      window.ShopPage.updateCartBadge();
+    }
+  },
+
+  buyNow(productId, qty = 1) {
+    this.addToCart(productId, 'product', qty);
+    this.openCartDrawer();
+  },
+
+  handleAddToCart(productId) {
+    this.addToCart(productId, 'product', 1);
+  },
+
+  togglePasswordVisibility(inputId, btnEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isPass = input.type === 'password';
+    input.type = isPass ? 'text' : 'password';
+    if (btnEl) {
+      btnEl.innerHTML = isPass
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      btnEl.setAttribute('aria-label', isPass ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+    }
   },
 
   openCartDrawer() {
@@ -759,13 +787,13 @@ const UICommon = {
     if (window.PricingService) {
       const res = window.PricingService.processVoucherCode(voucherCode, subtotal, promos);
       if (!res.isValid) {
-        this.showToast(`⚠️ ${res.message}`, 'warning');
+        this.showToast(`${res.message}`, 'warning');
         return;
       }
       this.cartState.voucherCode = voucherCode;
       this.cartState.appliedVoucher = res.voucher;
       this.cartState.discountAmount = res.discountAmount;
-      this.showToast(`🎉 Áp dụng voucher [${voucherCode}] giảm ${SalonUtils.formatCurrency(res.discountAmount)}!`);
+      this.showToast(`Áp dụng voucher [${voucherCode}] giảm ${SalonUtils.formatCurrency(res.discountAmount)}!`);
     } else {
       const voucher = promos.find(p => (p.code || '').toUpperCase() === voucherCode);
       if (!voucher) {
@@ -775,7 +803,7 @@ const UICommon = {
       this.cartState.voucherCode = voucherCode;
       this.cartState.appliedVoucher = voucher;
       this.cartState.discountAmount = voucher.discountValue || 50000;
-      this.showToast(`🎉 Đã áp dụng mã [${voucherCode}]!`);
+      this.showToast(`Đã áp dụng mã [${voucherCode}]!`);
     }
 
     this.renderCartDrawerContent();
@@ -801,7 +829,7 @@ const UICommon = {
     if (cart.length === 0) {
       listContainer.innerHTML = `
         <div class="cart-empty-state">
-          <div style="font-size: 40px; margin-bottom: 10px;">🛍️</div>
+          
           <div style="font-weight: 600; font-size: 15px;">Giỏ hàng của bạn đang trống</div>
           <div style="font-size: 13px; color: #888; margin-top: 4px;">Hãy chọn các dòng sáp vuốt, pomade, áo nón OMNI cực chất!</div>
         </div>
@@ -862,12 +890,12 @@ const UICommon = {
           <button type="button" 
                   style="flex: 1; padding: 10px 8px; font-size: 13px; font-weight: 700; border-radius: 10px; cursor: pointer; border: 1px solid ${this.cartState.deliveryType === 'PICKUP_BRANCH' ? '#F59E0B' : 'rgba(255,255,255,0.15)'}; background: ${this.cartState.deliveryType === 'PICKUP_BRANCH' ? 'rgba(245,158,11,0.2)' : '#121622'}; color: ${this.cartState.deliveryType === 'PICKUP_BRANCH' ? '#F59E0B' : '#E2E8F0'};"
                   onclick="UICommon.setCartDeliveryType('PICKUP_BRANCH')">
-            🏢 Lấy Tại Chi Nhánh
+            Lấy Tại Chi Nhánh
           </button>
           <button type="button" 
                   style="flex: 1; padding: 10px 8px; font-size: 13px; font-weight: 700; border-radius: 10px; cursor: pointer; border: 1px solid ${this.cartState.deliveryType === 'DELIVERY' ? '#F59E0B' : 'rgba(255,255,255,0.15)'}; background: ${this.cartState.deliveryType === 'DELIVERY' ? 'rgba(245,158,11,0.2)' : '#121622'}; color: ${this.cartState.deliveryType === 'DELIVERY' ? '#F59E0B' : '#E2E8F0'};"
                   onclick="UICommon.setCartDeliveryType('DELIVERY')">
-            🚚 Giao Tận Nơi (COD)
+            Giao Tận Nơi (COD)
           </button>
         </div>
 
@@ -901,7 +929,7 @@ const UICommon = {
         ${this.cartState.appliedVoucher ? `
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <span style="font-size: 14px; font-weight: 800; color: #10B981;">🎟️ [${this.cartState.voucherCode}]</span>
+              <span style="font-size: 14px; font-weight: 800; color: #10B981;">[${this.cartState.voucherCode}]</span>
               <span style="font-size: 14px; color: #10B981; font-weight: 700; margin-left: 6px;">-${SalonUtils.formatCurrency(this.cartState.discountAmount)}</span>
             </div>
             <button type="button" style="font-size: 13px; color: #EF4444; border: none; background: none; cursor: pointer; text-decoration: underline;" onclick="UICommon.removeCartVoucher()">
@@ -967,14 +995,14 @@ const UICommon = {
     if (this.cartState.deliveryType === 'DELIVERY') {
       const addr = (this.cartState.deliveryAddress || '').trim();
       if (!addr) {
-        UICommon.showToast('⚠️ Vui lòng nhập địa chỉ nhận hàng chi tiết!', 'warning');
+        UICommon.showToast('Vui lòng nhập địa chỉ nhận hàng chi tiết!', 'warning');
         const addrInput = document.getElementById('cartDeliveryAddress');
         if (addrInput) addrInput.focus();
         return;
       }
       // OWASP A03 XSS Defense: Chặn script injection vào địa chỉ giao hàng
       if (/<script\b|javascript:|onerror=|onload=/i.test(addr)) {
-        UICommon.showToast('⚠️ Địa chỉ nhận hàng chứa ký tự không an toàn!', 'warning');
+        UICommon.showToast('Địa chỉ nhận hàng chứa ký tự không an toàn!', 'warning');
         return;
       }
       cleanAddress = addr.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;' }[c]));
@@ -985,7 +1013,7 @@ const UICommon = {
     // DRY & Khử N+1: Kiểm tra tồn kho toàn bộ giỏ hàng qua checkStockBatch O(N+M)
     const stockCheck = window.store.checkStockBatch ? window.store.checkStockBatch(branchId, cart) : { available: true };
     if (!stockCheck.available) {
-      UICommon.showToast(`⚠️ Sản phẩm [${stockCheck.productName}] chỉ còn ${stockCheck.inStock} cái tại chi nhánh ${branch ? branch.name.split('—')[0] : ''}!`, 'warning');
+      UICommon.showToast(`Sản phẩm [${stockCheck.productName}] chỉ còn ${stockCheck.inStock} cái tại chi nhánh ${branch ? branch.name.split('—')[0] : ''}!`, 'warning');
       return;
     }
 
@@ -1005,14 +1033,14 @@ const UICommon = {
       }
       if (recPhone) {
         if (!/^[0-9]{9,11}$/.test(recPhone)) {
-          UICommon.showToast('⚠️ Số điện thoại nhận hàng không hợp lệ (9-11 chữ số)!', 'warning');
+          UICommon.showToast('Số điện thoại nhận hàng không hợp lệ (9-11 chữ số)!', 'warning');
           const phoneInput = document.getElementById('cartRecipientPhone');
           if (phoneInput) phoneInput.focus();
           return;
         }
         customerPhone = recPhone;
       } else if (!user) {
-        UICommon.showToast('⚠️ Vui lòng nhập số điện thoại người nhận để giao hàng!', 'warning');
+        UICommon.showToast('Vui lòng nhập số điện thoại người nhận để giao hàng!', 'warning');
         const phoneInput = document.getElementById('cartRecipientPhone');
         if (phoneInput) phoneInput.focus();
         return;
@@ -1048,7 +1076,7 @@ const UICommon = {
 
     this.closeCartDrawer();
     this.updateCartBadges();
-    UICommon.showToast(`🎉 Đặt đơn hàng #${order.id} thành công!`, 'success');
+    UICommon.showToast(`Đặt đơn hàng #${order.id} thành công!`, 'success');
     this.openOrderSuccessModal(order);
   },
 
@@ -1067,7 +1095,7 @@ const UICommon = {
         <div class="booking-invoice-card">
           <div class="invoice-item">
             <span>Phương thức:</span>
-            <strong>${order.deliveryType === 'PICKUP_BRANCH' ? '🏢 Nhận tại quầy chi nhánh' : '🚚 Giao hàng tận nhà'}</strong>
+            <strong>${order.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nhà'}</strong>
           </div>
           ${order.items.map(it => `
             <div class="invoice-item">
@@ -1113,9 +1141,12 @@ const UICommon = {
           <h2 class="modal-prod-title">${prod.name}</h2>
           <div class="modal-prod-price">${SalonUtils.formatCurrency(prod.price)}</div>
           <p class="modal-prod-desc">${prod.description}</p>
-          <div style="display:flex; gap:12px; margin-top:24px;">
-            <button class="btn-submit-terracotta" style="flex:1;" onclick="UICommon.handleAddToCart('${prod.id}'); UICommon.closeGlobalModal();">
-              Thêm Vào Giỏ Hàng
+          <div style="display:flex; gap:10px; margin-top:24px;">
+            <button class="btn-submit-terracotta" style="flex:1; background: var(--surface-card); color: var(--text-primary); border: 1.5px solid var(--border-color); font-weight: 700;" onclick="UICommon.addToCart('${prod.id}'); UICommon.closeGlobalModal();">
+              Thêm Vào Giỏ
+            </button>
+            <button class="btn-submit-terracotta" style="flex:1; background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; border: none;" onclick="UICommon.buyNow('${prod.id}'); UICommon.closeGlobalModal();">
+              Mua Ngay
             </button>
             <button class="btn-cancel" onclick="UICommon.closeGlobalModal()">Đóng</button>
           </div>
@@ -1203,7 +1234,7 @@ const UICommon = {
           <button type="button" class="auth-tab-btn ${this.authTab === 'login' ? 'active' : ''}" 
                   style="flex: 1; padding: 10px 4px; font-size: 14px; font-weight: 800; border: none; background: none; cursor: pointer; color: ${this.authTab === 'login' ? '#F59E0B' : '#94A3B8'}; border-bottom: ${this.authTab === 'login' ? '2px solid #F59E0B' : 'none'}; margin-bottom: -12px;"
                   onclick="UICommon.openAuthModal('login')">
-            🔑 Đăng Nhập
+            Đăng Nhập
           </button>
           <button type="button" class="auth-tab-btn ${this.authTab === 'register' ? 'active' : ''}" 
                   style="flex: 1; padding: 10px 4px; font-size: 14px; font-weight: 800; border: none; background: none; cursor: pointer; color: ${this.authTab === 'register' ? '#F59E0B' : '#94A3B8'}; border-bottom: ${this.authTab === 'register' ? '2px solid #F59E0B' : 'none'}; margin-bottom: -12px;"
@@ -1213,7 +1244,7 @@ const UICommon = {
           <button type="button" class="auth-tab-btn ${this.authTab === 'reset' ? 'active' : ''}" 
                   style="flex: 1; padding: 10px 4px; font-size: 14px; font-weight: 800; border: none; background: none; cursor: pointer; color: ${this.authTab === 'reset' ? '#F59E0B' : '#94A3B8'}; border-bottom: ${this.authTab === 'reset' ? '2px solid #F59E0B' : 'none'}; margin-bottom: -12px;"
                   onclick="UICommon.openAuthModal('reset')">
-            🔄 Đổi Mật Khẩu
+            Đổi Mật Khẩu
           </button>
         </div>
 
@@ -1229,7 +1260,12 @@ const UICommon = {
                 <label class="sub-label">Mật khẩu:</label>
                 <a href="javascript:void(0)" onclick="UICommon.openAuthModal('reset')" style="color: #f59e0b; font-size: 12px; font-weight: 600; text-decoration: none;">Quên mật khẩu?</a>
               </div>
-              <input type="password" id="loginPassword" class="form-control-custom" placeholder="Nhập mật khẩu tài khoản" required autocomplete="current-password">
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="password" id="loginPassword" class="form-control-custom" style="padding-right: 42px; width: 100%;" placeholder="Nhập mật khẩu tài khoản" required autocomplete="current-password">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị / Ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
             </div>
             <button type="submit" class="btn-submit-terracotta" style="width:100%; min-height: 48px; font-size: 15px; font-weight: 800; margin-top: 6px;">Đăng Nhập Ngay →</button>
           </form>
@@ -1254,7 +1290,12 @@ const UICommon = {
             </div>
             <div style="margin-bottom: 16px;">
               <label class="sub-label">Mật khẩu mới cần đổi:</label>
-              <input type="password" id="resetPasswordInput" class="form-control-custom" placeholder="Tối thiểu 3 ký tự" required minlength="3">
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="password" id="resetPasswordInput" class="form-control-custom" style="padding-right: 42px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('resetPasswordInput', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị / Ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
             </div>
             <button type="submit" class="btn-submit-terracotta" style="width:100%; padding: 12px; font-weight: 800;">Lưu Mật Khẩu Mới &amp; Cập Nhật Database →</button>
           </form>
@@ -1290,7 +1331,12 @@ const UICommon = {
             </div>
             <div style="margin-bottom: 14px;">
               <label class="sub-label">Mật khẩu khởi tạo:</label>
-              <input type="password" id="regPassword" class="form-control-custom" placeholder="Tối thiểu 3 ký tự" required minlength="3">
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="password" id="regPassword" class="form-control-custom" style="padding-right: 42px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('regPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị / Ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
             </div>
             <button type="submit" class="btn-submit-terracotta" style="width:100%; padding: 12px; font-weight: 800;">Tạo Tài Khoản Thành Viên →</button>
           </form>
@@ -1307,11 +1353,11 @@ const UICommon = {
     const acc = document.getElementById('loginAccount')?.value.trim();
     const pass = document.getElementById('loginPassword')?.value;
     if (!acc) {
-      this.showToast('⚠️ Vui lòng nhập email hoặc tên đăng nhập!', 'warning');
+      this.showToast('Vui lòng nhập email hoặc tên đăng nhập!', 'warning');
       return;
     }
     if (!pass) {
-      this.showToast('⚠️ Vui lòng nhập mật khẩu!', 'warning');
+      this.showToast('Vui lòng nhập mật khẩu!', 'warning');
       return;
     }
 
@@ -1333,7 +1379,7 @@ const UICommon = {
         user.username === 'hoang.ql'
       );
 
-      this.showToast(`👋 Chào mừng ${user.fullName || user.name} (${roleName})!`, 'success');
+      this.showToast(`Chào mừng ${user.fullName || user.name} (${roleName})!`, 'success');
       this.closeGlobalModal();
 
       if (window.CustomerWeb) {
@@ -1375,7 +1421,7 @@ const UICommon = {
     const tip = document.getElementById('otpStatusTip');
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      this.showToast('⚠️ Vui lòng nhập đúng định dạng email (VD: ten@gmail.com)!', 'warning');
+      this.showToast('Vui lòng nhập đúng định dạng email (VD: ten@gmail.com)!', 'warning');
       emailInput?.focus();
       return;
     }
@@ -1403,7 +1449,7 @@ const UICommon = {
 
     if (res && res.success) {
       const devHint = res.otp ? ` [Mã thử nghiệm: ${res.otp}]` : '';
-      this.showToast(`📧 Đã gửi mã xác nhận OTP 6 số đến ${email}!${devHint}`, 'success');
+      this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${email}!${devHint}`, 'success');
       if (tip) {
         tip.innerHTML = `✅ Đã gửi mã OTP đến <b>${email}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span>` : ''}`;
       }
@@ -1443,24 +1489,24 @@ const UICommon = {
     const password = document.getElementById('regPassword')?.value;
 
     if (!fullName) {
-      this.showToast('⚠️ Vui lòng nhập họ và tên!', 'warning');
+      this.showToast('Vui lòng nhập họ và tên!', 'warning');
       return;
     }
     if (!phone || !/^[0-9]{9,11}$/.test(phone)) {
-      this.showToast('⚠️ Số điện thoại không hợp lệ (cần 9-11 chữ số)!', 'warning');
+      this.showToast('Số điện thoại không hợp lệ (cần 9-11 chữ số)!', 'warning');
       return;
     }
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      this.showToast('⚠️ Vui lòng nhập địa chỉ email hợp lệ để nhận mã xác nhận!', 'warning');
+      this.showToast('Vui lòng nhập địa chỉ email hợp lệ để nhận mã xác nhận!', 'warning');
       return;
     }
     if (!otp || otp.length < 6) {
-      this.showToast('⚠️ Vui lòng nhập đủ 6 chữ số mã xác nhận OTP từ email!', 'warning');
+      this.showToast('Vui lòng nhập đủ 6 chữ số mã xác nhận OTP từ email!', 'warning');
       document.getElementById('regOtp')?.focus();
       return;
     }
-    if (!password || password.length < 3) {
-      this.showToast('⚠️ Mật khẩu cần tối thiểu 3 ký tự!', 'warning');
+    if (!password || password.length < 6) {
+      this.showToast('Mật khẩu cần tối thiểu 6 ký tự!', 'warning');
       return;
     }
 
@@ -1477,7 +1523,7 @@ const UICommon = {
     }
 
     if (!verifyRes || !verifyRes.success) {
-      this.showToast(verifyRes?.message || '⚠️ Mã xác nhận OTP không đúng hoặc đã hết hạn!', 'error');
+      this.showToast(verifyRes?.message || 'Mã xác nhận OTP không đúng hoặc đã hết hạn!', 'error');
       return;
     }
 
@@ -1496,7 +1542,7 @@ const UICommon = {
     }
 
     if (res && res.success) {
-      this.showToast(`🎉 Chúc mừng ${fullName} đã xác thực email và đăng ký thành công!`, 'success');
+      this.showToast(`Chúc mừng ${fullName} đã xác thực email và đăng ký thành công!`, 'success');
       if (this.otpTimer) {
         clearInterval(this.otpTimer);
         this.otpTimer = null;
@@ -1528,7 +1574,7 @@ const UICommon = {
     const tip = document.getElementById('resetOtpStatusTip');
 
     if (!identifier) {
-      this.showToast('⚠️ Vui lòng nhập Gmail hoặc Số điện thoại tài khoản!', 'warning');
+      this.showToast('Vui lòng nhập Gmail hoặc Số điện thoại tài khoản!', 'warning');
       identInput?.focus();
       return;
     }
@@ -1556,7 +1602,7 @@ const UICommon = {
 
     if (res && res.success) {
       const devHint = res.otp ? ` [Mã thử nghiệm: ${res.otp}]` : '';
-      this.showToast(`📧 Đã gửi mã xác nhận OTP 6 số đến ${identifier}!${devHint}`, 'success');
+      this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${identifier}!${devHint}`, 'success');
       if (tip) {
         tip.innerHTML = `✅ Đã gửi mã OTP đến <b>${identifier}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span>` : ''}`;
       }
@@ -1593,16 +1639,16 @@ const UICommon = {
     const newPassword = document.getElementById('resetPasswordInput')?.value;
 
     if (!identifier) {
-      this.showToast('⚠️ Vui lòng nhập Gmail hoặc SĐT tài khoản!', 'warning');
+      this.showToast('Vui lòng nhập Gmail hoặc SĐT tài khoản!', 'warning');
       return;
     }
     if (!otp || otp.length < 6) {
-      this.showToast('⚠️ Vui lòng nhập đủ 6 chữ số mã xác nhận OTP từ Gmail!', 'warning');
+      this.showToast('Vui lòng nhập đủ 6 chữ số mã xác nhận OTP từ Gmail!', 'warning');
       document.getElementById('resetOtp')?.focus();
       return;
     }
     if (!newPassword || newPassword.length < 3) {
-      this.showToast('⚠️ Mật khẩu mới cần tối thiểu 3 ký tự!', 'warning');
+      this.showToast('Mật khẩu mới cần tối thiểu 3 ký tự!', 'warning');
       return;
     }
 
@@ -1618,7 +1664,7 @@ const UICommon = {
     }
 
     if (res && res.success) {
-      this.showToast('🎉 Đổi mật khẩu thành công! Mật khẩu mới đã được lưu trực tiếp vào cơ sở dữ liệu SQL.', 'success');
+      this.showToast('Đổi mật khẩu thành công! Mật khẩu mới đã được lưu trực tiếp vào cơ sở dữ liệu SQL.', 'success');
       if (this.resetOtpTimer) {
         clearInterval(this.resetOtpTimer);
         this.resetOtpTimer = null;
@@ -1658,7 +1704,7 @@ const UICommon = {
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
           <div>
             <span style="display: inline-block; background: rgba(180, 131, 18, 0.15); color: #f59e0b; border: 1px solid rgba(180, 131, 18, 0.3); padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 800; margin-bottom: 8px;">
-              📍 CHI NHÁNH CHÍNH HÃNG
+              CHI NHÁNH CHÍNH HÃNG
             </span>
             <h2 style="font-size: 22px; font-weight: 800; color: #fff; margin: 0;">${bName}</h2>
           </div>
@@ -1673,15 +1719,15 @@ const UICommon = {
         </div>
 
         <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
-          <div style="margin-bottom: 6px;">📍 <b>Địa chỉ:</b> ${bAddr}</div>
+          <div style="margin-bottom: 6px;"><b>Địa chỉ:</b> ${bAddr}</div>
           <div style="margin-bottom: 6px;">⏱️ <b>Giờ phục vụ:</b> ${bHours} (Tất cả các ngày trong tuần)</div>
-          <div>📞 <b>Hotline chi nhánh:</b> <a href="tel:${bPhone}" style="color: #f59e0b; font-weight: 700; text-decoration: none;">${bPhone}</a></div>
+          <div><b>Hotline chi nhánh:</b> <a href="tel:${bPhone}" style="color: #f59e0b; font-weight: 700; text-decoration: none;">${bPhone}</a></div>
         </div>
 
         <!-- Khối Uy Tín Đạt Chuẩn 5 Sao -->
         <div style="background: rgba(180, 131, 18, 0.1); border: 1px solid rgba(180, 131, 18, 0.25); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 14px; font-weight: 800; color: #f59e0b;">★ CHUẨN MỰC UY TÍN &amp; TẬN TÂM</span>
+            <span style="font-size: 14px; font-weight: 800; color: #f59e0b;">CHUẨN MỰC UY TÍN &amp; TẬN TÂM</span>
             <span style="font-size: 11px; color: #cbd5e1;">Cam kết chất lượng 100%</span>
           </div>
           <div style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
@@ -1693,10 +1739,10 @@ const UICommon = {
 
         <div style="display: flex; gap: 10px;">
           <button class="btn-submit-terracotta" style="flex: 2; padding: 12px; font-weight: 800; font-size: 14px;" onclick="UICommon.closeGlobalModal(); AppRouter.navigate('/booking?branch=${branch.id || branchId}')">
-            📅 Đặt Lịch Tại Chi Nhánh Này →
+            Đặt Lịch Tại Chi Nhánh Này →
           </button>
           <a href="tel:${bPhone}" style="flex: 1; background: rgba(255, 255, 255, 0.08); color: #fff; text-decoration: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.12);">
-            📞 Gọi Ngay
+            Gọi Ngay
           </a>
         </div>
       </div>
@@ -1720,7 +1766,7 @@ const UICommon = {
           String(seed.role).toUpperCase().includes('MANAGER')
         );
 
-        this.showToast(`👑 Đã đăng nhập: ${seed.fullName} [${seed.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : seed.roleName}]`, 'success');
+        this.showToast(`Đã đăng nhập: ${seed.fullName} [${seed.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : seed.roleName}]`, 'success');
         this.closeGlobalModal();
 
         if (window.CustomerWeb) {
@@ -1751,7 +1797,7 @@ const UICommon = {
     } else {
       const res = window.store.login(roleKey === 'SUPER_ADMIN' ? 'executive@omnisalon.vn' : 'khachhang@gmail.com', 'admin123');
       if (res && res.success) {
-        this.showToast(`👑 Đã đăng nhập vai trò [${roleKey}]`, 'success');
+        this.showToast(`Đã đăng nhập vai trò [${roleKey}]`, 'success');
         this.closeGlobalModal();
         if (roleKey === 'SUPER_ADMIN' && window.CustomerWeb) {
           window.CustomerWeb.switchTab('admin');
@@ -1805,13 +1851,13 @@ const UICommon = {
     const aiConfig = SalonApi ? SalonApi.getAiConfig() : { provider: 'demo_smart', apiKey: '', endpoint: '' };
 
     const stylePresets = [
-      { name: 'Side Part 7/3 Hàn Quốc', icon: '💇‍♂️' },
-      { name: 'Undercut Fade Bén (Hà Hiền)', icon: '💈' },
-      { name: 'Uốn Con Sâu / Texture Wave', icon: '🌀' },
-      { name: 'Mullet Hiện Đại (Wolf Cut)', icon: '🐺' },
-      { name: 'Buzz Cut Quân Đội', icon: '⚡' },
-      { name: 'Crop Warrior Phá Cách', icon: '⚔️' },
-      { name: 'Pompadour Quý Tộc', icon: '👑' },
+      { name: 'Side Part 7/3 Hàn Quốc', icon: '' },
+      { name: 'Undercut Fade Bén (Hà Hiền)', icon: '' },
+      { name: 'Uốn Con Sâu / Texture Wave', icon: '' },
+      { name: 'Mullet Hiện Đại (Wolf Cut)', icon: '' },
+      { name: 'Buzz Cut Quân Đội', icon: '' },
+      { name: 'Crop Warrior Phá Cách', icon: '' },
+      { name: 'Pompadour Quý Tộc', icon: '' },
       { name: 'Ép Side Tóc Nam (Down Perm)', icon: '✨' }
     ];
 
@@ -1857,10 +1903,10 @@ const UICommon = {
 
                   <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;" onclick="event.stopPropagation();">
                     <button class="btn-sub-action" onclick="document.getElementById('aiPhotoFileInput').click()">
-                      📁 Chọn Từ Máy
+                      Chọn Từ Máy
                     </button>
                     <button class="btn-sub-action" onclick="document.getElementById('aiCameraFileInput').click()">
-                      📸 Chụp Selfie
+                      Chụp Selfie
                     </button>
                   </div>
 
@@ -1919,15 +1965,15 @@ const UICommon = {
                   </div>
 
                   <div class="compare-hint-bar">
-                    <span>👈 Kéo thanh tròn sang trái/phải để so sánh Trước & Sau 👉</span>
+                    <span>Kéo thanh tròn sang trái/phải để so sánh Trước & Sau</span>
                   </div>
 
                   <div class="ai-result-actions-strip">
                     <button class="btn-sub-action" onclick="UICommon.downloadAiResultPhoto()" title="Tải ảnh về máy">
-                      📥 Tải Ảnh HD Về Máy
+                      Tải Ảnh HD Về Máy
                     </button>
                     <button class="btn-sub-action" onclick="UICommon.resetAiPhoto()">
-                      🔄 Đổi Ảnh Khác
+                      Đổi Ảnh Khác
                     </button>
                   </div>
                 </div>
@@ -1997,7 +2043,7 @@ const UICommon = {
             <!-- 4. NÚT MỞ CÀI ĐẶT API -->
             <div class="ai-api-toggle-row">
               <button class="btn-text-toggle" onclick="UICommon.toggleAiApiSettings()">
-                ⚙️ Cài đặt API Key & Endpoint (${aiConfig.provider})
+                Cài đặt API Key & Endpoint (${aiConfig.provider})
               </button>
             </div>
 
@@ -2024,7 +2070,7 @@ const UICommon = {
                   <input type="text" id="aiEndpointInput" class="api-input-control" placeholder="https://api-inference.huggingface.co/..." value="${aiConfig.endpoint || ''}">
                 </div>
                 <button class="btn-submit-terracotta" style="width: 100%; padding: 8px; margin-top: 8px; font-size: 12px;" onclick="UICommon.saveAiApiSettings()">
-                  💾 Lưu Cấu Hình API
+                  Lưu Cấu Hình API
                 </button>
               </div>
             ` : ''}
@@ -2033,11 +2079,11 @@ const UICommon = {
             <div class="ai-action-buttons-wrap">
               ${!resultImage ? `
                 <button class="btn-execute-ai" onclick="UICommon.processAiPhotoRestyle()" ${!originalImage || isProcessing ? 'disabled style="opacity: 0.6;"' : ''}>
-                  ⚡ BẮT ĐẦU ĐỔI KIỂU TÓC BẰNG AI →
+                  BẮT ĐẦU ĐỔI KIỂU TÓC BẰNG AI →
                 </button>
               ` : `
                 <button class="btn-submit-terracotta btn-book-now-ai" onclick="UICommon.bookWithAiHairstyle()">
-                  📅 ĐẶT LỊCH CẮT KIỂU TÓC NÀY NGAY →
+                  ĐẶT LỊCH CẮT KIỂU TÓC NÀY NGAY →
                 </button>
                 <button class="btn-execute-ai" style="margin-top: 8px; background: #222;" onclick="UICommon.processAiPhotoRestyle()">
                   ✨ Thử Đổi Màu / Kiểu Tóc Khác
@@ -2079,14 +2125,14 @@ const UICommon = {
   selectAiStyle(styleName) {
     this.aiState.selectedStyle = styleName;
     this.renderAiStudioContent();
-    UICommon.showToast(`💇 Đã chọn kiểu tóc: ${styleName}`);
+    UICommon.showToast(`Đã chọn kiểu tóc: ${styleName}`);
   },
 
   selectAiColor(colorName, colorHex) {
     this.aiState.selectedColorName = colorName;
     this.aiState.selectedColorHex = colorHex;
     this.renderAiStudioContent();
-    UICommon.showToast(`🎨 Đã chọn màu nhuộm: ${colorName}`);
+    UICommon.showToast(`Đã chọn màu nhuộm: ${colorName}`);
   },
 
   toggleAiApiSettings() {
@@ -2116,7 +2162,7 @@ const UICommon = {
 
     if (SalonApi) {
       SalonApi.saveAiConfig(provider, apiKey, endpoint);
-      UICommon.showToast('💾 Đã lưu cài đặt API thành công!');
+      UICommon.showToast('Đã lưu cài đặt API thành công!');
       this.aiState.showApiSettings = false;
       this.renderAiStudioContent();
     }
@@ -2124,7 +2170,7 @@ const UICommon = {
 
   async processAiPhotoRestyle() {
     if (!this.aiState.originalImage) {
-      UICommon.showToast('⚠️ Vui lòng tải hoặc chụp ảnh khuôn mặt trước.', 'warning');
+      UICommon.showToast('Vui lòng tải hoặc chụp ảnh khuôn mặt trước.', 'warning');
       return;
     }
 
@@ -2150,7 +2196,7 @@ const UICommon = {
       if (response && response.resultImageUrl) {
         this.aiState.resultImage = response.resultImageUrl;
         this.renderAiStudioContent();
-        UICommon.showToast(`🎉 Đổi kiểu tóc AI thành công (${response.providerUsed})!`);
+        UICommon.showToast(`Đổi kiểu tóc AI thành công (${response.providerUsed})!`);
       } else {
         throw new Error('Không nhận được ảnh kết quả.');
       }
@@ -2195,7 +2241,7 @@ const UICommon = {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    UICommon.showToast('📥 Đã tải ảnh kiểu tóc HD về thiết bị của bạn!');
+    UICommon.showToast('Đã tải ảnh kiểu tóc HD về thiết bị của bạn!');
   },
 
   resetAiPhoto() {
@@ -2207,7 +2253,7 @@ const UICommon = {
   bookWithAiHairstyle() {
     this.closeGlobalModal();
     UICommon.openBookingModal();
-    UICommon.showToast(`💇 Đã đưa kiểu tóc "${this.aiState.selectedStyle}" vào ghi chú đặt lịch!`);
+    UICommon.showToast(`Đã đưa kiểu tóc "${this.aiState.selectedStyle}" vào ghi chú đặt lịch!`);
   },
 
   // -----------------------------------------------------------------------

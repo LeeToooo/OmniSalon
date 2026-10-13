@@ -26,112 +26,107 @@
                      (window.INITIAL_SALON_DATA && window.INITIAL_SALON_DATA.categories) || [];
       }
 
-      const catIconMap = {
-        'DM01': '💈',
-        'DM02': '✨',
-        'DM03': '💨',
-        'DM04': '🧴',
-        'DM05': '🧼',
-        'DM06': '🌾',
-        'DM07': '🧪',
-        'DM08': '🧔',
-        'DM09': '✂️'
-      };
-
       const filtered = this.getFilteredProducts();
 
       container.innerHTML = `
-        <div class="shop-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); padding: 40px 0 80px;">
+        <div class="shop-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); padding: 32px 0 72px;">
           <div style="max-width: 1640px; width: 100%; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
-            <!-- Header Banner -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 20px;">
+            <!-- Header Banner (Visual Hierarchy & Contrast) -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; flex-wrap: wrap; gap: 20px;">
               <div>
-                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 9999px; background: var(--brand-accent-subtle); border: 1px solid var(--brand-accent-border); color: var(--brand-accent); font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
-                  <span>🧴</span> MỸ PHẨM TÓC CHÍNH HÃNG 100% • OMNI SALON
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 6px; background: var(--brand-accent-subtle); border: 1px solid var(--brand-accent-border); color: var(--brand-accent); font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 10px;">
+                  MỸ PHẨM CHÍNH HÃNG 100% • OMNI SALON
                 </div>
-                <h1 style="font-size: clamp(28px, 4vw, 40px); font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; margin: 0 0 8px;">
+                <h1 style="font-size: clamp(26px, 3.5vw, 36px); font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; margin: 0 0 8px;">
                   Mỹ Phẩm &amp; Dược Liệu Tóc Cao Cấp
                 </h1>
-                <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; line-height: 1.6; margin: 0;">
+                <p style="font-size: 14.5px; color: var(--text-secondary); max-width: 680px; line-height: 1.6; margin: 0;">
                   Các dòng sản phẩm chăm sóc tóc chuyên nghiệp: Sáp vuốt tóc, Pomade, Gôm xịt giữ nếp, Dầu gội xả phục hồi, Dưỡng râu và Dụng cụ tạo kiểu.
                 </p>
               </div>
 
-              <!-- Nút mở giỏ hàng -->
-              <button onclick="UICommon && UICommon.openCartDrawer ? UICommon.openCartDrawer() : null"
-                      style="height: 48px; padding: 0 22px; border-radius: 12px; background: var(--brand-accent); border: none; color: #ffffff; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(180,131,18,0.3);">
-                🛒 Mở Giỏ Hàng (<span id="shopCartCounter">0</span>)
+              <!-- Nút mở giỏ hàng (Flat CTA) -->
+              <button class="btn-flat-cta btn-flat-primary"
+                      style="height: 44px; padding: 0 20px; font-size: 14px;"
+                      onclick="UICommon && UICommon.openCartDrawer ? UICommon.openCartDrawer() : null">
+                <span>Giỏ Hàng (<span id="shopCartCounter">0</span>)</span>
               </button>
             </div>
 
-            <!-- BẢNG TÌM KIẾM & BỘ LỌC DANH MỤC -->
-            <div style="background: var(--surface-card); border-radius: 20px; border: 1px solid var(--border-color); padding: 24px; margin-bottom: 32px; box-shadow: 0 4px 18px rgba(0,0,0,0.03);">
-              <div style="display: flex; flex-direction: column; gap: 18px;">
+            <!-- BẢNG TÌM KIẾM & BỘ LỌC DANH MỤC (Flat Design - Radius 12px) -->
+            <div style="background: var(--surface-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+              <div style="display: flex; flex-direction: column; gap: 16px;">
                 <!-- Ô Tìm Kiếm -->
                 <div style="position: relative;">
-                  <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--text-secondary);">🔍</span>
                   <input type="text" id="shopSearchInput"
-                         style="width: 100%; height: 48px; padding-left: 44px; padding-right: 16px; font-size: 14px; font-weight: 600; background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--input-border); border-radius: 12px; outline: none; box-sizing: border-box;"
+                         style="width: 100%; height: 44px; padding-left: 16px; padding-right: 16px; font-size: 14px; font-weight: 500; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; outline: none; box-sizing: border-box; transition: border-color 0.15s ease;"
                          placeholder="Tìm kiếm theo tên sản phẩm, thương hiệu hoặc công dụng..."
                          value="${this.searchQuery}"
                          oninput="ShopPage.handleSearch(this.value)">
                 </div>
 
-                <!-- Lọc Theo Danh Mục (Flash Sale bảo mật) -->
+                <!-- Lọc Theo Danh Mục (Clean Tabs) -->
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <span style="font-size: 12px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase;">DANH MỤC:</span>
-                  <button class="nordic-pill-tab ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="ShopPage.setCategory('all')"
-                          style="padding: 8px 16px; border-radius: 9999px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.5px solid ${this.selectedCategory === 'all' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.selectedCategory === 'all' ? 'var(--brand-accent)' : 'var(--surface-card)'}; color: ${this.selectedCategory === 'all' ? '#ffffff' : 'var(--text-primary)'};">
-                    Tất Cả
-                  </button>
-                  <button class="nordic-pill-tab ${this.selectedCategory === 'fefo_expiry' ? 'active' : ''}" onclick="ShopPage.setCategory('fefo_expiry')"
-                          style="padding: 8px 16px; border-radius: 9999px; font-size: 13px; font-weight: 800; cursor: pointer; border: 1.5px solid #dc2626; background: ${this.selectedCategory === 'fefo_expiry' ? '#dc2626' : 'rgba(220, 38, 38, 0.15)'}; color: ${this.selectedCategory === 'fefo_expiry' ? '#ffffff' : '#dc2626'};">
-                    ⚡ Ưu Đãi Flash Sale (Giảm 20% - 70%)
-                  </button>
-                  ${categories.map(c => `
-                    <button class="nordic-pill-tab ${this.selectedCategory === c.id ? 'active' : ''}" onclick="ShopPage.setCategory('${c.id}')"
-                            style="padding: 8px 16px; border-radius: 9999px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.5px solid ${this.selectedCategory === c.id ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.selectedCategory === c.id ? 'var(--brand-accent)' : 'var(--surface-card)'}; color: ${this.selectedCategory === c.id ? '#ffffff' : 'var(--text-primary)'};">
-                      ${catIconMap[c.id] || (c.icon && !c.icon.includes('icon') ? c.icon : '💈')} ${(c.TenDanhMuc || c.name || '').split(' - ')[0]}
+                  <span style="font-size: 11.5px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase; letter-spacing: 0.04em;">DANH MỤC:</span>
+                  <div class="clean-filter-tabs">
+                    <button class="clean-tab-btn ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="ShopPage.setCategory('all')">
+                      Tất Cả
                     </button>
-                  `).join('')}
+                    <button class="clean-tab-btn ${this.selectedCategory === 'fefo_expiry' ? 'active' : ''}" onclick="ShopPage.setCategory('fefo_expiry')"
+                            style="${this.selectedCategory === 'fefo_expiry' ? 'background: #b91c1c; border-color: #b91c1c;' : 'color: #ef4444; border-color: rgba(239, 68, 68, 0.3);'}">
+                      Flash Sale
+                    </button>
+                    ${categories.map(c => `
+                      <button class="clean-tab-btn ${this.selectedCategory === c.id ? 'active' : ''}" onclick="ShopPage.setCategory('${c.id}')">
+                        ${(c.TenDanhMuc || c.name || '').split(' - ')[0]}
+                      </button>
+                    `).join('')}
+                  </div>
                 </div>
 
-                <!-- Lọc Theo Thương Hiệu -->
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <span style="font-size: 12px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase;">THƯƠNG HIỆU:</span>
-                  ${['all', 'apestomen', 'hanz de fuko', 'blumaan', 'kevin murphy', 'reuzel', 'olaplex', 'davines'].map(br => `
-                    <button onclick="ShopPage.setBrand('${br}')"
-                            style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid ${this.selectedBrand === br ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.selectedBrand === br ? 'var(--brand-accent)' : 'var(--surface-elevated)'}; color: ${this.selectedBrand === br ? '#ffffff' : 'var(--text-secondary)'}; text-transform: capitalize;">
-                      ${br === 'all' ? 'Tất Cả' : br}
-                    </button>
-                  `).join('')}
-                </div>
+                <!-- Lọc Theo Thương Hiệu & Mức Giá (Clean Row) -->
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                  <!-- Thương hiệu -->
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="font-size: 11.5px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase; letter-spacing: 0.04em;">THƯƠNG HIỆU:</span>
+                    <div class="clean-filter-tabs">
+                      ${['all', 'apestomen', 'hanz de fuko', 'blumaan', 'kevin murphy', 'reuzel', 'olaplex', 'davines'].map(br => `
+                        <button class="clean-tab-btn ${this.selectedBrand === br ? 'active' : ''}" onclick="ShopPage.setBrand('${br}')"
+                                style="height: 32px; padding: 0 10px; font-size: 12px; text-transform: capitalize;">
+                          ${br === 'all' ? 'Tất Cả' : br}
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
 
-                <!-- Lọc Theo Khoảng Giá -->
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <span style="font-size: 12px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase;">MỨC GIÁ:</span>
-                  <button onclick="ShopPage.setPrice('all')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid ${this.selectedPriceRange === 'all' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.selectedPriceRange === 'all' ? 'var(--brand-accent)' : 'var(--surface-elevated)'}; color: ${this.selectedPriceRange === 'all' ? '#ffffff' : 'var(--text-secondary)'};">
-                    Tất Cả Mức Giá
-                  </button>
-                  <button onclick="ShopPage.setPrice('under300')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid ${this.selectedPriceRange === 'under300' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.selectedPriceRange === 'under300' ? 'var(--brand-accent)' : 'var(--surface-elevated)'}; color: ${this.selectedPriceRange === 'under300' ? '#ffffff' : 'var(--text-secondary)'};">
-                    Dưới 300.000 đ
-                  </button>
-                  <button onclick="ShopPage.setPrice('300to500')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid ${this.selectedPriceRange === '300to500' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.selectedPriceRange === '300to500' ? 'var(--brand-accent)' : 'var(--surface-elevated)'}; color: ${this.selectedPriceRange === '300to500' ? '#ffffff' : 'var(--text-secondary)'};">
-                    300.000 đ – 500.000 đ
-                  </button>
-                  <button onclick="ShopPage.setPrice('above500')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid ${this.selectedPriceRange === 'above500' ? 'var(--brand-accent)' : 'var(--border-color)'}; background: ${this.selectedPriceRange === 'above500' ? 'var(--brand-accent)' : 'var(--surface-elevated)'}; color: ${this.selectedPriceRange === 'above500' ? '#ffffff' : 'var(--text-secondary)'};">
-                    Trên 500.000 đ
-                  </button>
+                  <!-- Khoảng Giá -->
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="font-size: 11.5px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase; letter-spacing: 0.04em;">MỨC GIÁ:</span>
+                    <div class="clean-filter-tabs">
+                      <button class="clean-tab-btn ${this.selectedPriceRange === 'all' ? 'active' : ''}" onclick="ShopPage.setPrice('all')" style="height: 32px; padding: 0 10px; font-size: 12px;">
+                        Tất Cả
+                      </button>
+                      <button class="clean-tab-btn ${this.selectedPriceRange === 'under300' ? 'active' : ''}" onclick="ShopPage.setPrice('under300')" style="height: 32px; padding: 0 10px; font-size: 12px;">
+                        &lt; 300K
+                      </button>
+                      <button class="clean-tab-btn ${this.selectedPriceRange === '300to500' ? 'active' : ''}" onclick="ShopPage.setPrice('300to500')" style="height: 32px; padding: 0 10px; font-size: 12px;">
+                        300K – 500K
+                      </button>
+                      <button class="clean-tab-btn ${this.selectedPriceRange === 'above500' ? 'active' : ''}" onclick="ShopPage.setPrice('above500')" style="height: 32px; padding: 0 10px; font-size: 12px;">
+                        &gt; 500K
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- LƯỚI SẢN PHẨM (12 SẢN PHẨM / TRANG) -->
-            <div id="shopCatalogGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 24px;">
+            <!-- LƯỚI SẢN PHẨM (Clean E-Commerce Grid) -->
+            <div id="shopCatalogGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
               ${this.renderProducts(filtered)}
             </div>
 
-            <!-- PHÂN TRANG (MŨI TÊN CHUYỂN TRANG) -->
+            <!-- PHÂN TRANG -->
             <div id="shopPaginationContainer">
               ${this.renderPagination(filtered)}
             </div>
@@ -262,15 +257,31 @@
       return filtered;
     },
 
+    resetFilters() {
+      this.selectedCategory = 'all';
+      this.selectedBrand = 'all';
+      this.selectedPriceRange = 'all';
+      this.searchQuery = '';
+      this.currentPage = 1;
+      const input = document.getElementById('shopSearchInput');
+      if (input) input.value = '';
+      this.render(document.getElementById('webMainContainer'));
+    },
+
     renderProducts(filtered) {
       if (!filtered) filtered = this.getFilteredProducts();
 
       if (filtered.length === 0) {
+        if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.renderEmptyState === 'function') {
+          return window.ProductCard.renderEmptyState({
+            onReset: 'ShopPage.resetFilters()'
+          });
+        }
         return `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--surface-card); border-radius: 20px; border: 1px solid var(--border-color);">
-            <div style="font-size: 40px; margin-bottom: 12px;">🧴</div>
-            <h3 style="color: var(--text-primary); font-size: 18px; margin-bottom: 6px;">Không tìm thấy sản phẩm phù hợp</h3>
-            <p style="color: var(--text-secondary); font-size: 14px;">Quý khách vui lòng thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc.</p>
+          <div class="catalog-empty-state" style="grid-column: 1 / -1;">
+            <h3 class="empty-state-title">Không tìm thấy sản phẩm phù hợp</h3>
+            <p class="empty-state-desc">Quý khách vui lòng thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc.</p>
+            <button type="button" class="btn-flat-cta btn-flat-outline" onclick="ShopPage.resetFilters()">Thiết Lập Lại Bộ Lọc</button>
           </div>
         `;
       }
@@ -281,71 +292,21 @@
       const startIdx = (this.currentPage - 1) * this.pageSize;
       const paginated = filtered.slice(startIdx, startIdx + this.pageSize);
 
+      if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.render === 'function') {
+        return paginated.map(p => window.ProductCard.render(p, {
+          onCardClick: `UICommon.openProductDetailModal ? UICommon.openProductDetailModal('${p.id}') : null`
+        })).join('');
+      }
+
+      // Fallback
       return paginated.map(p => {
         const actualPrice = p.GiaBanThucTe || p.price;
-        const originalPrice = p.originalPrice || p.GiaNiemYetGoc || p.GiaBan;
         const price = SalonUtils.formatCurrency(actualPrice);
-        const rating = (p.rating || 4.9).toFixed(1);
-        const rawImg = p.image || p.HinhAnh || '';
-        const thumb = SalonUtils.formatImageUrl(rawImg);
-
-        // CHỈ HIỂN THỊ FLASH SALE CHO KHÁCH HÀNG (ẨN HẠN DÙNG)
-        const discountPercent = p.PhanTramGiam || (originalPrice > actualPrice ? Math.round((originalPrice - actualPrice) / originalPrice * 100) : 0);
-        const flashSaleBadge = discountPercent > 0 ? `
-          <span style="position: absolute; top: 10px; right: 10px; background: #dc2626; color: #ffffff; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 9999px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35); z-index: 2;">
-            ⚡ Flash Sale -${discountPercent}%
-          </span>
-        ` : '';
-
-        const priceDisplay = (originalPrice && originalPrice > actualPrice) ? `
-          <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px;">
-            <span style="font-size: 20px; font-weight: 900; color: var(--brand-accent);">${price}</span>
-            <span style="font-size: 13px; text-decoration: line-through; color: var(--text-secondary);">${SalonUtils.formatCurrency(originalPrice)}</span>
-          </div>
-        ` : `
-          <div style="font-size: 20px; font-weight: 900; color: var(--brand-accent); margin-bottom: 12px;">${price}</div>
-        `;
-
-        // Làm sạch mô tả không cho lộ thông tin lô hàng cận hạn
-        const cleanDesc = (p.description || p.MoTa || 'Dòng sản phẩm chăm sóc tóc nam chính hãng nhập khẩu, nuôi dưỡng và giữ nếp 24h.')
-          .replace(/\(Lô.*?cận hạn.*?\)/gi, '')
-          .replace(/Lô CTPN\d+/gi, '')
-          .trim();
-
         return `
-          <div class="product-nordic-card" id="productCard_${p.id}"
-               style="padding: 20px; background: var(--surface-card); border-radius: 20px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-shadow: 0 4px 18px rgba(0,0,0,0.04); transition: transform 0.2s ease, box-shadow 0.2s ease;">
-            <div>
-              <div style="position: relative; border-radius: 14px; overflow: hidden; margin-bottom: 14px; background: var(--surface-elevated);">
-                <img src="${thumb}" style="width: 100%; aspect-ratio: 1; object-fit: cover; display: block;" alt="${p.name || p.TenSanPham}" loading="lazy" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');">
-                <span style="position: absolute; top: 10px; left: 10px; background: var(--surface-card); color: var(--brand-accent); font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--border-color);">
-                  ${p.brand || 'CHÍNH HÃNG'}
-                </span>
-                ${flashSaleBadge}
-                <span style="position: absolute; bottom: 10px; right: 10px; background: var(--surface-card); color: var(--text-primary); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-color);">
-                  ★ ${rating}
-                </span>
-              </div>
-              <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 44px;">
-                ${p.name || p.TenSanPham}
-              </h3>
-              <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 40px;">
-                ${cleanDesc}
-              </p>
-            </div>
-
-            <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 12px;">
-              ${priceDisplay}
-              <div style="display: flex; gap: 8px;">
-                <button style="flex: 1; height: 42px; font-size: 13px; font-weight: 700; border-radius: 10px; background: var(--brand-accent); border: none; color: #ffffff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(180,131,18,0.25);"
-                        onclick="UICommon.addToCart('${p.id}', 'product'); ShopPage.updateCartBadge();">
-                  🛒 Thêm Giỏ
-                </button>
-                <button style="height: 42px; padding: 0 14px; font-size: 13px; font-weight: 700; border-radius: 10px; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;"
-                        onclick="UICommon.addToCart('${p.id}', 'product'); UICommon.openCartDrawer(); ShopPage.updateCartBadge();">
-                  Mua Ngay
-                </button>
-              </div>
+          <div class="product-clean-card" id="productCard_${p.id}">
+            <div class="product-body">
+              <h3 class="product-title-clean">${p.name || p.TenSanPham}</h3>
+              <div class="product-price-current">${price}</div>
             </div>
           </div>
         `;
