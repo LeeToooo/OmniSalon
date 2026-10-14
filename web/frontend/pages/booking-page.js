@@ -89,21 +89,18 @@
       container.innerHTML = `
         <div class="booking-page-shell w-full" style="padding-top: 30px; padding-bottom: 120px; width: 100%; max-width: 100%; margin: 0; padding-left: clamp(16px, 2.5vw, 36px); padding-right: clamp(16px, 2.5vw, 36px); color: var(--text-primary); box-sizing: border-box;">
           
-          <!-- BANNER TIÊU ĐỀ 4RAU BARBERSHOP -->
+          <!-- BANNER TIÊU ĐỀ -->
           <div style="text-align: center; margin-bottom: 28px;">
-            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; border-radius: 9999px; background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.4); color: #f59e0b; font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
-              OMNI SALON • ĐẶT LỊCH CẮT TÓC & TẠO KIỂU TRỰC TUYẾN
-            </div>
-            <h1 style="font-size: clamp(26px, 3.2vw, 38px); font-weight: 900; color: var(--text-primary); letter-spacing: -0.01em; margin-bottom: 8px;">
-              Đặt Lịch Cắt Tóc Barber Shop Chuyên Nghiệp
+            <h1 style="font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em; margin-bottom: 8px;">
+              Đặt Lịch Cắt Tóc &amp; Tạo Mẫu Chuyên Nghiệp
             </h1>
-            <p style="color: var(--text-secondary); font-size: 15px; max-width: 650px; margin: 0 auto; line-height: 1.6;">
-              Quý khách có thể <strong style="color: #f59e0b;">chọn nhiều dịch vụ cùng lúc</strong> (Cắt, Gội, Uốn, Nhuộm, Chăm sóc râu) để thợ sắp xếp trọn gói phục vụ chu đáo nhất.
+            <p style="color: var(--text-secondary); font-size: 14.5px; max-width: 650px; margin: 0 auto; line-height: 1.6;">
+              Quý khách có thể <strong style="color: #D97706;">chọn nhiều dịch vụ cùng lúc</strong> (Cắt, Gội, Uốn, Nhuộm, Chăm sóc râu) để thợ sắp xếp trọn gói phục vụ chu đáo nhất.
             </p>
           </div>
 
           <!-- CHỌN CHI NHÁNH PHỤC VỤ (FULL-WIDTH) -->
-          <div style="background: var(--surface-card); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 18px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; box-shadow: none;">
+          <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 18px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; box-shadow: none;">
             <div style="display: flex; align-items: center; gap: 12px;">
               <div>
                 <strong style="color: var(--text-primary); font-size: 15px; display: block;">Chi Nhánh Omni Salon Gần Bạn Nhất:</strong>
@@ -125,7 +122,7 @@
                    style="padding: 18px 24px; background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
                   <span style="width: 36px; height: 36px; border-radius: 50%; background: ${hasSelectedServices ? '#f59e0b' : 'var(--surface-elevated)'}; color: ${hasSelectedServices ? '#000000' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px;">
-                    ${hasSelectedServices ? '✓' : '1'}
+                    '1'
                   </span>
                   <div>
                     <h3 style="font-size: 17px; font-weight: 800; color: var(--text-primary); margin: 0;">1. Chọn Dịch Vụ & Gói Chăm Sóc (Có thể chọn nhiều)</h3>
@@ -147,7 +144,7 @@
                    style="padding: 18px 24px; background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; cursor: ${hasSelectedServices ? 'pointer' : 'not-allowed'}; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
                   <span style="width: 36px; height: 36px; border-radius: 50%; background: ${this.expandedSteps.step3 ? '#f59e0b' : 'var(--surface-elevated)'}; color: ${this.expandedSteps.step3 ? '#000000' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px;">
-                    ${this.expandedSteps.step3 ? '✓' : '2'}
+                    '2'
                   </span>
                   <div>
                     <h3 style="font-size: 17px; font-weight: 800; color: var(--text-primary); margin: 0;">2. Chọn Thợ Barber Tạo Mẫu</h3>
@@ -169,7 +166,7 @@
                    style="padding: 18px 24px; background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; cursor: ${hasSelectedServices ? 'pointer' : 'not-allowed'}; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
                   <span style="width: 36px; height: 36px; border-radius: 50%; background: ${this.bookingState.timeSlot ? '#f59e0b' : 'var(--surface-elevated)'}; color: ${this.bookingState.timeSlot ? '#000000' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px;">
-                    ${this.bookingState.timeSlot ? '✓' : '3'}
+                    '3'
                   </span>
                   <div>
                     <h3 style="font-size: 17px; font-weight: 800; color: var(--text-primary); margin: 0;">3. Chọn Ngày & Khung Giờ Cắt Tóc</h3>
@@ -354,7 +351,7 @@
       const calc = this.getTotalCalculations();
       if (calc.count === 0) return '';
       const names = calc.list.map(s => s.name).join(' + ');
-      return `Đã chọn (${calc.count} dịch vụ): ${names} • Tổng: ${SalonUtils.formatCurrency(calc.totalPrice)} • ⏱️ ${calc.totalDuration} phút`;
+      return `Đã chọn (${calc.count} dịch vụ): ${names} • Tổng: ${SalonUtils.formatCurrency(calc.totalPrice)} • ${calc.totalDuration} phút`;
     },
 
     getSelectedStylistName() {
@@ -417,7 +414,7 @@
                           <span style="font-size: 12px; color: var(--text-secondary); display: block;">${c.duration || 70} phút</span>
                         </div>
                         <span style="font-size: 12px; font-weight: 700; color: ${isSelected ? '#f59e0b' : 'var(--text-secondary)'};">
-                          ${isSelected ? '✓ Đã chọn gói này' : '+ Thêm gói này'}
+                          ${isSelected ? 'Đã chọn gói này' : '+ Thêm gói này'}
                         </span>
                       </div>
                     </div>
@@ -451,7 +448,7 @@
                         <span style="font-size: 11.5px; color: var(--text-secondary); display: block;">${s.duration || s.ThoiLuong || 45} phút</span>
                       </div>
                       <span style="font-size: 12px; font-weight: 700; color: ${isSelected ? '#f59e0b' : 'var(--text-secondary)'};">
-                        ${isSelected ? '✓ Đã chọn' : '+ Thêm dịch vụ'}
+                        ${isSelected ? 'Đã chọn' : '+ Thêm dịch vụ'}
                       </span>
                     </div>
                   </div>
@@ -476,7 +473,7 @@
               </div>
               <div style="display: flex; gap: 8px;">
                 <button type="button" class="btn-cancel" onclick="BookingPage.clearSelectedServices()" style="padding: 10px 16px; font-size: 13px;">
-                  ✕ Xóa Hết
+                  Xóa Hết
                 </button>
                 <button type="button" class="btn-submit-terracotta" onclick="BookingPage.proceedToStep2()" style="padding: 10px 22px; font-size: 14px; font-weight: 800;">
                   Tiếp Tục Sang Chọn Thợ (${calc.count} Dịch Vụ) →
@@ -512,7 +509,7 @@
               </div>
             </div>
             <span style="font-size: 14px; font-weight: 800; color: #f59e0b;">
-              ${this.bookingState.stylistId === '' ? '✓ Đang Chọn' : 'Chọn Nhanh'}
+              ${this.bookingState.stylistId === '' ? 'Đang Chọn' : 'Chọn Nhanh'}
             </span>
           </div>
 
@@ -658,7 +655,7 @@
                                 style="padding: 12px 6px; border-radius: 10px; border: 1.5px dashed var(--border-color, #3f3f46); background: var(--surface-elevated, #27272a); color: var(--text-muted, #71717a); cursor: not-allowed; font-weight: 700; font-size: 14px; opacity: 0.35; text-decoration: line-through;">
                           ${slot.time}
                           <span style="font-size: 10px; display: block; font-weight: 800; color: #71717a; text-decoration: none; margin-top: 2px;">
-                            ✕ ĐÃ QUA
+                            ĐÃ QUA
                           </span>
                         </button>
                       `;
@@ -671,7 +668,7 @@
                                 style="padding: 12px 6px; border-radius: 10px; border: 1.5px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08); color: #ef4444; cursor: not-allowed; font-weight: 700; font-size: 14px; opacity: 0.6;">
                           ${slot.time}
                           <span style="font-size: 10px; display: block; font-weight: 800; color: #ef4444; margin-top: 2px;">
-                            ✕ KÍN LỊCH
+                            KÍN LỊCH
                           </span>
                         </button>
                       `;
@@ -684,7 +681,7 @@
                               style="padding: 12px 6px; border-radius: 10px; border: 2px solid ${isSelected ? '#f59e0b' : 'var(--border-color)'}; background: ${isSelected ? '#f59e0b' : 'var(--surface-card)'}; color: ${isSelected ? '#000000' : 'var(--text-primary)'}; cursor: pointer; font-weight: 800; font-size: 14px; transition: all 0.15s ease; ${isSelected ? 'box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);' : ''}">
                         ${slot.time}
                         <span style="font-size: 10px; display: block; font-weight: 800; color: ${isSelected ? '#000000' : '#16a34a'}; margin-top: 2px;">
-                          ${isSelected ? '✓ ĐÃ CHỌN' : '● CÒN CHỖ'}
+                          ${isSelected ? 'ĐÃ CHỌN' : 'CÒN CHỖ'}
                         </span>
                       </button>
                     `;
@@ -833,8 +830,22 @@
     },
 
     confirmAndSubmit() {
-      const rawName = (this.bookingState.customerName || '').trim();
-      const phone = (this.bookingState.customerPhone || '').trim();
+      // Yêu cầu bắt buộc đăng nhập tài khoản trước khi đặt lịch (như nghiệp vụ Hasaki)
+      const user = (window.store && typeof window.store.getCurrentUser === 'function') 
+        ? window.store.getCurrentUser() 
+        : null;
+      if (!user) {
+        if (window.UICommon) {
+          window.UICommon.showToast('Vui lòng đăng nhập tài khoản để đặt lịch hẹn và tích điểm thành viên!', 'warning');
+          window.UICommon.openAuthModal('login');
+        } else if (window.AuthEngine && typeof window.AuthEngine.openAuthModal === 'function') {
+          window.AuthEngine.openAuthModal();
+        }
+        return;
+      }
+
+      const rawName = (this.bookingState.customerName || (user ? (user.fullName || user.name) : '')).trim();
+      const phone = (this.bookingState.customerPhone || (user ? user.phone : '')).trim();
       const calc = this.getTotalCalculations();
 
       if (calc.count === 0) {
@@ -862,12 +873,13 @@
         this.render(document.getElementById('webMainContainer'));
         return;
       }
-      if (!rawName) {
-        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập họ và tên quý khách!', 'warning');
+      if (!rawName || rawName.length < 2 || /\d/.test(rawName)) {
+        if (window.UICommon) window.UICommon.showToast('Họ và tên quý khách không hợp lệ (ít nhất 2 ký tự và không chứa số)!', 'warning');
         return;
       }
-      if (!phone || !/^[0-9]{9,11}$/.test(phone)) {
-        if (window.UICommon) window.UICommon.showToast('Số điện thoại không hợp lệ (cần 9-11 chữ số)!', 'warning');
+      const vnPhoneRegex = /^(03|05|07|08|09)\d{8}$/;
+      if (!phone || !vnPhoneRegex.test(phone.replace(/[\s.-]/g, ''))) {
+        if (window.UICommon) window.UICommon.showToast('Số điện thoại không hợp lệ! Vui lòng nhập số di động 10 chữ số (VD: 0908123456)', 'warning');
         return;
       }
 

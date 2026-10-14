@@ -286,7 +286,7 @@ const UICommon = {
                   <div class="service-tick-btn">${this.bookingData.serviceId === c.id ? '✓' : ''}</div>
                   <div style="flex: 1; min-width: 0;">
                     <div style="font-size: 16px; font-weight: 700; color: #fff;">[VIP] ${c.name}</div>
-                    <div style="font-size: 13px; color: var(--color-accent-gold); margin: 3px 0;">⏱️ ${c.duration || 75} phút trọn gói</div>
+                    <div style="font-size: 13px; color: var(--color-accent-gold); margin: 3px 0;">${c.duration || 75} phút trọn gói</div>
                     <div style="font-size: 15px; font-weight: 800; color: var(--color-accent-gold);">${SalonUtils.formatCurrency(c.price)}</div>
                   </div>
                 </div>
@@ -303,7 +303,7 @@ const UICommon = {
                   <div class="service-tick-btn">${this.bookingData.serviceId === s.id ? '✓' : ''}</div>
                   <div style="flex: 1; min-width: 0;">
                     <div style="font-size: 16px; font-weight: 700; color: #fff;">${s.name}</div>
-                    <div style="font-size: 13px; color: var(--color-text-muted); margin: 3px 0;">⏱️ ${s.duration || 45} phút</div>
+                    <div style="font-size: 13px; color: var(--color-text-muted); margin: 3px 0;">${s.duration || 45} phút</div>
                     <div style="font-size: 15px; font-weight: 800; color: var(--color-accent-gold);">${SalonUtils.formatCurrency(s.price)}</div>
                   </div>
                 </div>
@@ -421,7 +421,7 @@ const UICommon = {
               </div>
               <div class="invoice-line-item summary-line">
                 <span>Thời lượng ca:</span>
-                <strong style="color:var(--color-accent-gold);" id="bookingSummaryDurationText">⏱️ ${duration} phút (~ ${estimatedEndTime} xong)</strong>
+                <strong style="color:var(--color-accent-gold);" id="bookingSummaryDurationText">${duration} phút (~ ${estimatedEndTime} xong)</strong>
               </div>
               <div class="invoice-line-item summary-line">
                 <span>Chuyên gia phục vụ:</span>
@@ -488,7 +488,7 @@ const UICommon = {
                 </div>
                 <div class="summary-line" style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12.5px;">
                   <span style="color: #94A3B8;">Thời lượng:</span>
-                  <span style="color: #E2E8F0;">⏱️ ${duration} phút (~ ${estimatedEndTime} xong)</span>
+                  <span style="color: #E2E8F0;">${duration} phút (~ ${estimatedEndTime} xong)</span>
                 </div>
                 <div class="summary-line" style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12.5px;">
                   <span style="color: #94A3B8;">Chuyên gia:</span>
@@ -496,7 +496,7 @@ const UICommon = {
                 </div>
                 <div class="summary-line" style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12.5px;">
                   <span style="color: #94A3B8;">Khung giờ:</span>
-                  <strong style="color: #10B981;">⏰ ${this.bookingData.timeSlot} — ${SalonUtils.formatDate(this.bookingData.date)}</strong>
+                  <strong style="color: #10B981;">${this.bookingData.timeSlot} — ${SalonUtils.formatDate(this.bookingData.date)}</strong>
                 </div>
                 <div class="summary-line total-line" style="border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 12px; display: flex; justify-content: space-between; align-items: baseline;">
                   <span style="font-size: 13px; font-weight: 800; color: #FFF;">Tổng Tạm Tính:</span>
@@ -510,7 +510,7 @@ const UICommon = {
                   </button>
                 ` : `
                   <button type="button" class="btn-submit-terracotta" style="width: 100%; font-size: 13px; padding: 10px;" onclick="UICommon.submitBooking()">
-                    ✨ Hoàn Tất Đặt Lịch
+                    Hoàn Tất Đặt Lịch
                   </button>
                 `}
               </div>
@@ -575,7 +575,7 @@ const UICommon = {
     const estimatedEndTime = SalonUtils.calculateEndTime(slotTime, duration);
 
     const durEl = document.getElementById('bookingSummaryDurationText');
-    if (durEl) durEl.textContent = `⏱️ ${duration} phút (~ ${estimatedEndTime} xong)`;
+    if (durEl) durEl.textContent = `${duration} phút (~ ${estimatedEndTime} xong)`;
 
     const rangeEl = document.getElementById('bookingSummaryTimeRangeText');
     if (rangeEl) rangeEl.textContent = `${slotTime} - ${estimatedEndTime} (${SalonUtils.formatDate(this.bookingData.date)})`;
@@ -584,11 +584,24 @@ const UICommon = {
   bindBookingSlotEvents() { },
 
   submitBooking() {
-    const rawName = (this.bookingData.customerName || '').trim();
-    const phone = (this.bookingData.customerPhone || '').trim();
+    // Yêu cầu bắt buộc đăng nhập tài khoản trước khi đặt lịch (như nghiệp vụ Hasaki)
+    const user = window.store.getCurrentUser();
+    if (!user) {
+      UICommon.showToast('Vui lòng đăng nhập tài khoản để đặt lịch hẹn và tích điểm thành viên!', 'warning');
+      this.closeGlobalModal();
+      if (window.AuthEngine && typeof window.AuthEngine.openAuthModal === 'function') {
+        window.AuthEngine.openAuthModal();
+      } else {
+        this.openAuthModal('login');
+      }
+      return;
+    }
 
-    if (!rawName) {
-      UICommon.showToast('Vui lòng nhập họ và tên khách hàng!', 'warning');
+    const rawName = (this.bookingData.customerName || user.fullName || user.name || '').trim();
+    const phone = (this.bookingData.customerPhone || user.phone || '').trim();
+
+    if (!rawName || rawName.length < 2 || /\d/.test(rawName)) {
+      UICommon.showToast('Họ và tên khách hàng không hợp lệ (không chứa số, ít nhất 2 ký tự)!', 'warning');
       return;
     }
     // OWASP A03 XSS Defense: Chặn script injection và mã hóa HTML Entities
@@ -598,8 +611,9 @@ const UICommon = {
     }
     const name = rawName.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;' }[c]));
 
-    if (!phone || !/^[0-9]{9,11}$/.test(phone)) {
-      UICommon.showToast('Số điện thoại không hợp lệ (cần 9-11 chữ số)!', 'warning');
+    const vnPhoneRegex = /^(03|05|07|08|09)\d{8}$/;
+    if (!phone || !vnPhoneRegex.test(phone.replace(/[\s.-]/g, ''))) {
+      UICommon.showToast('Số điện thoại không hợp lệ! Vui lòng nhập số di động 10 chữ số (VD: 0908123456)', 'warning');
       return;
     }
     if (!this.bookingData.date) {
@@ -617,7 +631,6 @@ const UICommon = {
     const stylist = window.store.getStylistById(this.bookingData.stylistId);
     const branch = window.store.getBranchById(this.bookingData.branchId);
     const duration = Number(this.bookingData.durationMinutes || (service ? (service.duration || service.duration_minutes || 45) : 45));
-    const user = window.store.getCurrentUser();
 
     const rawNotes = (this.bookingData.notes || '').trim();
     const cleanNotes = rawNotes ? rawNotes.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;' }[c])) : '';
@@ -726,6 +739,13 @@ const UICommon = {
     if (window.ShopPage && typeof window.ShopPage.updateCartBadge === 'function') {
       window.ShopPage.updateCartBadge();
     }
+    if (window.CustomerWeb && typeof window.CustomerWeb.openCartPopup === 'function') {
+      window.CustomerWeb.openCartPopup();
+      clearTimeout(window.CustomerWeb._cartPopupTimer);
+      window.CustomerWeb._cartPopupTimer = setTimeout(() => {
+        window.CustomerWeb.closeCartPopup();
+      }, 3500);
+    }
   },
 
   buyNow(productId, qty = 1) {
@@ -824,57 +844,59 @@ const UICommon = {
 
     const cart = window.store.getCart();
     const branches = window.store.getBranches();
-    let subtotal = 0;
+    const subtotal = cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
+    const discountAmount = this.cartState.discountAmount || 0;
+    const finalTotal = Math.max(0, subtotal - discountAmount);
 
     if (cart.length === 0) {
       listContainer.innerHTML = `
-        <div class="cart-empty-state">
-          
-          <div style="font-weight: 600; font-size: 15px;">Giỏ hàng của bạn đang trống</div>
-          <div style="font-size: 13px; color: #888; margin-top: 4px;">Hãy chọn các dòng sáp vuốt, pomade, áo nón OMNI cực chất!</div>
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+          <div style="font-size: 42px; margin-bottom: 12px;">🛒</div>
+          <div style="font-weight: 700; font-size: 16px; color: var(--text-primary); margin-bottom: 6px;">Giỏ hàng của bạn đang trống</div>
+          <div style="font-size: 13px; line-height: 1.5; max-width: 280px; margin: 0 auto 20px;">Hãy chọn các sản phẩm chăm sóc tóc & sáp vuốt cao cấp!</div>
+          <button type="button" class="btn-flat-cta btn-flat-primary" style="height: 38px; padding: 0 16px; font-size: 13px; border-radius: 8px;" onclick="UICommon.closeCartDrawer(); if(window.AppRouter) window.AppRouter.navigate('/shop');">
+            Khám Phá Cửa Hàng Ngay
+          </button>
         </div>
       `;
       if (totalEl) totalEl.textContent = '0 đ';
-      this.cartState.appliedVoucher = null;
-      this.cartState.discountAmount = 0;
+      this.updateCartBadges();
       return;
     }
-
-    subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-
-    // Tính lại giảm giá voucher nếu giỏ hàng thay đổi
-    if (this.cartState.appliedVoucher && window.PricingService) {
-      const vRes = window.PricingService.applyVoucher(this.cartState.appliedVoucher, subtotal);
-      if (vRes.isValid) {
-        this.cartState.discountAmount = vRes.discountAmount;
-      } else {
-        this.cartState.appliedVoucher = null;
-        this.cartState.discountAmount = 0;
-      }
-    }
-
-    const finalTotal = Math.max(0, subtotal - this.cartState.discountAmount);
 
     let html = `
       <div class="cart-items-wrapper">
         ${cart.map(item => `
           <div class="cart-drawer-item">
-            <img src="${SalonUtils.formatImageUrl(item.image || item.HinhAnh)}" alt="${item.name}" class="cart-item-img" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');">
-            <div class="cart-item-details">
-              <h5 class="cart-item-title">${item.name}</h5>
-              <div class="cart-item-brand" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                <span>${item.brand}</span>
-                ${item.badge ? `<span style="background: #EF4444; color: #fff; font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 6px;">${item.badge}</span>` : ''}
+            <!-- Packshot sản phẩm nền trắng bo góc chuẩn Image 1 -->
+            <div class="cart-drawer-packshot-box" onclick="UICommon.closeCartDrawer(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;" title="${item.name}">
+              <img src="${SalonUtils.formatImageUrl(item.image || item.HinhAnh)}" 
+                   alt="${item.name}" 
+                   class="cart-drawer-item-img" 
+                   onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');">
+            </div>
+
+            <!-- Chi tiết tên, thương hiệu, giá & số lượng -->
+            <div class="cart-drawer-item-details">
+              <h5 class="cart-drawer-item-title" onclick="UICommon.closeCartDrawer(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;">${item.name}</h5>
+              
+              <div class="cart-drawer-item-brand-row">
+                <span class="cart-drawer-item-brand">${item.brand || 'OMNI SALON'}</span>
+                ${(item.badge || item.PhanTramGiam) ? `<span class="cart-drawer-discount-badge">${item.badge || `Giảm ${item.PhanTramGiam}%`}</span>` : ''}
               </div>
-              <div class="cart-item-price" style="display: flex; gap: 8px; align-items: baseline;">
-                <span style="font-size: 16px; font-weight: 800; color: #F59E0B;">${SalonUtils.formatCurrency(item.price)}</span>
-                ${item.originalPrice && item.originalPrice > item.price ? `<span style="font-size: 13px; text-decoration: line-through; color: #9ca3af;">${SalonUtils.formatCurrency(item.originalPrice)}</span>` : ''}
+
+              <div class="cart-drawer-item-price-row">
+                <span class="cart-drawer-actual-price">${SalonUtils.formatCurrency(item.price)}</span>
+                ${item.originalPrice && item.originalPrice > item.price ? `<span class="cart-drawer-strike-price">${SalonUtils.formatCurrency(item.originalPrice)}</span>` : ''}
               </div>
-              <div class="cart-qty-control">
-                <button class="qty-btn" onclick="UICommon.changeCartQty('${item.productId}', ${item.qty - 1})">-</button>
-                <span class="qty-number">${item.qty}</span>
-                <button class="qty-btn" onclick="UICommon.changeCartQty('${item.productId}', ${item.qty + 1})">+</button>
-                <button class="remove-item-btn" onclick="UICommon.changeCartQty('${item.productId}', 0)">✕</button>
+
+              <div class="cart-drawer-stepper-row">
+                <div class="cart-drawer-stepper-box">
+                  <button type="button" class="stepper-box-btn" onclick="UICommon.changeCartQty('${item.productId}', ${item.qty - 1})">-</button>
+                  <span class="stepper-box-num">${item.qty}</span>
+                  <button type="button" class="stepper-box-btn" onclick="UICommon.changeCartQty('${item.productId}', ${item.qty + 1})">+</button>
+                </div>
+                <button type="button" class="cart-drawer-item-del-btn" onclick="UICommon.changeCartQty('${item.productId}', 0)" title="Xoá khỏi giỏ">✕</button>
               </div>
             </div>
           </div>
@@ -882,18 +904,16 @@ const UICommon = {
       </div>
 
       <!-- PHƯƠNG THỨC NHẬN HÀNG (DELIVERY / PICKUP) -->
-      <div class="cart-fulfillment-card" style="margin: 14px 0 8px; padding: 14px; background: #181D2A; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-        <div style="font-size: 13px; font-weight: 800; color: #F59E0B; text-transform: uppercase; margin-bottom: 8px;">
-          Hình Thức Nhận Hàng:
-        </div>
-        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+      <div class="cart-fulfillment-card">
+        <div class="cart-fulfillment-title">HÌNH THỨC NHẬN HÀNG:</div>
+        <div class="cart-fulfillment-tabs">
           <button type="button" 
-                  style="flex: 1; padding: 10px 8px; font-size: 13px; font-weight: 700; border-radius: 10px; cursor: pointer; border: 1px solid ${this.cartState.deliveryType === 'PICKUP_BRANCH' ? '#F59E0B' : 'rgba(255,255,255,0.15)'}; background: ${this.cartState.deliveryType === 'PICKUP_BRANCH' ? 'rgba(245,158,11,0.2)' : '#121622'}; color: ${this.cartState.deliveryType === 'PICKUP_BRANCH' ? '#F59E0B' : '#E2E8F0'};"
+                  class="cart-ful-tab ${this.cartState.deliveryType === 'PICKUP_BRANCH' ? 'active' : ''}"
                   onclick="UICommon.setCartDeliveryType('PICKUP_BRANCH')">
             Lấy Tại Chi Nhánh
           </button>
           <button type="button" 
-                  style="flex: 1; padding: 10px 8px; font-size: 13px; font-weight: 700; border-radius: 10px; cursor: pointer; border: 1px solid ${this.cartState.deliveryType === 'DELIVERY' ? '#F59E0B' : 'rgba(255,255,255,0.15)'}; background: ${this.cartState.deliveryType === 'DELIVERY' ? 'rgba(245,158,11,0.2)' : '#121622'}; color: ${this.cartState.deliveryType === 'DELIVERY' ? '#F59E0B' : '#E2E8F0'};"
+                  class="cart-ful-tab ${this.cartState.deliveryType === 'DELIVERY' ? 'active' : ''}"
                   onclick="UICommon.setCartDeliveryType('DELIVERY')">
             Giao Tận Nơi (COD)
           </button>
@@ -901,66 +921,65 @@ const UICommon = {
 
         ${this.cartState.deliveryType === 'PICKUP_BRANCH' ? `
           <div>
-            <select class="form-control-custom" style="font-size: 14px; height: 44px; padding: 0 12px; background: #121622; color: #fff; width: 100%; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;" onchange="UICommon.setCartPickupBranch(this.value)">
-              ${branches.map(b => `<option value="${b.id}" ${b.id === this.cartState.pickupBranchId ? 'selected' : ''}>Chi nhánh: ${b.name.split('—')[0]}</option>`).join('')}
+            <select class="cart-branch-dropdown" onchange="UICommon.setCartPickupBranch(this.value)">
+              ${branches.map(b => `<option value="${b.id}" ${b.id === this.cartState.pickupBranchId ? 'selected' : ''}>Chi nhánh: ${(b.TenChiNhanh || b.name).split('—')[0].trim()}</option>`).join('')}
             </select>
-            <div style="font-size: 13px; color: #CBD5E1; margin-top: 6px;">Giữ hàng miễn phí tại quầy trong 48h</div>
+            <div class="cart-branch-note">Giữ hàng miễn phí tại quầy trong 48h</div>
           </div>
         ` : `
           <div style="display: flex; flex-direction: column; gap: 8px;">
-            <input type="text" id="cartDeliveryAddress" class="form-control-custom" placeholder="Nhập địa chỉ nhận hàng (Số nhà, đường, quận/huyện)..." 
-                   style="font-size: 14px; height: 44px; padding: 0 12px; background: #121622; color: #fff; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;" value="${this.cartState.deliveryAddress || ''}" 
+            <input type="text" id="cartDeliveryAddress" class="cart-branch-dropdown" placeholder="Nhập địa chỉ nhận hàng (Số nhà, đường, quận/huyện)..." 
+                   value="${this.cartState.deliveryAddress || ''}" 
                    oninput="UICommon.cartState.deliveryAddress = this.value">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-              <input type="text" id="cartRecipientName" class="form-control-custom" placeholder="Họ tên người nhận..."
-                     style="font-size: 14px; height: 44px; padding: 0 12px; background: #121622; color: #fff; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;" value="${this.cartState.recipientName || ''}"
+              <input type="text" id="cartRecipientName" class="cart-branch-dropdown" placeholder="Họ tên người nhận..."
+                     value="${this.cartState.recipientName || ''}" 
                      oninput="UICommon.cartState.recipientName = this.value">
-              <input type="tel" id="cartRecipientPhone" class="form-control-custom" placeholder="Số điện thoại..."
-                     style="font-size: 14px; height: 44px; padding: 0 12px; background: #121622; color: #fff; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;" value="${this.cartState.recipientPhone || ''}"
+              <input type="tel" id="cartRecipientPhone" class="cart-branch-dropdown" placeholder="Số điện thoại..."
+                     value="${this.cartState.recipientPhone || ''}" 
                      oninput="UICommon.cartState.recipientPhone = this.value">
             </div>
-            <div style="font-size: 13px; color: #CBD5E1; margin-top: 4px;">Đồng giá ship 20.000đ • Miễn phí ship cho đơn từ 500k</div>
+            <div class="cart-branch-note">Đồng giá ship 20.000đ • Miễn phí ship cho đơn từ 500k</div>
           </div>
         `}
       </div>
 
       <!-- MÃ VOUCHER ƯU ĐÃI -->
-      <div class="cart-voucher-card" style="margin-bottom: 12px; padding: 12px; background: #181D2A; border-radius: 12px; border: 1px dashed rgba(245,158,11,0.35);">
+      <div class="cart-drawer-voucher-card">
         ${this.cartState.appliedVoucher ? `
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <span style="font-size: 14px; font-weight: 800; color: #10B981;">[${this.cartState.voucherCode}]</span>
-              <span style="font-size: 14px; color: #10B981; font-weight: 700; margin-left: 6px;">-${SalonUtils.formatCurrency(this.cartState.discountAmount)}</span>
+              <span style="font-size: 13.5px; font-weight: 800; color: #10B981;">[${this.cartState.voucherCode}]</span>
+              <span style="font-size: 13.5px; color: #10B981; font-weight: 700; margin-left: 6px;">-${SalonUtils.formatCurrency(this.cartState.discountAmount)}</span>
             </div>
-            <button type="button" style="font-size: 13px; color: #EF4444; border: none; background: none; cursor: pointer; text-decoration: underline;" onclick="UICommon.removeCartVoucher()">
+            <button type="button" style="font-size: 12.5px; color: #EF4444; border: none; background: none; cursor: pointer; text-decoration: underline;" onclick="UICommon.removeCartVoucher()">
               Gỡ mã
             </button>
           </div>
         ` : `
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="cartVoucherInput" class="form-control-custom" placeholder="Mã giảm giá (VD: OMNIWELCOME)" style="font-size: 14px; height: 44px; padding: 0 12px; text-transform: uppercase; background: #121622; color: #fff; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; flex: 1;">
-            <button type="button" class="btn-submit-terracotta" style="padding: 0 18px; height: 44px; min-height: 44px; font-size: 14px; white-space: nowrap; border-radius: 10px;" onclick="UICommon.applyCartVoucher()">
+          <div class="cart-drawer-voucher-row">
+            <input type="text" id="cartVoucherInput" class="cart-drawer-voucher-inp" placeholder="MÃ GIẢM GIÁ (VD: OMNI..." uppercase>
+            <button type="button" class="cart-drawer-voucher-btn" onclick="UICommon.applyCartVoucher()">
               Áp Dụng
             </button>
           </div>
         `}
       </div>
 
-      <!-- TỔNG KẾT TIỀN -->
-      <div class="cart-summary-breakdown" style="font-size: 14px; color: #CBD5E1; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+      <!-- TỔNG KẾT TIỀN HÀNG -->
+      <div class="cart-drawer-subtotal-section">
+        <div class="cart-drawer-subtotal-line">
           <span>Tiền hàng:</span>
-          <span style="color: #fff; font-weight: 700;">${SalonUtils.formatCurrency(subtotal)}</span>
+          <span class="cart-drawer-subtotal-amount">${SalonUtils.formatCurrency(subtotal)}</span>
         </div>
         ${this.cartState.discountAmount > 0 ? `
-          <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #059669; font-weight: 700;">
+          <div class="cart-drawer-subtotal-line" style="color: #10B981; font-weight: 700; margin-top: 4px;">
             <span>Voucher giảm giá:</span>
             <span>-${SalonUtils.formatCurrency(this.cartState.discountAmount)}</span>
           </div>
         ` : ''}
       </div>
     `;
-
     listContainer.innerHTML = html;
     if (totalEl) totalEl.textContent = SalonUtils.formatCurrency(finalTotal);
     this.updateCartBadges();
@@ -988,72 +1007,262 @@ const UICommon = {
       return;
     }
 
+    // Yêu cầu bắt buộc đăng nhập tài khoản trước khi mua hàng / thanh toán (như nghiệp vụ Hasaki)
+    const user = window.store.getCurrentUser();
+    if (!user) {
+      UICommon.showToast('Vui lòng đăng nhập tài khoản để đặt hàng và tích điểm thành viên!', 'warning');
+      this.closeCartDrawer();
+      if (window.AuthEngine && typeof window.AuthEngine.openAuthModal === 'function') {
+        window.AuthEngine.openAuthModal();
+      } else {
+        this.openAuthModal('login');
+      }
+      return;
+    }
+
     const branchId = this.cartState.pickupBranchId || 'br-dbp';
     const branch = window.store.getBranchById(branchId);
 
-    let cleanAddress = 'Nhận tại quầy chi nhánh';
+    // Ràng buộc dữ liệu người nhận và địa chỉ, chặn nhập số hoặc chuỗi bậy bạ
     if (this.cartState.deliveryType === 'DELIVERY') {
+      const recName = (this.cartState.recipientName || user.fullName || user.name || '').trim();
+      const recPhone = (this.cartState.recipientPhone || user.phone || '').trim();
       const addr = (this.cartState.deliveryAddress || '').trim();
-      if (!addr) {
-        UICommon.showToast('Vui lòng nhập địa chỉ nhận hàng chi tiết!', 'warning');
+
+      if (!recName || recName.length < 2 || /\d/.test(recName)) {
+        UICommon.showToast('Họ tên người nhận không hợp lệ (không chứa số, ít nhất 2 ký tự)!', 'warning');
+        const nameInput = document.getElementById('cartRecipientName');
+        if (nameInput) nameInput.focus();
+        return;
+      }
+      const vnPhoneRegex = /^(03|05|07|08|09)\d{8}$/;
+      if (!recPhone || !vnPhoneRegex.test(recPhone.replace(/[\s.-]/g, ''))) {
+        UICommon.showToast('Số điện thoại nhận hàng không hợp lệ (cần 10 chữ số di động, VD: 0908123456)!', 'warning');
+        const phoneInput = document.getElementById('cartRecipientPhone');
+        if (phoneInput) phoneInput.focus();
+        return;
+      }
+      if (!addr || addr.length < 8 || /^\d+$/.test(addr)) {
+        UICommon.showToast('Vui lòng nhập địa chỉ nhận hàng chi tiết (số nhà, tên đường, phường/quận)!', 'warning');
         const addrInput = document.getElementById('cartDeliveryAddress');
         if (addrInput) addrInput.focus();
         return;
       }
-      // OWASP A03 XSS Defense: Chặn script injection vào địa chỉ giao hàng
       if (/<script\b|javascript:|onerror=|onload=/i.test(addr)) {
         UICommon.showToast('Địa chỉ nhận hàng chứa ký tự không an toàn!', 'warning');
         return;
       }
-      cleanAddress = addr.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;' }[c]));
-    } else {
-      cleanAddress = `Nhận tại chi nhánh ${branch ? branch.name.split('—')[0].trim() : 'OMNI'}`;
     }
 
-    // DRY & Khử N+1: Kiểm tra tồn kho toàn bộ giỏ hàng qua checkStockBatch O(N+M)
+    // DRY: Kiểm tra tồn kho toàn bộ giỏ hàng
     const stockCheck = window.store.checkStockBatch ? window.store.checkStockBatch(branchId, cart) : { available: true };
     if (!stockCheck.available) {
       UICommon.showToast(`Sản phẩm [${stockCheck.productName}] chỉ còn ${stockCheck.inStock} cái tại chi nhánh ${branch ? branch.name.split('—')[0] : ''}!`, 'warning');
       return;
     }
 
+    // Đóng drawer giỏ hàng và mở modal BƯỚC XÁC NHẬN ĐƠN HÀNG & CHỌN PHƯƠNG THỨC THANH TOÁN
+    this.closeCartDrawer();
+    this.openCheckoutConfirmModal();
+  },
+
+  openCheckoutConfirmModal() {
+    const modal = document.getElementById('globalModal');
+    const modalBody = document.getElementById('globalModalBody');
+    if (!modal || !modalBody) return;
+
+    const cart = window.store.getCart();
+    const branchId = this.cartState.pickupBranchId || 'br-dbp';
+    const branch = window.store.getBranchById(branchId) || { name: 'Omni Salon Barber Q1 - Bến Thành', address: '128 Bến Thành, Quận 1, TP.HCM' };
     const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
     const discount = this.cartState.discountAmount || 0;
     const finalTotal = Math.max(0, subtotal - discount);
     const user = window.store.getCurrentUser();
 
-    let customerName = user ? (user.fullName || user.name) : 'Khách Mua Tại Web/App';
-    let customerPhone = user ? user.phone : '0908123456';
+    const isPickup = this.cartState.deliveryType === 'PICKUP_BRANCH';
+    let customerName = (this.cartState.recipientName || (user ? (user.fullName || user.name) : '')).trim() || 'Khách Hàng';
+    let customerPhone = (this.cartState.recipientPhone || (user ? user.phone : '')).trim() || '0908123456';
+    let deliveryAddress = (this.cartState.deliveryAddress || '').trim() || (user?.address || '123 Đường Số 1, TP.HCM');
 
-    if (this.cartState.deliveryType === 'DELIVERY') {
-      const recName = (this.cartState.recipientName || '').trim();
-      const recPhone = (this.cartState.recipientPhone || '').trim();
-      if (recName) {
-        customerName = recName.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#27;' }[c]));
+    modalBody.innerHTML = `
+      <div class="booking-wizard-wrapper" style="max-width: 640px; padding: 24px;">
+        <div class="booking-header" style="text-align: left; margin-bottom: 20px;">
+          <div class="badge-terracotta" style="display: inline-block; margin-bottom: 8px;">XÁC NHẬN ĐƠN HÀNG</div>
+          <h2 class="booking-title" style="font-size: 22px; margin: 0 0 6px;">KIỂM TRA THÔNG TIN & THANH TOÁN</h2>
+          <p class="booking-subtitle" style="font-size: 13.5px; color: var(--text-secondary); margin: 0;">
+            Quý khách vui lòng kiểm tra chính xác thông tin nhận hàng và chọn phương thức thanh toán trước khi đặt hàng.
+          </p>
+        </div>
+
+        <!-- 1. BƯỚC KIỂM TRA HÌNH THỨC & THÔNG TIN NHẬN HÀNG -->
+        <div style="background: var(--surface-card, #14171F); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 16px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <strong style="font-size: 14px; color: #f59e0b; text-transform: uppercase;">
+              Hình Thức: ${isPickup ? 'Nhận Trực Tiếp Tại Chi Nhánh' : 'Giao Hàng Tận Nơi'}
+            </strong>
+            <span style="font-size: 12px; font-weight: 700; color: #10B981; background: rgba(16,185,129,0.15); padding: 3px 8px; border-radius: 6px;">
+              ${isPickup ? 'Lấy Tại Quầy' : 'Đồng giá ship 20.000đ'}
+            </span>
+          </div>
+
+          ${isPickup ? `
+            <div style="font-size: 13.5px; line-height: 1.6; color: var(--text-primary);">
+              <div><strong>Chi nhánh nhận:</strong> <span style="color: #f59e0b; font-weight: 700;">${branch.name}</span></div>
+              <div style="color: var(--text-secondary); font-size: 12.5px;"><strong>Địa chỉ chi nhánh:</strong> ${branch.address || 'Hệ thống chi nhánh Omni Salon'}</div>
+              <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Họ tên người lấy hàng:</label>
+                  <input type="text" id="confirmRecName" class="form-control-custom" value="${this.escapeHtml(customerName)}" style="width: 100%; height: 38px; margin-top: 4px; font-size: 13px;">
+                </div>
+                <div>
+                  <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Số điện thoại:</label>
+                  <input type="tel" id="confirmRecPhone" class="form-control-custom" value="${this.escapeHtml(customerPhone)}" style="width: 100%; height: 38px; margin-top: 4px; font-size: 13px;">
+                </div>
+              </div>
+            </div>
+          ` : `
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+              <div>
+                <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Địa chỉ giao hàng chi tiết (Số nhà, đường, phường, quận):</label>
+                <input type="text" id="confirmDeliveryAddress" class="form-control-custom" value="${this.escapeHtml(deliveryAddress)}" placeholder="Nhập địa chỉ nhận hàng..." style="width: 100%; height: 40px; margin-top: 4px; font-size: 13px;">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Họ tên người nhận:</label>
+                  <input type="text" id="confirmRecName" class="form-control-custom" value="${this.escapeHtml(customerName)}" style="width: 100%; height: 38px; margin-top: 4px; font-size: 13px;">
+                </div>
+                <div>
+                  <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Số điện thoại nhận hàng:</label>
+                  <input type="tel" id="confirmRecPhone" class="form-control-custom" value="${this.escapeHtml(customerPhone)}" style="width: 100%; height: 38px; margin-top: 4px; font-size: 13px;">
+                </div>
+              </div>
+            </div>
+          `}
+        </div>
+
+        <!-- 2. DANH SÁCH MÓN HÀNG TÓM TẮT -->
+        <div style="background: var(--surface-card, #14171F); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px;">
+          <div style="font-size: 12.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">
+            Sản Phẩm Đặt Mua (${cart.length} món):
+          </div>
+          <div style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+            ${cart.map(it => `
+              <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                <span>${this.escapeHtml(it.name)} <strong>(x${it.qty})</strong></span>
+                <span style="font-weight: 700; color: var(--text-primary);">${SalonUtils.formatCurrency(it.price * it.qty)}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div style="border-top: 1px dashed var(--border-color); margin-top: 8px; padding-top: 8px; display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-secondary);">Tổng thanh toán:</span>
+            <span style="font-size: 18px; font-weight: 900; color: #f59e0b;">${SalonUtils.formatCurrency(finalTotal)}</span>
+          </div>
+        </div>
+
+        <!-- 3. BƯỚC CHỌN PHƯƠNG THỨC THANH TOÁN (TIỀN MẶT HOẶC VIETQR) -->
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-size: 13.5px; font-weight: 800; color: var(--text-primary); margin-bottom: 10px;">
+            Phương Thức Thanh Toán:
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 12px; border: 1.5px solid #f59e0b; border-radius: 12px; background: rgba(245,158,11,0.08);">
+              <input type="radio" name="checkoutPaymentMethod" value="CASH" checked style="accent-color: #f59e0b;">
+              <div>
+                <strong style="font-size: 13px; display: block; color: var(--text-primary);">${isPickup ? 'Tiền Mặt Tại Quầy' : 'Tiền Mặt (COD)'}</strong>
+                <span style="font-size: 11.5px; color: var(--text-secondary);">${isPickup ? 'Thanh toán khi nhận hàng tại salon' : 'Thanh toán trực tiếp khi shipper giao'}</span>
+              </div>
+            </label>
+
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 12px; border: 1.5px solid var(--border-color); border-radius: 12px; background: var(--surface-card);">
+              <input type="radio" name="checkoutPaymentMethod" value="VIETQR" style="accent-color: #f59e0b;">
+              <div>
+                <strong style="font-size: 13px; display: block; color: var(--text-primary);">Chuyển Khoản VietQR</strong>
+                <span style="font-size: 11.5px; color: var(--text-secondary);">Quét mã QR thanh toán tức thì 24/7</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- NÚT XÁC NHẬN ĐẶT HÀNG -->
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn-cancel" style="flex: 1; padding: 12px; border-radius: 10px;" onclick="UICommon.closeGlobalModal(); UICommon.openCartDrawer();">
+            Quay Lại Giỏ Hàng
+          </button>
+          <button type="button" class="btn-submit-terracotta" style="flex: 2; padding: 14px; font-size: 15px; font-weight: 800; border-radius: 10px;" onclick="UICommon.confirmAndPlaceOrder()">
+            XÁC NHẬN & ĐẶT HÀNG
+          </button>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('active');
+  },
+
+  confirmAndPlaceOrder() {
+    const cart = window.store.getCart();
+    if (cart.length === 0) {
+      this.closeGlobalModal();
+      return;
+    }
+
+    const isPickup = this.cartState.deliveryType === 'PICKUP_BRANCH';
+    const branchId = this.cartState.pickupBranchId || 'br-dbp';
+    const branch = window.store.getBranchById(branchId) || { name: 'Omni Salon Barber Q1 - Bến Thành', address: '128 Bến Thành, Quận 1, TP.HCM' };
+
+    const recNameInput = document.getElementById('confirmRecName');
+    const recPhoneInput = document.getElementById('confirmRecPhone');
+    const addrInput = document.getElementById('confirmDeliveryAddress');
+    const paymentRadio = document.querySelector('input[name="checkoutPaymentMethod"]:checked');
+
+    const customerName = (recNameInput ? recNameInput.value : '').trim();
+    const customerPhone = (recPhoneInput ? recPhoneInput.value : '').trim();
+    const paymentMethodKey = paymentRadio ? paymentRadio.value : 'CASH';
+
+    if (!customerName || customerName.length < 2 || /\d/.test(customerName)) {
+      UICommon.showToast('Họ tên người nhận không hợp lệ (không chứa số, ít nhất 2 ký tự)!', 'warning');
+      if (recNameInput) recNameInput.focus();
+      return;
+    }
+
+    const vnPhoneRegex = /^(03|05|07|08|09)\d{8}$/;
+    if (!customerPhone || !vnPhoneRegex.test(customerPhone.replace(/[\s.-]/g, ''))) {
+      UICommon.showToast('Số điện thoại không hợp lệ! Vui lòng nhập số di động 10 chữ số (VD: 0908123456)', 'warning');
+      if (recPhoneInput) recPhoneInput.focus();
+      return;
+    }
+
+    let cleanAddress = '';
+    if (isPickup) {
+      cleanAddress = `Nhận tại quầy chi nhánh: ${branch.name} (${branch.address || 'Omni Salon'})`;
+    } else {
+      cleanAddress = (addrInput ? addrInput.value : '').trim();
+      if (!cleanAddress || cleanAddress.length < 8 || /^\d+$/.test(cleanAddress)) {
+        UICommon.showToast('Vui lòng nhập địa chỉ nhận hàng chi tiết (số nhà, tên đường, phường/quận)!', 'warning');
+        if (addrInput) addrInput.focus();
+        return;
       }
-      if (recPhone) {
-        if (!/^[0-9]{9,11}$/.test(recPhone)) {
-          UICommon.showToast('Số điện thoại nhận hàng không hợp lệ (9-11 chữ số)!', 'warning');
-          const phoneInput = document.getElementById('cartRecipientPhone');
-          if (phoneInput) phoneInput.focus();
-          return;
-        }
-        customerPhone = recPhone;
-      } else if (!user) {
-        UICommon.showToast('Vui lòng nhập số điện thoại người nhận để giao hàng!', 'warning');
-        const phoneInput = document.getElementById('cartRecipientPhone');
-        if (phoneInput) phoneInput.focus();
+      if (/<script\b|javascript:|onerror=|onload=/i.test(cleanAddress)) {
+        UICommon.showToast('Địa chỉ nhận hàng chứa ký tự không an toàn!', 'warning');
         return;
       }
     }
 
-    // Clean Architecture & DRY: store.createOrder tự động hạch toán voucher và trừ tồn kho nguyên tử
+    const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+    const discount = this.cartState.discountAmount || 0;
+    const finalTotal = Math.max(0, subtotal - discount);
+
+    const paymentMethodDisplay = (paymentMethodKey === 'VIETQR') 
+      ? 'Chuyển khoản trực tuyến VietQR' 
+      : (isPickup ? 'Thanh toán tiền mặt tại quầy' : 'Tiền mặt khi nhận hàng (COD)');
+
+    // Tạo đơn hàng chuẩn qua store
     const order = window.store.createOrder({
       customerName,
       customerPhone,
       branchId,
-      branchName: branch ? branch.name : 'OMNI Điện Biên Phủ',
-      deliveryType: this.cartState.deliveryType,
+      branchName: branch.name,
+      deliveryType: isPickup ? 'PICKUP_BRANCH' : 'DELIVERY',
+      orderType: isPickup ? 'STORE_PICKUP' : 'ONLINE_DELIVERY',
       deliveryAddress: cleanAddress,
       shippingAddress: cleanAddress,
       items: cart,
@@ -1061,7 +1270,8 @@ const UICommon = {
       discountAmount: discount,
       voucherCode: this.cartState.voucherCode || null,
       totalAmount: finalTotal,
-      paymentMethod: this.cartState.deliveryType === 'PICKUP_BRANCH' ? 'Thanh toán trực tiếp khi nhận tại quầy' : 'VietQR / Trả Khi Nhận Hàng (COD)'
+      paymentMethod: paymentMethodDisplay,
+      paymentStatus: (paymentMethodKey === 'VIETQR') ? 'Paid' : 'Unpaid'
     });
 
     // Reset giỏ hàng
@@ -1074,47 +1284,73 @@ const UICommon = {
     this.cartState.recipientName = '';
     this.cartState.recipientPhone = '';
 
-    this.closeCartDrawer();
     this.updateCartBadges();
     UICommon.showToast(`Đặt đơn hàng #${order.id} thành công!`, 'success');
-    this.openOrderSuccessModal(order);
+
+    // Mở popup thành công (nếu VietQR thì hiện mã QR thanh toán)
+    this.openOrderSuccessModal(order, paymentMethodKey);
   },
 
-  openOrderSuccessModal(order) {
+  openOrderSuccessModal(order, paymentMethodKey = 'CASH') {
     const modal = document.getElementById('globalModal');
     const modalBody = document.getElementById('globalModalBody');
     if (!modal || !modalBody) return;
 
+    const isPickup = (order.deliveryType === 'PICKUP_BRANCH') || 
+                     (order.shippingAddress && order.shippingAddress.toLowerCase().includes('quầy')) ||
+                     (order.deliveryAddress && order.deliveryAddress.toLowerCase().includes('chi nhánh'));
+
+    const qrUrl = `https://api.vietqr.io/image/970407-19036789999011-compact.jpg?amount=${order.totalAmount}&addInfo=${encodeURIComponent(order.id)}&accountName=${encodeURIComponent('CONG TY OMNI SALON')}`;
+
     modalBody.innerHTML = `
-      <div class="booking-success-box">
-        <div class="success-icon" style="background:#10b981;">✓</div>
-        <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 8px;">ĐẶT HÀNG THÀNH CÔNG!</h2>
-        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
-          Mã đơn hàng: <strong style="color: #c85a44;">#${order.id}</strong>. Bộ phận kho OMNI sẽ chuẩn bị và phục vụ bạn sớm nhất.
+      <div class="booking-success-box" style="padding: 24px;">
+        <div class="success-icon" style="background:#10b981; margin: 0 auto 12px; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 900;">✓</div>
+        <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 6px;">ĐẶT HÀNG THÀNH CÔNG!</h2>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 18px;">
+          Mã đơn hàng: <strong style="color: #f59e0b;">#${order.id}</strong>. Bộ phận kho OMNI sẽ chuẩn bị và phục vụ bạn sớm nhất.
         </p>
-        <div class="booking-invoice-card">
-          <div class="invoice-item">
-            <span>Phương thức:</span>
-            <strong>${order.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nhà'}</strong>
+
+        ${paymentMethodKey === 'VIETQR' ? `
+          <div style="background: var(--surface-card, #14171F); border: 2px solid #10b981; border-radius: 14px; padding: 16px; margin-bottom: 16px; text-align: center;">
+            <div style="font-size: 13.5px; font-weight: 800; color: #10b981; margin-bottom: 8px;">MÃ THANH TOÁN VIETQR CHÍNH THỨC</div>
+            <img src="${qrUrl}" alt="Mã VietQR" style="width: 180px; height: 180px; border-radius: 10px; margin: 0 auto; display: block; border: 1px solid var(--border-color);">
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+              Quét mã bằng app ngân hàng bất kỳ để hoàn tất thanh toán <strong>${SalonUtils.formatCurrency(order.totalAmount)}</strong>
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="booking-invoice-card" style="background: var(--surface-card, #14171F); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; text-align: left;">
+          <div class="invoice-item" style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+            <span style="color: var(--text-secondary);">Hình thức nhận hàng:</span>
+            <strong style="color: #f59e0b;">${isPickup ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nhà'}</strong>
+          </div>
+          <div class="invoice-item" style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+            <span style="color: var(--text-secondary);">Địa chỉ nhận:</span>
+            <strong style="color: var(--text-primary); text-align: right; max-width: 60%;">${order.shippingAddress || order.deliveryAddress}</strong>
+          </div>
+          <div class="invoice-item" style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+            <span style="color: var(--text-secondary);">Thanh toán:</span>
+            <strong style="color: var(--text-primary);">${order.paymentMethod || 'Tiền mặt khi nhận hàng'}</strong>
           </div>
           ${order.items.map(it => `
-            <div class="invoice-item">
-              <span>${it.name} (x${it.qty}):</span>
+            <div class="invoice-item" style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+              <span>${this.escapeHtml(it.name)} (x${it.qty}):</span>
               <strong>${SalonUtils.formatCurrency(it.price * it.qty)}</strong>
             </div>
           `).join('')}
           ${order.discountAmount > 0 ? `
-            <div class="invoice-item" style="color: #059669;">
+            <div class="invoice-item" style="display: flex; justify-content: space-between; color: #10B981; font-size: 13px; margin-bottom: 6px;">
               <span>Voucher giảm giá:</span>
               <strong>-${SalonUtils.formatCurrency(order.discountAmount)}</strong>
             </div>
           ` : ''}
-          <div class="invoice-item price-row">
-            <span>Tổng thanh toán:</span>
-            <strong style="color: #c85a44; font-size: 18px;">${SalonUtils.formatCurrency(order.totalAmount)}</strong>
+          <div class="invoice-item price-row" style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 8px;">
+            <span style="font-weight: 700;">Tổng thanh toán:</span>
+            <strong style="color: #f59e0b; font-size: 18px;">${SalonUtils.formatCurrency(order.totalAmount)}</strong>
           </div>
         </div>
-        <button class="btn-submit-terracotta" style="width: 100%; margin-top: 20px;" onclick="UICommon.closeGlobalModal()">Đóng Cửa Sổ</button>
+        <button class="btn-submit-terracotta" style="width: 100%; margin-top: 18px; padding: 12px; font-weight: 800; border-radius: 10px;" onclick="UICommon.closeGlobalModal()">Đóng Cửa Sổ</button>
       </div>
     `;
     modal.classList.add('active');
@@ -1124,36 +1360,19 @@ const UICommon = {
   // 8. CHI TIẾT SẢN PHẨM & TIN TỨC MODAL
   // -----------------------------------------------------------------------
   openProductDetailModal(productId) {
-    const prod = window.store.getProducts().find(p => p.id === productId);
-    if (!prod) return;
-
-    const modal = document.getElementById('globalModal');
-    const modalBody = document.getElementById('globalModalBody');
-    if (!modal || !modalBody) return;
-
-    modalBody.innerHTML = `
-      <div class="product-modal-detail">
-        <div class="modal-prod-img-wrap">
-          <img src="${SalonUtils.formatImageUrl(prod.image || prod.HinhAnh)}" alt="${prod.name}" class="modal-prod-img" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80');">
-        </div>
-        <div class="modal-prod-info">
-          <div class="badge-terracotta">${prod.brand}</div>
-          <h2 class="modal-prod-title">${prod.name}</h2>
-          <div class="modal-prod-price">${SalonUtils.formatCurrency(prod.price)}</div>
-          <p class="modal-prod-desc">${prod.description}</p>
-          <div style="display:flex; gap:10px; margin-top:24px;">
-            <button class="btn-submit-terracotta" style="flex:1; background: var(--surface-card); color: var(--text-primary); border: 1.5px solid var(--border-color); font-weight: 700;" onclick="UICommon.addToCart('${prod.id}'); UICommon.closeGlobalModal();">
-              Thêm Vào Giỏ
-            </button>
-            <button class="btn-submit-terracotta" style="flex:1; background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; border: none;" onclick="UICommon.buyNow('${prod.id}'); UICommon.closeGlobalModal();">
-              Mua Ngay
-            </button>
-            <button class="btn-cancel" onclick="UICommon.closeGlobalModal()">Đóng</button>
-          </div>
-        </div>
-      </div>
-    `;
-    modal.classList.add('active');
+    if (typeof this.closeGlobalModal === 'function') {
+      this.closeGlobalModal();
+    }
+    if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
+      window.AppRouter.navigate(`/product?id=${productId}`);
+    } else if (window.CustomerWeb && typeof window.CustomerWeb.openProductDetail === 'function') {
+      window.CustomerWeb.openProductDetail(productId);
+    } else {
+      const main = document.getElementById('webMainContainer');
+      if (main && window.ShopPage && typeof window.ShopPage.renderProductDetail === 'function') {
+        window.ShopPage.renderProductDetail(main, productId);
+      }
+    }
   },
 
   openArticleModal(articleId) {
@@ -1201,7 +1420,7 @@ const UICommon = {
 
         <div style="display:flex; gap:12px; margin-top: 20px;">
           <button class="btn-submit-terracotta" style="flex:1;" onclick="UICommon.openBookingModal(null, '${branch.id}')">
-            Đặt Lịch Tại Chi Nhánh Này →
+            Đặt Lịch Tại Chi Nhánh Này
           </button>
           <button class="btn-cancel" onclick="UICommon.closeGlobalModal()">Đóng</button>
         </div>
@@ -1239,7 +1458,7 @@ const UICommon = {
           <button type="button" class="auth-tab-btn ${this.authTab === 'register' ? 'active' : ''}" 
                   style="flex: 1; padding: 10px 4px; font-size: 14px; font-weight: 800; border: none; background: none; cursor: pointer; color: ${this.authTab === 'register' ? '#F59E0B' : '#94A3B8'}; border-bottom: ${this.authTab === 'register' ? '2px solid #F59E0B' : 'none'}; margin-bottom: -12px;"
                   onclick="UICommon.openAuthModal('register')">
-            ✨ Đăng Ký Mới
+            Đăng Ký Mới
           </button>
           <button type="button" class="auth-tab-btn ${this.authTab === 'reset' ? 'active' : ''}" 
                   style="flex: 1; padding: 10px 4px; font-size: 14px; font-weight: 800; border: none; background: none; cursor: pointer; color: ${this.authTab === 'reset' ? '#F59E0B' : '#94A3B8'}; border-bottom: ${this.authTab === 'reset' ? '2px solid #F59E0B' : 'none'}; margin-bottom: -12px;"
@@ -1277,7 +1496,7 @@ const UICommon = {
               <div style="display: flex; gap: 8px;">
                 <input type="text" id="resetIdentifier" class="form-control-custom" placeholder="nhapemail@gmail.com hoặc SĐT" required style="flex: 1;">
                 <button type="button" id="btnSendResetOtp" onclick="UICommon.sendResetOtp()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; font-size: 13px; padding: 0 16px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
-                  ✉️ Gửi Mã
+                  Gửi Mã
                 </button>
               </div>
             </div>
@@ -1318,7 +1537,7 @@ const UICommon = {
               <div style="display: flex; gap: 8px;">
                 <input type="email" id="regEmail" class="form-control-custom" placeholder="khachhang@gmail.com" required style="flex: 1;">
                 <button type="button" id="btnSendOtp" onclick="UICommon.sendEmailOtp()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; font-size: 13px; padding: 0 16px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
-                  ✉️ Gửi Mã
+                  Gửi Mã
                 </button>
               </div>
             </div>
@@ -1427,7 +1646,7 @@ const UICommon = {
     }
 
     if (this.otpCountdown > 0) {
-      this.showToast(`⏳ Vui lòng đợi ${this.otpCountdown}s trước khi gửi lại mã!`, 'info');
+      this.showToast(`Vui lòng đợi ${this.otpCountdown}s trước khi gửi lại mã!`, 'info');
       return;
     }
 
@@ -1448,10 +1667,18 @@ const UICommon = {
     }
 
     if (res && res.success) {
+      if (window.AuthEngine && window.AuthEngine.clientOtpStore && res.otp) {
+        window.AuthEngine.clientOtpStore.set(email.toLowerCase(), {
+          otp: String(res.otp).trim(),
+          expiresAt: Date.now() + 5 * 60 * 1000,
+          lastSentAt: Date.now(),
+          verified: true
+        });
+      }
       const devHint = res.otp ? ` [Mã thử nghiệm: ${res.otp}]` : '';
       this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${email}!${devHint}`, 'success');
       if (tip) {
-        tip.innerHTML = `✅ Đã gửi mã OTP đến <b>${email}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span>` : ''}`;
+        tip.innerHTML = `Đã gửi mã OTP đến <b>${email}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span>` : ''}`;
       }
       document.getElementById('regOtp')?.focus();
 
@@ -1466,7 +1693,7 @@ const UICommon = {
           this.otpTimer = null;
           if (btn) {
             btn.disabled = false;
-            btn.innerText = '✉️ Gửi Mã';
+            btn.innerText = 'Gửi Mã';
           }
         } else {
           if (btn) btn.innerText = `Gửi lại (${this.otpCountdown}s)`;
@@ -1476,7 +1703,7 @@ const UICommon = {
       this.showToast(res?.message || 'Không thể gửi mã xác nhận. Vui lòng thử lại sau ít phút.', 'error');
       if (btn) {
         btn.disabled = false;
-        btn.innerText = '✉️ Gửi Mã';
+        btn.innerText = 'Gửi Mã';
       }
     }
   },
@@ -1580,7 +1807,7 @@ const UICommon = {
     }
 
     if (this.resetOtpCountdown > 0) {
-      this.showToast(`⏳ Vui lòng đợi ${this.resetOtpCountdown}s trước khi gửi lại mã!`, 'info');
+      this.showToast(`Vui lòng đợi ${this.resetOtpCountdown}s trước khi gửi lại mã!`, 'info');
       return;
     }
 
@@ -1604,7 +1831,7 @@ const UICommon = {
       const devHint = res.otp ? ` [Mã thử nghiệm: ${res.otp}]` : '';
       this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${identifier}!${devHint}`, 'success');
       if (tip) {
-        tip.innerHTML = `✅ Đã gửi mã OTP đến <b>${identifier}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span>` : ''}`;
+        tip.innerHTML = `Đã gửi mã OTP đến <b>${identifier}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span>` : ''}`;
       }
       document.getElementById('resetOtp')?.focus();
 
@@ -1618,7 +1845,7 @@ const UICommon = {
           this.resetOtpTimer = null;
           if (btn) {
             btn.disabled = false;
-            btn.innerText = '✉️ Gửi Mã';
+            btn.innerText = 'Gửi Mã';
           }
         } else {
           if (btn) btn.innerText = `Gửi lại (${this.resetOtpCountdown}s)`;
@@ -1628,7 +1855,7 @@ const UICommon = {
       this.showToast(res?.message || 'Không thể gửi mã xác nhận. Vui lòng kiểm tra lại địa chỉ Gmail.', 'error');
       if (btn) {
         btn.disabled = false;
-        btn.innerText = '✉️ Gửi Mã';
+        btn.innerText = 'Gửi Mã';
       }
     }
   },
@@ -1720,7 +1947,7 @@ const UICommon = {
 
         <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
           <div style="margin-bottom: 6px;"><b>Địa chỉ:</b> ${bAddr}</div>
-          <div style="margin-bottom: 6px;">⏱️ <b>Giờ phục vụ:</b> ${bHours} (Tất cả các ngày trong tuần)</div>
+          <div style="margin-bottom: 6px;"><b>Giờ phục vụ:</b> ${bHours} (Tất cả các ngày trong tuần)</div>
           <div><b>Hotline chi nhánh:</b> <a href="tel:${bPhone}" style="color: #f59e0b; font-weight: 700; text-decoration: none;">${bPhone}</a></div>
         </div>
 
@@ -1731,15 +1958,15 @@ const UICommon = {
             <span style="font-size: 11px; color: #cbd5e1;">Cam kết chất lượng 100%</span>
           </div>
           <div style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
-            ✓ 100% Thợ chính tay nghề cao từ 3+ năm kinh nghiệm.<br>
-            ✓ Cam kết đúng giờ hẹn 100% không phải chờ đợi.<br>
-            ✓ Bảo hành phom tóc 7 ngày &amp; miễn phí chỉnh sửa.
+            100% Thợ chính tay nghề cao từ 3+ năm kinh nghiệm.<br>
+            Cam kết đúng giờ hẹn 100% không phải chờ đợi.<br>
+            Bảo hành phom tóc 7 ngày &amp; miễn phí chỉnh sửa.
           </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
           <button class="btn-submit-terracotta" style="flex: 2; padding: 12px; font-weight: 800; font-size: 14px;" onclick="UICommon.closeGlobalModal(); AppRouter.navigate('/booking?branch=${branch.id || branchId}')">
-            Đặt Lịch Tại Chi Nhánh Này →
+            Đặt Lịch Tại Chi Nhánh Này
           </button>
           <a href="tel:${bPhone}" style="flex: 1; background: rgba(255, 255, 255, 0.08); color: #fff; text-decoration: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.12);">
             Gọi Ngay
@@ -1858,7 +2085,7 @@ const UICommon = {
       { name: 'Buzz Cut Quân Đội', icon: '' },
       { name: 'Crop Warrior Phá Cách', icon: '' },
       { name: 'Pompadour Quý Tộc', icon: '' },
-      { name: 'Ép Side Tóc Nam (Down Perm)', icon: '✨' }
+      { name: 'Ép Side Tóc Nam (Down Perm)', icon: '' }
     ];
 
     const colorPresets = [
@@ -1949,7 +2176,7 @@ const UICommon = {
                   <div class="ai-image-compare-wrapper" id="compareWrapper">
                     <!-- Ảnh Sau (AI Result) -->
                     <img src="${resultImage}" class="compare-img compare-img-after" alt="Ảnh Sau Khi Đổi Tóc">
-                    <span class="compare-label-after">✨ ẢNH TÓC AI</span>
+                    <span class="compare-label-after">ẢNH TÓC AI</span>
 
                     <!-- Ảnh Trước (Original) -->
                     <div class="compare-before-clip" id="compareBeforeClip" style="width: 50%;">
@@ -2079,14 +2306,14 @@ const UICommon = {
             <div class="ai-action-buttons-wrap">
               ${!resultImage ? `
                 <button class="btn-execute-ai" onclick="UICommon.processAiPhotoRestyle()" ${!originalImage || isProcessing ? 'disabled style="opacity: 0.6;"' : ''}>
-                  BẮT ĐẦU ĐỔI KIỂU TÓC BẰNG AI →
+                  BẮT ĐẦU ĐỔI KIỂU TÓC BẰNG AI
                 </button>
               ` : `
                 <button class="btn-submit-terracotta btn-book-now-ai" onclick="UICommon.bookWithAiHairstyle()">
-                  ĐẶT LỊCH CẮT KIỂU TÓC NÀY NGAY →
+                  ĐẶT LỊCH CẮT KIỂU TÓC NÀY
                 </button>
                 <button class="btn-execute-ai" style="margin-top: 8px; background: #222;" onclick="UICommon.processAiPhotoRestyle()">
-                  ✨ Thử Đổi Màu / Kiểu Tóc Khác
+                  Thử Đổi Màu / Kiểu Tóc Khác
                 </button>
               `}
             </div>
@@ -2110,7 +2337,7 @@ const UICommon = {
       this.aiState.originalImage = e.target.result;
       this.aiState.resultImage = null;
       this.renderAiStudioContent();
-      UICommon.showToast('✅ Đã tải ảnh khuôn mặt lên thành công!');
+      UICommon.showToast('Đã tải ảnh khuôn mặt lên thành công!');
     };
     reader.readAsDataURL(file);
   },
@@ -2119,7 +2346,7 @@ const UICommon = {
     this.aiState.originalImage = imageUrl;
     this.aiState.resultImage = null;
     this.renderAiStudioContent();
-    UICommon.showToast('✅ Đã chọn ảnh mẫu. Hãy bấm Bắt Đầu Đổi Kiểu Tóc!');
+    UICommon.showToast('Đã chọn ảnh mẫu. Hãy bấm Bắt Đầu Đổi Kiểu Tóc!');
   },
 
   selectAiStyle(styleName) {
@@ -2203,7 +2430,7 @@ const UICommon = {
     } catch (err) {
       this.aiState.isProcessing = false;
       this.renderAiStudioContent();
-      UICommon.showToast(`❌ Có lỗi khi tạo ảnh AI: ${err.message}`, 'error');
+      UICommon.showToast(`Có lỗi khi tạo ảnh AI: ${err.message}`, 'error');
     }
   },
 

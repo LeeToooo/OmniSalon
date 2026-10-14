@@ -162,36 +162,62 @@
                 ${data.shortName}
               </h3>
 
-              <!-- THÔNG TIN ĐỊA CHỈ & LIÊN HỆ -->
+              <!-- THÔNG TIN ĐỊA CHỈ & LIÊN HỆ (LUCIDE SVG STROKE 1.5) -->
               <div class="branch-info-list">
                 <div class="branch-info-row">
+                  <span class="info-icon" style="color: var(--brand-accent, #D97706); display: inline-flex; align-items: center; margin-top: 2px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                  </span>
                   <span class="info-text branch-address-val">${data.address}</span>
                 </div>
 
                 <div class="branch-info-row">
+                  <span class="info-icon" style="color: var(--brand-accent, #D97706); display: inline-flex; align-items: center; margin-top: 2px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </span>
                   <span class="info-text">Giờ mở cửa: <strong>${data.hours}</strong></span>
                 </div>
 
                 <div class="branch-info-row">
+                  <span class="info-icon" style="color: var(--brand-accent, #D97706); display: inline-flex; align-items: center; margin-top: 2px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                  </span>
                   <span class="info-text">Hotline: <a href="tel:${data.phone}" class="branch-phone-link">${data.phone}</a></span>
                 </div>
               </div>
             </div>
 
-            <!-- HÀNH ĐỘNG THỰC TẾ: CHỈ ĐƯỜNG & ĐẶT LỊCH HẸN -->
+            <!-- HÀNH ĐỘNG THỰC TẾ: CHỈ ĐƯỜNG & ĐẶT LỊCH HẸN (SECONDARY BUTTONS) -->
             <div class="branch-actions-row">
               <a href="${data.mapUrl}" 
                  target="_blank" 
                  rel="noopener noreferrer" 
-                 class="btn-flat-cta btn-flat-outline branch-map-btn" 
+                 class="branch-map-btn" 
                  title="Mở bản đồ Google Maps chỉ đường đến chi nhánh này">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                </svg>
                 <span>Chỉ Đường</span>
               </a>
 
               <button type="button"
-                      class="btn-flat-cta btn-flat-primary branch-book-btn"
+                      class="branch-book-btn"
                       onclick="${onBookClick}">
-                <span>Đặt Lịch Hẹn</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" x2="16" y1="2" y2="6"/>
+                  <line x1="8" x2="8" y1="2" y2="6"/>
+                  <line x1="3" x2="21" y1="10" y2="10"/>
+                </svg>
+                <span>Đặt Lịch</span>
               </button>
             </div>
 

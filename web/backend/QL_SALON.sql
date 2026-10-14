@@ -1,4 +1,4 @@
-USE master;
+﻿USE master;
 GO
 
 IF DB_ID(N'QL_SALONTOC') IS NOT NULL
@@ -26,6 +26,7 @@ CREATE TABLE ChiNhanh
     SoDienThoai VARCHAR(15),
     GioMoCua TIME,
     GioDongCua TIME,
+	HinhAnh NVARCHAR(300),
     TrangThai NVARCHAR(20) DEFAULT N'Hoạt động'
 );
 GO
@@ -855,32 +856,32 @@ INSERT INTO QuyTacGiamGiaTheoHan (MaQuyTac, TenQuyTac, SoNgayConLaiToiThieu, SoN
 ('QT05', N'Đã hết hạn (Thu hồi tiêu hủy)',   -9999,     0, 100.00, N'Đang áp dụng');
 GO
 
--- 20 Chi nhánh phủ khắp TP.HCM
-INSERT INTO ChiNhanh (MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, GioMoCua, GioDongCua, TrangThai) VALUES
-('CN01', N'Men Salon Barber Q1 - Bến Thành', N'120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM', '0901111001', '08:30:00', '21:30:00', N'Hoạt động'),
-('CN02', N'Men Salon Barber Tân Bình - Cộng Hòa', N'45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM', '0901111002', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN03', N'Men Salon Barber Bình Thạnh - Điện Biên Phủ', N'88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM', '0901111003', '09:00:00', '22:00:00', N'Hoạt động'),
-('CN04', N'Men Salon Barber Q3 - Nam Kỳ Khởi Nghĩa', N'215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM', '0901111004', '08:30:00', '21:30:00', N'Hoạt động'),
-('CN05', N'Men Salon Barber Q5 - Trần Hưng Đạo', N'105 Trần Hưng Đạo, P.6, Q.5, TP.HCM', '0901111005', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN06', N'Men Salon Barber Q7 - Nguyễn Thị Thập', N'480 Nguyễn Thị Thập, P.Tân Quy, Q.7, TP.HCM', '0901111006', '09:00:00', '21:30:00', N'Hoạt động'),
-('CN07', N'Men Salon Barber Q10 - 3 Tháng 2', N'324 Ba Tháng Hai, P.12, Q.10, TP.HCM', '0901111007', '08:30:00', '21:30:00', N'Hoạt động'),
-('CN08', N'Men Salon Barber Phú Nhuận - Phan Xích Long', N'150 Phan Xích Long, P.2, Q.Phú Nhuận, TP.HCM', '0901111008', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN09', N'Men Salon Barber Gò Vấp - Quang Trung', N'68 Quang Trung, P.10, Q.Gò Vấp, TP.HCM', '0901111009', '09:00:00', '21:30:00', N'Hoạt động'),
-('CN10', N'Men Salon Barber Thủ Đức - Võ Văn Ngân', N'98 Võ Văn Ngân, P.Linh Chiểu, TP.Thủ Đức, TP.HCM', '0901111010', '08:30:00', '21:30:00', N'Hoạt động'),
-('CN11', N'Men Salon Barber Thảo Điền - Xuân Thủy', N'55 Xuân Thủy, P.Thảo Điền, TP.Thủ Đức, TP.HCM', '0901111011', '09:00:00', '22:00:00', N'Hoạt động'),
-('CN12', N'Men Salon Barber Q4 - Hoàng Diệu', N'12 Hoàng Diệu, P.9, Q.4, TP.HCM', '0901111012', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN13', N'Men Salon Barber Q6 - Hậu Giang', N'260 Hậu Giang, P.4, Q.6, TP.HCM', '0901111013', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN14', N'Men Salon Barber Q8 - Phạm Hùng', N'180 Phạm Hùng, P.5, Q.8, TP.HCM', '0901111014', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN15', N'Men Salon Barber Q11 - Ông Ích Khiêm', N'85 Ông Ích Khiêm, P.10, Q.11, TP.HCM', '0901111015', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN16', N'Men Salon Barber Q12 - Lê Văn Khương', N'45 Lê Văn Khương, P.Thới An, Q.12, TP.HCM', '0901111016', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN17', N'Men Salon Barber Tân Phú - Lũy Bán Bích', N'72 Lũy Bán Bích, P.Tân Thới Hòa, Q.Tân Phú, TP.HCM', '0901111017', '08:30:00', '21:30:00', N'Hoạt động'),
-('CN18', N'Men Salon Barber Bình Tân - Tên Lửa', N'110 Tên Lửa, P.Bình Trị Đông B, Q.Bình Tân, TP.HCM', '0901111018', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN19', N'Men Salon Barber Bình Chánh - Quốc Lộ 50', N'35 Quốc lộ 50, X.Bình Hưng, H.Bình Chánh, TP.HCM', '0901111019', '08:30:00', '21:00:00', N'Hoạt động'),
-('CN20', N'Men Salon Barber Hóc Môn - Lý Thường Kiệt', N'52 Lý Thường Kiệt, TT.Hóc Môn, H.Hóc Môn, TP.HCM', '0901111020', '08:30:00', '21:00:00', N'Hoạt động');
-
-UPDATE ChiNhanh
-SET TenChiNhanh = REPLACE(TenChiNhanh, N'Men Salon Barber', N'Omni Salon Barber');
+-- =========================================================================
+-- 20 CHI NHÁNH CHUỖI OMNI SALON BARBER (CN01 -> CN20) KÈM HÌNH ẢNH
+-- =========================================================================
+INSERT INTO ChiNhanh (MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, GioMoCua, GioDongCua, HinhAnh, TrangThai) VALUES
+('CN01', N'Omni Salon Barber Q1 - Bến Thành',           N'120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM',           '0901111001', '08:30:00', '21:30:00', 'ChiNhanh_Omni/CN1.jpg',  N'Hoạt động'),
+('CN02', N'Omni Salon Barber Tân Bình - Cộng Hòa',      N'45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM',            '0901111002', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN2.jpg',  N'Hoạt động'),
+('CN03', N'Omni Salon Barber Bình Thạnh - Điện Biên Phủ',N'88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM',   '0901111003', '09:00:00', '22:00:00', 'ChiNhanh_Omni/CN3.jpg',  N'Hoạt động'),
+('CN04', N'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa',    N'215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM',         '0901111004', '08:30:00', '21:30:00', 'ChiNhanh_Omni/CN4.jpg',  N'Hoạt động'),
+('CN05', N'Omni Salon Barber Q5 - Trần Hưng Đạo',       N'105 Trần Hưng Đạo, P.6, Q.5, TP.HCM',             '0901111005', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN5.jpg',  N'Hoạt động'),
+('CN06', N'Omni Salon Barber Q7 - Nguyễn Thị Thập',      N'480 Nguyễn Thị Thập, P.Tân Quy, Q.7, TP.HCM',     '0901111006', '09:00:00', '21:30:00', 'ChiNhanh_Omni/CN6.jpg',  N'Hoạt động'),
+('CN07', N'Omni Salon Barber Q10 - 3 Tháng 2',          N'324 Ba Tháng Hai, P.12, Q.10, TP.HCM',            '0901111007', '08:30:00', '21:30:00', 'ChiNhanh_Omni/CN7.jpg',  N'Hoạt động'),
+('CN08', N'Omni Salon Barber Phú Nhuận - Phan Xích Long',N'150 Phan Xích Long, P.2, Q.Phú Nhuận, TP.HCM',    '0901111008', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN8.jpg',  N'Hoạt động'),
+('CN09', N'Omni Salon Barber Gò Vấp - Quang Trung',     N'68 Quang Trung, P.10, Q.Gò Vấp, TP.HCM',          '0901111009', '09:00:00', '21:30:00', 'ChiNhanh_Omni/CN9.jpg',  N'Hoạt động'),
+('CN10', N'Omni Salon Barber Thủ Đức - Võ Văn Ngân',    N'98 Võ Văn Ngân, P.Linh Chiểu, TP.Thủ Đức, TP.HCM', '0901111010', '08:30:00', '21:30:00', 'ChiNhanh_Omni/CN10.jpg', N'Hoạt động'),
+('CN11', N'Omni Salon Barber Thảo Điền - Xuân Thủy',    N'55 Xuân Thủy, P.Thảo Điền, TP.Thủ Đức, TP.HCM',   '0901111011', '09:00:00', '22:00:00', 'ChiNhanh_Omni/CN11.jpg', N'Hoạt động'),
+('CN12', N'Omni Salon Barber Q4 - Hoàng Diệu',          N'12 Hoàng Diệu, P.9, Q.4, TP.HCM',                 '0901111012', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN12.jpg', N'Hoạt động'),
+('CN13', N'Omni Salon Barber Q6 - Hậu Giang',           N'260 Hậu Giang, P.4, Q.6, TP.HCM',                 '0901111013', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN13.jpg', N'Hoạt động'),
+('CN14', N'Omni Salon Barber Q8 - Phạm Hùng',           N'180 Phạm Hùng, P.5, Q.8, TP.HCM',                 '0901111014', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN14.jpg', N'Hoạt động'),
+('CN15', N'Omni Salon Barber Q11 - Ông Ích Khiêm',      N'85 Ông Ích Khiêm, P.10, Q.11, TP.HCM',            '0901111015', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN15.jpg', N'Hoạt động'),
+('CN16', N'Omni Salon Barber Q12 - Lê Văn Khương',      N'45 Lê Văn Khương, P.Thới An, Q.12, TP.HCM',       '0901111016', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN16.jpg', N'Hoạt động'),
+('CN17', N'Omni Salon Barber Tân Phú - Lũy Bán Bích',   N'72 Lũy Bán Bích, P.Tân Thới Hòa, Q.Tân Phú, TP.HCM','0901111017','08:30:00', '21:30:00', 'ChiNhanh_Omni/CN17.jpg', N'Hoạt động'),
+('CN18', N'Omni Salon Barber Bình Tân - Tên Lửa',       N'110 Tên Lửa, P.Bình Trị Đông B, Q.Bình Tân, TP.HCM','0901111018','08:30:00', '21:00:00', 'ChiNhanh_Omni/CN18.jpg', N'Hoạt động'),
+('CN19', N'Omni Salon Barber Bình Chánh - Quốc Lộ 50',   N'35 Quốc lộ 50, X.Bình Hưng, H.Bình Chánh, TP.HCM', '0901111019', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN19.jpg', N'Hoạt động'),
+('CN20', N'Omni Salon Barber Hóc Môn - Lý Thường Kiệt',  N'52 Lý Thường Kiệt, TT.Hóc Môn, H.Hóc Môn, TP.HCM','0901111020', '08:30:00', '21:00:00', 'ChiNhanh_Omni/CN20.jpg', N'Hoạt động');
 GO
+
 
 -- Kiểm tra lại kết quả
 SELECT MaChiNhanh, TenChiNhanh, DiaChi FROM ChiNhanh;
@@ -910,52 +911,52 @@ INSERT INTO NhaCungCap (MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi,
 INSERT INTO DichVu (MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, NgayApDung) VALUES
 ('DV01', N'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', 
  N'Tư vấn dáng mặt, cắt fade hiện đại, cạo viền sắc nét và vuốt sáp/pomade cao cấp.', 
- 45, 120000, 'Men_Grooming_Products/DichVu_Men/DV1.jpg', N'Kinh doanh', '2026-01-01'),
+ 45, 120000, 'DichVu_Men/DV1.jpg', N'Kinh doanh', '2026-01-01'),
 
 ('DV02', N'Cắt & Ép Side tóc nam (Down Perm Combo)', 
  N'Cắt form chuẩn kết hợp ép xẹp tóc mai và gáy bị vểnh chỉa, giữ nếp 1-2 tháng.', 
- 60, 250000, 'Men_Grooming_Products/DichVu_Men/DV2.jpg', N'Kinh doanh', '2026-01-01'),
+ 60, 250000, 'DichVu_Men/DV2.jpg', N'Kinh doanh', '2026-01-01'),
 
 ('DV03', N'Uốn tóc xoăn Texture / Ziczac phồng Hàn Quốc', 
  N'Uốn lạnh tạo lọn sóng phồng tự nhiên, giúp tóc bồng bềnh dễ sấy tạo kiểu.', 
- 90, 650000, 'Men_Grooming_Products/DichVu_Men/DV3.jpg', N'Kinh doanh', '2026-01-01'),
+ 90, 650000, 'DichVu_Men/DV3.jpg', N'Kinh doanh', '2026-01-01'),
 
 ('DV04', N'Nhuộm màu thời trang nam (Khói / Rêu / Bạch kim)', 
  N'Tẩy khử ánh sắc và nhuộm tông màu thời trang cao cấp bảo vệ sợi tóc.', 
- 120, 950000, 'Men_Grooming_Products/DichVu_Men/DV4.jpg', N'Kinh doanh', '2026-01-01'),
+ 120, 950000, 'DichVu_Men/DV4.jpg', N'Kinh doanh', '2026-01-01'),
 
 -- DV05 MỚI: Uốn con sâu / Ruffled thay cho phục hồi Olaplex
 ('DV05', N'Uốn tóc con sâu Dreadlocks / Uốn Ruffled phá cách', 
  N'Kỹ thuật uốn giấy bạc / uốn con sâu tạo hiệu ứng xù gai góc, phong cách hip-hop cá tính.', 
- 100, 800000, 'Men_Grooming_Products/DichVu_Men/DV5.jpg', N'Kinh doanh', '2026-01-01'),
+ 100, 800000, 'DichVu_Men/DV5.jpg', N'Kinh doanh', '2026-01-01'),
 
 -- DV06 MỚI: Kẻ Line Hair Tattoo thay cho gội đầu dưỡng sinh
 ('DV06', N'Kẻ Line Hair Tattoo nghệ thuật & Điêu khắc chân tóc', 
  N'Kỹ thuật dùng dao lam điêu khắc các họa tiết hoa văn, đường line sắc nét tạo điểm nhấn.', 
- 30, 150000, 'Men_Grooming_Products/DichVu_Men/DV6.jpg', N'Kinh doanh', '2026-01-01'),
+ 30, 150000, 'DichVu_Men/DV6.jpg', N'Kinh doanh', '2026-01-01'),
 
 ('DV07', N'Cạo mặt, tỉa râu truyền thống & Khăn nóng', 
  N'Cạo râu bằng dao cạo bọt kem Proraso, chườm khăn nóng làm sạch lỗ chân lông.', 
- 30, 80000, 'Men_Grooming_Products/DichVu_Men/DV7.jpg', N'Kinh doanh', '2026-01-01'),
+ 30, 80000, 'DichVu_Men/DV7.jpg', N'Kinh doanh', '2026-01-01'),
 
 -- DV08 MỚI: Nhuộm đen phủ bạc thảo dược thay cho tẩy da chết da đầu
 ('DV08', N'Nhuộm đen phủ bạc thảo dược tự nhiên cho nam giới', 
  N'Phủ bạc 100% bằng chiết xuất thảo mộc không mùi hắc, trả lại màu tóc đen khỏe tự nhiên.', 
- 45, 180000, 'Men_Grooming_Products/DichVu_Men/DV8.jpg', N'Kinh doanh', '2026-01-01'),
+ 45, 180000, 'DichVu_Men/DV8.jpg', N'Kinh doanh', '2026-01-01'),
 
 ('DV09', N'Tẩy tóc nâng tông thời trang (1 Lần)', 
  N'Nâng sáng từ 3-4 cấp độ màu chuẩn bị trước khi phủ màu khói sáng.', 
- 60, 300000, 'Men_Grooming_Products/DichVu_Men/DV9.jpg', N'Kinh doanh', '2026-01-01'),
+ 60, 300000, 'DichVu_Men/DV9.jpg', N'Kinh doanh', '2026-01-01'),
 
 ('DV10', N'Lấy ráy tai êm ái Barber & Chăm sóc da mặt Facial', 
  N'Lấy ráy tai chuyên nghiệp bằng đèn quang học, hút bã nhờn và dưỡng ẩm da mặt.', 
- 35, 100000, 'Men_Grooming_Products/DichVu_Men/DV10.jpg', N'Kinh doanh', '2026-01-01');
+ 35, 100000, 'DichVu_Men/DV10.jpg', N'Kinh doanh', '2026-01-01');
 -- Combo dịch vụ & Chi tiết thành phần combo
 INSERT INTO ComboDichVu (MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai) VALUES
-('CB01', N'Combo Quý Tộc Barber (Cắt + Gội + Cạo râu)', N'Gói dịch vụ chăm sóc hoàn chỉnh từ cắt tóc, gội dưỡng sinh đến cạo mặt khăn nóng.', 300000, 90, 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg', N'Đang kinh doanh'),
-('CB02', N'Combo Đẹp Trai Toàn Diện (Cắt + Ép Side Down Perm)', N'Cắt form chuẩn kết hợp ép xẹp 2 bên mai giúp đầu vuông vức, gọn gàng.', 330000, 80, 'Men_Grooming_Products/DichVu_Men/CBDV2.jpg', N'Đang kinh doanh'),
-('CB03', N'Combo Lột Xác Phong Cách (Cắt + Uốn Texture + Gội)', N'Combo uốn phồng tóc tạo nếp Hàn Quốc kèm gội xả thư giãn.', 790000, 130, 'Men_Grooming_Products/DichVu_Men/CBDV3.jpg', N'Đang kinh doanh'),
-('CB04', N'Combo Quý Ông (Kẻ Tattoo + Cạo râu + Ráy tai Facial)', N'Gói chăm sóc gọn gàng diện mạo gồm tỉa họa tiết tóc, cạo râu bọt kem và lấy ráy tai thư giãn.', 280000, 75, 'Men_Grooming_Products/DichVu_Men/CBDV4.jpg', N'Đang kinh doanh');
+('CB01', N'Combo Quý Tộc Barber (Cắt + Gội + Cạo râu)', N'Gói dịch vụ chăm sóc hoàn chỉnh từ cắt tóc, gội dưỡng sinh đến cạo mặt khăn nóng.', 300000, 90, 'DichVu_Men/CBDV1.jpg', N'Đang kinh doanh'),
+('CB02', N'Combo Đẹp Trai Toàn Diện (Cắt + Ép Side Down Perm)', N'Cắt form chuẩn kết hợp ép xẹp 2 bên mai giúp đầu vuông vức, gọn gàng.', 330000, 80, 'DichVu_Men/CBDV2.jpg', N'Đang kinh doanh'),
+('CB03', N'Combo Lột Xác Phong Cách (Cắt + Uốn Texture + Gội)', N'Combo uốn phồng tóc tạo nếp Hàn Quốc kèm gội xả thư giãn.', 790000, 130, 'DichVu_Men/CBDV3.jpg', N'Đang kinh doanh'),
+('CB04', N'Combo Quý Ông (Kẻ Tattoo + Cạo râu + Ráy tai Facial)', N'Gói chăm sóc gọn gàng diện mạo gồm tỉa họa tiết tóc, cạo râu bọt kem và lấy ráy tai thư giãn.', 280000, 75, 'DichVu_Men/CBDV4.jpg', N'Đang kinh doanh');
 INSERT INTO ChiTietComboDichVu (MaCombo, MaDichVu, SoLuong) VALUES
 -- CB01: DV01 (120k) + DV06 (150k) + DV07 (80k) = Giá lẻ 350k -> Giá Combo 300k
 ('CB01', 'DV01', 1),
@@ -1116,10 +1117,8 @@ INSERT INTO SanPham (MaSanPham, MaDanhMuc, MaNhaCungCap, TenSanPham, MoTa, HinhA
 -- 8. 80 NHÂN VIÊN, 20 KHÁCH HÀNG & 100 TÀI KHOẢN
 -- =========================================================================
 
--- 81 Nhân sự (1 Tổng quản trị, 20 Quản lý, 20 Thợ chính, 20 Thợ phụ, 20 Thu ngân)
+-- 80 Nhân sự (20 Quản lý, 20 Thợ chính, 20 Thợ phụ, 20 Thu ngân)
 INSERT INTO NhanVien (MaNhanVien, MaChiNhanh, HoTen, SoDienThoai, Email, CapBac, ChucVu, TrangThai) VALUES
--- Ban Điều Hành Quản Trị Hệ Thống
-('NV00', 'CN01', N'Lê Minh Hoàng',     '19008899',   'admin@omnisalon.vn',   N'Chủ Tịch HĐQT',  N'Quản trị viên',     N'Đang làm việc'),
 -- CN01
 ('NV01', 'CN01', N'Lê Hoàng Hải',     '0912001001', 'hai.lh@salontoc.vn',    N'Quản lý',        N'Quản lý chi nhánh', N'Đang làm việc'),
 ('NV02', 'CN01', N'Đỗ Đình Độ',       '0912001002', 'do.dd@salontoc.vn',     N'Master Barber',  N'Thợ chính',         N'Đang làm việc'),
@@ -1244,39 +1243,137 @@ INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh) VALUES
 ('KH19', N'Hồ Văn Cường',    '0988000019', 'vancuong.ho@gmail.com', '2001-10-14'),
 ('KH20', N'Trịnh Công Minh', '0988000020', 'congminh.trinh@gmail.com','1996-08-08');
 
--- 101 Tài khoản (81 Nhân sự + 20 Khách hàng)
-INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao)
-SELECT 
-    CASE WHEN MaNhanVien = 'NV00' THEN 'TK_ADMIN' ELSE CONCAT('TK_', MaNhanVien) END,
-    MaNhanVien,
-    NULL,
-    CASE WHEN MaNhanVien = 'NV00' THEN 'admin' ELSE LOWER(CONCAT('user_', MaNhanVien)) END,
-    CASE 
-        WHEN MaNhanVien = 'NV00' THEN 'admin123'
-        WHEN ChucVu = N'Thu ngân' THEN 'tn123'
-        ELSE 'nv123'
-    END,
-    CASE 
-        WHEN ChucVu = N'Quản trị viên' THEN N'Quản trị viên'
-        WHEN ChucVu = N'Quản lý chi nhánh' THEN N'Quản lý' 
-        WHEN ChucVu = N'Thu ngân' THEN N'Thu ngân'
-        ELSE N'Nhân viên' 
-    END,
-    N'Hoạt động',
-    '2026-01-01 08:00:00'
-FROM NhanVien;
+-- 100 Tài khoản (80 Nhân sự + 20 Khách hàng)
+-- =========================================================================
+-- 8.1. KHỞI TẠO TƯỜNG MINH 100 TÀI KHOẢN (80 NHÂN VIÊN + 20 KHÁCH HÀNG)
+-- =========================================================================
 
-INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao)
-SELECT 
-    CONCAT('TK_', MaKhachHang),
-    NULL,
-    MaKhachHang,
-    LOWER(CONCAT('user_', MaKhachHang)),
-    'kh123',
-    N'Khách hàng',
-    N'Hoạt động',
-    '2026-02-01 08:00:00'
-FROM KhachHang;
+-- 1. TÀI KHOẢN 80 NHÂN SỰ (20 Quản lý, 40 Thợ cắt/Barber, 20 Thu ngân)
+INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) VALUES
+-- CN01
+('TK_NV01', 'NV01', NULL, 'user_nv01', 'LeHoangHai',     N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV02', 'NV02', NULL, 'user_nv02', 'DoDinhDo',       N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV03', 'NV03', NULL, 'user_nv03', 'LeHuuLuan',      N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV61', 'NV61', NULL, 'user_nv61', 'NguyenThaoMy',   N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN02
+('TK_NV04', 'NV04', NULL, 'user_nv04', 'PhamThuThao',   N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV05', 'NV05', NULL, 'user_nv05', 'TranQuocHuy',   N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV06', 'NV06', NULL, 'user_nv06', 'NguyenMinhTriet',N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV62', 'NV62', NULL, 'user_nv62', 'TranBichPhuong', N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN03
+('TK_NV07', 'NV07', NULL, 'user_nv07', 'VoQuocBao',     N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV08', 'NV08', NULL, 'user_nv08', 'DangHoaiNam',   N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV09', 'NV09', NULL, 'user_nv09', 'BuiTuanAnh',    N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV63', 'NV63', NULL, 'user_nv63', 'LeNgocHan',     N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN04
+('TK_NV10', 'NV10', NULL, 'user_nv10', 'PhanThanhTung', N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV11', 'NV11', NULL, 'user_nv11', 'HaQuocTrong',   N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV12', 'NV12', NULL, 'user_nv12', 'NgoGiaHuy',     N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV64', 'NV64', NULL, 'user_nv64', 'PhamQuynhNga',  N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN05
+('TK_NV13', 'NV13', NULL, 'user_nv13', 'TranDucMinh',   N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV14', 'NV14', NULL, 'user_nv14', 'DuongHoangLong',N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV15', 'NV15', NULL, 'user_nv15', 'LeMinhKhang',   N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV65', 'NV65', NULL, 'user_nv65', 'HoangThuyLinh', N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN06
+('TK_NV16', 'NV16', NULL, 'user_nv16', 'NguyenHuuDat',  N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV17', 'NV17', NULL, 'user_nv17', 'TrinhXuanPhong',N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV18', 'NV18', NULL, 'user_nv18', 'VuHuuPhuoc',    N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV66', 'NV66', NULL, 'user_nv66', 'DoMyLinh',      N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN07
+('TK_NV19', 'NV19', NULL, 'user_nv19', 'VoHoangSon',    N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV20', 'NV20', NULL, 'user_nv20', 'DinhTrongNghia',N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV21', 'NV21', NULL, 'user_nv21', 'PhamNhatTan',   N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV67', 'NV67', NULL, 'user_nv67', 'VuPhuongLy',    N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN08
+('TK_NV22', 'NV22', NULL, 'user_nv22', 'LyThanhDanh',   N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV23', 'NV23', NULL, 'user_nv23', 'DoThaiBao',     N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV24', 'NV24', NULL, 'user_nv24', 'TranVinhPhat',  N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV68', 'NV68', NULL, 'user_nv68', 'DangThuHa',     N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN09
+('TK_NV25', 'NV25', NULL, 'user_nv25', 'HoQuangHieu',   N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV26', 'NV26', NULL, 'user_nv26', 'LamTruongGiang',N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV27', 'NV27', NULL, 'user_nv27', 'DoanVanHau',    N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV69', 'NV69', NULL, 'user_nv69', 'BuiAnhTuyet',   N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN10
+('TK_NV28', 'NV28', NULL, 'user_nv28', 'NguyenQuangDung',N'Quản lý',  N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV29', 'NV29', NULL, 'user_nv29', 'BuiTienDung',   N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV30', 'NV30', NULL, 'user_nv30', 'VoDinhTrong',   N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV70', 'NV70', NULL, 'user_nv70', 'NgoThanhVan',   N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN11
+('TK_NV31', 'NV31', NULL, 'user_nv31', 'TruongMinhTuan',N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV32', 'NV32', NULL, 'user_nv32', 'LeMinhNhut',    N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV33', 'NV33', NULL, 'user_nv33', 'TranKhaiHoan',  N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV71', 'NV71', NULL, 'user_nv71', 'DuongCamLynh',  N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN12
+('TK_NV34', 'NV34', NULL, 'user_nv34', 'DangQuocViet',  N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV35', 'NV35', NULL, 'user_nv35', 'CaoXuanTruong', N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV36', 'NV36', NULL, 'user_nv36', 'NguyenHuuThang',N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV72', 'NV72', NULL, 'user_nv72', 'LyNhaKy',       N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN13
+('TK_NV37', 'NV37', NULL, 'user_nv37', 'HaAnhTuan',     N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV38', 'NV38', NULL, 'user_nv38', 'PhanDinhPhung', N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV39', 'NV39', NULL, 'user_nv39', 'LuongTheVinh',  N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV73', 'NV73', NULL, 'user_nv73', 'MaiPhuongThuy', N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN14
+('TK_NV40', 'NV40', NULL, 'user_nv40', 'ToHienThanh',   N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV41', 'NV41', NULL, 'user_nv41', 'NguyenTrai',    N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV42', 'NV42', NULL, 'user_nv42', 'LeLoiAn',       N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV74', 'NV74', NULL, 'user_nv74', 'TrinhKimChi',   N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN15
+('TK_NV43', 'NV43', NULL, 'user_nv43', 'TranBinhTrong', N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV44', 'NV44', NULL, 'user_nv44', 'PhamNguLao',    N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV45', 'NV45', NULL, 'user_nv45', 'YetKieuHoang',  N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV75', 'NV75', NULL, 'user_nv75', 'HaKieuAnh',     N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN16
+('TK_NV46', 'NV46', NULL, 'user_nv46', 'DaTuongKhang',  N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV47', 'NV47', NULL, 'user_nv47', 'TranHungLong',  N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV48', 'NV48', NULL, 'user_nv48', 'LyThuongKietB', N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV76', 'NV76', NULL, 'user_nv76', 'TranTieuVy',    N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN17
+('TK_NV49', 'NV49', NULL, 'user_nv49', 'QuangTrungVu',  N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV50', 'NV50', NULL, 'user_nv50', 'NgoQuyenSang',  N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV51', 'NV51', NULL, 'user_nv51', 'DinhBoLinhDuc', N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV77', 'NV77', NULL, 'user_nv77', 'LuongThuyLinh', N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN18
+('TK_NV52', 'NV52', NULL, 'user_nv52', 'LeDaiHanhKhoi',N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV53', 'NV53', NULL, 'user_nv53', 'PhungHungThinh',N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV54', 'NV54', NULL, 'user_nv54', 'MaiHacDeCuong', N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV78', 'NV78', NULL, 'user_nv78', 'NguyenThucThuyTien', N'Thu ngân', N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN19
+('TK_NV55', 'NV55', NULL, 'user_nv55', 'TrieuQuangPhuc',N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV56', 'NV56', NULL, 'user_nv56', 'LyNamDeToan',  N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV57', 'NV57', NULL, 'user_nv57', 'KhucThuaDuTam', N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV79', 'NV79', NULL, 'user_nv79', 'DoanThienAn',   N'Thu ngân',  N'Hoạt động', '2026-01-01 08:00:00'),
+-- CN20
+('TK_NV58', 'NV58', NULL, 'user_nv58', 'NguyenHueTan',  N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV59', 'NV59', NULL, 'user_nv59', 'NguyenLuKhoa',  N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV60', 'NV60', NULL, 'user_nv60', 'NguyenNhacBinh',N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),
+('TK_NV80', 'NV80', NULL, 'user_nv80', 'HuynhThiThanhThuy', N'Thu ngân', N'Hoạt động', '2026-01-01 08:00:00');
+
+-- 2. TÀI KHOẢN 20 KHÁCH HÀNG (KH01 -> KH20)
+INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) VALUES
+('TK_KH01', NULL, 'KH01', 'user_kh01', 'NgoVanTuan',     N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH02', NULL, 'KH02', 'user_kh02', 'TranMyLinh',     N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH03', NULL, 'KH03', 'user_kh03', 'DangThanhTung',  N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH04', NULL, 'KH04', 'user_kh04', 'VuPhuongThao',   N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH05', NULL, 'KH05', 'user_kh05', 'LeMinhKhoi',     N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH06', NULL, 'KH06', 'user_kh06', 'HoangTrongNghia',N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH07', NULL, 'KH07', 'user_kh07', 'TranDinhPhong',  N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH08', NULL, 'KH08', 'user_kh08', 'NguyenHaiDang',  N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH09', NULL, 'KH09', 'user_kh09', 'DuongGiaBao',    N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH10', NULL, 'KH10', 'user_kh10', 'PhanHoangLong',  N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH11', NULL, 'KH11', 'user_kh11', 'DinhQuocViet',   N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH12', NULL, 'KH12', 'user_kh12', 'LamThanhSon',    N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH13', NULL, 'KH13', 'user_kh13', 'MaiTanPhat',     N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH14', NULL, 'KH14', 'user_kh14', 'TruongHoangPhuc',N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH15', NULL, 'KH15', 'user_kh15', 'VoHoaiNam',      N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH16', NULL, 'KH16', 'user_kh16', 'DoanHuuTai',     N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH17', NULL, 'KH17', 'user_kh17', 'CaoMinhDat',     N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH18', NULL, 'KH18', 'user_kh18', 'BuiQuangHuy',    N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH19', NULL, 'KH19', 'user_kh19', 'HoVanCuong',     N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00'),
+('TK_KH20', NULL, 'KH20', 'user_kh20', 'TrinhCongMinh',  N'Khách hàng', N'Hoạt động', '2026-02-01 08:00:00');
+GO
 
 INSERT INTO ThongBao (MaThongBao, MaTaiKhoan, MaKhachHang, TieuDe, NoiDung, LoaiThongBao, ThoiGianGui, TrangThaiDoc) VALUES
 ('TB01', 'TK_NV01', NULL, N'Thông báo họp định kỳ', N'Họp tổng kết tuần chi nhánh Q1 vào sáng thứ 2', N'Nội bộ', '2026-09-20 08:30:00', 1),
@@ -1319,10 +1416,11 @@ INSERT INTO KhuyenMai_SanPham (MaKhuyenMai, MaSanPham) VALUES
 ('KM02', 'SP06');
 
 -- =========================================================================
--- 9. PHIẾU NHẬP KHO & 130 CHI TIẾT NHẬP (CHIA ĐỀU CHO 20 CHI NHÁNH)
+-- 9. PHIẾU NHẬP KHO & 2.600 CHI TIẾT NHẬP (130 SẢN PHẨM PHỦ ĐỦ 20 CHI NHÁNH)
 -- =========================================================================
 ALTER TABLE PhieuNhapKho DISABLE TRIGGER trg_PhieuNhapKho_CapNhatTonKho;
 
+-- Khởi tạo 20 Phiếu nhập kho cho 20 chi nhánh
 INSERT INTO PhieuNhapKho (MaPhieuNhap, MaChiNhanh, MaNhanVien, MaNguoiDuyet, MaNhaCungCap, NgayLap, LyDoTuChoi, TongTien, NgayDuyet, TrangThai) VALUES
 ('PN01', 'CN01', 'NV03', 'NV01', 'NCC05', '2026-09-01 09:00:00', NULL, 0, '2026-09-01 10:00:00', N'Đã duyệt'),
 ('PN02', 'CN02', 'NV06', 'NV04', 'NCC05', '2026-09-01 09:00:00', NULL, 0, '2026-09-01 10:00:00', N'Đã duyệt'),
@@ -1345,23 +1443,23 @@ INSERT INTO PhieuNhapKho (MaPhieuNhap, MaChiNhanh, MaNhanVien, MaNguoiDuyet, MaN
 ('PN19', 'CN19', 'NV57', 'NV55', 'NCC04', '2026-09-01 09:00:00', NULL, 0, '2026-09-01 10:00:00', N'Đã duyệt'),
 ('PN20', 'CN20', 'NV60', 'NV58', 'NCC07', '2026-09-01 09:00:00', NULL, 0, '2026-09-01 10:00:00', N'Đã duyệt');
 
-;WITH ProductSequence AS (
+-- CROSS JOIN giữa 20 Chi nhánh và 130 Sản phẩm
+;WITH MatHangChiNhanh AS (
     SELECT 
-        MaSanPham,
-        GiaNhap,
-        ROW_NUMBER() OVER (ORDER BY CAST(SUBSTRING(MaSanPham, 3, 10) AS INT)) AS Num
-    FROM SanPham
-),
-ProductBranchAllocation AS (
-    SELECT 
-        MaSanPham,
-        GiaNhap,
-        Num,
+        cn.MaChiNhanh,
+        CAST(SUBSTRING(cn.MaChiNhanh, 3, 10) AS INT) AS BranchIndex,
+        sp.MaSanPham,
+        CAST(SUBSTRING(sp.MaSanPham, 3, 10) AS INT) AS ProductIndex,
+        sp.GiaNhap,
         CASE 
-            WHEN Num <= 70 THEN (Num - 1) / 7 + 1
-            ELSE 11 + (Num - 71) / 6
-        END AS BranchIndex
-    FROM ProductSequence
+            -- SP01: Chi nhánh CN01 có 20 cái, Chi nhánh CN02 có 10 cái
+            WHEN cn.MaChiNhanh = 'CN01' AND sp.MaSanPham = 'SP01' THEN 20
+            WHEN cn.MaChiNhanh = 'CN02' AND sp.MaSanPham = 'SP01' THEN 10
+            -- Các sản phẩm và chi nhánh còn lại biến thiên từ 8 đến 35 sản phẩm
+            ELSE 8 + ((CAST(SUBSTRING(sp.MaSanPham, 3, 10) AS INT) * 19 + CAST(SUBSTRING(cn.MaChiNhanh, 3, 10) AS INT) * 29 + 7) % 28)
+        END AS SoLuongTinhToan
+    FROM ChiNhanh cn
+    CROSS JOIN SanPham sp
 )
 INSERT INTO ChiTietPhieuNhap 
 (
@@ -1376,22 +1474,23 @@ INSERT INTO ChiTietPhieuNhap
     ThanhTien
 )
 SELECT 
-    CONCAT('CTPN', RIGHT('000' + CAST(Num AS VARCHAR(3)), 3)),
+    CONCAT('CTPN', RIGHT('00' + CAST(BranchIndex AS VARCHAR(2)), 2), RIGHT('000' + CAST(ProductIndex AS VARCHAR(3)), 3)),
     CONCAT('PN', RIGHT('00' + CAST(BranchIndex AS VARCHAR(2)), 2)),
     MaSanPham,
-    CONCAT('LO2026', RIGHT('00' + CAST(BranchIndex AS VARCHAR(2)), 2), 'A', CAST(Num AS VARCHAR(3))),
-    DATEADD(DAY, 240 + (Num * 3), '2026-10-01'),
-    20,
-    20,
+    CONCAT('LO2026', RIGHT('00' + CAST(BranchIndex AS VARCHAR(2)), 2), 'A', RIGHT('000' + CAST(ProductIndex AS VARCHAR(3)), 3)),
+    DATEADD(DAY, 240 + ((ProductIndex * 5 + BranchIndex * 7) % 180), '2026-10-01'),
+    SoLuongTinhToan,
+    SoLuongTinhToan,
     GiaNhap,
-    GiaNhap * 20
-FROM ProductBranchAllocation;
+    GiaNhap * SoLuongTinhToan
+FROM MatHangChiNhanh;
 
--- Điều chỉnh hạn sử dụng thực tế của lô CTPN001 về ngày 20/11/2026 (cận hạn 43 ngày) khớp đúng mức giảm 40% QT03
+-- Rút hạn sử dụng lô CTPN01001 (SP01 tại CN01) về ngày 20/11/2026 để kiểm thử quy tắc giảm 40% QT03
 UPDATE ChiTietPhieuNhap
 SET HanSuDung = '2026-11-20'
-WHERE MaChiTietPhieuNhap = 'CTPN001';
+WHERE MaChiTietPhieuNhap = 'CTPN01001';
 
+-- Cập nhật tổng tiền sổ sách cho 20 phiếu nhập kho
 UPDATE pnk
 SET TongTien = c.Tong
 FROM PhieuNhapKho pnk
@@ -1404,7 +1503,7 @@ JOIN (
 ALTER TABLE PhieuNhapKho ENABLE TRIGGER trg_PhieuNhapKho_CapNhatTonKho;
 
 -- =========================================================================
--- 10. TỒN KHO THEO CHI NHÁNH
+-- 10. TỒN KHO THEO CHI NHÁNH (TỔNG CỘNG ĐỦ 2.600 DÒNG TỒN KHO)
 -- =========================================================================
 INSERT INTO TonKho (MaSanPham, MaChiNhanh, SoLuongTon, MucCanhBao, NgayCapNhat)
 SELECT 
@@ -1418,7 +1517,7 @@ JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
 GROUP BY ctpn.MaSanPham, pnk.MaChiNhanh;
 
 -- =========================================================================
--- 11. GIAO DỊCH LỊCH HẸN, ĐƠN HÀNG, HÓA ĐƠN & ĐÁNH GIÁ
+-- 11. GIAO DỊCH LỊCH HẸN, ĐƠN HÀNG, HÓA ĐƠN & ĐÁNH GIÁ (ĐỒNG BỘ MÃ LÔ MỚI)
 -- =========================================================================
 
 -- 10 Lịch hẹn cho 10 chi nhánh (CN01 -> CN10)
@@ -1461,22 +1560,24 @@ INSERT INTO DonHang (MaDonHang, MaKhachHang, MaChiNhanh, NgayDat, TongTien, DiaC
 ('DH09', 'KH19', 'CN19', '2026-10-07 14:15:00', 378000, N'35 Quốc lộ 50, X.Bình Hưng, Bình Chánh', N'Tại quầy',         N'Chờ xử lý', N'Khách qua salon lấy trực tiếp'),
 ('DH10', 'KH20', 'CN20', '2026-10-07 16:00:00', 862000, N'52 Lý Thường Kiệt, TT.Hóc Môn, Hóc Môn', N'Giao hàng tận nơi', N'Chờ xử lý', N'Giao vào sáng mai');
 
+-- Mã lô liên kết chính xác theo chi nhánh nhận đơn: CTPN + [Mã CN] + [Mã SP]
 INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES
-('CTDH01', 'DH01', 'SP71',  'CTPN071', 1, 286000, 0.00, 286000, 286000),
-('CTDH02', 'DH02', 'SP77',  'CTPN077', 1, 525000, 0.00, 525000, 525000),
-('CTDH03', 'DH03', 'SP83',  'CTPN083', 1, 390000, 0.00, 390000, 390000),
-('CTDH04', 'DH04', 'SP89',  'CTPN089', 1, 360000, 0.00, 360000, 360000),
-('CTDH05', 'DH05', 'SP95',  'CTPN095', 1, 620000, 0.00, 620000, 620000),
-('CTDH06', 'DH06', 'SP101', 'CTPN101', 1, 993000, 0.00, 993000, 993000),
-('CTDH07', 'DH07', 'SP107', 'CTPN107', 1, 419000, 0.00, 419000, 419000),
-('CTDH08', 'DH08', 'SP113', 'CTPN113', 1, 517000, 0.00, 517000, 517000),
-('CTDH09', 'DH09', 'SP119', 'CTPN119', 1, 378000, 0.00, 378000, 378000),
-('CTDH10', 'DH10', 'SP125', 'CTPN125', 1, 862000, 0.00, 862000, 862000);
+('CTDH01', 'DH01', 'SP71',  'CTPN11071', 1, 286000, 0.00, 286000, 286000),
+('CTDH02', 'DH02', 'SP77',  'CTPN12077', 1, 525000, 0.00, 525000, 525000),
+('CTDH03', 'DH03', 'SP83',  'CTPN13083', 1, 390000, 0.00, 390000, 390000),
+('CTDH04', 'DH04', 'SP89',  'CTPN14089', 1, 360000, 0.00, 360000, 360000),
+('CTDH05', 'DH05', 'SP95',  'CTPN15095', 1, 620000, 0.00, 620000, 620000),
+('CTDH06', 'DH06', 'SP101', 'CTPN16101', 1, 993000, 0.00, 993000, 993000),
+('CTDH07', 'DH07', 'SP107', 'CTPN17107', 1, 419000, 0.00, 419000, 419000),
+('CTDH08', 'DH08', 'SP113', 'CTPN18113', 1, 517000, 0.00, 517000, 517000),
+('CTDH09', 'DH09', 'SP119', 'CTPN19119', 1, 378000, 0.00, 378000, 378000),
+('CTDH10', 'DH10', 'SP125', 'CTPN20125', 1, 862000, 0.00, 862000, 862000);
 
+-- Trừ tồn kho 1 đơn vị cho các lô tương ứng của đơn hàng
 UPDATE ctpn
 SET ctpn.SoLuongConLai = ctpn.SoLuongConLai - 1
 FROM ChiTietPhieuNhap ctpn
-WHERE ctpn.MaChiTietPhieuNhap IN ('CTPN071', 'CTPN077', 'CTPN083', 'CTPN089', 'CTPN095', 'CTPN101', 'CTPN107', 'CTPN113', 'CTPN119', 'CTPN125');
+WHERE ctpn.MaChiTietPhieuNhap IN ('CTPN11071', 'CTPN12077', 'CTPN13083', 'CTPN14089', 'CTPN15095', 'CTPN16101', 'CTPN17107', 'CTPN18113', 'CTPN19119', 'CTPN20125');
 
 UPDATE tk
 SET tk.SoLuongTon = tk.SoLuongTon - 1
@@ -1495,7 +1596,7 @@ WHERE (tk.MaSanPham = 'SP71'  AND tk.MaChiNhanh = 'CN11')
 ALTER TABLE ChiTietDonHang ENABLE TRIGGER trg_ChiTietDonHang_TruTonKho;
 GO
 
--- Hóa đơn thanh toán (Khớp nối với Thu ngân)
+-- Hóa đơn thanh toán
 ALTER TABLE ChiTietHoaDon_SanPham DISABLE TRIGGER trg_ChiTietHoaDonSanPham_TruTonKho;
 
 INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, NgayLap, TongTien, TrangThai, MaSoHoaDon) VALUES
@@ -1505,13 +1606,14 @@ INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, Nga
 INSERT INTO ChiTietHoaDon_DichVu (MaHoaDon, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES
 ('HD01', 'DV01', 1, 120000, 120000);
 
+-- HD01: SP01 lấy từ lô CTPN01001 (CN01). HD02: SP71 lấy từ CTPN11071 (CN11)
 INSERT INTO ChiTietHoaDon_SanPham (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES
-('CTHD20261010000001', 'HD01', 'SP01', 'CTPN001', 1, 480000, 40.00, 288000, 288000),
-('CTHD20261005000002', 'HD02', 'SP71', 'CTPN071', 1, 286000,  0.00, 286000, 286000);
+('CTHD20261010000001', 'HD01', 'SP01', 'CTPN01001', 1, 480000, 40.00, 288000, 288000),
+('CTHD20261005000002', 'HD02', 'SP71', 'CTPN11071', 1, 286000,  0.00, 286000, 286000);
 
 UPDATE ChiTietPhieuNhap 
 SET SoLuongConLai = SoLuongConLai - 1 
-WHERE MaChiTietPhieuNhap = 'CTPN001';
+WHERE MaChiTietPhieuNhap = 'CTPN01001';
 
 UPDATE TonKho 
 SET SoLuongTon = SoLuongTon - 1 
@@ -1519,7 +1621,7 @@ WHERE MaSanPham = 'SP01' AND MaChiNhanh = 'CN01';
 
 ALTER TABLE ChiTietHoaDon_SanPham ENABLE TRIGGER trg_ChiTietHoaDonSanPham_TruTonKho;
 
--- Thanh toán: Thu ngân NV61 (CN01) và Thu ngân NV71 (CN11) thu tiền
+-- Thanh toán: NV61 (CN01) và NV71 (CN11)
 INSERT INTO ThanhToan (MaThanhToan, MaHoaDon, MaNhanVien, SoTien, PhuongThuc, ThoiGianThanhToan, TrangThai, MaGiaoDich) VALUES
 ('TT01', 'HD01', 'NV61', 408000, N'Chuyển khoản QR', '2026-10-10 10:20:00', N'Thành công', 'VNPAY9872123'),
 ('TT02', 'HD02', 'NV71', 286000, N'Tiền mặt',        '2026-10-05 10:05:00', N'Thành công', 'CASH001');

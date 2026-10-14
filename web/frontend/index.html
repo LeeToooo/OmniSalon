@@ -21,11 +21,11 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css?v=59.0">
-  <link rel="stylesheet" href="js/components/components.css?v=59.0">
+  <link rel="stylesheet" href="styles.css?v=75.0">
+  <link rel="stylesheet" href="js/components/components.css?v=72.0">
 
   <!-- Centralized Theme Engine (Zero FOUC) -->
-  <script src="js/core/theme.js?v=59.0"></script>
+  <script src="js/core/theme.js?v=60.0"></script>
 </head>
 
 <body data-theme="dark">
@@ -54,18 +54,23 @@
        ======================================================== -->
   <div class="cart-drawer-shell" id="cartDrawer">
     <div class="cart-drawer-header">
-      <h3 style="font-size: 16px; font-weight: 800; text-transform: uppercase;">Giỏ Hàng Của Bạn</h3>
-      <button class="modal-close-icon-btn" onclick="UICommon.closeCartDrawer()" title="Đóng">✕</button>
+      <h3 class="cart-drawer-header-title">GIỎ HÀNG CỦA BẠN</h3>
+      <button class="cart-drawer-close-btn" onclick="UICommon.closeCartDrawer()" title="Đóng">✕</button>
     </div>
     <div class="cart-drawer-list" id="cartItemsList"></div>
     <div class="cart-drawer-footer">
-      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-        <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Tổng thanh toán:</span>
-        <span id="cartTotalAmount" style="font-size: 18px; font-weight: 900; color: var(--color-terracotta);">0 đ</span>
+      <div class="cart-drawer-footer-summary">
+        <span class="cart-drawer-footer-label">Tổng thanh toán:</span>
+        <span id="cartTotalAmount" class="cart-drawer-footer-amount">0 đ</span>
       </div>
-      <button class="btn-submit-terracotta" style="width: 100%;" onclick="UICommon.checkoutCart()">
-        Thanh Toán Đơn Hàng →
+      <button type="button" class="cart-drawer-checkout-btn" onclick="UICommon.checkoutCart()">
+        Thanh Toán Đơn Hàng
       </button>
+      <div class="cart-drawer-view-full-page">
+        <a href="/cart" onclick="event.preventDefault(); UICommon.closeCartDrawer(); if(window.AppRouter) window.AppRouter.navigate('/cart');">
+          Xem toàn bộ giỏ hàng trang lớn (4RAU Style) →
+        </a>
+      </div>
     </div>
   </div>
 
@@ -117,32 +122,34 @@
        8. js/modules/customer/web/customer-web.js -> Phân hệ Khách hàng trên Web Portal
        9. js/web/ui-web.js        -> Giao diện Web Portal & Trung tâm Quản trị Admin
        ======================================================== -->
-  <script src="js/core/utils.js?v=59.0"></script>
-  <script src="js/core/validation.js?v=59.0"></script>
-  <script src="js/core/pricing.js?v=59.0"></script>
-  <script src="js/core/auth.js?v=59.0"></script>
-  <script src="js/core/store.js?v=59.0"></script>
-  <script src="js/core/api.js?v=59.0"></script>
-  <script src="js/widgets/widgets-bundle.js?v=59.0"></script>
-  <script src="js/components/ui-common.js?v=59.0"></script>
-  <script src="js/components/ProductCard.js?v=59.0"></script>
-  <script src="js/components/BranchCard.js?v=59.0"></script>
-  <script src="js/modules/customer/web/customer-web.js?v=59.0"></script>
-  <script src="js/modules/admin/web/admin-web.js?v=59.0"></script>
-  <script src="js/web/ui-web.js?v=59.0"></script>
+  <script src="js/core/constants.js?v=66.0"></script>
+  <script src="js/core/utils.js?v=66.0"></script>
+  <script src="js/core/validation.js?v=66.0"></script>
+  <script src="js/core/pricing.js?v=66.0"></script>
+  <script src="js/core/auth.js?v=66.0"></script>
+  <script src="js/core/store.js?v=72.0"></script>
+  <script src="js/core/api.js?v=66.0"></script>
+  <script src="js/widgets/widgets-bundle.js?v=66.0"></script>
+  <script src="js/components/ui-common.js?v=76.0"></script>
+  <script src="js/components/ProductCard.js?v=66.0"></script>
+  <script src="js/components/BranchCard.js?v=66.0"></script>
+  <script src="js/modules/customer/web/customer-web.js?v=75.0"></script>
+  <script src="js/modules/admin/web/admin-web.js?v=66.0"></script>
+  <script src="js/web/ui-web.js?v=66.0"></script>
 
   <!-- Modular Page Components (Multi-Page Architecture) -->
-  <script src="pages/home-page.js?v=59.0"></script>
-  <script src="pages/services-page.js?v=59.0"></script>
-  <script src="pages/stylists-page.js?v=59.0"></script>
-  <script src="pages/booking-page.js?v=59.0"></script>
-  <script src="pages/shop-page.js?v=59.0"></script>
-  <script src="pages/branches-page.js?v=59.0"></script>
-  <script src="pages/ai-studio-page.js?v=59.0"></script>
-  <script src="pages/admin-portal.js?v=59.0"></script>
+  <script src="pages/home-page.js?v=68.0"></script>
+  <script src="pages/services-page.js?v=68.0"></script>
+  <script src="pages/stylists-page.js?v=68.0"></script>
+  <script src="pages/booking-page.js?v=68.0"></script>
+  <script src="pages/shop-page.js?v=72.0"></script>
+  <script src="pages/cart-page.js?v=75.0"></script>
+  <script src="pages/branches-page.js?v=68.0"></script>
+  <script src="pages/ai-studio-page.js?v=68.0"></script>
+  <script src="pages/admin-portal.js?v=68.0"></script>
 
   <!-- 3D Perspective Client Router -->
-  <script src="js/core/router.js?v=59.0"></script>
+  <script src="js/core/router.js?v=75.0"></script>
 
   <!-- Khởi động giao diện Web Portal & 3D Multi-Page Router -->
   <script>
@@ -192,7 +199,7 @@
     if (_searchParams.get('openCart') === '1') {
       setTimeout(() => {
         if (typeof UICommon !== 'undefined') UICommon.openCartDrawer();
-      }, 350);
+      }, 600);
     }
     if (_searchParams.get('category') && typeof ServicesPage !== 'undefined') {
       setTimeout(() => ServicesPage.setCategory(_searchParams.get('category')), 250);

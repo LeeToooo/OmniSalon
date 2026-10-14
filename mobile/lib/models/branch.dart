@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class Branch {
   final String id;
   final String name;
@@ -5,6 +7,7 @@ class Branch {
   final String phone;
   final String hours;
   final String city;
+  final String image;
 
   Branch({
     required this.id,
@@ -13,16 +16,21 @@ class Branch {
     required this.phone,
     required this.hours,
     required this.city,
+    required this.image,
   });
 
   factory Branch.fromJson(Map<String, dynamic> json) {
+    final rawImg = json['image'] ?? json['HinhAnh'] ?? '';
+    final formattedImg = ApiService.getImageUrl(rawImg.toString(), fallback: 'ChiNhanh_Omni/CN1.jpg');
+
     return Branch(
       id: json['id'] ?? json['MaChiNhanh'] ?? '',
       name: json['name'] ?? json['TenChiNhanh'] ?? '',
       address: json['address'] ?? json['DiaChi'] ?? '',
-      phone: json['phone'] ?? json['SoDienThoai'] ?? '1900 8899',
-      hours: json['hours'] ?? '08:30 - 21:30',
+      phone: json['phone'] ?? json['SoDienThoai'] ?? '0901 111 001',
+      hours: json['hours'] ?? json['openHours'] ?? '08:30 - 21:30',
       city: json['city'] ?? 'TP. Hồ Chí Minh',
+      image: formattedImg,
     );
   }
 
@@ -34,6 +42,7 @@ class Branch {
       'phone': phone,
       'hours': hours,
       'city': city,
+      'image': image,
     };
   }
 }

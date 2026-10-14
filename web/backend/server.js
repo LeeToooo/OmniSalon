@@ -312,7 +312,8 @@ async function getFullSqlDatabase() {
     orderRows,
     promoRows,
     reviewRows,
-    userRows
+    userRows,
+    thongBaoRows
   ] = await Promise.all([
     querySql(`SELECT MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, 
                      CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
@@ -391,7 +392,10 @@ async function getFullSqlDatabase() {
                      nv.MaChiNhanh
               FROM TaiKhoan tk
               LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
-              LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang`)
+              LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang`),
+    querySql(`SELECT tb.MaThongBao, tb.MaTaiKhoan, tb.MaKhachHang, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao,
+                     CONVERT(VARCHAR(19), tb.ThoiGianGui, 120) AS ThoiGianGui, tb.TrangThaiDoc
+              FROM ThongBao tb`)
   ]);
 
   const branches = branchRows.map(r => {
@@ -646,6 +650,20 @@ async function getFullSqlDatabase() {
     status: r.TrangThai
   }));
 
+  const notifications = (thongBaoRows || []).map(r => ({
+    id: r.MaThongBao,
+    MaThongBao: r.MaThongBao,
+    accountId: r.MaTaiKhoan,
+    customerId: r.MaKhachHang,
+    title: r.TieuDe,
+    TieuDe: r.TieuDe,
+    content: r.NoiDung,
+    NoiDung: r.NoiDung,
+    type: r.LoaiThongBao,
+    createdAt: r.ThoiGianGui,
+    isRead: r.TrangThaiDoc === 1 || r.TrangThaiDoc === true
+  }));
+
   return {
     version: '5.2.0 (SSMS 20 Complete Schema Engine)',
     engine: 'Microsoft SQL Server (T-SQL Direct)',
@@ -663,7 +681,8 @@ async function getFullSqlDatabase() {
     orders,
     promotions,
     reviews,
-    users
+    users,
+    notifications
   };
 }
 
@@ -1853,7 +1872,29 @@ const server = http.createServer(async (req, res) => {
           [id, khId, cnId, total, addr, methodStr, notes]
         );
 
-        console.log(`[SQL EXEC] Tạo đơn hàng mới chuẩn CSDL ${id} (Khách: ${khId}) vào SQL Server!`);
+        // Lưu chi tiết đơn hàng vào ChiTietDonHang chuẩn FEFO
+        const orderItems = Array.isArray(order.items) ? order.items : (Array.isArray(order.cartItems) ? order.cartItems : []);
+        for (let i = 0; i < orderItems.length; i++) {
+          const it = orderItems[i];
+          const prodId = it.productId || it.id || it.MaSanPham;
+          const qty = parseInt(it.quantity || it.qty || it.SoLuong || 1, 10);
+          if (prodId && qty > 0) {
+            try {
+              await querySql('EXEC sp_ThemChiTietDonHang @MaDonHang = ?, @MaSanPham = ?, @SoLuong = ?', [id, prodId, qty]);
+            } catch (spErr) {
+              const ctdhId = `CTDH_${id}_${i + 1}`.slice(0, 30);
+              const unitPrice = parseFloat(it.price || it.actualPrice || it.GiaBan || 250000);
+              const ctpnRow = await querySql('SELECT TOP 1 MaChiTietPhieuNhap FROM ChiTietPhieuNhap WHERE MaSanPham = ? AND SoLuongConLai > 0 ORDER BY HanSuDung ASC', [prodId]);
+              const loId = (ctpnRow && ctpnRow[0]) ? ctpnRow[0].MaChiTietPhieuNhap : 'CTPN0001';
+              await querySql(
+                `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+                [ctdhId, id, prodId, loId, qty, unitPrice, unitPrice, unitPrice * qty]
+              );
+            }
+          }
+        }
+
+        console.log(`[SQL EXEC] Tạo đơn hàng mới chuẩn CSDL ${id} (Khách: ${khId}) cùng ${orderItems.length} chi tiết mặt hàng vào SQL Server!`);
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, order: { id, customerId: khId, totalAmount: total, status: 'Processing' } }));
@@ -1885,6 +1926,43 @@ const server = http.createServer(async (req, res) => {
           `INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, NgayLap, TongTien, TrangThai, MaSoHoaDon) VALUES (?, ?, ?, NULL, ?, GETDATE(), ?, N'Đã thanh toán', ?)`,
           [hdId, khId, lhId, cnId, total, invoiceNo]
         );
+
+        // Lưu chi tiết dịch vụ vào ChiTietHoaDon_DichVu
+        const posServices = Array.isArray(pos.services) ? pos.services : (pos.serviceId ? [{ id: pos.serviceId, price: total }] : []);
+        for (const s of posServices) {
+          const sId = s.id || s.serviceId || s.MaDichVu;
+          const sPrice = parseFloat(s.price || s.Gia || total);
+          if (sId) {
+            try {
+              await querySql(
+                `INSERT INTO ChiTietHoaDon_DichVu (MaHoaDon, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, 1, ?, ?)`,
+                [hdId, sId, sPrice, sPrice]
+              );
+            } catch (_) {}
+          }
+        }
+
+        // Lưu chi tiết sản phẩm vào ChiTietHoaDon_SanPham
+        const posProducts = Array.isArray(pos.products) ? pos.products : (Array.isArray(pos.items) ? pos.items : []);
+        for (let i = 0; i < posProducts.length; i++) {
+          const p = posProducts[i];
+          const pId = p.id || p.productId || p.MaSanPham;
+          const pQty = parseInt(p.quantity || p.qty || 1, 10);
+          const pPrice = parseFloat(p.price || p.GiaBan || 250000);
+          if (pId && pQty > 0) {
+            try {
+              await querySql('EXEC sp_ThemChiTietHoaDonSanPham @MaHoaDon = ?, @MaSanPham = ?, @SoLuong = ?', [hdId, pId, pQty]);
+            } catch (spErr) {
+              const ctHdSpId = `CTHD_${hdId}_${i + 1}`.slice(0, 30);
+              const ctpnRow = await querySql('SELECT TOP 1 MaChiTietPhieuNhap FROM ChiTietPhieuNhap WHERE MaSanPham = ? AND SoLuongConLai > 0 ORDER BY HanSuDung ASC', [pId]);
+              const loId = (ctpnRow && ctpnRow[0]) ? ctpnRow[0].MaChiTietPhieuNhap : 'CTPN0001';
+              await querySql(
+                `INSERT INTO ChiTietHoaDon_SanPham (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+                [ctHdSpId, hdId, pId, loId, pQty, pPrice, pPrice, pPrice * pQty]
+              );
+            }
+          }
+        }
 
         const ttId = 'TT' + Date.now().toString().slice(-6);
         await querySql(
@@ -1969,12 +2047,19 @@ const server = http.createServer(async (req, res) => {
           customerPhone: r.customerPhone
         });
         const stars = parseInt(r.rating || 5, 10);
-        const comment = (r.comment || 'Dịch vụ rất tốt!').trim();
-        const lhId = r.bookingId || null;
+        let lhId = r.bookingId || null;
+        let dhId = r.orderId || null;
+        if (!lhId && !dhId) {
+          const recentLh = await querySql('SELECT TOP 1 MaLichHen FROM LichHen WHERE MaKhachHang = ? ORDER BY NgayHen DESC', [khId]);
+          lhId = (recentLh && recentLh[0]) ? recentLh[0].MaLichHen : 'LH01';
+          dhId = null;
+        } else if (lhId && dhId) {
+          dhId = null; // Ràng buộc CK_DanhGia_DoiTuong: đúng 1 trong 2 trường được phép NOT NULL
+        }
 
         await querySql(
-          `INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag) VALUES (?, ?, ?, NULL, ?, ?, NULL, GETDATE(), N'Hiển thị', 0)`,
-          [dgId, khId, lhId, stars, comment]
+          `INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag) VALUES (?, ?, ?, ?, ?, ?, NULL, GETDATE(), N'Hiển thị', 0)`,
+          [dgId, khId, lhId, dhId, stars, comment]
         );
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -2052,7 +2137,48 @@ const server = http.createServer(async (req, res) => {
         }));
       }
 
-      // --- 21. PHỤC VỤ FILE TĨNH (STATIC FILES) & SPA FALLBACK ---
+      // --- 25. NOTIFICATIONS / THÔNG BÁO ---
+      if (pathname === '/api/notifications' && method === 'GET') {
+        const rows = await querySql(
+          `SELECT tb.MaThongBao, tb.MaTaiKhoan, tb.MaKhachHang, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao,
+                  CONVERT(VARCHAR(19), tb.ThoiGianGui, 120) AS ThoiGianGui, tb.TrangThaiDoc
+           FROM ThongBao tb
+           ORDER BY tb.ThoiGianGui DESC`
+        );
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(rows));
+      }
+
+      if (pathname.startsWith('/api/notifications/') && pathname.includes('/read') && method === 'PUT') {
+        const parts = pathname.split('/');
+        const notifId = parts[3];
+        await querySql(`UPDATE ThongBao SET TrangThaiDoc = 1 WHERE MaThongBao = ?`, [notifId]);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, notifId, isRead: true }));
+      }
+
+      // --- 26. LOW STOCK WARNING VIEW / CẢNH BÁO TỒN THẤP ---
+      if (pathname === '/api/inventory/low-stock' && method === 'GET') {
+        const rows = await querySql(`SELECT * FROM vw_SanPhamCanhBaoTonThap`);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(rows));
+      }
+
+      // --- 27. FEFO LOT PRICING VIEW / GIÁ BÁN THEO LÔ HẠN SỬ DỤNG ---
+      if (pathname === '/api/inventory/lots' && method === 'GET') {
+        const branchParam = parsedUrl.searchParams.get('branch_id');
+        let q = `SELECT * FROM vw_GiaBanTheoLoHienTai`;
+        const params = [];
+        if (branchParam) {
+          q += ` WHERE MaChiNhanh = ?`;
+          params.push(branchParam);
+        }
+        const rows = await querySql(q, params);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(rows));
+      }
+
+      // --- 28. PHỤC VỤ FILE TĨNH (STATIC FILES) & SPA FALLBACK ---
       let rawPath = pathname.replace(/^\/+/, '');
       try { rawPath = decodeURIComponent(rawPath); } catch (_) {}
 

@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class Booking {
   final String id;
   final String bookingCode;
@@ -14,6 +16,7 @@ class Booking {
   final int totalPrice;
   String status;
   final String createdAt;
+  final String serviceImage;
 
   Booking({
     required this.id,
@@ -31,25 +34,33 @@ class Booking {
     required this.totalPrice,
     required this.status,
     required this.createdAt,
+    this.serviceImage = '',
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
+    final rawPrice = json['totalPrice'] ?? json['TongTien'] ?? 0;
+    final num priceNum = rawPrice is num ? rawPrice : (num.tryParse(rawPrice.toString()) ?? 0);
+
+    final rawImg = json['serviceImage'] ?? json['HinhAnh'] ?? '';
+    final formattedImg = ApiService.getImageUrl(rawImg.toString(), fallback: 'DichVu_Men/DV1.jpg');
+
     return Booking(
       id: json['id'] ?? json['MaLichHen'] ?? '',
-      bookingCode: json['bookingCode'] ?? json['id'] ?? 'LH-01',
-      customerName: json['customerName'] ?? json['TenKhachHang'] ?? '',
-      customerPhone: json['customerPhone'] ?? json['SoDienThoai'] ?? '',
+      bookingCode: json['bookingCode'] ?? json['MaLichHen'] ?? json['id'] ?? 'LH01',
+      customerName: json['customerName'] ?? json['TenKhachHang'] ?? 'Khách Hàng',
+      customerPhone: json['customerPhone'] ?? json['SdtKhachHang'] ?? json['SoDienThoai'] ?? '',
       branchId: json['branchId'] ?? json['MaChiNhanh'] ?? 'CN01',
-      branchName: json['branchName'] ?? 'Omni Salon Chi Nhánh 1',
-      serviceId: json['serviceId'] ?? json['MaDichVu'] ?? '',
-      serviceName: json['serviceName'] ?? 'Dịch Vụ Cắt Tóc',
-      stylistId: json['stylistId'] ?? json['MaNhanVien'] ?? '',
-      stylistName: json['stylistName'] ?? 'Thợ Tạo Mẫu',
+      branchName: json['branchName'] ?? json['TenChiNhanh'] ?? 'Omni Salon Chi Nhánh',
+      serviceId: json['serviceId'] ?? json['MaDichVu'] ?? 'DV01',
+      serviceName: json['serviceName'] ?? json['TenDichVu'] ?? 'Dịch Vụ Cắt Tóc Nam',
+      stylistId: json['stylistId'] ?? json['MaNhanVien'] ?? 'NV02',
+      stylistName: json['stylistName'] ?? json['TenNhanVien'] ?? 'Master Barber',
       date: json['date'] ?? json['NgayHen'] ?? '',
-      timeSlot: json['timeSlot'] ?? json['GioHen'] ?? '',
-      totalPrice: (json['totalPrice'] ?? json['TongTien'] ?? 0) as int,
+      timeSlot: json['timeSlot'] ?? json['GioBatDau'] ?? json['GioHen'] ?? '09:00',
+      totalPrice: priceNum.toInt(),
       status: json['status'] ?? json['TrangThai'] ?? 'Confirmed',
       createdAt: json['createdAt'] ?? '',
+      serviceImage: formattedImg,
     );
   }
 
@@ -73,5 +84,20 @@ class Booking {
     };
   }
 
-  bool get isCancelled => status.toLowerCase() == 'cancelled' || status == 'Đã hủy';
+  bool get isCancelled =>
+      status.toLowerCase() == 'cancelled' ||
+      status == 'Đã hủy' ||
+      status.toLowerCase() == 'da_huy';
+
+  bool get isCompleted =>
+      status.toLowerCase() == 'completed' ||
+      status == 'Hoàn thành' ||
+      status.toLowerCase() == 'hoan_thanh';
+
+  String get displayStatus {
+    if (isCancelled) return 'Đã Hủy';
+    if (isCompleted) return 'Hoàn Thành';
+    if (status.toLowerCase().contains('progress') || status == 'In_Progress') return 'Đang Thực Hiện';
+    return 'Đã Xác Nhận';
+  }
 }

@@ -22,6 +22,8 @@
       this.register('/stylists', () => this._renderPage('StylistsPage'));
       this.register('/booking', () => this._renderPage('BookingPage'));
       this.register('/shop', () => this._renderPage('ShopPage'));
+      this.register('/cart', () => this._renderPage('CartPage'));
+      this.register('/product', () => this._renderPage('ProductDetailPage'));
       this.register('/branches', () => this._renderPage('BranchesPage'));
       this.register('/ai-studio', () => this._renderPage('AiStudioPage'));
       this.register('/admin', () => this._renderPage('AdminPortal'));
@@ -58,9 +60,14 @@
         }
       });
 
-      // Kích hoạt route hiện tại từ URL
+      // Kích hoạt route hiện tại từ URL (kèm query parameters như ?id=SP01)
       const initialPath = this.getCurrentPath();
-      this.resolveRoute(initialPath, false);
+      const search = (typeof window !== 'undefined' && window.location && window.location.search) ? window.location.search : '';
+      if (search && !initialPath.includes('?')) {
+        this.navigate(initialPath + search, false);
+      } else {
+        this.resolveRoute(initialPath, false);
+      }
 
       // Thiết lập bộ theo dõi micro 3D Tilt, Spotlight và Magnetic Buttons trên toàn trang
       this.initGlobalTiltObserver();
@@ -157,6 +164,8 @@
             '/stylists': 'stylists',
             '/booking': 'booking',
             '/shop': 'shop',
+            '/cart': 'cart',
+            '/product': 'shop',
             '/branches': 'branches',
             '/ai-studio': 'ai'
           };
@@ -273,6 +282,7 @@
         '/stylists': 'Master Stylists & Art Directors — Omni Salon Artisans',
         '/booking': 'Đặt Lịch Trải Nghiệm Salon 5 Sao — Omni Salon',
         '/shop': 'Omni Apothecary — Mỹ Phẩm & Dược Liệu Tóc Quốc Tế',
+        '/product': 'Chi Tiết Sản Phẩm — Omni Apothecary Salon',
         '/branches': 'Hệ Thống Chi Nhánh Toàn Quốc — Omni Salon Luxury Suite',
         '/ai-studio': 'AI Hair Studio 3D — Trải Nghiệm Thử Kiểu Tóc Thực Tế Ảo | Omni Salon',
         '/admin': 'Enterprise Admin Hub & Dispatcher — Omni Salon'

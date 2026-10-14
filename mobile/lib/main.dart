@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'models/order.dart';
+import 'services/auth_service.dart';
 import 'screens/home_screen.dart';
+import 'screens/services_screen.dart';
 import 'screens/booking_screen.dart';
 import 'screens/shop_screen.dart';
 import 'screens/my_bookings_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await initializeDateFormatting('vi', null);
+  } catch (e) {
+    debugPrint('DateFormatting init error: $e');
+  }
+  await AuthService.init();
   runApp(const OmniSalonApp());
 }
 
@@ -15,16 +25,15 @@ class OmniSalonApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Omni Salon',
+      title: 'Omni Salon Barber',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF1F3F6), // Sáng nhẹ, không chói mắt (Yêu cầu 2)
-        primaryColor: const Color(0xFFB48312), // Vàng kim Champagne
+        scaffoldBackgroundColor: const Color(0xFFF1F3F6),
+        primaryColor: const Color(0xFFB48312),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFB48312),
           surface: Colors.white,
-          background: const Color(0xFFF1F3F6),
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
@@ -32,7 +41,6 @@ class OmniSalonApp extends StatelessWidget {
           elevation: 0.5,
           centerTitle: false,
         ),
-        fontFamily: 'Inter',
       ),
       home: const MainNavigationShell(),
     );
@@ -72,6 +80,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   Widget build(BuildContext context) {
     final screens = [
       const HomeScreen(),
+      const ServicesScreen(),
       const BookingScreen(),
       ShopScreen(sharedCart: _sharedCart, onAddToCart: _addToCart),
       const MyBookingsScreen(),
@@ -87,6 +96,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         backgroundColor: Colors.white,
         indicatorColor: const Color(0xFFFEF3C7),
         elevation: 3,
+        height: 65,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),
         destinations: const [
           NavigationDestination(
@@ -95,8 +105,13 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             label: 'Trang Chủ',
           ),
           NavigationDestination(
-            icon: Icon(Icons.calendar_today_outlined),
-            selectedIcon: Icon(Icons.calendar_today, color: Color(0xFFB48312)),
+            icon: Icon(Icons.content_cut_outlined),
+            selectedIcon: Icon(Icons.content_cut, color: Color(0xFFB48312)),
+            label: 'Dịch Vụ',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month, color: Color(0xFFB48312)),
             label: 'Đặt Lịch',
           ),
           NavigationDestination(
@@ -107,7 +122,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           NavigationDestination(
             icon: Icon(Icons.assignment_outlined),
             selectedIcon: Icon(Icons.assignment, color: Color(0xFFB48312)),
-            label: 'Lịch Của Tôi',
+            label: 'Lịch Hẹn',
           ),
         ],
       ),

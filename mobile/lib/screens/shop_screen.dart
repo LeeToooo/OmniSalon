@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/product.dart';
 import '../models/order.dart';
 import '../services/api_service.dart';
+import '../widgets/omni_image.dart';
 import 'cart_screen.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -29,10 +30,15 @@ class _ShopScreenState extends State<ShopScreen> {
 
   final categories = [
     {'id': 'all', 'name': 'Tất Cả'},
-    {'id': 'DM04', 'name': 'Sáp & Pomade'},
-    {'id': 'DM05', 'name': 'Gôm Xịt Tóc'},
-    {'id': 'DM01', 'name': 'Dầu Gội & Xả'},
-    {'id': 'DM06', 'name': 'Màu Nhuộm'},
+    {'id': 'DM01', 'name': 'Sáp & Clay'},
+    {'id': 'DM02', 'name': 'Pomade'},
+    {'id': 'DM03', 'name': 'Pre-Styling'},
+    {'id': 'DM04', 'name': 'Gôm Xịt Tóc'},
+    {'id': 'DM05', 'name': 'Dầu Gội & Xả'},
+    {'id': 'DM06', 'name': 'Bột Tạo Phồng'},
+    {'id': 'DM07', 'name': 'Uốn & Ép Side'},
+    {'id': 'DM08', 'name': 'Dưỡng Râu'},
+    {'id': 'DM09', 'name': 'Dụng Cụ'},
   ];
 
   @override
@@ -51,6 +57,111 @@ class _ShopScreenState extends State<ShopScreen> {
       products = list;
       isLoading = false;
     });
+  }
+
+  void _showProductDetails(Product p) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: const Color(0xFFCBD5E1), borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            OmniImage(
+              imageUrl: p.image,
+              height: 220,
+              width: double.infinity,
+              borderRadius: BorderRadius.circular(16),
+              fit: BoxFit.contain,
+              fallbackIcon: Icons.shopping_bag,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(p.brand, style: const TextStyle(color: Color(0xFFB48312), fontWeight: FontWeight.w800, fontSize: 11)),
+                ),
+                if (p.hasDiscount) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(p.flashSaleBadge, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(p.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFF0F172A))),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text(currencyFormat.format(p.actualPrice), style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFBE4D25), fontSize: 22)),
+                if (p.originalPrice > p.actualPrice) ...[
+                  const SizedBox(width: 10),
+                  Text(currencyFormat.format(p.originalPrice), style: const TextStyle(decoration: TextDecoration.lineThrough, color: Color(0xFF94A3B8), fontSize: 14)),
+                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text('Mô tả sản phẩm:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F172A))),
+            const SizedBox(height: 4),
+            Text(p.description, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, height: 1.4)),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F172A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  widget.onAddToCart(OrderItem(
+                    productId: p.id,
+                    name: p.name,
+                    price: p.actualPrice,
+                    quantity: 1,
+                    image: p.image,
+                  ));
+                  Navigator.of(ctx).pop();
+                  setState(() {});
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Đã thêm ${p.name} vào giỏ hàng!'), duration: const Duration(seconds: 1)),
+                  );
+                },
+                child: const Text('Thêm Vào Giỏ Hàng', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -99,9 +210,7 @@ class _ShopScreenState extends State<ShopScreen> {
       ),
       body: Column(
         children: [
-          // ==========================================
-          // 1. THANH TÌM KIẾM SẢN PHẨM (CLO 3.5 Rubric - 0.25đ)
-          // ==========================================
+          // 1. THANH TÌM KIẾM SẢN PHẨM
           Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             color: Colors.white,
@@ -109,7 +218,7 @@ class _ShopScreenState extends State<ShopScreen> {
               controller: searchController,
               onChanged: (_) => _loadProducts(),
               decoration: InputDecoration(
-                hintText: 'Tìm kiếm sản phẩm, sáp vuốt, gôm xịt...',
+                hintText: 'Tìm kiếm sáp vuốt, pomade, gôm xịt, Reuzel...',
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF64748B)),
                 suffixIcon: searchController.text.isNotEmpty
                     ? IconButton(
@@ -135,9 +244,7 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
           ),
 
-          // ==========================================
-          // 2. THANH LỌC DANH MỤC
-          // ==========================================
+          // 2. THANH LỌC DANH MỤC DM01 - DM09
           Container(
             height: 48,
             color: Colors.white,
@@ -174,9 +281,7 @@ class _ShopScreenState extends State<ShopScreen> {
           ),
           const Divider(height: 1),
 
-          // ==========================================
-          // 3. LƯỚI SẢN PHẨM (2 CỘT CÂN ĐỐI)
-          // ==========================================
+          // 3. LƯỚI SẢN PHẨM 2 CỘT
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator(color: Color(0xFFB48312)))
@@ -191,7 +296,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         padding: const EdgeInsets.all(16),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          childAspectRatio: 0.65,
+                          childAspectRatio: 0.63,
                           crossAxisSpacing: 14,
                           mainAxisSpacing: 14,
                         ),
@@ -199,114 +304,111 @@ class _ShopScreenState extends State<ShopScreen> {
                         itemBuilder: (context, idx) {
                           final p = products[idx];
 
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
-                              boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 3))],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Ảnh & Huy hiệu Flash Sale
-                                Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                                      child: Image.network(
-                                        p.image,
+                          return InkWell(
+                            onTap: () => _showProductDetails(p),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 3))],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Ảnh & Huy hiệu Flash Sale
+                                  Stack(
+                                    children: [
+                                      OmniImage(
+                                        imageUrl: p.image,
                                         height: 130,
                                         width: double.infinity,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(
-                                          height: 130,
-                                          color: const Color(0xFFF1F3F6),
-                                          child: const Icon(Icons.image_not_supported, color: Color(0xFF94A3B8)),
-                                        ),
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                                        fallbackIcon: Icons.shopping_bag,
                                       ),
-                                    ),
-                                    // BẢO MẬT CHÍNH SÁCH CẬN DATE: CHỈ HIỆN ⚡ FLASH SALE
-                                    if (p.hasDiscount)
-                                      Positioned(
-                                        top: 8,
-                                        right: 8,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFEF4444),
-                                            borderRadius: BorderRadius.circular(9999),
-                                          ),
-                                          child: Text(
-                                            p.flashSaleBadge,
-                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          p.brand,
-                                          style: const TextStyle(color: Color(0xFFB48312), fontSize: 10.5, fontWeight: FontWeight.w800),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          p.name,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F172A), height: 1.25),
-                                        ),
-                                        const Spacer(),
-                                        Text(
-                                          currencyFormat.format(p.actualPrice),
-                                          style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFBE4D25), fontSize: 15),
-                                        ),
-                                        if (p.originalPrice > p.actualPrice)
-                                          Text(
-                                            currencyFormat.format(p.originalPrice),
-                                            style: const TextStyle(decoration: TextDecoration.lineThrough, color: Color(0xFF94A3B8), fontSize: 11),
-                                          ),
-                                        const SizedBox(height: 6),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          height: 32,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFF0F172A),
-                                              foregroundColor: Colors.white,
-                                              padding: EdgeInsets.zero,
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      if (p.hasDiscount)
+                                        Positioned(
+                                          top: 8,
+                                          right: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFEF4444),
+                                              borderRadius: BorderRadius.circular(9999),
                                             ),
-                                            onPressed: () {
-                                              widget.onAddToCart(OrderItem(
-                                                productId: p.id,
-                                                name: p.name,
-                                                price: p.actualPrice,
-                                                quantity: 1,
-                                                image: p.image,
-                                              ));
-                                              setState(() {});
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('Đã thêm ${p.name} vào giỏ hàng!'),
-                                                  duration: const Duration(seconds: 1),
-                                                ),
-                                              );
-                                            },
-                                            child: const Text('🛒 Thêm Giỏ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                                            child: Text(
+                                              p.flashSaleBadge,
+                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10),
+                                            ),
                                           ),
                                         ),
-                                      ],
+                                    ],
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            p.brand,
+                                            style: const TextStyle(color: Color(0xFFB48312), fontSize: 10.5, fontWeight: FontWeight.w800),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            p.name,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F172A), height: 1.25),
+                                          ),
+                                          const Spacer(),
+                                          Text(
+                                            currencyFormat.format(p.actualPrice),
+                                            style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFBE4D25), fontSize: 15),
+                                          ),
+                                          if (p.originalPrice > p.actualPrice)
+                                            Text(
+                                              currencyFormat.format(p.originalPrice),
+                                              style: const TextStyle(decoration: TextDecoration.lineThrough, color: Color(0xFF94A3B8), fontSize: 11),
+                                            ),
+                                          const SizedBox(height: 6),
+                                          SizedBox(
+                                            width: double.infinity,
+                                            height: 32,
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFF0F172A),
+                                                foregroundColor: Colors.white,
+                                                padding: EdgeInsets.zero,
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                              ),
+                                              onPressed: () {
+                                                widget.onAddToCart(OrderItem(
+                                                  productId: p.id,
+                                                  name: p.name,
+                                                  price: p.actualPrice,
+                                                  quantity: 1,
+                                                  image: p.image,
+                                                ));
+                                                setState(() {});
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text('Đã thêm ${p.name} vào giỏ hàng!'),
+                                                    duration: const Duration(seconds: 1),
+                                                  ),
+                                                );
+                                              },
+                                              child: const Text('Thêm Giỏ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         },

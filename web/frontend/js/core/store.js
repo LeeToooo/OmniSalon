@@ -575,6 +575,8 @@
         }
         if (!Array.isArray(this.state.products) || this.state.products.length < 130) {
           this.state.products = baseline.products;
+        } else {
+          this.state.products = this.state.products.filter(p => p.id !== 'SP_TOTE');
         }
         if (!Array.isArray(this.state.bookings) || this.state.bookings.length < 10) {
           this.state.bookings = baseline.bookings;
@@ -1178,7 +1180,7 @@
 
       this.addNotification({
         userId: newBooking.userId || 'guest',
-        title: '✅ Đặt Lịch Cắt Tóc Thành Công',
+        title: 'Đặt Lịch Cắt Tóc Thành Công',
         content: `Vé #${newBooking.bookingCode} tại ${newBooking.branchName} lúc ${newBooking.timeSlot} ngày ${newBooking.date} đã được ghi nhận.`,
         type: 'booking_confirmed'
       });
@@ -1637,21 +1639,26 @@
         }
       }
 
+      const isPickup = orderData.deliveryType === 'PICKUP_BRANCH' || 
+                       (orderData.shippingAddress && orderData.shippingAddress.toLowerCase().includes('quầy')) || 
+                       (orderData.deliveryAddress && orderData.deliveryAddress.toLowerCase().includes('chi nhánh'));
+
       const newOrder = {
         id: orderCode,
         orderCode,
         userId: orderData.userId || this.getCurrentUser()?.id || null,
         branchId: branch ? branch.id : 'br-dbp',
         branchName: branch ? branch.name : 'Omni Salon HQ',
-        orderType: orderData.orderType || 'ONLINE_DELIVERY',
+        deliveryType: isPickup ? 'PICKUP_BRANCH' : 'DELIVERY',
+        orderType: orderData.orderType || (isPickup ? 'STORE_PICKUP' : 'ONLINE_DELIVERY'),
         customerName: orderData.customerName || 'Khách Hàng',
         customerPhone: orderData.customerPhone || '',
-        shippingAddress: orderData.shippingAddress || 'Nhận tại quầy chi nhánh',
+        shippingAddress: orderData.shippingAddress || (isPickup ? `Nhận tại quầy chi nhánh ${branch ? branch.name : 'OMNI'}` : 'Giao tận nơi'),
         items: orderData.items || [],
         totalAmount,
         discountAmount,
         voucherCode: orderData.voucherCode || null,
-        paymentMethod: orderData.paymentMethod || 'COD',
+        paymentMethod: orderData.paymentMethod || (isPickup ? 'Thanh toán tại quầy' : 'COD'),
         paymentStatus: orderData.paymentStatus || 'Unpaid',
         orderStatus: orderData.orderStatus || 'Processing',
         createdAt: new Date().toISOString()
@@ -1665,6 +1672,80 @@
       this.saveState();
       this.syncOrderToLiveServer(newOrder);
       return newOrder;
+    }
+
+    // -----------------------------------------------------------------------
+    // QUẢN LÝ CA LÀM & ĐĂNG KÝ CA LÀM NHÂN VIÊN (THỢ BARBER & THU NGÂN)
+    // -----------------------------------------------------------------------
+    getStaffShifts(userId = null) {
+      if (!this.state.staffShifts) {
+        // Khởi tạo một số ca mẫu nếu chưa có
+        this.state.staffShifts = [
+          {
+            id: 'shift-01',
+            userId: 'user_nv01',
+            staffName: 'Đỗ Đình Độ',
+            role: 'STYLIST',
+            branchId: 'CN01',
+            branchName: 'Omni Salon Barber Q1 - Bến Thành',
+            shiftType: 'CA_SANG',
+            shiftName: 'Ca Sáng (08:30 - 14:30)',
+            date: new Date().toISOString().split('T')[0],
+            status: 'ACTIVE',
+            note: 'Phụ trách 5 lượt khách cắt tóc hẹn trước'
+          },
+          {
+            id: 'shift-02',
+            userId: 'user_nv02',
+            staffName: 'Lê Hoàng Hải',
+            role: 'BRANCH_MANAGER',
+            branchId: 'CN01',
+            branchName: 'Omni Salon Barber Q1 - Bến Thành',
+            shiftType: 'FULL_DAY',
+            shiftName: 'Ca Trực Quản Lý (08:00 - 20:30)',
+            date: new Date().toISOString().split('T')[0],
+            status: 'ACTIVE',
+            note: 'Điều hành ca và tiếp đón khách VIP'
+          },
+          {
+            id: 'shift-03',
+            userId: 'user_nv61',
+            staffName: 'Nguyễn Thảo My',
+            role: 'CASHIER',
+            branchId: 'CN01',
+            branchName: 'Omni Salon Barber Q1 - Bến Thành',
+            shiftType: 'CA_SANG',
+            shiftName: 'Ca Thu Ngân Sáng (08:30 - 15:00)',
+            date: new Date().toISOString().split('T')[0],
+            status: 'ACTIVE',
+            note: 'Trực quầy POS 01 và in hóa đơn thanh toán'
+          }
+        ];
+      }
+      if (!userId) return this.state.staffShifts;
+      return this.state.staffShifts.filter(s => s.userId === userId);
+    }
+
+    registerStaffShift(shiftData) {
+      if (!this.state.staffShifts) this.state.staffShifts = [];
+      const newShift = {
+        id: `shift-${Date.now()}`,
+        userId: shiftData.userId || 'staff',
+        staffName: shiftData.staffName || 'Nhân viên',
+        role: shiftData.role || 'STYLIST',
+        branchId: shiftData.branchId || 'CN01',
+        branchName: shiftData.branchName || 'Omni Salon',
+        shiftType: shiftData.shiftType || 'CA_SANG',
+        shiftName: shiftData.shiftName || 'Ca Sáng (08:30 - 14:30)',
+        date: shiftData.date || new Date().toISOString().split('T')[0],
+        status: 'REGISTERED',
+        note: shiftData.note || 'Đăng ký ca trực quầy / phục vụ khách',
+        registeredAt: new Date().toISOString()
+      };
+      this.state.staffShifts.unshift(newShift);
+      this.saveState();
+      this.logAudit('REGISTER_SHIFT', `Nhân sự: ${newShift.staffName}`, `Đăng ký ${newShift.shiftName} ngày ${newShift.date}`);
+      return newShift;
     }
 
     /**

@@ -222,8 +222,13 @@
 
             <!-- Đánh giá sao & Lượt mua -->
             <div class="product-rating-row" aria-label="Đánh giá ${data.rating} sao trên 5, ${data.reviewCount} lượt mua">
-              <span class="product-star-badge">${data.rating} / 5</span>
-              <span class="product-sales-count">• ${data.reviewCount} đã mua</span>
+              <span class="product-star-badge" style="display: inline-flex; align-items: center; gap: 3px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBF24" stroke="none" aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                <span>${data.rating}</span>
+              </span>
+              <span class="product-sales-count">• ${data.reviewCount} đã bán</span>
             </div>
 
             <!-- Giá sản phẩm (Cố định chiều cao căn thẳng hàng) -->
@@ -231,18 +236,23 @@
           </div>
 
           <!-- NÚT HÀNH ĐỘNG CHUẨN BARBER (THÊM GIỎ & MUA NGAY) -->
-          <div class="product-actions-footer" style="display: flex; gap: 8px; margin-top: 10px;">
+          <div class="product-actions-footer">
             <button type="button"
                     class="btn-barber-add-cart ${isOutOfStock ? 'disabled' : ''}"
-                    style="flex: 1; min-height: 38px; font-size: 13px; font-weight: 700; padding: 0 10px;"
                     ${isOutOfStock ? 'disabled' : ''}
                     onclick="if(typeof UICommon !== 'undefined' && UICommon.addToCart){ UICommon.addToCart('${data.id}', 'product'); if(typeof ShopPage !== 'undefined' && ShopPage.updateCartBadge) ShopPage.updateCartBadge(); }">
+              ${!isOutOfStock ? `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                  <line x1="3" x2="21" y1="6" y2="6"/>
+                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+              ` : ''}
               <span>${isOutOfStock ? 'Hết Hàng' : 'Thêm Giỏ'}</span>
             </button>
             ${!isOutOfStock ? `
             <button type="button"
                     class="btn-barber-buy-now"
-                    style="flex: 1; min-height: 38px; font-size: 13px; font-weight: 800; background: linear-gradient(135deg, #f59e0b, #d97706); color: #000000; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center;"
                     onclick="if(typeof UICommon !== 'undefined' && UICommon.buyNow){ UICommon.buyNow('${data.id}'); if(typeof ShopPage !== 'undefined' && ShopPage.updateCartBadge) ShopPage.updateCartBadge(); }">
               <span>Mua Ngay</span>
             </button>

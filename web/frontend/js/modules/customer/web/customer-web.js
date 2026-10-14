@@ -32,6 +32,27 @@
     // KHỞI TẠO MODULE KHÁCH HÀNG TRÊN WEB
     // -----------------------------------------------------------------------
     init() {
+      // Xác định tab hiện tại từ URL pathname để không bị ghi đè trang chủ
+      const path = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '/';
+      const cleanPath = path.replace(/\/index\.html$/i, '') || '/';
+      if (cleanPath === '/cart') {
+        this.currentTab = 'cart';
+      } else if (cleanPath === '/shop' || cleanPath === '/product') {
+        this.currentTab = 'shop';
+      } else if (cleanPath === '/services') {
+        this.currentTab = 'services';
+      } else if (cleanPath === '/stylists') {
+        this.currentTab = 'stylists';
+      } else if (cleanPath === '/booking') {
+        this.currentTab = 'booking';
+      } else if (cleanPath === '/branches') {
+        this.currentTab = 'branches';
+      } else if (cleanPath === '/ai-studio') {
+        this.currentTab = 'ai';
+      } else if (cleanPath.startsWith('/admin')) {
+        this.currentTab = 'admin';
+      }
+
       this.renderHeader();
       this.renderMainContent();
       this.initGlobalListeners();
@@ -139,14 +160,20 @@
     },
 
     updateCartBadge() {
-      const badge = document.querySelector('.cart-badge-count');
+      const badges = document.querySelectorAll('.cart-badge-count');
       const cart = (window.store && typeof window.store.getCart === 'function') ? window.store.getCart() : [];
       const count = cart.reduce((sum, i) => sum + (i.qty || 1), 0);
-      if (badge) {
-        badge.textContent = count;
-        badge.style.display = count > 0 ? '' : 'none';
+      if (badges.length > 0) {
+        badges.forEach(badge => {
+          badge.textContent = count;
+          badge.style.display = count > 0 ? '' : 'none';
+        });
       } else {
         this.renderHeader();
+      }
+      const dropdown = document.getElementById('headerCartDropdown');
+      if (dropdown && dropdown.classList.contains('open')) {
+        dropdown.innerHTML = this.renderMiniCartDropdownHTML();
       }
     },
 
@@ -266,15 +293,43 @@
                 <div class="search-results-dropdown" id="webSearchDropdown"></div>
               </div>
 
-              <!-- Cart Button với Badge Typographic -->
-              <button class="header-action-btn cart-btn-wrap flex-shrink-0" onclick="UICommon && UICommon.openCartDrawer()" title="Xem giỏ hàng" style="display: flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 9999px; height: 38px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); font-size: 12px; font-weight: 800; cursor: pointer;">
-                <span>GIỎ HÀNG</span>
-                <span class="cart-badge-count" style="${cartCount > 0 ? '' : 'display:none;'} background: #f59e0b; color: #000000; border-radius: 9999px; padding: 1px 7px; font-size: 11px; font-weight: 900;">${cartCount}</span>
-              </button>
+              <!-- Nút Giỏ Hàng với Mini Cart Dropdown Popup (4RAU Style) -->
+              <div class="header-cart-menu-wrapper flex-shrink-0" id="headerCartWrapper"
+                   onmouseenter="CustomerWeb.handleCartMouseEnter()"
+                   onmouseleave="CustomerWeb.handleCartMouseLeave()">
+                <button type="button" class="header-action-btn cart-btn-wrap" id="headerCartBtn" 
+                        onclick="CustomerWeb.toggleCartPopup(event)" 
+                        title="Xem giỏ hàng" aria-label="Giỏ hàng">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                  </svg>
+                  <span class="cart-badge-count" style="${cartCount > 0 ? '' : 'display:none;'}">${cartCount}</span>
+                </button>
 
-              <!-- Nút Chuyển Đổi Chế Độ Sáng / Tối Typographic -->
-              <button type="button" class="header-action-btn flex-shrink-0" onclick="window.ThemeEngine && window.ThemeEngine.toggleTheme()" title="Chuyển chế độ Sáng / Tối" style="display: flex; align-items: center; justify-content: center; padding: 0 12px; border-radius: 9999px; height: 38px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); font-size: 11.5px; font-weight: 800; cursor: pointer;">
-                <span>SÁNG / TỐI</span>
+                <!-- Mini Cart Dropdown Popup -->
+                <div class="header-cart-dropdown" id="headerCartDropdown">
+                  ${this.renderMiniCartDropdownHTML()}
+                </div>
+              </div>
+
+              <!-- Nút Chuyển Đổi Chế Độ Sáng / Tối với Icon Tinh Tế -->
+              <button type="button" class="header-action-btn theme-toggle-btn flex-shrink-0" onclick="window.ThemeEngine && window.ThemeEngine.toggleTheme()" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển chế độ Sáng / Tối">
+                <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
               </button>
 
               <!-- User Menu Dropdown (Gom Chi nhánh, Tra cứu & Quản lý vào menu Avatar) -->
@@ -304,33 +359,68 @@
                     <span>Tra Cứu Lịch Hẹn</span>
                   </button>
 
-                  <!-- 2. Chọn chi nhánh -->
-                  <div class="dropdown-branch-pill">
-                    <div class="branch-pill-header">
-                      
-                      <span>Chi nhánh phục vụ:</span>
-                    </div>
-                    <select class="header-branch-select" onchange="window.store && window.store.setSelectedBranch(this.value)">
-                      ${branches.map(b => `<option value="${b.id}" ${b.id === currentBranch?.id ? 'selected' : ''}>${(b.TenChiNhanh || b.name).trim()}</option>`).join('')}
-                    </select>
-                  </div>
+                  <!-- 2. Chọn chi nhánh (Phân quyền: Quản lý mới được đổi, Nhân viên chỉ xem, Khách hàng ẩn) -->
+                  ${(() => {
+                    const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
+                    const isMgr = user && (roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER') || user.username === 'admin');
+                    const isStf = user && !isMgr && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
 
-                  <!-- 3. Nút Quản Trị Salon (Chỉ dành riêng cho Admin) -->
+                    if (isMgr) {
+                      return `
+                        <div class="dropdown-branch-pill">
+                          <div class="branch-pill-header">
+                            <span>Chi nhánh quản trị:</span>
+                          </div>
+                          <select class="header-branch-select" onchange="window.store && window.store.setSelectedBranch(this.value)">
+                            ${branches.map(b => `<option value="${b.id}" ${b.id === currentBranch?.id ? 'selected' : ''}>${(b.TenChiNhanh || b.name).trim()}</option>`).join('')}
+                          </select>
+                        </div>
+                      `;
+                    }
+                    if (isStf) {
+                      const userBranchName = user?.branchName || (user?.branchId ? branches.find(b => b.id === user.branchId)?.name : null) || currentBranch?.name || 'Omni Salon Barber';
+                      return `
+                        <div class="dropdown-branch-pill">
+                          <div class="branch-pill-header">
+                            <span>Chi nhánh công tác:</span>
+                          </div>
+                          <div style="font-size: 12.5px; font-weight: 800; color: #f59e0b; padding: 4px 0;">
+                            ${this.escapeHtml(userBranchName.split('—')[0].trim())}
+                          </div>
+                        </div>
+                      `;
+                    }
+                    // Khách hàng hoặc chưa đăng nhập: Ẩn hoàn toàn khối chi nhánh phục vụ
+                    return '';
+                  })()}
+
+                  <!-- 3. Nút Quản Trị Salon (Chỉ dành riêng cho Admin / Quản lý / Thu ngân) -->
                   ${this.renderAdminButtonHTML(user, isAdmin)}
 
-                  <!-- 4. Nút Đăng Nhập / Đăng Ký / Cá Nhân -->
+                  <!-- 4. Lịch làm việc & Đăng ký ca làm (Dành cho Thợ & Thu ngân) -->
+                  ${(() => {
+                    const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
+                    const isStf = user && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
+                    if (isStf) {
+                      return `
+                        <button class="dropdown-item-btn" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 800; margin: 4px 0;" onclick="CustomerWeb.openStaffShiftModal(); CustomerWeb.closeUserMenu();">
+                          <span>Lịch Làm Hôm Nay &amp; Đăng Ký Ca</span>
+                        </button>
+                      `;
+                    }
+                    return '';
+                  })()}
+
+                  <!-- 5. Nút Đăng Nhập / Đăng Ký / Cá Nhân -->
                   ${user ? `
                     <button class="dropdown-item-btn" onclick="CustomerWeb.openCustomerPortalModal(); CustomerWeb.closeUserMenu();">
-                      
                       <span>Trang Cá Nhân &amp; Điểm Thưởng</span>
                     </button>
                     <button class="dropdown-logout-btn" onclick="window.AuthEngine ? window.AuthEngine.logout() : (window.store && window.store.logout()); CustomerWeb.currentTab = 'home'; CustomerWeb.renderHeader(); if(window.AppRouter) window.AppRouter.navigate('/'); else CustomerWeb.switchTab('home'); if(window.UICommon) window.UICommon.showToast('Đã đăng xuất tài khoản!'); CustomerWeb.closeUserMenu();">
-                      
                       <span>Đăng Xuất</span>
                     </button>
                   ` : `
                     <button class="dropdown-primary-btn" onclick="UICommon.openAuthModal('login'); CustomerWeb.closeUserMenu();">
-                      
                       <span>Đăng Nhập / Đăng Ký</span>
                     </button>
                   `}
@@ -344,6 +434,129 @@
       this._initHeaderListeners();
     },
 
+    renderMiniCartDropdownHTML() {
+      const cart = (window.store && typeof window.store.getCart === 'function') ? window.store.getCart() : [];
+      const subtotal = cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
+
+      if (cart.length === 0) {
+        return `
+          <div class="mini-cart-empty">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5; margin-bottom: 8px;">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+            <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Giỏ hàng của bạn đang trống</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Hãy chọn các sản phẩm chăm sóc tóc & sáp vuốt cao cấp!</div>
+            <button type="button" class="mini-cart-explore-btn" onclick="CustomerWeb.closeCartPopup(); CustomerWeb.switchTab('shop');">
+              Khám Phá Cửa Hàng
+            </button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="mini-cart-items-list">
+          ${cart.map(item => `
+            <div class="mini-cart-item" data-product-id="${item.productId}">
+              <!-- Packshot nền trắng tinh tế chuẩn Image 2 -->
+              <div class="mini-cart-img-wrap" onclick="CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;" title="${item.name}">
+                <img src="${SalonUtils.formatImageUrl(item.image)}" 
+                     alt="${item.name}" 
+                     class="mini-cart-img"
+                     onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=200&q=80');">
+                <span class="mini-cart-item-qty-badge" title="Đã có trong giỏ">${item.qty > 1 ? item.qty : '!'}</span>
+              </div>
+              <div class="mini-cart-item-info">
+                <div class="mini-cart-item-name" title="${item.name}" onclick="CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;">${item.name}</div>
+                <div class="mini-cart-item-meta">${(item.brand || 'OMNI SALON').toUpperCase()}</div>
+                <div class="mini-cart-item-price">${SalonUtils.formatCurrency(item.price)}</div>
+              </div>
+              <button type="button" class="mini-cart-trash-btn" onclick="CustomerWeb.removeMiniCartItem('${item.productId}', event)" title="Xóa khỏi giỏ hàng" aria-label="Xóa">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="mini-cart-divider"></div>
+
+        <div class="mini-cart-summary-row">
+          <span class="mini-cart-summary-label">Tổng :</span>
+          <span class="mini-cart-summary-total">${SalonUtils.formatCurrency(subtotal)}</span>
+        </div>
+
+        <!-- Nút Xem Giỏ Hàng mở Drawer hoặc vào trang chi tiết 4RAU -->
+        <button type="button" class="mini-cart-cta-btn" onclick="CustomerWeb.closeCartPopup(); UICommon && UICommon.openCartDrawer();">
+          Xem Giỏ Hàng
+        </button>
+        <div style="text-align: center; margin-top: 8px;">
+          <a href="/cart" onclick="event.preventDefault(); CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/cart');" style="color: var(--text-secondary, #94a3b8); font-size: 11.5px; text-decoration: underline; cursor: pointer;">
+            Xem trang giỏ hàng chi tiết (4RAU Style) →
+          </a>
+        </div>
+      `;
+    },
+
+    toggleCartPopup(event) {
+      if (event) event.stopPropagation();
+      const dropdown = document.getElementById('headerCartDropdown');
+      if (dropdown) {
+        if (dropdown.classList.contains('open')) {
+          this.closeCartPopup();
+        } else {
+          this.openCartPopup();
+        }
+      }
+    },
+
+    openCartPopup() {
+      const dropdown = document.getElementById('headerCartDropdown');
+      const wrapper = document.getElementById('headerCartWrapper');
+      if (dropdown) {
+        dropdown.innerHTML = this.renderMiniCartDropdownHTML();
+        dropdown.classList.add('open');
+        if (wrapper) wrapper.classList.add('open');
+        this.closeUserMenu();
+      }
+    },
+
+    closeCartPopup() {
+      const dropdown = document.getElementById('headerCartDropdown');
+      const wrapper = document.getElementById('headerCartWrapper');
+      if (dropdown) dropdown.classList.remove('open');
+      if (wrapper) wrapper.classList.remove('open');
+    },
+
+    handleCartMouseEnter() {
+      clearTimeout(this._cartPopupTimer);
+      this.openCartPopup();
+    },
+
+    handleCartMouseLeave() {
+      clearTimeout(this._cartPopupTimer);
+      this._cartPopupTimer = setTimeout(() => {
+        this.closeCartPopup();
+      }, 300);
+    },
+
+    removeMiniCartItem(productId, event) {
+      if (event) event.stopPropagation();
+      if (window.UICommon && typeof window.UICommon.changeCartQty === 'function') {
+        window.UICommon.changeCartQty(productId, 0);
+      } else if (window.store && typeof window.store.updateCartQty === 'function') {
+        window.store.updateCartQty(productId, 0);
+        this.updateCartBadge();
+      }
+      const dropdown = document.getElementById('headerCartDropdown');
+      if (dropdown) {
+        dropdown.innerHTML = this.renderMiniCartDropdownHTML();
+      }
+    },
+
     toggleUserMenu(event) {
       if (event) event.stopPropagation();
       const dropdown = document.getElementById('headerUserDropdown');
@@ -351,6 +564,7 @@
       if (dropdown) {
         dropdown.classList.toggle('open');
         if (wrapper) wrapper.classList.toggle('open');
+        this.closeCartPopup();
       }
     },
 
@@ -365,13 +579,36 @@
       if (typeof window !== 'undefined' && !window._headerMenuListenerBound) {
         window._headerMenuListenerBound = true;
         document.addEventListener('click', (e) => {
-          const wrapper = document.querySelector('.header-user-menu-wrapper');
-          if (wrapper && !wrapper.contains(e.target)) {
-            const dropdown = document.getElementById('headerUserDropdown');
-            if (dropdown) dropdown.classList.remove('open');
-            wrapper.classList.remove('open');
+          const cartWrapper = document.getElementById('headerCartWrapper');
+          if (cartWrapper && !cartWrapper.contains(e.target)) {
+            CustomerWeb.closeCartPopup();
+          }
+          const userWrapper = document.querySelector('.header-user-menu-wrapper');
+          if (userWrapper && !userWrapper.contains(e.target)) {
+            CustomerWeb.closeUserMenu();
           }
         });
+
+        // Hiệu ứng fade nhẹ từ trên xuống khi kéo cuộn trang (Header Scroll Fade-Down)
+        let ticking = false;
+        const onScroll = () => {
+          if (!ticking) {
+            window.requestAnimationFrame(() => {
+              const header = document.querySelector('.web-main-header');
+              if (header) {
+                if (window.scrollY > 30) {
+                  header.classList.add('is-scrolled');
+                } else {
+                  header.classList.remove('is-scrolled');
+                }
+              }
+              ticking = false;
+            });
+            ticking = true;
+          }
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
       }
     },
 
@@ -384,7 +621,7 @@
           <button class="dropdown-admin-btn ${this.currentTab === 'admin' ? 'active' : ''}" 
                   onclick="CustomerWeb.closeUserMenu(); CustomerWeb.switchTab('${this.currentTab === 'admin' ? 'home' : 'admin'}');" 
                   title="Vào Khu Vực Làm Việc Phân Hệ">
-            ${this.currentTab === 'admin' ? '← Xem Giao Diện Khách' : label}
+            ${this.currentTab === 'admin' ? 'Xem Giao Diện Khách' : label}
           </button>
         `;
       }
@@ -436,6 +673,7 @@
         'stylists': '/stylists',
         'booking': '/booking',
         'shop': '/shop',
+        'cart': '/cart',
         'branches': '/branches',
         'ai': '/ai-studio'
       };
@@ -535,6 +773,19 @@
       }
     },
 
+    openProductDetail(productId) {
+      const dropdown = document.getElementById('webSearchDropdown');
+      if (dropdown) dropdown.classList.remove('active');
+      if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
+        window.AppRouter.navigate(`/product?id=${productId}`);
+      } else {
+        const main = document.getElementById('webMainContainer');
+        if (main && window.ShopPage && typeof window.ShopPage.renderProductDetail === 'function') {
+          window.ShopPage.renderProductDetail(main, productId);
+        }
+      }
+    },
+
     // -----------------------------------------------------------------------
     // 3. TRA CỨU LỊCH HẸN BẰNG SĐT / MÃ LỊCH (#BK-...) KÈM HỦY LỊCH
     // -----------------------------------------------------------------------
@@ -544,30 +795,41 @@
       if (!modal || !modalBody) return;
 
       const user = this.getCurrentUser();
-      const defaultQuery = prefillValue || (user && user.phone ? user.phone : '');
+      const isAdmin = this.isAdminUser(user);
+      const isCustomer = user && !isAdmin;
+      const defaultQuery = isCustomer ? (user.phone || '') : (prefillValue || (user && user.phone ? user.phone : ''));
 
       modalBody.innerHTML = `
         <div class="booking-wizard-wrapper" style="max-width: 620px;">
           <div class="booking-header">
             <div class="badge-terracotta">HỆ THỐNG TRA CỨU OMNI SALON</div>
             <h2 class="booking-title" style="font-size: 22px;">TRA CỨU LỊCH HẸN CẮT TÓC</h2>
-            <p class="booking-subtitle">Nhập Số Điện Thoại (10 số) hoặc Mã Lịch Hẹn (#BK-...) để kiểm tra tình trạng</p>
+            <p class="booking-subtitle">
+              ${isCustomer 
+                ? `Danh sách lịch hẹn đã đặt của quý khách: <strong>${this.escapeHtml(user.fullName || user.name)}</strong> (${user.phone})`
+                : 'Nhập Số Điện Thoại (10 số) hoặc Mã Lịch Hẹn (#BK-...) để kiểm tra tình trạng'}
+            </p>
           </div>
 
-          <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-            <input type="text" id="lookupSearchInput" class="form-control-custom" 
-                   placeholder="Nhập SĐT (VD: 0908123456) hoặc Mã (#BK-1001)" 
-                   value="${this.escapeHtml(defaultQuery)}"
-                   style="font-size: 14px;"
-                   onkeydown="if(event.key === 'Enter') CustomerWeb.searchBookingLookup()">
-            <button class="btn-submit-terracotta" style="white-space: nowrap; padding: 10px 22px;" onclick="CustomerWeb.searchBookingLookup()">
-              Tìm Lịch
-            </button>
-          </div>
+          ${isCustomer ? `
+            <!-- Khách hàng đã đăng nhập: Khóa tìm kiếm để bảo vệ riêng tư, tự động tải lịch của chính mình -->
+            <input type="hidden" id="lookupSearchInput" value="${this.escapeHtml(defaultQuery)}">
+          ` : `
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+              <input type="text" id="lookupSearchInput" class="form-control-custom" 
+                     placeholder="Nhập SĐT của bạn (VD: 0908123456)..." 
+                     value="${this.escapeHtml(defaultQuery)}"
+                     style="font-size: 14px;"
+                     onkeydown="if(event.key === 'Enter') CustomerWeb.searchBookingLookup()">
+              <button class="btn-submit-terracotta" style="white-space: nowrap; padding: 10px 22px;" onclick="CustomerWeb.searchBookingLookup()">
+                Tìm Lịch
+              </button>
+            </div>
+          `}
 
           <div id="lookupResultsContainer">
             <div style="padding: 24px; text-align: center; color: var(--text-secondary); font-size: 13px; background: var(--surface-elevated); border-radius: 12px; border: 1px dashed var(--border-color);">
-              Nhập thông tin bên trên để tra cứu thời gian, chi nhánh, thợ cắt và vé QR điện tử của bạn.
+              Đang tải thông tin lịch hẹn của bạn...
             </div>
           </div>
         </div>
@@ -575,7 +837,7 @@
 
       modal.classList.add('active');
 
-      if (defaultQuery) {
+      if (defaultQuery || isCustomer) {
         setTimeout(() => this.searchBookingLookup(), 50);
       }
     },
@@ -585,26 +847,36 @@
       const container = document.getElementById('lookupResultsContainer');
       if (!input || !container) return;
 
-      const query = input.value.trim();
+      const user = this.getCurrentUser();
+      const isAdmin = this.isAdminUser(user);
+      const isCustomer = user && !isAdmin;
+
+      // Nếu là khách hàng thì bắt buộc chỉ tra cứu theo SĐT của chính mình
+      const query = isCustomer ? (user.phone || '').trim() : input.value.trim();
       if (!query || query.length < 3) {
         if (window.UICommon) window.UICommon.showToast('Vui lòng nhập số điện thoại hoặc mã lịch hẹn hợp lệ!', 'warning');
         return;
       }
 
-      const matches = this._findBookings(query);
+      let matches = this._findBookings(query);
+
+      // Bảo mật riêng tư: Khách hàng chỉ xem lịch của chính mình
+      if (isCustomer) {
+        matches = matches.filter(b => (b.customerPhone && b.customerPhone.trim() === user.phone.trim()) || b.userId === user.id);
+      }
 
       if (!matches || matches.length === 0) {
         container.innerHTML = `
-          <div style="padding: 24px; text-align: center; background: var(--surface-elevated); border-radius: 12px; border: 1px solid var(--border-color);">
-            <div style="font-size: 14px; font-weight: 700; color: #ef4444; margin-bottom: 6px;">
-              Không tìm thấy lịch hẹn nào khớp với "<strong>${this.escapeHtml(query)}</strong>".
+          <div style="padding: 28px 20px; text-align: center; background: var(--surface-elevated); border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="font-size: 15px; font-weight: 700; color: #f59e0b; margin-bottom: 6px;">
+              ${isCustomer ? 'Quý khách chưa có lịch hẹn nào tại Omni Salon.' : `Không tìm thấy lịch hẹn nào khớp với "${this.escapeHtml(query)}".`}
             </div>
-            <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 16px;">
-              Quý khách vui lòng kiểm tra lại số điện thoại hoặc bấm nút bên dưới để đặt lịch hẹn mới ngay.
+            <div style="color: var(--text-secondary); font-size: 13px; margin-bottom: 18px;">
+              ${isCustomer ? 'Hãy bấm đặt lịch bên dưới để chọn stylist tay kéo vàng và khung giờ phù hợp nhất.' : 'Quý khách vui lòng kiểm tra lại số điện thoại hoặc bấm nút bên dưới để đặt lịch hẹn mới.'}
             </div>
             <div>
-              <button class="btn-submit-terracotta" style="padding: 10px 22px; font-size: 13px;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
-                + Đặt Lịch Hẹn Mới Ngay
+              <button class="btn-submit-terracotta" style="padding: 10px 24px; font-size: 13.5px; font-weight: 800; border-radius: 10px;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
+                + Đặt Lịch Hẹn Ngay
               </button>
             </div>
           </div>
@@ -622,22 +894,26 @@
 
       container.innerHTML = `
         <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px;">
-          Tìm thấy ${matches.length} lịch hẹn:
+          ${isCustomer ? `Lịch hẹn của bạn (${matches.length} lịch):` : `Tìm thấy ${matches.length} lịch hẹn:`}
         </div>
         <div style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;">
           ${matches.map(b => {
-        const statusInfo = SalonUtils.formatBookingStatus(b.status);
-        const isCancellable = b.status !== 'cancelled' && b.status !== 'completed';
-        const branch = branchMap.get(String(b.branchId)) || {};
-        const stylist = stylistMap.get(String(b.stylistId)) || {};
-        const service = serviceMap.get(String(b.serviceId)) || {};
-        const branchName = b.branchName || branch.name || 'Omni Salon Suite';
-        const stylistName = b.stylistName || stylist.name || 'Bất kỳ';
-        const serviceName = b.serviceName || service.name || 'Cắt Tóc';
-        return `
+            const statusInfo = SalonUtils.formatBookingStatus(b.status);
+            const isCancellable = b.status !== 'cancelled' && b.status !== 'completed';
+            const branch = branchMap.get(String(b.branchId)) || {};
+            const stylist = stylistMap.get(String(b.stylistId)) || {};
+            const service = serviceMap.get(String(b.serviceId)) || {};
+            const branchName = b.branchName || branch.name || 'Omni Salon Suite';
+            const stylistName = b.stylistName || stylist.name || 'Bất kỳ';
+            const serviceName = b.serviceName || service.name || 'Cắt Tóc';
+
+            return `
               <div class="lookup-card-result" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                  <span style="font-size: 15px; font-weight: 900; color: var(--text-primary);">#${this.escapeHtml(b.id || b.bookingCode)}</span>
+                  <!-- Yêu cầu: Khách hàng không hiện mã kỹ thuật #LH... -->
+                  <span style="font-size: 14.5px; font-weight: 800; color: var(--text-primary);">
+                    ${isAdmin ? `#${this.escapeHtml(b.id || b.bookingCode)}` : 'Lịch Hẹn Cắt Tóc'}
+                  </span>
                   <span class="status-pill-pulse ${statusInfo.cssClass}">
                     <span class="pulse-dot"></span> ${statusInfo.label}
                   </span>
@@ -667,9 +943,174 @@
                 </div>
               </div>
             `;
-      }).join('')}
+          }).join('')}
         </div>
       `;
+    },
+
+    // -----------------------------------------------------------------------
+    // QUẢN LÝ CA LÀM & COI LỊCH LÀM HÔM NAY (CHO THỢ & THU NGÂN)
+    // -----------------------------------------------------------------------
+    openStaffShiftModal() {
+      const user = this.getCurrentUser();
+      if (!user) return;
+
+      const modal = document.getElementById('globalModal');
+      const modalBody = document.getElementById('globalModalBody');
+      if (!modal || !modalBody) return;
+
+      const roleUpper = String(user.role || user.vaiTroSql || user.VaiTro || user.ChucVu || '').toUpperCase();
+      const isStylist = roleUpper.includes('THỢ') || roleUpper.includes('STYLIST');
+      const isCashier = roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER');
+      const staffRoleName = isStylist ? 'Thợ Barber Tạo Mẫu' : (isCashier ? 'Thu Ngân Quầy POS' : 'Nhân Viên Salon');
+
+      const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
+      const userBranch = branches.find(b => b.id === user.branchId) || branches[0] || { id: 'CN01', name: 'Omni Salon Barber Q1 - Bến Thành' };
+
+      const shifts = (window.store && typeof window.store.getStaffShifts === 'function')
+        ? window.store.getStaffShifts(user.username || user.id)
+        : [];
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayShift = shifts.find(s => s.date === todayStr) || {
+        shiftName: isStylist ? 'Ca Sáng (08:30 - 14:30)' : 'Ca Thu Ngân Sáng (08:30 - 15:00)',
+        status: 'ACTIVE',
+        branchName: userBranch.name,
+        note: isStylist ? 'Trực 5 ghế cắt chính và phục vụ khách hẹn trước' : 'Phụ trách máy POS 01 và in phiếu hóa đơn'
+      };
+
+      // Lấy danh sách khách hẹn của thợ hôm nay nếu là Stylist
+      const allBookings = (window.store && typeof window.store.getBookings === 'function') ? window.store.getBookings() : [];
+      const myBookingsToday = isStylist ? allBookings.filter(b => (b.date === todayStr) && (b.stylistId === user.id || b.stylistName === user.fullName || b.stylistName === user.name)) : [];
+
+      modalBody.innerHTML = `
+        <div class="booking-wizard-wrapper" style="max-width: 680px; padding: 24px;">
+          <div class="booking-header" style="text-align: left; margin-bottom: 20px;">
+            <div class="badge-terracotta" style="display: inline-block; margin-bottom: 8px;">CỔNG NHÂN VIÊN OMNI SALON</div>
+            <h2 class="booking-title" style="font-size: 22px; margin: 0 0 6px;">LỊCH LÀM HÔM NAY & ĐĂNG KÝ CA</h2>
+            <p class="booking-subtitle" style="font-size: 13.5px; color: var(--text-secondary); margin: 0;">
+              Nhân sự: <strong style="color: #f59e0b;">${this.escapeHtml(user.fullName || user.name)}</strong> (${staffRoleName}) • Chi nhánh: <strong>${userBranch.name.split('—')[0]}</strong>
+            </p>
+          </div>
+
+          <!-- 1. CA LÀM VIỆC HÔM NAY -->
+          <div style="background: var(--surface-card, #14171F); border: 2px solid #10b981; border-radius: 14px; padding: 18px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <strong style="font-size: 14.5px; color: #10b981; text-transform: uppercase;">
+                CA LÀM VIỆC HÔM NAY (${SalonUtils.formatDate(todayStr)})
+              </strong>
+              <span style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 6px;">
+                ĐANG TRỰC CA
+              </span>
+            </div>
+
+            <div style="font-size: 13.5px; line-height: 1.7; color: var(--text-primary);">
+              <div><strong>Khung giờ ca:</strong> <span style="color: #f59e0b; font-weight: 800; font-size: 14px;">${todayShift.shiftName}</span></div>
+              <div><strong>Địa điểm làm việc:</strong> ${todayShift.branchName}</div>
+              <div><strong>Nhiệm vụ phụ trách:</strong> ${todayShift.note}</div>
+              ${isStylist ? `
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                  <strong>Lượt khách đặt bạn hôm nay:</strong> <span style="color: #f59e0b; font-weight: 800;">${myBookingsToday.length} ca</span>
+                  ${myBookingsToday.length > 0 ? `
+                    <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+                      ${myBookingsToday.map(b => `
+                        <div style="font-size: 12.5px; color: var(--text-secondary); background: var(--surface-elevated); padding: 4px 8px; border-radius: 6px;">
+                          • <strong>${b.timeSlot}</strong>: Khách ${this.escapeHtml(b.customerName)} (${this.escapeHtml(b.serviceName || 'Dịch vụ')})
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : '<div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">(Chưa có khách hẹn trước, sẵn sàng tiếp khách vãng lai tại quầy)</div>'}
+                </div>
+              ` : `
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                  <strong>Trạng thái POS:</strong> <span style="color: #10b981; font-weight: 800;">Quầy 01 Sẵn Sàng Thanh Toán</span>
+                </div>
+              `}
+            </div>
+          </div>
+
+          <!-- 2. FORM ĐĂNG KÝ CA LÀM MỚI -->
+          <div style="background: var(--surface-card, #14171F); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 18px; margin-bottom: 20px;">
+            <strong style="font-size: 14px; color: #f59e0b; text-transform: uppercase; display: block; margin-bottom: 12px;">
+              Đăng Ký Ca Làm Việc Cho Ngày Tiếp Theo
+            </strong>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <label style="font-size: 12.5px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">Chọn Ngày Làm:</label>
+                <input type="date" id="staffShiftDateInput" class="form-control-custom" 
+                       value="${new Date(Date.now() + 86400000).toISOString().split('T')[0]}" 
+                       style="width: 100%; height: 40px; font-size: 13px;">
+              </div>
+              <div>
+                <label style="font-size: 12.5px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">Chọn Khung Ca:</label>
+                <select id="staffShiftTypeSelect" class="form-control-custom" style="width: 100%; height: 40px; font-size: 13px;">
+                  <option value="CA_SANG">Ca Sáng (08:30 - 14:30)</option>
+                  <option value="CA_CHIEU">Ca Chiều (14:00 - 20:30)</option>
+                  <option value="CA_TOI">Ca Tối (17:00 - 21:30)</option>
+                  <option value="FULL_DAY">Cả Ngày (08:30 - 20:30)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+              <label style="font-size: 12.5px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">Ghi chú / Nguyện vọng phụ trách:</label>
+              <input type="text" id="staffShiftNoteInput" class="form-control-custom" 
+                     placeholder="VD: Nhận chuyên ca uốn nhuộm hoặc hỗ trợ quầy thanh toán nhanh..." 
+                     style="width: 100%; height: 40px; font-size: 13px;">
+            </div>
+
+            <button type="button" class="btn-submit-terracotta" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 800; border-radius: 10px;" 
+                    onclick="CustomerWeb.submitStaffShiftRegistration()">
+              LƯU ĐĂNG KÝ CA LÀM
+            </button>
+          </div>
+
+          <button class="btn-cancel" style="width: 100%; padding: 10px; border-radius: 10px;" onclick="UICommon.closeGlobalModal()">
+            Đóng Cửa Sổ
+          </button>
+        </div>
+      `;
+
+      modal.classList.add('active');
+    },
+
+    submitStaffShiftRegistration() {
+      const user = this.getCurrentUser();
+      if (!user) return;
+
+      const dateInput = document.getElementById('staffShiftDateInput');
+      const typeSelect = document.getElementById('staffShiftTypeSelect');
+      const noteInput = document.getElementById('staffShiftNoteInput');
+
+      const date = dateInput ? dateInput.value : '';
+      const shiftType = typeSelect ? typeSelect.value : 'CA_SANG';
+      const shiftName = typeSelect ? typeSelect.options[typeSelect.selectedIndex].text : 'Ca Sáng (08:30 - 14:30)';
+      const note = (noteInput ? noteInput.value : '').trim() || 'Đăng ký ca làm định kỳ';
+
+      if (!date) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng chọn ngày làm việc!', 'warning');
+        return;
+      }
+
+      if (window.store && typeof window.store.registerStaffShift === 'function') {
+        window.store.registerStaffShift({
+          userId: user.username || user.id,
+          staffName: user.fullName || user.name || 'Nhân viên',
+          role: user.role || 'STAFF',
+          branchId: user.branchId || 'CN01',
+          branchName: user.branchName || 'Omni Salon',
+          shiftType,
+          shiftName,
+          date,
+          note
+        });
+
+        if (window.UICommon) {
+          window.UICommon.showToast(`Đã lưu đăng ký [${shiftName}] cho ngày ${SalonUtils.formatDate(date)} thành công!`, 'success');
+        }
+        this.openStaffShiftModal();
+      }
     },
 
     cancelBookingByCustomer(bookingId) {
@@ -782,7 +1223,7 @@
 
           <div style="display: flex; gap: 10px;">
             <button class="btn-cancel" style="flex: 1;" onclick="CustomerWeb.openLookupModal('${booking.customerPhone || ''}')">
-              ← Quay Lại Danh Sách
+              Quay Lại Danh Sách
             </button>
             <button class="btn-submit-terracotta" style="flex: 1;" onclick="UICommon.closeGlobalModal()">
               Xong
@@ -806,6 +1247,7 @@
         'stylists': '/stylists',
         'booking': '/booking',
         'shop': '/shop',
+        'cart': '/cart',
         'branches': '/branches',
         'ai': '/ai-studio',
         'admin': '/admin'
@@ -814,6 +1256,11 @@
 
       if (window.AppRouter && window.AppRouter.routes && typeof window.AppRouter.routes[targetRoute] === 'function') {
         window.AppRouter.resolveRoute(targetRoute, false);
+        return;
+      }
+
+      if (this.currentTab === 'cart' && window.CartPage) {
+        window.CartPage.render(container);
         return;
       }
 
@@ -846,6 +1293,10 @@
       }
       if (this.currentTab === 'shop' && window.ShopPage) {
         window.ShopPage.render(container);
+        return;
+      }
+      if (this.currentTab === 'cart' && window.CartPage) {
+        window.CartPage.render(container);
         return;
       }
       if (this.currentTab === 'branches' && window.BranchesPage) {
@@ -1372,7 +1823,7 @@
                 ${savingsBadge}
               </div>
               <button class="service-card-cta-btn" onclick="UICommon.openBookingModal('${s.id}')">
-                Đặt Lịch →
+                Đặt Lịch
               </button>
             </div>
           </div>
@@ -1696,11 +2147,11 @@
             <div class="ai-action-buttons-wrap">
               ${!resultImage ? `
                 <button class="btn-execute-ai" onclick="CustomerWeb.processAiRestyle()" ${!originalImage || isProcessing ? 'disabled style="opacity: 0.6;"' : ''}>
-                  BẮT ĐẦU ĐỔI KIỂU TÓC BẰNG AI →
+                  BẮT ĐẦU ĐỔI KIỂU TÓC BẰNG AI
                 </button>
               ` : `
                 <button class="btn-submit-terracotta btn-book-now-ai" onclick="CustomerWeb.bookAiHairstyle()">
-                  ĐẶT LỊCH CẮT KIỂU TÓC NÀY NGAY →
+                  ĐẶT LỊCH CẮT KIỂU TÓC NÀY
                 </button>
                 <button class="btn-execute-ai" style="margin-top: 8px; background: #222;" onclick="CustomerWeb.processAiRestyle()">
                   Thử Đổi Màu / Kiểu Tóc Khác

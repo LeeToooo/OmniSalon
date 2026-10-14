@@ -184,14 +184,11 @@
 
             <!-- TIÊU ĐỀ TRANG (Visual Hierarchy rõ ràng) -->
             <div style="text-align: center; margin-bottom: 28px;">
-              <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 6px; background: var(--brand-accent-subtle); border: 1px solid var(--brand-accent-border); color: var(--brand-accent); font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 12px;">
-                HỆ THỐNG 20 CHI NHÁNH • PHỦ KHẮP TP. HỒ CHÍ MINH
-              </div>
-              <h1 style="font-size: clamp(26px, 3.5vw, 38px); font-weight: 900; letter-spacing: -0.02em; margin-bottom: 10px; color: var(--text-primary);">
+              <h1 style="font-size: clamp(26px, 3.5vw, 36px); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; color: var(--text-primary);">
                 Mạng Lưới Chi Nhánh <span style="color: var(--brand-accent);">Omni Salon</span>
               </h1>
               <p style="font-size: 14.5px; color: var(--text-secondary); max-width: 680px; margin: 0 auto 22px; line-height: 1.6;">
-                Không gian rộng rãi, sạch sẽ thoáng mát, phục vụ nước uống miễn phí và đội ngũ thợ thân thiện luôn sẵn sàng đón tiếp quý khách tại 20 quận huyện TP.HCM.
+                Không gian sang trọng, sạch sẽ thoáng mát và đội ngũ thợ tận tâm sẵn sàng đón tiếp quý khách tại 20 chi nhánh TP. Hồ Chí Minh.
               </p>
 
               <!-- Ô TÌM KIẾM THEO QUẬN & DROPDOWN LỰA CHỌN (Radius 8px dứt khoát) -->

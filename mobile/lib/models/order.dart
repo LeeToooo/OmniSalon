@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class OrderItem {
   final String productId;
   final String name;
@@ -14,12 +16,21 @@ class OrderItem {
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
+    final rawPrice = json['price'] ?? json['unitPrice'] ?? json['GiaBan'] ?? 0;
+    final num priceNum = rawPrice is num ? rawPrice : (num.tryParse(rawPrice.toString()) ?? 0);
+
+    final rawQty = json['quantity'] ?? json['qty'] ?? json['SoLuong'] ?? 1;
+    final num qtyNum = rawQty is num ? rawQty : (num.tryParse(rawQty.toString()) ?? 1);
+
+    final rawImg = json['image'] ?? json['HinhAnh'] ?? '';
+    final formattedImg = ApiService.getImageUrl(rawImg.toString());
+
     return OrderItem(
-      productId: json['productId'] ?? json['id'] ?? '',
+      productId: json['productId'] ?? json['id'] ?? json['MaSanPham'] ?? '',
       name: json['name'] ?? json['TenSanPham'] ?? '',
-      price: (json['price'] ?? json['unitPrice'] ?? 0) as int,
-      quantity: (json['quantity'] ?? json['qty'] ?? 1) as int,
-      image: json['image'] ?? '',
+      price: priceNum.toInt(),
+      quantity: qtyNum.toInt(),
+      image: formattedImg,
     );
   }
 
@@ -72,20 +83,26 @@ class SalonOrder {
       itemsList = rawItems.map((i) => OrderItem.fromJson(i as Map<String, dynamic>)).toList();
     }
 
+    final rawTotal = json['totalAmount'] ?? json['TongTien'] ?? json['TongThanhToan'] ?? 0;
+    final num totalNum = rawTotal is num ? rawTotal : (num.tryParse(rawTotal.toString()) ?? 0);
+
+    final rawDiscount = json['discountAmount'] ?? json['TongGiamGia'] ?? 0;
+    final num discountNum = rawDiscount is num ? rawDiscount : (num.tryParse(rawDiscount.toString()) ?? 0);
+
     return SalonOrder(
       id: json['id'] ?? json['MaDonHang'] ?? '',
-      orderCode: json['orderCode'] ?? json['id'] ?? 'DH-01',
+      orderCode: json['orderCode'] ?? json['MaDonHang'] ?? json['id'] ?? 'DH01',
       customerName: json['customerName'] ?? json['TenKhachHang'] ?? 'Khách Hàng',
-      customerPhone: json['customerPhone'] ?? json['SoDienThoai'] ?? '',
-      shippingAddress: json['shippingAddress'] ?? json['DiaChiGiao'] ?? 'Nhận tại quầy',
+      customerPhone: json['customerPhone'] ?? json['SdtKhachHang'] ?? json['SoDienThoai'] ?? '',
+      shippingAddress: json['shippingAddress'] ?? json['DiaChiGiaoHang'] ?? json['DiaChiGiao'] ?? 'Nhận tại quầy',
       items: itemsList,
-      totalAmount: (json['totalAmount'] ?? json['TongThanhToan'] ?? 0) as int,
-      discountAmount: (json['discountAmount'] ?? json['TongGiamGia'] ?? 0) as int,
+      totalAmount: totalNum.toInt(),
+      discountAmount: discountNum.toInt(),
       voucherCode: json['voucherCode'],
       paymentMethod: json['paymentMethod'] ?? 'Tiền mặt',
       paymentStatus: json['paymentStatus'] ?? 'Chưa thanh toán',
-      orderStatus: json['orderStatus'] ?? 'Đang xử lý',
-      createdAt: json['createdAt'] ?? '',
+      orderStatus: json['orderStatus'] ?? json['TrangThai'] ?? 'Đang xử lý',
+      createdAt: json['createdAt'] ?? json['orderDate'] ?? '',
     );
   }
 

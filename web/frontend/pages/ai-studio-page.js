@@ -87,91 +87,88 @@
       }
 
       container.innerHTML = `
-        <div class="omni-container" style="padding-top: 50px; padding-bottom: 80px;">
+        <div class="omni-container" style="padding-top: 40px; padding-bottom: 72px;">
           <!-- Header Hero -->
-          <div style="text-align: center; margin-bottom: 36px;">
-            <div class="nordic-hero-badge" style="margin-bottom: 12px;">
-              OMNI NEURAL AI VISION STUDIO • 3D HAIR RESTYLE
-            </div>
-            <h1 style="font-size: clamp(30px, 3.5vw, 46px); font-weight: 900; color: #FFFFFF; letter-spacing: -0.02em;">
-              AI Đổi Kiểu Tóc 3D Thực Tế Ảo
+          <div style="text-align: center; margin-bottom: 32px;">
+            <h1 style="font-size: clamp(28px, 3.5vw, 40px); font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">
+              AI Thử Kiểu Tóc 3D Thực Tế
             </h1>
-            <p style="color: #CBD5E1; font-size: 15px; margin-top: 8px; max-width: 640px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-              Mô phỏng 3D phom tóc thực tế theo từng đường nét hộp sọ và ngũ quan trước khi thợ chạm kéo. 100% không rủi ro chọn sai mẫu tóc.
+            <p style="color: var(--text-secondary); font-size: 14.5px; margin-top: 8px; max-width: 640px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+              Mô phỏng phom tóc thực tế theo từng đường nét khuôn mặt trước khi thợ tạo mẫu cắt.
             </p>
           </div>
 
-          <!-- Studio Main Grid (2 Cột: Cột Trái Upload Native Kéo Thả, Cột Phải 4 Pill Buttons + CTA Loading) -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px; max-width: 1400px; margin: 0 auto; align-items: stretch;">
+          <!-- Studio Main Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; max-width: 1400px; margin: 0 auto; align-items: stretch;">
             
-            <!-- CỘT TRÁI: INPUT FILE KÉO THẢ ẢNH CHÂN DUNG NATIVE BỌC STYLE THẺ SANG TRỌNG -->
-            <div class="ai-studio-panel" style="background: #10131C; border: 1.5px solid rgba(212, 175, 55, 0.25); border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 12px 36px rgba(0,0,0,0.5);">
+            <!-- CỘT TRÁI: INPUT FILE ẢNH CHÂN DUNG -->
+            <div class="ai-studio-panel" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: none;">
               <div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                  <span style="font-size: 13px; font-weight: 800; color: #F59E0B; letter-spacing: 0.08em; text-transform: uppercase;">
-                    CHÂN DUNG CỦA BẠN (PORTRAIT)
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                  <span style="font-size: 12.5px; font-weight: 600; color: #D97706; letter-spacing: 0.05em; text-transform: uppercase;">
+                    ẢNH CHÂN DUNG CỦA BẠN
                   </span>
-                  <span id="aiUploadStatusBadge" style="font-size: 11px; color: #10B981; font-weight: 700;">
-                    ${this.state.uploadedImage ? '✓ Sẵn sàng phân tích' : 'Chưa chọn ảnh'}
+                  <span id="aiUploadStatusBadge" style="font-size: 11.5px; color: #A1A1AA; font-weight: 500;">
+                    ${this.state.uploadedImage ? 'Sẵn sàng phân tích' : 'Chưa chọn ảnh'}
                   </span>
                 </div>
 
                 <!-- Dropzone bọc Native Input File -->
                 <div id="aiNativeDropZone" 
-                     ondragover="event.preventDefault(); this.style.borderColor='#F59E0B';"
-                     ondragleave="this.style.borderColor='rgba(212,175,55,0.35)';"
+                     ondragover="event.preventDefault(); this.style.borderColor='#D97706';"
+                     ondragleave="this.style.borderColor='#3F3F46';"
                      ondrop="AiStudioPage.handleDrop(event)"
-                     style="position: relative; border: 2px dashed rgba(212, 175, 55, 0.35); border-radius: 16px; background: #0B0D13; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; overflow: hidden; min-height: 290px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                     style="position: relative; border: 1px dashed #3F3F46; border-radius: 8px; background: #0A0A0B; padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s ease; overflow: hidden; min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                   
                   <input type="file" id="aiStudioFileInput" accept="image/*" 
                          onchange="AiStudioPage.handleFileSelected(event)"
                          style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 20;" />
 
                   <!-- Preview Box with Laser & HUD -->
-                  <div id="aiPortraitViewport" class="ai-portrait-viewport" style="position: relative; width: 100%; height: 260px; border-radius: 12px; overflow: hidden; display: ${this.state.uploadedImage ? 'block' : 'none'};">
+                  <div id="aiPortraitViewport" class="ai-portrait-viewport" style="position: relative; width: 100%; height: 260px; border-radius: 6px; overflow: hidden; display: ${this.state.uploadedImage ? 'block' : 'none'};">
                     <img id="aiSourcePortrait" src="${this.state.uploadedImage || ''}" alt="Chân dung" style="width: 100%; height: 100%; object-fit: cover;">
-                    <div id="aiScanLaserLine" class="ai-laser-line" style="display: none; position: absolute; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #F59E0B, #10B981, #F59E0B, transparent); box-shadow: 0 0 16px #10B981, 0 0 32px #F59E0B; z-index: 10;"></div>
-                    <div id="aiScanGridMesh" class="ai-grid-mesh" style="display: none; position: absolute; inset: 0; background-image: radial-gradient(rgba(245, 158, 11, 0.25) 1px, transparent 1px); background-size: 20px 20px; pointer-events: none; z-index: 8;"></div>
+                    <div id="aiScanLaserLine" class="ai-laser-line" style="display: none; position: absolute; left: 0; right: 0; height: 2px; background: #D97706; box-shadow: none; z-index: 10;"></div>
+                    <div id="aiScanGridMesh" class="ai-grid-mesh" style="display: none; position: absolute; inset: 0; background-image: radial-gradient(rgba(217, 119, 6, 0.15) 1px, transparent 1px); background-size: 20px 20px; pointer-events: none; z-index: 8;"></div>
                     
-                    <div id="aiScanHudModal" style="display: none; position: absolute; inset: 0; background: rgba(11, 13, 19, 0.78); backdrop-filter: blur(4px); flex-direction: column; align-items: center; justify-content: center; z-index: 15; padding: 24px; text-align: center;">
-                      <div class="ai-radar-ring" style="width: 50px; height: 50px; border: 3px solid rgba(245, 158, 11, 0.3); border-top-color: #F59E0B; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
-                      <div style="font-size: 14px; font-weight: 800; color: #FFFFFF;" id="aiScanHudTitle">AI ĐANG PHÂN TÍCH PHOM TÓC...</div>
-                      <div style="font-size: 12px; color: #CBD5E1; margin-top: 4px;" id="aiScanHudSub">Nhận diện 128 landmarks khuôn mặt...</div>
-                      <div style="width: 180px; height: 5px; background: rgba(255,255,255,0.15); border-radius: 999px; margin-top: 10px; overflow: hidden;">
-                        <div id="aiScanHudProgress" style="height: 100%; width: 0%; background: linear-gradient(90deg, #F59E0B, #10B981); transition: width 0.2s ease;"></div>
+                    <div id="aiScanHudModal" style="display: none; position: absolute; inset: 0; background: rgba(10, 10, 11, 0.88); backdrop-filter: blur(2px); flex-direction: column; align-items: center; justify-content: center; z-index: 15; padding: 20px; text-align: center;">
+                      <div class="ai-radar-ring" style="width: 40px; height: 40px; border: 2px solid #27272A; border-top-color: #D97706; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
+                      <div style="font-size: 13.5px; font-weight: 600; color: #F4F4F5;" id="aiScanHudTitle">AI ĐANG PHÂN TÍCH PHOM TÓC...</div>
+                      <div style="font-size: 12px; color: #A1A1AA; margin-top: 4px;" id="aiScanHudSub">Nhận diện đường nét khuôn mặt...</div>
+                      <div style="width: 180px; height: 4px; background: #27272A; border-radius: 2px; margin-top: 10px; overflow: hidden;">
+                        <div id="aiScanHudProgress" style="height: 100%; width: 0%; background: #D97706; transition: width 0.2s ease;"></div>
                       </div>
                     </div>
 
-                    <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #CBD5E1; z-index: 12; pointer-events: none;">
+                    <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(10,10,11,0.85); padding: 4px 10px; border-radius: 4px; font-size: 11px; color: #A1A1AA; z-index: 12; pointer-events: none;">
                       Bấm hoặc kéo thả ảnh mới để thay đổi
                     </div>
                   </div>
 
                   <!-- Empty Placeholder UI -->
                   <div id="aiEmptyUploadUI" style="display: ${this.state.uploadedImage ? 'none' : 'flex'}; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #F59E0B; margin-bottom: 12px;">
+                    <div style="width: 44px; height: 44px; border-radius: 6px; background: #18181B; border: 1px solid #27272A; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #A1A1AA; margin-bottom: 10px;">
                       FILE
                     </div>
-                    <h4 style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">Kéo thả ảnh chân dung vào đây</h4>
-                    <p style="font-size: 12px; color: #94A3B8; max-width: 260px; margin-bottom: 10px; line-height: 1.4;">
-                      hoặc nhấp chuột để chọn ảnh chụp góc thẳng từ máy tính / điện thoại
+                    <h4 style="font-size: 14.5px; font-weight: 600; color: #F4F4F5; margin-bottom: 4px;">Kéo thả ảnh chân dung vào đây</h4>
+                    <p style="font-size: 12px; color: #71717A; max-width: 260px; margin-bottom: 10px; line-height: 1.4;">
+                      hoặc nhấp chuột để chọn ảnh chụp góc thẳng từ thiết bị
                     </p>
-                    <span class="nordic-btn-secondary" style="font-size: 11px; padding: 6px 14px; pointer-events: none;">
-                      Chọn Tệp Ảnh Native
+                    <span class="nordic-btn-secondary" style="font-size: 11.5px; padding: 6px 14px; pointer-events: none; border-radius: 6px;">
+                      Chọn Tệp Ảnh
                     </span>
                   </div>
                 </div>
               </div>
 
               <!-- Quick Demo Samples -->
-              <div style="margin-top: 18px;">
-                <span style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">
-                  HOẶC DÙNG ẢNH MẪU CHÂN DUNG CÓ SẴN:
+              <div style="margin-top: 16px;">
+                <span style="font-size: 11px; font-weight: 600; color: #71717A; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">
+                  HOẶC CHỌN ẢNH MẪU CÓ SẴN:
                 </span>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                   ${this.demoPortraits.map(dp => `
-                    <button type="button" onclick="AiStudioPage.selectDemoPortrait('${dp.url}')" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 5px 12px; cursor: pointer; color: #E2E8F0; font-size: 12px; font-weight: 600;">
-                      <img src="${dp.url}" style="width: 22px; height: 22px; border-radius: 50%; object-fit: cover;" alt="${dp.name}">
+                    <button type="button" onclick="AiStudioPage.selectDemoPortrait('${dp.url}')" style="display: flex; align-items: center; gap: 8px; background: #18181B; border: 1px solid #27272A; border-radius: 6px; padding: 4px 10px; cursor: pointer; color: #A1A1AA; font-size: 12px; font-weight: 500;">
+                      <img src="${dp.url}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;" alt="${dp.name}">
                       <span>${dp.name}</span>
                     </button>
                   `).join('')}
@@ -179,39 +176,39 @@
               </div>
             </div>
 
-            <!-- CỘT PHẢI: DANH SÁCH 4 PHOM TÓC CHỌN NHANH (PILL BUTTONS) + NÚT CTA CÓ LOADING STATE -->
-            <div class="ai-studio-panel" style="background: #10131C; border: 1.5px solid rgba(212, 175, 55, 0.25); border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 12px 36px rgba(0,0,0,0.5);">
+            <!-- CỘT PHẢI: DANH SÁCH 4 PHOM TÓC + NÚT CTA -->
+            <div class="ai-studio-panel" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: none;">
               <div>
-                <div style="margin-bottom: 16px;">
-                  <span style="font-size: 13px; font-weight: 800; color: #F59E0B; letter-spacing: 0.08em; text-transform: uppercase;">
-                    DANH SÁCH 4 PHOM TÓC CHỌN NHANH
+                <div style="margin-bottom: 14px;">
+                  <span style="font-size: 12.5px; font-weight: 600; color: #D97706; letter-spacing: 0.05em; text-transform: uppercase;">
+                    DANH SÁCH 4 PHOM TÓC TIÊU BIỂU
                   </span>
-                  <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">Chọn 1 phom tóc bên dưới để ướm thử cùng công nghệ AI:</p>
+                  <p style="font-size: 12.5px; color: #71717A; margin-top: 4px;">Chọn 1 phom tóc bên dưới để ướm thử:</p>
                 </div>
 
-                <!-- 4 Pill Buttons -->
-                <div class="grid grid-cols-2 gap-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                <!-- 4 Hairstyle Buttons -->
+                <div class="grid grid-cols-2 gap-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;">
                   ${this.hairstyles.slice(0, 4).map(h => {
                     const isSelected = this.state.selectedHairstyle === h.id;
                     return `
                       <button type="button" 
-                              class="nordic-pill-tab ${isSelected ? 'active' : ''}" 
+                              class="clean-tab-btn ${isSelected ? 'active' : ''}" 
                               id="pillStyle_${h.id}"
                               onclick="AiStudioPage.selectHairstyle('${h.id}')"
-                              style="width: 100%; padding: 12px 14px; border-radius: 12px; text-align: left; display: flex; flex-direction: column; gap: 4px; cursor: pointer; border: 1.5px solid ${isSelected ? '#F59E0B' : 'rgba(255,255,255,0.15)'}; background: ${isSelected ? 'rgba(245,158,11,0.2)' : '#161B26'}; transition: all 0.2s ease;">
+                              style="width: 100%; padding: 10px 12px; border-radius: 6px; text-align: left; display: flex; flex-direction: column; gap: 3px; cursor: pointer; border: 1px solid ${isSelected ? '#D97706' : '#27272A'}; background: ${isSelected ? '#27272A' : '#18181B'}; transition: all 0.15s ease;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
-                          <strong style="color: ${isSelected ? '#F59E0B' : '#FFFFFF'} !important; font-size: 13px;">${h.name}</strong>
-                          <span style="color: ${isSelected ? '#F59E0B' : '#94A3B8'}; font-size: 13px;">${isSelected ? '●' : '○'}</span>
+                          <strong style="color: ${isSelected ? '#F4F4F5' : '#A1A1AA'} !important; font-size: 12.5px;">${h.name}</strong>
+                          <span style="color: ${isSelected ? '#D97706' : '#3F3F46'}; font-size: 11px;">${isSelected ? '●' : '○'}</span>
                         </div>
-                        <span style="font-size: 11px; color: ${isSelected ? '#FDE68A' : '#94A3B8'} !important; line-height: 1.3;">${h.tag}</span>
+                        <span style="font-size: 10.5px; color: ${isSelected ? '#FBBF24' : '#71717A'} !important; line-height: 1.3;">${h.tag}</span>
                       </button>
                     `;
                   }).join('')}
                 </div>
 
                 <!-- Color Swatches -->
-                <div style="margin-bottom: 20px;">
-                  <span style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">
+                <div style="margin-bottom: 18px;">
+                  <span style="font-size: 11px; font-weight: 600; color: #71717A; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">
                     MÀU NHUỘM PHỐI HỢP:
                   </span>
                   <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -219,8 +216,8 @@
                       const isSelected = this.state.selectedColor === c.id;
                       return `
                         <button type="button" onclick="AiStudioPage.selectColor('${c.id}')"
-                                style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; cursor: pointer; border: 1px solid ${isSelected ? '#F59E0B' : 'rgba(255,255,255,0.1)'}; background: ${isSelected ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.03)'}; color: #FFFFFF; font-size: 11px; font-weight: 600;">
-                          <span style="width: 12px; height: 12px; border-radius: 50%; background: ${c.hex}; display: inline-block;"></span>
+                                style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 6px; cursor: pointer; border: 1px solid ${isSelected ? '#D97706' : '#27272A'}; background: ${isSelected ? '#27272A' : '#18181B'}; color: #F4F4F5; font-size: 11.5px; font-weight: 500;">
+                          <span style="width: 10px; height: 10px; border-radius: 50%; background: ${c.hex}; display: inline-block;"></span>
                           <span>${c.name}</span>
                         </button>
                       `;
@@ -229,11 +226,11 @@
                 </div>
               </div>
 
-              <!-- NÚT CTA 'Tạo Kiểu Ngay' CÓ LOADING STATE -->
+              <!-- NÚT CTA 'Tạo Kiểu Ngay' -->
               <div>
-                <button type="button" class="nordic-btn-primary btn-magnetic" id="btnRunAiRestyle" onclick="AiStudioPage.runAiRestyle()"
-                        style="width: 100%; height: 50px; font-size: 14px; font-weight: 900; letter-spacing: 0.03em; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: none;">
-                  <span id="aiBtnSpinner" style="display: none; width: 18px; height: 18px; border: 2px solid #0F172A; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+                <button type="button" class="nordic-btn-primary" id="btnRunAiRestyle" onclick="AiStudioPage.runAiRestyle()"
+                        style="width: 100%; height: 44px; font-size: 13.5px; font-weight: 600; background: #D97706; color: #09090B; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none;">
+                  <span id="aiBtnSpinner" style="display: none; width: 16px; height: 16px; border: 2px solid #09090B; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
                   <span id="aiBtnIcon"></span>
                   <span id="aiBtnText">Tạo Kiểu Ngay</span>
                 </button>
@@ -241,10 +238,10 @@
                 <!-- Result Actions -->
                 <div id="aiResultActions" style="display: ${this.state.hasResult ? 'flex' : 'none'}; gap: 10px; margin-top: 12px;">
                   <button type="button" class="nordic-btn-primary" onclick="AiStudioPage.bookThisHairstyle()"
-                          style="flex: 1; padding: 11px 14px; font-size: 12px; font-weight: 800; background: #10B981; color: #FFFFFF; border: none; border-radius: 10px; cursor: pointer; box-shadow: none;">
-                    Đặt Lịch Làm Kiểu Này →
+                          style="flex: 1; padding: 10px 14px; font-size: 12.5px; font-weight: 600; background: #D97706; color: #09090B; border: none; border-radius: 8px; cursor: pointer; box-shadow: none;">
+                    Đặt Lịch Kiểu Này
                   </button>
-                  <button type="button" class="nordic-btn-secondary" onclick="AiStudioPage.resetAiRestyle()" style="padding: 11px 14px; font-size: 12px; font-weight: 700; box-shadow: none;">
+                  <button type="button" class="nordic-btn-secondary" onclick="AiStudioPage.resetAiRestyle()" style="padding: 10px 14px; font-size: 12.5px; font-weight: 500; background: #27272A; color: #F4F4F5; border: 1px solid #3F3F46; border-radius: 8px; box-shadow: none;">
                     Thử Mẫu Khác
                   </button>
                 </div>
@@ -342,7 +339,7 @@
         if (img) img.src = this.state.uploadedImage;
         const statusBadge = document.getElementById('aiUploadStatusBadge');
         if (statusBadge) {
-          statusBadge.textContent = '✓ Sẵn sàng phân tích';
+          statusBadge.textContent = 'Sẵn sàng phân tích';
           statusBadge.style.color = '#10B981';
         }
         this._toggleResultState(false);

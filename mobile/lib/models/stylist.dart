@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class Stylist {
   final String id;
   final String name;
@@ -21,18 +23,25 @@ class Stylist {
         .replaceAll('Barber', 'Thợ Tạo Mẫu')
         .replaceAll('Master Stylist', 'Nghệ Nhân Tạo Mẫu');
 
-    final rawLevel = json['level'] ?? json['CapBac'] ?? 'Thợ Tạo Mẫu Chính';
-    final cleanLevel = rawLevel.toString()
-        .replaceAll('Barber', 'Thợ Tạo Mẫu')
-        .replaceAll('Master Stylist', 'Nghệ Nhân Tạo Mẫu');
+    final rawLevel = json['level'] ?? json['CapBac'] ?? 'Master Barber';
+    final cleanLevel = rawLevel.toString();
+
+    final rawAvatar = json['avatar'] ?? json['HinhAnh'] ?? '';
+    final formattedAvatar = ApiService.getImageUrl(
+      rawAvatar.toString(),
+      fallback: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
+    );
+
+    final rawRating = json['rating'] ?? 5.0;
+    final num ratingNum = rawRating is num ? rawRating : (num.tryParse(rawRating.toString()) ?? 5.0);
 
     return Stylist(
       id: json['id'] ?? json['MaNhanVien'] ?? '',
       name: cleanName,
       level: cleanLevel,
       branchId: json['branchId'] ?? json['MaChiNhanh'] ?? 'CN01',
-      avatar: json['avatar'] ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
-      rating: ((json['rating'] ?? 5.0) as num).toDouble(),
+      avatar: formattedAvatar,
+      rating: ratingNum.toDouble(),
     );
   }
 
