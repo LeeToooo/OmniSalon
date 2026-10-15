@@ -21,11 +21,11 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css?v=75.0">
-  <link rel="stylesheet" href="js/components/components.css?v=72.0">
+  <link rel="stylesheet" href="styles.css?v=20261015_04">
+  <link rel="stylesheet" href="js/components/components.css?v=20261015_04">
 
-  <!-- Centralized Theme Engine (Zero FOUC) -->
-  <script src="js/core/theme.js?v=60.0"></script>
+  <!-- Centralized Theme Engine Zero FOUC -->
+  <script src="js/core/theme.js?v=20261015_04"></script>
 </head>
 
 <body data-theme="dark">
@@ -49,27 +49,26 @@
     </div>
   </div>
 
-  <!-- ========================================================
-       4. SHOPPING CART DRAWER (GIỎ HÀNG)
-       ======================================================== -->
-  <div class="cart-drawer-shell" id="cartDrawer">
-    <div class="cart-drawer-header">
-      <h3 class="cart-drawer-header-title">GIỎ HÀNG CỦA BẠN</h3>
-      <button class="cart-drawer-close-btn" onclick="UICommon.closeCartDrawer()" title="Đóng">✕</button>
-    </div>
-    <div class="cart-drawer-list" id="cartItemsList"></div>
-    <div class="cart-drawer-footer">
-      <div class="cart-drawer-footer-summary">
-        <span class="cart-drawer-footer-label">Tổng thanh toán:</span>
-        <span id="cartTotalAmount" class="cart-drawer-footer-amount">0 đ</span>
+  <!-- Toan bo quy trinh gio hang va thanh toan da duoc chuyen sang trang rieng cart -->
+
+  <!-- Modal thong bao da them san pham vao gio hang chuan 4RAU -->
+  <div class="add-cart-modal-overlay" id="addToCartModal">
+    <div class="add-cart-modal-card">
+      <div class="add-cart-modal-header">
+        <span class="add-cart-modal-title">Thông báo</span>
+        <button type="button" class="add-cart-modal-close" onclick="UICommon.closeAddToCartModal()" aria-label="Đóng">✕</button>
       </div>
-      <button type="button" class="cart-drawer-checkout-btn" onclick="UICommon.checkoutCart()">
-        Thanh Toán Đơn Hàng
-      </button>
-      <div class="cart-drawer-view-full-page">
-        <a href="/cart" onclick="event.preventDefault(); UICommon.closeCartDrawer(); if(window.AppRouter) window.AppRouter.navigate('/cart');">
-          Xem toàn bộ giỏ hàng trang lớn (4RAU Style) →
-        </a>
+      <div class="add-cart-modal-body">
+        <div class="add-cart-modal-icon-circle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <p class="add-cart-modal-message">Đã thêm sản phẩm vào giỏ hàng</p>
+      </div>
+      <div class="add-cart-modal-footer">
+        <button type="button" class="btn-add-cart-continue" onclick="UICommon.closeAddToCartModal()">TIẾP TỤC MUA SẮM</button>
+        <button type="button" class="btn-add-cart-go" onclick="UICommon.goToCartPage()">ĐI ĐẾN GIỎ HÀNG</button>
       </div>
     </div>
   </div>
@@ -122,38 +121,38 @@
        8. js/modules/customer/web/customer-web.js -> Phân hệ Khách hàng trên Web Portal
        9. js/web/ui-web.js        -> Giao diện Web Portal & Trung tâm Quản trị Admin
        ======================================================== -->
-  <script src="js/core/constants.js?v=66.0"></script>
-  <script src="js/core/utils.js?v=66.0"></script>
-  <script src="js/core/validation.js?v=66.0"></script>
-  <script src="js/core/pricing.js?v=66.0"></script>
-  <script src="js/core/auth.js?v=66.0"></script>
-  <script src="js/core/store.js?v=72.0"></script>
-  <script src="js/core/api.js?v=66.0"></script>
-  <script src="js/widgets/widgets-bundle.js?v=66.0"></script>
-  <script src="js/components/ui-common.js?v=76.0"></script>
-  <script src="js/components/ProductCard.js?v=66.0"></script>
-  <script src="js/components/BranchCard.js?v=66.0"></script>
-  <script src="js/modules/customer/web/customer-web.js?v=75.0"></script>
-  <script src="js/modules/admin/web/admin-web.js?v=66.0"></script>
-  <script src="js/web/ui-web.js?v=66.0"></script>
+  <script src="js/core/constants.js?v=20261015_04"></script>
+  <script src="js/core/utils.js?v=20261015_04"></script>
+  <script src="js/core/validation.js?v=20261015_04"></script>
+  <script src="js/core/pricing.js?v=20261015_04"></script>
+  <script src="js/core/auth.js?v=20261015_04"></script>
+  <script src="js/core/store.js?v=20261015_04"></script>
+  <script src="js/core/api.js?v=20261015_04"></script>
+  <script src="js/widgets/widgets-bundle.js?v=20261015_04"></script>
+  <script src="js/components/ui-common.js?v=20261015_04"></script>
+  <script src="js/components/ProductCard.js?v=20261015_04"></script>
+  <script src="js/components/BranchCard.js?v=20261015_04"></script>
+  <script src="js/modules/customer/web/customer-web.js?v=20261015_04"></script>
+  <script src="js/modules/admin/web/admin-web.js?v=20261015_04"></script>
+  <script src="js/web/ui-web.js?v=20261015_04"></script>
 
-  <!-- Modular Page Components (Multi-Page Architecture) -->
-  <script src="pages/home-page.js?v=68.0"></script>
-  <script src="pages/services-page.js?v=68.0"></script>
-  <script src="pages/stylists-page.js?v=68.0"></script>
-  <script src="pages/booking-page.js?v=68.0"></script>
-  <script src="pages/shop-page.js?v=72.0"></script>
-  <script src="pages/cart-page.js?v=75.0"></script>
-  <script src="pages/branches-page.js?v=68.0"></script>
-  <script src="pages/ai-studio-page.js?v=68.0"></script>
-  <script src="pages/admin-portal.js?v=68.0"></script>
+  <!-- Modular Page Components Multi-Page Architecture -->
+  <script src="pages/home-page.js?v=20261015_04"></script>
+  <script src="pages/services-page.js?v=20261015_04"></script>
+  <script src="pages/stylists-page.js?v=20261015_04"></script>
+  <script src="pages/booking-page.js?v=20261015_04"></script>
+  <script src="pages/shop-page.js?v=20261015_04"></script>
+  <script src="pages/cart-page.js?v=20261015_04"></script>
+  <script src="pages/branches-page.js?v=20261015_04"></script>
+  <script src="pages/ai-studio-page.js?v=20261015_04"></script>
+  <script src="pages/admin-portal.js?v=20261015_04"></script>
 
   <!-- 3D Perspective Client Router -->
-  <script src="js/core/router.js?v=75.0"></script>
+  <script src="js/core/router.js?v=20261015_04"></script>
 
-  <!-- Khởi động giao diện Web Portal & 3D Multi-Page Router -->
+  <!-- Khoi dong giao dien Web Portal va 3D Multi-Page Router -->
   <script>
-    // Hỗ trợ tham số URL trực quan: ?openMenu=1&openAuth=1&openCart=1&theme=dark|light&category=cat
+    // Ho tro tham so URL truc quan
     const _searchParams = new URLSearchParams(window.location.search);
     if (_searchParams.get('theme') && typeof ThemeEngine !== 'undefined') {
       ThemeEngine.setTheme(_searchParams.get('theme'));
@@ -198,7 +197,8 @@
     }
     if (_searchParams.get('openCart') === '1') {
       setTimeout(() => {
-        if (typeof UICommon !== 'undefined') UICommon.openCartDrawer();
+        if (typeof AppRouter !== 'undefined') AppRouter.navigate('/cart');
+        else if (typeof UICommon !== 'undefined') UICommon.goToCartPage();
       }, 600);
     }
     if (_searchParams.get('category') && typeof ServicesPage !== 'undefined') {

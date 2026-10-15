@@ -1,57 +1,46 @@
-/* =========================================================================
-   Omni Salon - UNIFIED MASTER STYLESHEET (ALL-IN-ONE SINGLE FILE)
-   Version: 20.0 All-In-One Unified Edition
-   ========================================================================= */
+/* Omni Salon - Bảng kiểu dáng hợp nhất */
 
-/* ==================== MODULE: base.css ==================== */
-/* =========================================================================
-   Omni Salon — NORDIC MINIMALIST LUXURY DESIGN SYSTEM
-   Phiên bản: 14.0 Nordic Minimalist Luxury Edition
-   Brand: Omni Salon - The Art of Modern Hair Care & Grooming
-   Palette: Deep Obsidian (#0B0D13), Surface Card (#131722), Border rgba(255,255,255,0.06),
-            Champagne Accent (#D4AF37), Titan Silver (#CBD5E1), Emerald (#10B981), Rose (#F43F5E)
-   Radius: 16px - 20px (Card), 12px (Button/Input), 999px (Chips/Badges)
-   Tuân thủ: .antigravity/rules/04_refactor.md, 07_ponytail.md
-   ========================================================================= */
+/* Phần thiết lập cơ bản */
+/* Hệ thống thiết kế chuẩn Omni Salon */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  /* ── 1. Anti-Glare Senior Palette (Anti-AI Slop Clean Architecture) ── */
-  --color-bg-obsidian: #0A0A0B;          /* Nền chính Zinc 950 #0A0A0B */
-  --color-bg-onyx: #0A0A0B;              /* Alias tương thích */
-  --color-bg-deep-slate: #0A0A0B;        /* Alias tương thích */
-  --color-surface-navy: #121214;         /* Bề mặt Card/Surface Than Tuyền Zinc 900 #121214 */
-  --color-surface-card: #121214;         /* Card Surface chính than tuyền sâu thẳm */
-  --color-surface-card-hover: #18181B;   /* Hover Card Surface */
+  /* Bảng màu tối dịu mắt */
+  --color-bg-obsidian: #0A0A0B;          /* Màu nền chính tối */
+  --color-bg-onyx: #0A0A0B;              /* Màu nền phụ */
+  --color-bg-deep-slate: #0A0A0B;        /* Màu nền bề mặt */
+  --color-surface-navy: #121214;         /* Bề mặt thẻ than tuyền */
+  --color-surface-card: #121214;         /* Bề mặt thẻ chính */
+  --color-surface-card-hover: #18181B;   /* Bề mặt thẻ khi rê chuột */
   --color-surface-container-high: #18181B;
   
-  /* Viền tối giản sắc nét (Không neon glow) */
+  /* Viền mỏng tối giản */
   --color-border-glass: #222225;
   --color-border-thin: #222225;
   --color-border-hover: #3F3F46;
   --color-border-gold-glow: #222225;
 
-  /* Màu điểm nhấn: Cam Trầm Amber 600 #D97706 (Quy tắc 80/15/5 cho Primary CTA) */
-  --color-accent-gold: #D97706;          /* Primary Accent Amber 600 */
+  /* Màu điểm nhấn cam hổ phách */
+  --color-accent-gold: #D97706;          /* Màu cam điểm nhấn */
   --color-accent-champagne: #D97706;
-  --color-accent-silver: #A1A1AA;        /* Bạc Titan Zinc 400 */
+  --color-accent-silver: #A1A1AA;        /* Màu bạc titan */
   --color-accent-gold-hover: #F59E0B;
   --color-accent-gold-subtle: rgba(217, 119, 6, 0.12);
   --color-accent-gold-border: rgba(217, 119, 6, 0.3);
 
-  /* Trạng thái phụ */
-  --color-status-emerald: #10B981;       /* Xanh Emerald */
-  --color-status-rose: #EF4444;          /* Đỏ */
+  /* Màu trạng thái phụ */
+  --color-status-emerald: #10B981;       /* Màu xanh ngọc lục bảo */
+  --color-status-rose: #EF4444;          /* Màu đỏ cảnh báo */
   --color-success: #10B981;
   --color-danger: #EF4444;
 
-  /* Typography Anti-Glare Colors (WCAG AAA — Không dùng #FFFFFF) */
-  --color-text-white: #F4F4F5;           /* Tiêu đề chính trắng dịu Zinc 100 */
-  --color-text-muted: #71717A;           /* Chữ mờ Zinc 500 */
-  --color-text-secondary: #A1A1AA;       /* Chữ phụ Zinc 400 */
+  /* Màu chữ tương phản cao chống lóa */
+  --color-text-white: #F4F4F5;           /* Tiêu đề chính màu trắng dịu */
+  --color-text-muted: #71717A;           /* Chữ mờ phụ */
+  --color-text-secondary: #A1A1AA;       /* Chữ phụ */
 
-  /* ── 2. Tương thích ngược với các module hiện hữu ── */
+  /* Tương thích ngược các biến màu */
   --color-terracotta: var(--color-accent-gold);
   --color-terracotta-dark: #B45309;
   --color-brown-leather: #18181B;
@@ -65,10 +54,10 @@
   --color-collab-gray: #18181B;
   --color-footer-bg: #0A0A0B;
 
-  /* ── 3. Typography Hiện Đại Chuẩn Mực ── */
+  /* Phông chữ tiêu chuẩn */
   --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* ── 4. Bo Góc Chuẩn (8px Card rounded-lg, 8px Button/Input) ── */
+  /* Bo góc thẻ và nút bấm */
   --radius-sm: 6px;
   --radius-btn: 8px;
   --radius-input: 8px;
@@ -77,19 +66,19 @@
   --radius-lg: 8px;
   --radius-pill: 999px;
 
-  /* ── 5. Shadows Phẳng & Dứt Khoát (Triệt tiêu toàn bộ neon glow) ── */
+  /* Đổ bóng phẳng dứt khoát */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.25);
   --shadow-gold: none;
   --shadow-gold-glow: none;
 
-  /* ── 6. Transition Easing Chuẩn Apple ── */
+  /* Hiệu ứng chuyển động mượt */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Reset & Base ── */
+/* Đặt lại định dạng cơ bản */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -126,7 +115,7 @@ a {
   transition: color 0.2s var(--ease-smooth);
 }
 
-/* ── Micro-Animations: Tương tác nút bấm/Card nhẹ nhàng ── */
+/* Tương tác nút bấm và thẻ nhẹ nhàng */
 button {
   cursor: pointer;
   border: none;
@@ -141,7 +130,7 @@ button:active,
   transform: scale(0.98);
 }
 
-/* ── Shimmer Wave Effect (Thay thế Loading Spinner) ── */
+/* Hiệu ứng sóng khi tải dữ liệu */
 @keyframes shimmerWave {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -153,7 +142,7 @@ button:active,
   animation: shimmerWave 1.6s var(--ease-smooth) infinite !important;
 }
 
-/* ── Horizontal Page Transition (Fade Slide Ngang cho Booking Wizard) ── */
+/* Chuyển trang ngang mượt mà */
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
@@ -168,14 +157,14 @@ button:active,
   animation: fadeSlideIn 0.3s var(--ease-spring) forwards;
 }
 
-/* ── Time Slot Pop Scale Selection ── */
+/* Hiệu ứng phóng to khung giờ */
 @keyframes slotPopSelect {
   0% { transform: scale(0.96); }
   50% { transform: scale(1.04); }
   100% { transform: scale(1); }
 }
 
-/* ── Modal Spring Animation ── */
+/* Hiệu ứng đàn hồi cửa sổ bật lên */
 @keyframes modalSlideUp {
   0% {
     opacity: 0;
@@ -187,7 +176,7 @@ button:active,
   }
 }
 
-/* ── Glassmorphism Utility ── */
+/* Hiệu ứng kính mờ */
 .glass-panel {
   background: rgba(20, 23, 31, 0.75);
   backdrop-filter: blur(16px);
@@ -196,7 +185,7 @@ button:active,
   border-radius: var(--radius-card);
 }
 
-/* Scrollbar Cao Cấp Dark Champagne */
+/* Thanh cuộn tối màu điểm nhấn */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -212,10 +201,7 @@ button:active,
   background: var(--color-accent-gold);
 }
 
-/* =========================================================================
-   CENTERED CONTAINER SYSTEM (1440px / 1280px MAX-WIDTH, AUTO MARGIN, BALANCED PX)
-   Tuân thủ: max-w-7xl / 1440px, margin: 0 auto, px-8 (desktop), px-6 (tablet), px-4 (mobile)
-   ========================================================================= */
+/* Khung chứa căn giữa toàn màn hình */
 .omni-container,
 .nordic-container,
 .web-container,
@@ -249,7 +235,7 @@ button:active,
   }
 }
 
-/* Spacing & Flex Utility Helpers */
+/* Tiện ích khoảng cách và căn chỉnh */
 .mx-auto { margin-left: auto; margin-right: auto; }
 .w-full { width: 100%; }
 .h-full { height: 100%; }
@@ -259,21 +245,15 @@ button:active,
 
 
 
-/* ==================== MODULE: theme.css ==================== */
-/* =========================================================================
-   Omni Salon — CENTRALIZED THEME SYSTEM (DARK & LIGHT MODES)
-   Nordic Minimalist Luxury Edition
-   - Dark Mode: Obsidian Gold (#0B0D13 / #131722 / #D4AF37)
-   - Light Mode: Nordic Clean Cream (#F8F9FA / #FFFFFF / #C59B27)
-   Tuân thủ: .antigravity/rules/04_refactor.md, 07_ponytail.md
-   ========================================================================= */
+/* Hệ thống giao diện sáng tối */
+/* Quản lý giao diện sáng tối trung tâm */
 
-/* ── 1. ROOT & FULL-LIGHT MODE (Comfortable Off-White & High-Contrast Nordic Luxury) ── */
+/* Chế độ sáng */
 :root,
 [data-theme="light"],
 html.light,
 body.light {
-  /* Core Semantic Palette (Sáng dịu êm mắt, giảm hắt sáng, không dùng màu đen) */
+  /* Bảng màu chế độ sáng dịu mắt */
   --bg-primary: #f3f4f6;
   --surface-card: #f8fafc;
   --surface-elevated: #e2e8f0;
@@ -288,25 +268,26 @@ body.light {
   --input-bg: #f8fafc;
   --input-border: #94a3b8;
 
-  /* Status Colors */
+  /* Màu trạng thái chế độ sáng */
   --color-status-emerald: #059669;
   --color-status-rose: #dc2626;
   --color-success: #059669;
   --color-danger: #dc2626;
 
-  /* Shadows */
+  /* Đổ bóng chế độ sáng */
   --theme-shadow-card: 0 4px 18px rgba(0, 0, 0, 0.05);
   --theme-shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.08);
   --theme-shadow-glow: 0 0 18px rgba(180, 131, 18, 0.2);
 
-  /* Legacy & Existing Tokens Aliases - Light Mapping */
+  /* Ánh xạ biến màu cho chế độ sáng */
   --color-bg-obsidian: var(--bg-primary);
   --color-bg-onyx: var(--bg-primary);
   --color-bg-deep-slate: var(--bg-primary);
   --color-surface-navy: var(--surface-card);
   --color-surface-card: var(--surface-card);
   --color-surface-card-hover: #f8fafc;
-  --color-surface  --color-accent-champagne: var(--brand-accent);
+  --color-surface-container-high: #f8fafc;
+  --color-accent-champagne: var(--brand-accent);
   --color-accent-silver: #475569;
   --color-text-white: #0f172a;
   --color-text-muted: var(--text-secondary);
@@ -318,7 +299,7 @@ body.light {
   --theme-toggle-icon: '🌙';
 }
 
-/* ── 2. DARK MODE (Anti-Glare Palette — Anti-AI Clean Architecture) ── */
+/* Chế độ tối */
 [data-theme="dark"],
 html.dark,
 body.dark {
@@ -370,7 +351,7 @@ body.dark {
   --theme-toggle-icon: '☀️';
 }
 
-/* â”€â”€ 3. SMOOTH THEME TRANSITION (KhÃ´ng chá»›p giáº­t mÃ n hÃ¬nh) â”€â”€ */
+/* Chuyển đổi giao diện mượt mà */
 html,
 body,
 header,
@@ -407,7 +388,7 @@ textarea,
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-/* â”€â”€ 4. THEME TOGGLE SWITCH BUTTON STYLING â”€â”€ */
+/* Nút bấm chuyển giao diện sáng tối */
 .theme-toggle-btn {
   display: inline-flex;
   align-items: center;
@@ -446,7 +427,7 @@ textarea,
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }
 
-/* Biá»ƒu tÆ°á»£ng hiá»ƒn thá»‹ theo Theme */
+/* Biểu tượng theo giao diện sáng tối */
 [data-theme="dark"] .theme-toggle-btn .icon-moon,
 html.dark .theme-toggle-btn .icon-moon,
 body.dark .theme-toggle-btn .icon-moon {
@@ -481,7 +462,7 @@ body.light .theme-toggle-btn .icon-sun {
   transform: rotate(90deg) scale(0.5);
 }
 
-/* Theme Switcher Row (Trong Profile / Settings Mobile App) */
+/* Hàng nút chuyển đổi giao diện trong cài đặt */
 .theme-switcher-row {
   display: flex;
   align-items: center;
@@ -523,7 +504,7 @@ body.light .theme-toggle-btn .icon-sun {
   color: var(--text-secondary);
 }
 
-/* Segmented Theme Switch Tabs */
+/* Thẻ chuyển đổi giao diện dạng phân đoạn */
 .theme-segmented-ctrl {
   display: inline-flex;
   background: var(--surface-elevated);
@@ -554,7 +535,7 @@ body.light .theme-toggle-btn .icon-sun {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
-/* â”€â”€ 5. LIGHT MODE COMPONENT ADAPTATIONS â”€â”€ */
+/* Thành phần điều chỉnh cho chế độ sáng */
 :root.light,
 html.light,
 body.light,
@@ -592,7 +573,7 @@ body.light .page-view,
   color: var(--text-primary) !important;
 }
 
-/* Light Mode Navbar */
+/* Thanh điều hướng chế độ sáng */
 html.light .web-main-header,
 body.light .web-main-header,
 [data-theme="light"] .web-main-header {
@@ -641,7 +622,7 @@ body.light .web-search-input,
   border: 1.5px solid #cbd5e1 !important;
 }
 
-/* Light Mode Cards: ServiceCard, StylistCard, BranchCard, BentoCard */
+/* Thẻ dịch vụ thợ cắt tóc và chi nhánh chế độ sáng */
 html.light .service-card-item,
 html.light .stylist-nordic-card,
 html.light .service-bento-card,
@@ -727,7 +708,7 @@ body.light p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):
   color: var(--text-secondary, #334155) !important;
 }
 
-/* Explicit high-contrast preservation on dark surfaces */
+/* Giữ tương phản cao trên bề mặt tối */
 html.light .hero-showcase-title,
 html.light .hero-visual-card h3,
 html.light .hero-visual-card-title,
@@ -935,7 +916,7 @@ body.light .nordic-metric-label,
   background-size: 200% 100% !important;
 }
 
-/* â”€â”€ 6. BOOKING WIZARD & AI STUDIO LIGHT/DARK CONTRAST FIX (WCAG AAA) â”€â”€ */
+/* Độ tương phản trang đặt lịch và chụp ảnh */
 .booking-step-title {
   color: var(--text-primary) !important;
 }
@@ -1030,7 +1011,7 @@ body.light .booking-payment-toggle-btn,
   border-color: rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Secondary CTA Buttons on Light Mode: Ná»n sÃ¡ng chá»¯ Ä‘áº­m nÃ©t #1e293b */
+/* Nút bấm phụ chế độ sáng */
 html.light .nordic-btn-secondary,
 html.light .hero-cta-secondary,
 body.light .nordic-btn-secondary,
@@ -1055,7 +1036,7 @@ body.light .hero-cta-secondary:hover,
   border-color: var(--brand-accent) !important;
 }
 
-/* AI Studio Surface Contrast Preserved across all modes */
+/* Giữ độ tương phản khu vực chụp ảnh */
 html.light .ai-studio-panel,
 body.light .ai-studio-panel,
 [data-theme="light"] .ai-studio-panel {
@@ -1080,11 +1061,9 @@ html.light .ai-studio-panel .nordic-pill-tab.active {
   border-color: var(--brand-accent-gold) !important;
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   LIGHT & DARK MODE EXPLICIT COMPONENT CONTRAST GUARDS
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Bảo vệ tương phản các thành phần trên cả hai chế độ */
 
-/* 1. Services Bento Grid Cards & Titles */
+/* Thẻ và tiêu đề dịch vụ */
 [data-theme="light"] .service-bento-card,
 html.light .service-bento-card,
 body.light .service-bento-card,
@@ -1114,7 +1093,7 @@ body.light .service-bento-desc {
   color: var(--text-secondary) !important;
 }
 
-/* 2. Stylists Nordic Cards & Names */
+/* Thẻ và tên thợ tạo mẫu */
 [data-theme="light"] .stylist-nordic-card,
 html.light .stylist-nordic-card,
 body.light .stylist-nordic-card {
@@ -1157,7 +1136,7 @@ body.light .stylist-pill-tag {
   color: var(--text-secondary) !important;
 }
 
-/* 3. Shop Product Nordic Cards & Titles */
+/* Thẻ và tiêu đề sản phẩm */
 [data-theme="light"] .product-nordic-card,
 html.light .product-nordic-card,
 body.light .product-nordic-card {
@@ -1187,7 +1166,7 @@ body.light .product-nordic-card p {
   color: var(--text-secondary) !important;
 }
 
-/* 3b. Shop Page Filter & Search Toolbar Light Mode */
+/* Thanh tìm kiếm và lọc sản phẩm chế độ sáng */
 [data-theme="light"] .shop-header-title,
 html.light .shop-header-title,
 body.light .shop-header-title {
@@ -1263,7 +1242,7 @@ body.light .nordic-pill-tab.active {
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
 }
 
-/* 3c. Booking Stepper Bar Light Mode */
+/* Thanh tiến trình đặt lịch chế độ sáng */
 [data-theme="light"] .booking-stepper-bar,
 html.light .booking-stepper-bar,
 body.light .booking-stepper-bar {
@@ -1339,7 +1318,7 @@ body.light .booking-page-desc {
   color: var(--text-secondary) !important;
 }
 
-/* 4. Branches Cards & Addresses */
+/* Thẻ và địa chỉ chi nhánh */
 [data-theme="light"] .branch-card-item,
 html.light .branch-card-item,
 body.light .branch-card-item,
@@ -1357,7 +1336,7 @@ body.light .branch-address-text {
   color: var(--text-secondary) !important;
 }
 
-/* 5. Top Announcement Bar Consistency */
+/* Thanh thông báo đầu trang */
 .web-top-announcement-bar,
 .announcement-inner {
   background: var(--bg-primary) !important;
@@ -1371,7 +1350,7 @@ body.light .branch-address-text {
   border-color: rgba(245, 158, 11, 0.35) !important;
 }
 
-/* 6. Stepper in Booking Wizard */
+/* Các bước đặt lịch */
 [data-theme="light"] .booking-wizard-stepper {
   background: var(--surface-card) !important;
   border: 1px solid var(--border-color) !important;
@@ -1385,7 +1364,7 @@ body.light .branch-address-text {
   font-weight: 800 !important;
 }
 
-/* 7. Home Page 18+ Branches Preview & AI Studio Preview */
+/* Xem trước chi nhánh và khu vực chụp ảnh */
 .home-branch-card {
   background: #10131C;
   border: 1px solid rgba(212, 175, 55, 0.15);
@@ -1467,7 +1446,7 @@ body.light .home-ai-file-name {
   color: var(--text-secondary) !important;
 }
 
-/* 8. Header User Dropdown & Button Light Mode Guard */
+/* Menu tài khoản người dùng chế độ sáng */
 [data-theme="light"] .header-user-btn,
 html.light .header-user-btn,
 body.light .header-user-btn {
@@ -1491,7 +1470,7 @@ body.light .user-name-text {
   font-weight: 800 !important;
 }
 
-/* 9. Global Modal & Auth Modal Box */
+/* Cửa sổ bật lên và đăng nhập */
 .auth-modal-box h2 {
   color: var(--text-primary, #FFFFFF);
 }
@@ -1534,7 +1513,7 @@ body.light .form-control-custom:focus {
   background: var(--surface-card) !important;
 }
 
-/* â”€â”€ Admin Portal Light Theme Overrides â”€â”€ */
+/* Giao diện quản trị chế độ sáng */
 [data-theme="light"] .admin-hub-header,
 html.light .admin-hub-header {
   background: var(--surface-card) !important;
@@ -1643,7 +1622,7 @@ html.light .gauge-bar-track {
   background: #E2E8F0 !important;
 }
 
-/* â”€â”€ Kinetic Marquee Light Theme â”€â”€ */
+/* Dòng chữ chạy chế độ sáng */
 [data-theme="light"] .kinetic-marquee-wrapper,
 html.light .kinetic-marquee-wrapper,
 body.light .kinetic-marquee-wrapper {
@@ -1669,7 +1648,7 @@ body.light .kinetic-word.accent {
   color: var(--brand-accent) !important;
 }
 
-/* â”€â”€ Section 3 Brand Philosophy Cards Light Theme â”€â”€ */
+/* Thẻ triết lý thương hiệu chế độ sáng */
 [data-theme="light"] .philosophy-section-title,
 html.light .philosophy-section-title,
 body.light .philosophy-section-title {
@@ -1712,7 +1691,7 @@ body.light .philosophy-card-desc {
   color: var(--text-secondary) !important;
 }
 
-/* â”€â”€ Universal Header, Modal, Cart & Card Alignment Light Enforcement â”€â”€ */
+/* Căn chỉnh đầu trang cửa sổ và giỏ hàng chế độ sáng */
 .header-user-btn,
 [data-theme="light"] .header-user-btn,
 html.light .header-user-btn {
@@ -1770,7 +1749,7 @@ html.light .header-user-btn {
   border: 1px solid var(--border-color) !important;
 }
 
-/* â”€â”€ STRICT CARD BALANCE & EQUAL HEIGHT (CÃ¢n báº±ng tháº» tuyá»‡t Ä‘á»‘i, khÃ´ng lá»‡ch dÃ²ng) â”€â”€ */
+/* Chiều cao thẻ đồng đều và cân đối */
 .service-card-item,
 .product-nordic-card,
 .stylist-nordic-card,
@@ -1793,7 +1772,7 @@ html.light .header-user-btn {
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
 }
 
-/* Äáº£m báº£o tháº» con dÃ­nh Ä‘Ã¡y Ä‘á»u nhau */
+/* Đảm bảo phần đáy thẻ thẳng hàng */
 .service-card-item > div:first-child,
 .product-nordic-card > div:first-child,
 .stylist-nordic-card > div:first-child,
@@ -1817,7 +1796,7 @@ html.light .header-user-btn {
   border-color: var(--brand-accent) !important;
 }
 
-/* Dark mode explicit card guards */
+/* Khóa kiểu dáng thẻ cho chế độ tối */
 [data-theme="dark"] .service-card-item,
 [data-theme="dark"] .product-nordic-card,
 [data-theme="dark"] .stylist-nordic-card,
@@ -1860,7 +1839,7 @@ html.light .header-user-btn {
   color: var(--text-secondary) !important;
 }
 
-/* Light mode explicit card guards */
+/* Khóa kiểu dáng thẻ cho chế độ sáng */
 [data-theme="light"] .service-card-item,
 [data-theme="light"] .product-nordic-card,
 [data-theme="light"] .stylist-nordic-card,
@@ -1903,12 +1882,12 @@ html.light .header-user-btn {
   color: var(--text-secondary) !important;
 }
 
-/* ── Web Mobile Responsive Bottom Navigation Bar & Mobile Header ── */
+/* Thanh điều hướng đáy và đầu trang trên di động */
 .mobile-bottom-nav {
   display: none;
 }
 @media (max-width: 768px) {
-  /* Ẩn thanh menu desktop ở header trên mobile, ưu tiên thanh điều hướng dưới đáy (Web Mobile) */
+  /* Ẩn menu ngang trên thiết bị di động */
   .web-nav-links {
     display: none !important;
   }
@@ -1977,17 +1956,15 @@ html.light .header-user-btn {
     line-height: 1;
     transition: transform 0.2s ease;
   }
-  /* Bù khoảng trống cuối trang cho mobile bottom nav */
+  /* Khoảng cách bù cho thanh điều hướng đáy */
   body {
     padding-bottom: 76px !important;
   }
 }
 
 
-/* ==================== MODULE: common.css ==================== */
-/* =========================================================================
-   4. MODALS, BOOKING WIZARD & TOASTS
-   ========================================================================= */
+/* Thành phần dùng chung */
+/* Cửa sổ bật lên các bước đặt lịch và thông báo nhanh */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -2171,15 +2148,16 @@ textarea.form-control-custom {
 }
 
 .btn-submit-terracotta {
-  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
-  color: #000000 !important;
-  min-height: 48px !important;
+  background: linear-gradient(180deg, #F59E0B, #D97706) !important;
+  color: #09090B !important;
+  min-height: 44px !important;
   height: auto !important;
-  padding: 12px 24px !important;
-  border-radius: 12px !important;
-  font-size: 15px !important;
-  font-weight: 800 !important;
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45) !important;
+  padding: 10px 22px !important;
+  border-radius: 10px !important;
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
   transition: all 0.2s ease;
   display: inline-flex !important;
   align-items: center !important;
@@ -2188,10 +2166,10 @@ textarea.form-control-custom {
   box-sizing: border-box !important;
 }
 .btn-submit-terracotta:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 8px 28px rgba(245, 158, 11, 0.65) !important;
-  color: #000000 !important;
-  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25) !important;
+  color: #09090B !important;
+  transform: translateY(-1px);
 }
 
 .btn-cancel {
@@ -2222,7 +2200,7 @@ textarea.form-control-custom {
   color: #0F1015;
 }
 
-/* Booking Wizard Elements */
+/* Các thành phần trong bảng đặt lịch */
 .booking-header {
   text-align: center;
   margin-bottom: 20px;
@@ -2341,7 +2319,7 @@ textarea.form-control-custom {
   gap: 10px;
 }
 
-/* Success & Invoices */
+/* Hóa đơn và kết quả thành công */
 .booking-success-box {
   text-align: center;
   padding: 10px;
@@ -2394,7 +2372,7 @@ textarea.form-control-custom {
   font-weight: 900 !important;
 }
 
-/* Drawer Giỏ Hàng */
+/* Ngăn kéo giỏ hàng */
 .cart-drawer-shell {
   position: fixed;
   top: 0;
@@ -2509,7 +2487,7 @@ textarea.form-control-custom {
   background: var(--surface-elevated, #161A26);
 }
 
-/* Google Play Store Modal (Mô phỏng CH Play thật) */
+/* Cửa sổ mô phỏng tải ứng dụng */
 .playstore-modal-surface {
   padding: 8px;
 }
@@ -2591,7 +2569,7 @@ textarea.form-control-custom {
 
 
 
-/* Admin Panel Table */
+/* Bảng dữ liệu quản trị */
 .admin-full-wrapper {
   max-width: 1560px;
   width: 100%;
@@ -2694,7 +2672,7 @@ textarea.form-control-custom {
 .log-time { color: #888; }
 .log-action { color: var(--color-terracotta); }
 
-/* Toast Notifications */
+/* Thông báo nổi nhanh */
 .toast-container {
   position: fixed;
   bottom: 24px;
@@ -2742,11 +2720,9 @@ textarea.form-control-custom {
   background: #111111;
 }
 
-/* =========================================================================
-   2026 MODERN UI ENHANCEMENTS & GLASSMORPHISM
-   ========================================================================= */
+/* Nâng cấp giao diện kính mờ hiện đại */
 
-/* 1. Thanh thông báo trên cùng của bản Web - Đã bỏ theo yêu cầu */
+/* Thanh thông báo đầu trang */
 .web-top-announcement-bar {
   display: none !important;
 }
@@ -2825,7 +2801,7 @@ textarea.form-control-custom {
   box-shadow: 0 4px 12px rgba(200, 90, 68, 0.35);
 }
 
-/* Card Hover 3D & Modern Micro-interactions */
+/* Tương tác khi rê chuột lên thẻ */
 .product-item-card, .underground-feature-card, .underground-side-card, .branch-pill-button {
   transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
 }
@@ -2838,7 +2814,7 @@ textarea.form-control-custom {
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.12);
 }
 
-/* Pulse animation */
+/* Hiệu ứng nhịp đập */
 @keyframes pulseGlow {
   0% { box-shadow: 0 0 0 0 rgba(200, 90, 68, 0.5); }
   70% { box-shadow: 0 0 0 10px rgba(200, 90, 68, 0); }
@@ -2848,9 +2824,7 @@ textarea.form-control-custom {
   animation: pulseGlow 2s infinite;
 }
 
-/* =========================================================================
-   AI PHOTO RESTYLE VISION STUDIO MODAL STYLES
-   ========================================================================= */
+/* Giao diện thử kiểu tóc thông minh */
 .ai-restyle-modal-box {
   background: #141417;
   color: #ffffff;
@@ -2875,7 +2849,7 @@ textarea.form-control-custom {
   }
 }
 
-/* Viewport column (Dropzone, Scan, Compare) */
+/* Cột hiển thị ảnh so sánh và quét */
 .ai-viewport-column {
   background: #1a1a1f;
   border-radius: 16px;
@@ -2886,7 +2860,7 @@ textarea.form-control-custom {
   justify-content: center;
 }
 
-/* Upload Dropzone */
+/* Vùng tải ảnh lên */
 .ai-upload-dropzone {
   border: 2px dashed rgba(200, 90, 68, 0.45);
   border-radius: 14px;
@@ -2930,7 +2904,7 @@ textarea.form-control-custom {
   border-color: var(--color-terracotta);
 }
 
-/* Ready preview */
+/* Khung xem trước ảnh */
 .ready-img-wrap {
   position: relative;
   border-radius: 14px;
@@ -2966,7 +2940,7 @@ textarea.form-control-custom {
   font-weight: 700;
 }
 
-/* AI Scan Processing Animation */
+/* Hiệu ứng quét tạo mẫu tóc */
 .ai-processing-container {
   text-align: center;
   padding: 10px;
@@ -3019,7 +2993,7 @@ textarea.form-control-custom {
   font-weight: 600;
 }
 
-/* Interactive Before / After Comparison Slider */
+/* Thanh trượt so sánh trước và sau */
 .ai-compare-slider-shell {
   display: flex;
   flex-direction: column;
@@ -3099,7 +3073,7 @@ textarea.form-control-custom {
   margin-top: 4px;
 }
 
-/* Controls Column */
+/* Cột tùy chọn điều khiển */
 .ai-controls-column {
   display: flex;
   flex-direction: column;
@@ -3122,7 +3096,7 @@ textarea.form-control-custom {
   font-size: 11px;
 }
 
-/* Style cards grid */
+/* Lưới chọn kiểu tóc */
 .style-cards-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -3156,7 +3130,7 @@ textarea.form-control-custom {
   box-shadow: 0 0 10px rgba(200, 90, 68, 0.3);
 }
 
-/* Color swatches */
+/* Bảng chọn màu tóc */
 .color-swatches-grid {
   display: flex;
   flex-wrap: wrap;
@@ -3190,7 +3164,7 @@ textarea.form-control-custom {
   border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-/* Custom Prompt Input */
+/* Ô nhập mô tả tùy biến */
 .ai-custom-input {
   width: 100%;
   background: #1c1c20;
@@ -3206,7 +3180,7 @@ textarea.form-control-custom {
   box-shadow: 0 0 8px rgba(200, 90, 68, 0.3);
 }
 
-/* API Settings Collapsible */
+/* Phần cài đặt kết nối */
 .ai-api-toggle-row {
   margin-top: 12px;
   text-align: right;
@@ -3245,7 +3219,7 @@ textarea.form-control-custom {
   outline: none;
 }
 
-/* Action Buttons */
+/* Các nút thao tác */
 .ai-action-buttons-wrap {
   margin-top: auto;
   padding-top: 18px;
@@ -3289,9 +3263,7 @@ textarea.form-control-custom {
   box-shadow: 0 6px 20px rgba(200, 90, 68, 0.4);
 }
 
-/* =========================================================================
-   WEB NAVIGATION HIGHLIGHTS
-   ========================================================================= */
+/* Điểm nhấn thanh điều hướng */
 .web-nav-links .nav-link.text-highlight {
   color: var(--color-terracotta) !important;
   font-weight: 800;
@@ -3302,9 +3274,7 @@ textarea.form-control-custom {
   border-bottom: 2px solid var(--color-terracotta);
 }
 
-/* =========================================================================
-   ADMIN NAV LINK STYLES (EXCLUSIVE FOR STAFF/ADMIN)
-   ========================================================================= */
+/* Nút điều hướng dành cho nhân viên và quản lý */
 
 .web-nav-links .nav-link-admin {
   color: #d4af37 !important;
@@ -3329,13 +3299,9 @@ html.light .web-nav-links .nav-link-admin {
 }
 
 
-/* =========================================================================
-   5. MODERN HIGH-END SALON & SPA INDEPENDENT UI COMPONENTS
-   (Deep Slate #0F1015, Surface #1A1D26, Border 1px #2A2F3D, Gold #D4AF37)
-   Radius 12px - 16px | Typography: Plus Jakarta Sans / Inter / Roboto
-   ========================================================================= */
+/* Các thành phần giao diện salon cao cấp */
 
-/* ── A. StylistCard Component ── */
+/* Thẻ thợ tạo mẫu */
 .md3-stylist-card,
 .luxury-stylist-card {
   background: var(--color-surface-card, #1A1D26) !important;
@@ -3455,7 +3421,7 @@ html.light .web-nav-links .nav-link-admin {
   justify-content: center;
 }
 
-/* ── B. BookingSlotPicker Component ── */
+/* Khung chọn giờ hẹn */
 .booking-slot-picker {
   display: flex;
   flex-direction: column;
@@ -3546,7 +3512,7 @@ button.disabled {
   box-shadow: none !important;
 }
 
-/* ── C. StatCard Component (Admin Dashboard) ── */
+/* Thẻ chỉ số thống kê quản trị */
 .luxury-stat-card {
   background: var(--color-surface-card, #10131C);
   border: 1px solid var(--color-border-thin, rgba(212, 175, 55, 0.15));
@@ -3624,7 +3590,7 @@ button.disabled {
   margin-bottom: 24px;
 }
 
-/* ── D. Stepper Bar (4 Bước Độc Lập - Nordic Luxury Edition) ── */
+/* Thanh tiến trình bốn bước đặt lịch */
 .booking-stepper-bar {
   display: flex;
   align-items: center;
@@ -3743,7 +3709,7 @@ button.disabled {
   }
 }
 
-/* ── Wizard Panels (Fade Slide Ngang) ── */
+/* Khung nội dung các bước đặt lịch */
 .wizard-step-panel {
   display: none;
 }
@@ -3752,7 +3718,7 @@ button.disabled {
   animation: fadeSlideIn 0.3s var(--ease-spring) forwards;
 }
 
-/* ── Horizontal Date Scroll ── */
+/* Thanh cuộn ngang chọn ngày */
 .app-date-scroll {
   display: flex;
   gap: 8px;
@@ -3794,7 +3760,7 @@ button.disabled {
   font-weight: 800;
 }
 
-/* ── Digital Invoice Summary Card ── */
+/* Thẻ tóm tắt hóa đơn điện tử */
 .digital-invoice-card {
   background: #10121A;
   border: 1px solid var(--color-border-glass);
@@ -3858,7 +3824,7 @@ button.disabled {
   letter-spacing: -0.02em;
 }
 
-/* ── Button Auto-Select Stylist ── */
+/* Nút tự động chọn thợ cắt */
 .btn-auto-stylist {
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(229, 184, 105, 0.08));
   color: var(--color-accent-gold);
@@ -3880,7 +3846,7 @@ button.disabled {
   box-shadow: 0 0 16px rgba(212, 175, 55, 0.3);
 }
 
-/* ── Service Selection Grid & Tick ── */
+/* Lưới chọn dịch vụ */
 .service-select-card {
   position: relative;
   background: #14171F;
@@ -3922,7 +3888,7 @@ button.disabled {
   color: #0A0B0E;
 }
 
-/* ── Modern High-End Salon & Spa: Stylist Timeline Column View ── */
+/* Lịch làm việc của thợ theo cột thời gian */
 .stylist-timeline-board {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -4052,12 +4018,10 @@ button.disabled {
 
 
 
-/* ==================== MODULE: web.css ==================== */
-/* =========================================================================
-   1. GIAO DIỆN WEB (1:1 VỚI THIẾT KẾ Omni Salon)
-   ========================================================================= */
+/* Bố cục giao diện bản máy tính */
+/* Giao diện chính Omni Salon */
 
-/* Header Web */
+/* Thanh đầu trang */
 .web-main-header {
   width: 100% !important;
   max-width: 100% !important;
@@ -4098,7 +4062,7 @@ button.disabled {
   }
 }
 
-/* Cụm trái: Logo Omni Salon + Slogan nhỏ */
+/* Cụm biểu tượng thương hiệu và khẩu hiệu */
 .brand-logo-wrap {
   display: flex;
   flex-direction: column;
@@ -4129,7 +4093,7 @@ button.disabled {
   margin-top: 2px;
 }
 
-/* Cụm giữa: Menu điều hướng căn giữa tuyệt đối, gap đều nhau gap-8 (2rem) */
+/* Cụm menu điều hướng chính giữa */
 .web-nav-links {
   display: flex;
   align-items: center;
@@ -4223,7 +4187,7 @@ button.disabled {
   font-weight: 800;
 }
 
-/* Cụm phải: Thanh tìm kiếm w-48 + Giỏ hàng + Đổi Theme + User Dropdown */
+/* Cụm tiện ích tìm kiếm giỏ hàng và tài khoản */
 .web-header-actions {
   display: flex;
   align-items: center;
@@ -4232,7 +4196,7 @@ button.disabled {
   flex: 0 0 auto;
 }
 
-/* OmniSalon Header Action Buttons (Cart & Theme Toggle) */
+/* Các nút thao tác trên thanh đầu trang */
 .header-action-btn {
   display: inline-flex;
   align-items: center;
@@ -4261,7 +4225,7 @@ button.disabled {
   transform: translateY(0);
 }
 
-/* Badge đếm số lượng giỏ hàng trên Header Action Button */
+/* Huy hiệu hiển thị số lượng giỏ hàng */
 .header-action-btn .cart-badge-count {
   position: absolute;
   top: -4px;
@@ -4283,7 +4247,7 @@ button.disabled {
   pointer-events: none;
 }
 
-/* Biểu tượng Sáng / Tối tự động chuyển theo Theme */
+/* Biểu tượng tự chuyển đổi theo giao diện sáng tối */
 [data-theme="dark"] .theme-icon-sun,
 .dark .theme-icon-sun {
   display: block !important;
@@ -4304,7 +4268,7 @@ button.disabled {
   display: block !important;
 }
 
-/* Mini Cart Dropdown Wrapper & Popup (4RAU Style) */
+/* Bảng giỏ hàng thu nhỏ khi rê chuột */
 .header-cart-menu-wrapper {
   position: relative;
   display: inline-block;
@@ -4345,7 +4309,7 @@ button.disabled {
   }
 }
 
-/* Danh sách sản phẩm trong Mini Cart */
+/* Danh sách sản phẩm trong giỏ hàng thu nhỏ */
 .mini-cart-items-list {
   display: flex;
   flex-direction: column;
@@ -4520,7 +4484,7 @@ button.disabled {
   background: #fbbf24;
 }
 
-/* Empty State */
+/* Trạng thái giỏ hàng trống */
 .mini-cart-empty {
   padding: 24px 12px;
   text-align: center;
@@ -4548,7 +4512,7 @@ button.disabled {
   transform: translateY(-1px);
 }
 
-/* User Menu Wrapper & Dropdown */
+/* Khung menu tài khoản người dùng */
 .header-user-menu-wrapper {
   position: relative;
   display: inline-block;
@@ -4621,7 +4585,7 @@ button.disabled {
   transform: rotate(180deg);
 }
 
-/* User Dropdown Menu Card (Nordic Glassmorphism) */
+/* Bảng tùy chọn tài khoản người dùng */
 .header-user-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -4650,7 +4614,7 @@ button.disabled {
   display: flex !important;
 }
 
-/* User Dropdown Header */
+/* Phần đầu menu tài khoản */
 .dropdown-user-header {
   display: flex;
   align-items: center;
@@ -4667,7 +4631,7 @@ button.disabled {
   text-overflow: ellipsis;
 }
 
-/* Dropdown Item Button */
+/* Mục chọn trong menu tài khoản */
 .dropdown-item-btn {
   width: 100% !important;
   height: 44px !important;
@@ -4692,7 +4656,7 @@ button.disabled {
   transform: translateY(-1px);
 }
 
-/* Branch Selector Card */
+/* Thẻ chọn chi nhánh */
 .dropdown-branch-pill {
   width: 100% !important;
   box-sizing: border-box !important;
@@ -4713,7 +4677,7 @@ button.disabled {
   color: var(--brand-accent);
 }
 
-/* Primary Amber Gold Button (Đăng Nhập / Đăng Ký) */
+/* Nút đăng nhập hoặc đăng ký */
 .dropdown-primary-btn {
   width: 100% !important;
   height: 46px !important;
@@ -4739,7 +4703,7 @@ button.disabled {
   box-shadow: 0 6px 18px rgba(245, 158, 11, 0.45) !important;
 }
 
-/* Admin Button */
+/* Nút trang quản trị */
 .dropdown-admin-btn {
   width: 100% !important;
   height: 44px !important;
@@ -4781,7 +4745,7 @@ button.disabled {
   opacity: 0.7 !important;
 }
 
-/* Logout danger button */
+/* Nút đăng xuất */
 .dropdown-logout-btn {
   width: 100% !important;
   height: 42px !important;
@@ -4813,7 +4777,7 @@ button.disabled {
   }
 }
 
-/* User Dropdown Root Utility Classes */
+/* Lớp hỗ trợ menu người dùng */
 .bg-\[\#11141D\] { background-color: #11141D !important; }
 .bg-\[\#181D2A\] { background-color: #181D2A !important; }
 .bg-\[\#1E2435\] { background-color: #1E2435 !important; }
@@ -4952,7 +4916,7 @@ button.disabled {
   border-radius: 10px !important;
 }
 
-/* Nút Tra cứu & Quản trị ngoài header (nếu xuất hiện) */
+/* Nút tra cứu ngoài thanh đầu trang */
 .header-lookup-btn {
   background: var(--surface-card, #10131C);
   border: 1px solid rgba(212, 175, 55, 0.2);
@@ -5071,7 +5035,7 @@ button.disabled {
 }
 
 
-/* ── 1. Hero Section với 2 nút [ĐẶT LỊCH] và [MUA SẮM] (Ảnh ngon.png) ── */
+/* Khối mở đầu trang chủ có nút đặt lịch và mua sắm */
 .web-hero-section {
   position: relative;
   width: 100%;
@@ -5198,7 +5162,7 @@ button.disabled {
   box-shadow: 0 6px 20px rgba(255, 255, 255, 0.25);
 }
 
-/* ── Section Container & Heading Chung ── */
+/* Khung chứa và tiêu đề chung cho các phần */
 .section-container {
   width: 100% !important;
   max-width: 100% !important;
@@ -5227,7 +5191,7 @@ button.disabled {
 }
 
 
-/* ── 2. Bạn Đến Nhà (Gallery khoảnh khắc) ── */
+/* Thư viện hình ảnh khoảnh khắc khách hàng */
 .moments-horizontal-scroll {
   display: flex;
   gap: 12px;
@@ -5258,7 +5222,7 @@ button.disabled {
 }
 
 
-/* ── 3 & 4. Lưới Sản Phẩm Mới & Bán Chạy (5 Cột chuẩn ảnh ngon.png) ── */
+/* Lưới sản phẩm mới và bán chạy năm cột */
 .products-grid-5 {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -5346,7 +5310,7 @@ button.disabled {
 }
 
 
-/* ── 5. Tin Tóc Underground (Chuẩn ảnh ngon.png) ── */
+/* Tin tức xu hướng tóc */
 .underground-top-layout {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
@@ -5479,7 +5443,7 @@ button.disabled {
 }
 
 
-/* ── 6. Khám Phá Hệ Thống Chi Nhánh OMNI (Chuẩn ảnh ngon.png) ── */
+/* Khám phá hệ thống chi nhánh salon */
 .branches-split-layout {
   display: grid;
   grid-template-columns: 1fr 2fr;
@@ -5597,7 +5561,7 @@ button.disabled {
 }
 
 
-/* ── 7. Tác Phẩm Trong Tháng (Hairstyles Showcase) ── */
+/* Bộ sưu tập mẫu tóc nổi bật trong tháng */
 .hairstyles-showcase-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -5637,7 +5601,7 @@ button.disabled {
 }
 
 
-/* ── 9. Our Service (Continuous Ticker) ── */
+/* Dòng chữ chạy giới thiệu dịch vụ */
 .services-ticker-container {
   overflow: hidden;
   width: 100%;
@@ -5684,7 +5648,7 @@ button.disabled {
 }
 
 
-/* ── 10. Video Ngắn Hay Nhất ── */
+/* Video ngắn nổi bật */
 .videos-preview-row {
   display: flex;
   gap: 16px;
@@ -5738,7 +5702,7 @@ button.disabled {
 }
 
 
-/* ── 11. Các Hợp Tác Thương Hiệu (6 Hộp xám đậm ngon.png) ── */
+/* Các đối tác thương hiệu hợp tác */
 .collab-boxes-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -5778,7 +5742,7 @@ button.disabled {
 }
 
 
-/* ── 12. Footer Web ── */
+/* Chân trang trang web */
 .web-footer {
   background: var(--color-footer-bg);
   color: #ffffff;
@@ -5832,11 +5796,9 @@ button.disabled {
   padding-top: 20px;
 }
 
-/* =========================================================================
-   13. MODERN WEB ENHANCEMENTS: LIVE SEARCH, HERO BADGES & FAQ
-   ========================================================================= */
+/* Nâng cấp tìm kiếm trực tiếp và câu hỏi thường gặp */
 
-/* Live Search Bar on Web Header */
+/* Thanh tìm kiếm nhanh trên thanh đầu trang */
 .web-search-box-wrap {
   position: relative;
   width: 190px;
@@ -5945,7 +5907,7 @@ button.disabled {
   font-weight: 800;
 }
 
-/* Hero Floating Badges */
+/* Huy hiệu nổi bật */
 .hero-floating-badges {
   display: flex;
   justify-content: center;
@@ -5981,7 +5943,7 @@ button.disabled {
   box-shadow: 0 0 8px rgba(200, 90, 68, 0.8);
 }
 
-/* Services Explorer & Filter Tabs */
+/* Bộ lọc và khám phá dịch vụ */
 .services-category-bar {
   display: flex;
   gap: 8px;
@@ -6052,7 +6014,7 @@ button.disabled {
 }
 .service-card-cover-wrap {
   width: 100% !important;
-  height: 192px !important; /* h-48 */
+  height: 192px !important; /* Chiều cao cố định */
   position: relative !important;
   overflow: hidden !important;
   background: #0B0D13;
@@ -6151,7 +6113,7 @@ button.disabled {
   transform: scale(0.98) !important;
 }
 
-/* FAQ Accordion */
+/* Danh sách câu hỏi thường gặp dạng gấp mở */
 .faq-accordion-list {
   max-width: 860px;
   margin: 0 auto;
@@ -6202,9 +6164,528 @@ button.disabled {
   display: block;
 }
 
-/* =========================================================================
-   14. TRUNG TÂM QUẢN TRỊ SALON SIÊU HIỆN ĐẠI (ADMIN ENTERPRISE HUB)
-   ========================================================================= */
+/* Trung tâm quản trị salon */
+
+/* Bố cục bảng điều hành quản trị với menu dọc chính thức */
+.admin-dashboard-layout {
+  display: flex;
+  width: 100%;
+  min-height: calc(100vh - 72px);
+  background-color: var(--bg-primary, #0A0A0B);
+  color: var(--text-primary, #F4F4F5);
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Lớp phủ mờ trên màn hình nhỏ */
+.admin-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 2800;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.admin-sidebar-overlay.open {
+  display: block;
+  opacity: 1;
+}
+
+/* Khung menu dọc quản trị */
+.admin-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--surface-card, #121214);
+  border-right: 1px solid var(--border-color, #222225);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 72px;
+  height: calc(100vh - 72px);
+  z-index: 100;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease;
+}
+
+/* Phần đầu menu dọc */
+.admin-sidebar-header {
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color, #222225);
+}
+
+.admin-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-brand-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #D97706;
+  color: #000000;
+  font-weight: 900;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.02em;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+
+.admin-brand-name {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: var(--text-primary, #F4F4F5);
+  line-height: 1.2;
+}
+
+.admin-brand-desc {
+  font-size: 11px;
+  color: var(--text-muted, #71717A);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.admin-sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #A1A1AA);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.admin-sidebar-close-btn:hover {
+  color: var(--text-primary, #F4F4F5);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Thẻ thông tin nhân sự trong menu */
+.admin-sidebar-user-box {
+  margin: 16px 16px 8px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--surface-elevated, #18181B);
+  border: 1px solid var(--border-color, #222225);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-user-avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #D97706;
+  color: #000000;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-user-fullname {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-primary, #F4F4F5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-user-badge-pill {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #D97706;
+  margin-top: 3px;
+  background: rgba(217, 119, 6, 0.12);
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.admin-sidebar-branch-info {
+  padding: 8px 18px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary, #A1A1AA);
+  border-bottom: 1px solid var(--border-color, #222225);
+}
+
+.admin-sidebar-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  flex-shrink: 0;
+}
+
+.admin-sidebar-branch-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+/* Danh mục các mục điều hướng dọc */
+.admin-sidebar-nav-container {
+  padding: 16px 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.admin-sidebar-nav-group {
+  margin-bottom: 14px;
+}
+
+.admin-sidebar-nav-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--text-muted, #71717A);
+  letter-spacing: 0.08em;
+  padding: 0 10px 8px;
+}
+
+.admin-sidebar-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-sidebar-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary, #A1A1AA);
+  font-size: 13.5px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.admin-sidebar-nav-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary, #F4F4F5);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+html.light .admin-sidebar-nav-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary, #0F172A);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.admin-sidebar-nav-item.active {
+  background: rgba(217, 119, 6, 0.12);
+  color: #D97706 !important;
+  border-color: rgba(217, 119, 6, 0.35);
+  font-weight: 800;
+}
+
+.admin-nav-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.admin-nav-item-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-nav-item-indicator {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: #D97706;
+}
+
+/* Chân menu dọc */
+.admin-sidebar-footer {
+  padding: 14px;
+  border-top: 1px solid var(--border-color, #222225);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface-card, #121214);
+}
+
+.admin-sidebar-footer-btn {
+  width: 100%;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+}
+
+.admin-sidebar-footer-btn.action-return {
+  background: rgba(217, 119, 6, 0.15);
+  color: #D97706;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+.admin-sidebar-footer-btn.action-return:hover {
+  background: #D97706;
+  color: #000000;
+}
+
+.admin-sidebar-footer-btn.action-reset {
+  background: var(--surface-elevated, #18181B);
+  color: var(--text-secondary, #A1A1AA);
+  border-color: var(--border-color, #222225);
+}
+.admin-sidebar-footer-btn.action-reset:hover {
+  color: var(--text-primary, #F4F4F5);
+  border-color: #71717A;
+}
+
+.admin-sidebar-system-version {
+  font-size: 10.5px;
+  color: var(--text-muted, #71717A);
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* Vùng nội dung chính của bảng quản trị */
+.admin-main-viewport {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px 80px;
+  box-sizing: border-box;
+  background: var(--bg-primary, #0A0A0B);
+}
+
+/* Thanh đầu trang trong khu vực nội dung */
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color, #222225);
+  flex-wrap: wrap;
+}
+
+.admin-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-mobile-menu-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--surface-elevated, #18181B);
+  border: 1px solid var(--border-color, #222225);
+  color: var(--text-primary, #F4F4F5);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.admin-topbar-breadcrumbs {
+  font-size: 12px;
+  color: var(--text-muted, #71717A);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.admin-topbar-breadcrumbs .crumb-sep {
+  opacity: 0.5;
+}
+.admin-topbar-breadcrumbs .crumb-active {
+  color: #D97706;
+  font-weight: 600;
+}
+
+.admin-topbar-heading {
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 900;
+  color: var(--text-primary, #F4F4F5);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.admin-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-topbar-branch-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--surface-elevated, #18181B);
+  border: 1px solid var(--border-color, #222225);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary, #F4F4F5);
+}
+
+.admin-topbar-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-size: 12px;
+  font-weight: 700;
+  color: #10B981;
+}
+
+.status-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px #10B981;
+  display: inline-block;
+}
+
+.admin-topbar-home-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: #D97706;
+  color: #000000;
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-topbar-home-btn:hover {
+  background: #F59E0B;
+}
+
+/* Khung chứa nội dung subtab */
+.admin-subtab-container {
+  width: 100%;
+}
+
+/* Điều chỉnh tương thích màn hình vừa và nhỏ */
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 290px;
+    max-width: 85vw;
+    height: 100vh;
+    z-index: 3000;
+    transform: translateX(-100%);
+    box-shadow: 12px 0 32px rgba(0, 0, 0, 0.6);
+  }
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+  .admin-sidebar-close-btn {
+    display: block;
+  }
+  .admin-mobile-menu-toggle {
+    display: flex;
+  }
+  .admin-main-viewport {
+    padding: 16px 16px 80px;
+  }
+}
+
+/* Hỗ trợ chế độ sáng */
+html.light .admin-dashboard-layout {
+  background-color: var(--bg-primary, #F3F4F6);
+  color: var(--text-primary, #0F172A);
+}
+html.light .admin-sidebar {
+  background: var(--surface-card, #FFFFFF);
+  border-right-color: var(--border-color, #E2E8F0);
+}
+html.light .admin-sidebar-header,
+html.light .admin-sidebar-branch-info,
+html.light .admin-sidebar-footer,
+html.light .admin-topbar {
+  border-color: var(--border-color, #E2E8F0);
+}
+html.light .admin-sidebar-user-box {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+}
+html.light .admin-main-viewport {
+  background: var(--bg-primary, #F3F4F6);
+}
+html.light .admin-topbar-branch-badge {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+}
+html.light .admin-mobile-menu-toggle {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+}
+
 
 .admin-full-wrapper {
   max-width: 1560px;
@@ -6214,7 +6695,7 @@ button.disabled {
   box-sizing: border-box;
 }
 
-/* Top Hub Header */
+/* Đầu trang trung tâm quản trị */
 .admin-hub-header {
   background: var(--surface-card, #121216);
   color: var(--text-primary, #ffffff);
@@ -6239,7 +6720,7 @@ button.disabled {
   line-height: 1.25;
 }
 
-/* Admin Sub Navigation Tabs Bar */
+/* Thanh chuyển đổi các tab quản trị */
 .admin-subnav-bar {
   display: flex;
   gap: 12px;
@@ -6272,7 +6753,7 @@ button.disabled {
   border-bottom-color: var(--brand-accent, #F59E0B);
 }
 
-/* High-Contrast KPI Cards Grid */
+/* Lưới thẻ chỉ số quan trọng */
 .admin-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -6349,7 +6830,7 @@ button.disabled {
   gap: 6px;
 }
 
-/* SVG Chart Layout (Doanh Thu & Tỉ Lệ Dịch Vụ) */
+/* Biểu đồ doanh thu và cơ cấu dịch vụ */
 .admin-analytics-split {
   display: grid;
   grid-template-columns: 1.7fr 1.3fr;
@@ -6382,14 +6863,14 @@ button.disabled {
   gap: 8px;
 }
 
-/* SVG Weekly Bar Chart */
+/* Biểu đồ cột theo tuần */
 .svg-bar-chart-container {
   width: 100%;
   height: 210px;
   position: relative;
 }
 
-/* Progress Gauges Breakdown */
+/* Đồng hồ đo tiến độ */
 .popularity-gauge-list {
   display: flex;
   flex-direction: column;
@@ -6420,7 +6901,7 @@ button.disabled {
   transition: width 0.6s ease;
 }
 
-/* Modern Data Tables */
+/* Bảng dữ liệu quản trị */
 .admin-table-container {
   background: var(--surface-card, #10131C);
   border: 1px solid var(--border-color, rgba(212, 175, 55, 0.15));
@@ -6497,7 +6978,7 @@ html.light .admin-enterprise-table tr:hover td,
   background: #f8fafc;
 }
 
-/* Status Badges with Pulse Dot */
+/* Huy hiệu trạng thái có chấm nhấp nháy */
 .status-pill-pulse {
   display: inline-flex;
   align-items: center;
@@ -6545,7 +7026,7 @@ html.light .admin-enterprise-table tr:hover td,
   background: #ef4444;
 }
 
-/* Stock Warning Tags */
+/* Thẻ cảnh báo tồn kho */
 .stock-badge-safe {
   background: rgba(16, 185, 129, 0.16);
   color: #10b981;
@@ -6588,7 +7069,7 @@ html.light .admin-enterprise-table tr:hover td,
   50% { opacity: 0.65; }
 }
 
-/* Lookup Modal Shell */
+/* Khung cửa sổ tra cứu */
 .lookup-card-result {
   background: #f8f9fa;
   border: 1px solid #e2e4e8;
@@ -6597,11 +7078,9 @@ html.light .admin-enterprise-table tr:hover td,
   margin-top: 14px;
 }
 
-/* =========================================================================
-   2. TRUNG TÂM QUẢN TRỊ SALON: POS CASHIER & CATALOG CRUD & PORTAL
-   ========================================================================= */
+/* Quầy thu ngân và quản lý danh mục */
 
-/* POS Cashier 2-Column Layout */
+/* Bố cục quầy thu ngân hai cột */
 .pos-cashier-grid {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
@@ -6744,7 +7223,7 @@ html.light .admin-enterprise-table tr:hover td,
   box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
 }
 
-/* Customer Portal Modal Styles */
+/* Cửa sổ cổng thông tin khách hàng */
 .portal-profile-hero {
   background: linear-gradient(135deg, #1c1b18 0%, #2e2825 100%);
   color: #ffffff;
@@ -6778,7 +7257,7 @@ html.light .admin-enterprise-table tr:hover td,
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-/* Header Role Badges (Huy hiệu vai trò trên Header) */
+/* Huy hiệu vai trò tài khoản */
 .header-role-badge {
   display: inline-flex;
   align-items: center;
@@ -6816,7 +7295,7 @@ html.light .admin-enterprise-table tr:hover td,
   color: #0B0D13;
 }
 
-/* Header Admin Button Variants */
+/* Các biến thể nút quản trị */
 .header-admin-pill-btn.admin-guest {
   opacity: 0.85;
   border-style: dashed;
@@ -6834,7 +7313,7 @@ html.light .admin-enterprise-table tr:hover td,
   transform: none;
 }
 
-/* Customer Portal Tabs Bar */
+/* Thanh tab cổng thông tin khách hàng */
 .portal-nav-tabs::-webkit-scrollbar {
   height: 4px;
 }
@@ -6875,7 +7354,7 @@ html.light .admin-enterprise-table tr:hover td,
   border-radius: 3px 3px 0 0;
 }
 
-/* AI Gallery Cards */
+/* Thẻ bộ sưu tập ảnh tạo kiểu */
 .portal-ai-card {
   transition: all 0.25s ease;
 }
@@ -6885,14 +7364,12 @@ html.light .admin-enterprise-table tr:hover td,
   border-color: var(--color-terracotta);
 }
 
-/* Order Status Timeline */
+/* Dòng thời gian trạng thái đơn hàng */
 .order-status-timeline {
   user-select: none;
 }
 
-/* =========================================================================
-   3. ENTERPRISE ADMIN HUB POLISH & INTERACTION (TASK-07-WEB-ADMIN)
-   ========================================================================= */
+/* Tối ưu tương tác khu vực quản trị */
 .chart-bar-group:hover rect {
   opacity: 1 !important;
   filter: drop-shadow(0 4px 10px rgba(200, 90, 68, 0.4));
@@ -6931,16 +7408,9 @@ html.light .pos-bill-row:hover {
   }
 }
 
-/* =========================================================================
-   4. NEW INTERNATIONAL BOUTIQUE LAYOUTS (FRESHA / SEPHORA STANDARD)
-   - Split-Screen Hero & Floating Quick Booking
-   - Bento Grid Services Layout
-   - Stylist Slide-Over Drawer
-   - 65/35 Split Booking Wizard
-   - Admin Workstation Kanban Board
-   ========================================================================= */
+/* Bố cục giao diện salon theo phong cách hiện đại */
 
-/* ── A. Split-Screen Hero ── */
+/* Khối mở đầu chia hai cột */
 .web-hero-split {
   position: relative;
   min-height: 720px;
@@ -7027,7 +7497,7 @@ html.light .pos-bill-row:hover {
   letter-spacing: 0.05em;
 }
 
-/* Floating Quick Booking Widget */
+/* Khung đặt lịch nhanh dạng nổi */
 .quick-booking-card-floating {
   background: var(--surface-card);
   border: 1px solid var(--border-color);
@@ -7124,7 +7594,7 @@ html.light .pos-bill-row:hover {
   box-shadow: var(--shadow-gold-glow);
 }
 
-/* ── B. Services Bento Grid ── */
+/* Lưới bento hiển thị dịch vụ */
 .services-bento-grid {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
@@ -7215,7 +7685,7 @@ html.light .pos-bill-row:hover {
   color: var(--text-secondary);
 }
 
-/* ── C. Stylist Slide-Over Drawer ── */
+/* Ngăn kéo trượt hiển thị chi tiết thợ cắt */
 .stylist-drawer-backdrop {
   position: fixed;
   inset: 0;
@@ -7270,7 +7740,7 @@ html.light .pos-bill-row:hover {
   background: var(--surface-card);
 }
 
-/* ── D. 65/35 Split Booking Flow ── */
+/* Quy trình đặt lịch chia tỷ lệ cân đối */
 .booking-split-layout {
   display: grid;
   grid-template-columns: 1fr 380px;
@@ -7297,7 +7767,7 @@ html.light .pos-bill-row:hover {
   gap: 16px;
 }
 
-/* ── E. Admin Workstation Kanban Timeline Grid ── */
+/* Lưới điều phối ghế cắt theo thời gian */
 .admin-kanban-board {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -7388,20 +7858,10 @@ html.light .pos-bill-row:hover {
 
 
 
-/* ==================== MODULE: pages-3d.css ==================== */
-/* =========================================================================
-   Omni Salon — 3D SCENE & SIGNATURE MICRO-INTERACTIONS
-   WCAG AAA High-Contrast Edition:
-   - Deep Obsidian Black (#07080B)
-   - Surface Card (#10131C, 1px border: rgba(212, 175, 55, 0.15))
-   - Pure Snow White Headings (#FFFFFF, 700-800 font-weight)
-   - Light Slate Body Text (#CBD5E1)
-   - Radiant Champagne Gold (#F59E0B / #E5B869)
-   - Primary CTA: linear-gradient(135deg, #F59E0B, #D97706), text #000000 font-bold
-   - Spotlight Border Effect • Magnetic Buttons • Kinetic Marquee • Floating Showcase • Slot Ripple
-   ========================================================================= */
+/* Các hiệu ứng chuyển động và tương tác mượt mà */
+/* Hệ thống tương tác và bối cảnh thẩm mỹ */
 
-/* ── 1. PERSPECTIVE CONTAINER & 3D ROUTE TRANSITIONS ── */
+/* Khung chứa chiều sâu và chuyển trang */
 #webMainContainer,
 .page-perspective-wrapper {
   perspective: 1200px;
@@ -7415,7 +7875,7 @@ html.light .pos-bill-row:hover {
   overflow-x: hidden;
 }
 
-/* Base Page View Wrapper */
+/* Khung bao ngoài chế độ xem trang */
 .page-view {
   width: 100%;
   transform-style: preserve-3d;
@@ -7426,14 +7886,14 @@ html.light .pos-bill-row:hover {
   will-change: transform, opacity;
 }
 
-/* 3D Exit: Shrink slightly along Z-axis, move back, rotate and fade */
+/* Chuyển trang mượt mà */
 .page-exit {
   transform: scale(0.94) rotateY(-4deg) translateZ(-100px) !important;
   opacity: 0 !important;
   pointer-events: none !important;
 }
 
-/* Page Transitions: Smooth Fade, zero aggressive 3D rotation */
+/* Hiệu ứng chuyển trang mờ dần */
 .page-enter-init {
   opacity: 0;
 }
@@ -7444,7 +7904,7 @@ html.light .pos-bill-row:hover {
   transition: opacity 0.2s ease;
 }
 
-/* ── 2. STABLE HIGH-END CARD SYSTEM (KHÔNG CHAO ĐẢO / KHÔNG LẮC LƯ) ── */
+/* Hệ thống thẻ ổn định không chao đảo */
 .card-3d-tilt {
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -7465,7 +7925,7 @@ html.light .pos-bill-row:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-/* Spotlight Highlight Follower (Thẻ rọi đèn chuột) */
+/* Hiệu ứng ánh sáng rọi theo con trỏ chuột */
 .card-3d-glare,
 .card-spotlight {
   position: absolute;
@@ -7484,7 +7944,7 @@ html.light .pos-bill-row:hover {
   opacity: 1;
 }
 
-/* Dynamic Spotlight Border Highlight */
+/* Viền sáng nổi bật theo chuột */
 .card-3d-tilt::before {
   content: '';
   position: absolute;
@@ -7505,7 +7965,7 @@ html.light .pos-bill-row:hover {
   opacity: 1;
 }
 
-/* 3D Layer Float: Pops children elements out in 3D space */
+/* Chiều sâu nổi nhẹ các thành phần */
 .layer-3d-float {
   transform: translateZ(28px);
   -webkit-transform: translateZ(28px);
@@ -7517,7 +7977,7 @@ html.light .pos-bill-row:hover {
   -webkit-transform: translateZ(36px);
 }
 
-/* ── 2.1. CỐ ĐỊNH THẺ DỊCH VỤ ĐẶT LỊCH (LOẠI BỎ MÉO / CO GIẬT KHUNG) ── */
+/* Cố định thẻ dịch vụ không bị méo khung */
 .booking-service-card {
   position: relative !important;
   transform: none !important;
@@ -7534,26 +7994,26 @@ html.light .pos-bill-row:hover {
   justify-content: space-between !important;
 }
 
-/* Hover: Đứng yên hoàn toàn, không scale, không transform, chỉ đổi viền và nền nhẹ */
+/* Trạng thái rê chuột đổi màu viền nhẹ */
 .booking-service-card:hover {
   transform: none !important;
   border-color: rgba(251, 191, 36, 0.6) !important;
-  /* hover:border-amber-400/60 */
+  /* Màu viền khi rê chuột */
   background: #181D29 !important;
   box-shadow: 0 4px 16px rgba(251, 191, 36, 0.12) !important;
 }
 
-/* Thẻ được chọn (selected): Giữ nguyên kích thước và viền vàng amber-500 */
+/* Thẻ được chọn giữ nguyên kích thước và đổi viền màu hổ phách */
 .booking-service-card.selected,
 .booking-service-card.active {
   transform: none !important;
   border-color: #F59E0B !important;
-  /* amber-500 */
+  /* Màu hổ phách viền */
   background: rgba(245, 158, 11, 0.12) !important;
   box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25) !important;
 }
 
-/* ── 3. MAGNETIC BUTTON EFFECT (NÚT HÚT NAM CHÂM) ── */
+/* Nút bấm hút nhẹ theo con trỏ chuột */
 .btn-magnetic,
 .nordic-btn-primary,
 .nordic-btn-secondary,
@@ -7588,7 +8048,7 @@ html.light .pos-bill-row:hover {
   color: #000000 !important;
 }
 
-/* Nút CTA phụ (Khám Phá Dịch Vụ, Đội Ngũ Stylists): Nền Card nổi bật, viền sáng rõ, chữ trắng tuyết */
+/* Nút hành động phụ viền sáng rõ */
 .nordic-btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -7615,7 +8075,7 @@ html.light .pos-bill-row:hover {
   box-shadow: 0 6px 20px rgba(245, 158, 11, 0.25);
 }
 
-/* ── 4. KINETIC LUXURY MARQUEE (DÒNG CHỮ CHẠY VÔ TẬN - FULL BLEED 100%) ── */
+/* Dòng chữ chuyển động vô tận toàn chiều rộng */
 .kinetic-marquee-wrapper {
   overflow: hidden;
   white-space: nowrap;
@@ -7702,7 +8162,7 @@ html.light .pos-bill-row:hover {
   margin: 0 10px;
 }
 
-/* ── 5. FLOATING PARALLAX SHOWCASE ── */
+/* Khối hình ảnh nổi bật */
 @keyframes floatingLuxury {
 
   0%,
@@ -7720,7 +8180,7 @@ html.light .pos-bill-row:hover {
   will-change: transform;
 }
 
-/* ── 6. INTERACTIVE SLOT RIPPLE (HIỆU ỨNG SÓNG NƯỚC CHỌN KHUNG GIỜ) ── */
+/* Hiệu ứng gợn sóng khi chọn khung giờ */
 .slot-chip-interactive {
   position: relative;
   overflow: hidden;
@@ -7743,7 +8203,7 @@ html.light .pos-bill-row:hover {
   }
 }
 
-/* ── 7. NORDIC LUXURY EDITORIAL SYSTEM (BALANCED GRID & HIGH CONTRAST) ── */
+/* Bố cục hài hòa và độ tương phản sắc nét */
 .nordic-editorial-hero {
   position: relative;
   width: 100% !important;
@@ -7761,7 +8221,7 @@ html.light .pos-bill-row:hover {
   }
 }
 
-/* Hiệu ứng vệt sáng vàng mờ nhẹ phía sau ảnh Hero (Glow effect khử u ám) */
+/* Vệt sáng mờ phía sau ảnh chính */
 .nordic-editorial-hero::before {
   content: '';
   position: absolute;
@@ -7775,12 +8235,12 @@ html.light .pos-bill-row:hover {
   z-index: 1;
 }
 
-/* 2. CÂN BẰNG KHỐI HERO SECTION (DÀN RỘNG 2 CỘT: TRÁI 55%, PHẢI 45%, GAP-12) */
+/* Cân bằng khối mở đầu hai cột */
 .nordic-hero-split-grid {
   display: grid;
   grid-template-columns: 55fr 45fr;
   gap: 48px;
-  /* gap-12 = 48px */
+  /* Khoảng cách giữa hai cột */
   align-items: center;
   width: 100%;
   max-width: 1440px;
@@ -7809,7 +8269,7 @@ html.light .pos-bill-row:hover {
   }
 }
 
-/* Cột trái: Văn bản & Nút bấm */
+/* Cột trái chứa nội dung và nút bấm */
 .nordic-hero-content-col {
   display: flex;
   flex-direction: column;
@@ -7866,7 +8326,7 @@ html.light .pos-bill-row:hover {
   margin: 0;
 }
 
-/* Cột phải: Hình ảnh Showcase dàn rộng thoáng đãng */
+/* Cột phải chứa hình ảnh nổi bật */
 .nordic-hero-visual-col {
   display: flex;
   align-items: center;
@@ -7928,7 +8388,7 @@ html.light .pos-bill-row:hover {
   margin-top: 4px;
 }
 
-/* ── 3. DÀN ĐỀU THANH THỐNG KÊ (STATS BAR: 4 CỘT CHIA ĐỀU 25% CĂN GIỮA) ── */
+/* Dàn đều thanh thống kê bốn cột bằng nhau */
 .nordic-metrics-strip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -8004,7 +8464,7 @@ html.light .pos-bill-row:hover {
   line-height: 1.3;
 }
 
-/* ── 8. BENTO GRID ARCHITECTURE (SERVICES, STYLISTS, SHOP - 100% RESPONSIVE) ── */
+/* Bố cục lưới linh hoạt cho dịch vụ thợ cắt và sản phẩm */
 .bento-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -8049,7 +8509,7 @@ html.light .pos-bill-row:hover {
   }
 }
 
-/* Booking Step 4 Confirmation Grid: 50/50 Desktop, 1 Col Mobile */
+/* Lưới xác nhận bước bốn đặt lịch */
 .booking-confirmation-grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
@@ -8066,7 +8526,7 @@ html.light .pos-bill-row:hover {
   }
 }
 
-/* Service Bento Card */
+/* Thẻ dịch vụ dạng lưới */
 .service-bento-card {
   display: flex !important;
   flex-direction: column !important;
@@ -8090,7 +8550,7 @@ html.light .pos-bill-row:hover {
   position: relative !important;
   width: 100% !important;
   height: 192px !important;
-  /* h-48 */
+  /* Chiều cao thẻ dịch vụ */
   overflow: hidden !important;
   background: #0B0D13;
   border-top-left-radius: 16px;
@@ -8214,7 +8674,7 @@ html.light .pos-bill-row:hover {
   transform: scale(0.98) !important;
 }
 
-/* ── 9. MASTER STYLIST PROFILE CARD (STRICT 3-COLUMNS EQUAL ALIGNMENT) ── */
+/* Thẻ thợ tạo mẫu ba cột cân đối */
 .stylists-3col-grid {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -8239,7 +8699,7 @@ html.light .pos-bill-row:hover {
   }
 }
 
-/* Home Page Spotlight Stylists Grid (Synchronized with Services & Products Bento Grid) */
+/* Lưới thợ tạo mẫu tiêu biểu trang chủ */
 .bento-grid.stylists-3col-grid,
 #homeStylistsGrid {
   display: grid !important;
@@ -8391,7 +8851,7 @@ html.light .pos-bill-row:hover {
   color: #CBD5E1;
 }
 
-/* Stylist Mini Portfolio Gallery */
+/* Thư viện ảnh mẫu tóc của thợ */
 .stylist-portfolio-mini {
   width: 100%;
   display: grid;
@@ -8446,7 +8906,7 @@ html.light .pos-bill-row:hover {
   transform: scale(0.98) !important;
 }
 
-/* ── 10. PILL TABS CATEGORY FILTER ── */
+/* Thanh nút lọc danh mục */
 .nordic-filter-strip {
   display: flex;
   align-items: center;
@@ -8490,7 +8950,7 @@ html.light .pos-bill-row:hover {
   box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
 }
 
-/* ── 11. NAVBAR LUMINOUS UNDERLINE & GLASS ── */
+/* Thanh điều hướng hiệu ứng kính */
 .web-main-header {
   background: rgba(7, 8, 11, 0.92) !important;
   backdrop-filter: blur(24px) !important;
@@ -8532,7 +8992,7 @@ html.light .pos-bill-row:hover {
   width: 80%;
 }
 
-/* ── 12. DIGITAL RECEIPT (GLASSMORPHISM) ── */
+/* Hóa đơn điện tử dạng kính mờ */
 .glass-digital-receipt {
   background: rgba(15, 18, 28, 0.85);
   backdrop-filter: blur(24px);
@@ -8584,7 +9044,7 @@ html.light .pos-bill-row:hover {
   color: #F59E0B;
 }
 
-/* ── 13. NORDIC BALANCED FOOTER GRID (4 EQUAL 25% COLUMNS) ── */
+/* Chân trang bốn cột cân bằng */
 .nordic-footer-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -8607,7 +9067,7 @@ html.light .pos-bill-row:hover {
   }
 }
 
-/* ── 14. TRIỆT TIÊU 100% HIỆU ỨNG NGHIÊNG/MÉO 3D BẢNG ĐẶT LỊCH (FLAT & PARALLEL) ── */
+/* Bảng đặt lịch phẳng và thẳng hàng */
 #bookingContainer,
 .booking-page-shell,
 .booking-step-container,
@@ -8641,7 +9101,7 @@ html.light .pos-bill-row:hover {
   border-color: rgba(251, 191, 36, 0.6) !important;
 }
 
-/* ── 15. AI HAIR STUDIO 3D & NEURAL SCANNING ANIMATIONS ── */
+/* Hiệu ứng mô phỏng quét tóc */
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -8684,25 +9144,17 @@ html.light .pos-bill-row:hover {
   }
 }
 
-/* ==================== MODULE: index.css ==================== */
-/* =========================================================================
-   Omni Salon — INDEX.CSS (LUXURY OBSIDIAN & HIGH-READABILITY DUAL THEME ENGINE)
-   Phiên bản: 17.0 Ultra Balanced Centering & Contrast Edition
-   1. Căn giữa chuẩn xác 100% (Balanced Max-width: 1560px, Không lệch một bên)
-   2. Typography Scale-Up toàn diện (KPI to rõ, Tab 16px, Title 32-42px)
-   3. Khóa cứng tương phản Dark Mode (#0B0D13) & Light Mode (#F8F9FA)
-      (Triệt tiêu 100% lỗi chữ chìm màu/trắng đè trắng khi đổi theme)
-   Tuân thủ: .antigravity/rules/07_ponytail.md, 08_caveman.md, 10_ui_tester.md
-   ========================================================================= */
+/* Tinh chỉnh trang chủ và cân đối giao diện */
+/* Giao diện trang chủ độ tương phản cao */
 
-/* ── 1. GLOBAL ROOT BASELINE SCALING & SYMMETRICAL CENTERING ── */
+/* Căn giữa toàn bộ giao diện */
 html {
   font-size: 16px !important;
   -webkit-text-size-adjust: 100% !important;
   text-size-adjust: 100% !important;
 }
 
-/* Khung cÄƒn giá»¯a hoÃ n háº£o cho toÃ n bá»™ Website & Admin Hub */
+/* Khung căn giữa cho toàn trang web và khu quản trị */
 #webPlatformSection {
   width: 100% !important;
   min-height: 100vh !important;
@@ -8832,7 +9284,7 @@ html.light .web-main-header.is-scrolled,
   padding: 28px 28px 80px !important;
 }
 
-/* â”€â”€ 2. DUAL THEME ENGINE (LIGHT & DARK DYNAMIC ADAPTATION) â”€â”€ */
+/* Bộ chuyển đổi giao diện sáng tối linh hoạt */
 html.light,
 body.light,
 [data-theme="light"],
@@ -8871,7 +9323,7 @@ html.dark .admin-full-wrapper {
   color: var(--text-primary) !important;
 }
 
-/* Dark Mode Cards */
+/* Thẻ ở chế độ tối */
 html.dark .modal-content-shell,
 html.dark .auth-modal-box,
 html.dark .customer-portal-shell,
@@ -8957,7 +9409,7 @@ html.dark .admin-select-filter {
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 
-/* â”€â”€ 3. LIGHT THEME MODE (NORDIC CLEAN CREAM - WCAG AAA HIGH CONTRAST) â”€â”€ */
+/* Chế độ sáng tương phản cao dịu mắt */
 html.light,
 body.light,
 [data-theme="light"],
@@ -8978,7 +9430,7 @@ html.light .admin-full-wrapper {
   color: var(--text-primary) !important;
 }
 
-/* Bá» máº·t Tháº» Tráº¯ng Tinh Khiáº¿t trong Light Mode */
+/* Bề mặt thẻ trắng sáng ở chế độ sáng */
 html.light .modal-content-shell,
 html.light .auth-modal-box,
 html.light .customer-portal-shell,
@@ -9021,7 +9473,7 @@ html.light .hero-visual-card {
   color: var(--text-primary) !important;
 }
 
-/* Khóa Màu Chữ Sắc Nét Trong Light Mode (Triệt tiêu lỗi chữ chìm màu) */
+/* Khóa màu chữ rõ nét ở chế độ sáng */
 html.light h1,
 html.light h2,
 html.light h3,
@@ -9127,7 +9579,7 @@ html.light .quick-booking-badge {
   font-weight: 800 !important;
 }
 
-/* Báº£ng Dá»¯ Liá»‡u Enterprise Trong Light Mode */
+/* Bảng dữ liệu quản trị ở chế độ sáng */
 html.light .admin-enterprise-table {
   background-color: var(--surface-card) !important;
   color: var(--text-primary) !important;
@@ -9153,7 +9605,7 @@ html.light .admin-table tr:hover td {
   background-color: var(--surface-elevated) !important;
 }
 
-/* Äiá»u Phá»‘i Gháº¿ Cáº¯t (Workstations Kanban) Trong Light Mode */
+/* Lịch điều phối ghế cắt ở chế độ sáng */
 html.light .admin-workstation-column {
   background-color: var(--surface-elevated) !important;
   border: 1px solid var(--border-color) !important;
@@ -9195,7 +9647,7 @@ html.light .timeline-empty-notice {
   color: var(--text-secondary) !important;
 }
 
-/* Quầy Thu Ngân POS Theme Support (Light Mode) */
+/* Quầy thu ngân ở chế độ sáng */
 html.light .pos-panel,
 [data-theme="light"] .pos-panel {
   background-color: #FFFFFF !important;
@@ -9266,7 +9718,7 @@ html.light .pos-pay-btn.active,
   color: #C2410C !important;
 }
 
-/* Explicit Dark Mode Enforcement for POS */
+/* Áp dụng nền tối cho quầy thu ngân */
 html.dark .pos-panel,
 [data-theme="dark"] .pos-panel {
   background-color: #121622 !important;
@@ -9351,7 +9803,7 @@ html.light .stylist-status-busy {
   font-weight: 800 !important;
 }
 
-/* Tabs & Filters trong Light Mode */
+/* Nút lọc và thanh tab ở chế độ sáng */
 html.light .admin-tab-btn {
   color: var(--text-secondary) !important;
   border-bottom: 3px solid transparent !important;
@@ -9426,8 +9878,8 @@ html.light .nordic-pill-tab.active {
   color: #000000 !important;
 }
 
-/* â”€â”€ 4. TYPOGRAPHY SCALE UP (CHá»® TO RÃ• NÃ‰T, Dá»„ Äá»ŒC TOÃ€N DIá»†N) â”€â”€ */
-/* TiÃªu Ä‘á» H1: 34px - 56px */
+/* Cỡ chữ to rõ dễ đọc */
+/* Tiêu đề cấp một */
 h1,
 .hero-title,
 .nordic-hero-title,
@@ -9439,7 +9891,7 @@ h1,
   letter-spacing: -0.02em !important;
 }
 
-/* TiÃªu Ä‘á» H2 & Admin Hub Title: 30px - 44px */
+/* Tiêu đề cấp hai */
 h2,
 .section-title,
 .booking-title,
@@ -9452,7 +9904,7 @@ h2,
   letter-spacing: -0.015em !important;
 }
 
-/* TiÃªu Ä‘á» H3 / H4 / Card Titles / Dá»‹ch vá»¥ / Stylist / Sáº£n pháº©m / KPI: 21px - 24px */
+/* Tiêu đề cấp ba bốn và tên dịch vụ sản phẩm */
 h3,
 h4,
 .card-title,
@@ -9473,7 +9925,7 @@ h4,
   line-height: 1.35 !important;
 }
 
-/* Menu Äiá»u HÆ°á»›ng (Navbar Links) */
+/* Liên kết trên thanh điều hướng */
 .web-nav-links .nav-link {
   font-size: 13.5px !important;
   font-weight: 700 !important;
@@ -9482,7 +9934,7 @@ h4,
   white-space: nowrap !important;
 }
 
-/* Admin Tabs: 17px font-extrabold */
+/* Tab quản trị chữ đậm */
 .admin-tab-btn {
   font-size: 17px !important;
   font-weight: 800 !important;
@@ -9490,7 +9942,7 @@ h4,
   min-height: 52px !important;
 }
 
-/* NhÃ£n (Labels), Tab buttons, Table headers: 15px - 16px */
+/* Nhãn thẻ nút chuyển và tiêu đề bảng */
 label,
 .sub-label,
 .form-label,
@@ -9519,7 +9971,7 @@ label,
   font-weight: 600 !important;
 }
 
-/* Khá»‘i KPI Äá»™t PhÃ¡ KÃ­ch ThÆ°á»›c */
+/* Khối chỉ số thống kê */
 .kpi-big-value {
   font-size: clamp(34px, 3.6vw, 46px) !important;
   font-weight: 900 !important;
@@ -9552,7 +10004,7 @@ label,
   border-radius: 20px !important;
 }
 
-/* DÃ²ng mÃ´ táº£ chi tiáº¿t, phá»¥ Ä‘á»: 15px - 16px */
+/* Dòng mô tả chi tiết và phụ đề */
 p,
 .service-desc,
 .service-bento-desc,
@@ -9571,7 +10023,7 @@ p,
   font-weight: 400 !important;
 }
 
-/* Badges & Chips: 13px - 14px */
+/* Huy hiệu và nhãn nhỏ */
 .badge-terracotta,
 .announcement-badge,
 .tag-pill,
@@ -9591,7 +10043,7 @@ p,
   letter-spacing: 0.04em !important;
 }
 
-/* â”€â”€ 5. NÃšT Báº¤M & INPUTS (PROPORTIONAL SCALING) â”€â”€ */
+/* Nút bấm và ô nhập liệu tỉ lệ cân đối */
 .btn-submit-terracotta,
 .btn-hero-terracotta,
 .btn-primary-nordic,
@@ -9670,12 +10122,9 @@ p,
   border-radius: 12px !important;
 }
 
-/* =========================================================================
-   MASTER THEME DEFENSIVE SHIELDS & DARK/LIGHT MODE INTEGRITY
-   Eliminates all dark mode light leaks and maintains high contrast
-   ========================================================================= */
+/* Khóa bảo vệ màu sắc giao diện sáng tối */
 
-/* Dark Mode Page Shells & Views */
+/* Khung trang và chế độ xem ở nền tối */
 [data-theme="dark"],
 html.dark,
 body.dark {
@@ -9697,7 +10146,7 @@ body.dark {
   color: var(--text-primary, #ffffff) !important;
 }
 
-/* Dark Mode Modals, Drawers & Cards */
+/* Cửa sổ bật lên ngăn kéo và thẻ ở nền tối */
 [data-theme="dark"] .modal-content-shell,
 [data-theme="dark"] .cart-drawer-shell,
 [data-theme="dark"] .cart-drawer-header,
@@ -9715,7 +10164,7 @@ body.dark {
   border-color: var(--border-color, rgba(212, 175, 55, 0.25)) !important;
 }
 
-/* Dark Mode Catch-all Overrides for any hardcoded light inline backgrounds */
+/* Xử lý nền sáng cứng trên các phần tử nền tối */
 [data-theme="dark"] [style*="background-color: #f1f3f6"],
 [data-theme="dark"] [style*="background-color:#f1f3f6"],
 [data-theme="dark"] [style*="background: #f1f3f6"],
@@ -9737,7 +10186,7 @@ body.dark {
   border-color: var(--border-color, rgba(255, 255, 255, 0.1)) !important;
 }
 
-/* Dark Mode High-Contrast Typography */
+/* Chữ tương phản cao ở nền tối */
 [data-theme="dark"] [style*="color: #111"],
 [data-theme="dark"] [style*="color:#111"],
 [data-theme="dark"] [style*="color: #222"],
@@ -9762,7 +10211,7 @@ body.dark {
   color: var(--text-secondary, #cbd5e1) !important;
 }
 
-/* Ensure Light Mode keeps its clean, light aesthetic */
+/* Đảm bảo chế độ sáng luôn tinh tế và sạch sẽ */
 [data-theme="light"] .services-page-shell,
 [data-theme="light"] .stylists-page-shell,
 [data-theme="light"] .branches-page-shell,
@@ -9773,7 +10222,7 @@ body.dark {
   color: var(--text-primary, #0f172a) !important;
 }
 
-/* Booking Success Modal Invoice Box Explicit Theme Guarantee */
+/* Khung hóa đơn đặt lịch thành công */
 [data-theme="dark"] .booking-invoice-card,
 html.dark .booking-invoice-card,
 body.dark .booking-invoice-card {
@@ -9820,9 +10269,7 @@ body.light .booking-invoice-card .invoice-item.price-row strong {
   color: #b48312 !important;
 }
 
-/* ==========================================================================
-   LOOKUP MODAL (TRA CỨU LỊCH HẸN) - THEME COMPATIBILITY & POLISH
-   ========================================================================== */
+/* Cửa sổ tra cứu lịch hẹn */
 .lookup-card-result {
   background: var(--surface-elevated);
   border: 1px solid var(--border-color);
@@ -9848,9 +10295,7 @@ body[data-theme="light"] .lookup-card-result {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
-/* =========================================================================
-   Admin Pagination Bar
-   ========================================================================= */
+/* Thanh phân trang bảng quản trị */
 .admin-pagination-bar {
   display: flex;
   justify-content: space-between;
@@ -9910,12 +10355,9 @@ html.light .admin-pagination-bar .admin-tab-btn.active,
   color: #FFFFFF !important;
 }
 
-/* =========================================================================
-   WEB MOBILE POLISH & BUBBLE INTERACTIONS (UNIFIED APP-LIKE EXPERIENCE)
-   Tuân thủ: Web Mobile 100% hoàn thiện thay thế app.html
-   ========================================================================= */
+/* Giao diện di động tiện lợi */
 
-/* 1. Nordic Pill Tab & AI Hairstyle selector (Ảnh 2) */
+/* Thanh tab chọn kiểu tóc */
 .nordic-pill-tab {
   background: var(--surface-card, #131722);
   color: var(--text-primary, #ffffff);
@@ -9947,7 +10389,7 @@ html.light .nordic-pill-tab.active,
   box-shadow: 0 4px 14px rgba(180, 131, 18, 0.3) !important;
 }
 
-/* 2. Interactive Floating Bubble Chips (Ảnh 3: Popup bong bóng chọn chi nhánh) */
+/* Bong bóng chọn nhanh chi nhánh */
 .branch-bubble-item {
   position: relative;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease !important;
@@ -9970,24 +10412,24 @@ html.light .nordic-pill-tab.active,
   box-shadow: 0 6px 18px rgba(180, 131, 18, 0.3);
 }
 
-/* 3. Mobile Bottom Navigation (Thanh điều hướng Web Mobile) */
+/* Thanh điều hướng đáy trên điện thoại */
 .mobile-bottom-nav {
   display: none;
 }
 
 @media (max-width: 768px) {
-  /* Ẩn thanh menu ngang trên header vì đã có bottom navigation */
+  /* Ẩn menu ngang khi ở trên điện thoại */
   .web-nav-links {
     display: none !important;
   }
 
-  /* Padding đáy bù đắp cho thanh điều hướng cố định */
+  /* Bù khoảng cách đáy cho thanh điều hướng */
   #webMainContainer,
   main#webMainContainer {
     padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  /* Kích hoạt Bottom Nav chuẩn Mobile App */
+  /* Bật thanh điều hướng đáy di động */
   .mobile-bottom-nav {
     display: flex !important;
     position: fixed !important;
@@ -10055,14 +10497,14 @@ html.light .nordic-pill-tab.active,
     transform: scale(1.15) translateY(-2px) !important;
   }
 
-  /* Nút đặt lịch nổi bật ở giữa thanh mobile nav */
+  /* Nút đặt lịch nổi bật ở giữa */
   .mobile-bottom-nav a.highlight-action,
   .mobile-bottom-nav a#mNavBooking {
     color: #b48312 !important;
     font-weight: 800 !important;
   }
 
-  /* Tối ưu màn hình nhỏ */
+  /* Tối ưu cho màn hình nhỏ */
   .brand-logo-wrap {
     min-width: auto !important;
   }
@@ -10077,7 +10519,7 @@ html.light .nordic-pill-tab.active,
   }
 }
 
-/* 4. Modal Bong Bóng Chi Nhánh Toàn Màn Hình Cố Định Viewport (Ảnh 3) */
+/* Cửa sổ chọn chi nhánh toàn màn hình */
 #branchBubblesModal {
   position: fixed !important;
   top: 0 !important;
@@ -10113,15 +10555,9 @@ html.light #branchBubblesModal p,
   color: #475569 !important;
 }
 
-/* =========================================================================
-   PHONG CÁCH 4RAU BARBER & TỐI ƯU GIAO DIỆN ĐỒ ÁN TỐT NGHIỆP THỰC TẾ
-   1. Đầy màn hình - Triệt tiêu khoảng trống 2 bên trái phải
-   2. Tông màu 4RAU: Đen than chì (#121212, #181818), viền vàng hổ phách (#f59e0b, #d4af37)
-   3. Highlight lịch gần nhất, làm mờ lịch đã qua, làm lớn lịch hôm nay dễ đọc
-   4. Form chọn nhiều dịch vụ cùng lúc & Tìm kiếm khách hàng đặt lịch realtime
-   ========================================================================= */
+/* Giao diện salon thực tế rõ ràng và nam tính */
 
-/* 1. TOÀN BỘ GIAO DIỆN TRÀN VIỀN ĐẦY MÀN HÌNH (NO EMPTY SIDES) */
+/* Toàn bộ giao diện tràn viền không bị khoảng trống hai bên */
 .admin-full-wrapper,
 .booking-page-shell,
 .page-view,
@@ -10161,13 +10597,13 @@ html.light #branchBubblesModal p,
   border-collapse: collapse !important;
 }
 
-/* 2. ĐẶC TRƯNG 4RAU BARBER: PHẲNG, RÕ RÀNG, NAM TÍNH */
+/* Phong cách cắt tóc nam rõ ràng và sắc nét */
 body {
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   letter-spacing: -0.01em;
 }
 
-/* Card Barber 4Rau */
+/* Thẻ tiệm cắt tóc nam */
 .admin-workstation-column,
 .stylist-timeline-col,
 .admin-kpi-card-rich,
@@ -10177,9 +10613,9 @@ body {
   transition: all 0.2s ease-in-out !important;
 }
 
-/* 3. QUẢN LÝ LỊCH HẸN: HIGHLIGHT SÁNG LỊCH GẦN NHẤT, MỜ LỊCH CŨ, LỚN LỊCH HÔM NAY */
+/* Quản lý danh sách lịch hẹn */
 
-/* Lịch Hẹn HÔM NAY: Lớn hơn, dễ đọc khi đứng quầy */
+/* Lịch hẹn hôm nay kích thước lớn dễ đọc */
 .booking-row-today,
 .timeline-booking-card.booking-today {
   padding: 16px !important;
@@ -10207,7 +10643,7 @@ body {
   margin-right: 6px;
 }
 
-/* Lịch GẦN NHẤT (Sắp tới sớm nhất): Highlight màu sáng lên, viền sáng */
+/* Lịch hẹn sắp tới gần nhất làm nổi bật viền sáng */
 .booking-row-nearest,
 .timeline-booking-card.booking-nearest {
   border: 2px solid #f59e0b !important;
@@ -10234,7 +10670,7 @@ body {
   50% { transform: scale(1.02); box-shadow: 0 0 12px rgba(245, 158, 11, 0.5); }
 }
 
-/* Lịch ĐÃ QUA (Quá giờ hoặc ngày cũ): Làm mờ đi rõ rệt */
+/* Lịch hẹn đã qua làm mờ */
 .booking-row-past,
 .timeline-booking-card.booking-past {
   opacity: 0.52 !important;
@@ -10259,7 +10695,7 @@ body {
   border-radius: 4px;
 }
 
-/* 4. TÌM KIẾM KHÁCH HÀNG ĐẶT LỊCH NHANH (QUICK CUSTOMER SEARCH BAR) */
+/* Ô tìm kiếm thông tin khách hàng đặt lịch */
 .quick-booking-search-panel {
   background: var(--surface-card, #141722);
   border: 1.5px solid var(--border-color, #cbd5e1);
@@ -10317,7 +10753,7 @@ body {
   background: rgba(245, 158, 11, 0.04);
 }
 
-/* 5. MULTI-SELECT DỊCH VỤ TRONG ĐẶT LỊCH (CHỌN NHIỀU DỊCH VỤ) */
+/* Chọn nhiều dịch vụ khi đặt lịch */
 .service-multi-card {
   cursor: pointer;
   border: 2px solid var(--border-color, #cbd5e1);
@@ -10374,9 +10810,7 @@ body {
   gap: 12px;
 }
 
-/* ========================================================
-   6. FULL SCREEN 100% WIDTH - KHÔNG TRỐNG TRÁI PHẢI, TRÀN VIỀN ĐẦY MÀN HÌNH
-   ======================================================== */
+/* Toàn màn hình không trống hai bên */
 html, body {
   width: 100% !important;
   max-width: 100vw !important;
@@ -10415,7 +10849,7 @@ html, body {
   margin-right: 0 !important;
 }
 
-/* 4RAU Barbershop Tone & Real Barber Styling - Mộc mạc, thực tế cho đồ án tốt nghiệp */
+/* Phong cách tiệm cắt tóc nam thực tế */
 .brand-badge-barber {
   background: #f59e0b;
   color: #0b0c10;
@@ -10428,7 +10862,7 @@ html, body {
 }
 
 
-/* ── 7. KHUNG GIỜ & LỊCH ĐẶT CHỖ REAL-TIME CHUẨN 4RAU BARBERSHOP ── */
+/* Khung giờ và lịch đặt chỗ theo thời gian thực */
 .day-picker-card {
   user-select: none;
   border-radius: 12px;
@@ -10477,7 +10911,7 @@ html, body {
   font-weight: 900 !important;
 }
 
-/* Slot đã qua thời gian thực: Khóa hoàn toàn, làm mờ, gạch ngang */
+/* Khung giờ đã qua sẽ khóa và làm mờ */
 .slot-btn:disabled,
 .slot-btn.slot-past,
 .time-slot-btn.slot-past {
@@ -10499,7 +10933,7 @@ html, body {
   color: #ef4444 !important;
 }
 
-/* Barber Cascading Block & Header */
+/* Khối tiêu đề theo phong cách tiệm cắt tóc */
 .booking-cascade-block {
   scroll-margin-top: 95px !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -10516,13 +10950,9 @@ html, body {
   -webkit-user-select: none;
 }
 
-/* =========================================================================
-   OMNI SALON — SENIOR PRODUCT DESIGN SYSTEM (ANTI-AI CLEAN ARCHITECTURE)
-   Loại bỏ hoàn toàn AI Archetype (No neon glow, No pill bloat, No 9999px radius)
-   Thực tế E-Commerce: Contrast, White-space, Flat CTAs (radius 6-8px), Wishlist
-   ========================================================================= */
+/* Giao diện thẻ sản phẩm chất lượng cao */
 
-/* ── 1. PRODUCT CLEAN CARD ── */
+/* Thẻ sản phẩm */
 .product-clean-card {
   position: relative;
   display: flex;
@@ -10548,7 +10978,7 @@ html, body {
   opacity: 0.85;
 }
 
-/* Media wrapper & ảnh */
+/* Khung chứa ảnh sản phẩm */
 .product-media-wrapper {
   position: relative;
   width: 100%;
@@ -10570,7 +11000,7 @@ html, body {
   transform: scale(1.03);
 }
 
-/* Nút Yêu thích Wishlist */
+/* Nút thêm vào danh sách yêu thích */
 .product-wishlist-btn {
   position: absolute;
   top: 10px;
@@ -10608,7 +11038,7 @@ html, body {
   background: rgba(239, 68, 68, 0.1);
 }
 
-/* Nhãn Giảm giá Phẳng (No neon) */
+/* Nhãn giảm giá phẳng */
 .flat-discount-badge {
   position: absolute;
   top: 10px;
@@ -10624,7 +11054,7 @@ html, body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Thân Card */
+/* Thân thẻ */
 .product-body {
   padding: 16px 16px 12px;
   display: flex;
@@ -10651,7 +11081,7 @@ html, body {
   white-space: nowrap;
 }
 
-/* Tình trạng kho (Stock Indicator) */
+/* Tình trạng tồn kho */
 .stock-indicator-badge {
   display: inline-flex;
   align-items: center;
@@ -10714,7 +11144,7 @@ html, body {
   color: var(--brand-accent, #f59e0b);
 }
 
-/* Đánh giá sao & lượt mua */
+/* Đánh giá sao và lượt mua */
 .product-rating-row {
   display: flex;
   align-items: center;
@@ -10762,7 +11192,7 @@ html, body {
   margin-top: auto;
 }
 
-/* ── NÚT CTA PHẲNG CHUẨN PRODUCT DESIGN (Radius 6–8px, Flat, No Glow) ── */
+/* Nút bấm hành động phẳng */
 .btn-flat-cta {
   display: inline-flex;
   align-items: center;
@@ -10826,7 +11256,7 @@ html, body {
   transform: translateY(-1px);
 }
 
-/* ── 2. BRANCH CLEAN CARD ── */
+/* Thẻ chi nhánh */
 .branch-clean-card {
   position: relative;
   display: flex;
@@ -10898,7 +11328,7 @@ html, body {
   border-radius: 6px;
 }
 
-/* Floating Status */
+/* Trạng thái hoạt động */
 .branch-status-floating {
   position: absolute;
   bottom: 10px;
@@ -10940,7 +11370,7 @@ html, body {
   display: inline-block;
 }
 
-/* Thân Card Chi Nhánh */
+/* Thân thẻ chi nhánh */
 .branch-content-body {
   padding: 16px 18px 18px;
   display: flex;
@@ -11016,7 +11446,7 @@ html, body {
   text-decoration: underline;
 }
 
-/* Hành động Chi nhánh */
+/* Nút hành động của chi nhánh */
 .branch-actions-row {
   display: flex;
   gap: 8px;
@@ -11033,7 +11463,7 @@ html, body {
   flex: 1;
 }
 
-/* ── 3. FILTER TABS & CHIPS CHUẨN PRODUCT DESIGN (Không dùng 9999px Pill Sến) ── */
+/* Thanh lọc danh mục */
 .clean-filter-tabs {
   display: flex;
   align-items: center;
@@ -11079,7 +11509,7 @@ html, body {
   border-radius: 4px;
 }
 
-/* ── 4. SKELETON SHIMMER CHUẨN ── */
+/* Hiệu ứng khung xương khi tải dữ liệu */
 .skeleton-card {
   pointer-events: none;
 }
@@ -11099,7 +11529,7 @@ html, body {
   100% { background-position: -200% 0; }
 }
 
-/* ── 5. EMPTY & ERROR STATES ── */
+/* Trạng thái trống và báo lỗi */
 .catalog-empty-state {
   display: flex;
   flex-direction: column;
@@ -11142,15 +11572,13 @@ html, body {
   margin: 0 0 20px;
 }
 
-/* Ẩn icon mắt mặc định của Edge / IE / Chromium để sử dụng icon SVG tùy biến */
+/* Ẩn biểu tượng mắt mặc định của trình duyệt để dùng biểu tượng riêng */
 input::-ms-reveal,
 input::-ms-clear {
   display: none !important;
 }
 
-/* =========================================================================
-   PRODUCT DETAIL PAGE (PDP) — GIAO DIỆN FULL-PAGE CHUYÊN NGHIỆP CHUẨN CODER
-   ========================================================================= */
+/* Trang chi tiết sản phẩm toàn màn hình */
 .pdp-page-wrapper {
   background-color: var(--bg-primary, #0B0D13);
   color: var(--text-primary, #F8FAFC);
@@ -11166,7 +11594,7 @@ input::-ms-clear {
   box-sizing: border-box;
 }
 
-/* 1. TOP BAR & BREADCRUMB */
+/* Thanh điều hướng đường dẫn đầu trang */
 .pdp-top-bar {
   display: flex;
   justify-content: space-between;
@@ -11240,7 +11668,7 @@ input::-ms-clear {
   transform: translateX(-3px);
 }
 
-/* 2. MAIN HERO SHOWCASE (2 CỘT RỘNG MỞ) */
+/* Khối trưng bày chính hai cột rộng rãi */
 .pdp-hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
@@ -11256,7 +11684,7 @@ input::-ms-clear {
   }
 }
 
-/* CỘT TRÁI: GALLERY TRƯNG BÀY SẢN PHẨM */
+/* Cột trái chứa bộ sưu tập ảnh sản phẩm */
 .pdp-gallery-wrap {
   display: flex;
   flex-direction: column;
@@ -11416,7 +11844,7 @@ input::-ms-clear {
   backdrop-filter: blur(6px);
 }
 
-/* Khối 3 icon cam kết mini ngay dưới ảnh */
+/* Khối biểu tượng cam kết nhỏ bên dưới ảnh */
 .pdp-gallery-assurances {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -11441,7 +11869,7 @@ input::-ms-clear {
   flex-shrink: 0;
 }
 
-/* CỘT PHẢI: THÔNG TIN CHI TIẾT & MUA HÀNG */
+/* Cột phải chứa thông tin chi tiết và mua hàng */
 .pdp-info-wrap {
   display: flex;
   flex-direction: column;
@@ -11523,7 +11951,7 @@ input::-ms-clear {
   box-shadow: 0 0 8px #10B981;
 }
 
-/* KHỐI GIÁ TIỀN CHUYÊN NGHIỆP */
+/* Khối hiển thị giá tiền */
 .pdp-price-card {
   background: var(--surface-card, #121214);
   border: 1px solid var(--border-color, #222225);
@@ -11584,7 +12012,7 @@ input::-ms-clear {
   flex-shrink: 0;
 }
 
-/* THÔNG SỐ HIỆU NĂNG NHANH */
+/* Thông số hiệu năng tóm tắt */
 .pdp-specs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -11619,7 +12047,7 @@ input::-ms-clear {
   font-weight: 800;
 }
 
-/* CHỌN DUNG TÍCH / BIẾN THỂ */
+/* Chọn dung tích hoặc biến thể */
 .pdp-option-group {
   margin-bottom: 22px;
 }
@@ -11673,7 +12101,7 @@ input::-ms-clear {
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
 }
 
-/* CHỌN SỐ LƯỢNG */
+/* Chọn số lượng sản phẩm */
 .pdp-qty-control-row {
   display: flex;
   align-items: center;
@@ -11736,7 +12164,7 @@ input::-ms-clear {
   color: #EF4444;
 }
 
-/* NÚT HÀNH ĐỘNG MUA HÀNG CHUYÊN NGHIỆP */
+/* Các nút đặt mua sản phẩm */
 .pdp-cta-group {
   display: flex;
   gap: 14px;
@@ -11819,7 +12247,7 @@ input::-ms-clear {
   transform: scale(1.05);
 }
 
-/* KHỐI 4 CAM KẾT VÀNG (TRUST GUARANTEE) */
+/* Khối bốn cam kết chất lượng */
 .pdp-trust-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -11868,7 +12296,7 @@ input::-ms-clear {
   line-height: 1.4;
 }
 
-/* CHIA SẺ SẢN PHẨM */
+/* Nút chia sẻ sản phẩm */
 .pdp-social-share-row {
   display: flex;
   align-items: center;
@@ -11911,9 +12339,7 @@ input::-ms-clear {
   color: var(--brand-accent, #F59E0B);
 }
 
-/* ========================================================
-   OMNI SALON — 4RAU-STYLE E-COMMERCE PRODUCT DETAIL PAGE
-   ======================================================== */
+/* Giao diện chi tiết sản phẩm */
 
 .pdp-4rau-brand-badge {
   display: inline-block;
@@ -11951,7 +12377,7 @@ body.dark .pdp-4rau-title {
   color: #f4f4f5;
 }
 
-/* Sub-bar: Đã bán X • Còn hàng */
+/* Dòng thông tin số lượng đã bán và tình trạng hàng */
 .pdp-4rau-subbar {
   display: flex;
   align-items: center;
@@ -11994,7 +12420,7 @@ body.dark .pdp-4rau-subbar {
   background: #16a34a;
 }
 
-/* Price Box */
+/* Hộp hiển thị giá tiền */
 .pdp-4rau-price-box {
   background: #f8f9fa;
   border: 1px solid #e5e7eb;
@@ -12045,7 +12471,7 @@ body.dark .pdp-4rau-discount-tag {
   color: #f87171;
 }
 
-/* CHI TIẾT: Bullet List */
+/* Danh sách chi tiết đặc điểm nổi bật */
 .pdp-4rau-section {
   margin-bottom: 20px;
 }
@@ -12081,7 +12507,7 @@ body.dark .pdp-4rau-detail-item {
   color: #a1a1aa;
 }
 
-/* Form Row (LOẠI, TỒN KHO, SỐ LƯỢNG) */
+/* Hàng chọn phân loại tồn kho và số lượng */
 .pdp-4rau-field-row {
   display: flex;
   align-items: center;
@@ -12151,7 +12577,7 @@ body.dark .pdp-4rau-chip.active {
   font-weight: 800;
 }
 
-/* Stepper Pill */
+/* Nút tăng giảm số lượng */
 .pdp-4rau-stepper {
   display: inline-flex;
   align-items: center;
@@ -12211,7 +12637,7 @@ body.dark .pdp-4rau-stepper {
   color: #f4f4f5;
 }
 
-/* CTA Buttons Row */
+/* Hàng nút bấm hành động */
 .pdp-4rau-cta-row {
   display: flex;
   gap: 12px;
@@ -12304,7 +12730,7 @@ body.dark .pdp-4rau-btn-cart:hover {
   color: #a1a1aa;
 }
 
-/* Chia sẻ */
+/* Nút chia sẻ liên kết */
 .pdp-4rau-share-row {
   display: flex;
   align-items: center;
@@ -12355,7 +12781,7 @@ body.dark .pdp-4rau-share-btn.copy {
   color: #d4d4d8;
 }
 
-/* 3-Card Trust Guarantee Bar (Bottom of Showcase) */
+/* Thanh ba cam kết chất lượng */
 .pdp-4rau-trust-bar {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -12438,7 +12864,7 @@ body.dark .pdp-4rau-trust-text p {
   color: #a1a1aa;
 }
 
-/* Main stage dots indicator like 4RAU */
+/* Dấu chấm chỉ số ảnh */
 .pdp-stage-dots-4rau {
   position: absolute;
   bottom: 14px;
@@ -12469,7 +12895,7 @@ body.dark .pdp-dot-4rau {
   transform: scale(1.2);
 }
 
-/* 3. SECTION TABS CHI TIẾT (FULL WIDTH) */
+/* Các tab nội dung chi tiết toàn chiều rộng */
 .pdp-tabs-wrapper {
   background: var(--surface-card, #141824);
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
@@ -12549,7 +12975,7 @@ body.dark .pdp-dot-4rau {
   margin-bottom: 8px;
 }
 
-/* Tab Đánh Giá Khách Hàng */
+/* Tab đánh giá của khách hàng */
 .pdp-reviews-summary {
   display: flex;
   gap: 40px;
@@ -12638,7 +13064,7 @@ body.dark .pdp-dot-4rau {
   margin: 0;
 }
 
-/* 4. SECTION SẢN PHẨM KHUYÊN DÙNG (RELATED PRODUCTS GRID 4 CỘT) */
+/* Mục sản phẩm khuyên dùng dạng lưới bốn cột */
 .pdp-related-section {
   margin-bottom: 64px;
 }
@@ -12820,14 +13246,9 @@ body.dark .pdp-dot-4rau {
   color: var(--brand-accent, #F59E0B);
 }
 
-/* =========================================================================
-   CART EXPERIENCE & STYLING (IMAGES 1, 2, 3 MATCHING)
-   1. Cart Drawer Slide-Over (Image 1)
-   2. Mini Cart Dropdown (Image 2)
-   3. Full Cart Page /cart (Image 3 - 4RAU Style)
-   ========================================================================= */
+/* Giao diện giỏ hàng */
 
-/* ── 1. CART DRAWER SLIDE-OVER (IMAGE 1) ── */
+/* Ngăn kéo giỏ hàng trượt từ bên phải */
 .cart-drawer-shell {
   position: fixed;
   top: 0;
@@ -13227,7 +13648,7 @@ body.dark .pdp-dot-4rau {
   color: #f59e0b;
 }
 
-/* ── 2. MINI CART DROPDOWN REFINEMENTS (IMAGE 2) ── */
+/* Bảng giỏ hàng thu nhỏ khi rê chuột */
 .header-cart-dropdown {
   background: #13161f !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -13311,7 +13732,7 @@ body.dark .pdp-dot-4rau {
   background: #fbbf24 !important;
 }
 
-/* ── 3. FULL CART PAGE /cart (IMAGE 3 - 4RAU STYLE) ── */
+/* Toàn bộ trang giỏ hàng */
 .cart-page-wrapper {
   background-color: var(--bg-primary);
   min-height: calc(100vh - 120px);
@@ -13566,7 +13987,7 @@ body.dark .pdp-dot-4rau {
   color: #ef4444;
 }
 
-/* Gợi ý cùng thích */
+/* Gợi ý sản phẩm có thể thích */
 .cart-recom-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -13621,7 +14042,7 @@ body.dark .pdp-dot-4rau {
   color: #f59e0b;
 }
 
-/* Coupon & Tóm tắt đơn hàng */
+/* Mã giảm giá và tóm tắt đơn hàng */
 .cart-coupon-form {
   display: flex;
   gap: 8px;
@@ -13838,4 +14259,467 @@ body.dark .pdp-dot-4rau {
   background: #fbbf24;
 }
 
+
+
+
+/* =========================================================================
+   NORDIC LUXURY MODAL VA TUNg BUOC THANH TOAN
+   ========================================================================= */
+
+/* Tinh chinh giao dien modal xac thuc va tra cuu lich hen */
+.modal-overlay.modal-auth .modal-content-shell {
+  max-width: 440px !important;
+  width: 100% !important;
+  padding: 28px 24px 24px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+  background: var(--surface-card, #13161F) !important;
+}
+
+.modal-overlay.modal-lookup .modal-content-shell {
+  max-width: 520px !important;
+  width: 100% !important;
+  padding: 28px 24px 24px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+  background: var(--surface-card, #13161F) !important;
+}
+
+.modal-content-shell h2,
+.modal-content-shell .booking-title,
+.modal-content-shell .auth-modal-title,
+.modal-content-shell .lookup-modal-title {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+}
+
+/* Thanh chuyen tab phan doan cao cap */
+.auth-segmented-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+
+.auth-segmented-nav-btn {
+  background: transparent;
+  color: #94A3B8;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 8px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.auth-segmented-nav-btn:hover {
+  color: #F8FAFC;
+}
+
+.auth-segmented-nav-btn.active {
+  background: #1E293B;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal thong bao da them san pham vao gio hang chuan 4RAU */
+.add-cart-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10005;
+  padding: 16px;
+}
+
+.add-cart-modal-overlay.active {
+  display: flex;
+}
+
+.add-cart-modal-card {
+  background: #FFFFFF;
+  color: #1E293B;
+  border-radius: 10px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  animation: modalEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] .add-cart-modal-card {
+  background: #181D28;
+  color: #F8FAFC;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.add-cart-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .add-cart-modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.add-cart-modal-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.add-cart-modal-close {
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+[data-theme="dark"] .add-cart-modal-close {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #94A3B8;
+}
+
+.add-cart-modal-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #0F172A;
+}
+
+[data-theme="dark"] .add-cart-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+.add-cart-modal-body {
+  padding: 28px 20px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.add-cart-modal-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #0F172A;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+[data-theme="dark"] .add-cart-modal-icon-circle {
+  background: #10B981;
+}
+
+.add-cart-modal-message {
+  font-size: 15.5px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.add-cart-modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 0 20px 24px;
+}
+
+.btn-add-cart-continue {
+  flex: 1;
+  height: 40px;
+  background: #475569;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background 0.15s ease;
+}
+
+.btn-add-cart-continue:hover {
+  background: #334155;
+}
+
+.btn-add-cart-go {
+  flex: 1;
+  height: 40px;
+  background: #D97706;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background 0.15s ease;
+}
+
+.btn-add-cart-go:hover {
+  background: #B45309;
+}
+
+/* Thanh tien trinh tung buoc thanh toan */
+.cart-stepper-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 680px;
+  margin: 0 auto 32px;
+  padding: 0 16px;
+}
+
+.cart-flow-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.cart-flow-step.active,
+.cart-flow-step.completed {
+  opacity: 1;
+}
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1E293B;
+  color: #94A3B8;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.cart-flow-step.active .step-circle {
+  background: #D97706;
+  color: #0F172A;
+  border-color: #D97706;
+}
+
+.cart-flow-step.completed .step-circle {
+  background: #10B981;
+  color: #FFFFFF;
+  border-color: #10B981;
+}
+
+.step-text {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cart-flow-step.active .step-text {
+  color: #F8FAFC;
+}
+
+.step-connector {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 12px;
+  transition: background 0.2s ease;
+}
+
+.step-connector.filled {
+  background: #10B981;
+}
+
+/* Form thong tin giao hang va phuong thuc thanh toan */
+.checkout-method-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.checkout-method-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.checkout-method-card.selected {
+  border-color: #D97706;
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.checkout-method-radio {
+  accent-color: #D97706;
+  width: 18px;
+  height: 18px;
+}
+
+.checkout-method-icon {
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+}
+
+.checkout-method-info {
+  flex: 1;
+}
+
+.checkout-method-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.checkout-method-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.checkout-nav-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.checkout-back-btn {
+  flex: 1;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.checkout-back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.checkout-next-btn {
+  flex: 2;
+  height: 44px;
+  background: linear-gradient(180deg, #F59E0B, #D97706);
+  border: none;
+  border-radius: 8px;
+  color: #09090B;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.checkout-next-btn:hover {
+  filter: brightness(1.08);
+}
+
+/* Quy tac uu tien tuyet doi cho nut them gio va mua ngay khong bi chong chu */
+.product-actions-footer {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 12px 14px 14px !important;
+  align-items: center !important;
+}
+
+.btn-barber-add-cart,
+.btn-barber-buy-now {
+  flex: 1 1 50% !important;
+  width: 50% !important;
+  min-width: 0 !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 0 10px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+}
+
+.btn-barber-add-cart span,
+.btn-barber-buy-now span {
+  white-space: nowrap !important;
+  display: inline-block !important;
+}
+
+/* Khac phuc triet de loi vien dang sau modal */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.78) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.modal-content-shell {
+  background: #13161F !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8) !important;
+}
+
+.auth-modal-content,
+.booking-wizard-wrapper {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* An hoan toan cart drawer goc phai de dung trang gio hang rieng */
+.cart-drawer-shell,
+#cartDrawer {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
 

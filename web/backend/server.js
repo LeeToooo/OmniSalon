@@ -1,7 +1,7 @@
 // =========================================================================
 // OmniSalon — DIRECT SQL ENGINE & REST API SERVER (Node.js Edition)
-// Dữ liệu 100% kết nối TRỰC TIẾP vào Microsoft SQL Server (SSMS / SQL Express)
-// Cơ sở dữ liệu: QL_SALONTOC (Khởi tạo & cấu trúc chuẩn từ QL_SALON.sql)
+// Dữ liệu 100% kết nối TRỰC TIẾP vào Microsoft SQL Server  - SSMS / SQL Express - 
+// Cơ sở dữ liệu: QL_SALONTOC  - Khởi tạo & cấu trúc chuẩn từ QL_SALON.sql - 
 // =========================================================================
 
 const http = require('http');
@@ -93,7 +93,7 @@ async function initDbConnection() {
 }
 
 // -------------------------------------------------------------------------
-// CẤU HÌNH GỬI EMAIL THẬT QUA GMAIL SMTP (NODEMAILER)
+// CẤU HÌNH GỬI EMAIL THẬT QUA GMAIL SMTP  - NODEMAILER - 
 // -------------------------------------------------------------------------
 let nodemailer = null;
 try {
@@ -181,7 +181,7 @@ async function sendRealGmailOtp(toEmail, otp) {
 // -------------------------------------------------------------------------
 // CẤU HÌNH DANH MỤC & THƯƠNG HIỆU SẢN PHẨM
 // Toàn bộ hình ảnh Chi nhánh, Dịch vụ, Combo, Sản phẩm được truy vấn trực tiếp
-// từ cột HinhAnh trong CSDL SQL Server QL_SALONTOC (không hardcode mapping).
+// từ cột HinhAnh trong CSDL SQL Server QL_SALONTOC  - không hardcode mapping - .
 // -------------------------------------------------------------------------
 
 const catIcons = {
@@ -1900,7 +1900,7 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ success: true, order: { id, customerId: khId, totalAmount: total, status: 'Processing' } }));
       }
 
-      // --- 17. POS CHECKOUT (HÓA ĐƠN & THANH TOÁN TẠI QUẦY) ---
+      // --- 17. POS CHECKOUT  - HÓA ĐƠN & THANH TOÁN TẠI QUẦY -  ---
       if (pathname === '/api/pos/checkout' && method === 'POST') {
         const pos = parsedBody || {};
         const maxHd = await querySql(`SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaHoaDon LIKE 'HD%' ORDER BY LEN(MaHoaDon) DESC, MaHoaDon DESC`);
@@ -2178,11 +2178,11 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify(rows));
       }
 
-      // --- 28. PHỤC VỤ FILE TĨNH (STATIC FILES) & SPA FALLBACK ---
+      // --- 28. PHỤC VỤ FILE TĨNH  - STATIC FILES -  & SPA FALLBACK ---
       let rawPath = pathname.replace(/^\/+/, '');
       try { rawPath = decodeURIComponent(rawPath); } catch (_) {}
 
-      // Hỗ trợ truy cập file tĩnh qua prefix /static/... tương đương app.use('/static', express.static(...))
+      // Hỗ trợ truy cập file tĩnh qua prefix /static/... tương đương app.use - '/static', express.static - ... -  - 
       let relPath = rawPath;
       if (relPath.startsWith('static/')) {
         relPath = relPath.substring(7);
@@ -2190,7 +2190,7 @@ const server = http.createServer(async (req, res) => {
       // Chuẩn hóa đường dẫn: loại bỏ tiền tố web/, frontend/, web/frontend/
       relPath = relPath.replace(/^web\/frontend\//, '').replace(/^frontend\//, '').replace(/^web\//, '');
 
-      // Danh sách các vị trí tìm kiếm tệp tĩnh (phục vụ trực tiếp từ ROOT_DIR nơi chứa các folder ảnh)
+      // Danh sách các vị trí tìm kiếm tệp tĩnh  - phục vụ trực tiếp từ ROOT_DIR nơi chứa các folder ảnh - 
       const candidatePaths = [
         path.join(ROOT_DIR, relPath),
         path.join(ROOT_DIR, 'Men_Grooming_Products', relPath),
@@ -2211,10 +2211,11 @@ const server = http.createServer(async (req, res) => {
             if (stat.isFile()) {
               const ext = path.extname(targetPath).toLowerCase();
               const mime = MIME_MAP[ext] || 'application/octet-stream';
+              const isCode = ['.js', '.css', '.html', '.json'].includes(ext);
               res.writeHead(200, {
                 'Content-Type': mime,
                 'Content-Length': stat.size,
-                'Cache-Control': 'public, max-age=86400'
+                'Cache-Control': isCode ? 'no-cache, no-store, must-revalidate' : 'public, max-age=86400'
               });
               return fs.createReadStream(targetPath).pipe(res);
             }
@@ -2222,12 +2223,15 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
-      // SPA Fallback: Phục vụ index.html cho các route (/services, /booking, /shop, /stylists, /admin...)
+      // SPA Fallback: Phục vụ index.html cho các route như services booking shop stylists admin cart
       const fileExt = path.extname(relPath).toLowerCase();
       if (!fileExt || fileExt === '.html') {
         const indexPath = path.join(FRONTEND_DIR, 'index.html');
         if (fs.existsSync(indexPath) && fs.statSync(indexPath).isFile()) {
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.writeHead(200, {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0'
+          });
           return fs.createReadStream(indexPath).pipe(res);
         }
       }

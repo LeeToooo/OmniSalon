@@ -414,96 +414,212 @@
             : `Toàn Hệ Thống Cơ Sở`);
 
       const activeRole = this.getActiveRole(user);
+
+      const tabIcons = {
+        overview: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>`,
+        pos: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="18" y2="15"/></svg>`,
+        branches: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 10h1"/><path d="M9 14h1"/><path d="M14 10h1"/><path d="M14 14h1"/></svg>`,
+        bookings: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>`,
+        stylists: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+        catalog: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+        inventory: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+        audit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`
+      };
+
       let visibleTabs = [];
 
       if (activeRole === 'CASHIER') {
         visibleTabs = [
-          { id: 'pos', icon: '', label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'bookings', icon: '', label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
-          { id: 'audit', icon: '', label: 'Lịch Sử Đơn Hàng & POS' }
+          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
+          { id: 'audit', icon: tabIcons.audit, label: 'Lịch Sử Đơn Hàng & POS' }
         ];
         if (!['pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
           this.adminSubTab = 'pos';
         }
       } else if (activeRole === 'BRANCH_MANAGER') {
         visibleTabs = [
-          { id: 'pos', icon: '', label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'inventory', icon: '', label: 'Quản Lý Kho & Sản Phẩm' },
-          { id: 'bookings', icon: '', label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
-          { id: 'overview', icon: '', label: 'Báo Cáo Doanh Thu & Kho' },
-          { id: 'stylists', icon: '', label: 'Đội Ngũ Thợ & Phân Ca' },
-          { id: 'audit', icon: '', label: 'Lịch Sử Đơn Hàng & POS' }
+          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
+          { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
+          { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu & Kho' },
+          { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
+          { id: 'audit', icon: tabIcons.audit, label: 'Lịch Sử Đơn Hàng & POS' }
         ];
         if (!['pos', 'inventory', 'bookings', 'overview', 'stylists', 'audit'].includes(this.adminSubTab)) {
           this.adminSubTab = 'pos';
         }
       } else {
-        // SUPER_ADMIN: Toàn quyền tất cả các phân hệ
         visibleTabs = [
-          { id: 'overview', icon: '', label: 'Báo Cáo Doanh Thu & Kho' },
-          { id: 'pos', icon: '', label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'branches', icon: '', label: 'Quản Lý Chi Nhánh' },
-          { id: 'bookings', icon: '', label: 'Điều Phối Lịch Hẹn' },
-          { id: 'stylists', icon: '', label: 'Đội Ngũ Thợ & Phân Ca' },
-          { id: 'catalog', icon: '', label: 'Dịch Vụ & Combo' },
-          { id: 'inventory', icon: '', label: 'Quản Lý Kho & Sản Phẩm' },
-          { id: 'audit', icon: '', label: 'Quản Lý Khách Hàng & Nhật Ký' }
+          { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu & Kho' },
+          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
+          { id: 'branches', icon: tabIcons.branches, label: 'Quản Lý Chi Nhánh' },
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Điều Phối Lịch Hẹn' },
+          { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
+          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Combo' },
+          { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
+          { id: 'audit', icon: tabIcons.audit, label: 'Khách Hàng & Nhật Ký' }
         ];
       }
 
       const roleBadge = activeRole === 'CASHIER'
-        ? 'Thu Ngân POS (Chỉ Quầy POS & Lịch Hẹn)'
-        : (activeRole === 'BRANCH_MANAGER' ? 'Quản Lý Chi Nhánh (Quyền Thu Ngân & Kho)' : 'Quản Trị Tối Cao (Toàn Quyền Hệ Thống)');
+        ? 'Thu Ngân POS'
+        : (activeRole === 'BRANCH_MANAGER' ? 'Quản Lý Chi Nhánh' : 'Quản Trị Tối Cao');
 
-      const roleDisplay = `${this.escapeHtml(user?.fullName || user?.username || 'Nhân sự')} [${this.escapeHtml(user?.ChucVu || user?.vaiTroSql || user?.role || 'Quản trị viên')}]`;
+      const activeTabObj = visibleTabs.find(t => t.id === this.adminSubTab) || visibleTabs[0];
+
+      const tabGroups = [
+        {
+          groupLabel: 'TỔNG QUAN',
+          ids: ['overview']
+        },
+        {
+          groupLabel: 'VẬN HÀNH DỊCH VỤ',
+          ids: ['pos', 'bookings', 'stylists']
+        },
+        {
+          groupLabel: 'SẢN PHẨM VÀ KHO',
+          ids: ['catalog', 'inventory']
+        },
+        {
+          groupLabel: 'HỆ THỐNG VÀ DỮ LIỆU',
+          ids: ['branches', 'audit']
+        }
+      ];
 
       container.innerHTML = `
-        <div class="admin-full-wrapper">
-          <!-- Top Enterprise Header -->
-          <div class="admin-hub-header">
-            <div>
-              <div class="badge-terracotta">
-                HỆ THỐNG ĐIỀU HÀNH OMNI SALON ENTERPRISE • NORDIC LUXURY
+        <div class="admin-dashboard-layout">
+          <!-- Lớp phủ mờ khi mở menu trên di động -->
+          <div class="admin-sidebar-overlay" id="adminSidebarOverlay" onclick="AdminWeb.closeSidebar()"></div>
+
+          <!-- Menu dọc bảng quản trị chính thức -->
+          <aside class="admin-sidebar" id="adminSidebar">
+            <div class="admin-sidebar-header">
+              <div class="admin-sidebar-brand">
+                <div class="admin-brand-icon-box">OS</div>
+                <div class="admin-brand-text">
+                  <div class="admin-brand-name">OMNI SALON</div>
+                  <div class="admin-brand-desc">Bảng Quản Trị Hệ Thống</div>
+                </div>
               </div>
-              <h2 class="admin-hub-title" style="margin-top: 6px; color: var(--text-primary, #FFFFFF); font-weight: 900; letter-spacing: -0.02em;">
-                TRUNG TÂM QUẢN TRỊ & ĐIỀU HÀNH SALON
-              </h2>
-              <div style="font-size: 14px; color: var(--text-secondary, #94A3B8); margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <span class="status-pill-pulse status-completed" style="padding: 2px 8px; font-size: 11px;">
-                  <span class="pulse-dot"></span> Trực Tuyến
-                </span>
-                <span>Phạm vi: <strong style="color: var(--text-primary, #FFFFFF);">${this.escapeHtml(branchName)}</strong></span>
-                <span>• Nhân sự: <strong style="color: var(--brand-accent, #D4AF37);">${roleDisplay}</strong></span>
-                <span class="badge-terracotta" style="font-size: 11px; padding: 2px 8px;">${roleBadge}</span>
+              <button type="button" class="admin-sidebar-close-btn" onclick="AdminWeb.closeSidebar()" title="Đóng menu">✕</button>
+            </div>
+
+            <!-- Thẻ hồ sơ nhân sự quản trị -->
+            <div class="admin-sidebar-user-box">
+              <div class="admin-user-avatar-circle">
+                ${this.escapeHtml((user?.fullName || user?.username || 'AD').substring(0, 2).toUpperCase())}
+              </div>
+              <div class="admin-user-details">
+                <div class="admin-user-fullname" title="${this.escapeHtml(user?.fullName || user?.username || 'Nhân sự')}">
+                  ${this.escapeHtml(user?.fullName || user?.username || 'Nhân sự')}
+                </div>
+                <div class="admin-user-badge-pill">${roleBadge}</div>
               </div>
             </div>
 
-            <div style="display:flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-              <button class="pill-btn-outline" style="color: inherit; border-color: var(--border-color);" 
+            <div class="admin-sidebar-branch-info">
+              <span class="admin-sidebar-status-dot"></span>
+              <span class="admin-sidebar-branch-text" title="${this.escapeHtml(branchName)}">
+                ${this.escapeHtml(branchName)}
+              </span>
+            </div>
+
+            <!-- Danh mục các phân hệ dạng menu dọc -->
+            <div class="admin-sidebar-nav-container">
+              ${tabGroups.map(group => {
+                const groupTabs = visibleTabs.filter(t => group.ids.includes(t.id));
+                if (groupTabs.length === 0) return '';
+                return `
+                  <div class="admin-sidebar-nav-group">
+                    <div class="admin-sidebar-nav-label">${group.groupLabel}</div>
+                    <nav class="admin-sidebar-nav-list">
+                      ${groupTabs.map(t => `
+                        <button type="button" 
+                                class="admin-sidebar-nav-item ${this.adminSubTab === t.id ? 'active' : ''}" 
+                                onclick="AdminWeb.switchSubTab('${t.id}')">
+                          <span class="admin-nav-item-icon">${t.icon}</span>
+                          <span class="admin-nav-item-label">${t.label}</span>
+                          ${this.adminSubTab === t.id ? '<span class="admin-nav-item-indicator"></span>' : ''}
+                        </button>
+                      `).join('')}
+                    </nav>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Chân menu dọc với các nút hành động -->
+            <div class="admin-sidebar-footer">
+              <button type="button" class="admin-sidebar-footer-btn action-return" onclick="AdminWeb._goToCustomerPortal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span>Về Giao Diện Khách</span>
+              </button>
+              <button type="button" class="admin-sidebar-footer-btn action-reset" 
                       onclick="if(confirm('Khôi phục toàn bộ dữ liệu mẫu demo ban đầu?')) { window.store.resetToDefault(); if(window.UICommon) window.UICommon.showToast('Đã khôi phục dữ liệu gốc!'); AdminWeb.render(document.getElementById('webMainContainer')); }">
-                Khôi Phục Dữ Liệu
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                <span>Khôi Phục Dữ Liệu</span>
               </button>
-              <button class="btn-submit-terracotta" onclick="AdminWeb._goToCustomerPortal()">
-                ← Giao Diện Khách Hàng
-              </button>
+              <div class="admin-sidebar-system-version">Omni Salon Enterprise • 2026</div>
             </div>
-          </div>
+          </aside>
 
-          <!-- Admin Sub Navigation Tabs Bar (Phân quyền theo Role) -->
-          <div class="admin-subnav-bar">
-            ${visibleTabs.map(t => `
-              <button class="admin-tab-btn ${this.adminSubTab === t.id ? 'active' : ''}" onclick="AdminWeb.switchSubTab('${t.id}')">
-                ${t.icon} ${t.label}
-              </button>
-            `).join('')}
-          </div>
+          <!-- Vùng nội dung chính của bảng quản trị -->
+          <div class="admin-main-viewport">
+            <!-- Thanh đầu trang vùng nội dung -->
+            <header class="admin-topbar">
+              <div class="admin-topbar-left">
+                <button type="button" class="admin-mobile-menu-toggle" onclick="AdminWeb.toggleSidebar()" title="Mở danh mục quản trị">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="admin-topbar-title-cluster">
+                  <div class="admin-topbar-breadcrumbs">
+                    <span>Hệ Thống Quản Trị</span>
+                    <span class="crumb-sep">/</span>
+                    <span class="crumb-active">${activeTabObj?.label || 'Tổng Quan'}</span>
+                  </div>
+                  <h1 class="admin-topbar-heading">
+                    ${activeTabObj?.label || 'Bảng Quản Trị'}
+                  </h1>
+                </div>
+              </div>
 
-          <!-- Sub-Tab Content -->
-          <div id="adminSubTabContent">
-            ${this.renderSubTabContent(user, bookings, products, branches, stylists, auditLogs, services, combos, branchMap)}
+              <div class="admin-topbar-right">
+                <div class="admin-topbar-branch-badge" title="Cơ sở làm việc">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span>${this.escapeHtml(branchName)}</span>
+                </div>
+                <div class="admin-topbar-status-badge">
+                  <span class="status-pulse-dot"></span>
+                  <span>Trực Tuyến</span>
+                </div>
+                <button type="button" class="admin-topbar-home-btn" onclick="AdminWeb._goToCustomerPortal()" title="Về trang đặt lịch và sản phẩm của khách">
+                  ← Về Trang Khách
+                </button>
+              </div>
+            </header>
+
+            <!-- Khung chứa nội dung phân hệ -->
+            <div class="admin-subtab-container" id="adminSubTabContent">
+              ${this.renderSubTabContent(user, bookings, products, branches, stylists, auditLogs, services, combos, branchMap)}
+            </div>
           </div>
         </div>
       `;
+    },
+
+    toggleSidebar() {
+      const sidebar = document.getElementById('adminSidebar');
+      const overlay = document.getElementById('adminSidebarOverlay');
+      if (sidebar) sidebar.classList.toggle('open');
+      if (overlay) overlay.classList.toggle('open');
+    },
+
+    closeSidebar() {
+      const sidebar = document.getElementById('adminSidebar');
+      const overlay = document.getElementById('adminSidebarOverlay');
+      if (sidebar) sidebar.classList.remove('open');
+      if (overlay) overlay.classList.remove('open');
     },
 
     renderAccessDenied(container, user) {
@@ -521,8 +637,8 @@
             </h2>
             <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin-bottom: 24px;">
               ${user
-                ? `Tài khoản <strong>${this.escapeHtml(user.fullName || user.username)}</strong> (Vai trò: <span style="color:#b91c1c; font-weight:800;">${this.escapeHtml(user.role)}</span>) không có quyền truy cập vào Phân Hệ Quản Trị Trung Tâm OmniSalon.`
-                : 'Bạn chưa đăng nhập vào hệ thống. Vui lòng đăng nhập với tài khoản Quản trị viên (SuperAdmin), Quản lý chi nhánh hoặc Nhân viên để tiếp tục.'}
+                ? `Tài khoản <strong>${this.escapeHtml(user.fullName || user.username)}</strong> có vai trò <strong>${this.escapeHtml(user.role)}</strong> không có quyền truy cập vào Phân Hệ Quản Trị Trung Tâm OmniSalon.`
+                : 'Bạn chưa đăng nhập vào hệ thống. Vui lòng đăng nhập với tài khoản Quản trị viên, Quản lý chi nhánh hoặc Nhân viên để tiếp tục.'}
             </p>
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
               <button class="pill-btn-outline" onclick="AdminWeb._goToCustomerPortal()">
@@ -538,6 +654,7 @@
     },
 
     switchSubTab(tabName) {
+      this.closeSidebar();
       const user = this.getCurrentUser();
       const activeRole = this.getActiveRole(user);
       if (activeRole === 'CASHIER' && !['pos', 'bookings', 'audit'].includes(tabName)) {

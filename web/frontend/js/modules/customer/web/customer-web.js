@@ -1,8 +1,8 @@
 // =========================================================================
 // OmniSalon / Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG TRÊN WEB PORTAL (CUSTOMER WEB PLATFORM MODULE)
+// PHÂN HỆ KHÁCH HÀNG TRÊN WEB PORTAL  CUSTOMER WEB PLATFORM MODULE 
 // Phiên bản: 2.2.0 Clean Architecture, RBAC Protected & High Aesthetics
-// Tuân thủ: docs/analysis.md (Mục 2.2 & 4.3) & docs/file_plan.json (TASK-06-WEB-CUSTOMER)
+// Tuân thủ: docs/analysis.md  Mục 2.2 & 4.3  & docs/file_plan.json  TASK-06-WEB-CUSTOMER 
 // =========================================================================
 
 (function (window) {
@@ -59,6 +59,14 @@
       this.initAuthSync();
     },
 
+    // Render noi dung chinh thong qua router
+    renderMainContent() {
+      if (window.AppRouter && typeof window.AppRouter.resolveRoute === 'function') {
+        const path = window.AppRouter.getCurrentPath ? window.AppRouter.getCurrentPath() : '/';
+        window.AppRouter.resolveRoute(path);
+      }
+    },
+
 
 
 
@@ -94,7 +102,7 @@
     },
 
     initAuthSync() {
-      // Tự động re-render Header khi phiên đăng nhập thay đổi (Login / Logout / Profile update)
+      // Tự động re-render Header khi phiên đăng nhập thay đổi  Login / Logout / Profile update 
       if (window.AuthEngine && typeof window.AuthEngine.subscribe === 'function') {
         window.AuthEngine.subscribe(() => {
           this.renderHeader();
@@ -245,19 +253,19 @@
         : [];
       const cartCount = cart.reduce((sum, i) => sum + (i.qty || 1), 0);
 
-      // Xác định quyền hạn quản trị (Chỉ dành riêng cho Admin)
+      // Xác định quyền hạn quản trị  Chỉ dành riêng cho Admin 
       const isAdmin = this.isAdminUser(user);
 
       headerEl.innerHTML = `
         <header class="web-main-header">
           <div class="web-header-inner">
-            <!-- CỤM 1 (TRÁI): Brand Logo Omni Salon + Slogan Barber Style -->
+            <!-- CỤM 1  - TRÁI - : Brand Logo Omni Salon + Slogan Barber Style -->
             <div class="brand-logo-wrap flex-shrink-0" onclick="CustomerWeb.switchTab('home')" style="cursor: pointer;" title="Về trang chủ Omni Salon">
               <span class="logo-text-omni" style="letter-spacing: -0.02em; font-weight: 900;">OMNI SALON</span>
               <span class="logo-sub-text" style="color: #f59e0b; font-weight: 800; letter-spacing: 0.04em;">HAIR CARE &amp; AUTHENTIC BARBER CULTURE</span>
             </div>
 
-            <!-- CỤM 2 (GIỮA): Navigation Links thuần tiếng Việt -->
+            <!-- CỤM 2  - GIỮA - : Navigation Links thuần tiếng Việt -->
             <nav class="web-nav-links">
               <a href="/" data-route="/" class="nav-link ${this.currentTab === 'home' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('home')">TRANG CHỦ</a>
               <a href="/services" data-route="/services" class="nav-link ${this.currentTab === 'services' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('services')">DỊCH VỤ</a>
@@ -277,7 +285,7 @@
               ` : ''}
             </nav>
 
-            <!-- CỤM 3 (PHẢI): Search, Cart, Theme Toggle, User Dropdown -->
+            <!-- CỤM 3  - PHẢI - : Search, Cart, Theme Toggle, User Dropdown -->
             <div class="web-header-actions">
               <!-- Ô Live Search thu nhỏ gọn gàng -->
               <div class="web-search-box-wrap flex-shrink-0">
@@ -293,12 +301,12 @@
                 <div class="search-results-dropdown" id="webSearchDropdown"></div>
               </div>
 
-              <!-- Nút Giỏ Hàng với Mini Cart Dropdown Popup (4RAU Style) -->
+              <!-- Nut Gio Hang voi Mini Cart Dropdown Popup chuan phong cach cao cap -->
               <div class="header-cart-menu-wrapper flex-shrink-0" id="headerCartWrapper"
                    onmouseenter="CustomerWeb.handleCartMouseEnter()"
                    onmouseleave="CustomerWeb.handleCartMouseLeave()">
                 <button type="button" class="header-action-btn cart-btn-wrap" id="headerCartBtn" 
-                        onclick="CustomerWeb.toggleCartPopup(event)" 
+                        onclick="CustomerWeb.goToCartPage(event)" 
                         title="Xem giỏ hàng" aria-label="Giỏ hàng">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -332,7 +340,7 @@
                 </svg>
               </button>
 
-              <!-- User Menu Dropdown (Gom Chi nhánh, Tra cứu & Quản lý vào menu Avatar) -->
+              <!-- User Menu Dropdown  - Gom Chi nhánh, Tra cứu & Quản lý vào menu Avatar -  -->
               <div class="header-user-menu-wrapper flex-shrink-0">
                 <div class="header-user-btn" id="headerUserBtn" onclick="CustomerWeb.toggleUserMenu(event)" title="Mở menu thành viên &amp; tiện ích">
                   <span class="user-avatar-text">${user ? SalonUtils.getInitials(user.fullName || user.name || user.username || 'Omni') : 'OS'}</span>
@@ -359,7 +367,7 @@
                     <span>Tra Cứu Lịch Hẹn</span>
                   </button>
 
-                  <!-- 2. Chọn chi nhánh (Phân quyền: Quản lý mới được đổi, Nhân viên chỉ xem, Khách hàng ẩn) -->
+                  <!-- 2. Chọn chi nhánh  - Phân quyền: Quản lý mới được đổi, Nhân viên chỉ xem, Khách hàng ẩn -  -->
                   ${(() => {
                     const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
                     const isMgr = user && (roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER') || user.username === 'admin');
@@ -394,10 +402,10 @@
                     return '';
                   })()}
 
-                  <!-- 3. Nút Quản Trị Salon (Chỉ dành riêng cho Admin / Quản lý / Thu ngân) -->
+                  <!-- 3. Nút Quản Trị Salon  - Chỉ dành riêng cho Admin / Quản lý / Thu ngân -  -->
                   ${this.renderAdminButtonHTML(user, isAdmin)}
 
-                  <!-- 4. Lịch làm việc & Đăng ký ca làm (Dành cho Thợ & Thu ngân) -->
+                  <!-- 4. Lịch làm việc & Đăng ký ca làm  - Dành cho Thợ & Thu ngân -  -->
                   ${(() => {
                     const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
                     const isStf = user && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
@@ -489,16 +497,22 @@
           <span class="mini-cart-summary-total">${SalonUtils.formatCurrency(subtotal)}</span>
         </div>
 
-        <!-- Nút Xem Giỏ Hàng mở Drawer hoặc vào trang chi tiết 4RAU -->
-        <button type="button" class="mini-cart-cta-btn" onclick="CustomerWeb.closeCartPopup(); UICommon && UICommon.openCartDrawer();">
+        <!-- Nut Xem Gio Hang chuyen thang sang trang gio hang chi tiet -->
+        <button type="button" class="mini-cart-cta-btn" onclick="CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/cart'); else if(window.CustomerWeb) window.CustomerWeb.switchTab('cart');">
           Xem Giỏ Hàng
         </button>
-        <div style="text-align: center; margin-top: 8px;">
-          <a href="/cart" onclick="event.preventDefault(); CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/cart');" style="color: var(--text-secondary, #94a3b8); font-size: 11.5px; text-decoration: underline; cursor: pointer;">
-            Xem trang giỏ hàng chi tiết (4RAU Style) →
-          </a>
-        </div>
       `;
+    },
+
+    // Dieu huong truc tiep den trang gio hang rieng biet
+    goToCartPage(event) {
+      if (event && typeof event.preventDefault === 'function') event.preventDefault();
+      this.closeCartPopup();
+      if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
+        window.AppRouter.navigate('/cart');
+      } else {
+        this.switchTab('cart');
+      }
     },
 
     toggleCartPopup(event) {
@@ -589,7 +603,7 @@
           }
         });
 
-        // Hiệu ứng fade nhẹ từ trên xuống khi kéo cuộn trang (Header Scroll Fade-Down)
+        // Hiệu ứng fade nhẹ từ trên xuống khi kéo cuộn trang  Header Scroll Fade-Down 
         let ticking = false;
         const onScroll = () => {
           if (!ticking) {
@@ -787,7 +801,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // 3. TRA CỨU LỊCH HẸN BẰNG SĐT / MÃ LỊCH (#BK-...) KÈM HỦY LỊCH
+    // 3. TRA CỨU LỊCH HẸN BẰNG SĐT / MÃ LỊCH  #BK-...  KÈM HỦY LỊCH
     // -----------------------------------------------------------------------
     openLookupModal(prefillValue = '') {
       const modal = document.getElementById('globalModal');
@@ -799,43 +813,47 @@
       const isCustomer = user && !isAdmin;
       const defaultQuery = isCustomer ? (user.phone || '') : (prefillValue || (user && user.phone ? user.phone : ''));
 
+      modal.classList.remove('modal-wide');
+      modal.classList.add('active', 'modal-lookup');
+      const shell = modal.querySelector('.modal-content-shell');
+      if (shell) {
+        shell.style.maxWidth = '520px';
+      }
+
       modalBody.innerHTML = `
-        <div class="booking-wizard-wrapper" style="max-width: 620px;">
-          <div class="booking-header">
-            <div class="badge-terracotta">HỆ THỐNG TRA CỨU OMNI SALON</div>
-            <h2 class="booking-title" style="font-size: 22px;">TRA CỨU LỊCH HẸN CẮT TÓC</h2>
-            <p class="booking-subtitle">
+        <div class="lookup-modal-content">
+          <div class="lookup-modal-header" style="text-align: center; margin-bottom: 20px;">
+            <h2 class="lookup-modal-title" style="font-size: 20px; font-weight: 700; margin: 0 0 6px; color: #FFFFFF; letter-spacing: -0.01em;">Tra Cứu Lịch Hẹn</h2>
+            <p class="lookup-modal-subtitle" style="font-size: 13px; color: #94A3B8; margin: 0; line-height: 1.5;">
               ${isCustomer 
-                ? `Danh sách lịch hẹn đã đặt của quý khách: <strong>${this.escapeHtml(user.fullName || user.name)}</strong> (${user.phone})`
-                : 'Nhập Số Điện Thoại (10 số) hoặc Mã Lịch Hẹn (#BK-...) để kiểm tra tình trạng'}
+                ? `Lịch hẹn đã đặt của quý khách: <strong style="color: #F8FAFC;">${this.escapeHtml(user.fullName || user.name)}</strong>`
+                : 'Nhập số điện thoại hoặc mã lịch hẹn để kiểm tra trạng thái dịch vụ'}
             </p>
           </div>
 
           ${isCustomer ? `
-            <!-- Khách hàng đã đăng nhập: Khóa tìm kiếm để bảo vệ riêng tư, tự động tải lịch của chính mình -->
+            <!-- Khach hang da dang nhap tu dong tai lich cua chinh minh -->
             <input type="hidden" id="lookupSearchInput" value="${this.escapeHtml(defaultQuery)}">
           ` : `
-            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <div class="lookup-search-bar" style="display: flex; gap: 8px; margin-bottom: 16px;">
               <input type="text" id="lookupSearchInput" class="form-control-custom" 
-                     placeholder="Nhập SĐT của bạn (VD: 0908123456)..." 
+                     placeholder="Nhập SĐT của bạn ví dụ 0908123456..." 
                      value="${this.escapeHtml(defaultQuery)}"
-                     style="font-size: 14px;"
+                     style="height: 44px; font-size: 14px; flex: 1;"
                      onkeydown="if(event.key === 'Enter') CustomerWeb.searchBookingLookup()">
-              <button class="btn-submit-terracotta" style="white-space: nowrap; padding: 10px 22px;" onclick="CustomerWeb.searchBookingLookup()">
+              <button class="btn-submit-terracotta" style="white-space: nowrap; height: 44px; padding: 0 20px;" onclick="CustomerWeb.searchBookingLookup()">
                 Tìm Lịch
               </button>
             </div>
           `}
 
           <div id="lookupResultsContainer">
-            <div style="padding: 24px; text-align: center; color: var(--text-secondary); font-size: 13px; background: var(--surface-elevated); border-radius: 12px; border: 1px dashed var(--border-color);">
+            <div style="padding: 28px 16px; text-align: center; color: #94A3B8; font-size: 13px; background: rgba(255, 255, 255, 0.03); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08);">
               Đang tải thông tin lịch hẹn của bạn...
             </div>
           </div>
         </div>
       `;
-
-      modal.classList.add('active');
 
       if (defaultQuery || isCustomer) {
         setTimeout(() => this.searchBookingLookup(), 50);
@@ -949,7 +967,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // QUẢN LÝ CA LÀM & COI LỊCH LÀM HÔM NAY (CHO THỢ & THU NGÂN)
+    // QUẢN LÝ CA LÀM & COI LỊCH LÀM HÔM NAY  CHO THỢ & THU NGÂN 
     // -----------------------------------------------------------------------
     openStaffShiftModal() {
       const user = this.getCurrentUser();
@@ -1235,7 +1253,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // 4. MAIN CUSTOMER PORTAL (TOÀN BỘ 14 SECTIONS TRANG CHỦ HOÀN THIỆN)
+    // 4. MAIN CUSTOMER PORTAL  TOÀN BỘ 14 SECTIONS TRANG CHỦ HOÀN THIỆN 
     // -----------------------------------------------------------------------
     renderMainContent() {
       const container = document.getElementById('webMainContainer');
@@ -1388,7 +1406,7 @@
           </div>
         </section>
 
-        <!-- 2. BẠN ĐẾN NHÀ (KHOẢNH KHẮC THƯỜNG NHẬT OMNI SALON) -->
+        <!-- 2. BẠN ĐẾN NHÀ  - KHOẢNH KHẮC THƯỜNG NHẬT OMNI SALON -  -->
         <section class="section-container" style="padding-top: 40px; padding-bottom: 20px;">
           <h2 class="section-title-clean">BẠN ĐẾN NHÀ • OMNI SALON MOMENTS</h2>
           <div class="moments-horizontal-scroll">
@@ -1462,7 +1480,7 @@
           </div>
         </section>
 
-        <!-- 4. SẢN PHẨM MỚI (NEW ARRIVALS) -->
+        <!-- 4. SẢN PHẨM MỚI  - NEW ARRIVALS -  -->
         <section class="section-container" id="newProductsSection" style="padding-top: 50px;">
           <h2 class="section-title-clean">SẢN PHẨM MỚI</h2>
           <p class="section-subtitle-clean">Những mẫu sáp vuốt và phụ kiện mới nhất vừa cập bến — cập nhật liên tục.</p>
@@ -1471,7 +1489,7 @@
           </div>
         </section>
 
-        <!-- 5. SẢN PHẨM BÁN CHẠY (BEST SELLERS) -->
+        <!-- 5. SẢN PHẨM BÁN CHẠY  - BEST SELLERS -  -->
         <section class="section-container" id="bestSellerSection" style="padding-top: 50px;">
           <h2 class="section-title-clean">SẢN PHẨM BÁN CHẠY</h2>
           <p class="section-subtitle-clean">Chúng tôi mang đến sự lựa chọn tốt nhất cho bạn với phong cách riêng biệt.</p>
@@ -1555,7 +1573,7 @@
           </div>
         </section>
 
-        <!-- 9. TÁC PHẨM TRONG THÁNG (HAIRSTYLES SHOWCASE) -->
+        <!-- 9. TÁC PHẨM TRONG THÁNG  - HAIRSTYLES SHOWCASE -  -->
         <section class="section-container" style="padding-top: 50px;">
           <h2 class="section-title-clean">TÁC PHẨM TRONG THÁNG</h2>
           <p class="section-subtitle-clean">Tuyển tập những kiểu tóc nam nổi bật do Master Stylist tạo mẫu.</p>
@@ -1582,7 +1600,7 @@
           ${UICommon.renderServicesTickerHTML ? UICommon.renderServicesTickerHTML() : ''}
         </section>
 
-        <!-- 11. VIDEO NGẮN HAY NHẤT (SHORTS / REELS) -->
+        <!-- 11. VIDEO NGẮN HAY NHẤT  - SHORTS / REELS -  -->
         <section class="section-container" style="padding-top: 50px; text-align: center;">
           <h2 class="section-title-clean">VIDEO NGẮN HAY NHẤT</h2>
           <div class="videos-preview-row">
@@ -1612,7 +1630,7 @@
           </div>
         </section>
 
-        <!-- 13. CÂU HỎI THƯỜNG GẶP (FAQ ACCORDION) -->
+        <!-- 13. CÂU HỎI THƯỜNG GẶP  - FAQ ACCORDION -  -->
         <section class="section-container" style="padding-top: 60px; padding-bottom: 20px;">
           <h2 class="section-title-clean">CÂU HỎI THƯỜNG GẶP</h2>
           <p class="section-subtitle-clean">Giải đáp những thắc mắc phổ biến của quý khách khi trải nghiệm tại Omni Salon.</p>
@@ -2116,7 +2134,7 @@
               </button>
             </div>
 
-            <!-- KHUNG CẤU HÌNH API (KHI BẬT) -->
+            <!-- KHUNG CẤU HÌNH API  - KHI BẬT -  -->
             ${showApiSettings ? `
               <div class="ai-settings-collapsible">
                 <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px;">CẤU HÌNH KẾT NỐI AI VISION API:</div>
@@ -2190,7 +2208,7 @@
       const file = event.target.files && event.target.files[0];
       if (!file) return;
 
-      // Validate định dạng ảnh & kích thước (< 5MB, JPG/PNG/WEBP, chống path traversal)
+      // Validate định dạng ảnh & kích thước  < 5MB, JPG/PNG/WEBP, chống path traversal 
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
       const allowedExtensions = /\.(jpe?g|png|webp)$/i;
       const fileName = (file.name || '').replace(/[\/\\]/g, '');
@@ -2269,7 +2287,7 @@
         if (response && response.resultImageUrl) {
           this.aiState.resultImage = response.resultImageUrl;
 
-          // Lưu bức ảnh vào thư viện cá nhân (AI Gallery)
+          // Lưu bức ảnh vào thư viện cá nhân  AI Gallery 
           this.saveAiToGallery({
             id: 'ai-' + Date.now(),
             hairstyle: this.aiState.selectedStyle,
@@ -2385,7 +2403,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // 6. MÀN HÌNH TRANG CÁ NHÂN KHÁCH HÀNG (CUSTOMER PORTAL ĐẦY ĐỦ 5 TABS)
+    // 6. MÀN HÌNH TRANG CÁ NHÂN KHÁCH HÀNG  CUSTOMER PORTAL ĐẦY ĐỦ 5 TABS 
     // -----------------------------------------------------------------------
     openCustomerPortalModal() {
       const user = this.getCurrentUser();
@@ -2428,7 +2446,7 @@
 
       modalBody.innerHTML = `
         <div class="customer-portal-shell" style="max-width: 720px; margin: 0 auto;">
-          <!-- 1. Profile Hero Card (Thích ứng hoàn hảo Chế độ Sáng / Tối) -->
+          <!-- 1. Profile Hero Card  - Thích ứng hoàn hảo Chế độ Sáng / Tối -  -->
           <div class="portal-profile-hero" style="background: var(--surface-card, #f8fafc) !important; border: 1px solid var(--border-color, #cbd5e1) !important; border-radius: 16px; padding: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.04);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px;">
               <div style="display: flex; gap: 16px; align-items: center;">
@@ -2471,7 +2489,7 @@
             </div>
           </div>
 
-          <!-- [ TRUNG TÂM QUẢN TRỊ & DỮ LIỆU CHUỖI SALON ] DÀNH RIÊNG CHO QUẢN TRỊ VIÊN (ADMIN) -->
+          <!--  -  TRUNG TÂM QUẢN TRỊ & DỮ LIỆU CHUỖI SALON  -  DÀNH RIÊNG CHO QUẢN TRỊ VIÊN  - ADMIN -  -->
           ${isAdmin ? `
             <div class="portal-admin-hub-card" onclick="UICommon.closeGlobalModal(); if(window.AppRouter) { window.AppRouter.navigate('/admin'); } else if(window.CustomerWeb) { window.CustomerWeb.switchTab('admin'); } else { window.location.href='/admin'; }" 
                  style="margin-top: 16px; margin-bottom: 18px; padding: 16px 20px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%); border: 2px solid #F59E0B; border-radius: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: none; transition: all 0.25s ease;">
@@ -2562,7 +2580,7 @@
         `;
       }
 
-      // Eager loading map lookups O(1) để khử N+1 query trong vòng lặp render
+      // Eager loading map lookups O 1  để khử N+1 query trong vòng lặp render
       const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
       const branchMap = new Map(branches.map(b => [String(b.id), b]));
       const stylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
@@ -2636,7 +2654,7 @@
         `;
       }
 
-      // Eager loading map lookups O(1) cho sản phẩm để khử N+1 query trong vòng lặp item
+      // Eager loading map lookups O 1  cho sản phẩm để khử N+1 query trong vòng lặp item
       const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
       const productMap = new Map(products.map(p => [String(p.id), p]));
 
@@ -2926,7 +2944,7 @@
   };
 
   // -----------------------------------------------------------------------
-  // EXPOSURE & TƯƠNG THÍCH HOÀN HẢO VỚI HỆ THỐNG HIỆN HỮU (UIWEB BRIDGE)
+  // EXPOSURE & TƯƠNG THÍCH HOÀN HẢO VỚI HỆ THỐNG HIỆN HỮU  UIWEB BRIDGE 
   // -----------------------------------------------------------------------
   window.CustomerWeb = CustomerWeb;
 

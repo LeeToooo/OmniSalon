@@ -42,10 +42,10 @@
                 </p>
               </div>
 
-              <!-- Nút mở giỏ hàng (Flat CTA) -->
+              <!-- Nut mo trang gio hang rieng -->
               <button class="btn-flat-cta btn-flat-primary"
                       style="height: 44px; padding: 0 20px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;"
-                      onclick="UICommon && UICommon.openCartDrawer ? UICommon.openCartDrawer() : null">
+                      onclick="if(window.AppRouter) window.AppRouter.navigate('/cart'); else if(window.UICommon) window.UICommon.goToCartPage();">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
                   <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -55,7 +55,7 @@
               </button>
             </div>
 
-            <!-- BẢNG TÌM KIẾM & BỘ LỌC DANH MỤC (Flat Design - Radius 12px) -->
+            <!-- BẢNG TÌM KIẾM & BỘ LỌC DANH MỤC  - Flat Design - Radius 12px -  -->
             <div style="background: var(--surface-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
               <div style="display: flex; flex-direction: column; gap: 16px;">
                 <!-- Ô Tìm Kiếm -->
@@ -67,7 +67,7 @@
                          oninput="ShopPage.handleSearch(this.value)">
                 </div>
 
-                <!-- Lọc Theo Danh Mục (Clean Tabs) -->
+                <!-- Lọc Theo Danh Mục  - Clean Tabs -  -->
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 11.5px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase; letter-spacing: 0.04em;">DANH MỤC:</span>
                   <div class="clean-filter-tabs">
@@ -86,7 +86,7 @@
                   </div>
                 </div>
 
-                <!-- Lọc Theo Thương Hiệu & Mức Giá (Clean Row) -->
+                <!-- Lọc Theo Thương Hiệu & Mức Giá  - Clean Row -  -->
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--border-color);">
                   <!-- Thương hiệu -->
                   <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -123,7 +123,7 @@
               </div>
             </div>
 
-            <!-- LƯỚI SẢN PHẨM (Clean E-Commerce Grid) -->
+            <!-- LƯỚI SẢN PHẨM  - Clean E-Commerce Grid -  -->
             <div id="shopCatalogGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
               ${this.renderProducts(filtered)}
             </div>
@@ -213,7 +213,7 @@
                       (window.INITIAL_SALON_DATA && window.INITIAL_SALON_DATA.products) || [];
       }
 
-      // LỌC 1: LOẠI BỎ HOÀN TOÀN SẢN PHẨM HẾT HẠN (daysRemaining <= 0)
+      // LỌC 1: LOẠI BỎ HOÀN TOÀN SẢN PHẨM HẾT HẠN  - daysRemaining <= 0 - 
       let filtered = allProducts.filter(p => {
         if (p.isExpired === true) return false;
         if (p.daysRemaining !== undefined && p.daysRemaining <= 0) return false;
@@ -391,7 +391,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // TRANG CHI TIẾT SẢN PHẨM (PRODUCT DETAIL PAGE — FULL-PAGE CHUYÊN NGHIỆP)
+    // TRANG CHI TIẾT SẢN PHẨM  - PRODUCT DETAIL PAGE — FULL-PAGE CHUYÊN NGHIỆP - 
     // -----------------------------------------------------------------------
     renderProductDetail(container, productId) {
       if (!container) return;
@@ -490,7 +490,7 @@
               </div>
             </div>
 
-            <!-- 2. MAIN HERO SHOWCASE (CHUẨN BỐ CỤC 4RAU — THƯƠNG HIỆU OMNI SALON) -->
+            <!-- 2. MAIN HERO SHOWCASE  - CHUẨN BỐ CỤC 4RAU — THƯƠNG HIỆU OMNI SALON -  -->
             <div class="pdp-hero-grid">
               <!-- CỘT TRÁI: GALLERY TRƯNG BÀY SẢN PHẨM -->
               <div class="pdp-gallery-wrap">
@@ -523,7 +523,7 @@
                 </div>
               </div>
 
-              <!-- CỘT PHẢI: THÔNG TIN CHI TIẾT & MUA HÀNG (CHUẨN 4RAU — OMNI SALON) -->
+              <!-- CỘT PHẢI: THÔNG TIN CHI TIẾT & MUA HÀNG  - CHUẨN 4RAU — OMNI SALON -  -->
               <div class="pdp-info-wrap">
                 <!-- 1. Category / Brand Badge -->
                 <div class="pdp-4rau-brand-badge">${'OMNI SALON • ' + (prod.brand || 'CHÍNH HÃNG').toUpperCase()}</div>
@@ -592,7 +592,7 @@
                   </div>
                 </div>
 
-                <!-- 9. Cụm Nút CTA Chuẩn 4RAU (Thêm Giỏ Đen • Mua Ngay Đỏ • Nút Tim) -->
+                <!-- 9. Cụm Nút CTA Chuẩn 4RAU  - Thêm Giỏ Đen • Mua Ngay Đỏ • Nút Tim -  -->
                 <div class="pdp-4rau-cta-row">
                   <button type="button" class="pdp-4rau-btn-cart" onclick="ShopPage.handleDetailAddToCart('${prod.id}')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -612,7 +612,7 @@
                   </button>
                 </div>
 
-                <!-- 10. Chia Sẻ (Facebook • Zalo • Sao Chép Link) -->
+                <!-- 10. Chia Sẻ  - Facebook • Zalo • Sao Chép Link -  -->
                 <div class="pdp-4rau-share-row">
                   <span class="pdp-4rau-share-label">Chia sẻ:</span>
                   <button type="button" class="pdp-4rau-share-btn fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank')">
@@ -630,7 +630,7 @@
               </div>
             </div>
 
-            <!-- 3. KHỐI 3 CAM KẾT CHUẨN 4RAU DƯỚI SHOWCASE (OMNI SALON) -->
+            <!-- 3. KHỐI 3 CAM KẾT CHUẨN 4RAU DƯỚI SHOWCASE  - OMNI SALON -  -->
             <div class="pdp-4rau-trust-bar">
               <div class="pdp-4rau-trust-card">
                 <div class="pdp-4rau-trust-icon blue">
@@ -677,7 +677,7 @@
             </div>
 
 
-            <!-- 3. SECTION TABS CHI TIẾT (FULL WIDTH CONTAINER) -->
+            <!-- 3. SECTION TABS CHI TIẾT  - FULL WIDTH CONTAINER -  -->
             <div class="pdp-tabs-wrapper">
               <div class="pdp-tab-nav">
                 <button type="button" class="pdp-tab-btn active" onclick="ShopPage.switchDetailTab('tabDesc', this)">
@@ -805,7 +805,7 @@
               </div>
             </div>
 
-            <!-- 4. SECTION SẢN PHẨM KHUYÊN DÙNG (RELATED PRODUCTS GRID 4 CỘT) -->
+            <!-- 4. SECTION SẢN PHẨM KHUYÊN DÙNG  - RELATED PRODUCTS GRID 4 CỘT -  -->
             <div class="pdp-related-section">
               <div class="pdp-section-header">
                 <div class="pdp-section-title-wrap">
@@ -956,9 +956,8 @@
     handleDetailBuyNow(productId) {
       const input = document.getElementById('pdpDetailQtyInput');
       const qty = input ? (parseInt(input.value, 10) || 1) : 1;
-      if (window.UICommon && typeof window.UICommon.addToCart === 'function') {
-        window.UICommon.addToCart(productId, 'product', qty);
-        window.UICommon.openCartDrawer();
+      if (window.UICommon && typeof window.UICommon.buyNow === 'function') {
+        window.UICommon.buyNow(productId, qty);
       }
     },
 

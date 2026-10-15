@@ -1,12 +1,6 @@
-/* =========================================================================
-   Omni Salon — SENIOR PRODUCT DESIGN SYSTEM (ANTI-AI CLEAN ARCHITECTURE)
-   Dedicated Component Stylesheet: ProductCard & BranchCard
-   - Triệt tiêu hoàn toàn viền neon/glow sến, bóng drop-shadow mờ ảo
-   - Thiết kế phẳng dứt khoát, độ bo góc vừa phải (radius 6–10px)
-   - Tương thích 100% cả Light Mode (#ffffff/#f3f4f6) và Dark Mode (#121622/#0b0d13)
-   ========================================================================= */
+/* Omni Salon - Giao diện thẻ sản phẩm và thẻ chi nhánh */
 
-/* ── 1. PRODUCT CLEAN CARD ── */
+/* Thẻ sản phẩm */
 .product-clean-card {
   position: relative !important;
   display: flex !important;
@@ -37,7 +31,7 @@ body.dark .product-clean-card {
   opacity: 0.65 !important;
 }
 
-/* Media wrapper & ảnh (Tràn viền edge-to-edge sạch sẽ, không dính nền trắng/kem) */
+/* Khung chứa ảnh tràn viền */
 .product-media-wrapper {
   position: relative !important;
   width: 100% !important;
@@ -76,7 +70,7 @@ body.dark .product-media-wrapper {
   transform: scale(1.05) !important;
 }
 
-/* Nút Yêu thích Wishlist */
+/* Nút thêm vào danh sách yêu thích */
 .product-wishlist-btn {
   position: absolute !important;
   top: 10px !important;
@@ -132,7 +126,7 @@ body.dark .product-wishlist-btn.active {
   background: rgba(239, 68, 68, 0.15) !important;
 }
 
-/* Nhãn Giảm giá Phẳng (Tông trầm tinh tế, no neon) */
+/* Nhãn giảm giá phẳng */
 .flat-discount-badge {
   position: absolute !important;
   top: 10px !important;
@@ -149,7 +143,7 @@ body.dark .product-wishlist-btn.active {
   box-shadow: none !important;
 }
 
-/* Thân Card Sản Phẩm */
+/* Thân thẻ sản phẩm */
 .product-body {
   padding: 14px 16px 12px !important;
   display: flex !important;
@@ -176,7 +170,7 @@ body.dark .product-wishlist-btn.active {
   white-space: nowrap !important;
 }
 
-/* Tình trạng kho (Stock Indicator) */
+/* Tình trạng tồn kho */
 .stock-indicator-badge {
   display: inline-flex !important;
   align-items: center !important;
@@ -244,7 +238,7 @@ body.dark .product-title-clean {
   color: var(--brand-accent, #D97706) !important;
 }
 
-/* Đánh giá sao & lượt mua */
+/* Đánh giá sao và lượt mua */
 .product-rating-row {
   display: flex !important;
   align-items: center !important;
@@ -262,7 +256,7 @@ body.dark .product-title-clean {
   font-size: 11.5px !important;
 }
 
-/* Giá sản phẩm (Đưa về màu sáng trung tính text-zinc-100 font-semibold) */
+/* Giá sản phẩm */
 .product-price-row {
   display: flex !important;
   align-items: baseline !important;
@@ -289,18 +283,22 @@ body.light .product-price-current {
   text-decoration: line-through !important;
 }
 
-/* Khối nút hành động */
+/* Khoi nut hanh dong */
 .product-actions-footer {
   padding: 12px 14px 14px !important;
   border-top: 1px solid var(--border-color, #222225) !important;
   display: flex !important;
   gap: 8px !important;
   margin-top: auto !important;
+  align-items: center !important;
 }
 
-/* ── NÚT THÊM VÀO GIỎ HÀNG: TRUNG TÍNH (bg-zinc-800 text-zinc-100), CHỈ ĐỔI CAM TRẦM KHI HOVER VÀO CARD ── */
+/* Nut them vao gio hang */
 .btn-barber-add-cart {
-  width: 100% !important;
+  flex: 1 1 50% !important;
+  width: 50% !important;
+  max-width: 50% !important;
+  min-width: 0 !important;
   height: 38px !important;
   background: #27272A !important;
   color: #F4F4F5 !important;
@@ -308,7 +306,7 @@ body.light .product-price-current {
   border-radius: 8px !important;
   font-size: 13px !important;
   font-weight: 600 !important;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 6px !important;
@@ -318,13 +316,15 @@ body.light .product-price-current {
   box-shadow: none !important;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
   letter-spacing: -0.01em !important;
+  white-space: nowrap !important;
+  padding: 0 8px !important;
 }
 
 .product-clean-card:hover .btn-barber-add-cart:not(:disabled),
 .btn-barber-add-cart:hover:not(:disabled) {
-  background: #D97706 !important;
-  color: #09090B !important;
-  border-color: #D97706 !important;
+  background: #3F3F46 !important;
+  color: #FFFFFF !important;
+  border-color: #52525B !important;
   box-shadow: none !important;
 }
 
@@ -339,24 +339,30 @@ body.light .product-price-current {
   border-color: #27272A !important;
   cursor: not-allowed !important;
   opacity: 0.6 !important;
+  flex: 1 1 100% !important;
 }
 
-/* Nút Mua Ngay — Cam Trầm Phẳng Sắc Nét */
+/* Nut mua ngay */
 .btn-barber-buy-now {
-  flex: 1 !important;
+  flex: 1 1 50% !important;
+  width: 50% !important;
+  max-width: 50% !important;
+  min-width: 0 !important;
   height: 38px !important;
   background: #D97706 !important;
   color: #09090B !important;
   border: none !important;
   border-radius: 8px !important;
   font-size: 13px !important;
-  font-weight: 500 !important;
+  font-weight: 700 !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
   box-shadow: none !important;
-  transition: background-color 0.15s ease !important;
+  transition: background-color 0.15s ease, transform 0.15s ease !important;
+  white-space: nowrap !important;
+  padding: 0 8px !important;
 }
 
 .btn-barber-buy-now:hover:not(:disabled) {
@@ -365,7 +371,7 @@ body.light .product-price-current {
 }
 
 
-/* ── NÚT CTA PHẲNG CHUẨN PRODUCT DESIGN (Radius 6–8px, Flat, No Glow) ── */
+/* Nút hành động chính */
 .btn-flat-cta {
   display: inline-flex !important;
   align-items: center !important;
@@ -441,7 +447,7 @@ body.dark .btn-flat-outline:hover:not(:disabled) {
   background: #121622 !important;
 }
 
-/* ── 2. BRANCH CLEAN CARD ── */
+/* Thẻ chi nhánh */
 .branch-clean-card {
   position: relative !important;
   display: flex !important;
@@ -523,7 +529,7 @@ body.dark .branch-media-box {
   border-radius: 4px !important;
 }
 
-/* Floating Status */
+/* Trạng thái hoạt động */
 .branch-status-floating {
   position: absolute !important;
   bottom: 8px !important;
@@ -565,7 +571,7 @@ body.dark .branch-media-box {
   display: inline-block !important;
 }
 
-/* Thân Card Chi Nhánh */
+/* Thân thẻ chi nhánh */
 .branch-content-body {
   padding: 14px 16px 16px !important;
   display: flex !important;
@@ -662,7 +668,7 @@ body.dark .branch-address-val {
   text-decoration: underline !important;
 }
 
-/* Hành động Chi nhánh — Nút Chỉ Đường / Đặt Lịch Dạng Secondary Button */
+/* Nút chỉ đường và đặt lịch */
 .branch-actions-row {
   display: flex !important;
   gap: 8px !important;
@@ -713,7 +719,7 @@ body.dark .branch-actions-row {
   box-shadow: none !important;
 }
 
-/* ── 3. FILTER TABS & CHIPS CHUẨN PRODUCT DESIGN (Không dùng 9999px Pill Sến) ── */
+/* Thanh lọc danh mục */
 .clean-filter-tabs {
   display: flex !important;
   align-items: center !important;
@@ -779,7 +785,7 @@ body.dark .clean-tab-btn:hover {
   color: #ffffff !important;
 }
 
-/* ── 4. RESPONSIVE GRID CHUẨN 4 CỘT CÂN ĐỐI (Lấp đầy 100%, triệt tiêu ô trống thừa) ── */
+/* Lưới sản phẩm bốn cột cân đối */
 .products-clean-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
@@ -808,7 +814,7 @@ body.dark .clean-tab-btn:hover {
   }
 }
 
-/* ── 5. LOẠI BỎ TRIỆT ĐỂ VIỀN MỜ PHÁT SÁNG & KHỐI ĐEN PHÍA SAU (ANTI-AI GLOW) ── */
+/* Bỏ viền phát sáng và khung thừa */
 .nordic-btn-primary,
 .nordic-btn-secondary,
 .btn-magnetic,
@@ -838,7 +844,7 @@ body.dark .clean-tab-btn:hover {
   content: none !important;
 }
 
-/* Triệt tiêu khung viền và nền đen bao bọc 4 thẻ tiêu biểu phía sau */
+/* Bỏ khung viền thừa bao quanh */
 .nordic-metrics-strip {
   background: transparent !important;
   border: none !important;

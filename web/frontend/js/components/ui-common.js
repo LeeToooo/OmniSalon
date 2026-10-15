@@ -1,12 +1,12 @@
 // =========================================================================
-// OmniSalon / Omni Salon — FILE 2: GIAO DIỆN CHUNG (COMMON UI COMPONENTS)
+// OmniSalon / Omni Salon — FILE 2: GIAO DIỆN CHUNG  COMMON UI COMPONENTS 
 // Chứa toàn bộ: Product Cards, News Cards, Branch Pills, Booking Wizard,
-// Tái sử dụng 100% cho cả Web Desktop và Web Mobile (Responsive).
+// Tái sử dụng 100% cho cả Web Desktop và Web Mobile  Responsive .
 // =========================================================================
 
 const UICommon = {
   // -----------------------------------------------------------------------
-  // 1. RENDER THẺ SẢN PHẨM (CHUẨN 100% ẢNH NGON.PNG)
+  // 1. RENDER THẺ SẢN PHẨM  CHUẨN 100% ẢNH NGON.PNG 
   // -----------------------------------------------------------------------
   renderProductCard(prod, isMobile = false) {
     if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.render === 'function') {
@@ -27,7 +27,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 2. RENDER BÀI VIẾT TIN TÓC UNDERGROUND (CHUẨN ẢNH NGON.PNG)
+  // 2. RENDER BÀI VIẾT TIN TÓC UNDERGROUND  CHUẨN ẢNH NGON.PNG 
   // -----------------------------------------------------------------------
   renderFeatureArticle(article) {
     return `
@@ -60,7 +60,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 3. RENDER NÚT CHI NHÁNH DẠNG THẺ HIỆN ĐẠI (KHÔNG BỊ BÓ NÉN CHỮ)
+  // 3. RENDER NÚT CHI NHÁNH DẠNG THẺ HIỆN ĐẠI  KHÔNG BỊ BÓ NÉN CHỮ 
   // -----------------------------------------------------------------------
   renderBranchPill(branch) {
     const rawParts = (branch.name || '').split('—');
@@ -81,7 +81,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 4. RENDER TICKER DỊCH VỤ (OUR SERVICE — CHUẨN CHÍNH TẢ & ĐỒ HOẠ CAO CẤP)
+  // 4. RENDER TICKER DỊCH VỤ  OUR SERVICE — CHUẨN CHÍNH TẢ & ĐỒ HOẠ CAO CẤP 
   // -----------------------------------------------------------------------
   renderServicesTickerHTML() {
     return `
@@ -146,7 +146,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 5. RENDER HỢP TÁC THƯƠNG HIỆU (BRAND COLLABS — CHUẨN XÁM ĐẬM NGON.PNG)
+  // 5. RENDER HỢP TÁC THƯƠNG HIỆU  BRAND COLLABS — CHUẨN XÁM ĐẬM NGON.PNG 
   // -----------------------------------------------------------------------
   renderBrandCollabCard(collab) {
     return `
@@ -158,7 +158,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 6. BOOKING WIZARD ĐẶT LỊCH CHỐNG TRÙNG LỊCH (QUY TRÌNH 4 BƯỚC ĐỘC LẬP)
+  // 6. BOOKING WIZARD ĐẶT LỊCH CHỐNG TRÙNG LỊCH  QUY TRÌNH 4 BƯỚC ĐỘC LẬP 
   // -----------------------------------------------------------------------
   bookingStep: 1, // 1: Dịch vụ & Combo | 2: Stylist | 3: Ngày & Giờ | 4: Hóa đơn & Xác nhận
 
@@ -242,7 +242,7 @@ const UICommon = {
         </div>
 
         <div class="booking-split-layout">
-          <!-- CỘT TRÁI (65%): Multi-step Wizard Pane -->
+          <!-- CỘT TRÁI  - 65% - : Multi-step Wizard Pane -->
           <div class="booking-wizard-pane">
             <!-- 4-STEP PROGRESS STEPPER -->
             <div class="booking-stepper-bar">
@@ -365,7 +365,7 @@ const UICommon = {
           <div class="wizard-step-panel step-3 ${this.bookingStep === 3 ? 'active' : ''}">
             <label class="booking-label">3. Chọn Ngày &amp; Khung Giờ Hẹn</label>
             
-            <!-- Lịch trượt ngang (Horizontal Date Picker) -->
+            <!-- Lịch trượt ngang  - Horizontal Date Picker -  -->
             <div class="app-date-scroll">
               ${nextDays.map(d => `
                 <button type="button" class="date-scroll-chip ${this.bookingData.date === d.iso ? 'active' : ''}" 
@@ -409,7 +409,7 @@ const UICommon = {
                      value="${this.bookingData.customerPhone}" required oninput="UICommon.bookingData.customerPhone = this.value">
             </div>
 
-            <!-- Hóa Đơn Kỹ Thuật Số Tối Giản (Digital Invoice) -->
+            <!-- Hóa Đơn Kỹ Thuật Số Tối Giản  - Digital Invoice -  -->
             <div class="digital-invoice-card booking-summary-card">
               <div class="digital-invoice-header">
                 <span class="digital-invoice-title">HÓA ĐƠN ĐIỆN TỬ OMNI SALON</span>
@@ -469,7 +469,7 @@ const UICommon = {
         </form>
           </div>
 
-          <!-- CỘT PHẢI (35%): Live Order Summary Card (Ghim cố định Sticky) -->
+          <!-- CỘT PHẢI  - 35% - : Live Order Summary Card  - Ghim cố định Sticky -  -->
           <div class="booking-sticky-sidebar">
             <div class="sticky-summary-card">
               <div class="sticky-summary-header">
@@ -584,7 +584,7 @@ const UICommon = {
   bindBookingSlotEvents() { },
 
   submitBooking() {
-    // Yêu cầu bắt buộc đăng nhập tài khoản trước khi đặt lịch (như nghiệp vụ Hasaki)
+    // Yêu cầu bắt buộc đăng nhập tài khoản trước khi đặt lịch  như nghiệp vụ Hasaki 
     const user = window.store.getCurrentUser();
     if (!user) {
       UICommon.showToast('Vui lòng đăng nhập tài khoản để đặt lịch hẹn và tích điểm thành viên!', 'warning');
@@ -625,7 +625,7 @@ const UICommon = {
       return;
     }
 
-    // Khử N+1: Direct lookups O(1) thay vì nạp toàn bộ danh sách để find() lặp lại
+    // Khử N+1: Direct lookups O 1  thay vì nạp toàn bộ danh sách để find   lặp lại
     const service = window.store.getServiceById(this.bookingData.serviceId)
       || window.store.getComboById(this.bookingData.serviceId);
     const stylist = window.store.getStylistById(this.bookingData.stylistId);
@@ -711,10 +711,10 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 7. GIỎ HÀNG (DRAWER WEB & BOTTOM SHEET MOBILE)
+  // 7. GIỎ HÀNG  DRAWER WEB & BOTTOM SHEET MOBILE 
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
-  // 7. GIỎ HÀNG (DRAWER WEB & BOTTOM SHEET MOBILE) VỚI GIAO HÀNG & VOUCHER
+  // 7. GIỎ HÀNG  DRAWER WEB & BOTTOM SHEET MOBILE  VỚI GIAO HÀNG & VOUCHER
   // -----------------------------------------------------------------------
   cartState: {
     deliveryType: 'PICKUP_BRANCH', // 'PICKUP_BRANCH' | 'DELIVERY'
@@ -733,24 +733,48 @@ const UICommon = {
     }
     const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
     const prod = products.find(p => p.id === productId || p.MaSanPham === productId);
-    const name = prod?.name || prod?.TenSanPham || 'Sản phẩm';
-    this.showToast(`Đã thêm [${name}] vào giỏ hàng thành công!`, 'success');
     this.updateCartBadges();
     if (window.ShopPage && typeof window.ShopPage.updateCartBadge === 'function') {
       window.ShopPage.updateCartBadge();
     }
-    if (window.CustomerWeb && typeof window.CustomerWeb.openCartPopup === 'function') {
-      window.CustomerWeb.openCartPopup();
-      clearTimeout(window.CustomerWeb._cartPopupTimer);
-      window.CustomerWeb._cartPopupTimer = setTimeout(() => {
-        window.CustomerWeb.closeCartPopup();
-      }, 3500);
+    // Hien thi modal thong bao da them vao gio hang
+    this.showAddToCartSuccessModal(prod);
+  },
+
+  showAddToCartSuccessModal(prod) {
+    const modal = document.getElementById('addToCartModal');
+    if (modal) {
+      modal.classList.add('active');
+    }
+  },
+
+  closeAddToCartModal() {
+    const modal = document.getElementById('addToCartModal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+  },
+
+  goToCartPage() {
+    this.closeAddToCartModal();
+    if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
+      window.AppRouter.navigate('/cart');
+    } else if (window.CustomerWeb && typeof window.CustomerWeb.switchTab === 'function') {
+      window.CustomerWeb.switchTab('cart');
+    } else {
+      window.location.hash = '/cart';
     }
   },
 
   buyNow(productId, qty = 1) {
-    this.addToCart(productId, 'product', qty);
-    this.openCartDrawer();
+    if (window.store && typeof window.store.addToCart === 'function') {
+      window.store.addToCart(productId, qty);
+    }
+    this.updateCartBadges();
+    if (window.CartPage && typeof window.CartPage.setStep === 'function') {
+      window.CartPage.setStep(2);
+    }
+    this.goToCartPage();
   },
 
   handleAddToCart(productId) {
@@ -771,10 +795,7 @@ const UICommon = {
   },
 
   openCartDrawer() {
-    const drawer = document.getElementById('cartDrawer');
-    if (!drawer) return;
-    this.renderCartDrawerContent();
-    drawer.classList.add('open');
+    this.goToCartPage();
   },
 
   closeCartDrawer() {
@@ -903,7 +924,7 @@ const UICommon = {
         `).join('')}
       </div>
 
-      <!-- PHƯƠNG THỨC NHẬN HÀNG (DELIVERY / PICKUP) -->
+      <!-- PHƯƠNG THỨC NHẬN HÀNG  - DELIVERY / PICKUP -  -->
       <div class="cart-fulfillment-card">
         <div class="cart-fulfillment-title">HÌNH THỨC NHẬN HÀNG:</div>
         <div class="cart-fulfillment-tabs">
@@ -1007,7 +1028,7 @@ const UICommon = {
       return;
     }
 
-    // Yêu cầu bắt buộc đăng nhập tài khoản trước khi mua hàng / thanh toán (như nghiệp vụ Hasaki)
+    // Yêu cầu bắt buộc đăng nhập tài khoản trước khi mua hàng / thanh toán  như nghiệp vụ Hasaki 
     const user = window.store.getCurrentUser();
     if (!user) {
       UICommon.showToast('Vui lòng đăng nhập tài khoản để đặt hàng và tích điểm thành viên!', 'warning');
@@ -1061,9 +1082,12 @@ const UICommon = {
       return;
     }
 
-    // Đóng drawer giỏ hàng và mở modal BƯỚC XÁC NHẬN ĐƠN HÀNG & CHỌN PHƯƠNG THỨC THANH TOÁN
+    // Chuyen thang sang trang gio hang va vao buoc giao hang thanh toan
     this.closeCartDrawer();
-    this.openCheckoutConfirmModal();
+    if (window.CartPage && typeof window.CartPage.setStep === 'function') {
+      window.CartPage.setStep(2);
+    }
+    this.goToCartPage();
   },
 
   openCheckoutConfirmModal() {
@@ -1159,7 +1183,7 @@ const UICommon = {
           </div>
         </div>
 
-        <!-- 3. BƯỚC CHỌN PHƯƠNG THỨC THANH TOÁN (TIỀN MẶT HOẶC VIETQR) -->
+        <!-- 3. BƯỚC CHỌN PHƯƠNG THỨC THANH TOÁN  - TIỀN MẶT HOẶC VIETQR -  -->
         <div style="margin-bottom: 20px;">
           <label style="display: block; font-size: 13.5px; font-weight: 800; color: var(--text-primary); margin-bottom: 10px;">
             Phương Thức Thanh Toán:
@@ -1287,7 +1311,7 @@ const UICommon = {
     this.updateCartBadges();
     UICommon.showToast(`Đặt đơn hàng #${order.id} thành công!`, 'success');
 
-    // Mở popup thành công (nếu VietQR thì hiện mã QR thanh toán)
+    // Mở popup thành công  nếu VietQR thì hiện mã QR thanh toán 
     this.openOrderSuccessModal(order, paymentMethodKey);
   },
 
@@ -1430,9 +1454,9 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 9. MODAL ĐĂNG NHẬP / TÀI KHOẢN (ROLE SWITCHER 5 VAI TRÒ & TAB ĐĂNG KÝ)
+  // 9. MODAL ĐĂNG NHẬP / TÀI KHOẢN  ROLE SWITCHER 5 VAI TRÒ & TAB ĐĂNG KÝ 
   // -----------------------------------------------------------------------
-  authTab: 'login', // 'login' | 'register'
+  authTab: 'login',
 
   openAuthModal(tab = 'login') {
     this.authTab = tab;
@@ -1440,35 +1464,37 @@ const UICommon = {
     const modalBody = document.getElementById('globalModalBody');
     if (!modal || !modalBody) return;
 
+    modal.classList.remove('modal-wide');
+    modal.classList.add('active', 'modal-auth');
+    const shell = modal.querySelector('.modal-content-shell');
+    if (shell) {
+      shell.style.maxWidth = '440px';
+    }
+
+    const titleText = this.authTab === 'login' ? 'Đăng Nhập Tài Khoản' : (this.authTab === 'register' ? 'Đăng Ký Mới' : 'Khôi Phục Mật Khẩu');
+
     modalBody.innerHTML = `
-      <div class="auth-modal-box" style="max-width: 480px; margin: 0 auto; background: #121622; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 24px;">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <div class="badge-terracotta">OMNI SALON SUITE</div>
-          <h2 style="font-size: 26px; font-weight: 800; margin: 8px 0 4px; color: #FFFFFF;">CỔNG XÁC THỰC THÀNH VIÊN</h2>
-          <p style="font-size: 14px; color: #CBD5E1; line-height: 1.5;">Đồng bộ đa nền tảng Web Portal, App Android/iOS &amp; Quản Trị</p>
+      <div class="auth-modal-content">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 class="auth-modal-title" style="font-size: 20px; font-weight: 700; margin: 0 0 6px; color: #FFFFFF; letter-spacing: -0.01em;">${titleText}</h2>
+          <p style="font-size: 13px; color: #94A3B8; margin: 0; line-height: 1.5;">Đồng bộ đa nền tảng Web Portal, App Mobile và Quản Trị</p>
         </div>
 
-        <!-- 3 Tabs: Đăng Nhập, Đăng Ký & Đổi Mật Khẩu -->
-        <div class="auth-tab-switch-header" style="display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-          <button type="button" class="auth-tab-btn ${this.authTab === 'login' ? 'active' : ''}" 
-                  style="flex: 1; padding: 10px 4px; font-size: 14px; font-weight: 800; border: none; background: none; cursor: pointer; color: ${this.authTab === 'login' ? '#F59E0B' : '#94A3B8'}; border-bottom: ${this.authTab === 'login' ? '2px solid #F59E0B' : 'none'}; margin-bottom: -12px;"
-                  onclick="UICommon.openAuthModal('login')">
+        <!-- Thanh chuyen tab phan doan -->
+        <div class="auth-segmented-nav">
+          <button type="button" class="auth-segmented-nav-btn ${this.authTab === 'login' ? 'active' : ''}" onclick="UICommon.openAuthModal('login')">
             Đăng Nhập
           </button>
-          <button type="button" class="auth-tab-btn ${this.authTab === 'register' ? 'active' : ''}" 
-                  style="flex: 1; padding: 10px 4px; font-size: 14px; font-weight: 800; border: none; background: none; cursor: pointer; color: ${this.authTab === 'register' ? '#F59E0B' : '#94A3B8'}; border-bottom: ${this.authTab === 'register' ? '2px solid #F59E0B' : 'none'}; margin-bottom: -12px;"
-                  onclick="UICommon.openAuthModal('register')">
+          <button type="button" class="auth-segmented-nav-btn ${this.authTab === 'register' ? 'active' : ''}" onclick="UICommon.openAuthModal('register')">
             Đăng Ký Mới
           </button>
-          <button type="button" class="auth-tab-btn ${this.authTab === 'reset' ? 'active' : ''}" 
-                  style="flex: 1; padding: 10px 4px; font-size: 14px; font-weight: 800; border: none; background: none; cursor: pointer; color: ${this.authTab === 'reset' ? '#F59E0B' : '#94A3B8'}; border-bottom: ${this.authTab === 'reset' ? '2px solid #F59E0B' : 'none'}; margin-bottom: -12px;"
-                  onclick="UICommon.openAuthModal('reset')">
+          <button type="button" class="auth-segmented-nav-btn ${this.authTab === 'reset' ? 'active' : ''}" onclick="UICommon.openAuthModal('reset')">
             Đổi Mật Khẩu
           </button>
         </div>
 
         ${this.authTab === 'login' ? `
-          <!-- TAB ĐĂNG NHẬP (100% XÁC THỰC SQL RBAC) -->
+          <!-- Tab dang nhap tai khoan -->
           <form onsubmit="event.preventDefault(); UICommon.handleLogin();">
             <div style="margin-bottom: 14px;">
               <label class="sub-label">Email, Tên đăng nhập hoặc Số điện thoại:</label>
@@ -1481,28 +1507,28 @@ const UICommon = {
               </div>
               <div style="position: relative; display: flex; align-items: center;">
                 <input type="password" id="loginPassword" class="form-control-custom" style="padding-right: 42px; width: 100%;" placeholder="Nhập mật khẩu tài khoản" required autocomplete="current-password">
-                <button type="button" onclick="UICommon.togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị / Ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn-submit-terracotta" style="width:100%; min-height: 48px; font-size: 15px; font-weight: 800; margin-top: 6px;">Đăng Nhập Ngay →</button>
+            <button type="submit" class="btn-submit-terracotta" style="width: 100%; min-height: 44px; font-size: 14.5px; font-weight: 700; margin-top: 6px;">Đăng Nhập Ngay →</button>
           </form>
         ` : this.authTab === 'reset' ? `
-          <!-- TAB ĐỔI / QUÊN MẬT KHẨU (GỬI MÃ 6 SỐ VỀ GMAIL & LƯU VÀO DATABASE) -->
+          <!-- Tab quen mat khau va nhan ma xac thuc -->
           <form onsubmit="event.preventDefault(); UICommon.handleResetPassword();">
             <div style="margin-bottom: 12px;">
               <label class="sub-label">Gmail hoặc Số điện thoại tài khoản:</label>
               <div style="display: flex; gap: 8px;">
                 <input type="text" id="resetIdentifier" class="form-control-custom" placeholder="nhapemail@gmail.com hoặc SĐT" required style="flex: 1;">
-                <button type="button" id="btnSendResetOtp" onclick="UICommon.sendResetOtp()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; font-size: 13px; padding: 0 16px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
+                <button type="button" id="btnSendResetOtp" onclick="UICommon.sendResetOtp()" style="background: linear-gradient(180deg, #f59e0b, #d97706); color: #000; font-weight: 700; font-size: 13px; padding: 0 16px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
                   Gửi Mã
                 </button>
               </div>
             </div>
             <div style="margin-bottom: 12px;">
-              <label class="sub-label">Mã Xác Nhận Gmail (OTP 6 số):</label>
-              <input type="text" id="resetOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số (VD: 839201)" maxlength="6" style="letter-spacing: 4px; font-weight: 800; font-family: monospace; font-size: 16px; text-align: center;" required>
+              <label class="sub-label">Mã Xác Nhận Gmail 6 số:</label>
+              <input type="text" id="resetOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số ví dụ 839201" maxlength="6" style="letter-spacing: 4px; font-weight: 800; font-family: monospace; font-size: 16px; text-align: center;" required>
               <div id="resetOtpStatusTip" style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
                 Mã xác thực gồm 6 chữ số có hiệu lực trong 5 phút. Vui lòng kiểm tra hộp thư đến hoặc mục Thư rác.
               </div>
@@ -1511,18 +1537,18 @@ const UICommon = {
               <label class="sub-label">Mật khẩu mới cần đổi:</label>
               <div style="position: relative; display: flex; align-items: center;">
                 <input type="password" id="resetPasswordInput" class="form-control-custom" style="padding-right: 42px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
-                <button type="button" onclick="UICommon.togglePasswordVisibility('resetPasswordInput', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị / Ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('resetPasswordInput', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn-submit-terracotta" style="width:100%; padding: 12px; font-weight: 800;">Lưu Mật Khẩu Mới &amp; Cập Nhật Database →</button>
+            <button type="submit" class="btn-submit-terracotta" style="width: 100%; padding: 12px; font-weight: 700;">Lưu Mật Khẩu Mới →</button>
           </form>
-          <div style="font-size: 11px; color: #888; text-align: center; margin-top: 12px;">
-            Mật khẩu mới sẽ được cập nhật trực tiếp vào cơ sở dữ liệu SQL của OmniSalon!
+          <div style="font-size: 11.5px; color: #888; text-align: center; margin-top: 12px;">
+            Mật khẩu mới sẽ được cập nhật trực tiếp vào cơ sở dữ liệu OmniSalon!
           </div>
         ` : `
-          <!-- TAB ĐĂNG KÝ (XÁC THỰC MÃ OTP QUA EMAIL & LƯU VÀO DATABASE) -->
+          <!-- Tab dang ky thanh vien moi -->
           <form onsubmit="event.preventDefault(); UICommon.handleRegister();">
             <div style="margin-bottom: 10px;">
               <label class="sub-label">Họ và Tên Khách Hàng:</label>
@@ -1536,31 +1562,31 @@ const UICommon = {
               <label class="sub-label">Gmail Xác Thực Nhận Mã OTP:</label>
               <div style="display: flex; gap: 8px;">
                 <input type="email" id="regEmail" class="form-control-custom" placeholder="khachhang@gmail.com" required style="flex: 1;">
-                <button type="button" id="btnSendOtp" onclick="UICommon.sendEmailOtp()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; font-size: 13px; padding: 0 16px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
+                <button type="button" id="btnSendOtp" onclick="UICommon.sendEmailOtp()" style="background: linear-gradient(180deg, #f59e0b, #d97706); color: #000; font-weight: 700; font-size: 13px; padding: 0 16px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
                   Gửi Mã
                 </button>
               </div>
             </div>
             <div style="margin-bottom: 12px;" id="regOtpGroup">
-              <label class="sub-label">Mã Xác Nhận Gmail (OTP 6 số):</label>
-              <input type="text" id="regOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số (VD: 839201)" maxlength="6" style="letter-spacing: 4px; font-weight: 800; font-family: monospace; font-size: 16px; text-align: center;" required>
+              <label class="sub-label">Mã Xác Nhận Gmail 6 số:</label>
+              <input type="text" id="regOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số ví dụ 839201" maxlength="6" style="letter-spacing: 4px; font-weight: 800; font-family: monospace; font-size: 16px; text-align: center;" required>
               <div id="otpStatusTip" style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
-                Mã xác nhận 6 số có hiệu lực trong 5 phút. Vui lòng kiểm tra hộp thư đến hoặc mục Thư rác (Spam).
+                Mã xác nhận 6 số có hiệu lực trong 5 phút. Vui lòng kiểm tra hộp thư đến hoặc mục Thư rác.
               </div>
             </div>
             <div style="margin-bottom: 14px;">
               <label class="sub-label">Mật khẩu khởi tạo:</label>
               <div style="position: relative; display: flex; align-items: center;">
                 <input type="password" id="regPassword" class="form-control-custom" style="padding-right: 42px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
-                <button type="button" onclick="UICommon.togglePasswordVisibility('regPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị / Ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('regPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn-submit-terracotta" style="width:100%; padding: 12px; font-weight: 800;">Tạo Tài Khoản Thành Viên →</button>
+            <button type="submit" class="btn-submit-terracotta" style="width: 100%; padding: 12px; font-weight: 700;">Tạo Tài Khoản Thành Viên →</button>
           </form>
-          <div style="font-size: 11px; color: #888; text-align: center; margin-top: 12px;">
-            Đăng ký tài khoản để tích điểm đổi quà &amp; lưu giữ bộ sưu tập tóc AI Omni Salon!
+          <div style="font-size: 11.5px; color: #888; text-align: center; margin-top: 12px;">
+            Đăng ký tài khoản để tích điểm đổi quà và lưu giữ bộ sưu tập tóc Omni Salon!
           </div>
         `}
       </div>
@@ -2034,7 +2060,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 10. AI PHOTO RESTYLE VISION STUDIO (KẾT NỐI API THẬT & ĐỔI ẢNH TÓC KHÁCH)
+  // 10. AI PHOTO RESTYLE VISION STUDIO  KẾT NỐI API THẬT & ĐỔI ẢNH TÓC KHÁCH 
   // -----------------------------------------------------------------------
   aiState: {
     originalImage: null,
@@ -2174,17 +2200,17 @@ const UICommon = {
                 <!-- Khung So Sánh Before / After Sau Khi AI Đổi Ảnh Xong -->
                 <div class="ai-compare-slider-shell" id="aiCompareShell">
                   <div class="ai-image-compare-wrapper" id="compareWrapper">
-                    <!-- Ảnh Sau (AI Result) -->
+                    <!-- Ảnh Sau  - AI Result -  -->
                     <img src="${resultImage}" class="compare-img compare-img-after" alt="Ảnh Sau Khi Đổi Tóc">
                     <span class="compare-label-after">ẢNH TÓC AI</span>
 
-                    <!-- Ảnh Trước (Original) -->
+                    <!-- Ảnh Trước  - Original -  -->
                     <div class="compare-before-clip" id="compareBeforeClip" style="width: 50%;">
                       <img src="${originalImage}" class="compare-img compare-img-before" alt="Ảnh Gốc">
                       <span class="compare-label-before">ẢNH GỐC</span>
                     </div>
 
-                    <!-- Thanh Kéo Phân Chia (Divider Handle) -->
+                    <!-- Thanh Kéo Phân Chia  - Divider Handle -  -->
                     <div class="compare-divider-handle" id="compareHandle" style="left: 50%;">
                       <div class="handle-line"></div>
                       <div class="handle-circle">↔</div>
@@ -2274,7 +2300,7 @@ const UICommon = {
               </button>
             </div>
 
-            <!-- KHUNG CẤU HÌNH API (KHI BẬT) -->
+            <!-- KHUNG CẤU HÌNH API  - KHI BẬT -  -->
             ${showApiSettings ? `
               <div class="ai-settings-collapsible">
                 <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px;">CẤU HÌNH KẾT NỐI AI VISION API:</div>
@@ -2489,10 +2515,10 @@ const UICommon = {
   closeGlobalModal() {
     const modal = document.getElementById('globalModal');
     if (modal) {
-      modal.classList.remove('active');
+      modal.classList.remove('active', 'modal-auth', 'modal-lookup');
       const shell = modal.querySelector('.modal-content-shell');
       if (shell) {
-        shell.classList.remove('modal-wide');
+        shell.classList.remove('modal-wide', 'modal-auth', 'modal-lookup');
         shell.style.maxWidth = '';
         shell.style.width = '';
       }
