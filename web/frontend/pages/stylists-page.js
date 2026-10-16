@@ -8,12 +8,17 @@
 
   const StylistsPage = {
     selectedBranch: 'all',
+    currentPage: 1,
+    pageSize: 8,
 
     render(container, params = {}) {
       if (!container) return;
 
       if (params.branch) {
         this.selectedBranch = params.branch;
+      }
+      if (params.page) {
+        this.currentPage = parseInt(params.page, 10) || 1;
       }
 
       const branches = (window.store && typeof window.store.getBranches === 'function' && window.store.getBranches().length > 0)
@@ -36,9 +41,10 @@
         : 'Tất Cả Chi Nhánh';
 
       const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
-      const currentCount = this.selectedBranch === 'all'
-        ? allStylists.length
-        : allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch).length;
+      const filtered = this.selectedBranch === 'all'
+        ? allStylists
+        : allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch);
+      const currentCount = filtered.length;
 
       const oldModal = document.getElementById('branchBubblesModal');
       if (oldModal) oldModal.remove();
@@ -77,9 +83,14 @@
               </div>
             </div>
 
-            <!-- Stylists Grid (Tràn viền 2 bên rộng thoáng, tự động lấp đầy 4-5 cột) -->
+            <!-- Stylists Grid (Khung hiển thị 8 thợ đầu tiên: 4 cột x 2 hàng) -->
             <div id="stylistsProfilesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
-              ${this.renderStylistCards()}
+              ${this.renderStylistCards(filtered)}
+            </div>
+
+            <!-- PHÂN TRANG (COPY Y CHANG CỬA HÀNG - ĐỒNG BỘ 100%) -->
+            <div id="stylistPaginationContainer">
+              ${this.renderPagination(filtered)}
             </div>
           </div>
         </div>
@@ -116,16 +127,16 @@
 
               <!-- Các bong bóng chi nhánh cụ thể -->
               ${branches.map(b => {
-        const rawName = b.TenChiNhanh || b.name || '';
-        const cleanBranch = rawName
-          .replace(/^(Men\s+Salon\s+Barber|Omni\s+Salon\s+Barber|Omni\s+Salon)\s*[-–—]?\s*/gi, '')
-          .replace(/^Q(\d+)\b/i, 'Quận $1')
-          .replace(/[–—]/g, '-')
-          .trim();
-        const isSelected = this.selectedBranch === b.id;
-        const stylistCountInBranch = allStylists.filter(s => s.branchId === b.id || s.MaChiNhanh === b.id).length;
+                const rawName = b.TenChiNhanh || b.name || '';
+                const cleanBranch = rawName
+                  .replace(/^(Men\s+Salon\s+Barber|Omni\s+Salon\s+Barber|Omni\s+Salon)\s*[-–—]?\s*/gi, '')
+                  .replace(/^Q(\d+)\b/i, 'Quận $1')
+                  .replace(/[–—]/g, '-')
+                  .trim();
+                const isSelected = this.selectedBranch === b.id;
+                const stylistCountInBranch = allStylists.filter(s => s.branchId === b.id || s.MaChiNhanh === b.id).length;
 
-        return `
+                return `
                   <button class="branch-bubble-item ${isSelected ? 'active' : ''}" 
                           onclick="StylistsPage.selectBubbleBranch('${b.id}')"
                           style="padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? '#C59B27' : 'var(--surface-elevated)'}; color: ${isSelected ? '#141413' : 'var(--text-primary)'}; box-shadow: none; display: inline-flex; align-items: center; gap: 6px;">
@@ -133,7 +144,7 @@
                     <span style="font-size: 11px; opacity: ${isSelected ? '1' : '0.85'}; font-weight: 800; background: ${isSelected ? 'rgba(20,20,19,0.15)' : 'var(--surface-card)'}; padding: 2px 6px; border-radius: 4px;">${stylistCountInBranch} thợ</span>
                   </button>
                 `;
-      }).join('')}
+              }).join('')}
             </div>
 
             <!-- Nút đóng nhanh dưới đáy -->
@@ -174,18 +185,70 @@
 
     filterBranch(branchId) {
       this.selectedBranch = branchId;
+      this.currentPage = 1;
       const modal = document.getElementById('branchBubblesModal');
       if (modal) modal.remove();
       document.body.style.overflow = '';
       this.render(document.getElementById('webMainContainer'));
     },
 
-    renderStylistCards() {
+    changePage(newPage) {
       const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
-      let list = allStylists;
-      if (this.selectedBranch !== 'all') {
-        list = allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch);
+      const filtered = this.selectedBranch === 'all'
+        ? allStylists
+        : allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch);
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+      if (newPage < 1 || newPage > totalPages) return;
+      this.currentPage = newPage;
+      this.refreshStylists();
+
+      const grid = document.getElementById('stylistsProfilesGrid');
+      if (grid) {
+        const top = grid.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
       }
+    },
+
+    refreshStylists() {
+      const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
+      const filtered = this.selectedBranch === 'all'
+        ? allStylists
+        : allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch);
+
+      const grid = document.getElementById('stylistsProfilesGrid');
+      if (grid) {
+        grid.innerHTML = this.renderStylistCards(filtered);
+      }
+      const pagination = document.getElementById('stylistPaginationContainer');
+      if (pagination) {
+        pagination.innerHTML = this.renderPagination(filtered);
+      }
+    },
+
+    renderStylistCards(filtered) {
+      if (!filtered) {
+        const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
+        filtered = this.selectedBranch === 'all'
+          ? allStylists
+          : allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch);
+      }
+
+      if (filtered.length === 0) {
+        return `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color);">
+            <h3 class="font-serif" style="font-size: 20px; color: var(--text-primary); margin-bottom: 8px;">Không tìm thấy thợ tạo mẫu</h3>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">Chi nhánh này hiện chưa có thợ trong hệ thống hoặc đang cập nhật lịch làm việc.</p>
+            <button type="button" class="btn-flat-cta btn-flat-outline" onclick="StylistsPage.filterBranch('all')">Xem Tất Cả Chi Nhánh</button>
+          </div>
+        `;
+      }
+
+      // Phân trang 8 thợ mỗi trang (khớp lưới 4 cột x 2 hàng)
+      const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+      if (this.currentPage > totalPages) this.currentPage = 1;
+      const startIdx = (this.currentPage - 1) * this.pageSize;
+      const paginated = filtered.slice(startIdx, startIdx + this.pageSize);
 
       const portfolioSamples = [
         'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=300&q=80',
@@ -196,7 +259,7 @@
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
       ];
 
-      return list.map((stylist, index) => {
+      return paginated.map((stylist, index) => {
         const rating = (stylist.rating !== undefined ? Number(stylist.rating) : 5.0).toFixed(1);
         const yearsExp = 6 + (index % 6);
         const specialties = Array.isArray(stylist.specialties) && stylist.specialties.length > 0
@@ -238,13 +301,13 @@
                 ${cleanName}
               </h3>
 
-              <!-- Cấp Bậc & Chi Nhánh -->
+              <!-- Cấp Bậc & Chi Nhánh (Đã bỏ icon ghim 📍) -->
               <div class="stylist-card-badge-row" style="display: flex; gap: 6px; justify-content: center; margin-bottom: 8px;">
                 <span class="stylist-card-role-pill" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: rgba(197, 155, 39, 0.12); color: #C59B27;">${roleBadgeText}</span>
                 <span class="stylist-card-level-pill" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: var(--surface-elevated); color: var(--text-secondary); border: 1px solid var(--border-color);">${stylist.level || (isAssis ? 'Junior Barber' : 'Master Barber')}</span>
               </div>
               <div class="stylist-card-branch" style="font-size: 12.5px; color: var(--text-muted); text-align: center; margin-bottom: 12px;">
-                <span>📍 ${branchName}</span>
+                <span>${branchName}</span>
               </div>
 
               <!-- Thanh Chỉ Số Hiệu Suất Cân Đối Giữa Card -->
@@ -286,6 +349,80 @@
       }).join('');
     },
 
+    renderPagination(filtered) {
+      if (!filtered || filtered.length === 0) return '';
+      const total = filtered.length;
+      const totalPages = Math.max(1, Math.ceil(total / this.pageSize));
+      if (totalPages <= 1) return '';
+
+      const startIdx = (this.currentPage - 1) * this.pageSize;
+      const endIdx = Math.min(startIdx + this.pageSize, total);
+
+      const pages = [];
+      if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        const left = Math.max(2, this.currentPage - 1);
+        const right = Math.min(totalPages - 1, this.currentPage + 1);
+        if (left > 2) pages.push('...');
+        for (let i = left; i <= right; i++) pages.push(i);
+        if (right < totalPages - 1) pages.push('...');
+        pages.push(totalPages);
+      }
+
+      const prevDisabled = this.currentPage <= 1;
+      const nextDisabled = this.currentPage >= totalPages;
+
+      return `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding: 18px 24px; background: var(--surface-card); border-radius: 18px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 18px rgba(0,0,0,0.03);">
+          <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+            <span>Hiển thị</span>
+            <span style="color: var(--brand-accent); font-weight: 800; font-size: 15px;">${startIdx + 1}–${endIdx}</span>
+            <span>trên tổng số</span>
+            <span style="color: var(--text-primary); font-weight: 800; font-size: 15px;">${total}</span>
+            <span>thợ (Trang ${this.currentPage}/${totalPages})</span>
+          </div>
+
+          <div style="display: inline-flex; align-items: center; gap: 8px;">
+            <button id="stylistPrevPageBtn"
+                    onclick="StylistsPage.changePage(${this.currentPage - 1})"
+                    ${prevDisabled ? 'disabled' : ''}
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'}; opacity: ${prevDisabled ? '0.35' : '1'}; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); transition: all 0.2s ease;">
+              <span style="font-size: 16px; line-height: 1;">←</span>
+              <span>Trước</span>
+            </button>
+
+            <div style="display: inline-flex; align-items: center; gap: 6px;">
+              ${pages.map(p => {
+                if (p === '...') {
+                  return `<span style="padding: 0 6px; color: var(--text-secondary); font-weight: 800; font-size: 14px;">…</span>`;
+                }
+                const isActive = p === this.currentPage;
+                return `
+                  <button onclick="StylistsPage.changePage(${p})"
+                          style="min-width: 42px; height: 42px; padding: 0 10px; border-radius: 10px; font-size: 13px; font-weight: ${isActive ? '800' : '600'}; cursor: pointer; transition: all 0.2s ease; ${isActive
+                    ? 'background: var(--brand-accent); color: #ffffff; border: 1.5px solid var(--brand-accent); box-shadow: 0 2px 10px rgba(180,131,18,0.3);'
+                    : 'background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color);'
+                  }">
+                    ${p}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            <button id="stylistNextPageBtn"
+                    onclick="StylistsPage.changePage(${this.currentPage + 1})"
+                    ${nextDisabled ? 'disabled' : ''}
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'}; opacity: ${nextDisabled ? '0.35' : '1'}; background: var(--brand-accent); border: none; color: #ffffff; box-shadow: 0 4px 14px rgba(180,131,18,0.25); transition: all 0.2s ease;">
+              <span>Sau</span>
+              <span style="font-size: 16px; line-height: 1;">→</span>
+            </button>
+          </div>
+        </div>
+      `;
+    },
+
     bookWithStylist(stylistId, branchId) {
       if (window.AppRouter) {
         window.AppRouter.navigate(`/booking?stylist=${stylistId}&branch=${branchId}`);
@@ -299,4 +436,3 @@
   window.StylistsPage = StylistsPage;
 
 })(window);
-
