@@ -97,10 +97,14 @@
       const mapQuery = `${shortName}, ${address}`;
       const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
 
+      const cleanSubtitle = (subtitle && !subtitle.toLowerCase().includes('khu vực'))
+        ? subtitle
+        : (isFlagship ? 'Studio Flagship' : 'Cơ Sở Barbershop');
+
       return {
         id,
         shortName,
-        subtitle: subtitle || `KHU VỰC ${district.toUpperCase()}`,
+        subtitle: cleanSubtitle,
         address,
         district,
         phone,
@@ -135,9 +139,12 @@
                  class="branch-cover-img"
                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80';">
             
-            <!-- Huy hiệu quận -->
+            <!-- Huy hiệu quận & Loại chi nhánh -->
             <div class="branch-badges-top">
               <span class="branch-district-tag">${data.district}</span>
+              ${data.isFlagship ? `
+                <span class="branch-flagship-tag">FLAGSHIP VIP</span>
+              ` : ''}
             </div>
 
             <!-- Trạng thái hoạt động thời gian thực -->
@@ -192,24 +199,25 @@
               </div>
             </div>
 
-            <!-- HÀNH ĐỘNG THỰC TẾ: CHỈ ĐƯỜNG & ĐẶT LỊCH HẸN (ĐỒNG BỘ NÚT BẤM CỬA HÀNG) -->
+            <!-- HÀNH ĐỘNG THỰC TẾ: CHỈ ĐƯỜNG & ĐẶT LỊCH HẸN -->
             <div class="branch-actions-row">
               <a href="${data.mapUrl}" 
                  target="_blank" 
                  rel="noopener noreferrer" 
-                 class="branch-map-btn btn-barber-add-cart" 
+                 class="branch-map-btn" 
                  title="Mở bản đồ Google Maps chỉ đường đến chi nhánh này">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <polygon points="3 11 22 2 13 21 11 13 3 11"/>
                 </svg>
-                <span style="white-space: nowrap !important;">Chỉ Đường</span>
+                <span>Chỉ Đường</span>
               </a>
 
               <button type="button"
-                      class="branch-book-btn btn-barber-buy-now"
+                      class="branch-book-btn"
+                      style="display: inline-flex; align-items: center; gap: 6px; background: #C59B27; color: #141413; font-weight: 700; border-radius: 6px; border: none; padding: 8px 14px; cursor: pointer;"
                       onclick="${onBookClick}">
-                <span style="white-space: nowrap !important; display: inline-block;">Đặt Lịch</span>
-                <span style="font-size: 13px;">→</span>
+                <span>Đặt Lịch</span>
+                <span>→</span>
               </button>
             </div>
 

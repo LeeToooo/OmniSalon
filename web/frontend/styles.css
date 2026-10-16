@@ -777,18 +777,18 @@ body.light .service-bento-title,
 body.light .nordic-hero-title,
 body.light .section-title-clean,
 body.light h1:not(.text-white):not(.text-amber-400):not(.hero-visual-card *),
-body.light h2:not(.text-white):not(.text-amber-400):not(.hero-visual-card *),
-body.light h3:not(.text-white):not(.text-amber-400):not(.hero-visual-card *):not(.branch-card-title),
-body.light h4:not(.text-white):not(.text-amber-400):not(.hero-visual-card *),
+body.light h2:not(.text-white):not(.text-amber-400):not(.hero-visual-card *):not(.bento-editorial-card *):not(.bento-scrim *),
+body.light h3:not(.text-white):not(.text-amber-400):not(.hero-visual-card *):not(.branch-card-title):not(.bento-editorial-card *):not(.bento-scrim *),
+body.light h4:not(.text-white):not(.text-amber-400):not(.hero-visual-card *):not(.bento-editorial-card *):not(.bento-scrim *),
 [data-theme="light"] .service-card-title,
 [data-theme="light"] .stylist-name,
 [data-theme="light"] .service-bento-title,
 [data-theme="light"] .nordic-hero-title,
 [data-theme="light"] .section-title-clean,
-[data-theme="light"] h1:not(.text-white):not(.text-amber-400):not(.hero-visual-card *),
-[data-theme="light"] h2:not(.text-white):not(.text-amber-400):not(.hero-visual-card *),
-[data-theme="light"] h3:not(.text-white):not(.text-amber-400):not(.hero-visual-card *):not(.branch-card-title),
-[data-theme="light"] h4:not(.text-white):not(.text-amber-400):not(.hero-visual-card *),
+[data-theme="light"] h1:not(.text-white):not(.text-amber-400):not(.hero-visual-card *):not(.bento-editorial-card *):not(.bento-scrim *),
+[data-theme="light"] h2:not(.text-white):not(.text-amber-400):not(.hero-visual-card *):not(.bento-editorial-card *):not(.bento-scrim *),
+[data-theme="light"] h3:not(.text-white):not(.text-amber-400):not(.hero-visual-card *):not(.branch-card-title):not(.bento-editorial-card *):not(.bento-scrim *),
+[data-theme="light"] h4:not(.text-white):not(.text-amber-400):not(.hero-visual-card *):not(.bento-editorial-card *):not(.bento-scrim *),
 [data-theme="light"] .service-bento-card h3,
 html.light .service-bento-card h3,
 body.light .service-bento-card h3,
@@ -800,15 +800,15 @@ html.light .card-3d-tilt h3:not(.hero-visual-card *) {
 html.light .service-card-desc,
 html.light .service-bento-desc,
 html.light .nordic-hero-tagline,
-html.light p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.hero-visual-card *):not(.branch-address-text),
+html.light p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.hero-visual-card *):not(.branch-address-text):not(.bento-editorial-card *):not(.bento-scrim *),
 body.light .service-card-desc,
 body.light .service-bento-desc,
 body.light .nordic-hero-tagline,
-body.light p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.hero-visual-card *):not(.branch-address-text),
+body.light p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.hero-visual-card *):not(.branch-address-text):not(.bento-editorial-card *):not(.bento-scrim *),
 [data-theme="light"] .service-card-desc,
 [data-theme="light"] .service-bento-desc,
 [data-theme="light"] .nordic-hero-tagline,
-[data-theme="light"] p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.hero-visual-card *):not(.branch-address-text) {
+[data-theme="light"] p:not(.text-slate-300):not(.text-slate-200):not(.hero-showcase-desc):not(.hero-visual-card *):not(.branch-address-text):not(.bento-editorial-card *):not(.bento-scrim *) {
   color: var(--text-secondary, #334155) !important;
 }
 
@@ -4976,6 +4976,7 @@ button.disabled {
 }
 
 @media (max-width: 900px) {
+
   .bento-col-7,
   .bento-col-5 {
     grid-column: span 12;
@@ -5014,10 +5015,214 @@ button.disabled {
   position: relative;
   z-index: 2;
   padding: 24px;
-  background: linear-gradient(to top, rgba(20, 20, 19, 0.92) 0%, rgba(20, 20, 19, 0.45) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(12, 13, 16, 0.96) 0%, rgba(12, 13, 16, 0.70) 55%, rgba(12, 13, 16, 0.20) 100%) !important;
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.bento-editorial-card h3,
+.bento-editorial-card .font-serif,
+.bento-editorial-card .bento-scrim h3,
+html.light .bento-editorial-card h3,
+body.light .bento-editorial-card h3,
+[data-theme="light"] .bento-editorial-card h3 {
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85) !important;
+}
+
+.bento-editorial-card p,
+.bento-editorial-card .bento-scrim p,
+html.light .bento-editorial-card p,
+body.light .bento-editorial-card p,
+[data-theme="light"] .bento-editorial-card p {
+  color: #E2E8F0 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75) !important;
+}
+
+html.light .bento-editorial-card,
+body.light .bento-editorial-card,
+[data-theme="light"] .bento-editorial-card {
+  border: 1px solid rgba(20, 20, 19, 0.12) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ========================================================
+   LƯỚI & CARD THỢ TẠO MẪU TIÊU BIỂU TRANG CHỦ (CHIA ĐỀU 3 CỘT)
+   ======================================================== */
+.stylists-clean-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 24px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 860px) {
+  .stylists-clean-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+.stylist-clean-card {
+  background: var(--surface-card, #FFFFFF);
+  border: 1px solid var(--border-color, rgba(20, 20, 19, 0.08));
+  border-radius: 10px;
+  padding: 22px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  box-sizing: border-box;
+}
+
+.stylist-clean-card:hover {
+  transform: translateY(-4px);
+  border-color: #C59B27;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .stylist-clean-card,
+body.dark .stylist-clean-card {
+  background: var(--surface-card, #14171F);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .stylist-clean-card:hover,
+body.dark .stylist-clean-card:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  border-color: rgba(197, 155, 39, 0.5);
+}
+
+.stylist-clean-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stylist-avatar-box {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 14px;
+}
+
+.stylist-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #C59B27;
+  box-shadow: 0 4px 12px rgba(197, 155, 39, 0.2);
+  display: block;
+}
+
+.stylist-avatar-rating {
+  position: absolute;
+  bottom: -3px;
+  right: -5px;
+  background: #C59B27;
+  color: #141413;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 2px solid var(--surface-card, #FFFFFF);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  line-height: 1.2;
+}
+
+[data-theme="dark"] .stylist-avatar-rating,
+body.dark .stylist-avatar-rating {
+  border-color: #14171F;
+}
+
+.stylist-clean-name {
+  font-size: 17.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.stylist-clean-badge-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stylist-role-tag {
+  display: inline-block;
+  background: rgba(197, 155, 39, 0.12);
+  color: #C59B27;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(197, 155, 39, 0.25);
+}
+
+.stylist-branch-tag {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.stylist-stats-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-elevated, #F8FAFC);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color, rgba(20, 20, 19, 0.08));
+  margin-bottom: 16px;
+}
+
+.stylist-stats-pill .stats-dot {
+  opacity: 0.35;
+}
+
+.stylist-book-action-btn {
+  width: 100%;
+  background: #C59B27;
+  color: #141413;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13.5px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stylist-book-action-btn:hover {
+  background: #B48B20;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(197, 155, 39, 0.25);
+}
+
+.stylist-book-action-btn .btn-arrow {
+  transition: transform 0.2s ease;
+}
+
+.stylist-book-action-btn:hover .btn-arrow {
+  transform: translateX(3px);
 }
 
 .web-nav-links .text-highlight {
@@ -12981,13 +13186,11 @@ body {
 }
 
 .branch-map-btn {
-  flex: 1 1 50%;
-  width: 50%;
+  flex-shrink: 0;
 }
 
 .branch-book-btn {
-  flex: 1 1 50%;
-  width: 50%;
+  flex: 1;
 }
 
 /* Thanh lọc danh mục */
@@ -16517,7 +16720,7 @@ body.light .modal-close-icon-btn:hover {
   background: var(--surface-card);
   border: 1.5px solid var(--border-color);
   border-radius: 10px;
-  box-shadow: 0 16px 36px rgba(0,0,0,0.45);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
   z-index: 999;
   padding: 6px;
   display: none;
@@ -16529,8 +16732,15 @@ body.light .modal-close-icon-btn:hover {
 }
 
 @keyframes dropdownFadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .shop-dropdown-item {

@@ -254,11 +254,11 @@
           </div>
 
           <!-- ========================================================
-               3. TRIẾT LÝ CẮT KÉO & TRẢI NGHIỆM CHĂM SÓC
+               3. DỊCH VỤ CẮT TÓC & CHĂM SÓC HIỆN ĐẠI
                ======================================================== -->
           <section class="web-section omni-container" style="max-width: 1640px; margin: 0 auto; padding: 48px clamp(16px, 3.5vw, 48px) 24px;">
             <div class="section-title-wrap" style="text-align: center; margin-bottom: 32px;">
-              <h2 class="font-serif tracking-tight leading-tight" style="font-size: 30px; font-weight: 800; color: var(--text-primary); margin: 0;">Triết Lý Cắt Kéo &amp; Chăm Sóc Đương Đại</h2>
+              <h2 class="font-serif tracking-tight leading-tight" style="font-size: 30px; font-weight: 800; color: var(--text-primary); margin: 0;">Dịch Vụ Cắt Tóc &amp; Chăm Sóc Hiện Đại</h2>
               <p style="color: var(--text-secondary); font-size: 14.5px; max-width: 680px; margin: 10px auto 0; line-height: 1.6;">
                 Không phô trương hình thức, Omni Salon tập trung vào độ sắc nét của từng nhát kéo, độ vừa vặn của phom tóc và sự thư giãn thoải mái tuyệt đối của mỗi người đàn ông khi ngồi vào ghế.
               </p>
@@ -268,7 +268,7 @@
               <div class="card-pillar" style="padding: 24px 20px; background: var(--surface-card); border-radius: 8px; border: 1px solid rgba(20, 20, 19, 0.08); box-shadow: none; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
                 <div>
                   <div style="font-size: 18px; font-weight: 700; color: #C59B27; margin-bottom: 12px; font-family: monospace;">01</div>
-                  <h3 class="font-serif tracking-tight leading-tight" style="color: var(--text-primary); font-size: 17px; font-weight: 700; margin: 0 0 8px;">Định Phom Theo Khuôn Mặt</h3>
+                  <h3 class="font-serif tracking-tight leading-tight" style="color: var(--text-primary); font-size: 17px; font-weight: 700; margin: 0 0 8px;">Định Form Theo Khuôn Mặt</h3>
                   <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin: 0;">Cắt chỉnh độ dài và tỉa texture dựa theo cấu trúc hộp sọ, tôn vinh đường nét quai hàm nam tính tự nhiên.</p>
                 </div>
               </div>
@@ -335,12 +335,27 @@
               </button>
             </div>
 
-            <div class="bento-grid stylists-4col-grid" id="homeStylistsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+            <div class="stylists-clean-grid" id="homeStylistsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
               ${(() => {
-          const featuredIds = ['NV02', 'NV05', 'NV08', 'NV04'];
-          const featured = featuredIds.map(id => stylists.find(s => s.id === id || s.MaNhanVien === id)).filter(Boolean);
-          const displayList = featured.length === 4 ? featured : stylists.slice(0, 4);
-          return displayList.map(s => {
+          const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : stylists;
+          // Lọc chỉ lấy thợ (bỏ quản lý, thu ngân)
+          const barbersOnly = allStylists.filter(s => {
+            const role = (s.role || s.ChucVu || s.title || '').toLowerCase();
+            return !role.includes('quản lý') && !role.includes('thu ngân');
+          });
+
+          // 3 Thợ Chính / Master Barber tiêu biểu đại diện 3 chi nhánh
+          const featuredIds = ['NV02', 'NV05', 'NV08'];
+          const featured = featuredIds.map(id => barbersOnly.find(s => s.id === id || s.MaNhanVien === id)).filter(Boolean);
+          const displayList = (featured.length >= 3 ? featured.slice(0, 3) : barbersOnly.slice(0, 3));
+
+          const distinctAvatars = {
+            NV02: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+            NV05: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+            NV08: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=300&q=80'
+          };
+
+          return displayList.map((s, index) => {
             const rawName = s.name || s.HoTen || 'Thợ Cắt Tóc';
             const cleanName = rawName.replace(/Barber/gi, 'Thợ Cắt Tóc').replace(/Master Stylist/gi, 'Stylist Trưởng').trim();
             const rawLevel = s.level || s.CapBac || 'Thợ Chính';
@@ -349,22 +364,43 @@
               .replace(/Barber/gi, 'Thợ Cắt Tóc')
               .replace(/Nghệ Nhân Tạo Mẫu/gi, 'Thợ Chính')
               .trim();
-            const avatarUrl = s.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
+            const avatarUrl = s.avatar || distinctAvatars[s.id] || distinctAvatars[s.MaNhanVien] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
+            const rating = (s.rating !== undefined ? Number(s.rating) : 5.0).toFixed(1);
+            const yearsExp = 6 + ((index * 2) % 5);
+
+            const branchObj = (window.store && typeof window.store.getBranchById === 'function')
+              ? window.store.getBranchById(s.branchId || s.MaChiNhanh)
+              : null;
+            const branchName = branchObj
+              ? (branchObj.TenChiNhanh || branchObj.name || '').replace(/^(Men\s+Salon\s+Barber|Omni\s+Salon\s+Barber|Omni\s+Salon)\s*[-–—]?\s*/gi, '').replace(/^Q(\d+)\b/i, 'Quận $1').replace(/[–—]/g, '-').trim()
+              : 'Omni Salon Flagship';
+
+            const shortLastName = cleanName.split(' ').pop();
+
             return `
-                    <div class="stylist-nordic-card" style="background: var(--surface-card); border-radius: 8px; border: 1px solid rgba(20, 20, 19, 0.08); box-shadow: none; padding: 22px 20px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; text-align: center;">
-                      <div>
-                        <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 14px; border-radius: 50%; overflow: hidden; border: 2px solid #C59B27;">
-                          <img src="${avatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${cleanName}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';">
+                    <div class="stylist-clean-card" id="homeStylistCard_${s.id}">
+                      <div class="stylist-clean-card-body">
+                        <div class="stylist-avatar-box">
+                          <img src="${avatarUrl}" class="stylist-avatar-img" alt="${cleanName}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';">
+                          <span class="stylist-avatar-rating">★ ${rating}</span>
                         </div>
-                        <h3 class="font-serif tracking-tight leading-tight" style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">${cleanName}</h3>
-                        <span style="display: inline-block; background: var(--surface-elevated); color: var(--text-secondary); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 4px; margin-bottom: 10px; border: 1px solid rgba(20, 20, 19, 0.08);">${cleanLevel}</span>
-                        <div style="font-size: 12.5px; font-weight: 500; color: var(--text-secondary); margin-bottom: 16px;">
-                          Tay kéo kinh nghiệm &amp; nhiệt tình
+                        <h3 class="stylist-clean-name font-serif tracking-tight leading-tight">${cleanName}</h3>
+                        <div class="stylist-clean-badge-row">
+                          <span class="stylist-role-tag">${cleanLevel}</span>
+                        </div>
+                        <div class="stylist-branch-tag">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: 0.7; flex-shrink: 0;"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                          <span>${branchName}</span>
+                        </div>
+                        <div class="stylist-stats-pill">
+                          <span>500+ lượt cắt</span>
+                          <span class="stats-dot">•</span>
+                          <span>${yearsExp}+ năm kn</span>
                         </div>
                       </div>
-                      <button type="button" style="width: 100%; background: #C59B27; color: #141413; padding: 10px 14px; border-radius: 6px; font-weight: 700; font-size: 13.5px; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="AppRouter.navigate('/booking?stylist=${s.id}&branch=${s.branchId || s.MaChiNhanh || 'CN01'}')">
-                        <span>Đặt Lịch Với ${cleanName.split(' ').pop()}</span>
-                        <span>→</span>
+                      <button type="button" class="stylist-book-action-btn" onclick="AppRouter.navigate('/booking?stylist=${s.id}&branch=${s.branchId || s.MaChiNhanh || 'CN01'}')">
+                        <span>Đặt Lịch Với ${shortLastName}</span>
+                        <span class="btn-arrow">→</span>
                       </button>
                     </div>
                   `;
@@ -409,40 +445,21 @@
                7. DANH MỤC CHI NHÁNH TIÊU BIỂU
                ======================================================== -->
           <section class="web-section omni-container" id="branchesSection" style="max-width: 1640px; margin: 0 auto; padding: 40px clamp(16px, 3.5vw, 48px);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 22px; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
               <div>
                 <h2 class="font-serif tracking-tight leading-tight" style="font-size: 30px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Mạng Lưới Chi Nhánh Barbershop</h2>
                 <p style="color: var(--text-secondary); font-size: 14px; margin: 0; line-height: 1.5; max-width: 720px;">
                   Không gian ấm cúng, sạch sẽ thoáng mát và đồng bộ chất lượng phục vụ trên toàn thành phố.
                 </p>
               </div>
-              <button class="branch-book-btn" onclick="AppRouter.navigate('/branches')" style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 16px; font-size: 13px; font-weight: 700; background: #C59B27; color: #141413; border: none; border-radius: 6px; cursor: pointer;">
+              <button class="nordic-btn-secondary" onclick="AppRouter.navigate('/branches')" style="background: var(--surface-card); color: var(--text-primary); border: 1px solid rgba(20, 20, 19, 0.1); font-size: 13.5px; font-weight: 700; padding: 10px 18px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                 <span>Xem Toàn Bộ Chi Nhánh</span>
-                <span style="font-size: 15px;">→</span>
+                <span>→</span>
               </button>
             </div>
 
-            <!-- Thanh Filter chọn Quận / Khu Vực -->
-            <div style="margin-bottom: 24px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Khu Vực:</span>
-              <div class="clean-filter-tabs">
-                ${['all', 'Quận 1', 'Quận 3', 'Bình Thạnh', 'Tân Bình', 'Gò Vấp', 'Phú Nhuận', 'TP. Thủ Đức'].map(d => {
-          const label = d === 'all' ? 'Tất Cả' : d;
-          const isActive = (HomePage.selectedDistrict || 'all') === d;
-          return `
-                    <button type="button" 
-                            class="clean-tab-btn home-district-tab-btn ${isActive ? 'active' : ''}" 
-                            data-district="${d}"
-                            onclick="HomePage.setDistrict('${d}')">
-                      ${label}
-                    </button>
-                  `;
-        }).join('')}
-              </div>
-            </div>
-
             <div class="branches-clean-grid" id="homeBranchesGrid">
-              ${HomePage.renderBranchesHTML(HomePage.selectedDistrict || 'all')}
+              ${HomePage.renderBranchesHTML('all')}
             </div>
           </section>
 

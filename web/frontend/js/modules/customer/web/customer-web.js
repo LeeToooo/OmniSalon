@@ -1836,13 +1836,13 @@
                     ${durationVal} phút
                   </span>
                 </div>
-                <h3 class="font-serif tracking-tight leading-tight" style="font-size: clamp(19px, 2vw, 24px); font-weight: 700; color: #FAF8F5; margin: 6px 0 4px;">
+                <h3 class="font-serif tracking-tight leading-tight text-white" style="font-size: clamp(19px, 2vw, 24px); font-weight: 700; color: #FFFFFF !important; margin: 6px 0 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.85);">
                   ${this.escapeHtml(s.name)}
                 </h3>
-                <p style="font-family: var(--font-sans); font-size: 13.5px; color: #E7E2DA; margin: 0; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                <p class="text-slate-200" style="font-family: var(--font-sans); font-size: 13.5px; color: #E2E8F0 !important; margin: 0; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 3px rgba(0,0,0,0.75);">
                   ${this.escapeHtml(s.description || 'Tay nghề barber tỉ mỉ, định hình phom tóc sắc nét và tư vấn sáp vuốt nam tính.')}
                 </p>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.12);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.15);">
                   <div style="display: flex; align-items: baseline; gap: 4px;">
                     <span style="font-size: 17px; font-weight: 800; color: #C59B27;">${SalonUtils.formatCurrency(s.price)}</span>
                     ${savingsBadge}
