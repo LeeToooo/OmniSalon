@@ -209,7 +209,7 @@
       if (!user) return 'Khách Vãng Lai';
       const role = String(user.role || user.vaiTroSql || user.VaiTro || '').toUpperCase();
       const chucVu = String(user.ChucVu || user.chucVuSql || '').toUpperCase();
-      
+
       if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'QUẢN TRỊ VIÊN' || chucVu === 'QUẢN TRỊ VIÊN' || user.username === 'admin') {
         return 'Quản Trị Tối Cao';
       }
@@ -262,7 +262,7 @@
             <!-- CỤM 1  - TRÁI - : Brand Logo Omni Salon + Slogan Barber Style -->
             <div class="brand-logo-wrap flex-shrink-0" onclick="CustomerWeb.switchTab('home')" style="cursor: pointer;" title="Về trang chủ Omni Salon">
               <span class="logo-text-omni" style="letter-spacing: -0.02em; font-weight: 900;">OMNI SALON</span>
-              <span class="logo-sub-text" style="color: #f59e0b; font-weight: 800; letter-spacing: 0.04em;">HAIR CARE &amp; AUTHENTIC BARBER CULTURE</span>
+              <span class="logo-sub-text" style="color: #C59B27; font-weight: 700; letter-spacing: 0.08em;">AUTHENTIC BARBERSHOP CULTURE</span>
             </div>
 
             <!-- CỤM 2  - GIỮA - : Navigation Links thuần tiếng Việt -->
@@ -274,15 +274,6 @@
               <a href="/shop" data-route="/shop" class="nav-link nav-link-optional ${this.currentTab === 'shop' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('shop')">CỬA HÀNG</a>
               <a href="/branches" data-route="/branches" class="nav-link nav-link-optional ${this.currentTab === 'branches' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('branches')">CHI NHÁNH</a>
               <a href="/ai-studio" data-route="/ai-studio" class="nav-link nav-link-optional text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('ai')">AI TẠO KIỂU TÓC</a>
-              ${isAdmin ? `
-                <a href="/admin" data-route="/admin" class="nav-link nav-link-admin ${this.currentTab === 'admin' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('admin')">
-                  ${user && (String(user.role).toUpperCase().includes('CASHIER') || String(user.vaiTroSql || '').toUpperCase().includes('THU NGÂN') || String(user.ChucVu || '').toUpperCase().includes('THU NGÂN'))
-                    ? 'THU NGÂN POS'
-                    : (user && (String(user.role).toUpperCase().includes('BRANCH') || String(user.vaiTroSql || '').toUpperCase().includes('QUẢN LÝ') || String(user.ChucVu || '').toUpperCase().includes('QUẢN LÝ'))
-                        ? 'QUẢN LÝ'
-                        : 'QUẢN TRỊ')}
-                </a>
-              ` : ''}
             </nav>
 
             <!-- CỤM 3  - PHẢI - : Search, Cart, Theme Toggle, User Dropdown -->
@@ -369,12 +360,12 @@
 
                   <!-- 2. Chọn chi nhánh  - Phân quyền: Quản lý mới được đổi, Nhân viên chỉ xem, Khách hàng ẩn -  -->
                   ${(() => {
-                    const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
-                    const isMgr = user && (roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER') || user.username === 'admin');
-                    const isStf = user && !isMgr && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
+          const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
+          const isMgr = user && (roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER') || user.username === 'admin');
+          const isStf = user && !isMgr && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
 
-                    if (isMgr) {
-                      return `
+          if (isMgr) {
+            return `
                         <div class="dropdown-branch-pill">
                           <div class="branch-pill-header">
                             <span>Chi nhánh quản trị:</span>
@@ -384,10 +375,10 @@
                           </select>
                         </div>
                       `;
-                    }
-                    if (isStf) {
-                      const userBranchName = user?.branchName || (user?.branchId ? branches.find(b => b.id === user.branchId)?.name : null) || currentBranch?.name || 'Omni Salon Barber';
-                      return `
+          }
+          if (isStf) {
+            const userBranchName = user?.branchName || (user?.branchId ? branches.find(b => b.id === user.branchId)?.name : null) || currentBranch?.name || 'Omni Salon Barber';
+            return `
                         <div class="dropdown-branch-pill">
                           <div class="branch-pill-header">
                             <span>Chi nhánh công tác:</span>
@@ -397,27 +388,27 @@
                           </div>
                         </div>
                       `;
-                    }
-                    // Khách hàng hoặc chưa đăng nhập: Ẩn hoàn toàn khối chi nhánh phục vụ
-                    return '';
-                  })()}
+          }
+          // Khách hàng hoặc chưa đăng nhập: Ẩn hoàn toàn khối chi nhánh phục vụ
+          return '';
+        })()}
 
                   <!-- 3. Nút Quản Trị Salon  - Chỉ dành riêng cho Admin / Quản lý / Thu ngân -  -->
                   ${this.renderAdminButtonHTML(user, isAdmin)}
 
                   <!-- 4. Lịch làm việc & Đăng ký ca làm  - Dành cho Thợ & Thu ngân -  -->
                   ${(() => {
-                    const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
-                    const isStf = user && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
-                    if (isStf) {
-                      return `
+          const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
+          const isStf = user && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
+          if (isStf) {
+            return `
                         <button class="dropdown-item-btn" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 800; margin: 4px 0;" onclick="CustomerWeb.openStaffShiftModal(); CustomerWeb.closeUserMenu();">
                           <span>Lịch Làm Hôm Nay &amp; Đăng Ký Ca</span>
                         </button>
                       `;
-                    }
-                    return '';
-                  })()}
+          }
+          return '';
+        })()}
 
                   <!-- 5. Nút Đăng Nhập / Đăng Ký / Cá Nhân -->
                   ${user ? `
@@ -832,9 +823,9 @@
           <div class="lookup-modal-header" style="text-align: center; margin-bottom: 20px;">
             <h2 class="lookup-modal-title" style="font-size: 20px; font-weight: 700; margin: 0 0 6px; color: #FFFFFF; letter-spacing: -0.01em;">Tra Cứu Lịch Hẹn</h2>
             <p class="lookup-modal-subtitle" style="font-size: 13px; color: #94A3B8; margin: 0; line-height: 1.5;">
-              ${isCustomer 
-                ? `Lịch hẹn đã đặt của quý khách: <strong style="color: #F8FAFC;">${this.escapeHtml(user.fullName || user.name)}</strong>`
-                : 'Nhập số điện thoại hoặc mã lịch hẹn để kiểm tra trạng thái dịch vụ'}
+              ${isCustomer
+          ? `Lịch hẹn đã đặt của quý khách: <strong style="color: #F8FAFC;">${this.escapeHtml(user.fullName || user.name)}</strong>`
+          : 'Nhập số điện thoại hoặc mã lịch hẹn để kiểm tra trạng thái dịch vụ'}
             </p>
           </div>
 
@@ -923,16 +914,16 @@
         </div>
         <div style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;">
           ${matches.map(b => {
-            const statusInfo = SalonUtils.formatBookingStatus(b.status);
-            const isCancellable = b.status !== 'cancelled' && b.status !== 'completed';
-            const branch = branchMap.get(String(b.branchId)) || {};
-            const stylist = stylistMap.get(String(b.stylistId)) || {};
-            const service = serviceMap.get(String(b.serviceId)) || {};
-            const branchName = b.branchName || branch.name || 'Omni Salon Suite';
-            const stylistName = b.stylistName || stylist.name || 'Bất kỳ';
-            const serviceName = b.serviceName || service.name || 'Cắt Tóc';
+        const statusInfo = SalonUtils.formatBookingStatus(b.status);
+        const isCancellable = b.status !== 'cancelled' && b.status !== 'completed';
+        const branch = branchMap.get(String(b.branchId)) || {};
+        const stylist = stylistMap.get(String(b.stylistId)) || {};
+        const service = serviceMap.get(String(b.serviceId)) || {};
+        const branchName = b.branchName || branch.name || 'Omni Salon Suite';
+        const stylistName = b.stylistName || stylist.name || 'Bất kỳ';
+        const serviceName = b.serviceName || service.name || 'Cắt Tóc';
 
-            return `
+        return `
               <div class="lookup-card-result" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                   <!-- Yêu cầu: Khách hàng không hiện mã kỹ thuật #LH... -->
@@ -947,7 +938,7 @@
                   <div><strong style="color: var(--text-primary);">Dịch vụ:</strong> ${this.escapeHtml(serviceName)}</div>
                   <div><strong style="color: var(--text-primary);">Chi nhánh:</strong> ${this.escapeHtml(branchName)}</div>
                   <div><strong style="color: var(--text-primary);">Master Stylist:</strong> ${this.escapeHtml(stylistName)}</div>
-                  <div><strong style="color: var(--text-primary);">Giờ hẹn:</strong> <span style="color: var(--brand-accent); font-weight: 800;">${b.timeSlot} — ${SalonUtils.formatDate(b.date || b.bookingDate)}</span></div>
+                  <div><strong style="color: var(--text-primary);">Giờ hẹn:</strong> <span style="color: var(--brand-accent); font-weight: 800;">${b.timeSlot} | ${SalonUtils.formatDate(b.date || b.bookingDate)}</span></div>
                   <div><strong style="color: var(--text-primary);">Khách hàng:</strong> ${this.escapeHtml(b.customerName)} (<span data-phone="${this.escapeHtml(b.customerPhone)}">${this.escapeHtml(SalonUtils.maskPhone ? SalonUtils.maskPhone(b.customerPhone) : b.customerPhone)}</span>)</div>
                   <div><strong style="color: var(--text-primary);">Chi phí:</strong> <strong style="color: var(--brand-accent);">${SalonUtils.formatCurrency(b.totalPrice || 0)}</strong></div>
                 </div>
@@ -968,7 +959,7 @@
                 </div>
               </div>
             `;
-          }).join('')}
+      }).join('')}
         </div>
       `;
     },
@@ -1242,7 +1233,7 @@
             <div><strong>Khách hàng:</strong> ${this.escapeHtml(booking.customerName)} (<span data-phone="${this.escapeHtml(booking.customerPhone)}">${this.escapeHtml(SalonUtils.maskPhone ? SalonUtils.maskPhone(booking.customerPhone) : booking.customerPhone)}</span>)</div>
             <div><strong>Dịch vụ:</strong> ${this.escapeHtml(booking.serviceName)}</div>
             <div><strong>Chi nhánh:</strong> ${this.escapeHtml(booking.branchName)}</div>
-            <div><strong>Thời gian:</strong> <span style="color:#c85a44; font-weight:800;">${booking.timeSlot} — ${SalonUtils.formatDate(booking.date || booking.bookingDate)}</span></div>
+            <div><strong>Thời gian:</strong> <span style="color:var(--color-accent-gold); font-weight:800;">${booking.timeSlot} | ${SalonUtils.formatDate(booking.date || booking.bookingDate)}</span></div>
             <div><strong>Master Stylist:</strong> ${this.escapeHtml(booking.stylistName || 'Master Stylist chỉ định')}</div>
           </div>
 
@@ -1251,7 +1242,7 @@
               Quay Lại Danh Sách
             </button>
             <button class="btn-submit-terracotta" style="flex: 1;" onclick="UICommon.closeGlobalModal()">
-              Xong
+              Xong →
             </button>
           </div>
         </div>
@@ -1427,8 +1418,8 @@
 
         <!-- 3. BẢNG DỊCH VỤ BENTO GRID ĐẲNG CẤP VỚI CATEGORY FILTER -->
         <section class="section-container" id="serviceSection" style="padding-top: 50px;">
-          <h2 class="section-title-clean">DỊCH VỤ &amp; COMBO ĐẶC TRƯNG</h2>
-          <p class="section-subtitle-clean">Bố cục Bento Grid quốc tế — Tuyển tập gói chăm sóc &amp; tạo kiểu độc quyền.</p>
+          <h2 class="section-title-clean font-serif tracking-tight leading-tight">DỊCH VỤ &amp; COMBO ĐẶC TRƯNG</h2>
+          <p class="section-subtitle-clean">Tuyển tập gói chăm sóc &amp; cắt tạo kiểu độc quyền tại Omni Salon.</p>
 
           <div class="services-category-bar">
             <button class="service-cat-pill ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="CustomerWeb.filterServices('all')">Tất Cả Dịch Vụ</button>
@@ -1489,8 +1480,8 @@
 
         <!-- 4. SẢN PHẨM MỚI  - NEW ARRIVALS -  -->
         <section class="section-container" id="newProductsSection" style="padding-top: 50px;">
-          <h2 class="section-title-clean">SẢN PHẨM MỚI</h2>
-          <p class="section-subtitle-clean">Những mẫu sáp vuốt và phụ kiện mới nhất vừa cập bến — cập nhật liên tục.</p>
+          <h2 class="section-title-clean font-serif tracking-tight leading-tight">SẢN PHẨM MỚI</h2>
+          <p class="section-subtitle-clean">Những mẫu sáp vuốt và phụ kiện mới nhất vừa cập bến, cập nhật liên tục.</p>
           <div class="products-grid-5">
             ${newProducts.map(p => UICommon.renderProductCard(p)).join('')}
           </div>
@@ -1498,8 +1489,8 @@
 
         <!-- 5. SẢN PHẨM BÁN CHẠY  - BEST SELLERS -  -->
         <section class="section-container" id="bestSellerSection" style="padding-top: 50px;">
-          <h2 class="section-title-clean">SẢN PHẨM BÁN CHẠY</h2>
-          <p class="section-subtitle-clean">Chúng tôi mang đến sự lựa chọn tốt nhất cho bạn với phong cách riêng biệt.</p>
+          <h2 class="section-title-clean font-serif tracking-tight leading-tight">SẢN PHẨM BÁN CHẠY</h2>
+          <p class="section-subtitle-clean">Tuyển chọn các dòng sáp vuốt và dưỡng tóc được khách hàng tin dùng nhất.</p>
           <div class="products-grid-5">
             ${bestProducts.map(p => UICommon.renderProductCard(p)).join('')}
           </div>
@@ -1507,9 +1498,9 @@
 
         <!-- 6. TIN TÓC UNDERGROUND -->
         <section class="section-container" id="undergroundSection" style="padding-top: 60px;">
-          <h2 class="section-title-clean">TIN TÓC UNDERGROUND</h2>
+          <h2 class="section-title-clean font-serif tracking-tight leading-tight">TIN TÓC &amp; PHONG CÁCH SỐNG</h2>
           <p class="section-subtitle-clean" style="max-width: 720px; margin: 0 auto 30px;">
-            Cập nhật liên tục những xu hướng tóc, thời trang và lifestyle mới nhất từ giới trẻ đường phố.
+            Cập nhật liên tục những xu hướng tóc nam, kỹ thuật chăm sóc và phong cách lịch lãm đương đại.
           </p>
 
           <div class="underground-top-layout">
@@ -1526,7 +1517,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 30px;">
-            <button class="btn-black-solid" onclick="UICommon.showToast('Bạn đang xem những tin tức mới nhất từ Omni Salon!')">XEM THÊM BÀI VIẾT</button>
+            <button class="btn-black-solid" onclick="UICommon.showToast('Bạn đang xem những tin tức mới nhất từ Omni Salon!')">XEM THÊM BÀI VIẾT →</button>
           </div>
         </section>
 
@@ -1534,12 +1525,12 @@
         <section class="section-container" id="branchesSection" style="padding-top: 60px;">
           <div class="branches-split-layout">
             <div class="branches-left-info">
-              <h2 class="branches-main-title">Khám phá hệ thống chi nhánh Omni Salon trên toàn quốc.</h2>
+              <h2 class="branches-main-title font-serif tracking-tight leading-tight">Khám phá hệ thống chi nhánh Omni Salon trên toàn quốc.</h2>
               <p class="branches-sub-text">
                 Dễ dàng tìm kiếm và trải nghiệm dịch vụ chất lượng cao cấp gần nơi bạn nhất.<br>
                 <strong>Hotline: 1900 8899</strong>
               </p>
-              <button class="btn-black-solid" style="margin-top: 20px;" onclick="UICommon.openBookingModal()">ĐẶT LỊCH NGAY</button>
+              <button class="btn-black-solid" style="margin-top: 20px;" onclick="UICommon.openBookingModal()">ĐẶT LỊCH NGAY →</button>
             </div>
 
             <div class="branches-right-pills">
@@ -1562,16 +1553,16 @@
           </div>
         </section>
 
-        <!-- 8. OMNI SALON AI STUDIO — ĐỔI KIỂU TÓC BẰNG ẢNH THẬT -->
+        <!-- 8. OMNI SALON AI STUDIO: ĐỔI KIỂU TÓC BẰNG ẢNH THẬT -->
         <section class="section-container" id="aiStudioSection" style="padding-top: 60px;">
           <div class="web-ai-studio-wrapper">
             <div class="web-ai-studio-header">
-              <div class="badge-terracotta pulse-animation">CÔNG NGHỆ ĐỘT PHÁ 2026 • OMNI AI RESTYLE VISION</div>
-              <h2 class="section-title-clean" style="margin-top: 8px; font-size: 28px; font-weight: 900; letter-spacing: 0.01em;">
-                OMNI SALON AI STUDIO — THAY ĐỔI KIỂU TÓC BẰNG ẢNH THẬT
+              <div class="badge-terracotta pulse-animation">AI BARBER VISION • THỬ KIỂU TÓC THỰC TẾ</div>
+              <h2 class="section-title-clean font-serif tracking-tight leading-tight" style="margin-top: 8px; font-size: 28px; font-weight: 900; letter-spacing: 0.01em;">
+                OMNI SALON AI STUDIO: THỬ KIỂU TÓC TRÊN ẢNH THẬT
               </h2>
               <p class="section-subtitle-clean" style="max-width: 720px; margin: 0 auto 24px;">
-                Chụp hoặc tải ảnh khuôn mặt của bạn lên để công nghệ AI tự động nhận diện dáng mặt, biến đổi kiểu tóc &amp; màu nhuộm xu hướng, và lưu vào bộ sưu tập cá nhân.
+                Chụp hoặc tải ảnh chân dung để trực quan hóa phom tóc và màu nhuộm phù hợp với dáng mặt của bạn trước khi tới salon.
               </p>
             </div>
             <div id="webAiStudioContainer">
@@ -1813,6 +1804,60 @@
         });
       }
 
+      if (featuredOnly) {
+        return filtered.map((s, idx) => {
+          let savingsBadge = '';
+          if (s.isCombo && s.originalPrice && window.PricingService) {
+            const savings = window.PricingService.calculateComboSavings(s.originalPrice, s.price);
+            if (savings.isDiscounted) {
+              savingsBadge = `<span style="font-size: 11px; color: #10B981; font-weight: 700; margin-left: 6px;">-${savings.savingsPercent}%</span>`;
+            }
+          }
+
+          const fallbackImg = 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
+          const rawImg = s.image || (s.isCombo ? 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg' : fallbackImg);
+          const coverImg = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatImageUrl === 'function')
+            ? SalonUtils.formatImageUrl(rawImg)
+            : rawImg;
+
+          const durationVal = String(s.duration || s.ThoiLuong || 45).replace(/\s*phút\s*/gi, '').trim();
+          // Lưới Asymmetric 12 cột: 7 & 5 cột xen kẽ
+          const colClass = (idx === 0 || idx === 3) ? 'bento-col-7' : 'bento-col-5';
+
+          return `
+            <div class="bento-editorial-card ${colClass}" id="serviceCard_${s.id}" onclick="UICommon && UICommon.openBookingModal ? UICommon.openBookingModal('${s.id}') : (window.AppRouter && window.AppRouter.navigate('/booking?service=${s.id}'))" style="min-height: 310px;">
+              <img src="${coverImg}" alt="${this.escapeHtml(s.name)}" class="bento-bg-img" loading="lazy" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg');">
+              <div class="bento-scrim">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-family: var(--font-sans); font-size: 11px; font-weight: 700; color: #C59B27; text-transform: uppercase; letter-spacing: 0.1em;">
+                    ${s.isCombo ? 'GÓI COMBO TOÀN DIỆN' : 'TẠO KIỂU &amp; CẮT TÓC'}
+                  </span>
+                  <span style="font-size: 11.5px; font-weight: 600; color: #FAF8F5; background: rgba(20,20,19,0.7); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15);">
+                    ${durationVal} phút
+                  </span>
+                </div>
+                <h3 class="font-serif tracking-tight leading-tight" style="font-size: clamp(19px, 2vw, 24px); font-weight: 700; color: #FAF8F5; margin: 6px 0 4px;">
+                  ${this.escapeHtml(s.name)}
+                </h3>
+                <p style="font-family: var(--font-sans); font-size: 13.5px; color: #E7E2DA; margin: 0; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  ${this.escapeHtml(s.description || 'Tay nghề barber tỉ mỉ, định hình phom tóc sắc nét và tư vấn sáp vuốt nam tính.')}
+                </p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.12);">
+                  <div style="display: flex; align-items: baseline; gap: 4px;">
+                    <span style="font-size: 17px; font-weight: 800; color: #C59B27;">${SalonUtils.formatCurrency(s.price)}</span>
+                    ${savingsBadge}
+                  </div>
+                  <button type="button" class="bento-cta-btn" style="display: inline-flex; align-items: center; gap: 6px; background: #C59B27; color: #141413; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.2s ease;">
+                    <span>Đặt Lịch</span>
+                    <span style="font-size: 14px;">→</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
       return filtered.map(s => {
         let savingsBadge = '';
         if (s.isCombo && s.originalPrice && window.PricingService) {
@@ -1831,24 +1876,25 @@
         const durationVal = String(s.duration || s.ThoiLuong || 45).replace(/\s*phút\s*/gi, '').trim();
 
         return `
-        <div class="service-card-item card-3d-tilt" id="serviceCard_${s.id}">
-          <div class="service-card-cover-wrap">
+        <div class="service-card-item" id="serviceCard_${s.id}" style="border: 1px solid rgba(20,20,19,0.08); border-radius: 8px; overflow: hidden; background: var(--surface-card); box-shadow: none;">
+          <div class="service-card-cover-wrap" style="position: relative; height: 180px; overflow: hidden;">
             <img src="${coverImg}" alt="${this.escapeHtml(s.name)}" class="service-card-cover" loading="lazy" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg');">
-            <span class="service-card-duration-badge">${durationVal} phút</span>
+            <span class="service-card-duration-badge" style="position: absolute; top: 10px; left: 10px; background: rgba(20,20,19,0.75); color: #FAF8F5; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">${durationVal} phút</span>
           </div>
-          <div class="service-card-body">
-            <div style="font-size: 11px; font-weight: 800; color: #F59E0B; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em;">
-              ${s.isCombo ? 'COMBO TRỌN GÓI VIP' : 'MASTER STYLIST'}
+          <div class="service-card-body" style="padding: 16px;">
+            <div style="font-size: 11px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.06em;">
+              ${s.isCombo ? 'GÓI COMBO' : 'THỢ CHÍNH TẠO MẪU'}
             </div>
-            <h4 class="service-card-title">${this.escapeHtml(s.name)}</h4>
-            <p class="service-card-desc">${this.escapeHtml(s.description || '')}</p>
-            <div class="service-card-footer">
+            <h3 class="service-card-title font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">${this.escapeHtml(s.name)}</h3>
+            <p class="service-card-desc" style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 14px; min-height: 38px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${this.escapeHtml(s.description || 'Chăm sóc chu đáo, tạo kiểu tự nhiên dễ vuốt sáp hằng ngày.')}</p>
+            <div class="service-card-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px;">
               <div style="display: flex; flex-direction: column;">
-                <span class="service-card-price">${SalonUtils.formatCurrency(s.price)}</span>
+                <span class="service-card-price" style="font-size: 16px; font-weight: 800; color: #C59B27;">${SalonUtils.formatCurrency(s.price)}</span>
                 ${savingsBadge}
               </div>
-              <button class="service-card-cta-btn" onclick="UICommon.openBookingModal('${s.id}')">
-                Đặt Lịch
+              <button class="service-card-cta-btn" onclick="UICommon.openBookingModal('${s.id}')" style="display: inline-flex; align-items: center; gap: 6px; background: #C59B27; color: #141413; font-weight: 700; font-size: 13px; padding: 7px 14px; border-radius: 6px; border: none; cursor: pointer;">
+                <span>Đặt Lịch</span>
+                <span>→</span>
               </button>
             </div>
           </div>
@@ -2618,7 +2664,7 @@
                   <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
                     <div>
                       <strong style="color: var(--text-primary, #111); font-size: 14px;">#${this.escapeHtml(b.id || b.bookingCode)}</strong>
-                      <span style="font-size: 13px; font-weight: 700; color: var(--color-terracotta); margin-left: 6px;">— ${this.escapeHtml(serviceName)}</span>
+                      <span style="font-size: 13px; font-weight: 700; color: var(--color-accent-gold); margin-left: 6px;">: ${this.escapeHtml(serviceName)}</span>
                     </div>
                     <span class="status-pill-pulse ${statusInfo.cssClass}" style="font-size: 10px;">
                       <span class="pulse-dot"></span> ${statusInfo.label}

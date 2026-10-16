@@ -1,9 +1,7 @@
 // =========================================================================
-// Omni Salon — AI HAIR STUDIO 3D (INTERACTIVE NEURAL RESTYLE ENGINE)
-// Tuân thủ: .antigravity/rules/03_coder.md, 04_refactor.md, 07_ponytail.md
+// Omni Salon: AI HAIR STUDIO 3D (MÔ PHỎNG KIỂU TÓC 3D)
+// Phong cách tạp chí Editorial • Tông màu ấm • Typography Playfair Display
 // Route: "/ai-studio"
-// Features: Upload Portrait, 3D Hairstyle Selector, Hair Color Swatches,
-//           Neural Scanning Laser Effect, Before/After Slider, Book Hairstyle
 // =========================================================================
 
 (function (window) {
@@ -25,51 +23,51 @@
     hairstyles: [
       {
         id: 'layer-korean',
-        name: 'Layer Hàn Quốc Lãng Tử',
-        tag: 'HOT TREND 2026',
-        desc: 'Tầng layer bay bổng, uốn nhẹ tạo độ phồng tự nhiên cho khuôn mặt Á Đông.',
+        name: 'Layer Texture Tự Nhiên',
+        tag: 'THỜI THƯỢNG',
+        desc: 'Tỉa tầng bay bổng, uốn texture tạo độ phồng tự nhiên cho khuôn mặt Á Đông.',
         preview: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80',
         result: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80'
       },
       {
         id: 'pompadour-luxury',
-        name: 'Pompadour Quý Tộc',
-        tag: 'EXECUTIVE VIP',
-        desc: 'Độ phồng vuốt ngược đỉnh cao, fade sát 2 bên tôn đường nét góc cạnh quyền lực.',
+        name: 'Pompadour & Mid Fade',
+        tag: 'LỊCH LÃM',
+        desc: 'Độ phồng vuốt ngược pomade kết hợp đường fade sắc nét 2 bên mang lại phong thái đĩnh đạc.',
         preview: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=400&q=80',
         result: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80'
       },
       {
         id: 'mullet-modern',
-        name: 'Mullet Hiện Đại Cá Tính',
-        tag: 'STREET LUXURY',
-        desc: 'Phá cách với gáy dài tỉa so le mềm mại kết hợp side fade sắc bén.',
+        name: 'Modern Mullet & Taper Fade',
+        tag: 'PHONG CÁCH',
+        desc: 'Gáy tỉa so le mềm mại kết hợp đường cạo viền dứt khoát và nam tính.',
         preview: 'https://images.unsplash.com/photo-1517832606589-7629c3395907?auto=format&fit=crop&w=400&q=80',
         result: 'https://images.unsplash.com/photo-1517832606589-7629c3395907?auto=format&fit=crop&w=600&q=80'
       },
       {
         id: 'sidepart-gentleman',
-        name: 'Side Part 7/3 Quý Ông',
-        tag: 'CLASSIC GENTLEMAN',
-        desc: 'Đường rẽ ngôi tỷ lệ vàng chuẩn mực kết hợp texture tự nhiên.',
+        name: 'Side Part 7/3 Cổ Điển',
+        tag: 'QUÝ ÔNG',
+        desc: 'Đường rẽ ngôi tỉ lệ vàng tôn phom mặt, dễ dàng chải sáp restyle suốt cả ngày.',
         preview: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
         result: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80'
       },
       {
         id: 'buzzcut-fade',
         name: 'Buzz Cut & High Fade',
-        tag: 'BOLD & CRISP',
-        desc: 'Gọn gàng, tôn trọn vẹn xương quai hàm nam tính và thần thái quyết đoán.',
+        tag: 'DỨT KHOÁT',
+        desc: 'Gọn gàng, tôn trọn vẹn xương hàm và đường nét góc cạnh của gương mặt.',
         preview: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=400&q=80',
         result: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&q=80'
       }
     ],
 
     hairColors: [
-      { id: 'natural-black', name: 'Đen Tự Nhiên', hex: '#111827', border: '#475569' },
-      { id: 'cold-ash-brown', name: 'Nâu Tây Lạnh', hex: '#634735', border: '#A27B5C' },
-      { id: 'titan-grey', name: 'Xám Khói Titan', hex: '#71717A', border: '#A1A1AA' },
-      { id: 'nordic-platinum', name: 'Bạch Kim Nordic', hex: '#E2E8F0', border: '#D4AF37' }
+      { id: 'natural-black', name: 'Đen Tự Nhiên', hex: '#141413', border: '#475569' },
+      { id: 'cold-ash-brown', name: 'Nâu Lạnh Sâu', hex: '#523A28', border: '#A27B5C' },
+      { id: 'titan-grey', name: 'Xám Khói Titan', hex: '#6B7280', border: '#9CA3AF' },
+      { id: 'nordic-platinum', name: 'Vàng Cát Trầm', hex: '#C59B27', border: '#C59B27' }
     ],
 
     demoPortraits: [
@@ -87,73 +85,76 @@
       }
 
       container.innerHTML = `
-        <div class="omni-container" style="padding-top: 40px; padding-bottom: 72px;">
+        <div class="omni-container" style="padding-top: 48px; padding-bottom: 88px; max-width: 1440px; margin: 0 auto; padding-left: clamp(16px, 3.5vw, 48px); padding-right: clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
           <!-- Header Hero -->
-          <div style="text-align: center; margin-bottom: 32px;">
-            <h1 style="font-size: clamp(28px, 3.5vw, 40px); font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">
-              AI Thử Kiểu Tóc 3D Thực Tế
+          <div style="text-align: center; margin-bottom: 40px;">
+            <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
+              CÔNG NGHỆ MÔ PHỎNG 3D
+            </span>
+            <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4.2vw, 44px); font-weight: 700; color: var(--text-primary); margin: 0 0 12px;">
+              Thử Kiểu Tóc 3D &amp; Định Hình Phom Dáng
             </h1>
-            <p style="color: var(--text-secondary); font-size: 14.5px; margin-top: 8px; max-width: 640px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-              Mô phỏng phom tóc thực tế theo từng đường nét khuôn mặt trước khi thợ tạo mẫu cắt.
+            <p style="color: var(--text-secondary); font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
+              Mô phỏng chân thực dáng tóc theo từng đường nét khuôn mặt trước khi thợ barber thực hiện cắt kéo.
             </p>
           </div>
 
           <!-- Studio Main Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; max-width: 1400px; margin: 0 auto; align-items: stretch;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto; align-items: stretch;">
             
             <!-- CỘT TRÁI: INPUT FILE ẢNH CHÂN DUNG -->
             <div class="ai-studio-panel" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: none;">
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                  <span style="font-size: 12.5px; font-weight: 600; color: #D97706; letter-spacing: 0.05em; text-transform: uppercase;">
+                  <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
                     ẢNH CHÂN DUNG CỦA BẠN
                   </span>
-                  <span id="aiUploadStatusBadge" style="font-size: 11.5px; color: #A1A1AA; font-weight: 500;">
-                    ${this.state.uploadedImage ? 'Sẵn sàng phân tích' : 'Chưa chọn ảnh'}
+                  <span id="aiUploadStatusBadge" style="font-size: 11.5px; color: var(--text-muted); font-weight: 500;">
+                    ${this.state.uploadedImage ? 'Sẵn sàng mô phỏng' : 'Chưa chọn ảnh'}
                   </span>
                 </div>
 
                 <!-- Dropzone bọc Native Input File -->
                 <div id="aiNativeDropZone" 
-                     ondragover="event.preventDefault(); this.style.borderColor='#D97706';"
-                     ondragleave="this.style.borderColor='#3F3F46';"
+                     ondragover="event.preventDefault(); this.style.borderColor='#C59B27';"
+                     ondragleave="this.style.borderColor='var(--border-color)';"
                      ondrop="AiStudioPage.handleDrop(event)"
-                     style="position: relative; border: 1px dashed #3F3F46; border-radius: 8px; background: #0A0A0B; padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s ease; overflow: hidden; min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                     style="position: relative; border: 1px dashed var(--border-color); border-radius: 6px; background: #141413; padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s ease; overflow: hidden; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                   
                   <input type="file" id="aiStudioFileInput" accept="image/*" 
                          onchange="AiStudioPage.handleFileSelected(event)"
                          style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 20;" />
 
                   <!-- Preview Box with Laser & HUD -->
-                  <div id="aiPortraitViewport" class="ai-portrait-viewport" style="position: relative; width: 100%; height: 260px; border-radius: 6px; overflow: hidden; display: ${this.state.uploadedImage ? 'block' : 'none'};">
+                  <div id="aiPortraitViewport" class="ai-portrait-viewport" style="position: relative; width: 100%; height: 280px; border-radius: 4px; overflow: hidden; display: ${this.state.uploadedImage ? 'block' : 'none'};">
                     <img id="aiSourcePortrait" src="${this.state.uploadedImage || ''}" alt="Chân dung" style="width: 100%; height: 100%; object-fit: cover;">
-                    <div id="aiScanLaserLine" class="ai-laser-line" style="display: none; position: absolute; left: 0; right: 0; height: 2px; background: #D97706; box-shadow: none; z-index: 10;"></div>
-                    <div id="aiScanGridMesh" class="ai-grid-mesh" style="display: none; position: absolute; inset: 0; background-image: radial-gradient(rgba(217, 119, 6, 0.15) 1px, transparent 1px); background-size: 20px 20px; pointer-events: none; z-index: 8;"></div>
+                    <div id="aiScanLaserLine" class="ai-laser-line" style="display: none; position: absolute; left: 0; right: 0; height: 2px; background: #C59B27; z-index: 10;"></div>
+                    <div id="aiScanGridMesh" class="ai-grid-mesh" style="display: none; position: absolute; inset: 0; background-image: radial-gradient(rgba(197, 155, 39, 0.2) 1px, transparent 1px); background-size: 20px 20px; pointer-events: none; z-index: 8;"></div>
                     
-                    <div id="aiScanHudModal" style="display: none; position: absolute; inset: 0; background: rgba(10, 10, 11, 0.88); backdrop-filter: blur(2px); flex-direction: column; align-items: center; justify-content: center; z-index: 15; padding: 20px; text-align: center;">
-                      <div class="ai-radar-ring" style="width: 40px; height: 40px; border: 2px solid #27272A; border-top-color: #D97706; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
-                      <div style="font-size: 13.5px; font-weight: 600; color: #F4F4F5;" id="aiScanHudTitle">AI ĐANG PHÂN TÍCH PHOM TÓC...</div>
-                      <div style="font-size: 12px; color: #A1A1AA; margin-top: 4px;" id="aiScanHudSub">Nhận diện đường nét khuôn mặt...</div>
-                      <div style="width: 180px; height: 4px; background: #27272A; border-radius: 2px; margin-top: 10px; overflow: hidden;">
-                        <div id="aiScanHudProgress" style="height: 100%; width: 0%; background: #D97706; transition: width 0.2s ease;"></div>
+                    <div id="aiScanHudModal" style="display: none; position: absolute; inset: 0; background: rgba(20, 20, 19, 0.9); backdrop-filter: blur(4px); flex-direction: column; align-items: center; justify-content: center; z-index: 15; padding: 20px; text-align: center;">
+                      <div class="ai-radar-ring" style="width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #C59B27; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
+                      <div class="font-serif tracking-tight leading-tight" style="font-size: 15px; font-weight: 700; color: #FAF8F5;" id="aiScanHudTitle">HỆ THỐNG ĐANG PHÂN TÍCH PHOM TÓC...</div>
+                      <div style="font-size: 12px; color: #A1A1AA; margin-top: 4px;" id="aiScanHudSub">Nhận diện đường nét ngũ quan...</div>
+                      <div style="width: 180px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 12px; overflow: hidden;">
+                        <div id="aiScanHudProgress" style="height: 100%; width: 0%; background: #C59B27; transition: width 0.2s ease;"></div>
                       </div>
                     </div>
 
-                    <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(10,10,11,0.85); padding: 4px 10px; border-radius: 4px; font-size: 11px; color: #A1A1AA; z-index: 12; pointer-events: none;">
-                      Bấm hoặc kéo thả ảnh mới để thay đổi
+                    <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(20,20,19,0.85); padding: 4px 10px; border-radius: 4px; font-size: 11px; color: #FAF8F5; z-index: 12; pointer-events: none;">
+                      Nhấp hoặc kéo thả ảnh mới để thay đổi
                     </div>
                   </div>
 
                   <!-- Empty Placeholder UI -->
                   <div id="aiEmptyUploadUI" style="display: ${this.state.uploadedImage ? 'none' : 'flex'}; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="width: 44px; height: 44px; border-radius: 6px; background: #18181B; border: 1px solid #27272A; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #A1A1AA; margin-bottom: 10px;">
-                      FILE
+                    <div style="width: 44px; height: 44px; border-radius: 6px; background: #1C1C1A; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #C59B27; margin-bottom: 10px;">
+                      ẢNH
                     </div>
-                    <h4 style="font-size: 14.5px; font-weight: 600; color: #F4F4F5; margin-bottom: 4px;">Kéo thả ảnh chân dung vào đây</h4>
-                    <p style="font-size: 12px; color: #71717A; max-width: 260px; margin-bottom: 10px; line-height: 1.4;">
+                    <h4 class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: #FAF8F5; margin-bottom: 4px;">Kéo thả ảnh chân dung vào đây</h4>
+                    <p style="font-size: 12px; color: #71717A; max-width: 260px; margin-bottom: 12px; line-height: 1.4;">
                       hoặc nhấp chuột để chọn ảnh chụp góc thẳng từ thiết bị
                     </p>
-                    <span class="nordic-btn-secondary" style="font-size: 11.5px; padding: 6px 14px; pointer-events: none; border-radius: 6px;">
+                    <span class="nordic-btn-secondary" style="font-size: 12px; font-weight: 700; padding: 6px 16px; pointer-events: none; border-radius: 4px; background: #1C1C1A; color: #FAF8F5; border: 1px solid rgba(255,255,255,0.1);">
                       Chọn Tệp Ảnh
                     </span>
                   </div>
@@ -161,13 +162,13 @@
               </div>
 
               <!-- Quick Demo Samples -->
-              <div style="margin-top: 16px;">
-                <span style="font-size: 11px; font-weight: 600; color: #71717A; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">
+              <div style="margin-top: 18px;">
+                <span class="tracking-widest" style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">
                   HOẶC CHỌN ẢNH MẪU CÓ SẴN:
                 </span>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                   ${this.demoPortraits.map(dp => `
-                    <button type="button" onclick="AiStudioPage.selectDemoPortrait('${dp.url}')" style="display: flex; align-items: center; gap: 8px; background: #18181B; border: 1px solid #27272A; border-radius: 6px; padding: 4px 10px; cursor: pointer; color: #A1A1AA; font-size: 12px; font-weight: 500;">
+                    <button type="button" onclick="AiStudioPage.selectDemoPortrait('${dp.url}')" style="display: flex; align-items: center; gap: 8px; background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 10px; cursor: pointer; color: var(--text-primary); font-size: 12px; font-weight: 600;">
                       <img src="${dp.url}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;" alt="${dp.name}">
                       <span>${dp.name}</span>
                     </button>
@@ -179,49 +180,49 @@
             <!-- CỘT PHẢI: DANH SÁCH 4 PHOM TÓC + NÚT CTA -->
             <div class="ai-studio-panel" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: none;">
               <div>
-                <div style="margin-bottom: 14px;">
-                  <span style="font-size: 12.5px; font-weight: 600; color: #D97706; letter-spacing: 0.05em; text-transform: uppercase;">
-                    DANH SÁCH 4 PHOM TÓC TIÊU BIỂU
+                <div style="margin-bottom: 16px;">
+                  <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
+                    PHOM DÁNG TÓC THỊNH HÀNH
                   </span>
-                  <p style="font-size: 12.5px; color: #71717A; margin-top: 4px;">Chọn 1 phom tóc bên dưới để ướm thử:</p>
+                  <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Chọn 1 phom tóc bên dưới để ướm thử lên khuôn mặt:</p>
                 </div>
 
                 <!-- 4 Hairstyle Buttons -->
-                <div class="grid grid-cols-2 gap-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
                   ${this.hairstyles.slice(0, 4).map(h => {
-                    const isSelected = this.state.selectedHairstyle === h.id;
-                    return `
+        const isSelected = this.state.selectedHairstyle === h.id;
+        return `
                       <button type="button" 
                               class="clean-tab-btn ${isSelected ? 'active' : ''}" 
                               id="pillStyle_${h.id}"
                               onclick="AiStudioPage.selectHairstyle('${h.id}')"
-                              style="width: 100%; padding: 10px 12px; border-radius: 6px; text-align: left; display: flex; flex-direction: column; gap: 3px; cursor: pointer; border: 1px solid ${isSelected ? '#D97706' : '#27272A'}; background: ${isSelected ? '#27272A' : '#18181B'}; transition: all 0.15s ease;">
+                              style="width: 100%; padding: 12px 14px; border-radius: 6px; text-align: left; display: flex; flex-direction: column; gap: 4px; cursor: pointer; border: 1px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.12)' : 'var(--surface-elevated)'}; transition: all 0.15s ease;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
-                          <strong style="color: ${isSelected ? '#F4F4F5' : '#A1A1AA'} !important; font-size: 12.5px;">${h.name}</strong>
-                          <span style="color: ${isSelected ? '#D97706' : '#3F3F46'}; font-size: 11px;">${isSelected ? '●' : '○'}</span>
+                          <strong class="font-serif tracking-tight leading-tight" style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'}; font-size: 13.5px;">${h.name}</strong>
+                          <span style="color: ${isSelected ? '#C59B27' : 'var(--text-muted)'}; font-size: 11px;">${isSelected ? '●' : '○'}</span>
                         </div>
-                        <span style="font-size: 10.5px; color: ${isSelected ? '#FBBF24' : '#71717A'} !important; line-height: 1.3;">${h.tag}</span>
+                        <span style="font-size: 10.5px; color: var(--text-secondary); line-height: 1.3;">${h.tag}</span>
                       </button>
                     `;
-                  }).join('')}
+      }).join('')}
                 </div>
 
                 <!-- Color Swatches -->
-                <div style="margin-bottom: 18px;">
-                  <span style="font-size: 11px; font-weight: 600; color: #71717A; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">
+                <div style="margin-bottom: 20px;">
+                  <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase; display: block; margin-bottom: 8px;">
                     MÀU NHUỘM PHỐI HỢP:
                   </span>
                   <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     ${this.hairColors.map(c => {
-                      const isSelected = this.state.selectedColor === c.id;
-                      return `
+        const isSelected = this.state.selectedColor === c.id;
+        return `
                         <button type="button" onclick="AiStudioPage.selectColor('${c.id}')"
-                                style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 6px; cursor: pointer; border: 1px solid ${isSelected ? '#D97706' : '#27272A'}; background: ${isSelected ? '#27272A' : '#18181B'}; color: #F4F4F5; font-size: 11.5px; font-weight: 500;">
-                          <span style="width: 10px; height: 10px; border-radius: 50%; background: ${c.hex}; display: inline-block;"></span>
+                                style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 4px; cursor: pointer; border: 1px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.12)' : 'var(--surface-elevated)'}; color: var(--text-primary); font-size: 12px; font-weight: 600;">
+                          <span style="width: 10px; height: 10px; border-radius: 50%; background: ${c.hex}; display: inline-block; border: 1px solid rgba(255,255,255,0.2);"></span>
                           <span>${c.name}</span>
                         </button>
                       `;
-                    }).join('')}
+      }).join('')}
                   </div>
                 </div>
               </div>
@@ -229,20 +230,20 @@
               <!-- NÚT CTA 'Tạo Kiểu Ngay' -->
               <div>
                 <button type="button" class="nordic-btn-primary" id="btnRunAiRestyle" onclick="AiStudioPage.runAiRestyle()"
-                        style="width: 100%; height: 44px; font-size: 13.5px; font-weight: 600; background: #D97706; color: #09090B; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none;">
-                  <span id="aiBtnSpinner" style="display: none; width: 16px; height: 16px; border: 2px solid #09090B; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+                        style="width: 100%; height: 46px; font-size: 14px; font-weight: 700; background: #141413; color: #FAF8F5; border: 1px solid #141413; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s ease;">
+                  <span id="aiBtnSpinner" style="display: none; width: 16px; height: 16px; border: 2px solid #FAF8F5; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
                   <span id="aiBtnIcon"></span>
-                  <span id="aiBtnText">Tạo Kiểu Ngay</span>
+                  <span id="aiBtnText">Mô Phỏng Kiểu Tóc Ngay →</span>
                 </button>
 
                 <!-- Result Actions -->
-                <div id="aiResultActions" style="display: ${this.state.hasResult ? 'flex' : 'none'}; gap: 10px; margin-top: 12px;">
+                <div id="aiResultActions" style="display: ${this.state.hasResult ? 'flex' : 'none'}; gap: 10px; margin-top: 14px;">
                   <button type="button" class="nordic-btn-primary" onclick="AiStudioPage.bookThisHairstyle()"
-                          style="flex: 1; padding: 10px 14px; font-size: 12.5px; font-weight: 600; background: #D97706; color: #09090B; border: none; border-radius: 8px; cursor: pointer; box-shadow: none;">
-                    Đặt Lịch Kiểu Này
+                          style="flex: 1; padding: 11px 14px; font-size: 13px; font-weight: 700; background: #C59B27; color: #141413; border: 1px solid #C59B27; border-radius: 6px; cursor: pointer;">
+                    Đặt Lịch Cắt Kiểu Này →
                   </button>
-                  <button type="button" class="nordic-btn-secondary" onclick="AiStudioPage.resetAiRestyle()" style="padding: 10px 14px; font-size: 12.5px; font-weight: 500; background: #27272A; color: #F4F4F5; border: 1px solid #3F3F46; border-radius: 8px; box-shadow: none;">
-                    Thử Mẫu Khác
+                  <button type="button" class="nordic-btn-secondary" onclick="AiStudioPage.resetAiRestyle()" style="padding: 11px 14px; font-size: 13px; font-weight: 600; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px;">
+                    Thử Kiểu Khác
                   </button>
                 </div>
               </div>

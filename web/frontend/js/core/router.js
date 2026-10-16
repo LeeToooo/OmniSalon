@@ -280,17 +280,17 @@
 
     updatePageMeta(route) {
       const titles = {
-        '/': 'Omni Salon — The Art of Modern Hair Care & Grooming',
-        '/services': 'Bespoke Services Menu — Omni Salon 5-Star Experience',
-        '/stylists': 'Master Stylists & Art Directors — Omni Salon Artisans',
-        '/booking': 'Đặt Lịch Trải Nghiệm Salon 5 Sao — Omni Salon',
-        '/shop': 'Omni Apothecary — Mỹ Phẩm & Dược Liệu Tóc Quốc Tế',
-        '/product': 'Chi Tiết Sản Phẩm — Omni Apothecary Salon',
-        '/branches': 'Hệ Thống Chi Nhánh Toàn Quốc — Omni Salon Luxury Suite',
-        '/ai-studio': 'AI Hair Studio 3D — Trải Nghiệm Thử Kiểu Tóc Thực Tế Ảo | Omni Salon',
-        '/admin': 'Enterprise Admin Hub & Dispatcher — Omni Salon'
+        '/': 'Omni Salon | The Art of Modern Hair Care & Grooming',
+        '/services': 'Bespoke Services Menu | Omni Salon Barbershop',
+        '/stylists': 'Master Stylists & Art Directors | Omni Salon',
+        '/booking': 'Đặt Lịch Hẹn Trực Tuyến | Omni Salon',
+        '/shop': 'Omni Apothecary | Mỹ Phẩm & Sáp Vuốt Tóc Chính Hãng',
+        '/product': 'Chi Tiết Sản Phẩm | Omni Apothecary',
+        '/branches': 'Hệ Thống Chi Nhánh Toàn Quốc | Omni Salon',
+        '/ai-studio': 'AI Hair Studio 3D | Thử Kiểu Tóc Thực Tế | Omni Salon',
+        '/admin': 'Enterprise Admin Hub & Dispatcher | Omni Salon'
       };
-      document.title = titles[route] || 'Omni Salon — The Art of Modern Hair Care';
+      document.title = titles[route] || 'Omni Salon | Chuẩn Mực Barbershop Đương Đại';
     },
 
     syncActiveNav(route) {

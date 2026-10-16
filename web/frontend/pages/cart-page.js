@@ -1,8 +1,7 @@
 // =========================================================================
-// OmniSalon — FULL CART PAGE VA QUY TRINH CHECKOUT TUNG BUOC
-// Tuân thủ: .antigravity/rules/03_coder.md, 04_refactor.md
+// OmniSalon: FULL CART PAGE VA QUY TRINH CHECKOUT TUNG BUOC
+// Phong cách tạp chí Editorial • Tông màu ấm • Typography Playfair Display
 // Route: /cart
-// Bố cục chuẩn: Gio hang, Thong tin giao hang, Phuong thuc thanh toan va Hoan tat
 // =========================================================================
 
 (function (window) {
@@ -65,49 +64,49 @@
       }
 
       container.innerHTML = `
-        <div class="cart-page-wrapper page-view page-enter">
-          <div class="cart-page-container">
+        <div class="cart-page-wrapper page-view page-enter" style="background-color: var(--bg-primary); padding: 48px 0 88px;">
+          <div class="cart-page-container" style="max-width: 1440px; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
             <!-- Breadcrumb dieu huong -->
-            <div class="cart-breadcrumb">
+            <div class="cart-breadcrumb" style="margin-bottom: 24px;">
               <a href="/" onclick="event.preventDefault(); if(window.AppRouter) window.AppRouter.navigate('/');">Trang Chủ</a>
               <span class="bc-sep">/</span>
-              <a href="/shop" onclick="event.preventDefault(); if(window.AppRouter) window.AppRouter.navigate('/shop');">Cửa Hàng</a>
+              <a href="/shop" onclick="event.preventDefault(); if(window.AppRouter) window.AppRouter.navigate('/shop');">Mỹ Phẩm</a>
               <span class="bc-sep">/</span>
-              <span class="bc-current">${this._getStepTitle()}</span>
+              <span class="bc-current" style="color: #C59B27; font-weight: 700;">${this._getStepTitle()}</span>
             </div>
 
             <!-- Thanh tien trinh tung buoc thanh toan -->
-            <div class="cart-stepper-flow">
+            <div class="cart-stepper-flow" style="margin-bottom: 36px;">
               <div class="cart-flow-step ${this.currentStep >= 1 ? 'active' : ''} ${this.currentStep > 1 ? 'completed' : ''}" onclick="CartPage.setStep(1)">
-                <span class="step-circle">${this.currentStep > 1 ? '✓' : '1'}</span>
-                <span class="step-text">Giỏ Hàng</span>
+                <span class="step-circle" style="${this.currentStep >= 1 ? 'background: #C59B27; color: #141413; border-color: #C59B27;' : ''}">${this.currentStep > 1 ? '✓' : '1'}</span>
+                <span class="step-text" style="${this.currentStep === 1 ? 'color: #C59B27; font-weight: 800;' : ''}">Giỏ Hàng</span>
               </div>
-              <div class="step-connector ${this.currentStep > 1 ? 'filled' : ''}"></div>
+              <div class="step-connector ${this.currentStep > 1 ? 'filled' : ''}" style="${this.currentStep > 1 ? 'background: #C59B27;' : ''}"></div>
               <div class="cart-flow-step ${this.currentStep >= 2 ? 'active' : ''} ${this.currentStep > 2 ? 'completed' : ''}" onclick="${this.currentStep >= 2 ? 'CartPage.setStep(2)' : ''}">
-                <span class="step-circle">${this.currentStep > 2 ? '✓' : '2'}</span>
-                <span class="step-text">Giao Hàng</span>
+                <span class="step-circle" style="${this.currentStep >= 2 ? 'background: #C59B27; color: #141413; border-color: #C59B27;' : ''}">${this.currentStep > 2 ? '✓' : '2'}</span>
+                <span class="step-text" style="${this.currentStep === 2 ? 'color: #C59B27; font-weight: 800;' : ''}">Giao Hàng</span>
               </div>
-              <div class="step-connector ${this.currentStep > 2 ? 'filled' : ''}"></div>
+              <div class="step-connector ${this.currentStep > 2 ? 'filled' : ''}" style="${this.currentStep > 2 ? 'background: #C59B27;' : ''}"></div>
               <div class="cart-flow-step ${this.currentStep >= 3 ? 'active' : ''} ${this.currentStep > 3 ? 'completed' : ''}" onclick="${this.currentStep >= 3 ? 'CartPage.setStep(3)' : ''}">
-                <span class="step-circle">${this.currentStep > 3 ? '✓' : '3'}</span>
-                <span class="step-text">Thanh Toán</span>
+                <span class="step-circle" style="${this.currentStep >= 3 ? 'background: #C59B27; color: #141413; border-color: #C59B27;' : ''}">${this.currentStep > 3 ? '✓' : '3'}</span>
+                <span class="step-text" style="${this.currentStep === 3 ? 'color: #C59B27; font-weight: 800;' : ''}">Thanh Toán</span>
               </div>
-              <div class="step-connector ${this.currentStep > 3 ? 'filled' : ''}"></div>
+              <div class="step-connector ${this.currentStep > 3 ? 'filled' : ''}" style="${this.currentStep > 3 ? 'background: #C59B27;' : ''}"></div>
               <div class="cart-flow-step ${this.currentStep === 4 ? 'active completed' : ''}">
-                <span class="step-circle">${this.currentStep === 4 ? '✓' : '4'}</span>
-                <span class="step-text">Hoàn Tất</span>
+                <span class="step-circle" style="${this.currentStep === 4 ? 'background: #C59B27; color: #141413; border-color: #C59B27;' : ''}">${this.currentStep === 4 ? '✓' : '4'}</span>
+                <span class="step-text" style="${this.currentStep === 4 ? 'color: #C59B27; font-weight: 800;' : ''}">Hoàn Tất</span>
               </div>
             </div>
 
             ${cart.length === 0 && this.currentStep !== 4
-              ? this._renderEmptyCart(recommendations)
-              : (this.currentStep === 1
-                  ? this._renderCartContent(cart, subtotal, shippingFee, discountAmount, appliedVoucher, finalTotal, totalQty, recommendations)
-                  : (this.currentStep === 2
-                      ? this._renderShippingStep(cart, subtotal, shippingFee, discountAmount, finalTotal, totalQty)
-                      : (this.currentStep === 3
-                          ? this._renderPaymentStep(cart, subtotal, shippingFee, discountAmount, finalTotal, totalQty)
-                          : this._renderOrderSuccessStep())))}
+          ? this._renderEmptyCart(recommendations)
+          : (this.currentStep === 1
+            ? this._renderCartContent(cart, subtotal, shippingFee, discountAmount, appliedVoucher, finalTotal, totalQty, recommendations)
+            : (this.currentStep === 2
+              ? this._renderShippingStep(cart, subtotal, shippingFee, discountAmount, finalTotal, totalQty)
+              : (this.currentStep === 3
+                ? this._renderPaymentStep(cart, subtotal, shippingFee, discountAmount, finalTotal, totalQty)
+                : this._renderOrderSuccessStep())))}
           </div>
         </div>
       `;
@@ -124,28 +123,29 @@
 
     _renderEmptyCart(recommendations) {
       return `
-        <div class="cart-empty-box">
-          <div class="cart-empty-icon-wrap">
+        <div class="cart-empty-box" style="border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-card); padding: 48px 24px; text-align: center;">
+          <div class="cart-empty-icon-wrap" style="color: #C59B27; margin-bottom: 16px;">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <path d="M16 10a4 4 0 0 1-8 0"></path>
             </svg>
           </div>
-          <h2 class="cart-empty-title">Giỏ hàng của bạn đang trống</h2>
-          <p class="cart-empty-desc">Hãy khám phá bộ sưu tập Pomade, Clay, Sáp vuốt tóc nam và dầu gội chuyên nghiệp từ các thương hiệu hàng đầu thế giới tại Omni Salon.</p>
-          <button type="button" class="cart-primary-action-btn" onclick="if(window.AppRouter) window.AppRouter.navigate('/shop');">
+          <h2 class="cart-empty-title font-serif tracking-tight leading-tight" style="font-size: 26px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px;">Giỏ hàng của bạn đang trống</h2>
+          <p class="cart-empty-desc" style="font-size: 14.5px; color: var(--text-secondary); max-width: 540px; margin: 0 auto 24px; line-height: 1.6;">Khám phá bộ sưu tập Pomade, Clay, Sáp vuốt tóc và các sản phẩm grooming nam chính hãng tại Omni Salon.</p>
+          <button type="button" class="cart-primary-action-btn" onclick="if(window.AppRouter) window.AppRouter.navigate('/shop');"
+                  style="border-radius: 6px; background: #141413; border: 1px solid #141413; color: #FAF8F5; font-size: 14px; font-weight: 700; padding: 12px 24px; cursor: pointer;">
             ← Khám Phá Cửa Hàng Ngay
           </button>
         </div>
 
         ${recommendations.length > 0 ? `
-          <div class="cart-recom-card" style="margin-top: 36px;">
-            <div class="cart-card-header">
+          <div class="cart-recom-card" style="margin-top: 36px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-card);">
+            <div class="cart-card-header" style="border-bottom: 1px solid var(--border-color); padding: 16px 20px;">
               <span class="cart-card-icon">💡</span>
-              <h3 class="cart-card-title">Có thể bạn cũng thích</h3>
+              <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Sản phẩm gợi ý cho bạn</h3>
             </div>
-            <div class="cart-recom-grid">
+            <div class="cart-recom-grid" style="padding: 20px;">
               ${recommendations.map(p => this._renderRecomItem(p)).join('')}
             </div>
           </div>
@@ -162,19 +162,19 @@
             <div class="cart-table-card">
               <div class="cart-card-header">
                 <span class="cart-card-icon">🛒</span>
-                <h3 class="cart-card-title">Giỏ hàng của bạn</h3>
-                <span class="cart-items-count-badge">${totalQty} sản phẩm</span>
+                <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Giỏ hàng của bạn</h3>
+                <span class="cart-items-count-badge" style="background: rgba(197, 155, 39, 0.15); color: #C59B27; border: 1px solid rgba(197, 155, 39, 0.3);">${totalQty} sản phẩm</span>
               </div>
 
               <div class="cart-table-body">
                 ${cart.map(item => {
-                  const prod = (window.store && typeof window.store.getProductById === 'function')
-                    ? window.store.getProductById(item.productId)
-                    : null;
-                  const stock = prod?.stock || prod?.SoLuongTon || prod?.TonKho || 25;
-                  const variant = prod?.dungTich || prod?.DungTich || prod?.unit || 'Hộp';
+        const prod = (window.store && typeof window.store.getProductById === 'function')
+          ? window.store.getProductById(item.productId)
+          : null;
+        const stock = prod?.stock || prod?.SoLuongTon || prod?.TonKho || 25;
+        const variant = prod?.dungTich || prod?.DungTich || prod?.unit || 'Hộp';
 
-                  return `
+        return `
                     <div class="cart-row-item" data-id="${item.productId}">
                       <div class="cart-row-packshot" onclick="if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;" title="Xem chi tiết ${item.name}">
                         <img src="${SalonUtils.formatImageUrl(item.image)}" 
@@ -183,7 +183,7 @@
                       </div>
 
                       <div class="cart-row-info">
-                        <a href="/product?id=${item.productId}" class="cart-row-title" onclick="event.preventDefault(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');">
+                        <a href="/product?id=${item.productId}" class="cart-row-title font-serif tracking-tight leading-tight" style="font-size: 15px; font-weight: 700;" onclick="event.preventDefault(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');">
                           ${item.name}
                         </a>
                         <div class="cart-row-variant">Dung tích: ${variant}</div>
@@ -200,14 +200,14 @@
                       </div>
 
                       <div class="cart-row-total-wrap">
-                        <div class="cart-row-line-price">${SalonUtils.formatCurrency(item.price * item.qty)}</div>
+                        <div class="cart-row-line-price" style="color: #C59B27; font-weight: 800;">${SalonUtils.formatCurrency(item.price * item.qty)}</div>
                         <button type="button" class="cart-row-delete-btn" onclick="CartPage.removeItem('${item.productId}', event)">
                           Xoá
                         </button>
                       </div>
                     </div>
                   `;
-                }).join('')}
+      }).join('')}
               </div>
             </div>
 
@@ -215,7 +215,7 @@
               <div class="cart-recom-card">
                 <div class="cart-card-header">
                   <span class="cart-card-icon">💡</span>
-                  <h3 class="cart-card-title">Có thể bạn cũng thích</h3>
+                  <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Có thể bạn cũng thích</h3>
                 </div>
                 <div class="cart-recom-grid">
                   ${recommendations.map(p => this._renderRecomItem(p)).join('')}
@@ -229,7 +229,7 @@
             <div class="cart-coupon-card">
               <div class="cart-card-header">
                 <span class="cart-card-icon">🎟️</span>
-                <h3 class="cart-card-title">Mã giảm giá</h3>
+                <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin: 0;">Mã giảm giá</h3>
               </div>
 
               ${appliedVoucher ? `
@@ -251,7 +251,7 @@
             </div>
 
             <div class="cart-summary-card">
-              <h3 class="cart-summary-heading">Tóm tắt đơn hàng</h3>
+              <h3 class="cart-summary-heading font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 16px;">Tóm tắt đơn hàng</h3>
 
               <div class="cart-summary-line">
                 <span class="summary-label">Tạm tính ${totalQty} sản phẩm</span>
@@ -274,11 +274,12 @@
 
               <div class="cart-summary-line final-line">
                 <span class="summary-label">Thành tiền</span>
-                <span class="summary-val final-val">${SalonUtils.formatCurrency(finalTotal)}</span>
+                <span class="summary-val final-val" style="color: #C59B27; font-weight: 800;">${SalonUtils.formatCurrency(finalTotal)}</span>
               </div>
 
               <!-- Nut chuyen sang buoc tiep theo: Giao hang -->
-              <button type="button" class="cart-checkout-cta-btn" onclick="CartPage.setStep(2)">
+              <button type="button" class="cart-checkout-cta-btn" onclick="CartPage.setStep(2)"
+                      style="border-radius: 6px; background: #141413; border: 1px solid #141413; color: #FAF8F5; font-size: 14.5px; font-weight: 700; height: 46px; cursor: pointer;">
                 Tiến hành thanh toán →
               </button>
 
@@ -306,7 +307,7 @@
             <div class="cart-table-card">
               <div class="cart-card-header">
                 <span class="cart-card-icon">📍</span>
-                <h3 class="cart-card-title">Hình thức nhận hàng</h3>
+                <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Hình thức nhận hàng</h3>
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
@@ -333,7 +334,7 @@
                 <div style="margin-bottom: 16px;">
                   <label class="sub-label">Chọn chi nhánh Omni Salon đến nhận:</label>
                   <select class="form-control-custom" id="stepBranchSelect" onchange="CartPage.checkoutData.pickupBranchId = this.value">
-                    ${branches.map(b => `<option value="${b.id}" ${b.id === this.checkoutData.pickupBranchId ? 'selected' : ''}>${b.name} — ${b.address}</option>`).join('')}
+                    ${branches.map(b => `<option value="${b.id}" ${b.id === this.checkoutData.pickupBranchId ? 'selected' : ''}>${b.name} - ${b.address}</option>`).join('')}
                   </select>
                 </div>
               ` : `

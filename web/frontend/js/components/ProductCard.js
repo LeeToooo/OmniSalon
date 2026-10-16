@@ -214,7 +214,7 @@
             </div>
 
             <!-- Tên sản phẩm -->
-            <h3 class="product-title-clean" 
+            <h3 class="product-title-clean font-serif tracking-tight leading-tight" 
                 title="${data.name}" 
                 onclick="${onCardClick}">
               ${data.name}
@@ -223,7 +223,7 @@
             <!-- Đánh giá sao & Lượt mua -->
             <div class="product-rating-row" aria-label="Đánh giá ${data.rating} sao trên 5, ${data.reviewCount} lượt mua">
               <span class="product-star-badge" style="display: inline-flex; align-items: center; gap: 3px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBF24" stroke="none" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#C59B27" stroke="none" aria-hidden="true">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                 </svg>
                 <span>${data.rating}</span>
@@ -254,9 +254,10 @@
             ${!isOutOfStock ? `
             <button type="button"
                     class="btn-barber-buy-now"
-                    style="flex: 1 1 50%; min-width: 0; white-space: nowrap !important; text-align: center;"
+                    style="flex: 1 1 50%; min-width: 0; white-space: nowrap !important; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"
                     onclick="if(typeof UICommon !== 'undefined' && UICommon.buyNow){ UICommon.buyNow('${data.id}'); if(typeof ShopPage !== 'undefined' && ShopPage.updateCartBadge) ShopPage.updateCartBadge(); }">
               <span style="white-space: nowrap !important; display: inline-block;">Mua Ngay</span>
+              <span style="font-size: 13px;">→</span>
             </button>
             ` : ''}
           </div>

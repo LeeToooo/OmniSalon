@@ -137,7 +137,7 @@
       if (!voucher && cleanCode === 'KM2026') {
         voucher = {
           code: 'KM2026',
-          title: 'Ưu Đãi Đặc Biệt 2026 — Tri Ân Khách Hàng',
+          title: 'Ưu Đãi Đặc Biệt 2026: Tri Ân Khách Hàng',
           discountType: 'fixed',
           discountValue: 50000,
           minOrder: 100000

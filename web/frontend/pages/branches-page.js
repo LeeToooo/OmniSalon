@@ -1,7 +1,6 @@
 // =========================================================================
-// Omni Salon — HỆ THỐNG DANH MỤC CHI NHÁNH TOÀN QUỐC
-// Tuân thủ: Yêu cầu Thứ 7 (Hiện các chi nhánh trực quan)
-// Tìm kiếm & Lọc theo Quận / Huyện TP.HCM • Thuần Tiếng Việt • Cân Bằng Thẻ
+// Omni Salon: HỆ THỐNG DANH MỤC CHI NHÁNH TOÀN THÀNH PHỐ
+// Phong cách tạp chí Editorial • Tông màu ấm • Typography Playfair Display
 // =========================================================================
 
 (function (window) {
@@ -13,9 +12,9 @@
 
     // Danh sách 19 quận / huyện chính thức của 20 chi nhánh
     DISTRICT_ORDER: [
-      'Quận 1', 'Quận 3', 'Quận 4', 'Quận 5', 'Quận 6', 
-      'Quận 7', 'Quận 8', 'Quận 10', 'Quận 11', 'Quận 12', 
-      'Bình Thạnh', 'Tân Bình', 'Gò Vấp', 'Phú Nhuận', 
+      'Quận 1', 'Quận 3', 'Quận 4', 'Quận 5', 'Quận 6',
+      'Quận 7', 'Quận 8', 'Quận 10', 'Quận 11', 'Quận 12',
+      'Bình Thạnh', 'Tân Bình', 'Gò Vấp', 'Phú Nhuận',
       'TP. Thủ Đức', 'Tân Phú', 'Bình Tân', 'Bình Chánh', 'Hóc Môn'
     ],
 
@@ -23,7 +22,7 @@
     getBranchDistrict(b) {
       if (!b) return 'TP. Hồ Chí Minh';
       const text = `${b.DiaChi || ''} ${b.address || ''} ${b.TenChiNhanh || ''} ${b.name || ''}`;
-      
+
       // TP. Thủ Đức & Thảo Điền
       if (/Thủ\s*Đức|Thảo\s*Điền/i.test(text)) return 'TP. Thủ Đức';
       // Các quận / huyện có tên chữ
@@ -107,7 +106,7 @@
       const filtered = this.getFilteredBranches(branches);
       const filterLabel = this.selectedFilter !== 'all' ? `tại khu vực <strong>${this.selectedFilter}</strong>` : 'toàn thành phố';
       const searchLabel = this.searchQuery ? ` theo từ khóa "<em>${this.searchQuery}</em>"` : '';
-      return `Đang hiển thị <strong style="color: var(--brand-accent);">${filtered.length}</strong> chi nhánh ${filterLabel}${searchLabel}`;
+      return `Đang hiển thị <strong style="color: #C59B27;">${filtered.length}</strong> chi nhánh ${filterLabel}${searchLabel}`;
     },
 
     getFilteredBranches(branches) {
@@ -160,10 +159,10 @@
           const cleanAddr = this.removeAccents(b.DiaChi || b.address || '');
           const phone = String(b.SoDienThoai || b.phone || '');
 
-          return cleanDistrict.includes(cleanQ) || 
-                 cleanName.includes(cleanQ) || 
-                 cleanAddr.includes(cleanQ) || 
-                 phone.includes(rawQ);
+          return cleanDistrict.includes(cleanQ) ||
+            cleanName.includes(cleanQ) ||
+            cleanAddr.includes(cleanQ) ||
+            phone.includes(rawQ);
         });
       }
 
@@ -178,33 +177,36 @@
         : (window.INITIAL_SALON_DATA?.branches || []);
 
       container.innerHTML = `
-        <div class="branches-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); width: 100%; padding: 32px 0 72px;">
+        <div class="branches-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); width: 100%; padding: 48px 0 88px;">
           <!-- Khung nội dung tràn viền 2 bên hiện đại -->
           <div style="max-width: 1640px; width: 100%; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
 
-            <!-- TIÊU ĐỀ TRANG (Visual Hierarchy rõ ràng) -->
-            <div style="text-align: center; margin-bottom: 28px;">
-              <h1 style="font-size: clamp(26px, 3.5vw, 36px); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; color: var(--text-primary);">
-                Mạng Lưới Chi Nhánh <span style="color: var(--brand-accent);">Omni Salon</span>
+            <!-- TIÊU ĐỀ TRANG EDITORIAL -->
+            <div style="text-align: center; margin-bottom: 36px;">
+              <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
+                HỆ THỐNG CHI NHÁNH TOÀN THÀNH PHỐ
+              </span>
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4.2vw, 44px); font-weight: 700; margin: 0 0 12px; color: var(--text-primary);">
+                Không Gian Barbershop &amp; Vị Trí Chi Nhánh
               </h1>
-              <p style="font-size: 14.5px; color: var(--text-secondary); max-width: 680px; margin: 0 auto 22px; line-height: 1.6;">
-                Không gian sang trọng, sạch sẽ thoáng mát và đội ngũ thợ tận tâm sẵn sàng đón tiếp quý khách tại 20 chi nhánh TP. Hồ Chí Minh.
+              <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; margin: 0 auto 28px; line-height: 1.6;">
+                Không gian thiết kế đĩnh đạc, ghế cắt bọc da cao cấp và đội ngũ barber luôn sẵn sàng phục vụ tại 20 chi nhánh khắp các quận.
               </p>
 
-              <!-- Ô TÌM KIẾM THEO QUẬN & DROPDOWN LỰA CHỌN (Radius 8px dứt khoát) -->
+              <!-- Ô TÌM KIẾM THEO QUẬN & DROPDOWN LỰA CHỌN -->
               <div style="display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; max-width: 780px; margin-left: auto; margin-right: auto;">
                 <!-- Ô NHẬP TÌM KIẾM -->
                 <div style="position: relative; flex: 1; min-width: 280px;">
                   <input type="text" id="branchSearchInput" placeholder="Tìm theo quận (Q.1, Bình Thạnh...), tên đường..." 
                          value="${this.searchQuery}"
                          oninput="BranchesPage.handleSearch(this.value)"
-                         style="width: 100%; height: 44px; padding: 0 16px; border-radius: 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 14px; font-weight: 500; outline: none; box-sizing: border-box; transition: border-color 0.15s ease;">
+                         style="width: 100%; height: 44px; padding: 0 16px; border-radius: 6px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 14px; font-weight: 500; outline: none; box-sizing: border-box; transition: border-color 0.15s ease;">
                 </div>
 
                 <!-- DROPDOWN CHỌN QUẬN NHANH -->
                 <div style="position: relative; min-width: 240px;">
                   <select id="branchDistrictSelect" onchange="BranchesPage.setDistrict(this.value)"
-                          style="width: 100%; height: 44px; padding: 0 32px 0 14px; border-radius: 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; font-weight: 700; cursor: pointer; outline: none; box-sizing: border-box; appearance: none; -webkit-appearance: none;">
+                          style="width: 100%; height: 44px; padding: 0 32px 0 14px; border-radius: 6px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; font-weight: 700; cursor: pointer; outline: none; box-sizing: border-box; appearance: none; -webkit-appearance: none;">
                     <option value="all">Tất Cả Các Quận / Huyện (${branches.length})</option>
                     ${this.renderDistrictOptionsHTML(branches)}
                   </select>
@@ -212,14 +214,13 @@
                 </div>
               </div>
 
-
               <!-- DÒNG THÔNG BÁO SỐ LƯỢNG KẾT QUẢ TÌM KIẾM -->
               <div id="branchResultsSummary" style="font-size: 13.5px; color: var(--text-secondary); margin-top: 10px;">
                 ${this.renderResultSummaryHTML(branches)}
               </div>
             </div>
 
-            <!-- LƯỚI CHI NHÁNH (Clean Grid) -->
+            <!-- LƯỚI CHI NHÁNH EDITORIAL -->
             <div id="branchesCardsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px;">
               ${this.renderBranchCardsHTML(branches)}
             </div>
@@ -234,7 +235,7 @@
       const branches = (window.store && typeof window.store.getBranches === 'function')
         ? window.store.getBranches()
         : (window.INITIAL_SALON_DATA?.branches || []);
-      
+
       if (typeof document !== 'undefined') {
         const selectEl = document.getElementById('branchDistrictSelect');
         if (selectEl) selectEl.value = this.selectedFilter;
@@ -265,7 +266,7 @@
       const branches = (window.store && typeof window.store.getBranches === 'function')
         ? window.store.getBranches()
         : (window.INITIAL_SALON_DATA?.branches || []);
-      
+
       if (typeof document !== 'undefined') {
         const grid = document.getElementById('branchesCardsGrid');
         if (grid) {

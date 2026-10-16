@@ -1,7 +1,7 @@
 // =========================================================================
-// OmniSalon / Omni Salon — FILE 2: GIAO DIỆN CHUNG  COMMON UI COMPONENTS 
+// OmniSalon / Omni Salon: FILE 2: GIAO DIỆN CHUNG: COMMON UI COMPONENTS
 // Chứa toàn bộ: Product Cards, News Cards, Branch Pills, Booking Wizard,
-// Tái sử dụng 100% cho cả Web Desktop và Web Mobile  Responsive .
+// Tái sử dụng 100% cho cả Web Desktop và Web Mobile Responsive.
 // =========================================================================
 
 const UICommon = {
@@ -60,10 +60,10 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 3. RENDER NÚT CHI NHÁNH DẠNG THẺ HIỆN ĐẠI  KHÔNG BỊ BÓ NÉN CHỮ 
+  // 3. RENDER NÚT CHI NHÁNH DẠNG THẺ HIỆN ĐẠI
   // -----------------------------------------------------------------------
   renderBranchPill(branch) {
-    const rawParts = (branch.name || '').split('—');
+    const rawParts = (branch.name || '').replace(/—/g, ' - ').split(' - ');
     const mainTitle = (rawParts[0] || branch.name).trim();
     const subTitle = rawParts[1] ? rawParts[1].trim() : (branch.address ? branch.address.split(',')[0] : '');
 
@@ -81,7 +81,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 4. RENDER TICKER DỊCH VỤ  OUR SERVICE — CHUẨN CHÍNH TẢ & ĐỒ HOẠ CAO CẤP 
+  // 4. RENDER TICKER DỊCH VỤ: OUR SERVICES
   // -----------------------------------------------------------------------
   renderServicesTickerHTML() {
     return `
@@ -146,7 +146,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 5. RENDER HỢP TÁC THƯƠNG HIỆU  BRAND COLLABS — CHUẨN XÁM ĐẬM NGON.PNG 
+  // 5. RENDER HỢP TÁC THƯƠNG HIỆU: BRAND COLLABS
   // -----------------------------------------------------------------------
   renderBrandCollabCard(collab) {
     return `
@@ -236,9 +236,9 @@ const UICommon = {
     return `
       <div class="booking-wizard-wrapper" style="max-width: 980px;">
         <div class="booking-header">
-          <div class="badge-terracotta">OMNI SALON • NORDIC MINIMALIST LUXURY</div>
-          <h2 class="booking-title">ĐẶT LỊCH TRẢI NGHIỆM SALON 5 SAO</h2>
-          <p class="booking-subtitle">Omni Salon — The Art of Modern Hair Care &amp; Grooming</p>
+          <div class="badge-terracotta">OMNI SALON • DỊCH VỤ BARBERSHOP ĐƯƠNG ĐẠI</div>
+          <h2 class="booking-title font-serif tracking-tight leading-tight">ĐẶT LỊCH HẸN TRẢI NGHIỆM TẠI OMNI</h2>
+          <p class="booking-subtitle">Trải nghiệm dịch vụ cắt tạo kiểu tóc và thư giãn chuyên nghiệp</p>
         </div>
 
         <div class="booking-split-layout">
@@ -277,7 +277,7 @@ const UICommon = {
             </div>
 
             <div style="font-size:11px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:8px; letter-spacing:0.04em;">
-              — Gói Combo Thư Giãn Trọn Gói —
+              Gói Combo Thư Giãn Trọn Gói
             </div>
             <div class="service-select-grid" style="margin-bottom:14px;">
               ${combos.map(c => `
@@ -294,7 +294,7 @@ const UICommon = {
             </div>
 
             <div style="font-size:13px; font-weight:800; color:var(--text-primary); text-transform:uppercase; margin-bottom:10px; letter-spacing:0.04em;">
-              — Dịch Vụ Cắt &amp; Tạo Mẫu Đơn Lẻ —
+              Dịch Vụ Cắt &amp; Tạo Kiểu Đơn Lẻ
             </div>
             <div class="service-select-grid" style="margin-bottom:18px;">
               ${services.map(s => `
@@ -481,7 +481,7 @@ const UICommon = {
               <div class="sticky-summary-body">
                 <div class="summary-line" style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12.5px;">
                   <span style="color: #94A3B8;">Chi nhánh:</span>
-                  <strong style="color: #FFF;">${activeBranch.name.split('—')[0]}</strong>
+                  <strong style="color: #FFF;">${activeBranch.name.replace(/—/g, ' - ').split(' - ')[0]}</strong>
                 </div>
                 <div class="summary-line" style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12.5px;">
                   <span style="color: #94A3B8;">Dịch vụ:</span>
@@ -497,7 +497,7 @@ const UICommon = {
                 </div>
                 <div class="summary-line" style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12.5px;">
                   <span style="color: #94A3B8;">Khung giờ:</span>
-                  <strong style="color: #10B981;">${this.bookingData.timeSlot} — ${SalonUtils.formatDate(this.bookingData.date)}</strong>
+                  <strong style="color: #10B981;">${this.bookingData.timeSlot} | ${SalonUtils.formatDate(this.bookingData.date)}</strong>
                 </div>
                 <div class="summary-line total-line" style="border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 12px; display: flex; justify-content: space-between; align-items: baseline;">
                   <span style="font-size: 13px; font-weight: 800; color: #FFF;">Tổng Tạm Tính:</span>
@@ -511,7 +511,7 @@ const UICommon = {
                   </button>
                 ` : `
                   <button type="button" class="btn-submit-terracotta" style="width: 100%; font-size: 13px; padding: 10px;" onclick="UICommon.submitBooking()">
-                    Hoàn Tất Đặt Lịch
+                    Hoàn Tất Đặt Lịch →
                   </button>
                 `}
               </div>
@@ -680,18 +680,18 @@ const UICommon = {
     modalBody.innerHTML = `
       <div class="booking-success-box">
         <div class="success-icon" style="background:#10b981;">✓</div>
-        <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 6px; color: var(--text-primary);">ĐẶT LỊCH THÀNH CÔNG!</h2>
+        <h2 class="font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; margin-bottom: 6px; color: var(--text-primary);">ĐẶT LỊCH THÀNH CÔNG!</h2>
         <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
-          Mã phiếu lịch hẹn: <strong style="color: var(--brand-accent, #c85a44); font-size: 16px;">${realCode}</strong>. Omni Salon cam kết phục vụ đúng giờ!
+          Mã phiếu lịch hẹn: <strong style="color: var(--brand-accent, #C59B27); font-size: 16px;">${realCode}</strong>. Omni Salon sẵn sàng phục vụ bạn đúng giờ!
         </p>
 
-        <div class="booking-invoice-card" style="background: var(--surface-elevated, #1a1f2e); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: left;">
+        <div class="booking-invoice-card" style="background: var(--surface-elevated, #141413); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: left;">
           <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Gói dịch vụ:</span><strong style="color: var(--text-primary);">${booking.serviceName} (${booking.durationMinutes || 45} phút)</strong></div>
           <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Cơ sở phục vụ:</span><span style="color: var(--text-primary); font-weight: 600;">${booking.branchName}</span></div>
           <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Barber thực hiện:</span><strong style="color: var(--text-primary);">${booking.stylistName}</strong></div>
-          <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Khung giờ hẹn:</span><strong style="color: var(--text-primary);">${booking.timeSlot} - ${endTime} (${SalonUtils.formatDate(booking.date)})</strong></div>
+          <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Khung giờ hẹn:</span><strong style="color: var(--text-primary);">${booking.timeSlot} | ${endTime} (${SalonUtils.formatDate(booking.date)})</strong></div>
           <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Khách hàng:</span><span style="color: var(--text-primary); font-weight: 600;">${booking.customerName} (${booking.customerPhone})</span></div>
-          <div class="invoice-item price-row" style="display: flex; justify-content: space-between; padding: 8px 0 0; margin-top: 8px; border-top: 1px dashed var(--border-color, rgba(255,255,255,0.15));"><span style="color: var(--text-primary); font-weight: 700;">Tổng thanh toán:</span><strong style="color: var(--brand-accent, #c85a44); font-size: 18px; font-weight: 900;">${SalonUtils.formatCurrency(booking.totalPrice)}</strong></div>
+          <div class="invoice-item price-row" style="display: flex; justify-content: space-between; padding: 8px 0 0; margin-top: 8px; border-top: 1px dashed var(--border-color, rgba(255,255,255,0.15));"><span style="color: var(--text-primary); font-weight: 700;">Tổng thanh toán:</span><strong style="color: var(--brand-accent, #C59B27); font-size: 18px; font-weight: 900;">${SalonUtils.formatCurrency(booking.totalPrice)}</strong></div>
         </div>
 
         <!-- Mã QR Vector SVG Chuẩn OMNI -->
@@ -704,7 +704,7 @@ const UICommon = {
         </div>
 
         <div style="margin-top: 18px; display: flex; gap: 12px; justify-content: center;">
-          <button class="btn-submit-terracotta" style="width: 100%;" onclick="UICommon.closeGlobalModal()">Hoàn Tất & Đóng</button>
+          <button class="btn-submit-terracotta" style="width: 100%;" onclick="UICommon.closeGlobalModal()">Hoàn Tất &amp; Đóng →</button>
         </div>
       </div>
     `;
@@ -944,7 +944,7 @@ const UICommon = {
         ${this.cartState.deliveryType === 'PICKUP_BRANCH' ? `
           <div>
             <select class="cart-branch-dropdown" onchange="UICommon.setCartPickupBranch(this.value)">
-              ${branches.map(b => `<option value="${b.id}" ${b.id === this.cartState.pickupBranchId ? 'selected' : ''}>Chi nhánh: ${(b.TenChiNhanh || b.name).split('—')[0].trim()}</option>`).join('')}
+              ${branches.map(b => `<option value="${b.id}" ${b.id === this.cartState.pickupBranchId ? 'selected' : ''}>Chi nhánh: ${(b.TenChiNhanh || b.name).replace(/—/g, ' - ').split(' - ')[0].trim()}</option>`).join('')}
             </select>
             <div class="cart-branch-note">Giữ hàng miễn phí tại quầy trong 48h</div>
           </div>
@@ -1079,7 +1079,7 @@ const UICommon = {
     // DRY: Kiểm tra tồn kho toàn bộ giỏ hàng
     const stockCheck = window.store.checkStockBatch ? window.store.checkStockBatch(branchId, cart) : { available: true };
     if (!stockCheck.available) {
-      UICommon.showToast(`Sản phẩm [${stockCheck.productName}] chỉ còn ${stockCheck.inStock} cái tại chi nhánh ${branch ? branch.name.split('—')[0] : ''}!`, 'warning');
+      UICommon.showToast(`Sản phẩm [${stockCheck.productName}] chỉ còn ${stockCheck.inStock} cái tại chi nhánh ${branch ? branch.name.replace(/—/g, ' - ').split(' - ')[0] : ''}!`, 'warning');
       return;
     }
 
@@ -1113,7 +1113,7 @@ const UICommon = {
       <div class="booking-wizard-wrapper" style="max-width: 640px; padding: 24px;">
         <div class="booking-header" style="text-align: left; margin-bottom: 20px;">
           <div class="badge-terracotta" style="display: inline-block; margin-bottom: 8px;">XÁC NHẬN ĐƠN HÀNG</div>
-          <h2 class="booking-title" style="font-size: 22px; margin: 0 0 6px;">KIỂM TRA THÔNG TIN & THANH TOÁN</h2>
+          <h2 class="booking-title font-serif tracking-tight leading-tight" style="font-size: 24px; margin: 0 0 6px;">KIỂM TRA THÔNG TIN &amp; THANH TOÁN</h2>
           <p class="booking-subtitle" style="font-size: 13.5px; color: var(--text-secondary); margin: 0;">
             Quý khách vui lòng kiểm tra chính xác thông tin nhận hàng và chọn phương thức thanh toán trước khi đặt hàng.
           </p>
@@ -1214,7 +1214,7 @@ const UICommon = {
             Quay Lại Giỏ Hàng
           </button>
           <button type="button" class="btn-submit-terracotta" style="flex: 2; padding: 14px; font-size: 15px; font-weight: 800; border-radius: 10px;" onclick="UICommon.confirmAndPlaceOrder()">
-            XÁC NHẬN & ĐẶT HÀNG
+            XÁC NHẬN &amp; ĐẶT HÀNG →
           </button>
         </div>
       </div>
@@ -1330,9 +1330,9 @@ const UICommon = {
     modalBody.innerHTML = `
       <div class="booking-success-box" style="padding: 24px;">
         <div class="success-icon" style="background:#10b981; margin: 0 auto 12px; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 900;">✓</div>
-        <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 6px;">ĐẶT HÀNG THÀNH CÔNG!</h2>
+        <h2 class="font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; margin-bottom: 6px;">ĐẶT HÀNG THÀNH CÔNG!</h2>
         <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 18px;">
-          Mã đơn hàng: <strong style="color: #f59e0b;">#${order.id}</strong>. Bộ phận kho OMNI sẽ chuẩn bị và phục vụ bạn sớm nhất.
+          Mã đơn hàng: <strong style="color: #C59B27;">#${order.id}</strong>. Bộ phận kho OMNI sẽ chuẩn bị và giao sớm nhất đến quý khách.
         </p>
 
         ${paymentMethodKey === 'VIETQR' ? `
@@ -1408,13 +1408,13 @@ const UICommon = {
 
     modalBody.innerHTML = `
       <div class="article-modal-detail">
-        <div class="badge-terracotta">TIN TÓC UNDERGROUND OMNI</div>
-        <h2 style="font-size: 22px; font-weight: 800; margin: 12px 0;">${article.title}</h2>
+        <div class="badge-terracotta">TIN TÓC &amp; PHONG CÁCH OMNI</div>
+        <h2 class="font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; margin: 12px 0;">${article.title}</h2>
         <div style="font-size: 13px; color: #888; margin-bottom: 16px;">Xuất bản: ${article.date} | Bởi Ban Biên Tập OMNI SALON</div>
         <img src="${article.image}" alt="${article.title}" style="width: 100%; border-radius: 12px; margin-bottom: 16px;">
         <p style="font-size: 15px; line-height: 1.7; color: #333;">${article.excerpt}</p>
         <p style="font-size: 14px; line-height: 1.7; color: #555; margin-top: 10px;">
-          Tại Omni Salon, chúng tôi không chỉ tạo nên những quả đầu đẹp mà còn truyền tải hơi thở đường phố, phong cách sống phóng khoáng và sự tự tin đến cho mỗi anh em. Hãy ghé bất kỳ chi nhánh nào trong hệ thống để được các Barber lành nghề tư vấn form tóc chuẩn nhất!
+          Tại Omni Salon, chúng tôi tạo dựng phong cách sống chỉn chu, tự tin cho phái mạnh bằng kỹ thuật cắt chuyên sâu và sản phẩm cao cấp. Hãy ghé bất kỳ chi nhánh nào trong hệ thống để được barber chuyên nghiệp tư vấn form tóc phù hợp nhất!
         </p>
         <button class="btn-submit-terracotta" style="margin-top: 20px; width: 100%;" onclick="UICommon.openBookingModal()">
           Đặt Lịch Cắt Kiểu Này Ngay →
@@ -1435,17 +1435,17 @@ const UICommon = {
     modalBody.innerHTML = `
       <div class="branch-modal-detail">
         <div class="badge-terracotta">${branch.group}</div>
-        <h2 style="font-size: 20px; font-weight: 800; margin: 8px 0;">${branch.name}</h2>
+        <h2 class="font-serif tracking-tight leading-tight" style="font-size: 22px; font-weight: 800; margin: 8px 0;">${branch.name}</h2>
         <img src="${branch.image}" alt="${branch.name}" style="width:100%; height:200px; object-fit:cover; border-radius:12px; margin: 12px 0;">
         <div class="invoice-item"><span>Địa chỉ:</span><strong>${branch.address}</strong></div>
-        <div class="invoice-item"><span>Hotline:</span><strong style="color:#c85a44;">${branch.phone}</strong></div>
+        <div class="invoice-item"><span>Hotline:</span><strong style="color:#C59B27;">${branch.phone}</strong></div>
         <div class="invoice-item"><span>Giờ mở cửa:</span><span>${branch.hours}</span></div>
-        <div class="invoice-item"><span>Quy mô:</span><span>${branch.totalChairs} ghế Barber & Thư giãn</span></div>
+        <div class="invoice-item"><span>Quy mô:</span><span>${branch.totalChairs} ghế Barber &amp; Thư giãn</span></div>
         <div class="invoice-item"><span>Quản lý cơ sở:</span><span>${branch.manager}</span></div>
 
         <div style="display:flex; gap:12px; margin-top: 20px;">
           <button class="btn-submit-terracotta" style="flex:1;" onclick="UICommon.openBookingModal(null, '${branch.id}')">
-            Đặt Lịch Tại Chi Nhánh Này
+            Đặt Lịch Tại Chi Nhánh Này →
           </button>
           <button class="btn-cancel" onclick="UICommon.closeGlobalModal()">Đóng</button>
         </div>
@@ -1478,7 +1478,7 @@ const UICommon = {
     modalBody.innerHTML = `
       <div class="auth-modal-content">
         <div style="text-align: center; margin-bottom: 22px;">
-          <h2 class="auth-modal-title" style="font-size: 22px; font-weight: 800; margin: 0 0 6px; color: var(--text-primary); letter-spacing: -0.01em;">${titleText}</h2>
+          <h2 class="auth-modal-title font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; margin: 0 0 6px; color: var(--text-primary);">${titleText}</h2>
           <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0; line-height: 1.5;">Đồng bộ đa nền tảng Web Portal, App Mobile và Quản Trị</p>
         </div>
 
@@ -1955,46 +1955,46 @@ const UICommon = {
     const bHours = branch.hours || (branch.GioMoCua && branch.GioDongCua ? `${branch.GioMoCua.substring(0, 5)} - ${branch.GioDongCua.substring(0, 5)}` : '08:30 - 21:30');
 
     modalBody.innerHTML = `
-      <div style="max-width: 540px; margin: 0 auto; background: #121622; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; padding: 26px; color: #fff;">
+      <div style="max-width: 540px; margin: 0 auto; background: #141413; border: 1px solid rgba(197, 155, 39, 0.2); border-radius: 18px; padding: 26px; color: #fff;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
           <div>
-            <span style="display: inline-block; background: rgba(180, 131, 18, 0.15); color: #f59e0b; border: 1px solid rgba(180, 131, 18, 0.3); padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 800; margin-bottom: 8px;">
+            <span style="display: inline-block; background: rgba(197, 155, 39, 0.15); color: #C59B27; border: 1px solid rgba(197, 155, 39, 0.3); padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 800; margin-bottom: 8px;">
               CHI NHÁNH CHÍNH HÃNG
             </span>
-            <h2 style="font-size: 22px; font-weight: 800; color: #fff; margin: 0;">${bName}</h2>
+            <h2 class="font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; color: #FAF8F5; margin: 0;">${bName}</h2>
           </div>
           <button onclick="UICommon.closeGlobalModal()" style="background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; padding: 4px;">✕</button>
         </div>
 
         <div style="border-radius: 12px; overflow: hidden; height: 180px; margin-bottom: 16px; position: relative;">
           <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=700&q=80" style="width: 100%; height: 100%; object-fit: cover;" alt="${bName}">
-          <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); color: #fff; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 700;">
-            Chuẩn Modern Nordic Dark
+          <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(20,20,19,0.85); backdrop-filter: blur(6px); color: #FAF8F5; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 700;">
+            Barbershop Đương Đại
           </div>
         </div>
 
         <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
           <div style="margin-bottom: 6px;"><b>Địa chỉ:</b> ${bAddr}</div>
           <div style="margin-bottom: 6px;"><b>Giờ phục vụ:</b> ${bHours} (Tất cả các ngày trong tuần)</div>
-          <div><b>Hotline chi nhánh:</b> <a href="tel:${bPhone}" style="color: #f59e0b; font-weight: 700; text-decoration: none;">${bPhone}</a></div>
+          <div><b>Hotline chi nhánh:</b> <a href="tel:${bPhone}" style="color: #C59B27; font-weight: 700; text-decoration: none;">${bPhone}</a></div>
         </div>
 
-        <!-- Khối Uy Tín Đạt Chuẩn 5 Sao -->
-        <div style="background: rgba(180, 131, 18, 0.1); border: 1px solid rgba(180, 131, 18, 0.25); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
+        <!-- Khối Cam Kết Chất Lượng -->
+        <div style="background: rgba(197, 155, 39, 0.1); border: 1px solid rgba(197, 155, 39, 0.25); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 14px; font-weight: 800; color: #f59e0b;">CHUẨN MỰC UY TÍN &amp; TẬN TÂM</span>
-            <span style="font-size: 11px; color: #cbd5e1;">Cam kết chất lượng 100%</span>
+            <span style="font-size: 14px; font-weight: 800; color: #C59B27;">CAM KẾT DỊCH VỤ &amp; BẢO HÀNH</span>
+            <span style="font-size: 11px; color: #cbd5e1;">Bảo hành 7 ngày</span>
           </div>
           <div style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
-            100% Thợ chính tay nghề cao từ 3+ năm kinh nghiệm.<br>
-            Cam kết đúng giờ hẹn 100% không phải chờ đợi.<br>
-            Bảo hành phom tóc 7 ngày &amp; miễn phí chỉnh sửa.
+            100% Barber tay nghề vững vàng, đào tạo bài bản.<br>
+            Cam kết phục vụ đúng giờ hẹn, không để khách chờ lâu.<br>
+            Bảo hành kiểu tóc 7 ngày và miễn phí chỉnh sửa form tóc.
           </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
           <button class="btn-submit-terracotta" style="flex: 2; padding: 12px; font-weight: 800; font-size: 14px;" onclick="UICommon.closeGlobalModal(); AppRouter.navigate('/booking?branch=${branch.id || branchId}')">
-            Đặt Lịch Tại Chi Nhánh Này
+            Đặt Lịch Tại Chi Nhánh Này →
           </button>
           <a href="tel:${bPhone}" style="flex: 1; background: rgba(255, 255, 255, 0.08); color: #fff; text-decoration: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.12);">
             Gọi Ngay
@@ -2129,12 +2129,12 @@ const UICommon = {
       <div class="ai-restyle-modal-box">
         <!-- Header -->
         <div class="ai-modal-header">
-          <div class="badge-terracotta pulse-animation">AI PHOTO RESTYLE VISION API • 2026</div>
-          <h2 style="font-size: 22px; font-weight: 900; margin: 8px 0 4px; letter-spacing: -0.02em;">
-            OMNI AI BARBER STUDIO — THAY ĐỔI KIỂU TÓC BẰNG ẢNH THẬT
+          <div class="badge-terracotta pulse-animation">AI BARBER VISION • THỬ KIỂU TÓC THỰC TẾ</div>
+          <h2 class="font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; margin: 8px 0 4px;">
+            OMNI AI BARBER STUDIO: MÔ PHỎNG KIỂU TÓC TRÊN ẢNH THẬT
           </h2>
-          <p style="font-size: 13px; color: #777; margin-bottom: 16px;">
-            Chụp hoặc tải ảnh khuôn mặt của bạn lên để AI biến đổi kiểu tóc, màu nhuộm theo xu hướng và gửi lại bức ảnh mới nhất cho bạn.
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            Chụp hoặc tải ảnh chân dung để trực quan hóa kiểu tóc và tông màu nhuộm phù hợp với khuôn mặt của bạn.
           </p>
         </div>
 

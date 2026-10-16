@@ -1,10 +1,9 @@
 /**
  * =========================================================================
- * Omni Salon — THEME ENGINE (DARK / LIGHT MODE CONTROLLER)
- * Tuân thủ: .antigravity/rules/04_refactor.md, 07_ponytail.md
+ * Omni Salon | THEME ENGINE (DARK / LIGHT MODE CONTROLLER)
  * Quản lý tập trung 2 chế độ:
- *  - 'dark': Obsidian Gold (#0B0D13 / #131722 / #D4AF37)
- *  - 'light': Nordic Clean Cream (#F8F9FA / #FFFFFF / #C59B27)
+ *  - 'dark': Charcoal Gold (#141413 / #1C1C1A / #C59B27)
+ *  - 'light': Warm Cream (#FAF8F5 / #FFFFFF / #C59B27)
  * =========================================================================
  */
 (function() {
@@ -81,7 +80,7 @@
       const toggles = document.querySelectorAll('.theme-toggle-btn');
       toggles.forEach(btn => {
         btn.setAttribute('aria-label', theme === 'dark' ? 'Chuyển sang chế độ Sáng' : 'Chuyển sang chế độ Tối');
-        btn.setAttribute('title', theme === 'dark' ? 'Chế độ Tối (Obsidian Gold) - Bấm để chuyển Sáng' : 'Chế độ Sáng (Nordic Cream) - Bấm để chuyển Tối');
+        btn.setAttribute('title', theme === 'dark' ? 'Chế độ Tối (Đen than & Vàng đồng) - Bấm để chuyển Sáng' : 'Chế độ Sáng (Kem ấm & Vàng đồng) - Bấm để chuyển Tối');
       });
 
       // Cập nhật Segmented Control (nếu có trong Mobile Profile / Settings)

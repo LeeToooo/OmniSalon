@@ -6,19 +6,19 @@
   display: flex !important;
   flex-direction: column !important;
   background: var(--surface-card, #ffffff) !important;
-  border: 1px solid var(--border-color, #e2e8f0) !important;
+  border: 1px solid var(--border-color, rgba(20, 20, 19, 0.08)) !important;
   border-radius: 8px !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
-              border-color 0.2s ease !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s ease !important;
   box-shadow: none !important;
 }
 
 [data-theme="dark"] .product-clean-card,
 body.dark .product-clean-card {
-  background: #121214 !important;
-  border: 1px solid #222225 !important;
+  background: #1C1C1A !important;
+  border: 1px solid #2A2A28 !important;
 }
 
 .product-clean-card:hover {
@@ -89,7 +89,7 @@ body.dark .product-media-wrapper {
   z-index: 4 !important;
   transition: all 0.18s ease !important;
   padding: 0 !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
 
 [data-theme="dark"] .product-wishlist-btn,
@@ -193,6 +193,7 @@ body.dark .product-wishlist-btn.active {
   background: rgba(16, 185, 129, 0.12) !important;
   color: #059669 !important;
 }
+
 .stock-indicator-badge.in-stock .stock-dot {
   background: #059669 !important;
 }
@@ -201,6 +202,7 @@ body.dark .product-wishlist-btn.active {
   background: rgba(245, 158, 11, 0.14) !important;
   color: #d97706 !important;
 }
+
 .stock-indicator-badge.low-stock .stock-dot {
   background: #d97706 !important;
 }
@@ -209,6 +211,7 @@ body.dark .product-wishlist-btn.active {
   background: rgba(239, 68, 68, 0.12) !important;
   color: #dc2626 !important;
 }
+
 .stock-indicator-badge.out-of-stock .stock-dot {
   background: #dc2626 !important;
 }
@@ -405,10 +408,10 @@ body.light .btn-barber-add-cart:hover:not(:disabled) {
   user-select: none !important;
   border: 1px solid transparent !important;
   box-sizing: border-box !important;
-  transition: background-color 0.15s ease, 
-              border-color 0.15s ease, 
-              color 0.15s ease, 
-              transform 0.12s ease !important;
+  transition: background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease !important;
 }
 
 .btn-flat-cta:focus-visible {
@@ -471,19 +474,19 @@ body.dark .btn-flat-outline:hover:not(:disabled) {
   display: flex !important;
   flex-direction: column !important;
   background: var(--surface-card, #ffffff) !important;
-  border: 1px solid var(--border-color, #e2e8f0) !important;
+  border: 1px solid var(--border-color, rgba(20, 20, 19, 0.08)) !important;
   border-radius: 8px !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
-              border-color 0.2s ease !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s ease !important;
   box-shadow: none !important;
 }
 
 [data-theme="dark"] .branch-clean-card,
 body.dark .branch-clean-card {
-  background: #121214 !important;
-  border: 1px solid #222225 !important;
+  background: #1C1C1A !important;
+  border: 1px solid #2A2A28 !important;
 }
 
 .branch-clean-card:hover {
@@ -569,6 +572,7 @@ body.dark .branch-media-box {
 .branch-status-floating.status-open {
   color: #10b981 !important;
 }
+
 .branch-status-floating.status-open .status-indicator-dot {
   width: 7px !important;
   height: 7px !important;
@@ -581,6 +585,7 @@ body.dark .branch-media-box {
 .branch-status-floating.status-closed {
   color: #94a3b8 !important;
 }
+
 .branch-status-floating.status-closed .status-indicator-dot {
   width: 7px !important;
   height: 7px !important;
@@ -682,6 +687,7 @@ body.dark .branch-address-val {
   text-decoration: none !important;
   font-weight: 700 !important;
 }
+
 .branch-phone-link:hover {
   text-decoration: underline !important;
 }
@@ -897,4 +903,3 @@ body.dark .clean-tab-btn:hover {
   box-shadow: none !important;
   padding: 0 !important;
 }
-

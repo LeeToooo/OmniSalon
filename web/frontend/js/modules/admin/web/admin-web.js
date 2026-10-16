@@ -1778,13 +1778,13 @@
           <div style="text-align: left; background: var(--surface-elevated); border-radius: 10px; padding: 12px 16px; font-size: 13px; line-height: 1.6; margin-bottom: 16px; border: 1px solid var(--border-color); color: var(--text-primary);">
             <div><strong>Khách hàng:</strong> ${this.escapeHtml(b.customerName)} (${this.escapeHtml(b.customerPhone)})</div>
             <div><strong>Dịch vụ:</strong> ${this.escapeHtml(b.serviceName || 'Dịch vụ')}</div>
-            <div><strong>Thời gian:</strong> <span style="color:#c85a44; font-weight:800;">${b.timeSlot} — ${SalonUtils.formatDate(b.date || b.bookingDate)}</span></div>
+            <div><strong>Thời gian:</strong> <span style="color:var(--color-accent-gold); font-weight:800;">${b.timeSlot} | ${SalonUtils.formatDate(b.date || b.bookingDate)}</span></div>
             <div><strong>Barber:</strong> ${this.escapeHtml(b.stylistName || 'Chỉ định')}</div>
             <div><strong>Chi nhánh:</strong> ${this.escapeHtml(b.branchName || b.branchId)}</div>
           </div>
 
           <button class="btn-submit-terracotta" style="width: 100%;" onclick="AdminWeb._closeModal()">
-            Đóng Cửa Sổ
+            Đóng Cửa Sổ →
           </button>
         </div>
       `);
@@ -1949,8 +1949,8 @@
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); color: #d97706; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
               LỊCH TRỰC &amp; CA LÀM VIỆC
             </div>
-            <h2 class="booking-title" style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 10px 0 6px;">
-              DANH SÁCH CA HÔM NAY — ${this.escapeHtml(st.name)}
+            <h2 class="booking-title font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 10px 0 6px;">
+              DANH SÁCH CA HÔM NAY: ${this.escapeHtml(st.name)}
             </h2>
             <p class="booking-subtitle" style="font-size: 14px; color: var(--text-secondary); margin: 0;">
               Theo dõi khách hàng đã đặt theo từng khung giờ trong ngày
@@ -2638,7 +2638,7 @@
         code = `#${b?.bookingCode || id}`;
         subTag = b?.serviceName || 'Lịch Hẹn Cắt Tóc';
         name = `Khách: ${b?.customerName || 'Khách Hàng'} (${b?.customerPhone || ''})`;
-        detail1 = `<span style="color: #ef4444; font-weight: 800;">${b?.timeSlot || '09:00'} — ${b?.date || ''}</span>`;
+        detail1 = `<span style="color: #ef4444; font-weight: 800;">${b?.timeSlot || '09:00'} | ${b?.date || ''}</span>`;
         detail2 = `<span style="color: #94a3b8;">Thợ: <strong style="color: #f1f5f9;">${b?.stylistName || 'Barber'}</strong></span>`;
       } else if (type === 'branches') {
         const br = (window.store.getBranches() || []).find(b => b.id === id || b.MaChiNhanh === id);

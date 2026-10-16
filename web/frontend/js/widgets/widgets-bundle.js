@@ -179,7 +179,7 @@
               const isDisabled = !s.available;
               const clickAction = s.available ? `${onSelectFnName}('${s.time}')` : '';
               const title = s.available 
-                ? `Khung giờ ${s.time} đang trống — Bấm để chọn` 
+                ? `Khung giờ ${s.time} đang trống | Bấm để chọn` 
                 : `Khung giờ ${s.time} đã có khách đặt hoặc giao thoa ca khác`;
 
               return `
@@ -218,7 +218,7 @@
       const isDisabled = !slot.available;
       const clickAction = slot.available ? `${onSelectFnName}('${slot.time}')` : '';
       const title = slot.available 
-        ? `Khung giờ ${slot.time} khả dụng — Chạm để chọn` 
+        ? `Khung giờ ${slot.time} khả dụng: Chạm để chọn` 
         : (isPast ? `Khung giờ ${slot.time} đã trôi qua so với thời gian hiện tại` : `Khung giờ ${slot.time} đã kín lịch`);
 
       return `

@@ -6,23 +6,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- SEO & Social Meta Tags -->
-  <title>Omni Salon — Đặt Lịch Cắt Tóc & Tạo Kiểu Chuyên Nghiệp</title>
+  <title>Omni Salon | Chuẩn Mực Barbershop Đương Đại &amp; Đặt Lịch Hẹn</title>
   <meta name="description"
-    content="Omni Salon — Chuỗi cắt tóc nam phong cách Barber hiện đại & chuyên nghiệp. Đặt lịch nhanh chóng theo thời gian thực, chọn thợ tay kéo vàng, nhiều gói combo và mỹ phẩm tóc chính hãng.">
-  <meta name="theme-color" content="#121214">
+    content="Omni Salon. Chuỗi cắt tóc nam phong cách Barber đương đại. Đặt lịch hẹn chính xác, thợ cắt kéo tỉ mỉ, sáp pomade chính hãng và không gian thư giãn dành cho phái mạnh.">
+  <meta name="theme-color" content="#141413">
   <link rel="manifest" href="manifest.json">
   <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23f59e0b'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' fill='%23000000' font-family='sans-serif' font-weight='900' font-size='32'>OS</text></svg>">
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23C59B27'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' fill='%23141413' font-family='serif' font-weight='900' font-size='32'>OS</text></svg>">
 
-  <!-- Modern Fonts: Outfit (Luxury Headings) & Be Vietnam Pro (Clean Vietnamese Typography) -->
+  <!-- Typography: Open Sans (Body) & Playfair Display (Headings) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css?v=20261016_04">
-  <link rel="stylesheet" href="js/components/components.css?v=20261016_04">
+  <link rel="stylesheet" href="styles.css?v=20261016_opensans">
+  <link rel="stylesheet" href="js/components/components.css?v=20261016_opensans">
 
   <!-- Centralized Theme Engine Zero FOUC -->
   <script src="js/core/theme.js?v=20261016_02"></script>
@@ -56,18 +55,21 @@
     <div class="add-cart-modal-card">
       <div class="add-cart-modal-header">
         <span class="add-cart-modal-title">Thông báo</span>
-        <button type="button" class="add-cart-modal-close" onclick="UICommon.closeAddToCartModal()" aria-label="Đóng">✕</button>
+        <button type="button" class="add-cart-modal-close" onclick="UICommon.closeAddToCartModal()"
+          aria-label="Đóng">✕</button>
       </div>
       <div class="add-cart-modal-body">
         <div class="add-cart-modal-icon-circle">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3"
+            stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
         </div>
         <p class="add-cart-modal-message">Đã thêm sản phẩm vào giỏ hàng</p>
       </div>
       <div class="add-cart-modal-footer">
-        <button type="button" class="btn-add-cart-continue" onclick="UICommon.closeAddToCartModal()">TIẾP TỤC MUA SẮM</button>
+        <button type="button" class="btn-add-cart-continue" onclick="UICommon.closeAddToCartModal()">TIẾP TỤC MUA
+          SẮM</button>
         <button type="button" class="btn-add-cart-go" onclick="UICommon.goToCartPage()">ĐI ĐẾN GIỎ HÀNG</button>
       </div>
     </div>
@@ -83,19 +85,23 @@
        Tích hợp Web PC và Web Mobile làm 1 bản Responsive duy nhất
        ======================================================== -->
   <nav class="mobile-bottom-nav" aria-label="Thanh điều hướng Web Mobile">
-    <a href="/" data-route="/" onclick="event.preventDefault(); CustomerWeb.switchTab('home')" class="active" id="mNavHome">
+    <a href="/" data-route="/" onclick="event.preventDefault(); CustomerWeb.switchTab('home')" class="active"
+      id="mNavHome">
       <span class="nav-icon" style="font-size: 11px; font-weight: 900;">01</span>
       <span>Trang Chủ</span>
     </a>
-    <a href="/services" data-route="/services" onclick="event.preventDefault(); CustomerWeb.switchTab('services')" id="mNavServices">
+    <a href="/services" data-route="/services" onclick="event.preventDefault(); CustomerWeb.switchTab('services')"
+      id="mNavServices">
       <span class="nav-icon" style="font-size: 11px; font-weight: 900;">02</span>
       <span>Dịch Vụ</span>
     </a>
-    <a href="/stylists" data-route="/stylists" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists')" id="mNavStylists">
+    <a href="/stylists" data-route="/stylists" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists')"
+      id="mNavStylists">
       <span class="nav-icon" style="font-size: 11px; font-weight: 900;">03</span>
       <span>Thợ Mẫu</span>
     </a>
-    <a href="/booking" data-route="/booking" onclick="event.preventDefault(); CustomerWeb.switchTab('booking')" style="color: #b48312; font-weight: 800;" id="mNavBooking">
+    <a href="/booking" data-route="/booking" onclick="event.preventDefault(); CustomerWeb.switchTab('booking')"
+      style="color: #b48312; font-weight: 800;" id="mNavBooking">
       <span class="nav-icon" style="font-size: 11px; font-weight: 900;">04</span>
       <span>Đặt Lịch</span>
     </a>
@@ -103,7 +109,8 @@
       <span class="nav-icon" style="font-size: 11px; font-weight: 900;">05</span>
       <span>Cửa Hàng</span>
     </a>
-    <a href="/branches" data-route="/branches" onclick="event.preventDefault(); CustomerWeb.switchTab('branches')" id="mNavBranches">
+    <a href="/branches" data-route="/branches" onclick="event.preventDefault(); CustomerWeb.switchTab('branches')"
+      id="mNavBranches">
       <span class="nav-icon" style="font-size: 11px; font-weight: 900;">06</span>
       <span>Chi Nhánh</span>
     </a>

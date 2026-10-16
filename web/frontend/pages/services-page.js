@@ -1,6 +1,6 @@
 // =========================================================================
-// Omni Salon — SERVICES PAGE COMPONENT (BẢNG DỊCH VỤ SALON 5 SAO)
-// 100% Thuần Tiếng Việt • Full Sáng Dịu Mắt • Cân Bằng Thẻ Tuyệt Đối
+// Omni Salon: SERVICES PAGE COMPONENT (BẢNG DỊCH VỤ BARBER CHUYÊN NGHIỆP)
+// Phong cách tạp chí Editorial • Tông màu ấm • Typography Playfair Display
 // =========================================================================
 
 (function (window) {
@@ -17,43 +17,46 @@
       }
 
       container.innerHTML = `
-        <div class="services-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); padding: 40px 0 80px;">
+        <div class="services-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); padding: 48px 0 88px;">
           <!-- Khung nội dung tràn viền 2 bên hiện đại -->
           <div style="max-width: 1640px; width: 100%; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
             <!-- Header Banner -->
-            <div style="text-align: center; margin-bottom: 32px;">
-              <h1 style="font-size: clamp(28px, 4vw, 40px); font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; margin: 0 0 10px;">
-                Bảng Giá Dịch Vụ &amp; Gói Combo Cắt Tóc
+            <div style="text-align: center; margin-bottom: 40px;">
+              <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
+                BẢNG GIÁ DỊCH VỤ NIÊM YẾT
+              </span>
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4.2vw, 44px); font-weight: 700; color: var(--text-primary); margin: 0 0 12px;">
+                Dịch Vụ Cắt Tóc &amp; Gói Grooming Toàn Diện
               </h1>
-              <p style="font-size: 14.5px; color: var(--text-secondary); max-width: 720px; margin: 0 auto 24px; line-height: 1.6;">
-                Mỗi dịch vụ tại Omni Salon đều được chăm chút tỉ mỉ bởi đội ngũ thợ tay nghề cao, sử dụng mỹ phẩm chăm sóc tóc chính hãng an toàn cho da đầu.
+              <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; margin: 0 auto 28px; line-height: 1.6;">
+                Từng đường kéo, từng đường cạo khăn nóng và kỹ thuật fade chuẩn xác mang lại diện mạo đĩnh đạc và phong độ vững vàng cho quý ông.
               </p>
 
               <!-- Clean Tabs Category Filters -->
-              <div class="clean-filter-tabs" style="justify-content: center;">
+              <div class="clean-filter-tabs" style="justify-content: center; gap: 8px; flex-wrap: wrap;">
                 <button class="clean-tab-btn ${this.activeCategory === 'all' ? 'active' : ''}" onclick="ServicesPage.setCategory('all')">
                   Tất Cả Dịch Vụ
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'haircut' ? 'active' : ''}" onclick="ServicesPage.setCategory('haircut')">
-                  Cắt Tạo Kiểu
+                  Cắt &amp; Fade Tạo Kiểu
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'perm' ? 'active' : ''}" onclick="ServicesPage.setCategory('perm')">
-                  Uốn Phục Hồi
+                  Uốn Texture &amp; Định Hình
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'color' ? 'active' : ''}" onclick="ServicesPage.setCategory('color')">
-                  Nhuộm Balayage / Ombre
+                  Nhuộm Tone Trầm &amp; Highlight
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'spa' || this.activeCategory === 'care' ? 'active' : ''}" onclick="ServicesPage.setCategory('spa')">
-                  Phục Hồi Chuyên Sâu
+                  Cạo Mặt &amp; Thư Giãn Da Đầu
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'combo' ? 'active' : ''}" onclick="ServicesPage.setCategory('combo')">
-                  Gói Combo Tiết Kiệm
+                  Gói Combo Toàn Diện
                 </button>
               </div>
             </div>
 
-            <!-- LƯỚI THẺ DỊCH VỤ -->
-            <div id="servicesCatalogGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            <!-- LƯỚI THẺ DỊCH VỤ EDITORIAL -->
+            <div id="servicesCatalogGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
               ${this.renderCards()}
             </div>
           </div>
@@ -111,43 +114,43 @@
           : rawImg;
 
         return `
-          <div class="service-bento-card" id="bentoCard_${item.id}"
-               style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: none; transition: transform 0.2s ease;">
+          <div class="service-editorial-card" id="bentoCard_${item.id}"
+               style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: none; transition: transform 0.25s ease, border-color 0.25s ease;">
             
-            <!-- ẢNH DỊCH VỤ ĐỒNG NHẤT -->
-            <div style="position: relative; width: 100%; height: 180px; overflow: hidden; background: #18181b;">
-              <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover;" alt="${item.name || item.TenDichVu}" loading="lazy"
+            <!-- ẢNH DỊCH VỤ ĐỒNG NHẤT VỚI BỘ LỌC TÔNG ẤM -->
+            <div style="position: relative; width: 100%; height: 200px; overflow: hidden; background: #141413;">
+              <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" alt="${item.name || item.TenDichVu}" loading="lazy"
                    onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg');">
-              <div style="position: absolute; top: 10px; left: 10px; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.15);">
-                ${durationVal} phút
+              <div style="position: absolute; top: 12px; left: 12px; background: rgba(20, 20, 19, 0.85); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #FAF8F5; border: 1px solid rgba(255, 255, 255, 0.1);">
+                ⏱ ${durationVal} phút
               </div>
               ${isCombo ? `
-                <div style="position: absolute; top: 10px; right: 10px; background: #D97706; color: #FFFFFF; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 800; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
-                  COMBO VIP
+                <div style="position: absolute; top: 12px; right: 12px; background: #C59B27; color: #141413; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; border: none; letter-spacing: 0.04em;">
+                  COMBO ĐẶC BIỆT
                 </div>
               ` : ''}
             </div>
 
-            <!-- NỘI DUNG DỊCH VỤ -->
-            <div style="padding: 18px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <!-- NỘI DUNG DỊCH VỤ EDITORIAL -->
+            <div style="padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
               <div>
-                <h3 class="service-bento-title" style="font-size: 16.5px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4;">
+                <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 8px;">
                   ${item.name || item.TenDichVu}
                 </h3>
-                <p class="service-bento-desc" style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 58px;">
-                  ${item.description || item.MoTa || 'Dịch vụ tạo mẫu chuẩn mực với tư vấn phom dáng chuyên nghiệp và thư giãn da đầu cao cấp.'}
+                <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 64px;">
+                  ${item.description || item.MoTa || 'Tư vấn phom dáng theo chất tóc và gương mặt, kết hợp kỹ thuật cắt kéo thủ công và tạo kiểu với sáp pomade chính hãng.'}
                 </p>
               </div>
 
-              <!-- GIÁ & NÚT ĐẶT LỊCH DÍNH ĐÁY -->
-              <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+              <!-- GIÁ & NÚT ĐẶT LỊCH VỚI MŨI TÊN ĐIỀU HƯỚNG -->
+              <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                 <div>
-                  <span style="font-size: 18px; font-weight: 800; color: #D97706;">${priceFormatted}</span>
+                  <span style="font-size: 19px; font-weight: 800; color: #C59B27;">${priceFormatted}</span>
                   ${originalPrice && originalPrice > actualPrice ? `<span style="font-size: 12.5px; text-decoration: line-through; color: var(--text-muted); margin-left: 6px;">${SalonUtils.formatCurrency(originalPrice)}</span>` : ''}
                 </div>
                 <button onclick="ServicesPage.selectAndBook('${item.id}')"
-                        style="min-height: 42px; height: 42px; padding: 0 20px; border-radius: 10px; background: linear-gradient(180deg, #F59E0B, #D97706); border: none; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.22); white-space: nowrap;">
-                  Đặt Lịch
+                        style="min-height: 40px; height: 40px; padding: 0 18px; border-radius: 6px; background: #141413; border: 1px solid #141413; color: #FAF8F5; font-size: 13.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s ease, border-color 0.2s ease; white-space: nowrap;">
+                  Đặt Lịch →
                 </button>
               </div>
             </div>
