@@ -9,7 +9,29 @@
     selectedPriceRange: 'all',
     searchQuery: '',
     currentPage: 1,
-    pageSize: 12,
+    pageSize: 15,
+
+    toggleDropdown(id, e) {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      const targetMenu = document.getElementById(id);
+      const targetBtn = document.getElementById(id + 'Btn');
+      const isCurrentlyOpen = targetMenu && targetMenu.classList.contains('show');
+
+      this.closeAllDropdowns();
+
+      if (!isCurrentlyOpen && targetMenu && targetBtn) {
+        targetMenu.classList.add('show');
+        targetBtn.classList.add('active');
+      }
+    },
+
+    closeAllDropdowns() {
+      document.querySelectorAll('.shop-dropdown-menu.show').forEach(el => el.classList.remove('show'));
+      document.querySelectorAll('.shop-dropdown-btn.active').forEach(el => el.classList.remove('active'));
+    },
 
     render(container, params = {}) {
       if (!container) return;
@@ -28,101 +50,160 @@
 
       const filtered = this.getFilteredProducts();
 
+      // Xác định nhãn hiển thị cho 3 Dropdown
+      let activeCatLabel = 'Tất Cả';
+      if (this.selectedCategory === 'fefo_expiry') {
+        activeCatLabel = 'Ưu Đãi Đặc Biệt';
+      } else if (this.selectedCategory !== 'all') {
+        const matchCat = categories.find(c => c.id === this.selectedCategory || c.MaDanhMuc === this.selectedCategory);
+        if (matchCat) {
+          activeCatLabel = (matchCat.TenDanhMuc || matchCat.name || '').split(' - ')[0];
+        }
+      }
+
+      const brands = [
+        { id: 'all', label: 'Tất Cả Thương Hiệu' },
+        { id: 'apestomen', label: 'Apestomen' },
+        { id: 'hanz de fuko', label: 'Hanz De Fuko' },
+        { id: 'blumaan', label: 'Blumaan' },
+        { id: 'kevin murphy', label: 'Kevin Murphy' },
+        { id: 'reuzel', label: 'Reuzel' },
+        { id: 'olaplex', label: 'Olaplex' },
+        { id: 'davines', label: 'Davines' }
+      ];
+      let activeBrandLabel = 'Tất Cả';
+      const matchBrand = brands.find(b => b.id === this.selectedBrand);
+      if (matchBrand && matchBrand.id !== 'all') {
+        activeBrandLabel = matchBrand.label;
+      }
+
+      const prices = [
+        { id: 'all', label: 'Tất Cả Mức Giá' },
+        { id: 'under300', label: 'Dưới 300K' },
+        { id: '300to500', label: '300K - 500K' },
+        { id: 'above500', label: 'Trên 500K' }
+      ];
+      let activePriceLabel = 'Tất Cả';
+      const matchPrice = prices.find(p => p.id === this.selectedPriceRange);
+      if (matchPrice && matchPrice.id !== 'all') {
+        activePriceLabel = matchPrice.label;
+      }
+
+      const hasActiveFilter = (this.selectedCategory !== 'all' || this.selectedBrand !== 'all' || this.selectedPriceRange !== 'all' || Boolean(this.searchQuery));
+
       container.innerHTML = `
         <div class="shop-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); padding: 48px 0 88px;">
           <div style="max-width: 1640px; width: 100%; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
             <!-- Header Banner (Editorial Visual Hierarchy) -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; flex-wrap: wrap; gap: 20px;">
-              <div>
-                <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
-                  BỘ SƯU TẬP CHĂM SÓC TÓC NAM GIỚI
-                </span>
-                <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4vw, 42px); font-weight: 700; color: var(--text-primary); margin: 0 0 10px;">
-                  Sản Phẩm Grooming &amp; Pomade Chính Hãng
-                </h1>
-                <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; line-height: 1.6; margin: 0;">
-                  Các dòng sản phẩm tạo kiểu và dưỡng tóc chuyên dụng: Sáp vuốt tóc, Pomade gốc dầu và nước, Gôm xịt khóa nếp, Dầu gội phục hồi và Dưỡng râu.
-                </p>
-              </div>
-
-              <!-- Nut mo trang gio hang rieng -->
-              <button class="btn-flat-cta btn-flat-primary"
-                      style="height: 44px; padding: 0 22px; font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border-radius: 6px; background: #141413; color: #FAF8F5; border: 1px solid #141413;"
-                      onclick="if(window.AppRouter) window.AppRouter.navigate('/cart'); else if(window.UICommon) window.UICommon.goToCartPage();">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <path d="M16 10a4 4 0 0 1-8 0"></path>
-                </svg>
-                <span>Giỏ Hàng (<span id="shopCartCounter">0</span>) →</span>
-              </button>
+            <div style="margin-bottom: 32px;">
+              <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
+                BỘ SƯU TẬP CHĂM SÓC TÓC NAM GIỚI
+              </span>
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4vw, 42px); font-weight: 700; color: var(--text-primary); margin: 0 0 10px;">
+                Sản Phẩm Grooming &amp; Pomade Chính Hãng
+              </h1>
+              <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; line-height: 1.6; margin: 0;">
+                Các dòng sản phẩm tạo kiểu và dưỡng tóc chuyên dụng: Sáp vuốt tóc, Pomade gốc dầu và nước, Gôm xịt khóa nếp, Dầu gội phục hồi và Dưỡng râu.
+              </p>
             </div>
 
-            <!-- BẢNG TÌM KIẾM & BỘ LỌC DANH MỤC EDITORIAL -->
-            <div style="background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color); padding: 22px; margin-bottom: 32px; box-shadow: none;">
-              <div style="display: flex; flex-direction: column; gap: 18px;">
-                <!-- Ô Tìm Kiếm -->
-                <div style="position: relative;">
-                  <input type="text" id="shopSearchInput"
-                         style="width: 100%; height: 44px; padding-left: 16px; padding-right: 16px; font-size: 14px; font-weight: 500; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; outline: none; box-sizing: border-box; transition: border-color 0.15s ease;"
-                         placeholder="Tìm kiếm theo tên sáp, pomade, thương hiệu hoặc công dụng..."
-                         value="${this.searchQuery}"
-                         oninput="ShopPage.handleSearch(this.value)">
-                </div>
+            <!-- BẢNG TÌM KIẾM & BỘ LỌC BUTTON DROPDOWN EDITORIAL -->
+            <div class="shop-filter-bar">
+              <!-- Ô Tìm Kiếm -->
+              <div style="position: relative;">
+                <input type="text" id="shopSearchInput"
+                       style="width: 100%; height: 44px; padding-left: 16px; padding-right: 16px; font-size: 14px; font-weight: 500; background: var(--surface-elevated); color: var(--text-primary); border: 1.5px solid var(--border-color); border-radius: 8px; outline: none; box-sizing: border-box; transition: border-color 0.15s ease;"
+                       placeholder="Tìm kiếm theo tên sáp, pomade, thương hiệu hoặc công dụng..."
+                       value="${this.searchQuery}"
+                       oninput="ShopPage.handleSearch(this.value)">
+              </div>
 
-                <!-- Lọc Theo Danh Mục -->
-                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                  <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">DANH MỤC:</span>
-                  <div class="clean-filter-tabs" style="gap: 6px; flex-wrap: wrap;">
-                    <button class="clean-tab-btn ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="ShopPage.setCategory('all')">
-                      Tất Cả
-                    </button>
-                    <button class="clean-tab-btn ${this.selectedCategory === 'fefo_expiry' ? 'active' : ''}" onclick="ShopPage.setCategory('fefo_expiry')"
-                            style="${this.selectedCategory === 'fefo_expiry' ? 'background: #dc2626 !important; border-color: #dc2626 !important; color: #ffffff !important;' : 'background: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3) !important;'}">
-                      Ưu Đãi Đặc Biệt
-                    </button>
-                    ${categories.map(c => `
-                      <button class="clean-tab-btn ${this.selectedCategory === c.id ? 'active' : ''}" onclick="ShopPage.setCategory('${c.id}')">
-                        ${(c.TenDanhMuc || c.name || '').split(' - ')[0]}
-                      </button>
-                    `).join('')}
-                  </div>
-                </div>
-
-                <!-- Lọc Theo Thương Hiệu & Mức Giá -->
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--border-color);">
-                  <!-- Thương hiệu -->
-                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">THƯƠNG HIỆU:</span>
-                    <div class="clean-filter-tabs" style="gap: 6px; flex-wrap: wrap;">
-                      ${['all', 'apestomen', 'hanz de fuko', 'blumaan', 'kevin murphy', 'reuzel', 'olaplex', 'davines'].map(br => `
-                        <button class="clean-tab-btn ${this.selectedBrand === br ? 'active' : ''}" onclick="ShopPage.setBrand('${br}')"
-                                style="min-height: 34px; height: 34px; padding: 0 12px; font-size: 12.5px; font-weight: 600; border-radius: 6px; text-transform: capitalize;">
-                          ${br === 'all' ? 'Tất Cả' : br}
-                        </button>
-                      `).join('')}
+              <!-- Hàng Dropdown Lọc: Danh Mục, Thương Hiệu, Mức Giá -->
+              <div class="shop-filter-row">
+                <!-- Dropdown Danh Mục -->
+                <div class="shop-dropdown-wrap">
+                  <button type="button" id="shopCatDropdownBtn" class="shop-dropdown-btn ${this.selectedCategory !== 'all' ? 'active' : ''}" onclick="ShopPage.toggleDropdown('shopCatDropdown', event)">
+                    <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">DANH MỤC:</span>
+                    <span>${activeCatLabel}</span>
+                    <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  <div id="shopCatDropdown" class="shop-dropdown-menu">
+                    <div class="shop-dropdown-item ${this.selectedCategory === 'all' ? 'selected' : ''}" onclick="ShopPage.setCategory('all')">
+                      <span>Tất Cả Danh Mục</span>
+                      ${this.selectedCategory === 'all' ? '<span style="color:#C59B27; font-weight:800;">✓</span>' : ''}
                     </div>
-                  </div>
-
-                  <!-- Khoảng Giá -->
-                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">MỨC GIÁ:</span>
-                    <div class="clean-filter-tabs" style="gap: 6px; flex-wrap: wrap;">
-                      <button class="clean-tab-btn ${this.selectedPriceRange === 'all' ? 'active' : ''}" onclick="ShopPage.setPrice('all')" style="min-height: 34px; height: 34px; padding: 0 12px; font-size: 12.5px; font-weight: 600; border-radius: 6px;">
-                        Tất Cả
-                      </button>
-                      <button class="clean-tab-btn ${this.selectedPriceRange === 'under300' ? 'active' : ''}" onclick="ShopPage.setPrice('under300')" style="min-height: 34px; height: 34px; padding: 0 12px; font-size: 12.5px; font-weight: 600; border-radius: 6px;">
-                        Dưới 300K
-                      </button>
-                      <button class="clean-tab-btn ${this.selectedPriceRange === '300to500' ? 'active' : ''}" onclick="ShopPage.setPrice('300to500')" style="min-height: 34px; height: 34px; padding: 0 12px; font-size: 12.5px; font-weight: 600; border-radius: 6px;">
-                        300K - 500K
-                      </button>
-                      <button class="clean-tab-btn ${this.selectedPriceRange === 'above500' ? 'active' : ''}" onclick="ShopPage.setPrice('above500')" style="min-height: 34px; height: 34px; padding: 0 12px; font-size: 12.5px; font-weight: 600; border-radius: 6px;">
-                        Trên 500K
-                      </button>
+                    <div class="shop-dropdown-item ${this.selectedCategory === 'fefo_expiry' ? 'selected' : ''}" onclick="ShopPage.setCategory('fefo_expiry')" style="color: #ef4444;">
+                      <span>🔥 Ưu Đãi Đặc Biệt</span>
+                      ${this.selectedCategory === 'fefo_expiry' ? '<span style="color:#ef4444; font-weight:800;">✓</span>' : ''}
                     </div>
+                    ${categories.map(c => {
+        const cName = (c.TenDanhMuc || c.name || '').split(' - ')[0];
+        const isSel = this.selectedCategory === c.id;
+        return `
+                        <div class="shop-dropdown-item ${isSel ? 'selected' : ''}" onclick="ShopPage.setCategory('${c.id}')">
+                          <span>${cName}</span>
+                          ${isSel ? '<span style="color:#C59B27; font-weight:800;">✓</span>' : ''}
+                        </div>
+                      `;
+      }).join('')}
                   </div>
                 </div>
+
+                <!-- Dropdown Thương Hiệu -->
+                <div class="shop-dropdown-wrap">
+                  <button type="button" id="shopBrandDropdownBtn" class="shop-dropdown-btn ${this.selectedBrand !== 'all' ? 'active' : ''}" onclick="ShopPage.toggleDropdown('shopBrandDropdown', event)">
+                    <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">THƯƠNG HIỆU:</span>
+                    <span>${activeBrandLabel}</span>
+                    <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  <div id="shopBrandDropdown" class="shop-dropdown-menu">
+                    ${brands.map(b => {
+        const isSel = this.selectedBrand === b.id;
+        return `
+                        <div class="shop-dropdown-item ${isSel ? 'selected' : ''}" onclick="ShopPage.setBrand('${b.id}')">
+                          <span>${b.label}</span>
+                          ${isSel ? '<span style="color:#C59B27; font-weight:800;">✓</span>' : ''}
+                        </div>
+                      `;
+      }).join('')}
+                  </div>
+                </div>
+
+                <!-- Dropdown Mức Giá -->
+                <div class="shop-dropdown-wrap">
+                  <button type="button" id="shopPriceDropdownBtn" class="shop-dropdown-btn ${this.selectedPriceRange !== 'all' ? 'active' : ''}" onclick="ShopPage.toggleDropdown('shopPriceDropdown', event)">
+                    <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">MỨC GIÁ:</span>
+                    <span>${activePriceLabel}</span>
+                    <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  <div id="shopPriceDropdown" class="shop-dropdown-menu">
+                    ${prices.map(p => {
+        const isSel = this.selectedPriceRange === p.id;
+        return `
+                        <div class="shop-dropdown-item ${isSel ? 'selected' : ''}" onclick="ShopPage.setPrice('${p.id}')">
+                          <span>${p.label}</span>
+                          ${isSel ? '<span style="color:#C59B27; font-weight:800;">✓</span>' : ''}
+                        </div>
+                      `;
+      }).join('')}
+                  </div>
+                </div>
+
+                ${hasActiveFilter ? `
+                  <button type="button" class="shop-reset-filter-btn" onclick="ShopPage.resetFilters()" title="Xóa tất cả bộ lọc">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    <span>Xóa Lọc</span>
+                  </button>
+                ` : ''}
               </div>
             </div>
 
@@ -145,18 +226,21 @@
     setCategory(cat) {
       this.selectedCategory = cat;
       this.currentPage = 1;
+      this.closeAllDropdowns();
       this.render(document.getElementById('webMainContainer'));
     },
 
     setBrand(brand) {
       this.selectedBrand = brand;
       this.currentPage = 1;
+      this.closeAllDropdowns();
       this.render(document.getElementById('webMainContainer'));
     },
 
     setPrice(range) {
       this.selectedPriceRange = range;
       this.currentPage = 1;
+      this.closeAllDropdowns();
       this.render(document.getElementById('webMainContainer'));
     },
 
@@ -291,7 +375,7 @@
         `;
       }
 
-      // Phân trang 12 sản phẩm mỗi trang
+      // Phân trang 15 sản phẩm mỗi trang (khớp lưới 5 cột x 3 dòng)
       const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
       if (this.currentPage > totalPages) this.currentPage = 1;
       const startIdx = (this.currentPage - 1) * this.pageSize;
@@ -299,7 +383,9 @@
 
       if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.render === 'function') {
         return paginated.map(p => window.ProductCard.render(p, {
-          onCardClick: `UICommon.openProductDetailModal ? UICommon.openProductDetailModal('${p.id}') : null`
+          onCardClick: `UICommon.openProductDetailModal ? UICommon.openProductDetailModal('${p.id}') : null`,
+          showAddToCart: true,
+          showBuyNow: true
         })).join('');
       }
 
@@ -596,17 +682,9 @@
                   </div>
                 </div>
 
-                <!-- 9. Cụm Nút CTA Chuẩn 4RAU  - Thêm Giỏ Đen • Mua Ngay Đỏ • Nút Tim -  -->
+                <!-- 9. Cụm Nút CTA Chuẩn Barbershop - Mua Ngay Đỏ • Nút Tim -->
                 <div class="pdp-4rau-cta-row">
-                  <button type="button" class="pdp-4rau-btn-cart" onclick="ShopPage.handleDetailAddToCart('${prod.id}')">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                      <line x1="3" y1="6" x2="21" y2="6"></line>
-                      <path d="M16 10a4 4 0 0 1-8 0"></path>
-                    </svg>
-                    <span>Thêm giỏ hàng</span>
-                  </button>
-                  <button type="button" class="pdp-4rau-btn-buynow" onclick="ShopPage.handleDetailBuyNow('${prod.id}')">
+                  <button type="button" class="pdp-4rau-btn-buynow" style="flex: 1;" onclick="ShopPage.handleDetailBuyNow('${prod.id}')">
                     Mua ngay
                   </button>
                   <button type="button" class="pdp-4rau-btn-wish" onclick="ShopPage.toggleWishlist('${prod.id}', this)" title="Lưu vào danh sách yêu thích">
@@ -1002,6 +1080,18 @@
 
   // Tự động lắng nghe và cập nhật danh mục sản phẩm khi CSDL SQL tải xong
   if (typeof window !== 'undefined') {
+    // Lắng nghe đóng dropdown bộ lọc khi click ra ngoài
+    if (!window._shopDropdownInit) {
+      window._shopDropdownInit = true;
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.shop-dropdown-wrap')) {
+          if (window.ShopPage && typeof window.ShopPage.closeAllDropdowns === 'function') {
+            window.ShopPage.closeAllDropdowns();
+          }
+        }
+      });
+    }
+
     const attachShopSync = () => {
       if (window.store && typeof window.store.subscribe === 'function') {
         window.store.subscribe((state, event) => {

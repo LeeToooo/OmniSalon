@@ -235,8 +235,9 @@
             ${priceDisplayHtml}
           </div>
 
-          <!-- NÚT HÀNH ĐỘNG CHUẨN BARBER (THÊM GIỎ & MUA NGAY TRÊN CÙNG 1 DÒNG) -->
+          <!-- NÚT HÀNH ĐỘNG CHUẨN BARBER -->
           <div class="product-actions-footer" style="display: flex; gap: 8px; align-items: center; width: 100%;">
+            ${showAddToCart ? `
             <button type="button"
                     class="btn-barber-add-cart ${isOutOfStock ? 'disabled' : ''}"
                     style="flex: 1 1 50%; min-width: 0; white-space: nowrap !important;"
@@ -251,10 +252,11 @@
               ` : ''}
               <span style="white-space: nowrap !important;">${isOutOfStock ? 'Hết Hàng' : 'Thêm Giỏ'}</span>
             </button>
+            ` : ''}
             ${!isOutOfStock ? `
             <button type="button"
                     class="btn-barber-buy-now"
-                    style="flex: 1 1 50%; min-width: 0; white-space: nowrap !important; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"
+                    style="flex: 1 1 ${showAddToCart ? '50%' : '100%'}; width: ${showAddToCart ? '50%' : '100%'}; min-width: 0; white-space: nowrap !important; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"
                     onclick="if(typeof UICommon !== 'undefined' && UICommon.buyNow){ UICommon.buyNow('${data.id}'); if(typeof ShopPage !== 'undefined' && ShopPage.updateCartBadge) ShopPage.updateCartBadge(); }">
               <span style="white-space: nowrap !important; display: inline-block;">Mua Ngay</span>
               <span style="font-size: 13px;">→</span>

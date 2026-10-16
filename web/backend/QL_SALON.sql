@@ -1,4 +1,4 @@
-﻿USE master;
+USE master;
 GO
 
 IF DB_ID(N'QL_SALONTOC') IS NOT NULL
@@ -292,16 +292,23 @@ CREATE TABLE LichHen
 );
 GO
 
+
 CREATE TABLE ChiTietLichHen
 (
     MaChiTietLichHen VARCHAR(30) PRIMARY KEY,
     MaLichHen VARCHAR(20) NOT NULL,
-    MaDichVu VARCHAR(20) NOT NULL,
+    MaDichVu VARCHAR(20) NULL,
+    MaCombo VARCHAR(20) NULL,
     SoLuong INT DEFAULT 1 CHECK (SoLuong > 0),
     DonGia DECIMAL(18,2) NOT NULL,
     ThanhTien DECIMAL(18,2) NOT NULL,
     CONSTRAINT FK_ChiTietLichHen_LichHen FOREIGN KEY (MaLichHen) REFERENCES LichHen(MaLichHen),
-    CONSTRAINT FK_ChiTietLichHen_DichVu FOREIGN KEY (MaDichVu) REFERENCES DichVu(MaDichVu)
+    CONSTRAINT FK_ChiTietLichHen_DichVu FOREIGN KEY (MaDichVu) REFERENCES DichVu(MaDichVu),
+    CONSTRAINT FK_ChiTietLichHen_Combo FOREIGN KEY (MaCombo) REFERENCES ComboDichVu(MaCombo),
+    CONSTRAINT CK_ChiTietLichHen_LoaiDichVu CHECK (
+        (MaDichVu IS NOT NULL AND MaCombo IS NULL) OR
+        (MaDichVu IS NULL AND MaCombo IS NOT NULL)
+    )
 );
 GO
 
@@ -363,14 +370,20 @@ GO
 
 CREATE TABLE ChiTietHoaDon_DichVu
 (
+    MaChiTietHDDV VARCHAR(30) PRIMARY KEY,
     MaHoaDon VARCHAR(20) NOT NULL,
-    MaDichVu VARCHAR(20) NOT NULL,
+    MaDichVu VARCHAR(20) NULL,
+    MaCombo VARCHAR(20) NULL,
     SoLuong INT NOT NULL CHECK (SoLuong > 0),
     DonGia DECIMAL(18,2) NOT NULL,
     ThanhTien DECIMAL(18,2) NOT NULL,
-    CONSTRAINT PK_ChiTietHoaDon_DichVu PRIMARY KEY (MaHoaDon, MaDichVu),
     CONSTRAINT FK_ChiTietHoaDonDichVu_HoaDon FOREIGN KEY (MaHoaDon) REFERENCES HoaDon(MaHoaDon),
-    CONSTRAINT FK_ChiTietHoaDonDichVu_DichVu FOREIGN KEY (MaDichVu) REFERENCES DichVu(MaDichVu)
+    CONSTRAINT FK_ChiTietHoaDonDichVu_DichVu FOREIGN KEY (MaDichVu) REFERENCES DichVu(MaDichVu),
+    CONSTRAINT FK_ChiTietHoaDonDichVu_Combo FOREIGN KEY (MaCombo) REFERENCES ComboDichVu(MaCombo),
+    CONSTRAINT CK_ChiTietHoaDonDichVu_Loai CHECK (
+        (MaDichVu IS NOT NULL AND MaCombo IS NULL) OR
+        (MaDichVu IS NULL AND MaCombo IS NOT NULL)
+    )
 );
 GO
 
@@ -1533,17 +1546,19 @@ INSERT INTO LichHen (MaLichHen, MaKhachHang, MaNhanVien, MaChiNhanh, NgayHen, Gi
 ('LH09', 'KH09', 'NV26', 'CN09', '2026-10-14', '09:00:00', '11:30:00', N'Đã xác nhận', 950000, 100000, N'Nhuộm nâu hạt dẻ sáng', NULL),
 ('LH10', 'KH10', 'NV29', 'CN10', '2026-10-14', '16:00:00', '17:30:00', N'Đã xác nhận', 800000, 100000, N'Uốn tóc Ruffled phong cách hip-hop', NULL);
 
-INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES
-('CTLH01', 'LH01', 'DV01', 1, 120000, 120000),
-('CTLH02', 'LH02', 'DV02', 1, 250000, 250000),
-('CTLH03', 'LH03', 'DV03', 1, 650000, 650000),
-('CTLH04', 'LH04', 'DV04', 1, 950000, 950000),
-('CTLH05', 'LH05', 'DV05', 1, 800000, 800000),
-('CTLH06', 'LH06', 'DV01', 1, 120000, 120000),
-('CTLH07', 'LH07', 'DV03', 1, 650000, 650000),
-('CTLH08', 'LH08', 'DV02', 1, 250000, 250000),
-('CTLH09', 'LH09', 'DV04', 1, 950000, 950000),
-('CTLH10', 'LH10', 'DV05', 1, 800000, 800000);
+
+INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien) VALUES
+('CTLH01', 'LH01', 'DV01', NULL,   1, 120000, 120000),
+('CTLH02', 'LH02', NULL,   'CB01', 1, 300000, 300000),
+('CTLH03', 'LH03', 'DV03', NULL,   1, 650000, 650000),
+('CTLH04', 'LH04', 'DV04', NULL,   1, 950000, 950000),
+('CTLH05', 'LH05', 'DV05', NULL,   1, 800000, 800000),
+('CTLH06', 'LH06', 'DV01', NULL,   1, 120000, 120000),
+('CTLH07', 'LH07', NULL,   'CB02', 1, 330000, 330000),
+('CTLH08', 'LH08', 'DV02', NULL,   1, 250000, 250000),
+('CTLH09', 'LH09', 'DV04', NULL,   1, 950000, 950000),
+('CTLH10', 'LH10', NULL,   'CB03', 1, 790000, 790000);
+GO
 
 -- 10 Đơn hàng cho 10 chi nhánh (CN11 -> CN20)
 ALTER TABLE ChiTietDonHang DISABLE TRIGGER trg_ChiTietDonHang_TruTonKho;
@@ -1603,8 +1618,8 @@ INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, Nga
 ('HD01', 'KH01', 'LH01', NULL,   'CN01', '2026-10-10 10:15:00', 408000, N'Đã thanh toán', 'HD-20261010-001'),
 ('HD02', 'KH11', NULL,   'DH01', 'CN11', '2026-10-05 10:00:00', 286000, N'Đã thanh toán', 'HD-20261005-002');
 
-INSERT INTO ChiTietHoaDon_DichVu (MaHoaDon, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES
-('HD01', 'DV01', 1, 120000, 120000);
+INSERT INTO ChiTietHoaDon_DichVu (MaChiTietHDDV, MaHoaDon, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien) VALUES
+('CTHDDV01', 'HD01', 'DV01', NULL, 1, 120000, 120000);
 
 -- HD01: SP01 lấy từ lô CTPN01001 (CN01). HD02: SP71 lấy từ CTPN11071 (CN11)
 INSERT INTO ChiTietHoaDon_SanPham (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES

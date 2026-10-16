@@ -335,16 +335,15 @@ body.light .btn-barber-add-cart {
 [data-theme="light"] .btn-barber-add-cart:hover:not(:disabled),
 html.light .btn-barber-add-cart:hover:not(:disabled),
 body.light .btn-barber-add-cart:hover:not(:disabled) {
-  background: #e2e8f0 !important;
-  color: #0f172a !important;
-  border-color: #94a3b8 !important;
+  background: #141413 !important;
+  color: #ffffff !important;
+  border-color: #141413 !important;
 }
 
-.product-clean-card:hover .btn-barber-add-cart:not(:disabled),
 .btn-barber-add-cart:hover:not(:disabled) {
   background: #3F3F46 !important;
   color: #FFFFFF !important;
-  border-color: #52525B !important;
+  border-color: #C59B27 !important;
   box-shadow: none !important;
 }
 

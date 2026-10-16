@@ -34,7 +34,7 @@ function getDynamicServerInstances() {
     const scOut = require('child_process').execSync('powershell -NoProfile -Command "Get-Service -Name *MSSQL* | Select-Object -ExpandProperty Name"', { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', timeout: 3000 });
     if (scOut.includes('MSSQL$SQLEXPRESS')) instances.push('.\\SQLEXPRESS', 'localhost\\SQLEXPRESS');
     if (scOut.includes('MSSQLSERVER')) instances.push('.', 'localhost');
-  } catch (e) {}
+  } catch (e) { }
   instances.push('.\\SQLEXPRESS', 'localhost\\SQLEXPRESS', '.', 'localhost', '(local)\\SQLEXPRESS');
   return [...new Set(instances)];
 }
@@ -782,7 +782,7 @@ const server = http.createServer(async (req, res) => {
         };
         const accounts = rows.map(r => {
           const isStaff = !!r.MaNhanVien;
-          const role = isStaff 
+          const role = isStaff
             ? (roleMap[r.ChucVu] || (r.VaiTro === 'Quản lý' ? 'BRANCH_MANAGER' : (r.VaiTro === 'Thu ngân' ? 'CASHIER' : 'STYLIST')))
             : 'CUSTOMER';
           return {
@@ -2068,7 +2068,7 @@ const server = http.createServer(async (req, res) => {
                 `INSERT INTO ChiTietHoaDon_DichVu (MaHoaDon, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, 1, ?, ?)`,
                 [hdId, sId, sPrice, sPrice]
               );
-            } catch (_) {}
+            } catch (_) { }
           }
         }
 
@@ -2310,7 +2310,7 @@ const server = http.createServer(async (req, res) => {
 
       // --- 28. PHỤC VỤ FILE TĨNH  - STATIC FILES -  & SPA FALLBACK ---
       let rawPath = pathname.replace(/^\/+/, '');
-      try { rawPath = decodeURIComponent(rawPath); } catch (_) {}
+      try { rawPath = decodeURIComponent(rawPath); } catch (_) { }
 
       // Hỗ trợ truy cập file tĩnh qua prefix /static/... tương đương app.use - '/static', express.static - ... -  - 
       let relPath = rawPath;
@@ -2349,7 +2349,7 @@ const server = http.createServer(async (req, res) => {
               });
               return fs.createReadStream(targetPath).pipe(res);
             }
-          } catch (_) {}
+          } catch (_) { }
         }
       }
 
@@ -2425,7 +2425,7 @@ async function startServer() {
       try {
         const { exec } = require('child_process');
         exec(`start http://localhost:${currentPort}`);
-      } catch (_) {}
+      } catch (_) { }
     });
 
     server.listen(currentPort, '0.0.0.0');

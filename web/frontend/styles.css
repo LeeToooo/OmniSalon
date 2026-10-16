@@ -16440,3 +16440,139 @@ body.light .modal-close-icon-btn:hover {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* Khi không có nút Thêm Giỏ, nút Mua Ngay chiếm trọn 100% card */
+.product-actions-footer .btn-barber-buy-now:only-child,
+.product-actions-footer:not(:has(.btn-barber-add-cart)) .btn-barber-buy-now {
+  flex: 1 1 100% !important;
+  width: 100% !important;
+}
+
+/* Shop Filter Bar & Button Dropdowns (Editorial) */
+.shop-filter-bar {
+  background: var(--surface-card);
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color);
+  padding: 18px 22px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.shop-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.shop-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.shop-dropdown-btn {
+  height: 42px;
+  padding: 0 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.shop-dropdown-btn:hover,
+.shop-dropdown-btn.active {
+  border-color: #C59B27 !important;
+  color: #C59B27 !important;
+}
+
+.shop-dropdown-btn .chevron-icon {
+  transition: transform 0.2s ease;
+}
+
+.shop-dropdown-btn.active .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.shop-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 250px;
+  max-width: 320px;
+  max-height: 380px;
+  overflow-y: auto;
+  background: var(--surface-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 16px 36px rgba(0,0,0,0.45);
+  z-index: 999;
+  padding: 6px;
+  display: none;
+}
+
+.shop-dropdown-menu.show {
+  display: block;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shop-dropdown-item {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.15s ease;
+}
+
+.shop-dropdown-item:hover {
+  background: rgba(197, 155, 39, 0.12);
+  color: #C59B27;
+}
+
+.shop-dropdown-item.selected {
+  background: #141413;
+  color: #C59B27;
+  font-weight: 700;
+}
+
+.shop-reset-filter-btn {
+  height: 42px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1.5px solid rgba(239, 68, 68, 0.25);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.shop-reset-filter-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
