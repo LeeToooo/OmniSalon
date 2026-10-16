@@ -12981,11 +12981,13 @@ body {
 }
 
 .branch-map-btn {
-  flex-shrink: 0;
+  flex: 1 1 50%;
+  width: 50%;
 }
 
 .branch-book-btn {
-  flex: 1;
+  flex: 1 1 50%;
+  width: 50%;
 }
 
 /* Thanh lọc danh mục */

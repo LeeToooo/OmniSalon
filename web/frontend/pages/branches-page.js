@@ -9,6 +9,8 @@
   const BranchesPage = {
     selectedFilter: 'all',
     searchQuery: '',
+    pageSize: 8,
+    currentPage: 1,
 
     // Danh sách 19 quận / huyện chính thức của 20 chi nhánh
     DISTRICT_ORDER: [
@@ -172,9 +174,11 @@
     render(container, queryParams = {}) {
       if (!container) return;
 
+      this.currentPage = 1;
       const branches = (window.store && typeof window.store.getBranches === 'function')
         ? window.store.getBranches()
         : (window.INITIAL_SALON_DATA?.branches || []);
+      const filtered = this.getFilteredBranches(branches);
 
       container.innerHTML = `
         <div class="branches-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); width: 100%; padding: 48px 0 88px;">
@@ -225,6 +229,11 @@
               ${this.renderBranchCardsHTML(branches)}
             </div>
 
+            <!-- THANH PHÂN TRANG CHUẨN CỬA HÀNG -->
+            <div id="branchesPaginationContainer">
+              ${this.renderPagination(filtered)}
+            </div>
+
           </div>
         </div>
       `;
@@ -232,9 +241,11 @@
 
     setDistrict(district) {
       this.selectedFilter = district || 'all';
+      this.currentPage = 1;
       const branches = (window.store && typeof window.store.getBranches === 'function')
         ? window.store.getBranches()
         : (window.INITIAL_SALON_DATA?.branches || []);
+      const filtered = this.getFilteredBranches(branches);
 
       if (typeof document !== 'undefined') {
         const selectEl = document.getElementById('branchDistrictSelect');
@@ -250,6 +261,10 @@
         if (grid) {
           grid.innerHTML = this.renderBranchCardsHTML(branches);
         }
+        const pagContainer = document.getElementById('branchesPaginationContainer');
+        if (pagContainer) {
+          pagContainer.innerHTML = this.renderPagination(filtered);
+        }
         const countEl = document.getElementById('branchResultsSummary');
         if (countEl) {
           countEl.innerHTML = this.renderResultSummaryHTML(branches);
@@ -263,18 +278,51 @@
 
     handleSearch(query) {
       this.searchQuery = (query || '').trim();
+      this.currentPage = 1;
       const branches = (window.store && typeof window.store.getBranches === 'function')
         ? window.store.getBranches()
         : (window.INITIAL_SALON_DATA?.branches || []);
+      const filtered = this.getFilteredBranches(branches);
 
       if (typeof document !== 'undefined') {
         const grid = document.getElementById('branchesCardsGrid');
         if (grid) {
           grid.innerHTML = this.renderBranchCardsHTML(branches);
         }
+        const pagContainer = document.getElementById('branchesPaginationContainer');
+        if (pagContainer) {
+          pagContainer.innerHTML = this.renderPagination(filtered);
+        }
         const countEl = document.getElementById('branchResultsSummary');
         if (countEl) {
           countEl.innerHTML = this.renderResultSummaryHTML(branches);
+        }
+      }
+    },
+
+    changePage(newPage) {
+      const branches = (window.store && typeof window.store.getBranches === 'function')
+        ? window.store.getBranches()
+        : (window.INITIAL_SALON_DATA?.branches || []);
+      const filtered = this.getFilteredBranches(branches);
+      const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+
+      if (newPage < 1 || newPage > totalPages) return;
+      this.currentPage = newPage;
+
+      if (typeof document !== 'undefined') {
+        const grid = document.getElementById('branchesCardsGrid');
+        if (grid) {
+          grid.innerHTML = this.renderBranchCardsHTML(branches);
+        }
+        const pagContainer = document.getElementById('branchesPaginationContainer');
+        if (pagContainer) {
+          pagContainer.innerHTML = this.renderPagination(filtered);
+        }
+
+        const scrollTarget = document.getElementById('branchesCardsGrid') || document.querySelector('.branches-page-shell');
+        if (scrollTarget && typeof scrollTarget.scrollIntoView === 'function') {
+          scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }
     },
@@ -299,14 +347,20 @@
         `;
       }
 
+      // Phân trang 8 chi nhánh mỗi trang (khớp lưới 4 cột x 2 dòng)
+      const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+      if (this.currentPage > totalPages) this.currentPage = 1;
+      const startIdx = (this.currentPage - 1) * this.pageSize;
+      const paginated = filtered.slice(startIdx, startIdx + this.pageSize);
+
       if (typeof window.BranchCard !== 'undefined' && typeof window.BranchCard.render === 'function') {
-        return filtered.map(b => window.BranchCard.render(b, {
+        return paginated.map(b => window.BranchCard.render(b, {
           onBookClick: `BranchesPage.selectBranchAndBook('${b.id}')`
         })).join('');
       }
 
       // Fallback
-      return filtered.map(b => `
+      return paginated.map(b => `
         <div class="branch-clean-card" id="branchCard_${b.id}">
           <div class="branch-content-body">
             <h3 class="branch-name-title">${b.TenChiNhanh || b.name}</h3>
@@ -314,6 +368,80 @@
           </div>
         </div>
       `).join('');
+    },
+
+    renderPagination(filtered) {
+      if (!filtered || filtered.length === 0) return '';
+      const total = filtered.length;
+      const totalPages = Math.max(1, Math.ceil(total / this.pageSize));
+      if (totalPages <= 1) return '';
+
+      const startIdx = (this.currentPage - 1) * this.pageSize;
+      const endIdx = Math.min(startIdx + this.pageSize, total);
+
+      const pages = [];
+      if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        const left = Math.max(2, this.currentPage - 1);
+        const right = Math.min(totalPages - 1, this.currentPage + 1);
+        if (left > 2) pages.push('...');
+        for (let i = left; i <= right; i++) pages.push(i);
+        if (right < totalPages - 1) pages.push('...');
+        pages.push(totalPages);
+      }
+
+      const prevDisabled = this.currentPage <= 1;
+      const nextDisabled = this.currentPage >= totalPages;
+
+      return `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding: 18px 24px; background: var(--surface-card); border-radius: 18px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 18px rgba(0,0,0,0.03);">
+          <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+            <span>Hiển thị</span>
+            <span style="color: var(--brand-accent); font-weight: 800; font-size: 15px;">${startIdx + 1}–${endIdx}</span>
+            <span>trên tổng số</span>
+            <span style="color: var(--text-primary); font-weight: 800; font-size: 15px;">${total}</span>
+            <span>chi nhánh (Trang ${this.currentPage}/${totalPages})</span>
+          </div>
+
+          <div style="display: inline-flex; align-items: center; gap: 8px;">
+            <button id="branchPrevPageBtn"
+                    onclick="BranchesPage.changePage(${this.currentPage - 1})"
+                    ${prevDisabled ? 'disabled' : ''}
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'}; opacity: ${prevDisabled ? '0.35' : '1'}; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); transition: all 0.2s ease;">
+              <span style="font-size: 16px; line-height: 1;">←</span>
+              <span>Trước</span>
+            </button>
+
+            <div style="display: inline-flex; align-items: center; gap: 6px;">
+              ${pages.map(p => {
+                if (p === '...') {
+                  return `<span style="padding: 0 6px; color: var(--text-secondary); font-weight: 800; font-size: 14px;">…</span>`;
+                }
+                const isActive = p === this.currentPage;
+                return `
+                  <button onclick="BranchesPage.changePage(${p})"
+                          style="min-width: 42px; height: 42px; padding: 0 10px; border-radius: 10px; font-size: 13px; font-weight: ${isActive ? '800' : '600'}; cursor: pointer; transition: all 0.2s ease; ${isActive
+                    ? 'background: var(--brand-accent); color: #ffffff; border: 1.5px solid var(--brand-accent); box-shadow: 0 2px 10px rgba(180,131,18,0.3);'
+                    : 'background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color);'
+                  }">
+                    ${p}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            <button id="branchNextPageBtn"
+                    onclick="BranchesPage.changePage(${this.currentPage + 1})"
+                    ${nextDisabled ? 'disabled' : ''}
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'}; opacity: ${nextDisabled ? '0.35' : '1'}; background: var(--brand-accent); border: none; color: #ffffff; box-shadow: 0 4px 14px rgba(180,131,18,0.25); transition: all 0.2s ease;">
+              <span>Sau</span>
+              <span style="font-size: 16px; line-height: 1;">→</span>
+            </button>
+          </div>
+        </div>
+      `;
     },
 
     selectBranchAndBook(branchId) {

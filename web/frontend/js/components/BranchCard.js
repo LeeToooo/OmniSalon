@@ -135,12 +135,9 @@
                  class="branch-cover-img"
                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80';">
             
-            <!-- Huy hiệu quận & Loại chi nhánh -->
+            <!-- Huy hiệu quận -->
             <div class="branch-badges-top">
               <span class="branch-district-tag">${data.district}</span>
-              ${data.isFlagship ? `
-                <span class="branch-flagship-tag">FLAGSHIP VIP</span>
-              ` : ''}
             </div>
 
             <!-- Trạng thái hoạt động thời gian thực -->
@@ -195,25 +192,24 @@
               </div>
             </div>
 
-            <!-- HÀNH ĐỘNG THỰC TẾ: CHỈ ĐƯỜNG & ĐẶT LỊCH HẸN -->
+            <!-- HÀNH ĐỘNG THỰC TẾ: CHỈ ĐƯỜNG & ĐẶT LỊCH HẸN (ĐỒNG BỘ NÚT BẤM CỬA HÀNG) -->
             <div class="branch-actions-row">
               <a href="${data.mapUrl}" 
                  target="_blank" 
                  rel="noopener noreferrer" 
-                 class="branch-map-btn" 
+                 class="branch-map-btn btn-barber-add-cart" 
                  title="Mở bản đồ Google Maps chỉ đường đến chi nhánh này">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0;">
                   <polygon points="3 11 22 2 13 21 11 13 3 11"/>
                 </svg>
-                <span>Chỉ Đường</span>
+                <span style="white-space: nowrap !important;">Chỉ Đường</span>
               </a>
 
               <button type="button"
-                      class="branch-book-btn"
-                      style="display: inline-flex; align-items: center; gap: 6px; background: #C59B27; color: #141413; font-weight: 700; border-radius: 6px; border: none; padding: 8px 14px; cursor: pointer;"
+                      class="branch-book-btn btn-barber-buy-now"
                       onclick="${onBookClick}">
-                <span>Đặt Lịch</span>
-                <span>→</span>
+                <span style="white-space: nowrap !important; display: inline-block;">Đặt Lịch</span>
+                <span style="font-size: 13px;">→</span>
               </button>
             </div>
 

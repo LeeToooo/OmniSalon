@@ -705,42 +705,91 @@ body.dark .branch-actions-row {
   border-color: #222225 !important;
 }
 
-.branch-map-btn,
-.branch-book-btn {
+/* Nút Chỉ Đường - Đồng bộ 100% với nút Thêm Giỏ của Cửa Hàng */
+.branch-map-btn {
+  flex: 1 1 50% !important;
+  width: 50% !important;
+  max-width: 50% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  background: #27272A !important;
+  color: #F4F4F5 !important;
+  border: 1px solid #3F3F46 !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 6px !important;
-  height: 38px !important;
-  padding: 0 12px !important;
-  border-radius: 8px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  text-decoration: none !important;
-  background: #27272A !important;
-  color: #F4F4F5 !important;
-  border: 1px solid #3F3F46 !important;
-  box-shadow: none !important;
   cursor: pointer !important;
-  transition: all 0.15s ease !important;
   user-select: none !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease !important;
+  letter-spacing: -0.01em !important;
+  white-space: nowrap !important;
+  padding: 0 10px !important;
+  text-decoration: none !important;
 }
 
-.branch-map-btn {
-  flex: 1 !important;
+[data-theme="light"] .branch-map-btn,
+html.light .branch-map-btn,
+body.light .branch-map-btn {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
-.branch-book-btn {
-  flex: 1.2 !important;
+[data-theme="light"] .branch-map-btn:hover,
+html.light .branch-map-btn:hover,
+body.light .branch-map-btn:hover {
+  background: #141413 !important;
+  color: #ffffff !important;
+  border-color: #141413 !important;
 }
 
-.branch-map-btn:hover,
-.branch-book-btn:hover {
+.branch-map-btn:hover {
   background: #3F3F46 !important;
-  border-color: #52525B !important;
-  color: #F4F4F5 !important;
+  color: #FFFFFF !important;
+  border-color: #C59B27 !important;
   box-shadow: none !important;
 }
+
+/* Nút Đặt Lịch - Đồng bộ 100% với nút Mua Ngay của Cửa Hàng */
+.branch-book-btn {
+  flex: 1 1 50% !important;
+  width: 50% !important;
+  max-width: 50% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  background: linear-gradient(180deg, #F59E0B, #D97706) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease !important;
+  white-space: nowrap !important;
+  padding: 0 10px !important;
+  text-decoration: none !important;
+  box-sizing: border-box !important;
+}
+
+.branch-book-btn:hover {
+  filter: brightness(1.08) !important;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25) !important;
+  color: #ffffff !important;
+}
+
 
 /* Thanh lọc danh mục */
 .clean-filter-tabs {
