@@ -874,6 +874,7 @@
       const fullName = (userData.fullName || userData.name || '').trim();
       const email = (userData.email || '').trim().toLowerCase();
       const phone = (userData.phone || '').trim();
+      const birthday = (userData.birthday || userData.ngaySinh || '').trim() || null;
       const password = userData.password || '';
       const username = (userData.username || (email.split('@')[0] || 'user_' + Date.now())).trim();
 
@@ -923,6 +924,7 @@
         fullName,
         email,
         phone,
+        birthday,
         role: ROLES.CUSTOMER,
         roleName: ROLE_NAMES.CUSTOMER,
         branchId: null,
@@ -948,6 +950,7 @@
             fullName,
             phone,
             email,
+            birthday,
             password
           })
         }).catch(() => {});

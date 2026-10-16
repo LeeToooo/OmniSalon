@@ -372,13 +372,14 @@ async function getFullSqlDatabase() {
                      nv.HoTen AS TenNhanVien,
                      cn.TenChiNhanh,
                      (
-                       SELECT TOP 1 dv.TenDichVu 
+                       SELECT TOP 1 ISNULL(dv.TenDichVu, cb.TenCombo) 
                        FROM ChiTietLichHen ctlh 
-                       JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
+                       LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
+                       LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo
                        WHERE ctlh.MaLichHen = lh.MaLichHen
                      ) AS TenDichVu,
                      (
-                       SELECT TOP 1 ctlh.MaDichVu 
+                       SELECT TOP 1 ISNULL(ctlh.MaDichVu, ctlh.MaCombo) 
                        FROM ChiTietLichHen ctlh 
                        WHERE ctlh.MaLichHen = lh.MaLichHen
                      ) AS MaDichVu
@@ -409,6 +410,7 @@ async function getFullSqlDatabase() {
                      ISNULL(nv.HoTen, kh.HoTen) AS HoTen,
                      ISNULL(nv.SoDienThoai, kh.SoDienThoai) AS SoDienThoai,
                      ISNULL(nv.Email, kh.Email) AS Email,
+                     CONVERT(VARCHAR(10), kh.NgaySinh, 120) AS NgaySinh,
                      nv.MaChiNhanh
               FROM TaiKhoan tk
               LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
@@ -673,6 +675,7 @@ async function getFullSqlDatabase() {
     fullName: r.HoTen,
     phone: r.SoDienThoai,
     email: r.Email,
+    birthday: r.NgaySinh,
     role: r.VaiTro === 'Quản lý' ? 'BRANCH_MANAGER' : (r.VaiTro === 'Thu ngân' ? 'CASHIER' : (r.VaiTro === 'Nhân viên' ? 'STYLIST' : 'CUSTOMER')),
     roleName: r.VaiTro,
     branchId: r.MaChiNhanh || 'ALL',
@@ -897,6 +900,7 @@ const server = http.createServer(async (req, res) => {
         const fullName = (data.fullName || data.name || '').trim();
         const phone = (data.phone || '').trim();
         const email = (data.email || '').trim().toLowerCase();
+        const birthday = (data.birthday || data.ngaySinh || '').trim() || null;
         const password = (data.password || '').trim();
 
         if (!fullName || !phone || !email || !password) {
@@ -914,15 +918,15 @@ const server = http.createServer(async (req, res) => {
         const tkId = 'TK_' + khId;
 
         await querySql(
-          `INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh) VALUES (?, ?, ?, ?, '2000-01-01');`,
-          [khId, fullName, phone, email]
+          `INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh) VALUES (?, ?, ?, ?, ?);`,
+          [khId, fullName, phone, email, birthday]
         );
         await querySql(
           `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai) VALUES (?, NULL, ?, ?, ?, N'Khách hàng', N'Hoạt động');`,
           [tkId, khId, phone, password]
         );
 
-        console.log(`[SQL EXEC] Đăng ký thành công ${khId} (${fullName}) vào SQL Server!`);
+        console.log(`[SQL EXEC] Đăng ký thành công ${khId} (${fullName}, NS: ${birthday || 'NULL'}) vào SQL Server!`);
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
@@ -935,6 +939,7 @@ const server = http.createServer(async (req, res) => {
             fullName,
             phone,
             email,
+            birthday,
             role: 'CUSTOMER',
             roleName: 'Khách Hàng Thành Viên'
           }
@@ -1717,9 +1722,10 @@ const server = http.createServer(async (req, res) => {
                   kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
                   nv.HoTen AS TenNhanVien, cn.TenChiNhanh,
                   (
-                    SELECT TOP 1 dv.TenDichVu 
+                    SELECT TOP 1 ISNULL(dv.TenDichVu, cb.TenCombo) 
                     FROM ChiTietLichHen ctlh 
-                    JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
+                    LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
+                    LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo
                     WHERE ctlh.MaLichHen = lh.MaLichHen
                   ) AS TenDichVu
            FROM LichHen lh
@@ -1744,13 +1750,14 @@ const server = http.createServer(async (req, res) => {
                                             nv.HoTen AS TenNhanVien,
                                             cn.TenChiNhanh,
                                             (
-                                              SELECT TOP 1 dv.TenDichVu 
+                                              SELECT TOP 1 ISNULL(dv.TenDichVu, cb.TenCombo) 
                                               FROM ChiTietLichHen ctlh 
-                                              JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
+                                              LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
+                                              LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo
                                               WHERE ctlh.MaLichHen = lh.MaLichHen
                                             ) AS TenDichVu,
                                             (
-                                              SELECT TOP 1 ctlh.MaDichVu 
+                                              SELECT TOP 1 ISNULL(ctlh.MaDichVu, ctlh.MaCombo) 
                                               FROM ChiTietLichHen ctlh 
                                               WHERE ctlh.MaLichHen = lh.MaLichHen
                                             ) AS MaDichVu
@@ -1878,37 +1885,62 @@ const server = http.createServer(async (req, res) => {
           [id, khId, nvId, cnId, date, startTime, endTime, price, deposit, cleanNotes || null]
         );
 
-        // 10. INSERT INTO ChiTietLichHen (100% database relation)
-        if (srvInfo.isCombo) {
-          const comboServices = await querySql(
-            `SELECT ctc.MaDichVu, dv.Gia 
-             FROM ChiTietComboDichVu ctc 
-             JOIN DichVu dv ON ctc.MaDichVu = dv.MaDichVu 
-             WHERE ctc.MaCombo = ?`,
-            [srvInfo.id]
-          );
-          if (comboServices && comboServices.length > 0) {
-            for (let i = 0; i < comboServices.length; i++) {
-              const cs = comboServices[i];
-              const ctlhId = `CTLH_${id}_${i + 1}`.slice(0, 30);
-              const singlePrice = parseFloat(cs.Gia || 0);
-              await querySql(
-                `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, 1, ?, ?)`,
-                [ctlhId, id, cs.MaDichVu, singlePrice, singlePrice]
-              );
+        // 10. INSERT INTO ChiTietLichHen (Chuẩn CSDL SQL Server: MaDichVu/MaCombo, hỗ trợ đặt combo + dịch vụ)
+        let itemsToInsert = [];
+        if (Array.isArray(booking.servicesList) && booking.servicesList.length > 0) {
+          itemsToInsert = booking.servicesList;
+        } else if (Array.isArray(booking.serviceIds) && booking.serviceIds.length > 0) {
+          itemsToInsert = booking.serviceIds.map(sid => ({ id: sid }));
+        } else if (booking.serviceId) {
+          itemsToInsert = [{ id: booking.serviceId }];
+        } else {
+          itemsToInsert = [{ id: 'DV01' }];
+        }
+
+        const maxCtlhRows = await querySql(
+          `SELECT TOP 1 MaChiTietLichHen FROM ChiTietLichHen WHERE MaChiTietLichHen LIKE 'CTLH%' AND LEN(MaChiTietLichHen) <= 10 ORDER BY LEN(MaChiTietLichHen) DESC, MaChiTietLichHen DESC`
+        );
+        let nextCtlhNum = 10;
+        if (maxCtlhRows && maxCtlhRows[0]) {
+          const m = maxCtlhRows[0].MaChiTietLichHen.match(/CTLH(\d+)/i);
+          if (m) nextCtlhNum = parseInt(m[1], 10);
+        }
+
+        for (let i = 0; i < itemsToInsert.length; i++) {
+          const it = itemsToInsert[i];
+          const rawId = it.id || it.serviceId || it.MaDichVu || it.MaCombo || '';
+          let sId = null;
+          let cbId = null;
+          let itPrice = parseFloat(it.price || it.DonGia || 0);
+
+          if (rawId.startsWith('CB')) {
+            cbId = rawId;
+            if (!itPrice) {
+              const cbRow = await querySql('SELECT GiaCombo FROM ComboDichVu WHERE MaCombo = ?', [cbId]);
+              if (cbRow && cbRow[0]) itPrice = parseFloat(cbRow[0].GiaCombo || 0);
+            }
+          } else if (rawId.startsWith('DV')) {
+            sId = rawId;
+            if (!itPrice) {
+              const dvRow = await querySql('SELECT Gia FROM DichVu WHERE MaDichVu = ?', [sId]);
+              if (dvRow && dvRow[0]) itPrice = parseFloat(dvRow[0].Gia || 0);
             }
           } else {
-            const ctlhId = `CTLH_${id}`.slice(0, 30);
-            await querySql(
-              `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, 'DV01', 1, ?, ?)`,
-              [ctlhId, id, price, price]
-            );
+            const resolved = await resolveServiceInfo(rawId, it.name);
+            if (resolved.isCombo) {
+              cbId = resolved.id;
+              if (!itPrice) itPrice = resolved.price;
+            } else {
+              sId = resolved.id;
+              if (!itPrice) itPrice = resolved.price;
+            }
           }
-        } else {
-          const ctlhId = `CTLH_${id}`.slice(0, 30);
+
+          nextCtlhNum++;
+          const ctlhId = 'CTLH' + (nextCtlhNum < 10 ? '0' + nextCtlhNum : nextCtlhNum);
           await querySql(
-            `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, 1, ?, ?)`,
-            [ctlhId, id, srvInfo.id, price, price]
+            `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, ?, 1, ?, ?)`,
+            [ctlhId, id, sId, cbId, itPrice, itPrice]
           );
         }
 
@@ -2094,27 +2126,43 @@ const server = http.createServer(async (req, res) => {
 
         // Lưu chi tiết dịch vụ vào ChiTietHoaDon_DichVu
         const posServices = Array.isArray(pos.services) ? pos.services : (pos.serviceId ? [{ id: pos.serviceId, price: total }] : []);
+        const maxCtdv = await querySql(`SELECT TOP 1 MaChiTietHDDV FROM ChiTietHoaDon_DichVu WHERE (MaChiTietHDDV LIKE 'CTDV%' OR MaChiTietHDDV LIKE 'CTHDDV%') AND LEN(MaChiTietHDDV) <= 10 ORDER BY LEN(MaChiTietHDDV) DESC, MaChiTietHDDV DESC`);
+        let nextCtdv = 2;
+        if (maxCtdv && maxCtdv[0]) {
+          const m = maxCtdv[0].MaChiTietHDDV.match(/\D+(\d+)/i);
+          if (m) nextCtdv = parseInt(m[1], 10);
+        }
+
         for (let i = 0; i < posServices.length; i++) {
           const s = posServices[i];
           const rawId = s.id || s.serviceId || s.MaDichVu || s.MaCombo;
-          const sPrice = parseFloat(s.price || s.Gia || total);
+          let sPrice = parseFloat(s.price || s.Gia || total);
           if (rawId) {
-            const maxCtdv = await querySql(`SELECT TOP 1 MaChiTietHDDV FROM ChiTietHoaDon_DichVu WHERE (MaChiTietHDDV LIKE 'CTDV%' OR MaChiTietHDDV LIKE 'CTHDDV%') AND LEN(MaChiTietHDDV) <= 10 ORDER BY LEN(MaChiTietHDDV) DESC, MaChiTietHDDV DESC`);
-            let nextCtdv = 1;
-            if (maxCtdv && maxCtdv[0]) {
-              const m = maxCtdv[0].MaChiTietHDDV.match(/\D+(\d+)/i);
-              if (m) nextCtdv = parseInt(m[1], 10) + 1;
-            }
+            nextCtdv++;
             const ctdvId = 'CTDV' + (nextCtdv < 10 ? '0' + nextCtdv : nextCtdv);
 
-            let sId = rawId;
+            let sId = null;
             let comboId = null;
             if (rawId.startsWith('CB')) {
-              sId = null;
               comboId = rawId;
-            } else if (!rawId.startsWith('DV')) {
-              const dvRows = await querySql('SELECT TOP 1 MaDichVu FROM DichVu WHERE MaDichVu = ? OR TenDichVu LIKE ?', [rawId, `%${s.name || rawId}%`]);
-              sId = dvRows && dvRows[0] ? dvRows[0].MaDichVu : 'DV01';
+              if (!sPrice) {
+                const cbRow = await querySql('SELECT GiaCombo FROM ComboDichVu WHERE MaCombo = ?', [comboId]);
+                if (cbRow && cbRow[0]) sPrice = parseFloat(cbRow[0].GiaCombo || 0);
+              }
+            } else if (rawId.startsWith('DV')) {
+              sId = rawId;
+              if (!sPrice) {
+                const dvRows = await querySql('SELECT Gia FROM DichVu WHERE MaDichVu = ?', [sId]);
+                if (dvRows && dvRows[0]) sPrice = parseFloat(dvRows[0].Gia || 0);
+              }
+            } else {
+              const dvRows = await querySql('SELECT TOP 1 MaDichVu, Gia FROM DichVu WHERE MaDichVu = ? OR TenDichVu LIKE ?', [rawId, `%${s.name || rawId}%`]);
+              if (dvRows && dvRows[0]) {
+                sId = dvRows[0].MaDichVu;
+                if (!sPrice) sPrice = parseFloat(dvRows[0].Gia || 0);
+              } else {
+                sId = 'DV01';
+              }
             }
             try {
               await querySql(
@@ -2313,14 +2361,15 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === '/api/auth/profile' && method === 'PUT') {
-        const { id, fullName, phone, email } = parsedBody || {};
+        const { id, fullName, phone, email, birthday, ngaySinh } = parsedBody || {};
+        const bday = (birthday || ngaySinh || '').trim() || null;
         if (id) {
           if (id.startsWith('TK_NV') || id.startsWith('NV')) {
             const nvId = id.replace('TK_', '');
             await querySql(`UPDATE NhanVien SET HoTen = ISNULL(?, HoTen), SoDienThoai = ISNULL(?, SoDienThoai), Email = ISNULL(?, Email) WHERE MaNhanVien = ?`, [fullName, phone, email, nvId]);
           } else {
             const khId = id.replace('TK_', '');
-            await querySql(`UPDATE KhachHang SET HoTen = ISNULL(?, HoTen), SoDienThoai = ISNULL(?, SoDienThoai), Email = ISNULL(?, Email) WHERE MaKhachHang = ?`, [fullName, phone, email, khId]);
+            await querySql(`UPDATE KhachHang SET HoTen = ISNULL(?, HoTen), SoDienThoai = ISNULL(?, SoDienThoai), Email = ISNULL(?, Email), NgaySinh = ISNULL(?, NgaySinh) WHERE MaKhachHang = ?`, [fullName, phone, email, bday, khId]);
           }
         }
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

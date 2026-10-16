@@ -1561,6 +1561,10 @@ const UICommon = {
               <input type="tel" id="regPhone" class="form-control-custom" placeholder="0908123456" required pattern="[0-9]{9,11}">
             </div>
             <div style="margin-bottom: 12px;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Ngày Sinh:</label>
+              <input type="date" id="regBirthday" class="form-control-custom" required max="2025-12-31" style="color-scheme: dark;">
+            </div>
+            <div style="margin-bottom: 12px;">
               <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Gmail Xác Thực Nhận Mã OTP:</label>
               <div style="display: flex; gap: 8px;">
                 <input type="email" id="regEmail" class="form-control-custom" placeholder="khachhang@gmail.com" required style="flex: 1;">
@@ -1739,6 +1743,7 @@ const UICommon = {
   async handleRegister() {
     const fullName = document.getElementById('regFullName')?.value.trim();
     const phone = document.getElementById('regPhone')?.value.trim();
+    const birthday = document.getElementById('regBirthday')?.value;
     const email = document.getElementById('regEmail')?.value.trim();
     const otp = document.getElementById('regOtp')?.value.trim();
     const password = document.getElementById('regPassword')?.value;
@@ -1749,6 +1754,11 @@ const UICommon = {
     }
     if (!phone || !/^[0-9]{9,11}$/.test(phone)) {
       this.showToast('Số điện thoại không hợp lệ (cần 9-11 chữ số)!', 'warning');
+      return;
+    }
+    if (!birthday) {
+      this.showToast('Vui lòng chọn ngày sinh của bạn!', 'warning');
+      document.getElementById('regBirthday')?.focus();
       return;
     }
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -1787,6 +1797,7 @@ const UICommon = {
       res = window.AuthEngine.register({
         fullName,
         phone,
+        birthday,
         email,
         username: phone,
         password,
