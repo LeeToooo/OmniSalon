@@ -133,7 +133,16 @@
         return { isValid: false, discountAmount: 0, finalTotal: subtotal, message: 'Vui lòng nhập mã ưu đãi.' };
       }
       const cleanCode = code.trim().toUpperCase();
-      const voucher = (vouchersList || []).find(v => (v.code || '').toUpperCase() === cleanCode);
+      let voucher = (vouchersList || []).find(v => (v.code || '').toUpperCase() === cleanCode);
+      if (!voucher && cleanCode === 'KM2026') {
+        voucher = {
+          code: 'KM2026',
+          title: 'Ưu Đãi Đặc Biệt 2026 — Tri Ân Khách Hàng',
+          discountType: 'fixed',
+          discountValue: 50000,
+          minOrder: 100000
+        };
+      }
       if (!voucher) {
         return { isValid: false, discountAmount: 0, finalTotal: subtotal, message: `Mã ưu đãi [${cleanCode}] không tồn tại trên hệ thống.` };
       }

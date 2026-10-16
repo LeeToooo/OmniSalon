@@ -546,6 +546,9 @@
     },
 
     handleCartMouseEnter() {
+      if (this.currentTab === 'cart' || window.location.pathname === '/cart' || (window.location.hash || '').includes('cart')) {
+        return;
+      }
       clearTimeout(this._cartPopupTimer);
       this.openCartPopup();
     },
@@ -650,6 +653,8 @@
     },
 
     switchTab(tab) {
+      this.closeCartPopup();
+      this.closeUserMenu();
       if (tab === 'admin') {
         const user = this.getCurrentUser();
         const isAdmin = this.isAdminUser(user);
@@ -667,6 +672,7 @@
         }
 
         this.currentTab = 'admin';
+        document.body.classList.add('admin-mode');
         this.renderHeader();
         if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
           window.AppRouter.navigate('/admin');
@@ -679,6 +685,7 @@
       }
 
       this.currentTab = tab || 'home';
+      document.body.classList.remove('admin-mode');
       this.renderHeader();
 
       const routeMap = {
@@ -1359,7 +1366,7 @@
                   <h1 class="hero-editorial-title">OMNI SALON</h1>
                   <p class="hero-editorial-tagline">The Art of Modern Hair Care &amp; Bespoke Styling</p>
                   <div class="hero-editorial-metrics">
-                    <div class="metric-item"><strong>18+</strong><span>Suites</span></div>
+                    <div class="metric-item"><strong>20+</strong><span>Suites</span></div>
                     <div class="metric-divider"></div>
                     <div class="metric-item"><strong>4.9 / 5</strong><span>Rating</span></div>
                     <div class="metric-divider"></div>
@@ -1678,7 +1685,7 @@
                 <span>5. Chính sách bảo hành và cam kết chất lượng của Omni Salon như thế nào?</span>
               </button>
               <div class="faq-body-content">
-                Tất cả các dịch vụ cắt, uốn, nhuộm tại toàn bộ 18+ chi nhánh Omni Salon đều được bảo hành chỉnh sửa miễn phí trong vòng 7 ngày nếu quý khách chưa thực sự ưng ý với phom tóc hoặc nếp uốn. Sự hài lòng và vẻ ngoài tự tin của bạn là tiêu chí hàng đầu của chúng tôi.
+                Tất cả các dịch vụ cắt, uốn, nhuộm tại toàn bộ chi nhánh Omni Salon đều được bảo hành chỉnh sửa miễn phí trong vòng 7 ngày nếu quý khách chưa thực sự ưng ý với phom tóc hoặc nếp uốn. Sự hài lòng và vẻ ngoài tự tin của bạn là tiêu chí hàng đầu của chúng tôi.
               </div>
             </div>
           </div>

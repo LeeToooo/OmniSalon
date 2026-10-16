@@ -68,14 +68,14 @@
                 </div>
 
                 <!-- Lọc Theo Danh Mục  - Clean Tabs -  -->
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <span style="font-size: 11.5px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase; letter-spacing: 0.04em;">DANH MỤC:</span>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <span style="font-size: 12px; font-weight: 800; color: #D97706; text-transform: uppercase; letter-spacing: 0.05em;">DANH MỤC:</span>
                   <div class="clean-filter-tabs">
                     <button class="clean-tab-btn ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="ShopPage.setCategory('all')">
                       Tất Cả
                     </button>
                     <button class="clean-tab-btn ${this.selectedCategory === 'fefo_expiry' ? 'active' : ''}" onclick="ShopPage.setCategory('fefo_expiry')"
-                            style="${this.selectedCategory === 'fefo_expiry' ? 'background: #b91c1c; border-color: #b91c1c;' : 'color: #ef4444; border-color: rgba(239, 68, 68, 0.3);'}">
+                            style="${this.selectedCategory === 'fefo_expiry' ? 'background: #dc2626 !important; border-color: #dc2626 !important; color: #ffffff !important;' : 'background: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3) !important;'}">
                       Flash Sale
                     </button>
                     ${categories.map(c => `
@@ -87,14 +87,14 @@
                 </div>
 
                 <!-- Lọc Theo Thương Hiệu & Mức Giá  - Clean Row -  -->
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 14px; border-top: 1px solid var(--border-color);">
                   <!-- Thương hiệu -->
-                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <span style="font-size: 11.5px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase; letter-spacing: 0.04em;">THƯƠNG HIỆU:</span>
+                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span style="font-size: 12px; font-weight: 800; color: #D97706; text-transform: uppercase; letter-spacing: 0.05em;">THƯƠNG HIỆU:</span>
                     <div class="clean-filter-tabs">
                       ${['all', 'apestomen', 'hanz de fuko', 'blumaan', 'kevin murphy', 'reuzel', 'olaplex', 'davines'].map(br => `
                         <button class="clean-tab-btn ${this.selectedBrand === br ? 'active' : ''}" onclick="ShopPage.setBrand('${br}')"
-                                style="height: 32px; padding: 0 10px; font-size: 12px; text-transform: capitalize;">
+                                style="min-height: 36px; height: 36px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; text-transform: capitalize;">
                           ${br === 'all' ? 'Tất Cả' : br}
                         </button>
                       `).join('')}
@@ -102,19 +102,19 @@
                   </div>
 
                   <!-- Khoảng Giá -->
-                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <span style="font-size: 11.5px; font-weight: 800; color: var(--brand-accent); text-transform: uppercase; letter-spacing: 0.04em;">MỨC GIÁ:</span>
+                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span style="font-size: 12px; font-weight: 800; color: #D97706; text-transform: uppercase; letter-spacing: 0.05em;">MỨC GIÁ:</span>
                     <div class="clean-filter-tabs">
-                      <button class="clean-tab-btn ${this.selectedPriceRange === 'all' ? 'active' : ''}" onclick="ShopPage.setPrice('all')" style="height: 32px; padding: 0 10px; font-size: 12px;">
+                      <button class="clean-tab-btn ${this.selectedPriceRange === 'all' ? 'active' : ''}" onclick="ShopPage.setPrice('all')" style="min-height: 36px; height: 36px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
                         Tất Cả
                       </button>
-                      <button class="clean-tab-btn ${this.selectedPriceRange === 'under300' ? 'active' : ''}" onclick="ShopPage.setPrice('under300')" style="height: 32px; padding: 0 10px; font-size: 12px;">
+                      <button class="clean-tab-btn ${this.selectedPriceRange === 'under300' ? 'active' : ''}" onclick="ShopPage.setPrice('under300')" style="min-height: 36px; height: 36px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
                         &lt; 300K
                       </button>
-                      <button class="clean-tab-btn ${this.selectedPriceRange === '300to500' ? 'active' : ''}" onclick="ShopPage.setPrice('300to500')" style="height: 32px; padding: 0 10px; font-size: 12px;">
+                      <button class="clean-tab-btn ${this.selectedPriceRange === '300to500' ? 'active' : ''}" onclick="ShopPage.setPrice('300to500')" style="min-height: 36px; height: 36px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
                         300K – 500K
                       </button>
-                      <button class="clean-tab-btn ${this.selectedPriceRange === 'above500' ? 'active' : ''}" onclick="ShopPage.setPrice('above500')" style="height: 32px; padding: 0 10px; font-size: 12px;">
+                      <button class="clean-tab-btn ${this.selectedPriceRange === 'above500' ? 'active' : ''}" onclick="ShopPage.setPrice('above500')" style="min-height: 36px; height: 36px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
                         &gt; 500K
                       </button>
                     </div>

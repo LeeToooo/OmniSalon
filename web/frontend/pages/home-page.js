@@ -135,7 +135,7 @@
                     <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Không Gian Barbershop Cao Cấp</h3>
                     <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0;">Kiến trúc Modern sang trọng, trang thiết bị nhập khẩu tiêu chuẩn 5 sao.</p>
                   </div>
-                  <div style="margin-top: 12px; font-size: 12px; font-weight: 600; color: #D97706;">Toàn quốc đồng bộ 18+ chi nhánh</div>
+                  <div style="margin-top: 12px; font-size: 12px; font-weight: 600; color: #D97706;">Toàn quốc đồng bộ hệ thống chi nhánh</div>
                 </div>
               </div>
 
@@ -199,7 +199,7 @@
               <span class="marquee-dot">•</span>
               <span>CÔNG NGHỆ THỬ TÓC TRÍ TUỆ NHÂN TẠO AI</span>
               <span class="marquee-dot">•</span>
-              <span>18+ CHI NHÁNH TOÀN QUỐC</span>
+              <span>20 CHI NHÁNH TOÀN QUỐC</span>
               <span class="marquee-dot">•</span>
               <span>ĐẲNG CẤP CHĂM SÓC 5 SAO</span>
               <span class="marquee-dot">•</span>
@@ -213,7 +213,7 @@
               <span class="marquee-dot">•</span>
               <span>CÔNG NGHỆ THỬ TÓC TRÍ TUỆ NHÂN TẠO AI</span>
               <span class="marquee-dot">•</span>
-              <span>18+ CHI NHÁNH TOÀN QUỐC</span>
+              <span>20 CHI NHÁNH TOÀN QUỐC</span>
               <span class="marquee-dot">•</span>
               <span>ĐẲNG CẤP CHĂM SÓC 5 SAO</span>
               <span class="marquee-dot">•</span>
@@ -379,7 +379,7 @@
                 </p>
               </div>
               <button class="branch-book-btn" onclick="AppRouter.navigate('/branches')" style="height: 38px; padding: 0 16px; font-size: 13px;">
-                <span>Xem Toàn Bộ 18+ Chi Nhánh</span>
+                <span>Xem Toàn Bộ Chi Nhánh</span>
                 <span style="font-size: 15px;">→</span>
               </button>
             </div>

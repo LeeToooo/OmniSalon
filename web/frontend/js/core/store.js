@@ -840,6 +840,7 @@
       Object.assign(combo, updates);
       this.logAudit('UPDATE_COMBO', `Gói: #${comboId}`, `Cập nhật thông tin combo`);
       this.saveState();
+      this.syncUpdateComboToLiveServer(comboId, updates);
       return combo;
     }
 
@@ -882,6 +883,7 @@
       Object.assign(srv, updates);
       this.logAudit('UPDATE_SERVICE', `Dịch vụ: #${serviceId}`, 'Cập nhật thông tin dịch vụ');
       this.saveState();
+      this.syncUpdateServiceToLiveServer(serviceId, updates);
       return srv;
     }
 
@@ -1571,19 +1573,36 @@
       return true;
     }
 
+    getCartUserId() {
+      const u = this.getCurrentUser();
+      return (u && (u.id || u.MaKhachHang || u.username)) ? String(u.id || u.MaKhachHang || u.username) : 'guest';
+    }
+
     getCart() {
-      return this.state.cart || [];
+      if (!this.state.cartsByUser || typeof this.state.cartsByUser !== 'object') {
+        this.state.cartsByUser = {};
+        if (Array.isArray(this.state.cart) && this.state.cart.length > 0) {
+          this.state.cartsByUser['guest'] = [...this.state.cart];
+        }
+      }
+      const uid = this.getCartUserId();
+      if (!Array.isArray(this.state.cartsByUser[uid])) {
+        this.state.cartsByUser[uid] = [];
+      }
+      this.state.cart = this.state.cartsByUser[uid];
+      return this.state.cartsByUser[uid];
     }
 
     addToCart(productId, qty = 1) {
       const prod = this.getProductById(productId);
       if (!prod) return;
 
-      const existing = this.state.cart.find(item => item.productId === productId);
+      const cart = this.getCart();
+      const existing = cart.find(item => item.productId === productId);
       if (existing) {
         existing.qty += qty;
       } else {
-        this.state.cart.push({
+        cart.push({
           productId: prod.id,
           name: prod.name,
           price: prod.price,
@@ -1597,22 +1616,35 @@
           qty
         });
       }
+      const uid = this.getCartUserId();
+      this.state.cartsByUser[uid] = cart;
+      this.state.cart = cart;
       this.saveState();
+      this.notify('CART_UPDATED', cart);
     }
 
     updateCartQty(productId, qty) {
+      let cart = this.getCart();
       if (qty <= 0) {
-        this.state.cart = this.state.cart.filter(item => item.productId !== productId);
+        cart = cart.filter(item => item.productId !== productId);
       } else {
-        const item = this.state.cart.find(i => i.productId === productId);
+        const item = cart.find(i => i.productId === productId);
         if (item) item.qty = qty;
       }
+      const uid = this.getCartUserId();
+      this.state.cartsByUser[uid] = cart;
+      this.state.cart = cart;
       this.saveState();
+      this.notify('CART_UPDATED', cart);
     }
 
     clearCart() {
+      const uid = this.getCartUserId();
+      if (!this.state.cartsByUser) this.state.cartsByUser = {};
+      this.state.cartsByUser[uid] = [];
       this.state.cart = [];
       this.saveState();
+      this.notify('CART_UPDATED', []);
     }
 
     createOrder(orderData) {
@@ -1745,6 +1777,7 @@
       this.state.staffShifts.unshift(newShift);
       this.saveState();
       this.logAudit('REGISTER_SHIFT', `Nhân sự: ${newShift.staffName}`, `Đăng ký ${newShift.shiftName} ngày ${newShift.date}`);
+      this.syncRegisterShiftToLiveServer(newShift);
       return newShift;
     }
 
@@ -1785,6 +1818,8 @@
       }
 
       const orderCode = `ORD-POS-${Math.floor(1000 + Math.random() * 9000)}`;
+      const stObj = posData.stylistId ? this.getStylistById(posData.stylistId) : null;
+      const stylistName = posData.stylistName || (stObj ? stObj.name : 'Master Barber');
       const posOrder = {
         id: orderCode,
         orderCode,
@@ -1794,6 +1829,7 @@
         customerName: posData.customerName || 'Khách Cắt Quầy',
         customerPhone: posData.customerPhone || '0900000000',
         stylistId: posData.stylistId || null,
+        stylistName: stylistName,
         services: posData.services || [],
         items: posData.items || [],
         subtotal,
@@ -2167,12 +2203,61 @@
       this.notify('STORE_RESET');
     }
 
+    async syncUpdateServiceToLiveServer(serviceId, updates) {
+      try {
+        await fetch(`/api/services/${serviceId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates)
+        });
+      } catch (_) {}
+    }
+
+    async syncUpdateComboToLiveServer(comboId, updates) {
+      try {
+        await fetch(`/api/combos/${comboId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates)
+        });
+      } catch (_) {}
+    }
+
+    async syncRegisterShiftToLiveServer(shiftData) {
+      try {
+        const res = await fetch('/api/shifts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(shiftData)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.shift && data.shift.MaCa) {
+            shiftData.id = data.shift.MaCa;
+            shiftData.MaCa = data.shift.MaCa;
+            this.saveState();
+          }
+        }
+      } catch (_) {}
+    }
+
     login(identifier, password) {
       if (window.Auth && typeof window.Auth.login === 'function') {
         const res = window.Auth.login(identifier, password);
         if (res && res.success && res.user) {
           this.state.currentUser = res.user;
+          const uid = this.getCartUserId();
+          if (!this.state.cartsByUser) this.state.cartsByUser = {};
+          if (!this.state.cartsByUser[uid]) this.state.cartsByUser[uid] = [];
+          this.state.cart = this.state.cartsByUser[uid];
           this.saveState();
+
+          if (window.BookingPage && typeof window.BookingPage.resetBookingState === 'function') {
+            window.BookingPage.resetBookingState();
+          }
+
+          this.notify('AUTH_CHANGED', res.user);
+          this.notify('CART_UPDATED', this.state.cart);
         }
         return res;
       }
@@ -2184,7 +2269,15 @@
         window.Auth.logout();
       }
       this.state.currentUser = null;
+      this.state.cart = (this.state.cartsByUser && this.state.cartsByUser['guest']) ? this.state.cartsByUser['guest'] : [];
       this.saveState();
+
+      if (window.BookingPage && typeof window.BookingPage.resetBookingState === 'function') {
+        window.BookingPage.resetBookingState();
+      }
+
+      this.notify('AUTH_CHANGED', null);
+      this.notify('CART_UPDATED', this.state.cart);
       return { success: true };
     }
   }

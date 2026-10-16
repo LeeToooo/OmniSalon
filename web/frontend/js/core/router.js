@@ -140,6 +140,7 @@
 
       if (window.CustomerWeb) {
         if (normalized.startsWith('/admin')) {
+          document.body.classList.add('admin-mode');
           const user = (window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function') 
             ? window.CustomerWeb.getCurrentUser() 
             : (window.store && typeof window.store.getCurrentUser === 'function' ? window.store.getCurrentUser() : null);
@@ -147,6 +148,7 @@
             ? window.CustomerWeb.isAdminUser(user)
             : (user && ['SUPER_ADMIN', 'ADMIN'].includes(String(user.role).toUpperCase()));
           if (!isAdmin) {
+            document.body.classList.remove('admin-mode');
             if (window.CustomerWeb && typeof window.CustomerWeb.handleAdminDenied === 'function') {
               window.CustomerWeb.handleAdminDenied();
             }
@@ -158,6 +160,7 @@
             window.CustomerWeb.renderHeader();
           }
         } else {
+          document.body.classList.remove('admin-mode');
           const tabMap = {
             '/': 'home',
             '/services': 'services',

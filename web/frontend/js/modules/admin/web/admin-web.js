@@ -208,7 +208,11 @@
       if (!modal || !modalBody) return;
       const shell = modal.querySelector('.modal-content-shell');
       if (shell) {
-        if (isWide) {
+        if (isWide === 'queue' || isWide === 'medium') {
+          shell.classList.remove('modal-wide');
+          shell.style.maxWidth = '720px';
+          shell.style.width = '90vw';
+        } else if (isWide) {
           shell.classList.add('modal-wide');
           shell.style.maxWidth = '960px';
           shell.style.width = '95vw';
@@ -264,8 +268,11 @@
     },
 
     _goToCustomerPortal() {
+      document.body.classList.remove('admin-mode');
       if (window.CustomerWeb && typeof window.CustomerWeb.switchTab === 'function') {
         window.CustomerWeb.switchTab('home');
+      } else if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
+        window.AppRouter.navigate('/');
       } else if (window.UIWeb && typeof window.UIWeb.switchTab === 'function') {
         window.UIWeb.switchTab('home');
       }
@@ -440,13 +447,14 @@
       } else if (activeRole === 'BRANCH_MANAGER') {
         visibleTabs = [
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
+          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
           { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu & Kho' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
           { id: 'audit', icon: tabIcons.audit, label: 'Lịch Sử Đơn Hàng & POS' }
         ];
-        if (!['pos', 'inventory', 'bookings', 'overview', 'stylists', 'audit'].includes(this.adminSubTab)) {
+        if (!['pos', 'catalog', 'inventory', 'bookings', 'overview', 'stylists', 'audit'].includes(this.adminSubTab)) {
           this.adminSubTab = 'pos';
         }
       } else {
@@ -456,7 +464,7 @@
           { id: 'branches', icon: tabIcons.branches, label: 'Quản Lý Chi Nhánh' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Điều Phối Lịch Hẹn' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
-          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Combo' },
+          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
           { id: 'audit', icon: tabIcons.audit, label: 'Khách Hàng & Nhật Ký' }
         ];
@@ -475,7 +483,7 @@
         },
         {
           groupLabel: 'VẬN HÀNH DỊCH VỤ',
-          ids: ['pos', 'bookings', 'stylists']
+          ids: ['pos', 'bookings', 'stylists', 'catalog']
         },
         {
           groupLabel: 'SẢN PHẨM VÀ KHO',
@@ -487,6 +495,7 @@
         }
       ];
 
+      document.body.classList.add('admin-mode');
       container.innerHTML = `
         <div class="admin-dashboard-layout">
           <!-- Lớp phủ mờ khi mở menu trên di động -->
@@ -863,15 +872,17 @@
         </div>
 
         <!-- Tình Trạng Kho Hàng Nhanh Trong Báo Cáo Doanh Thu & Kho -->
-        <div style="background: var(--surface-card, #14171F); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 12px; padding: 12px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-            <span style="font-weight: 800; color: #f59e0b; font-size: 13px;">Tình Trạng Kho Hàng:</span>
-            <span style="font-size: 12.5px; color: #cbd5e1;">Mặt hàng: <strong>${inventoryList.length}</strong></span>
-            <span style="font-size: 12.5px; color: #cbd5e1;">Tổng tồn kho: <strong>${totalStockUnits}</strong> món</span>
-            <span style="font-size: 12.5px; color: #cbd5e1;">Vốn tồn kho (giá nhập): <strong>${SalonUtils.formatCurrency(totalInventoryCost)}</strong></span>
-            ${lowStockCount > 0 ? `<span style="font-size: 12px; color: #ef4444; font-weight: 800; background: rgba(239, 68, 68, 0.15); padding: 2px 8px; border-radius: 6px;">${lowStockCount} mặt hàng sắp hết</span>` : '<span style="font-size: 12px; color: #10b981; font-weight: 700;">Kho hàng ổn định</span>'}
+        <div class="admin-inventory-status-bar">
+          <div class="admin-inventory-status-info">
+            <span class="inv-status-label">Tình Trạng Kho Hàng:</span>
+            <span class="inv-status-stat">Mặt hàng: <strong>${inventoryList.length}</strong></span>
+            <span class="inv-status-stat">Tổng tồn kho: <strong>${totalStockUnits}</strong> món</span>
+            <span class="inv-status-stat">Vốn tồn kho (giá nhập): <strong>${SalonUtils.formatCurrency(totalInventoryCost)}</strong></span>
+            ${lowStockCount > 0 
+              ? `<span class="inv-status-badge inv-status-warning">${lowStockCount} mặt hàng sắp hết</span>` 
+              : '<span class="inv-status-badge inv-status-ok">Kho hàng ổn định</span>'}
           </div>
-          <button type="button" class="pill-btn-outline" style="font-size: 11.5px; padding: 4px 12px;" onclick="AdminWeb.switchSubTab('inventory')">
+          <button type="button" class="pill-btn-outline inv-status-btn" onclick="AdminWeb.switchSubTab('inventory')">
             Quản Lý Chi Tiết Kho →
           </button>
         </div>
@@ -1310,7 +1321,7 @@
         <div style="margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <span class="quick-booking-badge" style="background: #f59e0b; color: #000; font-weight: 900;">4RAU WORKSTATIONS</span>
+              <span class="quick-booking-badge" style="background: #f59e0b; color: #000; font-weight: 900;">OMNI WORKSTATIONS</span>
               <span style="font-size: 16px; font-weight: 800; color: var(--text-primary, #FFFFFF);">Bàn Điều Phối Ghế Cắt Theo Ca Hẹn</span>
               <span class="badge-terracotta" style="font-size: 11px;">
                 Ngày: ${workstationDate === todayStr ? 'Hôm Nay (' + SalonUtils.formatDate(todayStr) + ')' : SalonUtils.formatDate(workstationDate)}
@@ -1431,7 +1442,6 @@
       const pagedBookings = filtered.slice((this.bookingsPage - 1) * this.pageSize, this.bookingsPage * this.pageSize);
 
       return `
-        ${customerSearchHtml}
         ${timelineHtml}
 
         <div class="admin-table-container">
@@ -1522,7 +1532,7 @@
                         ${b.servicesList && b.servicesList.length > 1 ? `<div style="font-size: 11px; color: #f59e0b;">(${b.servicesList.length} dịch vụ gộp)</div>` : ''}
                       </td>
                       <td>${this.escapeHtml(this._getBranchShortName(b.branchName || b.branchId, bMap))}</td>
-                      <td><strong>${this.escapeHtml(b.stylistName || 'Barber')}</strong></td>
+                      <td><strong>${this.escapeHtml(b.stylistName || (window.store && window.store.getStylistById(b.stylistId)?.name) || 'Tự Động Xếp Barber')}</strong></td>
                       <td>
                         <strong style="font-size: ${isToday ? '15px' : '13.5px'}; color: ${isNearest ? '#f59e0b' : 'inherit'};">
                           ${this.escapeHtml(b.timeSlot || '')}
@@ -1934,45 +1944,66 @@
         : [];
 
       this._openModal(`
-        <div class="booking-wizard-wrapper" style="max-width: 540px; margin: 0 auto;">
-          <div class="booking-header">
-            <div class="badge-terracotta">LỊCH TRỰC & CA LÀM VIỆC</div>
-            <h2 class="booking-title" style="font-size: 20px;">DANH SÁCH CA HÔM NAY — ${this.escapeHtml(st.name)}</h2>
-            <p class="booking-subtitle">Theo dõi khách hàng đã đặt theo từng khung giờ</p>
+        <div class="booking-wizard-wrapper" style="max-width: 680px; width: 100%; margin: 0 auto; padding: 12px 6px;">
+          <div class="booking-header" style="text-align: center; margin-bottom: 24px;">
+            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); color: #d97706; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
+              LỊCH TRỰC &amp; CA LÀM VIỆC
+            </div>
+            <h2 class="booking-title" style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 10px 0 6px;">
+              DANH SÁCH CA HÔM NAY — ${this.escapeHtml(st.name)}
+            </h2>
+            <p class="booking-subtitle" style="font-size: 14px; color: var(--text-secondary); margin: 0;">
+              Theo dõi khách hàng đã đặt theo từng khung giờ trong ngày
+            </p>
           </div>
 
-          <div style="max-height: 360px; overflow-y: auto; margin-bottom: 18px;">
+          <div style="max-height: 480px; overflow-y: auto; margin-bottom: 24px; padding-right: 4px;">
             ${queue.length > 0 ? queue.map(b => {
               const statusInfo = SalonUtils.formatBookingStatus(b.status);
               return `
-                <div style="background: var(--surface-card, #fafafc); border: 1px solid var(--border-color, #e5e7eb); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                  <div>
-                    <div style="font-size: 14px; font-weight: 800; color: var(--text-primary, #111);">
-                      ${this.escapeHtml(b.timeSlot)} — ${this.escapeHtml(b.customerName)}
+                <div style="border-bottom: 1px solid var(--border-color, #e5e7eb); padding: 16px 8px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 15.5px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                      <span style="color: #f59e0b; font-weight: 900;">${this.escapeHtml(b.timeSlot)}</span>
+                      <span>—</span>
+                      <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(b.customerName)}</span>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-secondary, #666); margin-top: 2px;">
-                      Dịch vụ: <strong>${this.escapeHtml(b.serviceName || 'Cắt tóc')}</strong> • SĐT: ${this.escapeHtml(b.customerPhone)}
+                    <div style="font-size: 13.5px; color: var(--text-secondary); margin-top: 5px;">
+                      Dịch vụ: <strong style="color: var(--text-primary);">${this.escapeHtml(b.serviceName || 'Cắt tóc')}</strong> • SĐT: <strong style="color: var(--text-primary);">${this.escapeHtml(b.customerPhone)}</strong>
                     </div>
                   </div>
-                  <div>
-                    <span class="status-pill-pulse ${statusInfo.cssClass}">
+                  <div style="flex-shrink: 0;">
+                    <span class="status-pill-pulse ${statusInfo.cssClass}" style="white-space: nowrap; padding: 7px 16px; font-size: 12.5px; font-weight: 700;">
                       <span class="pulse-dot"></span> ${statusInfo.label}
                     </span>
                   </div>
                 </div>
               `;
             }).join('') : `
-              <div style="text-align: center; padding: 30px; color: #888; font-size: 13px;">
-                Chưa có khách đặt lịch nào cho thợ này trong ngày hôm nay.
+              <div style="text-align: center; padding: 36px 20px; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+                <div style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
+                  Chưa có lịch hẹn trong ngày hôm nay
+                </div>
+                <p style="font-size: 13.5px; color: var(--text-secondary); max-width: 440px; margin: 0; line-height: 1.5;">
+                  Hiện tại thợ <strong>${this.escapeHtml(st.name)}</strong> chưa có khách đặt chỗ trực tuyến. Bạn có thể xếp thêm khách vãng lai hoặc điều phối thợ sang ca tiếp theo.
+                </p>
               </div>
             `}
           </div>
 
-          <button class="btn-submit-terracotta" style="width: 100%;" onclick="AdminWeb._closeModal()">
+          <button type="button" class="btn-submit-terracotta" style="width: 100%; min-height: 48px; font-size: 15px; font-weight: 800; border-radius: 12px;" onclick="AdminWeb._closeModal()">
             Đóng Cửa Sổ
           </button>
         </div>
-      `);
+      `, 'queue');
     },
 
     // -----------------------------------------------------------------------
@@ -3005,9 +3036,21 @@
         pos.branchId = branches[0].id;
       }
 
-      const branchStylists = stylists.filter(s => s.branchId === pos.branchId);
-      if (!pos.selectedStylistId && branchStylists.length > 0) {
-        pos.selectedStylistId = branchStylists[0].id;
+      let branchStylists = (window.store && typeof window.store.getStylists === 'function')
+        ? window.store.getStylists(pos.branchId)
+        : [];
+      if (!branchStylists || branchStylists.length === 0) {
+        branchStylists = stylists.filter(s => {
+          if (s.branchId === pos.branchId || s.MaChiNhanh === pos.branchId) return true;
+          if ((pos.branchId === 'br-dbp' || pos.branchId === 'CN01') && (s.branchId === 'CN01' || s.branchId === 'br-dbp' || s.MaChiNhanh === 'CN01')) return true;
+          return false;
+        });
+      }
+      if (!branchStylists || branchStylists.length === 0) {
+        branchStylists = stylists.filter(s => s.role !== 'Thu ngân' && s.ChucVu !== 'Thu ngân');
+      }
+      if (!pos.selectedStylistId || !branchStylists.some(s => s.id === pos.selectedStylistId)) {
+        pos.selectedStylistId = branchStylists[0]?.id || (stylists[0]?.id || '');
       }
 
       // Danh mục picker bên trái
@@ -3070,9 +3113,9 @@
                     <div style="font-size: 11px; color: var(--brand-accent, #F59E0B); font-weight: 700;">${item.itemType === 'service' ? 'Dịch Vụ' : 'Sản Phẩm'}</div>
                     <div style="font-size: 13px; font-weight: 800; color: var(--text-primary); line-height: 1.3; margin: 2px 0 4px;">${this.escapeHtml(item.name)}</div>
                   </div>
-                  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px;">
-                    <strong style="font-size: 13px; color: var(--brand-accent, #F59E0B);">${SalonUtils.formatCurrency(item.price)}</strong>
-                    <button type="button" class="btn-submit-terracotta" style="padding: 3px 8px; font-size: 10px;">+ Thêm</button>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px;">
+                    <strong style="font-size: 13.5px; color: var(--brand-accent, #F59E0B); white-space: nowrap !important; display: inline-block;">${SalonUtils.formatCurrency(item.price)}</strong>
+                    <button type="button" class="pos-item-add-btn">+ Thêm</button>
                   </div>
                 </div>
               `).join('')}
@@ -3130,7 +3173,7 @@
 
             <!-- Chi tiết bill -->
             <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
-              Danh Sách Món Trong Bill (${pos.billServices.length + pos.billProducts.length}):
+              Danh Sách Dịch Vụ & Sản Phẩm Trong Bill (${pos.billServices.length + pos.billProducts.length}):
             </div>
             <div class="pos-bill-list">
               ${pos.billServices.length === 0 && pos.billProducts.length === 0 ? `
@@ -3144,7 +3187,7 @@
                 <div class="pos-bill-row">
                   <div>
                     <strong style="color: var(--text-primary);">${this.escapeHtml(s.name)}</strong>
-                    <div style="font-size: 11px; color: var(--text-secondary);">${s.duration || 45} phút</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">${parseInt(String(s.duration || 45).replace(/\s*phút/gi, ''), 10) || 45} phút</div>
                   </div>
                   <div style="display: flex; gap: 8px; align-items: center;">
                     <strong style="color: var(--brand-accent, #F59E0B);">${SalonUtils.formatCurrency(s.price)}</strong>
@@ -3173,7 +3216,7 @@
 
             <!-- Mã Giảm Giá Voucher -->
             <div style="display: flex; gap: 6px; margin-bottom: 12px;">
-              <input type="text" id="adminPosVoucherInput" class="form-control-custom" placeholder="Mã ưu đãi (VD: CHUTICH50)" 
+              <input type="text" id="adminPosVoucherInput" class="form-control-custom" placeholder="Mã ưu đãi (VD: KM2026)" 
                      style="font-size: 12px; padding: 6px 10px; text-transform: uppercase;" value="${this.escapeHtml(pos.voucherCode)}">
               <button type="button" class="btn-submit-terracotta" style="padding: 6px 14px; font-size: 11px; white-space: nowrap;" onclick="AdminWeb.applyPosVoucher()">
                 Áp Mã
@@ -3336,9 +3379,15 @@
       }
 
       try {
+        const chosenStylist = (window.store && typeof window.store.getStylistById === 'function')
+          ? window.store.getStylistById(pos.selectedStylistId)
+          : null;
+        const stylistName = chosenStylist ? chosenStylist.name : 'Master Barber Chuyên Nghiệp';
+
         const posOrder = window.store.createPosOrder({
           branchId: pos.branchId,
           stylistId: pos.selectedStylistId || null,
+          stylistName: stylistName,
           customerName: pos.customerName || 'Khách Cắt Quầy',
           customerPhone: pos.customerPhone || '0900000000',
           services: pos.billServices,
@@ -3367,20 +3416,21 @@
           </p>
 
           <div class="booking-invoice-card" style="text-align: left; background: var(--surface-elevated); border-radius: 10px; padding: 14px; border: 1px solid var(--border-color); color: var(--text-primary);">
-            <div class="invoice-item"><span>Cơ sở phục vụ:</span><strong>${this.escapeHtml(order.branchId)}</strong></div>
+            <div class="invoice-item"><span>Cơ sở phục vụ:</span><strong>${this.escapeHtml(this._getBranchShortName(order.branchId))}</strong></div>
+            <div class="invoice-item"><span>Barber phục vụ:</span><strong>${this.escapeHtml(order.stylistName || (window.store && window.store.getStylistById(order.stylistId)?.name) || 'Master Barber')}</strong></div>
             <div class="invoice-item"><span>Khách hàng:</span><span>${this.escapeHtml(order.customerName)} (${this.escapeHtml(order.customerPhone)})</span></div>
             <div class="invoice-item"><span>Hình thức thanh toán:</span><strong>${this.escapeHtml(order.paymentMethod)}</strong></div>
 
             ${order.services && order.services.length > 0 ? `
               <div style="margin: 8px 0; border-top: 1px dashed var(--border-color); padding-top: 6px;">
-                <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">DỊCH VỤ CẮT:</div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">DỊCH VỤ:</div>
                 ${order.services.map(s => `<div class="invoice-item"><span>${this.escapeHtml(s.name)}</span><strong>${SalonUtils.formatCurrency(s.price)}</strong></div>`).join('')}
               </div>
             ` : ''}
 
             ${order.items && order.items.length > 0 ? `
               <div style="margin: 8px 0; border-top: 1px dashed var(--border-color); padding-top: 6px;">
-                <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">SẢN PHẨM SÁP:</div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">SẢN PHẨM:</div>
                 ${order.items.map(it => `<div class="invoice-item"><span>${this.escapeHtml(it.name)} (x${it.qty || 1})</span><strong>${SalonUtils.formatCurrency(it.price * (it.qty || 1))}</strong></div>`).join('')}
               </div>
             ` : ''}

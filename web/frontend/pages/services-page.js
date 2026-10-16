@@ -118,11 +118,11 @@
             <div style="position: relative; width: 100%; height: 180px; overflow: hidden; background: #18181b;">
               <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover;" alt="${item.name || item.TenDichVu}" loading="lazy"
                    onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg');">
-              <div style="position: absolute; top: 10px; left: 10px; background: #121214; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #A1A1AA; border: 1px solid #222225;">
+              <div style="position: absolute; top: 10px; left: 10px; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.15);">
                 ${durationVal} phút
               </div>
               ${isCombo ? `
-                <div style="position: absolute; top: 10px; right: 10px; background: #27272A; color: #FBBF24; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; border: 1px solid rgba(245, 158, 11, 0.2);">
+                <div style="position: absolute; top: 10px; right: 10px; background: #D97706; color: #FFFFFF; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 800; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
                   COMBO VIP
                 </div>
               ` : ''}
@@ -131,7 +131,7 @@
             <!-- NỘI DUNG DỊCH VỤ -->
             <div style="padding: 18px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
               <div>
-                <h3 class="service-bento-title" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4;">
+                <h3 class="service-bento-title" style="font-size: 16.5px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4;">
                   ${item.name || item.TenDichVu}
                 </h3>
                 <p class="service-bento-desc" style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 58px;">
@@ -140,13 +140,13 @@
               </div>
 
               <!-- GIÁ & NÚT ĐẶT LỊCH DÍNH ĐÁY -->
-              <div style="margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+              <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                 <div>
-                  <span style="font-size: 18px; font-weight: 600; color: var(--text-primary);">${priceFormatted}</span>
+                  <span style="font-size: 18px; font-weight: 800; color: #D97706;">${priceFormatted}</span>
                   ${originalPrice && originalPrice > actualPrice ? `<span style="font-size: 12.5px; text-decoration: line-through; color: var(--text-muted); margin-left: 6px;">${SalonUtils.formatCurrency(originalPrice)}</span>` : ''}
                 </div>
                 <button onclick="ServicesPage.selectAndBook('${item.id}')"
-                        style="height: 38px; padding: 0 16px; border-radius: 8px; background: #D97706; border: none; color: #09090B; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: none;">
+                        style="min-height: 42px; height: 42px; padding: 0 20px; border-radius: 10px; background: linear-gradient(180deg, #F59E0B, #D97706); border: none; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.22); white-space: nowrap;">
                   Đặt Lịch
                 </button>
               </div>

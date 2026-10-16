@@ -285,7 +285,7 @@ const UICommon = {
                      onclick="UICommon.selectBookingService('${c.id}')">
                   <div class="service-tick-btn">${this.bookingData.serviceId === c.id ? '✓' : ''}</div>
                   <div style="flex: 1; min-width: 0;">
-                    <div style="font-size: 16px; font-weight: 700; color: #fff;">[VIP] ${c.name}</div>
+                    <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">[VIP] ${c.name}</div>
                     <div style="font-size: 13px; color: var(--color-accent-gold); margin: 3px 0;">${c.duration || 75} phút trọn gói</div>
                     <div style="font-size: 15px; font-weight: 800; color: var(--color-accent-gold);">${SalonUtils.formatCurrency(c.price)}</div>
                   </div>
@@ -293,7 +293,7 @@ const UICommon = {
               `).join('')}
             </div>
 
-            <div style="font-size:13px; font-weight:800; color:#E2E8F0; text-transform:uppercase; margin-bottom:10px; letter-spacing:0.04em;">
+            <div style="font-size:13px; font-weight:800; color:var(--text-primary); text-transform:uppercase; margin-bottom:10px; letter-spacing:0.04em;">
               — Dịch Vụ Cắt &amp; Tạo Mẫu Đơn Lẻ —
             </div>
             <div class="service-select-grid" style="margin-bottom:18px;">
@@ -302,8 +302,8 @@ const UICommon = {
                      onclick="UICommon.selectBookingService('${s.id}')">
                   <div class="service-tick-btn">${this.bookingData.serviceId === s.id ? '✓' : ''}</div>
                   <div style="flex: 1; min-width: 0;">
-                    <div style="font-size: 16px; font-weight: 700; color: #fff;">${s.name}</div>
-                    <div style="font-size: 13px; color: var(--color-text-muted); margin: 3px 0;">${s.duration || 45} phút</div>
+                    <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">${s.name}</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin: 3px 0;">${s.duration || 45} phút</div>
                     <div style="font-size: 15px; font-weight: 800; color: var(--color-accent-gold);">${SalonUtils.formatCurrency(s.price)}</div>
                   </div>
                 </div>
@@ -312,7 +312,7 @@ const UICommon = {
 
             <!-- Chọn Chi Nhánh Phục Vụ -->
             <div style="margin-bottom: 16px;">
-              <label class="booking-label" style="font-size: 14px; font-weight: 600; color: #E2E8F0; display: block; margin-bottom: 6px;">Chi Nhánh Thuận Tiện Gần Bạn</label>
+              <label class="booking-label" style="font-size: 14px; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Chi Nhánh Thuận Tiện Gần Bạn</label>
               <select class="form-control-custom" id="bookingBranchSelect" onchange="UICommon.selectBookingBranch(this.value)">
                 ${branches.map(b => `
                   <option value="${b.id}" ${b.id === this.bookingData.branchId ? 'selected' : ''}>${b.TenChiNhanh || b.name} (${b.DiaChi || b.address || ''})</option>
@@ -321,13 +321,13 @@ const UICommon = {
             </div>
 
             <!-- Thanh trạng thái tổng tiền cập nhật realtime -->
-            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-              <span style="font-size: 14px; color: #CBD5E1; font-weight: 500;">Tạm tính dịch vụ đang chọn:</span>
-              <span style="font-size: 18px; font-weight: 900; color: var(--color-accent-gold);">${SalonUtils.formatCurrency(activeService?.price || 0)}</span>
+            <div style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+              <span style="font-size: 14px; color: var(--text-secondary); font-weight: 600;">Tạm tính dịch vụ đang chọn:</span>
+              <span style="font-size: 18px; font-weight: 900; color: #D97706;">${SalonUtils.formatCurrency(activeService?.price || 0)}</span>
             </div>
 
             <div style="display:flex; justify-content:flex-end;">
-              <button type="button" class="btn-submit-terracotta" style="min-height: 48px; font-size: 15px; font-weight: 700; padding: 12px 24px;" onclick="UICommon.setBookingStep(2)">
+              <button type="button" class="btn-submit-terracotta" style="min-height: 48px; font-size: 15px; font-weight: 800; padding: 12px 24px;" onclick="UICommon.setBookingStep(2)">
                 Tiếp Theo: Chọn Stylist →
               </button>
             </div>
@@ -336,8 +336,8 @@ const UICommon = {
           <!-- ================= BƯỚC 2: CHỌN STYLIST ================= -->
           <div class="wizard-step-panel step-2 ${this.bookingStep === 2 ? 'active' : ''}">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
-              <label class="booking-label" style="margin:0; font-size: 15px; font-weight: 700; color: #fff;">2. Chọn Chuyên Gia Stylist</label>
-              <button type="button" class="btn-auto-stylist" style="min-height: 40px; font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 10px;" onclick="UICommon.autoSelectAvailableStylist()">
+              <label class="booking-label" style="margin:0; font-size: 15px; font-weight: 700; color: var(--text-primary);">2. Chọn Chuyên Gia Stylist</label>
+              <button type="button" class="btn-cancel" style="min-height: 42px; font-size: 13.5px; font-weight: 700; padding: 0 18px; border-radius: 10px;" onclick="UICommon.autoSelectAvailableStylist()">
                 Tự Động Sắp Xếp Thợ Phù Hợp
               </button>
             </div>
@@ -352,10 +352,10 @@ const UICommon = {
             </div>
 
             <div style="display:flex; justify-content:space-between; gap:12px;">
-              <button type="button" class="pill-btn-outline" style="color:#fff; min-height: 48px; font-size: 14px; font-weight: 600; padding: 0 20px; border-radius: 12px;" onclick="UICommon.setBookingStep(1)">
+              <button type="button" class="btn-cancel" style="min-height: 48px; font-size: 14.5px; font-weight: 700; padding: 0 22px; border-radius: 12px;" onclick="UICommon.setBookingStep(1)">
                 ← Quay Lại
               </button>
-              <button type="button" class="btn-submit-terracotta" style="min-height: 48px; font-size: 15px; font-weight: 700; padding: 12px 24px;" onclick="UICommon.setBookingStep(3)">
+              <button type="button" class="btn-submit-terracotta" style="min-height: 48px; font-size: 15px; font-weight: 800; padding: 12px 24px;" onclick="UICommon.setBookingStep(3)">
                 Tiếp Theo: Chọn Thời Gian →
               </button>
             </div>
@@ -363,7 +363,7 @@ const UICommon = {
 
           <!-- ================= BƯỚC 3: CHỌN NGÀY & KHUNG GIỜ ================= -->
           <div class="wizard-step-panel step-3 ${this.bookingStep === 3 ? 'active' : ''}">
-            <label class="booking-label">3. Chọn Ngày &amp; Khung Giờ Hẹn</label>
+            <label class="booking-label" style="color: var(--text-primary);">3. Chọn Ngày &amp; Khung Giờ Hẹn</label>
             
             <!-- Lịch trượt ngang  - Horizontal Date Picker -  -->
             <div class="app-date-scroll">
@@ -389,11 +389,11 @@ const UICommon = {
         : (window.TimeSlotChipsWidget ? window.TimeSlotChipsWidget.render(slots, this.bookingData.timeSlot, 'UICommon.selectBookingSlot') : '')}
             </div>
 
-            <div style="display:flex; justify-content:space-between; gap:10px;">
-              <button type="button" class="pill-btn-outline" style="color:#fff;" onclick="UICommon.setBookingStep(2)">
+            <div style="display:flex; justify-content:space-between; gap:12px;">
+              <button type="button" class="btn-cancel" style="min-height: 48px; font-size: 14.5px; font-weight: 700; padding: 0 22px; border-radius: 12px;" onclick="UICommon.setBookingStep(2)">
                 ← Quay Lại
               </button>
-              <button type="button" class="btn-submit-terracotta" onclick="UICommon.setBookingStep(4)">
+              <button type="button" class="btn-submit-terracotta" style="min-height: 48px; font-size: 15px; font-weight: 800; padding: 12px 24px;" onclick="UICommon.setBookingStep(4)">
                 Tiếp Theo: Hóa Đơn &amp; Xác Nhận →
               </button>
             </div>
@@ -401,7 +401,7 @@ const UICommon = {
 
           <!-- ================= BƯỚC 4: TÓM TẮT & HÓA ĐƠN SỐ TỐI GIẢN ================= -->
           <div class="wizard-step-panel step-4 ${this.bookingStep === 4 ? 'active' : ''}">
-            <label class="booking-label">4. Thông Tin Khách Hàng</label>
+            <label class="booking-label" style="color: var(--text-primary);">4. Thông Tin Khách Hàng</label>
             <div class="booking-row-2" style="margin-bottom: 16px;">
               <input type="text" class="form-control-custom" placeholder="Họ và tên của bạn..." 
                      value="${this.bookingData.customerName}" required oninput="UICommon.bookingData.customerName = this.value">
@@ -443,27 +443,28 @@ const UICommon = {
 
             <!-- Phương thức thanh toán -->
             <div style="margin-bottom: 20px;">
-              <span class="sub-label">Phương Thức Thanh Toán Ưu Tiên:</span>
-              <div style="display:flex; gap:10px;">
-                <label style="flex:1; display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--surface-card); border:1px solid var(--border-color); border-radius:12px; cursor:pointer;">
+              <span class="sub-label" style="color: var(--text-primary); font-size: 13px; font-weight: 700; margin-bottom: 8px; display: block;">Phương Thức Thanh Toán Ưu Tiên:</span>
+              <div style="display:flex; gap:12px;">
+                <label style="flex:1; display:flex; align-items:center; gap:8px; padding:12px 16px; background:var(--surface-card); border:1px solid var(--border-color); border-radius:12px; cursor:pointer;">
                   <input type="radio" name="payMethod" value="VietQR" checked onchange="UICommon.bookingData.paymentMethod = 'VietQR'">
-                  <span style="font-size:12px; font-weight:700; color:var(--text-primary);">VietQR Tự Động</span>
+                  <span style="font-size:13px; font-weight:700; color:var(--text-primary);">VietQR Tự Động</span>
                 </label>
-                <label style="flex:1; display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--surface-card); border:1px solid var(--border-color); border-radius:12px; cursor:pointer;">
+                <label style="flex:1; display:flex; align-items:center; gap:8px; padding:12px 16px; background:var(--surface-card); border:1px solid var(--border-color); border-radius:12px; cursor:pointer;">
                   <input type="radio" name="payMethod" value="Cash" onchange="UICommon.bookingData.paymentMethod = 'Cash'">
-                  <span style="font-size:12px; font-weight:700; color:var(--text-primary);">Thanh Toán Tại Quầy</span>
+                  <span style="font-size:13px; font-weight:700; color:var(--text-primary);">Thanh Toán Tại Quầy</span>
                 </label>
               </div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; gap:10px;">
-              <button type="button" class="pill-btn-outline" style="color:#fff;" onclick="UICommon.setBookingStep(3)">
+            <div style="display:flex; justify-content:space-between; gap:12px;">
+              <button type="button" class="btn-cancel" style="min-height: 48px; font-size: 14.5px; font-weight: 700; padding: 0 22px; border-radius: 12px;" onclick="UICommon.setBookingStep(3)">
                 ← Quay Lại
               </button>
-              <button type="submit" class="btn-submit-terracotta" style="flex:1;">
+              <button type="submit" class="btn-submit-terracotta" style="flex:1; min-height: 48px; font-size: 15px; font-weight: 800; border-radius: 12px;">
                 Xác Nhận Đặt Lịch Ngay →
               </button>
             </div>
+          </div>
           </div>
 
         </form>
@@ -1468,16 +1469,17 @@ const UICommon = {
     modal.classList.add('active', 'modal-auth');
     const shell = modal.querySelector('.modal-content-shell');
     if (shell) {
-      shell.style.maxWidth = '440px';
+      shell.style.maxWidth = '480px';
+      shell.style.width = '95vw';
     }
 
     const titleText = this.authTab === 'login' ? 'Đăng Nhập Tài Khoản' : (this.authTab === 'register' ? 'Đăng Ký Mới' : 'Khôi Phục Mật Khẩu');
 
     modalBody.innerHTML = `
       <div class="auth-modal-content">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h2 class="auth-modal-title" style="font-size: 20px; font-weight: 700; margin: 0 0 6px; color: #FFFFFF; letter-spacing: -0.01em;">${titleText}</h2>
-          <p style="font-size: 13px; color: #94A3B8; margin: 0; line-height: 1.5;">Đồng bộ đa nền tảng Web Portal, App Mobile và Quản Trị</p>
+        <div style="text-align: center; margin-bottom: 22px;">
+          <h2 class="auth-modal-title" style="font-size: 22px; font-weight: 800; margin: 0 0 6px; color: var(--text-primary); letter-spacing: -0.01em;">${titleText}</h2>
+          <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0; line-height: 1.5;">Đồng bộ đa nền tảng Web Portal, App Mobile và Quản Trị</p>
         </div>
 
         <!-- Thanh chuyen tab phan doan -->
@@ -1496,96 +1498,96 @@ const UICommon = {
         ${this.authTab === 'login' ? `
           <!-- Tab dang nhap tai khoan -->
           <form onsubmit="event.preventDefault(); UICommon.handleLogin();">
-            <div style="margin-bottom: 14px;">
-              <label class="sub-label">Email, Tên đăng nhập hoặc Số điện thoại:</label>
+            <div style="margin-bottom: 16px;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Email, Tên đăng nhập hoặc Số điện thoại:</label>
               <input type="text" id="loginAccount" class="form-control-custom" placeholder="Ví dụ: user_nv01, user_kh01, 0908..." required autocomplete="username">
             </div>
-            <div style="margin-bottom: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                <label class="sub-label">Mật khẩu:</label>
-                <a href="javascript:void(0)" onclick="UICommon.openAuthModal('reset')" style="color: #f59e0b; font-size: 12px; font-weight: 600; text-decoration: none;">Quên mật khẩu?</a>
+            <div style="margin-bottom: 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0;">Mật khẩu:</label>
+                <a href="javascript:void(0)" onclick="UICommon.openAuthModal('reset')" style="color: #d97706; font-size: 12.5px; font-weight: 700; text-decoration: none;">Quên mật khẩu?</a>
               </div>
               <div style="position: relative; display: flex; align-items: center;">
-                <input type="password" id="loginPassword" class="form-control-custom" style="padding-right: 42px; width: 100%;" placeholder="Nhập mật khẩu tài khoản" required autocomplete="current-password">
-                <button type="button" onclick="UICommon.togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                <input type="password" id="loginPassword" class="form-control-custom" style="padding-right: 44px; width: 100%;" placeholder="Nhập mật khẩu tài khoản" required autocomplete="current-password">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn-submit-terracotta" style="width: 100%; min-height: 44px; font-size: 14.5px; font-weight: 700; margin-top: 6px;">Đăng Nhập Ngay →</button>
+            <button type="submit" class="btn-submit-terracotta" style="width: 100%; min-height: 48px; font-size: 15px; font-weight: 800; border-radius: 12px; margin-top: 6px;">Đăng Nhập Ngay →</button>
           </form>
         ` : this.authTab === 'reset' ? `
           <!-- Tab quen mat khau va nhan ma xac thuc -->
           <form onsubmit="event.preventDefault(); UICommon.handleResetPassword();">
-            <div style="margin-bottom: 12px;">
-              <label class="sub-label">Gmail hoặc Số điện thoại tài khoản:</label>
+            <div style="margin-bottom: 14px;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Gmail hoặc Số điện thoại tài khoản:</label>
               <div style="display: flex; gap: 8px;">
                 <input type="text" id="resetIdentifier" class="form-control-custom" placeholder="nhapemail@gmail.com hoặc SĐT" required style="flex: 1;">
-                <button type="button" id="btnSendResetOtp" onclick="UICommon.sendResetOtp()" style="background: linear-gradient(180deg, #f59e0b, #d97706); color: #000; font-weight: 700; font-size: 13px; padding: 0 16px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
+                <button type="button" id="btnSendResetOtp" onclick="UICommon.sendResetOtp()" style="background: linear-gradient(180deg, #f59e0b, #d97706); color: #ffffff; font-weight: 800; font-size: 13.5px; padding: 0 18px; border-radius: 10px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
                   Gửi Mã
                 </button>
               </div>
             </div>
-            <div style="margin-bottom: 12px;">
-              <label class="sub-label">Mã Xác Nhận Gmail 6 số:</label>
-              <input type="text" id="resetOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số ví dụ 839201" maxlength="6" style="letter-spacing: 4px; font-weight: 800; font-family: monospace; font-size: 16px; text-align: center;" required>
-              <div id="resetOtpStatusTip" style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
+            <div style="margin-bottom: 14px;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Mã Xác Nhận Gmail 6 số:</label>
+              <input type="text" id="resetOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số (VD: 839201)" maxlength="6" required>
+              <div id="resetOtpStatusTip" style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">
                 Mã xác thực gồm 6 chữ số có hiệu lực trong 5 phút. Vui lòng kiểm tra hộp thư đến hoặc mục Thư rác.
               </div>
             </div>
-            <div style="margin-bottom: 16px;">
-              <label class="sub-label">Mật khẩu mới cần đổi:</label>
+            <div style="margin-bottom: 18px;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Mật khẩu mới cần đổi:</label>
               <div style="position: relative; display: flex; align-items: center;">
-                <input type="password" id="resetPasswordInput" class="form-control-custom" style="padding-right: 42px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
-                <button type="button" onclick="UICommon.togglePasswordVisibility('resetPasswordInput', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                <input type="password" id="resetPasswordInput" class="form-control-custom" style="padding-right: 44px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('resetPasswordInput', this)" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn-submit-terracotta" style="width: 100%; padding: 12px; font-weight: 700;">Lưu Mật Khẩu Mới →</button>
+            <button type="submit" class="btn-submit-terracotta" style="width: 100%; min-height: 48px; font-size: 15px; font-weight: 800; border-radius: 12px;">Lưu Mật Khẩu Mới →</button>
           </form>
-          <div style="font-size: 11.5px; color: #888; text-align: center; margin-top: 12px;">
+          <div style="font-size: 12px; color: var(--text-secondary); text-align: center; margin-top: 12px;">
             Mật khẩu mới sẽ được cập nhật trực tiếp vào cơ sở dữ liệu OmniSalon!
           </div>
         ` : `
           <!-- Tab dang ky thanh vien moi -->
           <form onsubmit="event.preventDefault(); UICommon.handleRegister();">
-            <div style="margin-bottom: 10px;">
-              <label class="sub-label">Họ và Tên Khách Hàng:</label>
+            <div style="margin-bottom: 12px;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Họ và Tên Khách Hàng:</label>
               <input type="text" id="regFullName" class="form-control-custom" placeholder="Nguyễn Văn A" required>
             </div>
-            <div style="margin-bottom: 10px;">
-              <label class="sub-label">Số Điện Thoại:</label>
+            <div style="margin-bottom: 12px;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Số Điện Thoại:</label>
               <input type="tel" id="regPhone" class="form-control-custom" placeholder="0908123456" required pattern="[0-9]{9,11}">
             </div>
-            <div style="margin-bottom: 10px;">
-              <label class="sub-label">Gmail Xác Thực Nhận Mã OTP:</label>
+            <div style="margin-bottom: 12px;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Gmail Xác Thực Nhận Mã OTP:</label>
               <div style="display: flex; gap: 8px;">
                 <input type="email" id="regEmail" class="form-control-custom" placeholder="khachhang@gmail.com" required style="flex: 1;">
-                <button type="button" id="btnSendOtp" onclick="UICommon.sendEmailOtp()" style="background: linear-gradient(180deg, #f59e0b, #d97706); color: #000; font-weight: 700; font-size: 13px; padding: 0 16px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
+                <button type="button" id="btnSendOtp" onclick="UICommon.sendEmailOtp()" style="background: linear-gradient(180deg, #f59e0b, #d97706); color: #ffffff; font-weight: 800; font-size: 13.5px; padding: 0 18px; border-radius: 10px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
                   Gửi Mã
                 </button>
               </div>
             </div>
-            <div style="margin-bottom: 12px;" id="regOtpGroup">
-              <label class="sub-label">Mã Xác Nhận Gmail 6 số:</label>
-              <input type="text" id="regOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số ví dụ 839201" maxlength="6" style="letter-spacing: 4px; font-weight: 800; font-family: monospace; font-size: 16px; text-align: center;" required>
-              <div id="otpStatusTip" style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
+            <div style="margin-bottom: 14px;" id="regOtpGroup">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Mã Xác Nhận Gmail 6 số:</label>
+              <input type="text" id="regOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số (VD: 839201)" maxlength="6" required>
+              <div id="otpStatusTip" style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">
                 Mã xác nhận 6 số có hiệu lực trong 5 phút. Vui lòng kiểm tra hộp thư đến hoặc mục Thư rác.
               </div>
             </div>
-            <div style="margin-bottom: 14px;">
-              <label class="sub-label">Mật khẩu khởi tạo:</label>
+            <div style="margin-bottom: 18px;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Mật khẩu khởi tạo:</label>
               <div style="position: relative; display: flex; align-items: center;">
-                <input type="password" id="regPassword" class="form-control-custom" style="padding-right: 42px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
-                <button type="button" onclick="UICommon.togglePasswordVisibility('regPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                <input type="password" id="regPassword" class="form-control-custom" style="padding-right: 44px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('regPassword', this)" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn-submit-terracotta" style="width: 100%; padding: 12px; font-weight: 700;">Tạo Tài Khoản Thành Viên →</button>
+            <button type="submit" class="btn-submit-terracotta" style="width: 100%; min-height: 48px; font-size: 15px; font-weight: 800; border-radius: 12px;">Tạo Tài Khoản Thành Viên →</button>
           </form>
-          <div style="font-size: 11.5px; color: #888; text-align: center; margin-top: 12px;">
+          <div style="font-size: 12px; color: var(--text-secondary); text-align: center; margin-top: 12px;">
             Đăng ký tài khoản để tích điểm đổi quà và lưu giữ bộ sưu tập tóc Omni Salon!
           </div>
         `}

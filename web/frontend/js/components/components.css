@@ -299,12 +299,13 @@ body.light .product-price-current {
   width: 50% !important;
   max-width: 50% !important;
   min-width: 0 !important;
-  height: 38px !important;
+  min-height: 42px !important;
+  height: 42px !important;
   background: #27272A !important;
   color: #F4F4F5 !important;
   border: 1px solid #3F3F46 !important;
-  border-radius: 8px !important;
-  font-size: 13px !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
   font-weight: 600 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -314,10 +315,26 @@ body.light .product-price-current {
   user-select: none !important;
   box-sizing: border-box !important;
   box-shadow: none !important;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+  transition: all 0.15s ease !important;
   letter-spacing: -0.01em !important;
   white-space: nowrap !important;
-  padding: 0 8px !important;
+  padding: 0 10px !important;
+}
+
+[data-theme="light"] .btn-barber-add-cart,
+html.light .btn-barber-add-cart,
+body.light .btn-barber-add-cart {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .btn-barber-add-cart:hover:not(:disabled),
+html.light .btn-barber-add-cart:hover:not(:disabled),
+body.light .btn-barber-add-cart:hover:not(:disabled) {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
 }
 
 .product-clean-card:hover .btn-barber-add-cart:not(:disabled),
@@ -348,26 +365,27 @@ body.light .product-price-current {
   width: 50% !important;
   max-width: 50% !important;
   min-width: 0 !important;
-  height: 38px !important;
-  background: #D97706 !important;
-  color: #09090B !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  background: linear-gradient(180deg, #F59E0B, #D97706) !important;
+  color: #ffffff !important;
   border: none !important;
-  border-radius: 8px !important;
-  font-size: 13px !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
   font-weight: 700 !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
   box-shadow: none !important;
-  transition: background-color 0.15s ease, transform 0.15s ease !important;
+  transition: all 0.15s ease !important;
   white-space: nowrap !important;
-  padding: 0 8px !important;
+  padding: 0 10px !important;
 }
 
 .btn-barber-buy-now:hover:not(:disabled) {
-  background: #F59E0B !important;
-  box-shadow: none !important;
+  filter: brightness(1.08) !important;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25) !important;
 }
 
 
@@ -731,25 +749,52 @@ body.dark .branch-actions-row {
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
-  height: 34px !important;
-  padding: 0 12px !important;
-  border-radius: 6px !important;
-  font-size: 13px !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  padding: 0 16px !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  background: #18181B !important;
-  border: 1px solid #27272A !important;
-  color: #A1A1AA !important;
+  background: var(--surface-card, #ffffff) !important;
+  border: 1px solid var(--border-color, #cbd5e1) !important;
+  color: var(--text-secondary, #334155) !important;
   transition: all 0.15s ease !important;
   user-select: none !important;
   box-sizing: border-box !important;
 }
 
+[data-theme="light"] .clean-tab-btn,
+html.light .clean-tab-btn,
+body.light .clean-tab-btn {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .clean-tab-btn:hover,
+html.light .clean-tab-btn:hover,
+body.light .clean-tab-btn:hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .clean-tab-btn.active,
+html.light .clean-tab-btn.active,
+body.light .clean-tab-btn.active {
+  background: #D97706 !important;
+  border-color: #D97706 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
 [data-theme="dark"] .clean-tab-btn,
+html.dark .clean-tab-btn,
 body.dark .clean-tab-btn {
   background: #18181B !important;
   border-color: #27272A !important;
-  color: #A1A1AA !important;
+  color: #CBD5E1 !important;
 }
 
 .clean-tab-btn:hover {
@@ -759,6 +804,7 @@ body.dark .clean-tab-btn {
 }
 
 [data-theme="dark"] .clean-tab-btn:hover,
+html.dark .clean-tab-btn:hover,
 body.dark .clean-tab-btn:hover {
   background: #27272A !important;
   color: #F4F4F5 !important;
@@ -767,7 +813,7 @@ body.dark .clean-tab-btn:hover {
 .clean-tab-btn.active {
   background: #D97706 !important;
   border-color: #D97706 !important;
-  color: #09090B !important;
+  color: #ffffff !important;
   font-weight: 700 !important;
 }
 

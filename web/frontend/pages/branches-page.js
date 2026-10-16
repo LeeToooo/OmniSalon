@@ -212,10 +212,6 @@
                 </div>
               </div>
 
-              <!-- CÁC TABS LỌC THEO QUẬN (Clean Tabs - Radius 8px) -->
-              <div class="clean-filter-tabs" style="justify-content: center; max-width: 1400px; margin: 0 auto 16px;">
-                ${this.renderDistrictPillsHTML(branches)}
-              </div>
 
               <!-- DÒNG THÔNG BÁO SỐ LƯỢNG KẾT QUẢ TÌM KIẾM -->
               <div id="branchResultsSummary" style="font-size: 13.5px; color: var(--text-secondary); margin-top: 10px;">

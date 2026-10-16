@@ -235,26 +235,28 @@
             ${priceDisplayHtml}
           </div>
 
-          <!-- NÚT HÀNH ĐỘNG CHUẨN BARBER (THÊM GIỎ & MUA NGAY) -->
-          <div class="product-actions-footer">
+          <!-- NÚT HÀNH ĐỘNG CHUẨN BARBER (THÊM GIỎ & MUA NGAY TRÊN CÙNG 1 DÒNG) -->
+          <div class="product-actions-footer" style="display: flex; gap: 8px; align-items: center; width: 100%;">
             <button type="button"
                     class="btn-barber-add-cart ${isOutOfStock ? 'disabled' : ''}"
+                    style="flex: 1 1 50%; min-width: 0; white-space: nowrap !important;"
                     ${isOutOfStock ? 'disabled' : ''}
                     onclick="if(typeof UICommon !== 'undefined' && UICommon.addToCart){ UICommon.addToCart('${data.id}', 'product'); if(typeof ShopPage !== 'undefined' && ShopPage.updateCartBadge) ShopPage.updateCartBadge(); }">
               ${!isOutOfStock ? `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0;">
                   <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
                   <line x1="3" x2="21" y1="6" y2="6"/>
                   <path d="M16 10a4 4 0 0 1-8 0"/>
                 </svg>
               ` : ''}
-              <span>${isOutOfStock ? 'Hết Hàng' : 'Thêm Giỏ'}</span>
+              <span style="white-space: nowrap !important;">${isOutOfStock ? 'Hết Hàng' : 'Thêm Giỏ'}</span>
             </button>
             ${!isOutOfStock ? `
             <button type="button"
                     class="btn-barber-buy-now"
+                    style="flex: 1 1 50%; min-width: 0; white-space: nowrap !important; text-align: center;"
                     onclick="if(typeof UICommon !== 'undefined' && UICommon.buyNow){ UICommon.buyNow('${data.id}'); if(typeof ShopPage !== 'undefined' && ShopPage.updateCartBadge) ShopPage.updateCartBadge(); }">
-              <span>Mua Ngay</span>
+              <span style="white-space: nowrap !important; display: inline-block;">Mua Ngay</span>
             </button>
             ` : ''}
           </div>

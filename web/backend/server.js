@@ -313,7 +313,8 @@ async function getFullSqlDatabase() {
     promoRows,
     reviewRows,
     userRows,
-    thongBaoRows
+    thongBaoRows,
+    caLamViecRows
   ] = await Promise.all([
     querySql(`SELECT MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, 
                      CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
@@ -395,7 +396,16 @@ async function getFullSqlDatabase() {
               LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang`),
     querySql(`SELECT tb.MaThongBao, tb.MaTaiKhoan, tb.MaKhachHang, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao,
                      CONVERT(VARCHAR(19), tb.ThoiGianGui, 120) AS ThoiGianGui, tb.TrangThaiDoc
-              FROM ThongBao tb`)
+              FROM ThongBao tb`),
+    querySql(`SELECT clv.MaCa, clv.MaNhanVien, 
+                     CONVERT(VARCHAR(10), clv.NgayLam, 120) AS NgayLam,
+                     CONVERT(VARCHAR(8), clv.GioBatDau) AS GioBatDau,
+                     CONVERT(VARCHAR(8), clv.GioKetThuc) AS GioKetThuc,
+                     clv.TrangThai, nv.HoTen, nv.MaChiNhanh, cn.TenChiNhanh
+              FROM CaLamViec clv
+              LEFT JOIN NhanVien nv ON clv.MaNhanVien = nv.MaNhanVien
+              LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
+              ORDER BY clv.NgayLam DESC, clv.GioBatDau ASC`)
   ]);
 
   const branches = branchRows.map(r => {
@@ -426,7 +436,7 @@ async function getFullSqlDatabase() {
     TenDichVu: r.TenDichVu,
     price: parseFloat(r.Gia || 0),
     Gia: parseFloat(r.Gia || 0),
-    duration: `${r.ThoiLuong || 45} phút`,
+    duration: parseInt(r.ThoiLuong || 45, 10),
     durationMinutes: parseInt(r.ThoiLuong || 45, 10),
     ThoiLuong: parseInt(r.ThoiLuong || 45, 10),
     description: r.MoTa,
@@ -446,8 +456,8 @@ async function getFullSqlDatabase() {
     TenCombo: r.TenCombo,
     price: parseFloat(r.GiaCombo || 0),
     GiaCombo: parseFloat(r.GiaCombo || 0),
-    duration: `${r.ThoiLuong || 90} phút`,
-    durationMinutes: r.ThoiLuong || 90,
+    duration: parseInt(r.ThoiLuong || 90, 10),
+    durationMinutes: parseInt(r.ThoiLuong || 90, 10),
     description: r.MoTa,
     MoTa: r.MoTa,
     image: r.HinhAnh || '',
@@ -664,6 +674,22 @@ async function getFullSqlDatabase() {
     isRead: r.TrangThaiDoc === 1 || r.TrangThaiDoc === true
   }));
 
+  const shifts = (caLamViecRows || []).map(r => ({
+    id: r.MaCa,
+    MaCa: r.MaCa,
+    userId: r.MaNhanVien,
+    MaNhanVien: r.MaNhanVien,
+    staffName: r.HoTen || r.MaNhanVien,
+    branchId: r.MaChiNhanh || 'CN01',
+    branchName: r.TenChiNhanh || 'Omni Salon',
+    date: r.NgayLam,
+    startTime: r.GioBatDau,
+    endTime: r.GioKetThuc,
+    shiftType: (r.GioBatDau && r.GioBatDau.startsWith('08')) ? 'CA_SANG' : ((r.GioBatDau && r.GioBatDau.startsWith('13')) ? 'CA_CHIEU' : 'CA_TOI'),
+    shiftName: (r.GioBatDau && r.GioBatDau.startsWith('08')) ? 'Ca Sáng (08:30 - 14:30)' : ((r.GioBatDau && r.GioBatDau.startsWith('13')) ? 'Ca Chiều (13:30 - 19:30)' : 'Ca Tối (17:00 - 22:00)'),
+    status: r.TrangThai || 'REGISTERED'
+  }));
+
   return {
     version: '5.2.0 (SSMS 20 Complete Schema Engine)',
     engine: 'Microsoft SQL Server (T-SQL Direct)',
@@ -682,7 +708,8 @@ async function getFullSqlDatabase() {
     promotions,
     reviews,
     users,
-    notifications
+    notifications,
+    shifts
   };
 }
 
@@ -1217,8 +1244,8 @@ const server = http.createServer(async (req, res) => {
           TenDichVu: r.TenDichVu,
           price: parseFloat(r.Gia || 0),
           Gia: parseFloat(r.Gia || 0),
-          duration: `${r.ThoiLuong} phút`,
-          durationMinutes: r.ThoiLuong,
+          duration: parseInt(r.ThoiLuong || 45, 10),
+          durationMinutes: parseInt(r.ThoiLuong || 45, 10),
           description: r.MoTa,
           MoTa: r.MoTa,
           image: r.HinhAnh || '',
@@ -1255,7 +1282,7 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
           success: true,
-          service: { id: dvId, MaDichVu: dvId, name, TenDichVu: name, price, duration: `${duration} phút`, description: desc, image: img, HinhAnh: img }
+          service: { id: dvId, MaDichVu: dvId, name, TenDichVu: name, price, duration, description: desc, image: img, HinhAnh: img }
         }));
       }
 
@@ -1288,8 +1315,8 @@ const server = http.createServer(async (req, res) => {
           TenCombo: r.TenCombo,
           price: parseFloat(r.GiaCombo || 0),
           GiaCombo: parseFloat(r.GiaCombo || 0),
-          duration: `${r.ThoiLuong || 90} phút`,
-          durationMinutes: r.ThoiLuong || 90,
+          duration: parseInt(r.ThoiLuong || 90, 10),
+          durationMinutes: parseInt(r.ThoiLuong || 90, 10),
           description: r.MoTa,
           MoTa: r.MoTa,
           image: r.HinhAnh || '',
@@ -1341,6 +1368,109 @@ const server = http.createServer(async (req, res) => {
         await querySql(`DELETE FROM ComboDichVu WHERE MaCombo = ?`, [id]);
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, message: 'Đã xóa combo khỏi SQL Server', id }));
+      }
+
+      // --- 11.1 SHIFTS / CA LÀM VIỆC ---
+      if (pathname === '/api/shifts' && method === 'GET') {
+        const rows = await querySql(`
+          SELECT clv.MaCa, clv.MaNhanVien,
+                 CONVERT(VARCHAR(10), clv.NgayLam, 120) AS NgayLam,
+                 CONVERT(VARCHAR(8), clv.GioBatDau) AS GioBatDau,
+                 CONVERT(VARCHAR(8), clv.GioKetThuc) AS GioKetThuc,
+                 clv.TrangThai, nv.HoTen, nv.MaChiNhanh, cn.TenChiNhanh
+          FROM CaLamViec clv
+          LEFT JOIN NhanVien nv ON clv.MaNhanVien = nv.MaNhanVien
+          LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
+          ORDER BY clv.NgayLam DESC, clv.GioBatDau ASC
+        `);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(rows));
+      }
+
+      if (pathname === '/api/shifts' && method === 'POST') {
+        const body = parsedBody || {};
+        const { userId, staffName, date, shiftType, note } = body;
+        if (!date) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Thiếu ngày làm việc' }));
+        }
+
+        let maNhanVien = null;
+        if (userId) {
+          const nvRows = await querySql(
+            `SELECT MaNhanVien FROM NhanVien WHERE MaNhanVien = ? OR SoDienThoai = ?`,
+            [userId, userId]
+          );
+          if (nvRows && nvRows.length > 0) {
+            maNhanVien = nvRows[0].MaNhanVien;
+          } else {
+            const tkRows = await querySql(
+              `SELECT MaNhanVien FROM TaiKhoan WHERE TenDangNhap = ? AND MaNhanVien IS NOT NULL`,
+              [userId]
+            );
+            if (tkRows && tkRows.length > 0) {
+              maNhanVien = tkRows[0].MaNhanVien;
+            }
+          }
+        }
+        if (!maNhanVien && staffName) {
+          const nvNameRows = await querySql(
+            `SELECT TOP 1 MaNhanVien FROM NhanVien WHERE HoTen LIKE ?`,
+            [`%${staffName}%`]
+          );
+          if (nvNameRows && nvNameRows.length > 0) {
+            maNhanVien = nvNameRows[0].MaNhanVien;
+          }
+        }
+        if (!maNhanVien) {
+          const defaultNv = await querySql(`SELECT TOP 1 MaNhanVien FROM NhanVien`);
+          maNhanVien = defaultNv && defaultNv.length > 0 ? defaultNv[0].MaNhanVien : 'NV01';
+        }
+
+        let gioBatDau = '08:30:00';
+        let gioKetThuc = '14:30:00';
+        if (shiftType === 'CA_CHIEU') {
+          gioBatDau = '13:30:00';
+          gioKetThuc = '19:30:00';
+        } else if (shiftType === 'CA_TOI') {
+          gioBatDau = '17:00:00';
+          gioKetThuc = '22:00:00';
+        } else if (shiftType === 'CA_CA_NGAY') {
+          gioBatDau = '08:30:00';
+          gioKetThuc = '21:30:00';
+        }
+
+        const maxCaRows = await querySql(
+          `SELECT TOP 1 MaCa FROM CaLamViec ORDER BY LEN(MaCa) DESC, MaCa DESC`
+        );
+        let nextCaNum = 1;
+        if (maxCaRows && maxCaRows.length > 0 && maxCaRows[0].MaCa) {
+          const numMatch = maxCaRows[0].MaCa.match(/\d+/);
+          if (numMatch) {
+            nextCaNum = parseInt(numMatch[0], 10) + 1;
+          }
+        }
+        const maCa = `CA${String(nextCaNum).padStart(2, '0')}`;
+
+        await querySql(
+          `INSERT INTO CaLamViec (MaCa, MaNhanVien, NgayLam, GioBatDau, GioKetThuc, TrangThai)
+           VALUES (?, ?, ?, ?, ?, N'Đã đăng ký')`,
+          [maCa, maNhanVien, date, gioBatDau, gioKetThuc]
+        );
+
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({
+          success: true,
+          shift: {
+            id: maCa,
+            MaCa: maCa,
+            MaNhanVien: maNhanVien,
+            NgayLam: date,
+            GioBatDau: gioBatDau,
+            GioKetThuc: gioKetThuc,
+            TrangThai: 'Đã đăng ký'
+          }
+        }));
       }
 
       // --- 12. PRODUCTS / SẢN PHẨM ---

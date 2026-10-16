@@ -36,8 +36,84 @@
       notes: ''
     },
 
+    resetBookingState() {
+      this.bookingState = {
+        serviceIds: [],
+        serviceId: '',
+        branchId: 'CN01',
+        stylistId: '',
+        date: (() => {
+          const now = new Date();
+          const y = now.getFullYear();
+          const m = String(now.getMonth() + 1).padStart(2, '0');
+          const d = String(now.getDate()).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        })(),
+        timeSlot: '',
+        customerName: '',
+        customerPhone: '',
+        paymentMethod: 'VietQR',
+        notes: ''
+      };
+      this.expandedSteps = {
+        step1: true,
+        step2: false,
+        step3: false,
+        step4: false
+      };
+      this.lastUserId = null;
+    },
+
+    formatCompactDescription(desc, serviceId = '') {
+      const curatedMap = {
+        'CB01': 'Cắt tóc, gội dưỡng sinh và cạo mặt khăn nóng thư giãn.',
+        'CB02': 'Cắt form chuẩn kết hợp ép side ôm sát gọn gàng.',
+        'CB03': 'Uốn phồng Hàn Quốc bồng bềnh tự nhiên & gội xả thư giãn.',
+        'CB04': 'Kẻ tattoo nghệ thuật, cạo râu bọt kem & ráy tai facial.',
+        'DV01': 'Tư vấn dáng mặt, cắt fade sắc nét & sấy tạo kiểu sáp pomade.',
+        'DV02': 'Ép xẹp tóc mai và gáy chỉa, giữ nếp chuẩn đẹp 1-2 tháng.',
+        'DV03': 'Uốn lạnh tạo lọn sóng phồng tự nhiên, dễ sấy tạo kiểu.',
+        'DV04': 'Khử ánh sắc & nhuộm tông màu thời trang cao cấp.',
+        'DV05': 'Uốn xoăn hip-hop cá tính, tạo hiệu ứng độc đáo phá cách.',
+        'DV06': 'Điêu khắc chân tóc & kẻ đường line sắc sảo nghệ thuật.',
+        'DV07': 'Cạo râu bọt kem Proraso & chườm khăn nóng làm sạch sâu.',
+        'DV08': 'Phủ bạc thảo dược 100%, trả lại mái tóc đen khỏe tự nhiên.',
+        'DV09': 'Nâng sáng 3-4 cấp độ màu chuẩn bị trước khi nhuộm thời trang.',
+        'DV10': 'Lấy ráy tai êm ái bằng đèn soi & dưỡng ẩm da mặt facial.'
+      };
+
+      let text = (serviceId && curatedMap[serviceId]) ? curatedMap[serviceId] : '';
+      if (!text && desc) {
+        let clean = desc.replace(/[◆•\-*]/g, '').trim();
+        const firstClause = clean.split(/[.;]/)[0].trim();
+        text = firstClause.charAt(0).toUpperCase() + firstClause.slice(1);
+        if (text.length > 68) {
+          text = text.substring(0, 65).trim() + '...';
+        }
+        if (!text.endsWith('.')) text += '.';
+      }
+
+      if (!text) return '';
+
+      return `
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.45; margin: 4px 0 12px; min-height: 38px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${text}">
+          ${text}
+        </p>
+      `;
+    },
+
     render(container, params = {}) {
       if (!container) return;
+
+      // Nạp thông tin người dùng nếu đã đăng nhập & tự động reset nếu đổi tài khoản
+      const user = (window.store && typeof window.store.getCurrentUser === 'function') 
+        ? window.store.getCurrentUser() 
+        : null;
+      const currentUserId = user ? String(user.id || user.username || user.MaKhachHang || '') : null;
+      if (this.lastUserId !== undefined && this.lastUserId !== currentUserId) {
+        this.resetBookingState();
+      }
+      this.lastUserId = currentUserId;
 
       // Khởi tạo tham số từ URL nếu có
       if (params.service) {
@@ -63,10 +139,6 @@
 
       if (!this.bookingState.branchId || this.bookingState.branchId === 'br-dbp') this.bookingState.branchId = 'CN01';
 
-      // Nạp thông tin người dùng nếu đã đăng nhập
-      const user = (window.store && typeof window.store.getCurrentUser === 'function') 
-        ? window.store.getCurrentUser() 
-        : null;
       if (user) {
         if (!this.bookingState.customerName) this.bookingState.customerName = user.name || user.fullName || '';
         if (!this.bookingState.customerPhone) this.bookingState.customerPhone = user.phone || '';
@@ -398,6 +470,7 @@
               <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px;">
                 ${combos.map(c => {
                   const isSelected = this.bookingState.serviceIds.includes(c.id);
+                  const cDur = parseInt(String(c.duration || c.ThoiLuong || 70).replace(/\s*phút/gi, ''), 10) || 70;
                   return `
                     <div class="service-multi-card ${isSelected ? 'selected' : ''}" onclick="BookingPage.toggleSelectService('${c.id}')">
                        <div>
@@ -406,12 +479,12 @@
                           <div class="service-multi-check">${isSelected ? '✓' : ''}</div>
                         </div>
                         <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">${c.name}</h4>
-                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px;">${c.description || ''}</p>
+                        ${this.formatCompactDescription(c.description || '', c.id)}
                       </div>
                       <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
                         <div>
                           <span style="font-size: 17px; font-weight: 900; color: #f59e0b;">${SalonUtils.formatCurrency(c.price)}</span>
-                          <span style="font-size: 12px; color: var(--text-secondary); display: block;">${c.duration || 70} phút</span>
+                          <span style="font-size: 12px; color: var(--text-secondary); display: block;">${cDur} phút</span>
                         </div>
                         <span style="font-size: 12px; font-weight: 700; color: ${isSelected ? '#f59e0b' : 'var(--text-secondary)'};">
                           ${isSelected ? 'Đã chọn gói này' : '+ Thêm gói này'}
@@ -432,6 +505,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
               ${services.map(s => {
                 const isSelected = this.bookingState.serviceIds.includes(s.id);
+                const sDur = parseInt(String(s.duration || s.ThoiLuong || 45).replace(/\s*phút/gi, ''), 10) || 45;
                 return `
                   <div class="service-multi-card ${isSelected ? 'selected' : ''}" onclick="BookingPage.toggleSelectService('${s.id}')">
                     <div>
@@ -440,12 +514,12 @@
                         <div class="service-multi-check">${isSelected ? '✓' : ''}</div>
                       </div>
                       <h4 style="font-size: 15.5px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">${s.name || s.TenDichVu}</h4>
-                      <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px;">${s.description || s.MoTa || ''}</p>
+                      ${this.formatCompactDescription(s.description || s.MoTa || '', s.id)}
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
                       <div>
                         <span style="font-size: 16px; font-weight: 900; color: #f59e0b;">${SalonUtils.formatCurrency(s.price || s.Gia)}</span>
-                        <span style="font-size: 11.5px; color: var(--text-secondary); display: block;">${s.duration || s.ThoiLuong || 45} phút</span>
+                        <span style="font-size: 11.5px; color: var(--text-secondary); display: block;">${sDur} phút</span>
                       </div>
                       <span style="font-size: 12px; font-weight: 700; color: ${isSelected ? '#f59e0b' : 'var(--text-secondary)'};">
                         ${isSelected ? 'Đã chọn' : '+ Thêm dịch vụ'}
@@ -885,6 +959,10 @@
 
       const summaryServiceName = calc.list.map(s => s.name).join(' + ');
 
+      const chosenStylist = this.bookingState.stylistId
+        ? (window.store && typeof window.store.getStylistById === 'function' ? window.store.getStylistById(this.bookingState.stylistId) : null)
+        : null;
+
       const bookingPayload = {
         serviceId: this.bookingState.serviceIds[0],
         serviceIds: this.bookingState.serviceIds,
@@ -894,6 +972,7 @@
         durationMinutes: calc.totalDuration,
         branchId: this.bookingState.branchId,
         stylistId: this.bookingState.stylistId,
+        stylistName: chosenStylist ? chosenStylist.name : 'Master Barber Chuyên Nghiệp',
         date: this.bookingState.date,
         timeSlot: this.bookingState.timeSlot,
         customerName: rawName,

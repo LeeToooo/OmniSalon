@@ -59,15 +59,15 @@
               <!-- NÚT MỞ BONG BÓNG CHỌN CHI NHÁNH (POPUP BUBBLE SELECTOR) -->
               <div style="display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <button type="button" class="btn-bubble-trigger" onclick="StylistsPage.openBubbleModal()"
-                        style="display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: none; transition: all 0.2s ease;">
+                        style="display: inline-flex; align-items: center; gap: 10px; min-height: 42px; height: 42px; padding: 0 20px; border-radius: 10px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: none; transition: all 0.2s ease;">
                   <span>Chi Nhánh: <strong style="color: #D97706;">${selectedBranchLabel}</strong></span>
-                  <span style="background: #27272A; color: #F4F4F5; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; border: 1px solid #3F3F46;">${currentCount} Thợ</span>
+                  <span style="background: var(--surface-elevated); color: var(--text-primary); font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border-color);">${currentCount} Thợ</span>
                   <span style="font-size: 11px; color: var(--text-secondary); margin-left: 2px;">▼ Chọn</span>
                 </button>
                 
                 ${this.selectedBranch !== 'all' ? `
                   <button type="button" onclick="StylistsPage.filterBranch('all')"
-                          style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px; background: #27272A; border: 1px solid #3F3F46; color: var(--text-primary); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                          style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; height: 42px; padding: 0 18px; border-radius: 10px; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
                     Xem Tất Cả Chi Nhánh
                   </button>
                 ` : ''}
@@ -216,57 +216,60 @@
         const roleBadgeText = isAssis ? 'Thợ Phụ' : 'Thợ Chính';
 
         return `
-          <div class="stylist-nordic-card" id="stylistCard_${stylist.id}"
-               style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-shadow: none; transition: transform 0.2s ease;">
-            
-            <div style="text-align: center;">
-              <!-- Avatar Tròn -->
-              <div style="position: relative; width: 88px; height: 88px; margin: 0 auto 14px; border-radius: 50%; overflow: hidden; border: 2px solid #27272A;">
+          <div class="stylist-nordic-card" id="stylistCard_${stylist.id}">
+            <div>
+              <!-- Avatar Tròn Cân Đối Kèm Huy Hiệu Rating -->
+              <div class="stylist-card-avatar-wrap">
                 <img src="${stylist.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80'}"
-                     style="width: 100%; height: 100%; object-fit: cover;"
+                     class="stylist-card-avatar-img"
                      alt="${cleanName}"
                      loading="lazy"
                      onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150';">
-                <span style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(10,10,11,0.8); color: #F4F4F5; font-size: 10px; font-weight: 600; padding: 2px 0;">
-                  ${yearsExp}+ năm kn
-                </span>
+                <span class="stylist-card-rating-float">★ ${rating}</span>
               </div>
 
-              <!-- Thông Tin Thợ Cắt Tóc / Stylist -->
-              <h3 class="stylist-name" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">${cleanName}</h3>
-              <div style="margin-bottom: 6px; display: flex; justify-content: center; align-items: center; gap: 6px;">
-                <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: #27272A; color: #A1A1AA; border: 1px solid #3F3F46;">
-                  ${roleBadgeText}
-                </span>
-                <span style="font-size: 12px; font-weight: 500; color: var(--text-secondary);">${stylist.level || (isAssis ? 'Junior Barber' : 'Master Barber')}</span>
-              </div>
-              <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 8px;">${branchName}</span>
+              <!-- Tên Stylist & Danh Hiệu -->
+              <h3 class="stylist-card-name">${cleanName}</h3>
 
-              <!-- Đánh Giá Sao -->
-              <div style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: #27272A; border: 1px solid rgba(245, 158, 11, 0.2); margin-bottom: 12px;">
-                <span style="color: #FBBF24; font-size: 12px; font-weight: 600;">★ 5.0 (500+ lượt cắt)</span>
+              <!-- Cấp Bậc & Chi Nhánh -->
+              <div class="stylist-card-badge-row">
+                <span class="stylist-card-role-pill">${roleBadgeText}</span>
+                <span class="stylist-card-level-pill">${stylist.level || (isAssis ? 'Junior Barber' : 'Master Barber')}</span>
+              </div>
+              <div class="stylist-card-branch">
+                <span>📍 ${branchName}</span>
               </div>
 
-              <!-- Thẻ Kỹ Thuật Chuyên Sâu -->
-              <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px;">
-                ${specialties.slice(0, 3).map(tag => `<span style="font-size: 11px; font-weight: 500; color: var(--text-secondary); background: #18181B; padding: 2px 8px; border-radius: 4px; border: 1px solid #27272A;">${tag}</span>`).join('')}
+              <!-- Thanh Chỉ Số Hiệu Suất Cân Đối Giữa Card -->
+              <div style="text-align: center;">
+                <div class="stylist-card-metrics-pill">
+                  <span>★ ${rating} (500+ lượt cắt)</span>
+                  <span class="metric-sep">•</span>
+                  <span>${yearsExp}+ năm kn</span>
+                </div>
               </div>
 
-              <!-- Ảnh tác phẩm thực tế -->
-              <div style="width: 100%; text-align: left; margin-bottom: 6px;">
-                <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">MẪU TÓC TIÊU BIỂU:</span>
+              <!-- Thẻ Kỹ Thuật Chuyên Sâu Tinh Gọn -->
+              <div class="stylist-card-tags-row">
+                ${specialties.slice(0, 3).map(tag => `<span class="stylist-card-tag-pill">${tag}</span>`).join('')}
               </div>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 16px;">
-                <img src="${p1}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 1" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300';">
-                <img src="${p2}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 2" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300';">
-                <img src="${p3}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 3" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300';">
+
+              <!-- Bộ Sưu Tập Ảnh Tác Phẩm Cân Đối Đối Xứng -->
+              <div class="stylist-card-portfolio-header">
+                <span class="portfolio-line"></span>
+                <span class="portfolio-title">MẪU TÓC TIÊU BIỂU</span>
+                <span class="portfolio-line"></span>
+              </div>
+              <div class="stylist-card-gallery-grid">
+                <img src="${p1}" class="stylist-card-gallery-img" alt="Mẫu tóc 1" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300';">
+                <img src="${p2}" class="stylist-card-gallery-img" alt="Mẫu tóc 2" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300';">
+                <img src="${p3}" class="stylist-card-gallery-img" alt="Mẫu tóc 3" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300';">
               </div>
             </div>
 
             <!-- Nút Đặt Lịch Trực Tiếp -->
-            <button onclick="StylistsPage.bookWithStylist('${stylist.id}', '${stylist.branchId || ''}')"
-                    style="width: 100%; height: 38px; border-radius: 8px; background: #D97706; border: none; color: #09090B; font-size: 13.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none; margin-top: auto;">
-              Đặt Lịch Với ${cleanName.split(' ').pop()}
+            <button type="button" class="stylist-card-cta-btn" onclick="StylistsPage.bookWithStylist('${stylist.id}', '${stylist.branchId || ''}')">
+              <span>✂️ Đặt Lịch Với ${cleanName.split(' ').pop()}</span>
             </button>
           </div>
         `;
