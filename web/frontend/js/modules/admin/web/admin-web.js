@@ -434,6 +434,7 @@
       };
 
       let visibleTabs = [];
+      let tabGroups = [];
 
       if (activeRole === 'CASHIER') {
         visibleTabs = [
@@ -441,32 +442,69 @@
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
           { id: 'audit', icon: tabIcons.audit, label: 'Lịch Sử Đơn Hàng & POS' }
         ];
+        tabGroups = [
+          {
+            groupLabel: 'NGHIỆP VỤ THU NGÂN & TIẾP ĐÓN',
+            ids: ['pos', 'bookings', 'audit']
+          }
+        ];
         if (!['pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
           this.adminSubTab = 'pos';
         }
       } else if (activeRole === 'BRANCH_MANAGER') {
+        // Quản lý có chức năng riêng Quản lý + có luôn đầy đủ quyền Thu ngân
         visibleTabs = [
-          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
-          { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
-          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
-          { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu & Kho' },
+          // 1. Chức năng riêng của Quản Lý:
+          { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu Chi Nhánh' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
+          { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
+          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
+          // 2. Quyền của Thu Ngân (kèm theo cho Quản Lý):
+          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
           { id: 'audit', icon: tabIcons.audit, label: 'Lịch Sử Đơn Hàng & POS' }
         ];
-        if (!['pos', 'catalog', 'inventory', 'bookings', 'overview', 'stylists', 'audit'].includes(this.adminSubTab)) {
-          this.adminSubTab = 'pos';
+        tabGroups = [
+          {
+            groupLabel: 'CHỨC NĂNG QUẢN LÝ CHI NHÁNH',
+            ids: ['overview', 'stylists', 'inventory', 'catalog']
+          },
+          {
+            groupLabel: 'QUYỀN THU NGÂN (KÈM THEO)',
+            ids: ['pos', 'bookings', 'audit']
+          }
+        ];
+        if (!['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
+          this.adminSubTab = 'overview';
         }
       } else {
+        // SUPER_ADMIN / ADMIN: Full quyền Admin + Quản lý + Thu ngân
         visibleTabs = [
-          { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu & Kho' },
-          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'branches', icon: tabIcons.branches, label: 'Quản Lý Chi Nhánh' },
-          { id: 'bookings', icon: tabIcons.bookings, label: 'Điều Phối Lịch Hẹn' },
+          // 1. Quyền Quản trị tối cao (Admin):
+          { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Toàn Chuỗi Salon' },
+          { id: 'branches', icon: tabIcons.branches, label: 'Quản Lý Chuỗi Chi Nhánh' },
+          // 2. Quyền Quản lý vận hành dịch vụ & kho:
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
-          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
-          { id: 'audit', icon: tabIcons.audit, label: 'Khách Hàng & Nhật Ký' }
+          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
+          // 3. Quyền Thu ngân & Tiếp nhận:
+          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Điều Phối Lịch Hẹn' },
+          { id: 'audit', icon: tabIcons.audit, label: 'Khách Hàng & Nhật Ký Kiểm Toán' }
+        ];
+        tabGroups = [
+          {
+            groupLabel: 'QUẢN TRỊ HỆ THỐNG (ADMIN)',
+            ids: ['overview', 'branches']
+          },
+          {
+            groupLabel: 'QUẢN LÝ VẬN HÀNH & KHO',
+            ids: ['stylists', 'inventory', 'catalog']
+          },
+          {
+            groupLabel: 'QUYỀN THU NGÂN & TIẾP NHẬN',
+            ids: ['pos', 'bookings', 'audit']
+          }
         ];
       }
 
@@ -475,25 +513,6 @@
         : (activeRole === 'BRANCH_MANAGER' ? 'Quản Lý Chi Nhánh' : 'Quản Trị Tối Cao');
 
       const activeTabObj = visibleTabs.find(t => t.id === this.adminSubTab) || visibleTabs[0];
-
-      const tabGroups = [
-        {
-          groupLabel: 'TỔNG QUAN',
-          ids: ['overview']
-        },
-        {
-          groupLabel: 'VẬN HÀNH DỊCH VỤ',
-          ids: ['pos', 'bookings', 'stylists', 'catalog']
-        },
-        {
-          groupLabel: 'SẢN PHẨM VÀ KHO',
-          ids: ['inventory']
-        },
-        {
-          groupLabel: 'HỆ THỐNG VÀ DỮ LIỆU',
-          ids: ['branches', 'audit']
-        }
-      ];
 
       document.body.classList.add('admin-mode');
       container.innerHTML = `
@@ -602,8 +621,25 @@
                   <span class="status-pulse-dot"></span>
                   <span>Trực Tuyến</span>
                 </div>
-                <button type="button" class="admin-topbar-home-btn" onclick="AdminWeb._goToCustomerPortal()" title="Về trang đặt lịch và sản phẩm của khách">
-                  ← Về Trang Khách
+                <!-- Nút chuyển chế độ Sáng / Tối icon tinh gọn -->
+                <button type="button" class="admin-topbar-theme-icon-btn theme-toggle-btn" 
+                        onclick="window.ThemeEngine && window.ThemeEngine.toggleTheme()" 
+                        title="Chuyển chế độ Sáng / Tối (Trắng / Đen)" 
+                        aria-label="Chuyển chế độ Sáng / Tối">
+                  <svg class="theme-icon-sun icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C59B27" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                  </svg>
+                  <svg class="theme-icon-moon icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                  </svg>
                 </button>
               </div>
             </header>
@@ -667,11 +703,11 @@
       const user = this.getCurrentUser();
       const activeRole = this.getActiveRole(user);
       if (activeRole === 'CASHIER' && !['pos', 'bookings', 'audit'].includes(tabName)) {
-        if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Lịch hẹn và Lịch sử đơn!', 'warning');
+        if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Tiếp nhận lịch hẹn và Lịch sử đơn!', 'warning');
         return;
       }
-      if (activeRole === 'BRANCH_MANAGER' && !['pos', 'inventory', 'bookings', 'overview', 'stylists', 'audit'].includes(tabName)) {
-        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Thu ngân, Quản lý kho, Lịch hẹn & Thợ cơ sở!', 'warning');
+      if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(tabName)) {
+        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Báo cáo, Thợ, Kho, Giá dịch vụ và toàn quyền Thu ngân!', 'warning');
         return;
       }
       this.adminSubTab = tabName;
@@ -685,8 +721,8 @@
 
       if (activeRole === 'CASHIER' && !['pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
         this.adminSubTab = 'pos';
-      } else if (activeRole === 'BRANCH_MANAGER' && !['pos', 'inventory', 'bookings', 'overview', 'stylists', 'audit'].includes(this.adminSubTab)) {
-        this.adminSubTab = 'pos';
+      } else if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
+        this.adminSubTab = 'overview';
       }
 
       switch (this.adminSubTab) {
@@ -1287,24 +1323,24 @@
       if (this.dispatchPage > dispatchTotalPages) this.dispatchPage = dispatchTotalPages;
       const pagedWorkstations = scopedStylists.slice((this.dispatchPage - 1) * this.pageSize, this.dispatchPage * this.pageSize);
 
-      // HTML cho khối Tra cứu Khách Hàng Đặt Lịch Nhanh
+      // HTML cho khối Tiếp Nhận Khách Hàng Đặt Lịch Nhanh
       const customerSearchHtml = `
-        <div class="quick-booking-search-panel" style="background: var(--surface-card); border: 2px solid #f59e0b; border-radius: 14px; padding: 18px 22px; margin-bottom: 24px;">
+        <div class="quick-booking-search-panel" style="background: var(--surface-card); border: 2px solid #C59B27; border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(197, 155, 39, 0.08);">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 11px; font-weight: 800; color: var(--brand-accent);">TÌM KIẾM</span>
+              <span style="font-size: 11px; font-weight: 800; background: #C59B27; color: #141413; padding: 3px 8px; border-radius: 4px;">TIẾP NHẬN REALTIME</span>
               <div>
-                <strong style="font-size: 16px; color: var(--text-primary); display: block;">Tra Cứu & Tiếp Đón Khách Hàng Đặt Lịch (Realtime)</strong>
-                <span style="font-size: 13px; color: var(--text-secondary);">Gõ Tên, SĐT hoặc Mã vé (#BK...) để kiểm tra ca hẹn và check-in làm ngay</span>
+                <strong style="font-size: 16px; color: var(--text-primary); display: block;">Bàn Tiếp Nhận &amp; Check-in Khách Hàng Đặt Lịch</strong>
+                <span style="font-size: 13px; color: var(--text-secondary);">Gõ Tên, SĐT hoặc Mã vé (#BK...) để kiểm tra ca hẹn và check-in vào ghế làm ngay</span>
               </div>
             </div>
-            <span style="font-size: 12px; font-weight: 700; color: #f59e0b; background: rgba(245, 158, 11, 0.12); padding: 4px 10px; border-radius: 6px;">
+            <span style="font-size: 12px; font-weight: 700; color: #C59B27; background: rgba(197, 155, 39, 0.12); padding: 4px 10px; border-radius: 6px;">
               Hiện tại: ${nowTime} • Hôm Nay: ${SalonUtils.formatDate(todayStr)}
             </span>
           </div>
 
           <div class="quick-search-input-wrap">
-            <input type="text" id="adminCustomerLookupInput" placeholder="Nhập Tên khách hàng, Số điện thoại hoặc Mã lịch hẹn..." 
+            <input type="text" id="adminCustomerLookupInput" placeholder="Nhập Tên khách hàng, Số điện thoại hoặc Mã lịch hẹn để tiếp nhận..." 
                    value="${this.escapeHtml(this.customerLookupQuery || '')}"
                    oninput="AdminWeb.handleCustomerLookup(this.value);"
                    style="width: 100%; height: 46px; padding: 0 16px; border-radius: 10px; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 14.5px; font-weight: 600; outline: none; box-sizing: border-box;">
@@ -1442,13 +1478,15 @@
       const pagedBookings = filtered.slice((this.bookingsPage - 1) * this.pageSize, this.bookingsPage * this.pageSize);
 
       return `
+        ${customerSearchHtml}
+
         ${timelineHtml}
 
         <div class="admin-table-container">
           <!-- Toolbar Bộ Lọc & Tìm Kiếm Bảng -->
           <div class="admin-table-toolbar">
             <div class="table-filter-group">
-              <input type="text" class="table-search-input" 
+              <input type="text" class="table-search-input" id="adminBookingsTableSearchInput"
                      placeholder="Lọc bảng theo Mã, Tên, SĐT..." 
                      value="${this.escapeHtml(this.searchQuery)}"
                      oninput="AdminWeb.searchQuery = this.value; AdminWeb.bookingsPage = 1; AdminWeb.refreshBookingsTable();">
@@ -1700,10 +1738,11 @@
     refreshBookingsTable() {
       const content = document.getElementById('adminSubTabContent');
       if (content && this.adminSubTab === 'bookings') {
-        const lookupInput = document.getElementById('adminCustomerLookupInput');
-        const hadFocus = (document.activeElement === lookupInput);
-        const selStart = lookupInput ? lookupInput.selectionStart : null;
-        const selEnd = lookupInput ? lookupInput.selectionEnd : null;
+        // Lưu trữ ID và vị trí con trỏ của input đang có focus
+        const activeEl = document.activeElement;
+        const activeId = activeEl ? activeEl.id : null;
+        const selStart = (activeEl && typeof activeEl.selectionStart === 'number') ? activeEl.selectionStart : null;
+        const selEnd = (activeEl && typeof activeEl.selectionEnd === 'number') ? activeEl.selectionEnd : null;
 
         const user = this.getCurrentUser();
         const bookings = window.store.getBookings();
@@ -1711,12 +1750,13 @@
         const stylists = window.store.getStylists();
         content.innerHTML = this.renderBookingsTab(user, bookings, branches, stylists);
 
-        if (hadFocus) {
-          const newInput = document.getElementById('adminCustomerLookupInput');
-          if (newInput) {
-            newInput.focus();
-            if (selStart !== null && selEnd !== null) {
-              newInput.setSelectionRange(selStart, selEnd);
+        // Khôi phục lại chính xác focus và con trỏ cho input vừa nhập (ngăn chặn mất focus khi gõ 1 chữ)
+        if (activeId) {
+          const restored = document.getElementById(activeId);
+          if (restored) {
+            restored.focus();
+            if (selStart !== null && selEnd !== null && typeof restored.setSelectionRange === 'function') {
+              restored.setSelectionRange(selStart, selEnd);
             }
           }
         }

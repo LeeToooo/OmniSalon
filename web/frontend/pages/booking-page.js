@@ -55,6 +55,8 @@
         paymentMethod: 'VietQR',
         notes: ''
       };
+      this.hasChosenStylist = false;
+      this.selectedCategory = 'all';
       this.expandedSteps = {
         step1: true,
         step2: false,
@@ -64,42 +66,29 @@
       this.lastUserId = null;
     },
 
-    formatCompactDescription(desc, serviceId = '') {
-      const curatedMap = {
-        'CB01': 'Cắt tóc, gội dưỡng sinh và cạo mặt khăn nóng thư giãn.',
-        'CB02': 'Cắt form chuẩn kết hợp ép side ôm sát gọn gàng.',
-        'CB03': 'Uốn phồng Hàn Quốc bồng bềnh tự nhiên & gội xả thư giãn.',
-        'CB04': 'Kẻ tattoo nghệ thuật, cạo râu bọt kem & ráy tai facial.',
-        'DV01': 'Tư vấn dáng mặt, cắt fade sắc nét & sấy tạo kiểu sáp pomade.',
-        'DV02': 'Ép xẹp tóc mai và gáy chỉa, giữ nếp chuẩn đẹp 1-2 tháng.',
-        'DV03': 'Uốn lạnh tạo lọn sóng phồng tự nhiên, dễ sấy tạo kiểu.',
-        'DV04': 'Khử ánh sắc & nhuộm tông màu thời trang cao cấp.',
-        'DV05': 'Uốn xoăn hip-hop cá tính, tạo hiệu ứng độc đáo phá cách.',
-        'DV06': 'Điêu khắc chân tóc & kẻ đường line sắc sảo nghệ thuật.',
-        'DV07': 'Cạo râu bọt kem Proraso & chườm khăn nóng làm sạch sâu.',
-        'DV08': 'Phủ bạc thảo dược 100%, trả lại mái tóc đen khỏe tự nhiên.',
-        'DV09': 'Nâng sáng 3-4 cấp độ màu chuẩn bị trước khi nhuộm thời trang.',
-        'DV10': 'Lấy ráy tai êm ái bằng đèn soi & dưỡng ẩm da mặt facial.'
-      };
+    serviceVisualMeta: {
+      'CB01': { shortName: 'Combo Quý Tộc', highlight: 'Cắt • Gội thư giãn • Cạo râu khăn nóng', savings: 'Tiết kiệm 50K', img: 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg', category: 'combo' },
+      'CB02': { shortName: 'Combo Đẹp Trai', highlight: 'Cắt form chuẩn • Ép side ôm sát 2 tháng', savings: 'Tiết kiệm 40K', img: 'Men_Grooming_Products/DichVu_Men/CBDV2.jpg', category: 'combo' },
+      'CB03': { shortName: 'Combo Lột Xác', highlight: 'Cắt • Uốn Texture Hàn Quốc • Gội xả', savings: 'Tiết kiệm 130K', img: 'Men_Grooming_Products/DichVu_Men/CBDV3.jpg', category: 'combo' },
+      'CB04': { shortName: 'Combo Quý Ông', highlight: 'Kẻ Tattoo • Cạo râu • Ráy tai Facial', savings: 'Tiết kiệm 50K', img: 'Men_Grooming_Products/DichVu_Men/CBDV4.jpg', category: 'combo' },
+      'DV01': { shortName: 'Cắt Fade & Vuốt Sáp', highlight: 'Tư vấn phom mặt • Sấy vuốt Pomade', img: 'Men_Grooming_Products/DichVu_Men/DV1.jpg', category: 'cut' },
+      'DV02': { shortName: 'Ép Side Down Perm', highlight: 'Ép xẹp tóc mai • Giữ nếp 2 tháng', img: 'Men_Grooming_Products/DichVu_Men/DV2.jpg', category: 'cut' },
+      'DV03': { shortName: 'Uốn Phồng Texture', highlight: 'Lọn sóng tự nhiên • Dễ sấy tạo kiểu', img: 'Men_Grooming_Products/DichVu_Men/DV3.jpg', category: 'perm' },
+      'DV04': { shortName: 'Nhuộm Thời Trang', highlight: 'Khói / Rêu / Bạch kim bảo vệ tóc', img: 'Men_Grooming_Products/DichVu_Men/DV4.jpg', category: 'perm' },
+      'DV05': { shortName: 'Uốn Sâu Dreadlocks', highlight: 'Xù gai góc • Phong cách hip-hop', img: 'Men_Grooming_Products/DichVu_Men/DV5.jpg', category: 'perm' },
+      'DV06': { shortName: 'Kẻ Line Hair Tattoo', highlight: 'Điêu khắc chân tóc • Đường nét sắc bén', img: 'Men_Grooming_Products/DichVu_Men/DV6.jpg', category: 'cut' },
+      'DV07': { shortName: 'Cạo Râu Khăn Nóng', highlight: 'Bọt kem Proraso • Chườm ấm thư giãn', img: 'Men_Grooming_Products/DichVu_Men/DV7.jpg', category: 'spa' },
+      'DV08': { shortName: 'Nhuộm Đen Phủ Bạc', highlight: 'Thảo dược tự nhiên • Không mùi hắc', img: 'Men_Grooming_Products/DichVu_Men/DV8.jpg', category: 'perm' },
+      'DV09': { shortName: 'Tẩy Tóc Nâng Tông', highlight: 'Nâng sáng 3-4 cấp • Chuẩn bị phủ màu', img: 'Men_Grooming_Products/DichVu_Men/DV9.jpg', category: 'perm' },
+      'DV10': { shortName: 'Ráy Tai & Facial', highlight: 'Đèn soi quang học • Dưỡng ẩm sáng da', img: 'Men_Grooming_Products/DichVu_Men/DV10.jpg', category: 'spa' }
+    },
 
-      let text = (serviceId && curatedMap[serviceId]) ? curatedMap[serviceId] : '';
-      if (!text && desc) {
-        let clean = desc.replace(/[◆•\-*]/g, '').trim();
-        const firstClause = clean.split(/[.;]/)[0].trim();
-        text = firstClause.charAt(0).toUpperCase() + firstClause.slice(1);
-        if (text.length > 68) {
-          text = text.substring(0, 65).trim() + '...';
-        }
-        if (!text.endsWith('.')) text += '.';
+    setCategory(category) {
+      this.selectedCategory = category;
+      const body = document.getElementById('bodyStep1');
+      if (body) {
+        body.innerHTML = this.renderStep1ServicesHTML();
       }
-
-      if (!text) return '';
-
-      return `
-        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.45; margin: 4px 0 12px; min-height: 38px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${text}">
-          ${text}
-        </p>
-      `;
     },
 
     render(container, params = {}) {
@@ -157,6 +146,8 @@
       }
 
       const hasSelectedServices = this.bookingState.serviceIds.length > 0;
+      const hasSelectedStylist = Boolean(this.bookingState.stylistId !== '' || this.hasChosenStylist || this.bookingState.timeSlot);
+      const hasSelectedTime = Boolean(this.bookingState.timeSlot);
 
       container.innerHTML = `
         <div class="booking-page-shell w-full" style="padding-top: 48px; padding-bottom: 120px; width: 100%; max-width: 100%; margin: 0; padding-left: clamp(16px, 2.5vw, 36px); padding-right: clamp(16px, 2.5vw, 36px); color: var(--text-primary); box-sizing: border-box;">
@@ -214,16 +205,16 @@
             </div>
 
             <!-- BƯỚC 2: CHỌN BARBER PHỤC VỤ -->
-            <div class="booking-cascade-block" id="cascadeStep2" style="background: var(--surface-card); border: 1px solid ${this.bookingState.stylistId || (this.expandedSteps.step3 && !this.bookingState.stylistId) ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${hasSelectedServices ? '1' : '0.6'}; scroll-margin-top: 95px;">
+            <div class="booking-cascade-block" id="cascadeStep2" style="background: var(--surface-card); border: 1px solid ${hasSelectedStylist ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${hasSelectedServices ? '1' : '0.6'}; scroll-margin-top: 95px;">
               <div class="cascade-header" onclick="${hasSelectedServices ? "BookingPage.toggleAccordion('step2')" : "UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ ở Bước 1 trước!', 'warning')"}"
                    style="padding: 18px 24px; background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; cursor: ${hasSelectedServices ? 'pointer' : 'not-allowed'}; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
-                  <span style="width: 34px; height: 34px; border-radius: 50%; background: ${this.expandedSteps.step3 ? '#C59B27' : 'var(--surface-elevated)'}; color: ${this.expandedSteps.step3 ? '#141413' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">
+                  <span style="width: 34px; height: 34px; border-radius: 50%; background: ${hasSelectedStylist ? '#C59B27' : 'var(--surface-elevated)'}; color: ${hasSelectedStylist ? '#141413' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">
                     2
                   </span>
                   <div>
                     <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">2. Chọn Thợ Barber Tạo Mẫu</h3>
-                    <span style="font-size: 13px; color: ${this.expandedSteps.step3 ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
+                    <span style="font-size: 13px; color: ${hasSelectedStylist ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
                       ${this.getSelectedStylistName() || (hasSelectedServices ? 'Chọn thợ phục vụ hoặc tự động xếp thợ nhanh' : 'Chờ chọn dịch vụ...')}
                     </span>
                   </div>
@@ -236,16 +227,16 @@
             </div>
 
             <!-- BƯỚC 3: CHỌN NGÀY VÀ GIỜ HẸN -->
-            <div class="booking-cascade-block" id="cascadeStep3" style="background: var(--surface-card); border: 1px solid ${this.bookingState.timeSlot ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${hasSelectedServices ? '1' : '0.6'}; scroll-margin-top: 95px;">
+            <div class="booking-cascade-block" id="cascadeStep3" style="background: var(--surface-card); border: 1px solid ${hasSelectedTime ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${hasSelectedServices ? '1' : '0.6'}; scroll-margin-top: 95px;">
               <div class="cascade-header" onclick="${hasSelectedServices ? "BookingPage.toggleAccordion('step3')" : "UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ ở Bước 1 trước!', 'warning')"}"
                    style="padding: 18px 24px; background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; cursor: ${hasSelectedServices ? 'pointer' : 'not-allowed'}; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
-                  <span style="width: 34px; height: 34px; border-radius: 50%; background: ${this.bookingState.timeSlot ? '#C59B27' : 'var(--surface-elevated)'}; color: ${this.bookingState.timeSlot ? '#141413' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">
+                  <span style="width: 34px; height: 34px; border-radius: 50%; background: ${hasSelectedTime ? '#C59B27' : 'var(--surface-elevated)'}; color: ${hasSelectedTime ? '#141413' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">
                     3
                   </span>
                   <div>
                     <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">3. Chọn Ngày &amp; Khung Giờ Cắt Tóc</h3>
-                    <span style="font-size: 13px; color: ${this.bookingState.timeSlot ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
+                    <span style="font-size: 13px; color: ${hasSelectedTime ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
                       ${this.bookingState.timeSlot ? `Đã chọn: ${SalonUtils.formatDate(this.bookingState.date)} lúc ${this.bookingState.timeSlot}` : 'Bấm chọn ngày và giờ còn trống'}
                     </span>
                   </div>
@@ -258,16 +249,16 @@
             </div>
 
             <!-- BƯỚC 4: THÔNG TIN KHÁCH HÀNG & XÁC NHẬN PHIẾU HẸN -->
-            <div class="booking-cascade-block" id="cascadeStep4" style="background: var(--surface-card); border: 1px solid ${this.expandedSteps.step4 ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${this.expandedSteps.step4 ? '1' : '0.6'}; scroll-margin-top: 95px;">
+            <div class="booking-cascade-block" id="cascadeStep4" style="background: var(--surface-card); border: 1px solid ${this.expandedSteps.step4 || hasSelectedTime ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${hasSelectedTime ? '1' : '0.6'}; scroll-margin-top: 95px;">
               <div class="cascade-header" onclick="${this.bookingState.timeSlot ? "BookingPage.toggleAccordion('step4')" : "UICommon.showToast('Vui lòng chọn ngày và giờ hẹn ở Bước 3 trước!', 'warning')"}"
                    style="padding: 18px 24px; background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; cursor: ${this.bookingState.timeSlot ? 'pointer' : 'not-allowed'}; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
-                  <span style="width: 34px; height: 34px; border-radius: 50%; background: ${this.expandedSteps.step4 ? '#C59B27' : 'var(--surface-elevated)'}; color: ${this.expandedSteps.step4 ? '#141413' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">
+                  <span style="width: 34px; height: 34px; border-radius: 50%; background: ${this.expandedSteps.step4 || hasSelectedTime ? '#C59B27' : 'var(--surface-elevated)'}; color: ${this.expandedSteps.step4 || hasSelectedTime ? '#141413' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">
                     4
                   </span>
                   <div>
                     <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">4. Thông Tin Khách Hàng &amp; Xác Nhận Đặt Lịch</h3>
-                    <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">
+                    <span style="font-size: 13px; color: ${this.expandedSteps.step4 ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
                       ${this.expandedSteps.step4 ? 'Kiểm tra tóm tắt phiếu đặt hẹn và bấm xác nhận' : 'Chờ hoàn thành các bước trên...'}
                     </span>
                   </div>
@@ -339,6 +330,7 @@
     },
 
     onSelectStylist(stylistId) {
+      this.hasChosenStylist = true;
       this.bookingState.stylistId = stylistId;
       this.expandedSteps.step1 = false;
       this.expandedSteps.step2 = false; // Thu gọn Bước 2 để tránh bị cắt lơ lửng đè lên Bước 3
@@ -391,6 +383,7 @@
     changeBranch(branchId) {
       this.bookingState.branchId = branchId;
       this.bookingState.stylistId = '';
+      this.hasChosenStylist = false;
       this.render(document.getElementById('webMainContainer'));
     },
 
@@ -430,13 +423,16 @@
     },
 
     getSelectedStylistName() {
-      if (this.bookingState.stylistId === '') {
-        return this.expandedSteps.step3 ? 'Đã chọn: Tự động xếp Barber tay nghề cao' : '';
+      if (this.bookingState.stylistId) {
+        const st = (window.store && typeof window.store.getStylistById === 'function')
+          ? window.store.getStylistById(this.bookingState.stylistId)
+          : null;
+        return st ? `Đã chọn: ${st.name} (${st.level || 'Master Barber'})` : 'Đã chọn thợ';
       }
-      const st = (window.store && typeof window.store.getStylistById === 'function')
-        ? window.store.getStylistById(this.bookingState.stylistId)
-        : null;
-      return st ? `Đã chọn: ${st.name} (${st.level || 'Master Barber'})` : '';
+      if (this.hasChosenStylist || this.bookingState.timeSlot) {
+        return 'Đã chọn: Tự động xếp Barber tay nghề cao';
+      }
+      return '';
     },
 
     renderBranchOptionsHTML() {
@@ -450,118 +446,188 @@
       `).join('');
     },
 
-    // ── BƯỚC 1: HIỂN THỊ DANH SÁCH DỊCH VỤ CÓ THỂ CHỌN NHIỀU ──
-    renderStep1ServicesHTML() {
-      const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
-      const combos = (window.store && typeof window.store.getCombos === 'function') ? window.store.getCombos() : [];
-      const calc = this.getTotalCalculations();
+    // ── THẺ DỊCH VỤ TRỰC QUAN (VISUAL SERVICE CARD - EDITORIAL BARBERSHOP) ──
+    renderServiceVisualCard(item, isCombo = false) {
+      const isSelected = this.bookingState.serviceIds.includes(item.id);
+      const meta = this.serviceVisualMeta[item.id] || {};
+      const shortName = meta.shortName || item.name || item.TenDichVu || item.TenCombo || item.id;
+      const highlight = meta.highlight || (isCombo ? 'Gói chăm sóc toàn diện chuẩn Barbershop' : 'Tạo kiểu chuẩn form, chăm sóc chu đáo');
+      const imgPath = meta.img || item.image || item.HinhAnh || (isCombo ? 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg' : 'Men_Grooming_Products/DichVu_Men/DV1.jpg');
+      const imgUrl = SalonUtils.formatImageUrl(imgPath);
+      const dur = parseInt(String(item.duration || item.ThoiLuong || item.durationMinutes || (isCombo ? 75 : 45)).replace(/\s*phút/gi, ''), 10) || (isCombo ? 75 : 45);
+      const price = Number(item.price || item.Gia || item.GiaCombo || 0);
 
       return `
-        <div style="display: flex; flex-direction: column; gap: 24px;">
-          
-          <!-- HƯỚNG DẪN CHỌN NHIỀU -->
-          <div style="background: rgba(197, 155, 39, 0.08); border-left: 3px solid #C59B27; border-radius: 4px; padding: 12px 16px; font-size: 13.5px; color: var(--text-primary);">
-            <strong>Gợi ý:</strong> Bạn có thể nhấp chọn <span style="color: #C59B27; font-weight: 700;">nhiều dịch vụ cùng lúc</span> (ví dụ: vừa Cắt tóc fade, vừa Gội đầu massage, vừa Uốn texture). Hệ thống sẽ tự động tính tổng thời gian và chi phí niêm yết!
+        <div class="booking-service-visual-card ${isSelected ? 'selected' : ''}" 
+             onclick="BookingPage.toggleSelectService('${item.id}')"
+             role="button"
+             tabindex="0"
+             aria-pressed="${isSelected}">
+          <div class="svc-media-box">
+            <img src="${imgUrl}" alt="${SalonUtils.escapeHtml(shortName)}" class="svc-card-img" onerror="SalonUtils.handleImgError(this)" loading="lazy">
+            <div class="svc-media-gradient"></div>
+            
+            <div class="svc-media-badges">
+              ${isCombo ? '<span class="svc-badge-pill svc-badge-combo">COMBO HOT</span>' : '<span class="svc-badge-pill svc-badge-type">BARBER</span>'}
+              ${meta.savings ? `<span class="svc-badge-pill svc-badge-savings">${meta.savings}</span>` : ''}
+            </div>
+
+            <div class="svc-duration-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>${dur} phút</span>
+            </div>
+
+            <div class="svc-check-circle ${isSelected ? 'checked' : ''}">
+              ${isSelected ? '✓' : ''}
+            </div>
           </div>
 
-          <!-- GÓI COMBO TIỆM TÓC -->
-          ${combos.length > 0 ? `
+          <div class="svc-card-body">
+            <div class="svc-card-top">
+              <h4 class="svc-card-title font-serif">${shortName}</h4>
+              <p class="svc-highlight-tag">${highlight}</p>
+            </div>
+            
+            <div class="svc-card-footer">
+              <div class="svc-card-price-box">
+                <span class="svc-card-price">${SalonUtils.formatCurrency(price)}</span>
+              </div>
+              <button type="button" class="svc-select-btn ${isSelected ? 'selected' : ''}" 
+                      onclick="event.stopPropagation(); BookingPage.toggleSelectService('${item.id}')">
+                ${isSelected ? '✓ Đã chọn' : '+ Chọn'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    },
+
+    // ── BƯỚC 1: HIỂN THỊ DANH SÁCH DỊCH VỤ TRỰC QUAN BẮT MẮT ──
+    renderStep1ServicesHTML() {
+      const allServices = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
+      const allCombos = (window.store && typeof window.store.getCombos === 'function') ? window.store.getCombos() : [];
+      const calc = this.getTotalCalculations();
+      const cat = this.selectedCategory || 'all';
+
+      // Lọc danh sách theo Tab danh mục
+      let filteredCombos = [];
+      let filteredServices = [];
+
+      if (cat === 'all') {
+        filteredCombos = allCombos;
+        filteredServices = allServices;
+      } else if (cat === 'combo') {
+        filteredCombos = allCombos;
+        filteredServices = [];
+      } else {
+        filteredCombos = [];
+        filteredServices = allServices.filter(s => {
+          const meta = this.serviceVisualMeta[s.id] || {};
+          return meta.category === cat;
+        });
+      }
+
+      const totalItemsCount = allCombos.length + allServices.length;
+      const comboCount = allCombos.length;
+      const cutCount = allServices.filter(s => (this.serviceVisualMeta[s.id]?.category === 'cut')).length;
+      const permCount = allServices.filter(s => (this.serviceVisualMeta[s.id]?.category === 'perm')).length;
+      const spaCount = allServices.filter(s => (this.serviceVisualMeta[s.id]?.category === 'spa')).length;
+
+      const categoryTabs = [
+        { id: 'all', label: 'Tất Cả', count: totalItemsCount },
+        { id: 'combo', label: 'Combo Tiết Kiệm', count: comboCount },
+        { id: 'cut', label: 'Cắt & Ép Side', count: cutCount },
+        { id: 'perm', label: 'Uốn & Nhuộm', count: permCount },
+        { id: 'spa', label: 'Chăm Sóc & Râu', count: spaCount }
+      ];
+
+      return `
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          
+          <!-- THANH TAB LỌC DANH MỤC TRỰC QUAN -->
+          <div class="svc-filter-tabs-row" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+            ${categoryTabs.map(t => `
+              <button type="button" 
+                      class="svc-filter-chip ${cat === t.id ? 'active' : ''}" 
+                      onclick="BookingPage.setCategory('${t.id}')">
+                <span>${t.label}</span>
+                <span class="svc-chip-count">(${t.count})</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- MẸO GỢI Ý CHỌN NHIỀU GỌN GÀNG -->
+          <div style="background: rgba(197, 155, 39, 0.08); border-left: 3px solid #C59B27; border-radius: 6px; padding: 10px 16px; font-size: 13px; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
             <div>
-              <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase; display: block; margin-bottom: 12px;">
-                GÓI COMBO TOÀN DIỆN (TIẾT KIỆM)
+              <strong style="color: #C59B27;">Mẹo:</strong> Bạn có thể chọn <strong style="color: #C59B27;">nhiều dịch vụ cùng lúc</strong> (Cắt, Uốn, Cạo râu...). Omni Salon sẽ tự cộng dồn chi phí & thời lượng chuẩn xác.
+            </div>
+            ${calc.count > 0 ? `
+              <span style="font-size: 12px; font-weight: 700; color: #C59B27; background: rgba(197, 155, 39, 0.15); padding: 3px 10px; border-radius: 12px;">
+                Đã chọn ${calc.count} dịch vụ
               </span>
-              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px;">
-                ${combos.map(c => {
-        const isSelected = this.bookingState.serviceIds.includes(c.id);
-        const cDur = parseInt(String(c.duration || c.ThoiLuong || 70).replace(/\s*phút/gi, ''), 10) || 70;
-        return `
-                    <div class="service-multi-card ${isSelected ? 'selected' : ''}" onclick="BookingPage.toggleSelectService('${c.id}')"
-                         style="border-radius: 6px; border: 1px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.08)' : 'var(--surface-card)'};">
-                       <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                          <span style="font-size: 10.5px; font-weight: 800; background: rgba(197, 155, 39, 0.15); color: #C59B27; padding: 2px 7px; border-radius: 4px;">COMBO ĐẶC BIỆT</span>
-                          <div class="service-multi-check" style="${isSelected ? 'background: #C59B27; color: #141413; border-color: #C59B27;' : ''}">${isSelected ? '✓' : ''}</div>
-                        </div>
-                        <h4 class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">${c.name}</h4>
-                        ${this.formatCompactDescription(c.description || '', c.id)}
-                      </div>
-                      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
-                        <div>
-                          <span style="font-size: 17px; font-weight: 800; color: #C59B27;">${SalonUtils.formatCurrency(c.price)}</span>
-                          <span style="font-size: 12px; color: var(--text-secondary); display: block;">${cDur} phút</span>
-                        </div>
-                        <span style="font-size: 12px; font-weight: 700; color: ${isSelected ? '#C59B27' : 'var(--text-secondary)'};">
-                          ${isSelected ? 'Đã chọn' : '+ Thêm gói'}
-                        </span>
-                      </div>
-                    </div>
-                  `;
-      }).join('')}
+            ` : ''}
+          </div>
+
+          <!-- DANH SÁCH GÓI COMBO TIẾT KIỆM (NẾU CÓ) -->
+          ${filteredCombos.length > 0 ? `
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
+                  GÓI COMBO TOÀN DIỆN (TIẾT KIỆM)
+                </span>
+                <span style="font-size: 12px; color: var(--text-secondary);">${filteredCombos.length} gói ưu đãi</span>
+              </div>
+              <div class="booking-services-grid">
+                ${filteredCombos.map(c => this.renderServiceVisualCard(c, true)).join('')}
               </div>
             </div>
           ` : ''}
 
-          <!-- CÁC DỊCH VỤ CẮT, UỐN, NHUỘM, TẠO KIỂU -->
-          <div>
-            <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase; display: block; margin-bottom: 12px;">
-              DỊCH VỤ CẮT TÓC, UỐN, NHUỘM &amp; CHĂM SÓC RÂU
-            </span>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
-              ${services.map(s => {
-        const isSelected = this.bookingState.serviceIds.includes(s.id);
-        const sDur = parseInt(String(s.duration || s.ThoiLuong || 45).replace(/\s*phút/gi, ''), 10) || 45;
-        return `
-                  <div class="service-multi-card ${isSelected ? 'selected' : ''}" onclick="BookingPage.toggleSelectService('${s.id}')"
-                       style="border-radius: 6px; border: 1px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.08)' : 'var(--surface-card)'};">
-                    <div>
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span class="tracking-widest" style="font-size: 10px; font-weight: 800; color: #C59B27; text-transform: uppercase;">DỊCH VỤ BARBER</span>
-                        <div class="service-multi-check" style="${isSelected ? 'background: #C59B27; color: #141413; border-color: #C59B27;' : ''}">${isSelected ? '✓' : ''}</div>
-                      </div>
-                      <h4 class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">${s.name || s.TenDichVu}</h4>
-                      ${this.formatCompactDescription(s.description || s.MoTa || '', s.id)}
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
-                      <div>
-                        <span style="font-size: 16px; font-weight: 800; color: #C59B27;">${SalonUtils.formatCurrency(s.price || s.Gia)}</span>
-                        <span style="font-size: 11.5px; color: var(--text-secondary); display: block;">${sDur} phút</span>
-                      </div>
-                      <span style="font-size: 12px; font-weight: 700; color: ${isSelected ? '#C59B27' : 'var(--text-secondary)'};">
-                        ${isSelected ? 'Đã chọn' : '+ Thêm dịch vụ'}
-                      </span>
-                    </div>
-                  </div>
-                `;
-      }).join('')}
+          <!-- DANH SÁCH DỊCH VỤ LẺ BARBER -->
+          ${filteredServices.length > 0 ? `
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
+                  ${cat === 'all' ? 'DỊCH VỤ CẮT, UỐN, NHUỘM & CHĂM SÓC' : 'DỊCH VỤ THEO YÊU CẦU'}
+                </span>
+                <span style="font-size: 12px; color: var(--text-secondary);">${filteredServices.length} dịch vụ</span>
+              </div>
+              <div class="booking-services-grid">
+                ${filteredServices.map(s => this.renderServiceVisualCard(s, false)).join('')}
+              </div>
             </div>
-          </div>
+          ` : ''}
 
           <!-- THANH TỔNG HỢP CÁC DỊCH VỤ ĐÃ CHỌN (STICKY SUMMARY BAR) -->
           ${calc.count > 0 ? `
-            <div class="selected-services-summary-bar" style="border-radius: 6px; border: 1px solid #C59B27; background: var(--surface-card);">
-              <div>
-                <div class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
-                  ĐÃ CHỌN ${calc.count} DỊCH VỤ:
+            <div class="selected-services-summary-bar" style="border-radius: 8px; border: 1.5px solid #C59B27; background: var(--surface-card); box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+              <div style="flex: 1; min-width: 260px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
+                    ĐÃ CHỌN ${calc.count} DỊCH VỤ
+                  </span>
+                  <span style="font-size: 12px; color: var(--text-secondary);">•</span>
+                  <span style="font-size: 12.5px; color: var(--text-secondary);">Thời gian: <strong style="color: var(--text-primary);">${calc.totalDuration} phút</strong></span>
                 </div>
-                <div class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 3px 0;">
+                <div class="font-serif tracking-tight leading-tight" style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
                   ${calc.list.map(s => s.name).join(' + ')}
                 </div>
-                <div style="font-size: 13px; color: var(--text-secondary);">
-                  Tổng thời gian dự kiến: <strong>${calc.totalDuration} phút</strong> • Tổng chi phí: <strong style="color: #C59B27; font-size: 16px;">${SalonUtils.formatCurrency(calc.totalPrice)}</strong>
+                <div style="font-size: 16px; font-weight: 800; color: #C59B27;">
+                  Tổng thanh toán: ${SalonUtils.formatCurrency(calc.totalPrice)}
                 </div>
               </div>
-              <div style="display: flex; gap: 8px;">
-                <button type="button" class="btn-cancel" onclick="BookingPage.clearSelectedServices()" style="padding: 10px 16px; font-size: 13px; border-radius: 6px;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button type="button" class="btn-cancel" onclick="BookingPage.clearSelectedServices()" style="padding: 10px 16px; font-size: 13px; border-radius: 6px; cursor: pointer;">
                   Xóa Hết
                 </button>
-                <button type="button" class="btn-submit-terracotta" onclick="BookingPage.proceedToStep2()" style="padding: 10px 22px; font-size: 13.5px; font-weight: 700; border-radius: 6px; background: #141413; color: #FAF8F5; border: 1px solid #141413;">
+                <button type="button" class="btn-submit-terracotta" onclick="BookingPage.proceedToStep2()" style="padding: 10px 22px; font-size: 13.5px; font-weight: 700; border-radius: 6px; background: #C59B27; color: #141413; border: 1px solid #C59B27; cursor: pointer;">
                   Tiếp Tục Sang Chọn Thợ (${calc.count}) →
                 </button>
               </div>
             </div>
           ` : `
-            <div style="text-align: center; padding: 20px; background: var(--surface-card); border: 1px dashed var(--border-color); border-radius: 6px; color: var(--text-secondary); font-size: 14px;">
-              Vui lòng nhấp vào các dịch vụ ở trên để chọn. Bạn có thể chọn 1 hoặc nhiều dịch vụ tùy ý.
+            <div style="text-align: center; padding: 22px; background: var(--surface-card); border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-secondary); font-size: 13.5px;">
+              Vui lòng bấm <strong style="color: #C59B27;">+ Chọn</strong> các dịch vụ ở trên để tiếp tục. Bạn có thể chọn 1 hoặc nhiều dịch vụ tùy ý.
             </div>
           `}
         </div>
