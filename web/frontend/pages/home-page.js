@@ -480,10 +480,10 @@
                   <label style="font-size: 13px; font-weight: 700; color: #C59B27; text-transform: uppercase;">
                     1. Tải Lên Ảnh Chân Dung (Góc Thẳng):
                   </label>
-                  <div style="position: relative; border-radius: 8px; padding: 12px 18px; border: 1px dashed rgba(20, 20, 19, 0.2); background: var(--surface-elevated); display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                  <div style="position: relative; border-radius: 8px; padding: 12px 18px; border: 1px dashed var(--border-color, rgba(20, 20, 19, 0.2)); background: var(--surface-elevated); display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
                     <input type="file" id="homeAiFileInput" accept="image/*" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 5;" onchange="const f = this.files[0]; if(f){ document.getElementById('homeAiFileName').textContent = 'Đã chọn: ' + f.name; }" />
                     <span id="homeAiFileName" style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">Chọn ảnh chân dung từ thiết bị (JPG, PNG, WebP)...</span>
-                    <span style="background: #141413; color: #FAF8F5; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 6px; pointer-events: none;">Chọn Tệp</span>
+                    <span style="background: #C59B27; color: #141413; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 6px; pointer-events: none;">Chọn Tệp</span>
                   </div>
                 </div>
 
@@ -492,23 +492,23 @@
                     2. Chọn Kiểu Tóc Thịnh Hành:
                   </label>
                   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
-                    <button type="button" class="clean-tab-btn active" onclick="this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active')); this.classList.add('active');" style="height: 40px; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; white-space: nowrap; transition: all 0.2s ease;">
+                    <button type="button" class="ai-home-style-pill active" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
                       Tỉa Lớp Tự Nhiên
                     </button>
-                    <button type="button" class="clean-tab-btn" onclick="this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active')); this.classList.add('active');" style="height: 40px; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; white-space: nowrap; transition: all 0.2s ease;">
+                    <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
                       Vuốt Ngược Quý Ông
                     </button>
-                    <button type="button" class="clean-tab-btn" onclick="this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active')); this.classList.add('active');" style="height: 40px; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; white-space: nowrap; transition: all 0.2s ease;">
+                    <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
                       Đuôi Dài Cá Tính
                     </button>
-                    <button type="button" class="clean-tab-btn" onclick="this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active')); this.classList.add('active');" style="height: 40px; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; white-space: nowrap; transition: all 0.2s ease;">
+                    <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
                       Rẽ Ngôi Lịch Lãm
                     </button>
                   </div>
                 </div>
 
                 <div style="margin-top: 6px;">
-                  <button type="button" class="nordic-btn-primary" style="width: 100%; height: 46px; background: #141413; color: #FAF8F5; font-weight: 700; font-size: 14.5px; border-radius: 6px; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;" onclick="AppRouter.navigate('/ai-studio')">
+                  <button type="button" class="nordic-btn-primary" style="width: 100%; height: 46px; background: #C59B27; color: #141413; font-weight: 800; font-size: 14.5px; border-radius: 6px; border: 1px solid #C59B27; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(197, 155, 39, 0.25);" onclick="AppRouter.navigate('/ai-studio')">
                     <span>Thử Kiểu Tóc Ngay Bằng AI</span>
                     <span>→</span>
                   </button>

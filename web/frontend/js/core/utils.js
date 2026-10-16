@@ -75,7 +75,7 @@
 
     /**
      * Sinh mã QR vector SVG thuần (Zero dependency, tiêu chuẩn Native SVG)
-     * Dùng cho vé đặt lịch #BK-... hoặc mã VietQR thanh toán tại quầy
+     * Dùng cho vé đặt lịch #LH-... hoặc mã VietQR thanh toán tại quầy
      */
     generateQrSvgCode(text, options = {}) {
       const size = options.size || 180;
@@ -155,7 +155,7 @@
 
     formatImageUrl(path) {
       if (!path || typeof path !== 'string') {
-        return 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80';
+        return 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
       }
       if (path.startsWith('http://') || path.startsWith('https://')) return path;
       let clean = path.replace(/^\/+/, '');

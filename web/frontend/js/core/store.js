@@ -623,22 +623,29 @@
           this.state.users = baseline.users;
         }
 
-        // Tự động thanh lọc loại bỏ ảnh nữ và bảo đảm 100% hình ảnh dịch vụ nam
-        const maleFallback = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
+        // Tự động chuẩn hóa 100% hình ảnh dịch vụ & combo sang ảnh salon thực tế (DichVu_Men/DV... và CBDV...)
         const femaleImgList = ['photo-1522337360788-8b13dee7a37e', 'photo-1534528741775-53994a69daeb', 'photo-1544005313-94ddf0286df2'];
         const isBadImg = (url) => !url || typeof url !== 'string' || femaleImgList.some(f => url.includes(f));
 
         if (Array.isArray(this.state.services)) {
           this.state.services.forEach((s, idx) => {
-            if (isBadImg(s.image)) {
-              s.image = baseline.services[idx]?.image || maleFallback;
+            const dvMatch = (s.id || s.MaDichVu || '').match(/\d+/);
+            const num = dvMatch ? parseInt(dvMatch[0], 10) : (idx + 1);
+            const realImg = `DichVu_Men/DV${num}.jpg`;
+            if (isBadImg(s.image) || (typeof s.image === 'string' && (s.image.includes('unsplash.com') || !s.image.includes('DichVu_Men')))) {
+              s.image = realImg;
+              s.HinhAnh = realImg;
             }
           });
         }
         if (Array.isArray(this.state.combos)) {
           this.state.combos.forEach((c, idx) => {
-            if (isBadImg(c.image)) {
-              c.image = baseline.combos[idx]?.image || maleFallback;
+            const cbMatch = (c.id || c.MaCombo || '').match(/\d+/);
+            const num = cbMatch ? parseInt(cbMatch[0], 10) : (idx + 1);
+            const realImg = `DichVu_Men/CBDV${num}.jpg`;
+            if (isBadImg(c.image) || (typeof c.image === 'string' && (c.image.includes('unsplash.com') || !c.image.includes('DichVu_Men')))) {
+              c.image = realImg;
+              c.HinhAnh = realImg;
             }
           });
         }
@@ -856,7 +863,7 @@
         price: Number(comboData.price),
         oldPrice: Number(comboData.oldPrice || comboData.price * 1.25),
         duration: Number(comboData.duration || 75),
-        image: comboData.image || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
+        image: comboData.image || 'DichVu_Men/CBDV1.jpg',
         description: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
         services: Array.isArray(comboData.services) ? comboData.services : ['srv-1', 'srv-2'],
         rating: 5.0,
@@ -899,7 +906,7 @@
         price: Number(serviceData.price),
         oldPrice: Number(serviceData.oldPrice || serviceData.price),
         duration: Number(serviceData.duration || 45),
-        image: serviceData.image || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
+        image: serviceData.image || 'DichVu_Men/DV1.jpg',
         description: serviceData.description || 'Dịch vụ tạo mẫu tóc chuẩn Omni Salon',
         rating: 5.0,
         reviewsCount: 1

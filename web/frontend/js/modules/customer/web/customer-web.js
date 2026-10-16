@@ -737,7 +737,7 @@
         results.services.slice(0, 5).forEach(s => {
           html += `
             <div class="search-result-item" onclick="CustomerWeb.selectSearchResultService('${s.id}')">
-              <img src="${s.image || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=120&q=80'}" class="search-item-thumb" alt="${this.escapeHtml(s.name)}">
+              <img src="${SalonUtils.formatImageUrl(s.image || (s.isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg'))}" class="search-item-thumb" alt="${this.escapeHtml(s.name)}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/Men_Grooming_Products/DichVu_Men/DV1.jpg');">
               <div style="flex: 1; min-width: 0;">
                 <div class="search-item-name">${this.escapeHtml(s.name)}</div>
                 <div class="search-item-meta">${SalonUtils.formatCurrency(s.price)} • ${s.duration || 45} phút ${s.isCombo ? '• [Combo VIP]' : ''}</div>
@@ -799,7 +799,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // 3. TRA CỨU LỊCH HẸN BẰNG SĐT / MÃ LỊCH  #BK-...  KÈM HỦY LỊCH
+    // 3. TRA CỨU LỊCH HẸN BẰNG SĐT / MÃ LỊCH  #LH-...  KÈM HỦY LỊCH
     // -----------------------------------------------------------------------
     openLookupModal(prefillValue = '') {
       const modal = document.getElementById('globalModal');
@@ -1667,7 +1667,7 @@
                 <span>4. Tôi có thể tra cứu hoặc thay đổi giờ lịch hẹn đã đặt bằng cách nào?</span>
               </button>
               <div class="faq-body-content">
-                Rất đơn giản, bạn chỉ cần bấm nút <strong>"Tra Cứu Lịch"</strong> trên thanh menu trên cùng, nhập Số điện thoại hoặc Mã lịch (#BK-...) để xem chi tiết ca hẹn, số ghế và thợ cắt. Bạn cũng có thể hủy lịch trực tiếp trên web hoặc liên hệ hotline <strong>1900 8899</strong> để được hỗ trợ tức thì.
+                Rất đơn giản, bạn chỉ cần bấm nút <strong>"Tra Cứu Lịch"</strong> trên thanh menu trên cùng, nhập Số điện thoại hoặc Mã lịch (#LH...) để xem chi tiết ca hẹn, số ghế và thợ cắt. Bạn cũng có thể hủy lịch trực tiếp trên web hoặc liên hệ hotline <strong>1900 8899</strong> để được hỗ trợ tức thì.
               </div>
             </div>
 
@@ -1781,8 +1781,16 @@
       };
 
       const all = [
-        ...services.map(s => ({ ...s, isCombo: false, image: s.image || distinctServiceImgs[s.id] || distinctServiceImgs[s.MaDichVu] })),
-        ...combos.map(c => ({ ...c, isCombo: true, category: 'combo', image: c.image || 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg' }))
+        ...services.map(s => {
+          const defaultImg = distinctServiceImgs[s.id] || distinctServiceImgs[s.MaDichVu] || 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
+          const validImg = (!s.image || s.image.includes('unsplash.com')) ? defaultImg : s.image;
+          return { ...s, isCombo: false, image: validImg };
+        }),
+        ...combos.map(c => {
+          const defaultImg = 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg';
+          const validImg = (!c.image || c.image.includes('unsplash.com')) ? defaultImg : c.image;
+          return { ...c, isCombo: true, category: 'combo', image: validImg };
+        })
       ];
 
       let filtered;
@@ -1815,7 +1823,7 @@
           }
 
           const fallbackImg = 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
-          const rawImg = s.image || (s.isCombo ? 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg' : fallbackImg);
+          const rawImg = (!s.image || s.image.includes('unsplash.com')) ? (s.isCombo ? 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg' : fallbackImg) : s.image;
           const coverImg = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatImageUrl === 'function')
             ? SalonUtils.formatImageUrl(rawImg)
             : rawImg;
@@ -1868,7 +1876,7 @@
         }
 
         const fallbackImg = 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
-        const rawImg = s.image || (s.isCombo ? 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg' : fallbackImg);
+        const rawImg = (!s.image || s.image.includes('unsplash.com')) ? (s.isCombo ? 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg' : fallbackImg) : s.image;
         const coverImg = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatImageUrl === 'function')
           ? SalonUtils.formatImageUrl(rawImg)
           : rawImg;

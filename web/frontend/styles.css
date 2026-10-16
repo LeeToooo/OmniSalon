@@ -1152,29 +1152,171 @@ body.light .hero-cta-secondary:hover,
   border-color: var(--brand-accent) !important;
 }
 
-/* Giữ độ tương phản khu vực chụp ảnh */
+/* Giao diện sáng chuẩn mực cho khu vực AI Studio & Định Hình Phom Dáng */
 html.light .ai-studio-panel,
 body.light .ai-studio-panel,
 [data-theme="light"] .ai-studio-panel {
-  background: #10131C !important;
-  border-color: rgba(245, 158, 11, 0.35) !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05) !important;
+  color: #1E293B !important;
 }
 
 html.light .ai-studio-panel strong,
 body.light .ai-studio-panel strong,
 [data-theme="light"] .ai-studio-panel strong {
+  color: #0F172A !important;
+}
+
+html.light .ai-studio-panel p,
+body.light .ai-studio-panel p,
+[data-theme="light"] .ai-studio-panel p {
+  color: #475569 !important;
+}
+
+html.light #aiNativeDropZone,
+body.light #aiNativeDropZone,
+[data-theme="light"] #aiNativeDropZone {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+}
+
+html.light #aiEmptyUploadUI h4,
+[data-theme="light"] #aiEmptyUploadUI h4 {
+  color: #0F172A !important;
+}
+
+html.light #aiEmptyUploadUI p,
+[data-theme="light"] #aiEmptyUploadUI p {
+  color: #64748B !important;
+}
+
+html.light #aiEmptyUploadUI span.nordic-btn-secondary,
+[data-theme="light"] #aiEmptyUploadUI span.nordic-btn-secondary {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1px solid #CBD5E1 !important;
+}
+
+html.light .ai-demo-portrait-btn,
+body.light .ai-demo-portrait-btn,
+[data-theme="light"] .ai-demo-portrait-btn {
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+html.light .ai-demo-portrait-btn:hover,
+[data-theme="light"] .ai-demo-portrait-btn:hover {
+  border-color: #C59B27 !important;
+  color: #C59B27 !important;
+}
+
+html.light .ai-style-pill-btn,
+[data-theme="light"] .ai-style-pill-btn,
+html.light [id^="pillStyle_"],
+[data-theme="light"] [id^="pillStyle_"] {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+html.light .ai-style-pill-btn strong,
+[data-theme="light"] .ai-style-pill-btn strong,
+html.light [id^="pillStyle_"] strong,
+[data-theme="light"] [id^="pillStyle_"] strong {
+  color: #0F172A !important;
+}
+
+html.light .ai-style-pill-btn span,
+[data-theme="light"] .ai-style-pill-btn span,
+html.light [id^="pillStyle_"] span,
+[data-theme="light"] [id^="pillStyle_"] span {
+  color: #64748B !important;
+}
+
+html.light .ai-style-pill-btn.selected,
+[data-theme="light"] .ai-style-pill-btn.selected,
+html.light [id^="pillStyle_"].selected,
+[data-theme="light"] [id^="pillStyle_"].selected {
+  background: #FFFDF5 !important;
+  border: 1.5px solid #C59B27 !important;
+}
+
+html.light .ai-style-pill-btn.selected strong,
+[data-theme="light"] .ai-style-pill-btn.selected strong,
+html.light [id^="pillStyle_"].selected strong,
+[data-theme="light"] [id^="pillStyle_"].selected strong {
+  color: #C59B27 !important;
+}
+
+html.light .ai-color-pill-btn,
+[data-theme="light"] .ai-color-pill-btn,
+html.light [id^="pillColor_"],
+[data-theme="light"] [id^="pillColor_"] {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #1E293B !important;
+}
+
+html.light .ai-color-pill-btn span:last-child,
+[data-theme="light"] .ai-color-pill-btn span:last-child,
+html.light [id^="pillColor_"] span:last-child,
+[data-theme="light"] [id^="pillColor_"] span:last-child {
+  color: #1E293B !important;
+}
+
+html.light .ai-color-pill-btn.selected,
+[data-theme="light"] .ai-color-pill-btn.selected,
+html.light [id^="pillColor_"].selected,
+[data-theme="light"] [id^="pillColor_"].selected {
+  background: #FFFDF5 !important;
+  border: 1.5px solid #C59B27 !important;
+}
+
+html.light .ai-color-pill-btn.selected span:last-child,
+[data-theme="light"] .ai-color-pill-btn.selected span:last-child,
+html.light [id^="pillColor_"].selected span:last-child,
+[data-theme="light"] [id^="pillColor_"].selected span:last-child {
+  color: #C59B27 !important;
+}
+
+html.light #btnRunAiRestyle,
+[data-theme="light"] #btnRunAiRestyle {
+  background: #C59B27 !important;
+  color: #141413 !important;
+  border: 1px solid #C59B27 !important;
+  font-weight: 800 !important;
+}
+
+/* Nút chọn kiểu tóc AI trang chủ */
+.ai-home-style-pill {
+  background: var(--surface-card, #FFFFFF) !important;
   color: var(--text-primary) !important;
+  border: 1px solid var(--border-color, #E2E8F0) !important;
+  border-radius: 6px;
+  height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
-html.light .ai-studio-panel .nordic-pill-tab {
-  background: #161B26 !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+.ai-home-style-pill:hover {
+  border-color: #C59B27 !important;
+  color: #C59B27 !important;
 }
 
-html.light .ai-studio-panel .nordic-pill-tab.active {
-  background: rgba(245, 158, 11, 0.2) !important;
-  border-color: var(--brand-accent-gold) !important;
+.ai-home-style-pill.active {
+  background: var(--surface-elevated, #FFFDF5) !important;
+  border: 1.5px solid #C59B27 !important;
+  color: #C59B27 !important;
+  font-weight: 700 !important;
 }
 
 /* Bảo vệ tương phản các thành phần trên cả hai chế độ */
@@ -12046,12 +12188,14 @@ body[data-theme="light"] .lookup-card-result {
   background: rgba(245, 158, 11, 0.12);
 }
 
-.admin-pagination-bar .admin-tab-btn.active {
-  background: var(--brand-accent, #F59E0B) !important;
-  color: #000000 !important;
-  border-color: var(--brand-accent, #F59E0B) !important;
-  font-weight: 900;
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35);
+.admin-pagination-bar .admin-tab-btn.active,
+html.dark .admin-pagination-bar .admin-tab-btn.active,
+[data-theme="dark"] .admin-pagination-bar .admin-tab-btn.active {
+  background: var(--brand-accent, #C59B27) !important;
+  color: #141413 !important;
+  border-color: var(--brand-accent, #C59B27) !important;
+  font-weight: 900 !important;
+  box-shadow: 0 2px 10px rgba(197, 155, 39, 0.35) !important;
 }
 
 .admin-pagination-bar .admin-tab-btn:disabled {
@@ -12075,8 +12219,9 @@ html.light .admin-pagination-bar .admin-tab-btn,
 
 html.light .admin-pagination-bar .admin-tab-btn.active,
 [data-theme="light"] .admin-pagination-bar .admin-tab-btn.active {
-  background: #D97706 !important;
-  color: #FFFFFF !important;
+  background: #C59B27 !important;
+  color: #141413 !important;
+  font-weight: 900 !important;
 }
 
 /* Giao diện di động tiện lợi */
@@ -12365,6 +12510,7 @@ body {
   font-size: 14.5px !important;
 }
 
+.booking-today-badge,
 .booking-row-today .booking-today-badge {
   display: inline-flex;
   align-items: center;
@@ -12372,11 +12518,13 @@ body {
   background: #f59e0b;
   color: #000000;
   font-weight: 900;
-  font-size: 11px;
-  padding: 3px 8px;
+  font-size: 10px;
+  padding: 2px 7px;
   border-radius: 6px;
   text-transform: uppercase;
-  margin-right: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
 }
 
 /* Lịch hẹn sắp tới gần nhất làm nổi bật viền sáng */
@@ -12394,10 +12542,12 @@ body {
   gap: 5px;
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: #ffffff;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
   animation: pulseNearest 2s infinite ease-in-out;
 }
 

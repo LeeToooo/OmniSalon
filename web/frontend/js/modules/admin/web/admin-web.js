@@ -133,34 +133,66 @@
         `;
       }
 
-      let pages = [];
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
+      const pages = [];
+      if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        const left = Math.max(2, currentPage - 1);
+        const right = Math.min(totalPages - 1, currentPage + 1);
+        if (left > 2) pages.push('...');
+        for (let i = left; i <= right; i++) pages.push(i);
+        if (right < totalPages - 1) pages.push('...');
+        pages.push(totalPages);
       }
 
       const start = Math.min(totalItems, (currentPage - 1) * this.pageSize + 1);
       const end = Math.min(totalItems, currentPage * this.pageSize);
+      const prevDisabled = currentPage <= 1;
+      const nextDisabled = currentPage >= totalPages;
 
       return `
-        <div class="admin-pagination-bar">
-          <div>
-            Hiển thị <strong style="color: var(--text-primary, #FFF);">${start} - ${end}</strong> trên tổng số <strong style="color: var(--brand-accent, #F59E0B);">${totalItems}</strong> ${itemName}
+        <div class="admin-pagination-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; margin-top: 16px; background: var(--surface-card, #1c1917); border-radius: 12px; border: 1px solid var(--border-color, rgba(255,255,255,0.08)); flex-wrap: wrap; gap: 12px;">
+          <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary, #94a3b8); display: flex; align-items: center; gap: 6px;">
+            <span>Hiển thị</span>
+            <strong style="color: var(--brand-accent, #C59B27); font-weight: 800;">${start}–${end}</strong>
+            <span>trên tổng số</span>
+            <strong style="color: var(--text-primary, #FAF8F5); font-weight: 800;">${totalItems}</strong>
+            <span>${itemName} (Trang ${currentPage}/${totalPages})</span>
           </div>
-          <div style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap;">
-            <button type="button" class="admin-tab-btn" style="${currentPage === 1 ? 'opacity: 0.4; pointer-events: none;' : ''}" 
-                    ${currentPage > 1 ? `onclick="${onPageChangeExpr}(${currentPage - 1})"` : 'disabled'}>
-              ← Trước
+
+          <div style="display: inline-flex; align-items: center; gap: 6px;">
+            <button type="button" class="admin-tab-btn" 
+                    ${prevDisabled ? 'disabled' : `onclick="${onPageChangeExpr}(${currentPage - 1})"`}
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 34px; padding: 0 12px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'}; opacity: ${prevDisabled ? '0.35' : '1'}; background: var(--surface-elevated, #242422); border: 1px solid var(--border-color, rgba(255,255,255,0.12)); color: var(--text-primary, #FAF8F5) !important;">
+              <span>←</span>
+              <span>Trước</span>
             </button>
-            ${pages.map(p => `
-              <button type="button" class="admin-tab-btn ${p === currentPage ? 'active' : ''}" 
-                      style="min-width: 32px;" 
-                      onclick="${onPageChangeExpr}(${p})">
-                ${p}
-              </button>
-            `).join('')}
-            <button type="button" class="admin-tab-btn" style="${currentPage === totalPages ? 'opacity: 0.4; pointer-events: none;' : ''}" 
-                    ${currentPage < totalPages ? `onclick="${onPageChangeExpr}(${currentPage + 1})"` : 'disabled'}>
-              Sau →
+
+            <div style="display: inline-flex; align-items: center; gap: 4px;">
+              ${pages.map(p => {
+                if (p === '...') {
+                  return `<span style="padding: 0 4px; color: var(--text-secondary, #94a3b8); font-weight: 800; font-size: 13px;">…</span>`;
+                }
+                const isActive = p === currentPage;
+                return `
+                  <button type="button" class="admin-tab-btn ${isActive ? 'active' : ''}" 
+                          onclick="${onPageChangeExpr}(${p})"
+                          style="min-width: 34px; height: 34px; padding: 0 8px; border-radius: 8px; font-size: 12.5px; font-weight: ${isActive ? '900' : '600'}; cursor: pointer; transition: all 0.2s ease; ${isActive 
+                            ? 'background: #C59B27 !important; color: #141413 !important; border: 1.5px solid #C59B27 !important; box-shadow: 0 2px 8px rgba(197, 155, 39, 0.35);' 
+                            : 'background: var(--surface-elevated, #242422); color: var(--text-primary, #FAF8F5) !important; border: 1px solid var(--border-color, rgba(255,255,255,0.12));'
+                          }">
+                    ${p}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            <button type="button" class="admin-tab-btn" 
+                    ${nextDisabled ? 'disabled' : `onclick="${onPageChangeExpr}(${currentPage + 1})"`}
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 34px; padding: 0 14px; border-radius: 8px; font-size: 12.5px; font-weight: 800; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'}; opacity: ${nextDisabled ? '0.35' : '1'}; background: #C59B27 !important; border: 1px solid #C59B27 !important; color: #141413 !important; box-shadow: 0 2px 8px rgba(197, 155, 39, 0.25);">
+              <span>Sau</span>
+              <span>→</span>
             </button>
           </div>
         </div>
@@ -1327,12 +1359,9 @@
       const customerSearchHtml = `
         <div class="quick-booking-search-panel" style="background: var(--surface-card); border: 2px solid #C59B27; border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(197, 155, 39, 0.08);">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 11px; font-weight: 800; background: #C59B27; color: #141413; padding: 3px 8px; border-radius: 4px;">TIẾP NHẬN REALTIME</span>
-              <div>
-                <strong style="font-size: 16px; color: var(--text-primary); display: block;">Bàn Tiếp Nhận &amp; Check-in Khách Hàng Đặt Lịch</strong>
-                <span style="font-size: 13px; color: var(--text-secondary);">Gõ Tên, SĐT hoặc Mã vé (#BK...) để kiểm tra ca hẹn và check-in vào ghế làm ngay</span>
-              </div>
+            <div>
+              <strong style="font-size: 16px; color: var(--text-primary); display: block;">Bàn Tiếp Nhận &amp; Check-in Khách Hàng Đặt Lịch</strong>
+              <span style="font-size: 13px; color: var(--text-secondary);">Gõ Tên, SĐT hoặc Mã vé để kiểm tra ca hẹn và check-in vào ghế làm ngay</span>
             </div>
             <span style="font-size: 12px; font-weight: 700; color: #C59B27; background: rgba(197, 155, 39, 0.12); padding: 4px 10px; border-radius: 6px;">
               Hiện tại: ${nowTime} • Hôm Nay: ${SalonUtils.formatDate(todayStr)}
@@ -1559,10 +1588,11 @@
                   return `
                     <tr class="${rowClass}">
                       <td><strong>${this.escapeHtml(b.bookingCode || b.id)}</strong></td>
-                      <td style="font-weight: 700;">
-                        ${isToday ? `<span class="booking-today-badge">HÔM NAY</span>` : ''}
-                        ${isNearest ? `<span class="booking-nearest-tag">GẦN NHẤT</span>` : ''}
-                        ${this.escapeHtml(b.customerName)}
+                      <td style="font-weight: 700; white-space: nowrap;">
+                        <div style="display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;">
+                          ${isNearest ? `<span class="booking-nearest-tag" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 8px; margin: 0;">GẦN NHẤT</span>` : (isToday ? `<span class="booking-today-badge" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 7px; margin-right: 0;">HÔM NAY</span>` : '')}
+                          <span style="font-size: 13.5px; white-space: nowrap; color: var(--text-primary, #FAF8F5);">${this.escapeHtml(b.customerName)}</span>
+                        </div>
                       </td>
                       <td>${this.escapeHtml(b.customerPhone)}</td>
                       <td>
@@ -2103,7 +2133,7 @@
                   <th>Mã</th>
                   <th>Tên Dịch Vụ / Combo</th>
                   <th>Phân Loại</th>
-                  <th>Giá Niêm Yết</th>
+                  <th>${type === 'combos' ? 'Giá Gói Combo' : 'Giá Dịch Vụ'}</th>
                   <th>Thời Lượng</th>
                   <th>Mô Tả Tóm Tắt</th>
                   <th>Hành Động</th>
@@ -2115,7 +2145,7 @@
                     <td>
                       <img src="${SalonUtils.formatImageUrl(item.image)}" 
                            style="width: 42px; height: 42px; border-radius: 6px; object-fit: cover;" alt="${this.escapeHtml(item.name)}"
-                           onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=120&q=80');">
+                           onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DichVu_Men/DV1.jpg');">
                     </td>
                     <td><strong>${this.escapeHtml(item.id)}</strong></td>
                     <td style="font-weight: 800;">${this.escapeHtml(item.name)}</td>
@@ -2126,7 +2156,6 @@
                     </td>
                     <td style="font-weight: 900; color: #c85a44;">
                       ${SalonUtils.formatCurrency(item.price)}
-                      ${item.oldPrice && item.oldPrice > item.price ? `<span style="font-size: 11px; color: #999; text-decoration: line-through; display: block;">${SalonUtils.formatCurrency(item.oldPrice)}</span>` : ''}
                     </td>
                     <td>
                       <strong>${item.duration || 45}</strong> phút
@@ -2181,7 +2210,28 @@
       }
 
       const isEdit = !!item;
-      const typeLabel = type === 'services' ? 'Dịch Vụ' : type === 'combos' ? 'Gói Combo VIP' : 'Sản Phẩm';
+      const isProduct = type === 'products';
+      const isCombo = type === 'combos';
+      const typeLabel = isProduct ? 'Sản Phẩm' : isCombo ? 'Gói Combo VIP' : 'Dịch Vụ';
+      const nameLabel = isProduct ? 'Tên Mặt Hàng / Sản Phẩm:' : isCombo ? 'Tên Gói Combo VIP:' : 'Tên Dịch Vụ:';
+
+      // Chuẩn hóa ảnh: Tuyệt đối không dùng ảnh Unsplash cho Dịch Vụ và Combo salon
+      let itemImage = item?.image || item?.HinhAnh || '';
+      if (type === 'services') {
+        const dvNum = (item?.id || itemId || item?.MaDichVu || '').match(/\d+/);
+        const num = dvNum ? parseInt(dvNum[0], 10) : 1;
+        const defaultPath = `DichVu_Men/DV${num}.jpg`;
+        if (!itemImage || itemImage.includes('unsplash.com') || !itemImage.includes('DichVu_Men')) {
+          itemImage = defaultPath;
+        }
+      } else if (type === 'combos') {
+        const cbNum = (item?.id || itemId || item?.MaCombo || '').match(/\d+/);
+        const num = cbNum ? parseInt(cbNum[0], 10) : 1;
+        const defaultPath = `DichVu_Men/CBDV${num}.jpg`;
+        if (!itemImage || itemImage.includes('unsplash.com') || !itemImage.includes('DichVu_Men')) {
+          itemImage = defaultPath;
+        }
+      }
 
       this._openModal(`
         <div style="max-width: 520px; margin: 0 auto;">
@@ -2189,32 +2239,49 @@
           <h2 style="font-size: 20px; font-weight: 800; margin: 8px 0 16px;">${isEdit ? 'CHỈNH SỬA' : 'THÊM MỚI'} ${typeLabel.toUpperCase()}</h2>
           <form onsubmit="event.preventDefault(); AdminWeb.submitCatalogForm('${type}', '${itemId || ''}');">
             <div style="margin-bottom: 12px;">
-              <label class="sub-label">Tên Mặt Hàng / Gói Dịch Vụ:</label>
-              <input type="text" id="catName" class="form-control-custom" placeholder="VD: Uốn Textured Crop / Sáp Brosh Matte..." value="${this.escapeHtml(item?.name || '')}" required>
+              <label class="sub-label">${nameLabel}</label>
+              <input type="text" id="catName" class="form-control-custom" placeholder="${isProduct ? 'VD: Sáp Brosh Matte / Pomade Reuzel...' : isCombo ? 'VD: Combo Quý Tộc Barber...' : 'VD: Cắt tóc nam Fade & Tạo kiểu...'}" value="${this.escapeHtml(item?.name || '')}" required>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-              <div>
-                <label class="sub-label">Giá Bán (VNĐ):</label>
-                <input type="number" id="catPrice" class="form-control-custom" placeholder="250000" value="${item?.price || ''}" required min="1000">
+            ${isProduct ? `
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                  <label class="sub-label">Giá Bán (VNĐ):</label>
+                  <input type="number" id="catPrice" class="form-control-custom" placeholder="250000" value="${item?.price || ''}" required min="1000">
+                </div>
+                <div>
+                  <label class="sub-label">Giá Gốc / So Sánh (VNĐ):</label>
+                  <input type="number" id="catOldPrice" class="form-control-custom" placeholder="320000" value="${item?.oldPrice || item?.originalPrice || item?.GiaBan || item?.price || ''}">
+                </div>
               </div>
-              <div>
-                <label class="sub-label">Giá Gốc / So Sánh (VNĐ):</label>
-                <input type="number" id="catOldPrice" class="form-control-custom" placeholder="320000" value="${item?.oldPrice || item?.originalPrice || item?.GiaBan || item?.price || ''}">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                  <label class="sub-label">Thương Hiệu:</label>
+                  <input type="text" id="catCategory" class="form-control-custom" value="${this.escapeHtml(item?.brand || 'Brosh Japan')}" required>
+                </div>
+                <div>
+                  <label class="sub-label">Số Lượng Tồn Kho:</label>
+                  <input type="number" id="catDurationOrStock" class="form-control-custom" value="${item?.stock || 30}" required min="1">
+                </div>
               </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-              <div>
-                <label class="sub-label">${type === 'products' ? 'Thương Hiệu:' : 'Phân Loại (Category):'}</label>
-                <input type="text" id="catCategory" class="form-control-custom" value="${this.escapeHtml(item?.category || item?.brand || (type === 'products' ? 'Brosh Japan' : 'haircut'))}" required>
+            ` : `
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                  <label class="sub-label">${isCombo ? 'Giá Gói Combo (VNĐ):' : 'Giá Dịch Vụ (VNĐ):'}</label>
+                  <input type="number" id="catPrice" class="form-control-custom" placeholder="250000" value="${item?.price || ''}" required min="1000">
+                </div>
+                <div>
+                  <label class="sub-label">Thời Lượng Thực Hiện (Phút):</label>
+                  <input type="number" id="catDurationOrStock" class="form-control-custom" value="${item?.duration || (isCombo ? 90 : 45)}" required min="1">
+                </div>
               </div>
-              <div>
-                <label class="sub-label">${type === 'products' ? 'Số Lượng Tồn Kho:' : 'Thời Lượng Thực Hiện (Phút):'}</label>
-                <input type="number" id="catDurationOrStock" class="form-control-custom" value="${item?.duration || item?.stock || (type === 'products' ? 30 : 45)}" required min="1">
+              <div style="margin-bottom: 12px;">
+                <label class="sub-label">Phân Loại (Category):</label>
+                <input type="text" id="catCategory" class="form-control-custom" value="${this.escapeHtml(item?.category || (isCombo ? 'Combo VIP' : 'Cắt & Tạo Kiểu'))}" required>
               </div>
-            </div>
+            `}
             <div style="margin-bottom: 12px;">
               <label class="sub-label">Đường Dẫn Ảnh (Image URL):</label>
-              <input type="url" id="catImage" class="form-control-custom" value="${this.escapeHtml(item?.image || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80')}">
+              <input type="text" id="catImage" class="form-control-custom" value="${this.escapeHtml(itemImage || (type === 'combos' ? 'DichVu_Men/CBDV1.jpg' : type === 'services' ? 'DichVu_Men/DV1.jpg' : 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg'))}">
             </div>
             <div style="margin-bottom: 16px;">
               <label class="sub-label">Mô Tả Chi Tiết:</label>
@@ -2232,16 +2299,31 @@
     submitCatalogForm(type, itemId) {
       const name = (document.getElementById('catName')?.value || '').trim();
       const price = Number(document.getElementById('catPrice')?.value) || 0;
-      const oldPrice = Number(document.getElementById('catOldPrice')?.value) || price;
+      const oldPrice = document.getElementById('catOldPrice') ? (Number(document.getElementById('catOldPrice').value) || price) : price;
       const catOrBrand = (document.getElementById('catCategory')?.value || '').trim();
       const durOrStock = Number(document.getElementById('catDurationOrStock')?.value) || 45;
-      const image = (document.getElementById('catImage')?.value || '').trim();
+      let image = (document.getElementById('catImage')?.value || '').trim();
       const description = (document.getElementById('catDescription')?.value || '').trim();
 
       if (!name || price <= 0) {
         if (window.UICommon) window.UICommon.showToast('Vui lòng nhập tên và giá bán hợp lệ!', 'warning');
         else alert('Vui lòng nhập tên và giá bán hợp lệ!');
         return;
+      }
+
+      if (type === 'services' && (!image || image.includes('unsplash.com'))) {
+        const dvNum = (itemId || '').match(/\d+/);
+        image = dvNum ? `DichVu_Men/DV${parseInt(dvNum[0], 10)}.jpg` : 'DichVu_Men/DV1.jpg';
+      } else if (type === 'combos' && (!image || image.includes('unsplash.com'))) {
+        const cbNum = (itemId || '').match(/\d+/);
+        image = cbNum ? `DichVu_Men/CBDV${parseInt(cbNum[0], 10)}.jpg` : 'DichVu_Men/CBDV1.jpg';
+      } else if (!image) {
+        if (itemId) {
+          const existing = window.store.getProductById(itemId);
+          image = existing?.image || existing?.HinhAnh || 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
+        } else {
+          image = 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
+        }
       }
 
       if (itemId) {

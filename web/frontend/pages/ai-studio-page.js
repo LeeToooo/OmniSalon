@@ -119,7 +119,7 @@
                      ondragover="event.preventDefault(); this.style.borderColor='#C59B27';"
                      ondragleave="this.style.borderColor='var(--border-color)';"
                      ondrop="AiStudioPage.handleDrop(event)"
-                     style="position: relative; border: 1px dashed var(--border-color); border-radius: 6px; background: #141413; padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s ease; overflow: hidden; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                     style="position: relative; border: 1px dashed var(--border-color); border-radius: 6px; background: var(--surface-elevated, #F8FAFC); padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s ease; overflow: hidden; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                   
                   <input type="file" id="aiStudioFileInput" accept="image/*" 
                          onchange="AiStudioPage.handleFileSelected(event)"
@@ -147,14 +147,14 @@
 
                   <!-- Empty Placeholder UI -->
                   <div id="aiEmptyUploadUI" style="display: ${this.state.uploadedImage ? 'none' : 'flex'}; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="width: 44px; height: 44px; border-radius: 6px; background: #1C1C1A; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #C59B27; margin-bottom: 10px;">
+                    <div style="width: 44px; height: 44px; border-radius: 6px; background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #C59B27; margin-bottom: 10px;">
                       ẢNH
                     </div>
-                    <h4 class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: #FAF8F5; margin-bottom: 4px;">Kéo thả ảnh chân dung vào đây</h4>
-                    <p style="font-size: 12px; color: #71717A; max-width: 260px; margin-bottom: 12px; line-height: 1.4;">
+                    <h4 class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Kéo thả ảnh chân dung vào đây</h4>
+                    <p style="font-size: 12px; color: var(--text-secondary); max-width: 260px; margin-bottom: 12px; line-height: 1.4;">
                       hoặc nhấp chuột để chọn ảnh chụp góc thẳng từ thiết bị
                     </p>
-                    <span class="nordic-btn-secondary" style="font-size: 12px; font-weight: 700; padding: 6px 16px; pointer-events: none; border-radius: 4px; background: #1C1C1A; color: #FAF8F5; border: 1px solid rgba(255,255,255,0.1);">
+                    <span class="nordic-btn-secondary" style="font-size: 12px; font-weight: 700; padding: 6px 16px; pointer-events: none; border-radius: 4px; background: var(--surface-card, #FFFFFF); color: var(--text-primary); border: 1px solid var(--border-color);">
                       Chọn Tệp Ảnh
                     </span>
                   </div>
@@ -168,7 +168,7 @@
                 </span>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                   ${this.demoPortraits.map(dp => `
-                    <button type="button" onclick="AiStudioPage.selectDemoPortrait('${dp.url}')" style="display: flex; align-items: center; gap: 8px; background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 10px; cursor: pointer; color: var(--text-primary); font-size: 12px; font-weight: 600;">
+                    <button type="button" class="ai-demo-portrait-btn" onclick="AiStudioPage.selectDemoPortrait('${dp.url}')" style="display: flex; align-items: center; gap: 8px; background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 10px; cursor: pointer; color: var(--text-primary); font-size: 12px; font-weight: 600;">
                       <img src="${dp.url}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;" alt="${dp.name}">
                       <span>${dp.name}</span>
                     </button>
@@ -193,10 +193,10 @@
         const isSelected = this.state.selectedHairstyle === h.id;
         return `
                       <button type="button" 
-                              class="clean-tab-btn ${isSelected ? 'active' : ''}" 
                               id="pillStyle_${h.id}"
+                              class="ai-style-pill-btn ${isSelected ? 'selected' : ''}"
                               onclick="AiStudioPage.selectHairstyle('${h.id}')"
-                              style="width: 100%; padding: 12px 14px; border-radius: 6px; text-align: left; display: flex; flex-direction: column; gap: 4px; cursor: pointer; border: 1px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.12)' : 'var(--surface-elevated)'}; transition: all 0.15s ease;">
+                              style="width: 100%; padding: 12px 14px; border-radius: 6px; text-align: left; display: flex; flex-direction: column; gap: 4px; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'var(--surface-elevated)' : 'var(--surface-card)'}; transition: all 0.15s ease;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                           <strong class="font-serif tracking-tight leading-tight" style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'}; font-size: 13.5px;">${h.name}</strong>
                           <span style="color: ${isSelected ? '#C59B27' : 'var(--text-muted)'}; font-size: 11px;">${isSelected ? '●' : '○'}</span>
@@ -216,10 +216,13 @@
                     ${this.hairColors.map(c => {
         const isSelected = this.state.selectedColor === c.id;
         return `
-                        <button type="button" onclick="AiStudioPage.selectColor('${c.id}')"
-                                style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 4px; cursor: pointer; border: 1px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.12)' : 'var(--surface-elevated)'}; color: var(--text-primary); font-size: 12px; font-weight: 600;">
-                          <span style="width: 10px; height: 10px; border-radius: 50%; background: ${c.hex}; display: inline-block; border: 1px solid rgba(255,255,255,0.2);"></span>
-                          <span>${c.name}</span>
+                        <button type="button" 
+                                id="pillColor_${c.id}"
+                                class="ai-color-pill-btn ${isSelected ? 'selected' : ''}"
+                                onclick="AiStudioPage.selectColor('${c.id}')"
+                                style="display: flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 6px; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'var(--surface-elevated)' : 'var(--surface-card)'}; font-size: 12.5px; font-weight: 700; transition: all 0.15s ease;">
+                          <span style="width: 12px; height: 12px; border-radius: 50%; background: ${c.hex}; display: inline-block; border: 1.5px solid ${c.id === 'natural-black' ? '#94A3B8' : 'rgba(255,255,255,0.3)'}; flex-shrink: 0;"></span>
+                          <span style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'};">${c.name}</span>
                         </button>
                       `;
       }).join('')}
@@ -230,8 +233,8 @@
               <!-- NÚT CTA 'Tạo Kiểu Ngay' -->
               <div>
                 <button type="button" class="nordic-btn-primary" id="btnRunAiRestyle" onclick="AiStudioPage.runAiRestyle()"
-                        style="width: 100%; height: 46px; font-size: 14px; font-weight: 700; background: #141413; color: #FAF8F5; border: 1px solid #141413; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s ease;">
-                  <span id="aiBtnSpinner" style="display: none; width: 16px; height: 16px; border: 2px solid #FAF8F5; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+                        style="width: 100%; height: 46px; font-size: 14px; font-weight: 800; background: #C59B27; color: #141413; border: 1px solid #C59B27; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(197, 155, 39, 0.25);">
+                  <span id="aiBtnSpinner" style="display: none; width: 16px; height: 16px; border: 2px solid #141413; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
                   <span id="aiBtnIcon"></span>
                   <span id="aiBtnText">Mô Phỏng Kiểu Tóc Ngay →</span>
                 </button>
@@ -419,7 +422,7 @@
             if (hud) hud.style.display = 'none';
             if (spinner) spinner.style.display = 'none';
             if (icon) icon.style.display = 'none';
-            if (text) text.textContent = 'Bắt Đầu Phân Tích & Thử Kiểu';
+            if (text) text.textContent = 'Mô Phỏng Kiểu Tóc Ngay →';
             if (btn) {
               btn.disabled = false;
               btn.style.opacity = '1';
@@ -451,22 +454,30 @@
         const btn = document.getElementById(`pillStyle_${h.id}`);
         if (!btn) return;
         const isSelected = this.state.selectedHairstyle === h.id;
-        btn.style.borderColor = isSelected ? '#F59E0B' : 'rgba(255,255,255,0.1)';
-        btn.style.background = isSelected ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.03)';
+        btn.classList.toggle('selected', isSelected);
+        btn.style.borderColor = isSelected ? '#C59B27' : 'var(--border-color)';
+        btn.style.background = isSelected ? 'var(--surface-elevated)' : 'var(--surface-card)';
+        const title = btn.querySelector('strong');
+        if (title) title.style.color = isSelected ? '#C59B27' : 'var(--text-primary)';
         const radio = btn.querySelector('div span:last-child');
         if (radio) {
           radio.textContent = isSelected ? '●' : '○';
-          radio.style.color = isSelected ? '#F59E0B' : 'rgba(255,255,255,0.3)';
+          radio.style.color = isSelected ? '#C59B27' : 'var(--text-muted)';
         }
       });
     },
 
     _updateColorUI() {
-      const container = document.querySelector('.ai-controls-panel');
-      if (container) {
-        const currentContainer = document.getElementById('webMainContainer');
-        if (currentContainer) this.render(currentContainer);
-      }
+      this.hairColors.forEach(c => {
+        const btn = document.getElementById(`pillColor_${c.id}`);
+        if (!btn) return;
+        const isSelected = this.state.selectedColor === c.id;
+        btn.classList.toggle('selected', isSelected);
+        btn.style.borderColor = isSelected ? '#C59B27' : 'var(--border-color)';
+        btn.style.background = isSelected ? 'var(--surface-elevated)' : 'var(--surface-card)';
+        const nameSpan = btn.querySelector('span:last-child');
+        if (nameSpan) nameSpan.style.color = isSelected ? '#C59B27' : 'var(--text-primary)';
+      });
     },
 
     resetAiRestyle() {
