@@ -6491,6 +6491,8 @@ body.admin-mode {
   height: 100vh !important;
   max-height: 100vh !important;
   overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 body.admin-mode,
@@ -6510,8 +6512,10 @@ body:has(.admin-dashboard-layout) .page-perspective-wrapper {
   filter: none !important;
   backdrop-filter: none !important;
   will-change: auto !important;
-  padding-top: 0 !important;
+  padding: 0 !important;
   margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
   height: 100vh !important;
   max-height: 100vh !important;
   overflow: hidden !important;
@@ -6529,6 +6533,8 @@ body:has(.admin-dashboard-layout) .page-view {
   will-change: auto !important;
   height: 100vh !important;
   overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Bố cục bảng điều hành quản trị với menu dọc chính thức */
@@ -6536,8 +6542,11 @@ body:has(.admin-dashboard-layout) .page-view {
   display: flex !important;
   flex-direction: row !important;
   width: 100% !important;
+  max-width: 100% !important;
   height: 100vh !important;
   max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
   overflow: hidden !important;
   background-color: var(--bg-primary, #0A0A0B);
   color: var(--text-primary, #F4F4F5);
@@ -6562,7 +6571,7 @@ body:has(.admin-dashboard-layout) .page-view {
   opacity: 1;
 }
 
-/* Khung menu dọc quản trị - Tràn viền từ đỉnh tới đáy (Full-height edge-to-edge) */
+/* Khung menu dọc quản trị - Ghim sát góc trái màn hình tuyệt đối (True Flush Left Edge) */
 .admin-sidebar {
   width: 280px !important;
   min-width: 280px !important;
@@ -6573,11 +6582,14 @@ body:has(.admin-dashboard-layout) .page-view {
   border-right: 1px solid var(--border-color, #222225);
   display: flex !important;
   flex-direction: column !important;
-  position: relative !important;
+  position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   bottom: 0 !important;
-  z-index: 100 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  z-index: 1000 !important;
   box-sizing: border-box;
   flex-shrink: 0 !important;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease;
@@ -6887,7 +6899,7 @@ html.light .admin-sidebar-nav-item:hover {
 .admin-main-viewport {
   flex: 1 1 0% !important;
   min-width: 0 !important;
-  margin-left: 0 !important;
+  margin-left: 280px !important;
   width: calc(100% - 280px) !important;
   height: 100vh !important;
   max-height: 100vh !important;

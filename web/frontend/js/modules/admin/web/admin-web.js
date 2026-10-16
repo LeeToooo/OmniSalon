@@ -487,7 +487,7 @@
         },
         {
           groupLabel: 'SẢN PHẨM VÀ KHO',
-          ids: ['catalog', 'inventory']
+          ids: ['inventory']
         },
         {
           groupLabel: 'HỆ THỐNG VÀ DỮ LIỆU',
