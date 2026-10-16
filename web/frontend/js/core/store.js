@@ -182,11 +182,20 @@
     async syncOrderToLiveServer(order) {
       if (typeof fetch === 'undefined') return;
       try {
-        await fetch(`${this.liveServerUrl}/orders`, {
+        const res = await fetch(`${this.liveServerUrl}/orders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(order)
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.order && data.order.id) {
+            order.id = data.order.id;
+            order.orderCode = data.order.id;
+            order.MaDonHang = data.order.id;
+            this.saveState();
+          }
+        }
       } catch (_) { }
     }
 
@@ -304,17 +313,43 @@
     async syncPosCheckoutToLiveServer(posOrder) {
       if (typeof fetch === 'undefined') return;
       try {
-        await fetch(`${this.liveServerUrl}/pos/checkout`, {
+        const payload = {
+          customerId: posOrder.userId || null,
+          customerName: posOrder.customerName,
+          customerPhone: posOrder.customerPhone,
+          branchId: posOrder.branchId || 'CN01',
+          staffId: posOrder.stylistId || posOrder.cashierId || 'NV61',
+          total: posOrder.totalAmount,
+          paymentMethod: posOrder.paymentMethod || 'Tiền mặt',
+          services: posOrder.services || [],
+          products: posOrder.items || []
+        };
+        const res = await fetch(`${this.liveServerUrl}/pos/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customerId: posOrder.userId || 'KH01',
-            branchId: posOrder.branchId || 'CN01',
-            staffId: posOrder.cashierId || 'NV61',
-            total: posOrder.totalAmount,
-            paymentMethod: posOrder.paymentMethod || 'Tiền mặt'
-          })
+          body: JSON.stringify(payload)
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.invoice && data.invoice.id) {
+            posOrder.id = data.invoice.id;
+            posOrder.orderCode = data.invoice.id;
+            posOrder.invoiceNo = data.invoice.invoiceNo || data.invoice.id;
+            posOrder.paymentId = data.invoice.paymentId;
+            this.createInvoice({
+              id: data.invoice.id,
+              MaHoaDon: data.invoice.id,
+              customerId: posOrder.userId,
+              branchId: posOrder.branchId,
+              totalAmount: posOrder.totalAmount,
+              TrangThai: 'Đã thanh toán',
+              MaSoHoaDon: data.invoice.invoiceNo,
+              services: posOrder.services,
+              products: posOrder.items
+            });
+            this.saveState();
+          }
+        }
       } catch (_) { }
     }
 
@@ -1647,14 +1682,27 @@
       this.notify('CART_UPDATED', []);
     }
 
-    createOrder(orderData) {
+    async createOrder(orderData) {
       const branch = this.getBranchById(orderData.branchId) || this.getCurrentBranch();
-      const orderCode = `ORD-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+
+      // Sinh mã đơn hàng chuẩn định dạng CSDL SQL Server (DH01 -> DH11 -> DH12...)
+      let orderCode = orderData.orderCode || orderData.id;
+      if (!orderCode || !orderCode.startsWith('DH')) {
+        const existingDh = (this.state.orders || [])
+          .map(o => (o.id || o.orderCode || o.MaDonHang || ''))
+          .filter(code => /^DH\d+$/i.test(code));
+        let maxDhNum = 10;
+        existingDh.forEach(code => {
+          const num = parseInt(code.replace(/^DH/i, ''), 10);
+          if (num > maxDhNum) maxDhNum = num;
+        });
+        orderCode = 'DH' + (maxDhNum + 1 < 10 ? '0' + (maxDhNum + 1) : (maxDhNum + 1));
+      }
 
       // Trừ kho từng sản phẩm
       if (Array.isArray(orderData.items)) {
         orderData.items.forEach(it => {
-          this.decrementStock(branch.id, it.productId || it.id, it.qty || it.quantity || 1);
+          this.decrementStock(branch ? branch.id : 'CN01', it.productId || it.id, it.qty || it.quantity || 1);
         });
       }
 
@@ -1678,8 +1726,9 @@
       const newOrder = {
         id: orderCode,
         orderCode,
+        MaDonHang: orderCode,
         userId: orderData.userId || this.getCurrentUser()?.id || null,
-        branchId: branch ? branch.id : 'br-dbp',
+        branchId: branch ? branch.id : 'CN01',
         branchName: branch ? branch.name : 'Omni Salon HQ',
         deliveryType: isPickup ? 'PICKUP_BRANCH' : 'DELIVERY',
         orderType: orderData.orderType || (isPickup ? 'STORE_PICKUP' : 'ONLINE_DELIVERY'),
@@ -1702,7 +1751,7 @@
 
       this.logAudit('CREATE_ORDER', `Đơn: #${newOrder.orderCode}`, `Tổng: ${SalonUtils.formatCurrency(newOrder.totalAmount)}`);
       this.saveState();
-      this.syncOrderToLiveServer(newOrder);
+      await this.syncOrderToLiveServer(newOrder);
       return newOrder;
     }
 
@@ -1784,7 +1833,7 @@
     /**
      * Tạo hóa đơn quầy POS (Khách cắt tóc + Mua sản phẩm sáp vuốt trực tiếp)
      */
-    createPosOrder(posData) {
+    async createPosOrder(posData) {
       if (!posData || !posData.branchId) {
         throw new Error('Hóa đơn POS yêu cầu chỉ định chi nhánh thanh toán.');
       }
@@ -1817,12 +1866,26 @@
         }
       }
 
-      const orderCode = `ORD-POS-${Math.floor(1000 + Math.random() * 9000)}`;
+      // Sinh mã hóa đơn quầy POS chuẩn CSDL SQL Server (HD01 -> HD03 -> HD11...)
+      let orderCode = posData.orderCode || posData.id;
+      if (!orderCode || !orderCode.startsWith('HD')) {
+        const existingHd = (this.state.invoices || []).concat(this.state.orders || [])
+          .map(o => (o.id || o.orderCode || o.MaHoaDon || ''))
+          .filter(code => /^HD\d+$/i.test(code));
+        let maxNum = 2;
+        existingHd.forEach(code => {
+          const num = parseInt(code.replace(/^HD/i, ''), 10);
+          if (num > maxNum) maxNum = num;
+        });
+        orderCode = 'HD' + (maxNum + 1 < 10 ? '0' + (maxNum + 1) : (maxNum + 1));
+      }
+
       const stObj = posData.stylistId ? this.getStylistById(posData.stylistId) : null;
       const stylistName = posData.stylistName || (stObj ? stObj.name : 'Master Barber');
       const posOrder = {
         id: orderCode,
         orderCode,
+        MaHoaDon: orderCode,
         userId: posData.userId || null,
         branchId: posData.branchId,
         orderType: 'POS_COUNTER',
@@ -1839,7 +1902,7 @@
         paymentMethod: posData.paymentMethod || 'Counter_Cash',
         paymentStatus: 'Paid',
         orderStatus: 'Completed',
-        cashierId: this.getCurrentUser()?.id || 'cashier-on-duty',
+        cashierId: this.getCurrentUser()?.id || 'NV61',
         createdAt: new Date().toISOString()
       };
 
@@ -1848,7 +1911,7 @@
 
       this.logAudit('POS_CHECKOUT', `Hóa đơn quầy: #${orderCode}`, `Thu ngân xuất đơn: ${SalonUtils.formatCurrency(posOrder.totalAmount)}`);
       this.saveState();
-      this.syncPosCheckoutToLiveServer(posOrder);
+      await this.syncPosCheckoutToLiveServer(posOrder);
       return posOrder;
     }
 

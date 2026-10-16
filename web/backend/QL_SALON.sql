@@ -714,6 +714,11 @@ BEGIN
     DECLARE @GiaThucTe DECIMAL(18,2);
     DECLARE @MaChiTietDonHang VARCHAR(30);
 
+    DECLARE @NextNum INT;
+    SELECT @NextNum = ISNULL(MAX(TRY_CAST(SUBSTRING(MaChiTietDonHang, 5, 10) AS INT)), 0)
+    FROM ChiTietDonHang
+    WHERE MaChiTietDonHang LIKE 'CTDH%' AND LEN(MaChiTietDonHang) <= 10;
+
     FETCH NEXT FROM cur_FEFO INTO @MaLo, @SoLuongConLai, @PhanTramGiam;
 
     WHILE @@FETCH_STATUS = 0 AND @SoLuongCanLay > 0
@@ -724,7 +729,8 @@ BEGIN
             SET @SoLuongTrichXuat = @SoLuongConLai;
 
         SET @GiaThucTe = CAST(@GiaGoc * (1.0 - @PhanTramGiam / 100.0) AS DECIMAL(18,2));
-        SET @MaChiTietDonHang = CONCAT('CTDH', CONVERT(VARCHAR(8), GETDATE(), 112), RIGHT('000000' + CAST(NEXT VALUE FOR seq_ChiTietDonHang AS VARCHAR(6)), 6));
+        SET @NextNum = @NextNum + 1;
+        SET @MaChiTietDonHang = 'CTDH' + CASE WHEN @NextNum < 10 THEN '0' + CAST(@NextNum AS VARCHAR(10)) ELSE CAST(@NextNum AS VARCHAR(10)) END;
 
         INSERT INTO ChiTietDonHang 
             (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)
@@ -824,6 +830,11 @@ BEGIN
     DECLARE @GiaThucTe DECIMAL(18,2);
     DECLARE @MaChiTietHDSanPham VARCHAR(30);
 
+    DECLARE @NextNumHD INT;
+    SELECT @NextNumHD = ISNULL(MAX(TRY_CAST(SUBSTRING(MaChiTietHDSanPham, 5, 10) AS INT)), 0)
+    FROM ChiTietHoaDon_SanPham
+    WHERE MaChiTietHDSanPham LIKE 'CTHD%' AND LEN(MaChiTietHDSanPham) <= 10;
+
     FETCH NEXT FROM cur_FEFO_HD INTO @MaLo, @SoLuongConLai, @PhanTramGiam;
 
     WHILE @@FETCH_STATUS = 0 AND @SoLuongCanLay > 0
@@ -834,7 +845,8 @@ BEGIN
             SET @SoLuongTrichXuat = @SoLuongConLai;
 
         SET @GiaThucTe = CAST(@GiaGoc * (1.0 - @PhanTramGiam / 100.0) AS DECIMAL(18,2));
-        SET @MaChiTietHDSanPham = CONCAT('CTHD', CONVERT(VARCHAR(8), GETDATE(), 112), RIGHT('000000' + CAST(NEXT VALUE FOR seq_ChiTietHoaDonSanPham AS VARCHAR(6)), 6));
+        SET @NextNumHD = @NextNumHD + 1;
+        SET @MaChiTietHDSanPham = 'CTHD' + CASE WHEN @NextNumHD < 10 THEN '0' + CAST(@NextNumHD AS VARCHAR(10)) ELSE CAST(@NextNumHD AS VARCHAR(10)) END;
 
         INSERT INTO ChiTietHoaDon_SanPham 
             (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)

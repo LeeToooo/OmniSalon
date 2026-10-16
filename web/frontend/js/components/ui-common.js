@@ -1223,7 +1223,7 @@ const UICommon = {
     modal.classList.add('active');
   },
 
-  confirmAndPlaceOrder() {
+  async confirmAndPlaceOrder() {
     const cart = window.store.getCart();
     if (cart.length === 0) {
       this.closeGlobalModal();
@@ -1231,7 +1231,7 @@ const UICommon = {
     }
 
     const isPickup = this.cartState.deliveryType === 'PICKUP_BRANCH';
-    const branchId = this.cartState.pickupBranchId || 'br-dbp';
+    const branchId = this.cartState.pickupBranchId || 'CN01';
     const branch = window.store.getBranchById(branchId) || { name: 'Omni Salon Barber Q1 - Bến Thành', address: '128 Bến Thành, Quận 1, TP.HCM' };
 
     const recNameInput = document.getElementById('confirmRecName');
@@ -1281,7 +1281,7 @@ const UICommon = {
       : (isPickup ? 'Thanh toán tiền mặt tại quầy' : 'Tiền mặt khi nhận hàng (COD)');
 
     // Tạo đơn hàng chuẩn qua store
-    const order = window.store.createOrder({
+    const order = await window.store.createOrder({
       customerName,
       customerPhone,
       branchId,

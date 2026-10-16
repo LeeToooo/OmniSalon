@@ -260,6 +260,25 @@ async function resolveOrCreateCustomer({ customerId, customerName, customerPhone
   return newKhId;
 }
 
+async function resolveStaffMember(staffId, branchId) {
+  if (staffId) {
+    let cleanId = String(staffId).trim();
+    if (cleanId.startsWith('TK_NV')) cleanId = cleanId.replace('TK_', '');
+    if (cleanId.startsWith('NV')) {
+      const found = await querySql('SELECT MaNhanVien FROM NhanVien WHERE MaNhanVien = ?', [cleanId]);
+      if (found && found.length > 0) return found[0].MaNhanVien;
+    }
+  }
+
+  if (branchId) {
+    const branchStaff = await querySql("SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaChiNhanh = ? AND TrangThai = N'Đang làm việc' ORDER BY MaNhanVien ASC", [branchId]);
+    if (branchStaff && branchStaff.length > 0) return branchStaff[0].MaNhanVien;
+  }
+
+  const anyStaff = await querySql("SELECT TOP 1 MaNhanVien FROM NhanVien ORDER BY MaNhanVien ASC");
+  return anyStaff && anyStaff.length > 0 ? anyStaff[0].MaNhanVien : 'NV01';
+}
+
 async function generateNextBookingId() {
   const rows = await querySql("SELECT TOP 1 MaLichHen FROM LichHen WHERE MaLichHen LIKE 'LH%' AND LEN(MaLichHen) <= 6 ORDER BY LEN(MaLichHen) DESC, MaLichHen DESC");
   let nextNum = 11;
@@ -2012,10 +2031,16 @@ const server = http.createServer(async (req, res) => {
             try {
               await querySql('EXEC sp_ThemChiTietDonHang @MaDonHang = ?, @MaSanPham = ?, @SoLuong = ?', [id, prodId, qty]);
             } catch (spErr) {
-              const ctdhId = `CTDH_${id}_${i + 1}`.slice(0, 30);
+              const maxCtdh = await querySql(`SELECT TOP 1 MaChiTietDonHang FROM ChiTietDonHang WHERE MaChiTietDonHang LIKE 'CTDH%' AND LEN(MaChiTietDonHang) <= 10 ORDER BY LEN(MaChiTietDonHang) DESC, MaChiTietDonHang DESC`);
+              let nextCtdh = 11;
+              if (maxCtdh && maxCtdh[0]) {
+                const m = maxCtdh[0].MaChiTietDonHang.match(/CTDH(\d+)/i);
+                if (m) nextCtdh = parseInt(m[1], 10) + 1;
+              }
+              const ctdhId = 'CTDH' + (nextCtdh < 10 ? '0' + nextCtdh : nextCtdh);
               const unitPrice = parseFloat(it.price || it.actualPrice || it.GiaBan || 250000);
               const ctpnRow = await querySql('SELECT TOP 1 MaChiTietPhieuNhap FROM ChiTietPhieuNhap WHERE MaSanPham = ? AND SoLuongConLai > 0 ORDER BY HanSuDung ASC', [prodId]);
-              const loId = (ctpnRow && ctpnRow[0]) ? ctpnRow[0].MaChiTietPhieuNhap : 'CTPN0001';
+              const loId = (ctpnRow && ctpnRow[0]) ? ctpnRow[0].MaChiTietPhieuNhap : 'CTPN01001';
               await querySql(
                 `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
                 [ctdhId, id, prodId, loId, qty, unitPrice, unitPrice, unitPrice * qty]
@@ -2027,14 +2052,24 @@ const server = http.createServer(async (req, res) => {
         console.log(`[SQL EXEC] Tạo đơn hàng mới chuẩn CSDL ${id} (Khách: ${khId}) cùng ${orderItems.length} chi tiết mặt hàng vào SQL Server!`);
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, order: { id, customerId: khId, totalAmount: total, status: 'Processing' } }));
+        return res.end(JSON.stringify({ 
+          success: true, 
+          order: { 
+            id, 
+            orderCode: id, 
+            MaDonHang: id, 
+            customerId: khId, 
+            totalAmount: total, 
+            status: 'Processing' 
+          } 
+        }));
       }
 
       // --- 17. POS CHECKOUT  - HÓA ĐƠN & THANH TOÁN TẠI QUẦY -  ---
       if (pathname === '/api/pos/checkout' && method === 'POST') {
         const pos = parsedBody || {};
-        const maxHd = await querySql(`SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaHoaDon LIKE 'HD%' ORDER BY LEN(MaHoaDon) DESC, MaHoaDon DESC`);
-        let nextN = 11;
+        const maxHd = await querySql(`SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaHoaDon LIKE 'HD%' AND LEN(MaHoaDon) <= 10 ORDER BY LEN(MaHoaDon) DESC, MaHoaDon DESC`);
+        let nextN = 3;
         if (maxHd && maxHd[0]) {
           const nm = maxHd[0].MaHoaDon.match(/HD(\d+)/i);
           if (nm) nextN = parseInt(nm[1], 10) + 1;
@@ -2047,9 +2082,9 @@ const server = http.createServer(async (req, res) => {
         });
         const lhId = pos.bookingId || null;
         const cnId = pos.branchId || 'CN01';
-        const staffId = pos.staffId || 'NV61';
+        const staffId = await resolveStaffMember(pos.staffId || pos.cashierId || pos.stylistId, cnId);
         const total = parseFloat(pos.total || pos.totalAmount || 300000);
-        const methodPay = pos.paymentMethod || 'Chuyển khoản QR';
+        const methodPay = pos.paymentMethod || 'Tiền mặt';
         const invoiceNo = `HD-${Date.now().toString().slice(-8)}`;
 
         await querySql(
@@ -2059,16 +2094,36 @@ const server = http.createServer(async (req, res) => {
 
         // Lưu chi tiết dịch vụ vào ChiTietHoaDon_DichVu
         const posServices = Array.isArray(pos.services) ? pos.services : (pos.serviceId ? [{ id: pos.serviceId, price: total }] : []);
-        for (const s of posServices) {
-          const sId = s.id || s.serviceId || s.MaDichVu;
+        for (let i = 0; i < posServices.length; i++) {
+          const s = posServices[i];
+          const rawId = s.id || s.serviceId || s.MaDichVu || s.MaCombo;
           const sPrice = parseFloat(s.price || s.Gia || total);
-          if (sId) {
+          if (rawId) {
+            const maxCtdv = await querySql(`SELECT TOP 1 MaChiTietHDDV FROM ChiTietHoaDon_DichVu WHERE (MaChiTietHDDV LIKE 'CTDV%' OR MaChiTietHDDV LIKE 'CTHDDV%') AND LEN(MaChiTietHDDV) <= 10 ORDER BY LEN(MaChiTietHDDV) DESC, MaChiTietHDDV DESC`);
+            let nextCtdv = 1;
+            if (maxCtdv && maxCtdv[0]) {
+              const m = maxCtdv[0].MaChiTietHDDV.match(/\D+(\d+)/i);
+              if (m) nextCtdv = parseInt(m[1], 10) + 1;
+            }
+            const ctdvId = 'CTDV' + (nextCtdv < 10 ? '0' + nextCtdv : nextCtdv);
+
+            let sId = rawId;
+            let comboId = null;
+            if (rawId.startsWith('CB')) {
+              sId = null;
+              comboId = rawId;
+            } else if (!rawId.startsWith('DV')) {
+              const dvRows = await querySql('SELECT TOP 1 MaDichVu FROM DichVu WHERE MaDichVu = ? OR TenDichVu LIKE ?', [rawId, `%${s.name || rawId}%`]);
+              sId = dvRows && dvRows[0] ? dvRows[0].MaDichVu : 'DV01';
+            }
             try {
               await querySql(
-                `INSERT INTO ChiTietHoaDon_DichVu (MaHoaDon, MaDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, 1, ?, ?)`,
-                [hdId, sId, sPrice, sPrice]
+                `INSERT INTO ChiTietHoaDon_DichVu (MaChiTietHDDV, MaHoaDon, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, ?, 1, ?, ?)`,
+                [ctdvId, hdId, sId, comboId, sPrice, sPrice]
               );
-            } catch (_) { }
+            } catch (errDv) {
+              console.error('[POS] Lỗi insert ChiTietHoaDon_DichVu:', errDv.message);
+            }
           }
         }
 
@@ -2076,16 +2131,28 @@ const server = http.createServer(async (req, res) => {
         const posProducts = Array.isArray(pos.products) ? pos.products : (Array.isArray(pos.items) ? pos.items : []);
         for (let i = 0; i < posProducts.length; i++) {
           const p = posProducts[i];
-          const pId = p.id || p.productId || p.MaSanPham;
+          const rawPId = p.id || p.productId || p.MaSanPham;
           const pQty = parseInt(p.quantity || p.qty || 1, 10);
           const pPrice = parseFloat(p.price || p.GiaBan || 250000);
-          if (pId && pQty > 0) {
+          if (rawPId && pQty > 0) {
+            let pId = rawPId;
+            if (!pId.startsWith('SP')) {
+              const spRows = await querySql('SELECT TOP 1 MaSanPham FROM SanPham WHERE MaSanPham = ? OR TenSanPham LIKE ?', [pId, `%${p.name || pId}%`]);
+              pId = spRows && spRows[0] ? spRows[0].MaSanPham : 'SP01';
+            }
             try {
               await querySql('EXEC sp_ThemChiTietHoaDonSanPham @MaHoaDon = ?, @MaSanPham = ?, @SoLuong = ?', [hdId, pId, pQty]);
             } catch (spErr) {
-              const ctHdSpId = `CTHD_${hdId}_${i + 1}`.slice(0, 30);
+              console.warn('[POS] sp_ThemChiTietHoaDonSanPham fallback:', spErr.message);
+              const maxCtsp = await querySql(`SELECT TOP 1 MaChiTietHDSanPham FROM ChiTietHoaDon_SanPham WHERE MaChiTietHDSanPham LIKE 'CTHD%' AND LEN(MaChiTietHDSanPham) <= 10 ORDER BY LEN(MaChiTietHDSanPham) DESC, MaChiTietHDSanPham DESC`);
+              let nextCtsp = 1;
+              if (maxCtsp && maxCtsp[0]) {
+                const m = maxCtsp[0].MaChiTietHDSanPham.match(/CTHD(\d+)/i);
+                if (m) nextCtsp = parseInt(m[1], 10) + 1;
+              }
+              const ctHdSpId = 'CTHD' + (nextCtsp < 10 ? '0' + nextCtsp : nextCtsp);
               const ctpnRow = await querySql('SELECT TOP 1 MaChiTietPhieuNhap FROM ChiTietPhieuNhap WHERE MaSanPham = ? AND SoLuongConLai > 0 ORDER BY HanSuDung ASC', [pId]);
-              const loId = (ctpnRow && ctpnRow[0]) ? ctpnRow[0].MaChiTietPhieuNhap : 'CTPN0001';
+              const loId = (ctpnRow && ctpnRow[0]) ? ctpnRow[0].MaChiTietPhieuNhap : 'CTPN01001';
               await querySql(
                 `INSERT INTO ChiTietHoaDon_SanPham (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
                 [ctHdSpId, hdId, pId, loId, pQty, pPrice, pPrice, pPrice * pQty]
@@ -2094,7 +2161,14 @@ const server = http.createServer(async (req, res) => {
           }
         }
 
-        const ttId = 'TT' + Date.now().toString().slice(-6);
+        // Lưu bản ghi ThanhToan
+        const maxTt = await querySql(`SELECT TOP 1 MaThanhToan FROM ThanhToan WHERE MaThanhToan LIKE 'TT%' AND LEN(MaThanhToan) <= 10 ORDER BY LEN(MaThanhToan) DESC, MaThanhToan DESC`);
+        let nextTt = 1;
+        if (maxTt && maxTt[0]) {
+          const nm = maxTt[0].MaThanhToan.match(/TT(\d+)/i);
+          if (nm) nextTt = parseInt(nm[1], 10) + 1;
+        }
+        const ttId = 'TT' + (nextTt < 10 ? '0' + nextTt : nextTt);
         await querySql(
           `INSERT INTO ThanhToan (MaThanhToan, MaHoaDon, MaNhanVien, SoTien, PhuongThuc, ThoiGianThanhToan, TrangThai, MaGiaoDich) VALUES (?, ?, ?, ?, ?, GETDATE(), N'Thành công', ?)`,
           [ttId, hdId, staffId, total, methodPay, `PAY-${Date.now().toString().slice(-6)}`]
@@ -2104,10 +2178,20 @@ const server = http.createServer(async (req, res) => {
           await querySql(`UPDATE LichHen SET TrangThai = N'Hoàn thành' WHERE MaLichHen = ?`, [lhId]);
         }
 
-        console.log(`[SQL EXEC] POS Thanh toán thành công hóa đơn ${hdId} (${total} đ)!`);
+        console.log(`[SQL EXEC] POS Thanh toán thành công hóa đơn ${hdId} (${total} đ)! Thanh toán: ${ttId}, Thu ngân: ${staffId}`);
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, invoice: { id: hdId, invoiceNo, total, status: 'Completed' } }));
+        return res.end(JSON.stringify({ 
+          success: true, 
+          invoice: { 
+            id: hdId, 
+            orderCode: hdId, 
+            invoiceNo, 
+            total, 
+            status: 'Completed',
+            paymentId: ttId 
+          } 
+        }));
       }
 
       // --- 18. REVENUE ANALYTICS ---

@@ -3411,7 +3411,7 @@
       }
     },
 
-    checkoutPosBill() {
+    async checkoutPosBill() {
       const pos = this.posState;
       if (pos.billServices.length === 0 && pos.billProducts.length === 0) {
         if (window.UICommon) window.UICommon.showToast('Hóa đơn chưa có dịch vụ hoặc sản phẩm nào!', 'warning');
@@ -3424,7 +3424,7 @@
           : null;
         const stylistName = chosenStylist ? chosenStylist.name : 'Master Barber Chuyên Nghiệp';
 
-        const posOrder = window.store.createPosOrder({
+        const posOrder = await window.store.createPosOrder({
           branchId: pos.branchId,
           stylistId: pos.selectedStylistId || null,
           stylistName: stylistName,

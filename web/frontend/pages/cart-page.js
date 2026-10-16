@@ -531,7 +531,7 @@
       this.refresh();
     },
 
-    confirmOrder(finalTotal) {
+    async confirmOrder(finalTotal) {
       const cart = (window.store && typeof window.store.getCart === 'function') ? window.store.getCart() : [];
       if (cart.length === 0) {
         if (window.UICommon) window.UICommon.showToast('Giỏ hàng trống!', 'warning');
@@ -552,12 +552,14 @@
 
       let newOrder = null;
       if (window.store && typeof window.store.createOrder === 'function') {
-        newOrder = window.store.createOrder(orderData);
+        newOrder = await window.store.createOrder(orderData);
       }
 
       if (!newOrder) {
         newOrder = {
-          id: 'ORD-' + Date.now().toString(36).toUpperCase(),
+          id: 'DH11',
+          orderCode: 'DH11',
+          MaDonHang: 'DH11',
           totalAmount: finalTotal,
           items: cart
         };
@@ -579,7 +581,7 @@
     // BUOC 4: HOAN TAT DON HANG
     _renderOrderSuccessStep() {
       const order = this.checkoutData.completedOrder || {};
-      const orderCode = order.id || order.orderCode || 'ORD-OMNI';
+      const orderCode = order.orderCode || order.id || order.MaDonHang || 'DH11';
       const isVietQr = this.checkoutData.paymentMethod === 'VIETQR';
       const finalAmount = order.totalAmount || 0;
       const vietQrUrl = `https://img.vietqr.io/image/970422-0908123456-compact2.png?amount=${finalAmount}&addInfo=OMNI%20${orderCode}&accountName=OMNI%20SALON%20VIETNAM`;

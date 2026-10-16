@@ -481,13 +481,13 @@
     async createOrder(orderData) {
       const live = await this._request('/orders', { method: 'POST', body: JSON.stringify(orderData) });
       if (live) return live;
-      return window.SalonStore ? window.SalonStore.createOrder(orderData) : { success: true };
+      return window.SalonStore ? await window.SalonStore.createOrder(orderData) : { success: true };
     },
 
     async createPosCheckout(posData) {
       const live = await this._request('/pos/checkout', { method: 'POST', body: JSON.stringify(posData) });
       if (live) return live;
-      return window.SalonStore ? window.SalonStore.createPosOrder(posData) : { success: true };
+      return window.SalonStore ? await window.SalonStore.createPosOrder(posData) : { success: true };
     },
 
     async getMyOrders() {
