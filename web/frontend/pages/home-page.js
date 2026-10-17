@@ -492,7 +492,7 @@
                     2. Chọn Kiểu Tóc Thịnh Hành:
                   </label>
                   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
-                    <button type="button" class="ai-home-style-pill active" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
+                    <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
                       Tỉa Lớp Tự Nhiên
                     </button>
                     <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">

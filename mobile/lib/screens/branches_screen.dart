@@ -46,17 +46,17 @@ class _BranchesScreenState extends State<BranchesScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F3F6),
+      backgroundColor: const Color(0xFF141413),
       appBar: AppBar(
         title: const Text(
           'Hệ Thống 20 Chi Nhánh',
-          style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 18),
         ),
-        backgroundColor: Colors.white,
-        elevation: 1,
+        backgroundColor: const Color(0xFF141413),
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF0F172A)),
+            icon: const Icon(Icons.refresh, color: Color(0xFFC59B27)),
             onPressed: _loadBranches,
             tooltip: 'Làm mới',
           ),
@@ -66,7 +66,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
         children: [
           // CITY FILTER CHIPS
           Container(
-            color: Colors.white,
+            color: const Color(0xFF171614),
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: SizedBox(
               height: 38,
@@ -84,14 +84,14 @@ class _BranchesScreenState extends State<BranchesScreen> {
                       style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w800,
-                        color: isSelected ? Colors.white : const Color(0xFF334155),
+                        color: isSelected ? const Color(0xFF141413) : const Color(0xFFFAF8F5),
                       ),
                     ),
                     selected: isSelected,
-                    selectedColor: const Color(0xFFB48312),
-                    backgroundColor: const Color(0xFFF1F5F9),
+                    selectedColor: const Color(0xFFC59B27),
+                    backgroundColor: const Color(0xFF1C1917),
                     side: BorderSide(
-                      color: isSelected ? const Color(0xFFB48312) : const Color(0xFFE2E8F0),
+                      color: isSelected ? const Color(0xFFC59B27) : const Color(0xFF2E2C29),
                     ),
                     onSelected: (_) {
                       setState(() => selectedCity = c['id']!);
@@ -105,10 +105,13 @@ class _BranchesScreenState extends State<BranchesScreen> {
           // BRANCH LIST
           Expanded(
             child: isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFFB48312)))
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFFC59B27)))
                 : filtered.isEmpty
                     ? const Center(
-                        child: Text('Không tìm thấy chi nhánh nào.'),
+                        child: Text(
+                          'Không tìm thấy chi nhánh nào.',
+                          style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFFA8A29E)),
+                        ),
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.all(16),
@@ -118,11 +121,11 @@ class _BranchesScreenState extends State<BranchesScreen> {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: const Color(0xFF1C1917),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(color: const Color(0xFF2E2C29)),
                               boxShadow: const [
-                                BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 3)),
+                                BoxShadow(color: Color(0x1F000000), blurRadius: 8, offset: Offset(0, 3)),
                               ],
                             ),
                             child: Column(
@@ -144,13 +147,14 @@ class _BranchesScreenState extends State<BranchesScreen> {
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xD90F172A),
+                                          color: const Color(0xFF141413).withValues(alpha: 0.85),
                                           borderRadius: BorderRadius.circular(9999),
+                                          border: Border.all(color: const Color(0xFFC59B27).withValues(alpha: 0.4)),
                                         ),
                                         child: Text(
                                           'Chi Nhánh ${b.id}',
                                           style: const TextStyle(
-                                            color: Color(0xFFFBBF24),
+                                            color: Color(0xFFC59B27),
                                             fontWeight: FontWeight.w900,
                                             fontSize: 11,
                                           ),
@@ -169,19 +173,19 @@ class _BranchesScreenState extends State<BranchesScreen> {
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w900,
                                           fontSize: 16,
-                                          color: Color(0xFF0F172A),
+                                          color: Color(0xFFFAF8F5),
                                         ),
                                       ),
                                       const SizedBox(height: 6),
                                       Row(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFFBE4D25)),
+                                          const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFFC59B27)),
                                           const SizedBox(width: 6),
                                           Expanded(
                                             child: Text(
                                               b.address,
-                                              style: const TextStyle(fontSize: 13, color: Color(0xFF475569)),
+                                              style: const TextStyle(fontSize: 13, color: Color(0xFFA8A29E)),
                                             ),
                                           ),
                                         ],
@@ -189,11 +193,11 @@ class _BranchesScreenState extends State<BranchesScreen> {
                                       const SizedBox(height: 6),
                                       Row(
                                         children: [
-                                          const Icon(Icons.access_time, size: 16, color: Color(0xFFB48312)),
+                                          const Icon(Icons.access_time, size: 16, color: Color(0xFFC59B27)),
                                           const SizedBox(width: 6),
                                           Text(
                                             b.hours,
-                                            style: const TextStyle(fontSize: 13, color: Color(0xFF475569), fontWeight: FontWeight.w600),
+                                            style: const TextStyle(fontSize: 13, color: Color(0xFFA8A29E), fontWeight: FontWeight.w600),
                                           ),
                                           const Spacer(),
                                           const Icon(Icons.phone_outlined, size: 16, color: Color(0xFF10B981)),
@@ -209,8 +213,8 @@ class _BranchesScreenState extends State<BranchesScreen> {
                                         width: double.infinity,
                                         child: ElevatedButton(
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFFB48312),
-                                            foregroundColor: Colors.white,
+                                            backgroundColor: const Color(0xFFC59B27),
+                                            foregroundColor: const Color(0xFF141413),
                                             padding: const EdgeInsets.symmetric(vertical: 11),
                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                           ),

@@ -152,34 +152,34 @@
       const nextDisabled = currentPage >= totalPages;
 
       return `
-        <div class="admin-pagination-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; margin-top: 16px; background: var(--surface-card, #1c1917); border-radius: 12px; border: 1px solid var(--border-color, rgba(255,255,255,0.08)); flex-wrap: wrap; gap: 12px;">
-          <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary, #94a3b8); display: flex; align-items: center; gap: 6px;">
+        <div class="admin-pagination-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; margin-top: 20px; background: var(--surface-card, #1c1917); border-radius: 14px; border: 1px solid var(--border-color, rgba(255,255,255,0.08)); flex-wrap: wrap; gap: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.04);">
+          <div style="font-size: 13.5px; font-weight: 600; color: var(--text-secondary, #94a3b8); display: flex; align-items: center; gap: 6px;">
             <span>Hiển thị</span>
-            <strong style="color: var(--brand-accent, #C59B27); font-weight: 800;">${start}–${end}</strong>
+            <strong style="color: var(--brand-accent, #C59B27); font-weight: 800; font-size: 14px;">${start}–${end}</strong>
             <span>trên tổng số</span>
-            <strong style="color: var(--text-primary, #FAF8F5); font-weight: 800;">${totalItems}</strong>
+            <strong style="color: var(--text-primary, #FAF8F5); font-weight: 800; font-size: 14px;">${totalItems}</strong>
             <span>${itemName} (Trang ${currentPage}/${totalPages})</span>
           </div>
 
           <div style="display: inline-flex; align-items: center; gap: 6px;">
-            <button type="button" class="admin-tab-btn" 
+            <button type="button" class="admin-pagination-btn admin-page-nav-prev" 
                     ${prevDisabled ? 'disabled' : `onclick="${onPageChangeExpr}(${currentPage - 1})"`}
-                    style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 34px; padding: 0 12px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'}; opacity: ${prevDisabled ? '0.35' : '1'}; background: var(--surface-elevated, #242422); border: 1px solid var(--border-color, rgba(255,255,255,0.12)); color: var(--text-primary, #FAF8F5) !important;">
-              <span>←</span>
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 38px; padding: 0 14px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'}; opacity: ${prevDisabled ? '0.35' : '1'}; background: var(--surface-elevated, #242422); border: 1px solid var(--border-color, rgba(255,255,255,0.12)); color: var(--text-primary, #FAF8F5) !important;">
+              <span style="font-size: 15px; line-height: 1;">←</span>
               <span>Trước</span>
             </button>
 
-            <div style="display: inline-flex; align-items: center; gap: 4px;">
+            <div style="display: inline-flex; align-items: center; gap: 5px;">
               ${pages.map(p => {
                 if (p === '...') {
-                  return `<span style="padding: 0 4px; color: var(--text-secondary, #94a3b8); font-weight: 800; font-size: 13px;">…</span>`;
+                  return `<span style="padding: 0 5px; color: var(--text-secondary, #94a3b8); font-weight: 800; font-size: 14px;">…</span>`;
                 }
                 const isActive = p === currentPage;
                 return `
-                  <button type="button" class="admin-tab-btn ${isActive ? 'active' : ''}" 
+                  <button type="button" class="admin-pagination-btn admin-page-num-btn ${isActive ? 'admin-page-active active' : ''}" 
                           onclick="${onPageChangeExpr}(${p})"
-                          style="min-width: 34px; height: 34px; padding: 0 8px; border-radius: 8px; font-size: 12.5px; font-weight: ${isActive ? '900' : '600'}; cursor: pointer; transition: all 0.2s ease; ${isActive 
-                            ? 'background: #C59B27 !important; color: #141413 !important; border: 1.5px solid #C59B27 !important; box-shadow: 0 2px 8px rgba(197, 155, 39, 0.35);' 
+                          style="min-width: 38px; height: 38px; padding: 0 8px; border-radius: 8px; font-size: 13px; font-weight: ${isActive ? '900' : '600'}; cursor: pointer; transition: all 0.2s ease; ${isActive 
+                            ? 'background: #C59B27 !important; color: #141413 !important; border: 1.5px solid #C59B27 !important; box-shadow: 0 2px 8px rgba(197, 155, 39, 0.4);' 
                             : 'background: var(--surface-elevated, #242422); color: var(--text-primary, #FAF8F5) !important; border: 1px solid var(--border-color, rgba(255,255,255,0.12));'
                           }">
                     ${p}
@@ -188,11 +188,11 @@
               }).join('')}
             </div>
 
-            <button type="button" class="admin-tab-btn" 
+            <button type="button" class="admin-pagination-btn admin-page-nav-next" 
                     ${nextDisabled ? 'disabled' : `onclick="${onPageChangeExpr}(${currentPage + 1})"`}
-                    style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 34px; padding: 0 14px; border-radius: 8px; font-size: 12.5px; font-weight: 800; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'}; opacity: ${nextDisabled ? '0.35' : '1'}; background: #C59B27 !important; border: 1px solid #C59B27 !important; color: #141413 !important; box-shadow: 0 2px 8px rgba(197, 155, 39, 0.25);">
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 38px; padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'}; opacity: ${nextDisabled ? '0.35' : '1'}; background: #C59B27 !important; border: 1px solid #C59B27 !important; color: #141413 !important; box-shadow: 0 2px 10px rgba(197, 155, 39, 0.3);">
               <span>Sau</span>
-              <span>→</span>
+              <span style="font-size: 15px; line-height: 1;">→</span>
             </button>
           </div>
         </div>
@@ -1589,9 +1589,9 @@
                     <tr class="${rowClass}">
                       <td><strong>${this.escapeHtml(b.bookingCode || b.id)}</strong></td>
                       <td style="font-weight: 700; white-space: nowrap;">
-                        <div style="display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;">
-                          ${isNearest ? `<span class="booking-nearest-tag" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 8px; margin: 0;">GẦN NHẤT</span>` : (isToday ? `<span class="booking-today-badge" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 7px; margin-right: 0;">HÔM NAY</span>` : '')}
-                          <span style="font-size: 13.5px; white-space: nowrap; color: var(--text-primary, #FAF8F5);">${this.escapeHtml(b.customerName)}</span>
+                        <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                          <span style="font-size: 13.5px; color: var(--text-primary, #FAF8F5); min-width: 75px;">${this.escapeHtml(b.customerName)}</span>
+                          ${isNearest ? `<span class="booking-nearest-tag" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 8px; margin: 0;">GẦN NHẤT</span>` : (isToday ? `<span class="booking-today-badge" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 7px; margin: 0;">HÔM NAY</span>` : '')}
                         </div>
                       </td>
                       <td>${this.escapeHtml(b.customerPhone)}</td>

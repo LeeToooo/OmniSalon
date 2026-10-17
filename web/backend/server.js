@@ -486,26 +486,45 @@ async function getFullSqlDatabase() {
     status: r.TrangThai
   }));
 
-  const stylists = stylistRows.map(r => ({
-    id: r.MaNhanVien,
-    MaNhanVien: r.MaNhanVien,
-    branchId: r.MaChiNhanh,
-    MaChiNhanh: r.MaChiNhanh,
-    branchName: r.TenChiNhanh || `Chi Nhánh ${r.MaChiNhanh}`,
-    name: r.HoTen,
-    HoTen: r.HoTen,
-    phone: r.SoDienThoai,
-    email: r.Email,
-    level: r.CapBac || 'Master Barber',
-    title: `${r.CapBac || 'Master Barber'} • ${r.ChucVu || 'Thợ chính'}`,
-    role: r.ChucVu || 'Thợ chính',
-    avatar: r.HinhAnh || '',
-    HinhAnh: r.HinhAnh || '',
-    rating: 4.95,
-    reviewCount: 350,
-    specialty: r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn',
-    isAvailable: r.TrangThai === 'Đang làm việc'
-  }));
+  const BARBER_PORTRAITS = [
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
+    'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=300&q=80'
+  ];
+
+  const stylists = stylistRows.map(r => {
+    const nvNum = parseInt((r.MaNhanVien || '').replace(/\D/g, '') || '1', 10);
+    const assignedAvatar = r.HinhAnh || BARBER_PORTRAITS[(nvNum - 1) % BARBER_PORTRAITS.length];
+    return {
+      id: r.MaNhanVien,
+      MaNhanVien: r.MaNhanVien,
+      branchId: r.MaChiNhanh,
+      MaChiNhanh: r.MaChiNhanh,
+      branchName: r.TenChiNhanh || `Chi Nhánh ${r.MaChiNhanh}`,
+      name: r.HoTen,
+      HoTen: r.HoTen,
+      phone: r.SoDienThoai,
+      email: r.Email,
+      level: r.CapBac || 'Master Barber',
+      title: `${r.CapBac || 'Master Barber'} • ${r.ChucVu || 'Thợ chính'}`,
+      role: r.ChucVu || 'Thợ chính',
+      avatar: assignedAvatar,
+      HinhAnh: assignedAvatar,
+      rating: 4.95,
+      reviewCount: 350,
+      specialty: r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn',
+      isAvailable: r.TrangThai === 'Đang làm việc'
+    };
+  });
 
   const categories = catRows.map(r => ({
     id: r.MaDanhMuc,
@@ -1187,27 +1206,49 @@ const server = http.createServer(async (req, res) => {
           q += ` AND nv.MaChiNhanh = ?`;
           params.push(branchParam);
         }
+        const BARBER_PORTRAITS = [
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
+          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80'
+        ];
+        function getBarberAvatar(id, name, fallback) {
+          if (fallback && fallback.trim().length > 0) return fallback.trim();
+          const seed = (id || name || 'NV01').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+          return BARBER_PORTRAITS[seed % BARBER_PORTRAITS.length];
+        }
         const rows = await querySql(q, params);
-        const stylists = rows.map(r => ({
-          id: r.MaNhanVien,
-          MaNhanVien: r.MaNhanVien,
-          branchId: r.MaChiNhanh,
-          MaChiNhanh: r.MaChiNhanh,
-          branchName: r.TenChiNhanh,
-          name: r.HoTen,
-          HoTen: r.HoTen,
-          phone: r.SoDienThoai,
-          email: r.Email,
-          level: r.CapBac,
-          title: `${r.CapBac} • ${r.ChucVu}`,
-          role: r.ChucVu,
-          avatar: r.HinhAnh || '',
-          HinhAnh: r.HinhAnh || '',
-          rating: 4.95,
-          reviewCount: 350,
-          specialty: r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn',
-          isAvailable: true
-        }));
+        const stylists = rows.map(r => {
+          const av = getBarberAvatar(r.MaNhanVien, r.HoTen, r.HinhAnh);
+          return {
+            id: r.MaNhanVien,
+            MaNhanVien: r.MaNhanVien,
+            branchId: r.MaChiNhanh,
+            MaChiNhanh: r.MaChiNhanh,
+            branchName: r.TenChiNhanh,
+            name: r.HoTen,
+            HoTen: r.HoTen,
+            phone: r.SoDienThoai,
+            email: r.Email,
+            level: r.CapBac,
+            title: `${r.CapBac} • ${r.ChucVu}`,
+            role: r.ChucVu,
+            avatar: av,
+            HinhAnh: av,
+            rating: 4.95,
+            reviewCount: 350,
+            specialty: r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn',
+            isAvailable: true
+          };
+        });
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify(stylists));
       }
@@ -2478,8 +2519,14 @@ const server = http.createServer(async (req, res) => {
               res.writeHead(200, {
                 'Content-Type': mime,
                 'Content-Length': stat.size,
-                'Cache-Control': isCode ? 'no-cache, no-store, must-revalidate' : 'public, max-age=86400'
+                'Cache-Control': isCode ? 'no-cache, no-store, must-revalidate' : 'public, max-age=86400',
+                'Access-Control-Allow-Origin': '*',
+                'Cross-Origin-Resource-Policy': 'cross-origin',
+                'Accept-Ranges': 'bytes'
               });
+              if (method === 'HEAD') {
+                return res.end();
+              }
               return fs.createReadStream(targetPath).pipe(res);
             }
           } catch (_) { }

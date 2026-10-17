@@ -10,6 +10,8 @@ class SalonService {
   final String image;
   final bool isCombo;
 
+  int get durationMinutes => duration;
+
   SalonService({
     required this.id,
     required this.name,

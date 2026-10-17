@@ -6,6 +6,7 @@ class UserModel {
   final String fullName;
   final String phone;
   final String email;
+  final String? birthday;
   final String role;
   final String roleName;
 
@@ -17,6 +18,7 @@ class UserModel {
     required this.fullName,
     required this.phone,
     required this.email,
+    this.birthday,
     required this.role,
     required this.roleName,
   });
@@ -30,6 +32,7 @@ class UserModel {
       fullName: json['fullName']?.toString() ?? json['HoTen']?.toString() ?? json['name']?.toString() ?? 'Khách Hàng',
       phone: json['phone']?.toString() ?? json['SoDienThoai']?.toString() ?? '',
       email: json['email']?.toString() ?? json['Email']?.toString() ?? '',
+      birthday: json['birthday']?.toString() ?? json['NgaySinh']?.toString(),
       role: json['role']?.toString() ?? json['VaiTro']?.toString() ?? 'CUSTOMER',
       roleName: json['roleName']?.toString() ?? 'Khách Hàng Thành Viên',
     );
@@ -43,6 +46,7 @@ class UserModel {
     'fullName': fullName,
     'phone': phone,
     'email': email,
+    'birthday': birthday,
     'role': role,
     'roleName': roleName,
   };

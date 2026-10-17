@@ -103,7 +103,7 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto; align-items: stretch;">
             
             <!-- CỘT TRÁI: INPUT FILE ẢNH CHÂN DUNG -->
-            <div class="ai-studio-panel" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: none;">
+            <div class="ai-studio-panel" style="border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: none;">
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                   <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
@@ -178,7 +178,7 @@
             </div>
 
             <!-- CỘT PHẢI: DANH SÁCH 4 PHOM TÓC + NÚT CTA -->
-            <div class="ai-studio-panel" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: none;">
+            <div class="ai-studio-panel" style="border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: none;">
               <div>
                 <div style="margin-bottom: 16px;">
                   <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
@@ -196,7 +196,7 @@
                               id="pillStyle_${h.id}"
                               class="ai-style-pill-btn ${isSelected ? 'selected' : ''}"
                               onclick="AiStudioPage.selectHairstyle('${h.id}')"
-                              style="width: 100%; padding: 12px 14px; border-radius: 6px; text-align: left; display: flex; flex-direction: column; gap: 4px; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'var(--surface-elevated)' : 'var(--surface-card)'}; transition: all 0.15s ease;">
+                              style="width: 100%; padding: 12px 14px; border-radius: 6px; text-align: left; display: flex; flex-direction: column; gap: 4px; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: var(--surface-card); transition: all 0.15s ease;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                           <strong class="font-serif tracking-tight leading-tight" style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'}; font-size: 13.5px;">${h.name}</strong>
                           <span style="color: ${isSelected ? '#C59B27' : 'var(--text-muted)'}; font-size: 11px;">${isSelected ? '●' : '○'}</span>
@@ -220,9 +220,9 @@
                                 id="pillColor_${c.id}"
                                 class="ai-color-pill-btn ${isSelected ? 'selected' : ''}"
                                 onclick="AiStudioPage.selectColor('${c.id}')"
-                                style="display: flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 6px; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'var(--surface-elevated)' : 'var(--surface-card)'}; font-size: 12.5px; font-weight: 700; transition: all 0.15s ease;">
-                          <span style="width: 12px; height: 12px; border-radius: 50%; background: ${c.hex}; display: inline-block; border: 1.5px solid ${c.id === 'natural-black' ? '#94A3B8' : 'rgba(255,255,255,0.3)'}; flex-shrink: 0;"></span>
-                          <span style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'};">${c.name}</span>
+                                style="display: flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 6px; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: var(--surface-card); font-size: 12.5px; font-weight: 700; transition: all 0.15s ease;">
+                          <span style="width: 12px; height: 12px; border-radius: 50%; background: ${c.hex}; display: inline-block; border: 1.5px solid ${c.id === 'natural-black' ? '#64748B' : 'rgba(255,255,255,0.4)'}; flex-shrink: 0;"></span>
+                          <span style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'}; font-weight: 700;">${c.name}</span>
                         </button>
                       `;
       }).join('')}
@@ -456,7 +456,7 @@
         const isSelected = this.state.selectedHairstyle === h.id;
         btn.classList.toggle('selected', isSelected);
         btn.style.borderColor = isSelected ? '#C59B27' : 'var(--border-color)';
-        btn.style.background = isSelected ? 'var(--surface-elevated)' : 'var(--surface-card)';
+        btn.style.background = 'var(--surface-card)';
         const title = btn.querySelector('strong');
         if (title) title.style.color = isSelected ? '#C59B27' : 'var(--text-primary)';
         const radio = btn.querySelector('div span:last-child');
@@ -474,7 +474,7 @@
         const isSelected = this.state.selectedColor === c.id;
         btn.classList.toggle('selected', isSelected);
         btn.style.borderColor = isSelected ? '#C59B27' : 'var(--border-color)';
-        btn.style.background = isSelected ? 'var(--surface-elevated)' : 'var(--surface-card)';
+        btn.style.background = 'var(--surface-card)';
         const nameSpan = btn.querySelector('span:last-child');
         if (nameSpan) nameSpan.style.color = isSelected ? '#C59B27' : 'var(--text-primary)';
       });

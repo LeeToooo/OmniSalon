@@ -1,296 +1,406 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../theme/app_theme.dart';
 import '../models/service.dart';
+import '../models/stylist.dart';
 import '../services/api_service.dart';
-import '../widgets/omni_image.dart';
-import 'booking_screen.dart';
+import '../widgets/editorial_image.dart';
 
 class ServicesScreen extends StatefulWidget {
-  const ServicesScreen({super.key});
+  final Function(String? serviceId)? onNavigateToBooking;
+
+  const ServicesScreen({super.key, this.onNavigateToBooking});
 
   @override
   State<ServicesScreen> createState() => _ServicesScreenState();
 }
 
-class _ServicesScreenState extends State<ServicesScreen> {
-  final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0);
+class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProviderStateMixin {
+  final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
 
-  List<SalonService> allServices = [];
-  bool isLoading = true;
-  String selectedCategory = 'all';
+  late TabController _tabController;
+  List<SalonService> _allServices = [];
+  List<Stylist> _allStylists = [];
+  bool _isLoading = true;
+  String _selectedCategory = 'all';
 
-  final categories = [
+  final _categories = [
     {'id': 'all', 'label': 'Tất Cả'},
     {'id': 'Combo VIP', 'label': 'Combo Quý Tộc'},
     {'id': 'Cắt & Tạo Kiểu', 'label': 'Cắt & Tạo Kiểu'},
     {'id': 'Uốn & Nhuộm', 'label': 'Uốn & Nhuộm'},
-    {'id': 'Chăm Sóc & Phục Hồi', 'label': 'Chăm Sóc & Râu'},
+    {'id': 'Chăm Sóc & Phục Hồi', 'label': 'Dưỡng Sinh & Râu'},
   ];
 
   @override
   void initState() {
     super.initState();
-    _loadServices();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadData();
   }
 
-  Future<void> _loadServices() async {
-    setState(() => isLoading = true);
-    final list = await ApiService.fetchServices();
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    final services = await ApiService.fetchServices();
+    final stylists = await ApiService.fetchStylists();
+
+    if (!mounted) return;
     setState(() {
-      allServices = list;
-      isLoading = false;
+      _allServices = services;
+      _allStylists = stylists;
+      _isLoading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final filtered = allServices.where((s) {
-      if (selectedCategory == 'all') return true;
-      if (selectedCategory == 'Combo VIP') return s.isCombo;
-      return s.category == selectedCategory;
-    }).toList();
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F3F6),
-      appBar: AppBar(
-        title: const Text(
-          'Dịch Vụ & Combo Barber',
-          style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontSize: 18),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF0F172A)),
-            onPressed: _loadServices,
-            tooltip: 'Làm mới',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // CATEGORY CHIPS
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: SizedBox(
-              height: 38,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, idx) {
-                  final cat = categories[idx];
-                  final isSelected = selectedCategory == cat['id'];
-                  return ChoiceChip(
-                    label: Text(
-                      cat['label']!,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                        color: isSelected ? Colors.white : const Color(0xFF334155),
+      backgroundColor: AppTheme.bgPrimary,
+      body: SafeArea(
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'BẢNG GIÁ & ĐỘI NGŨ',
+                      style: AppTheme.labelUppercase(fontSize: 11, color: AppTheme.accentGold),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Dịch Vụ & Thợ Tạo Mẫu',
+                      style: AppTheme.headingLarge(fontSize: 28),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Minh bạch bảng giá dịch vụ và tuyển chọn các Master Barber giàu trải nghiệm.',
+                      style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Segmented Control 2 Tab
+                    Container(
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceElevated,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.borderColor),
+                      ),
+                      child: TabBar(
+                        controller: _tabController,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        indicator: BoxDecoration(
+                          color: AppTheme.charcoal,
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        labelColor: AppTheme.accentGold,
+                        unselectedLabelColor: AppTheme.textSecondary,
+                        labelStyle: AppTheme.bodyMedium(fontWeight: FontWeight.w700),
+                        unselectedLabelStyle: AppTheme.bodyMedium(fontWeight: FontWeight.w500),
+                        dividerColor: Colors.transparent,
+                        tabs: const [
+                          Tab(text: 'Dịch Vụ & Combo'),
+                          Tab(text: 'Đội Ngũ Barber'),
+                        ],
                       ),
                     ),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFFB48312),
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    side: BorderSide(
-                      color: isSelected ? const Color(0xFFB48312) : const Color(0xFFE2E8F0),
-                    ),
-                    onSelected: (_) {
-                      setState(() => selectedCategory = cat['id']!);
-                    },
-                  );
-                },
+                  ],
+                ),
               ),
             ),
+          ],
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildServicesTab(),
+              _buildStylistsTab(),
+            ],
           ),
+        ),
+      ),
+    );
+  }
 
-          // SERVICE LIST
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFFB48312)))
-                : filtered.isEmpty
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.content_cut, size: 54, color: Color(0xFF94A3B8)),
-                            SizedBox(height: 12),
-                            Text(
-                              'Không tìm thấy dịch vụ nào trong mục này.',
-                              style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, idx) {
-                          final s = filtered[idx];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 14),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: s.isCombo ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
-                                width: s.isCombo ? 1.5 : 1,
+  // TAB 1: DANH SÁCH DỊCH VỤ & COMBO
+  Widget _buildServicesTab() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
+      );
+    }
+
+    final filtered = _allServices.where((s) {
+      if (_selectedCategory == 'all') return true;
+      if (_selectedCategory == 'Combo VIP') return s.isCombo;
+      return s.category == _selectedCategory;
+    }).toList();
+
+    return Column(
+      children: [
+        // Filter Chips ngang
+        SizedBox(
+          height: 46,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            scrollDirection: Axis.horizontal,
+            itemCount: _categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, idx) {
+              final cat = _categories[idx];
+              final isSelected = _selectedCategory == cat['id'];
+              return ChoiceChip(
+                label: Text(
+                  cat['label']!,
+                  style: AppTheme.bodySmall(
+                    color: isSelected ? AppTheme.charcoal : AppTheme.textPrimary,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+                selected: isSelected,
+                selectedColor: AppTheme.accentGold,
+                backgroundColor: AppTheme.surfaceCard,
+                side: BorderSide(
+                  color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
+                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                onSelected: (_) {
+                  setState(() => _selectedCategory = cat['id']!);
+                },
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            itemCount: filtered.length,
+            itemBuilder: (context, index) {
+              final s = filtered[index];
+              return _buildDetailedServiceCard(s);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailedServiceCard(SalonService s) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(9),
+                  bottomRight: Radius.circular(9),
+                ),
+                child: SizedBox(
+                  width: 90,
+                  height: 90,
+                  child: EditorialImage(
+                    imageUrl: s.image,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            s.category.toUpperCase(),
+                            style: AppTheme.labelUppercase(fontSize: 9.5, color: AppTheme.accentGold),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(Icons.schedule_rounded, size: 12, color: AppTheme.textSecondary),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${s.duration} phút',
+                                style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary),
                               ),
-                              boxShadow: const [
-                                BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 3)),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Stack(
-                                  children: [
-                                    OmniImage(
-                                      imageUrl: s.image,
-                                      height: 160,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                                    ),
-                                    if (s.isCombo)
-                                      Positioned(
-                                        top: 10,
-                                        left: 10,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            gradient: const LinearGradient(
-                                              colors: [Color(0xFFB48312), Color(0xFFD97706)],
-                                            ),
-                                            borderRadius: BorderRadius.circular(9999),
-                                            boxShadow: const [
-                                              BoxShadow(color: Color(0x33000000), blurRadius: 4),
-                                            ],
-                                          ),
-                                          child: const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                'COMBO QUÝ TỘC',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w900,
-                                                  fontSize: 10.5,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    Positioned(
-                                      bottom: 10,
-                                      right: 10,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xBF000000),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          'Thời lượng: ${s.duration} phút',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(14),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        s.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 16,
-                                          color: Color(0xFF0F172A),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        s.description,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: Color(0xFF64748B),
-                                          height: 1.4,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                'Giá niêm yết:',
-                                                style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                                              ),
-                                              Text(
-                                                currencyFormat.format(s.price),
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w900,
-                                                  color: Color(0xFFBE4D25),
-                                                  fontSize: 17,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFFB48312),
-                                              foregroundColor: Colors.white,
-                                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                  builder: (_) => BookingScreen(preselectedServiceId: s.id),
-                                                ),
-                                              );
-                                            },
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.calendar_today, size: 14),
-                                                SizedBox(width: 6),
-                                                Text(
-                                                  'Đặt Lịch',
-                                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                            ],
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 3),
+                      Text(
+                        s.name,
+                        style: AppTheme.headingSmall(fontSize: 15.5),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        s.description,
+                        style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(color: AppTheme.borderColorSubtle, height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Giá niêm yết', style: AppTheme.bodySmall(fontSize: 10.5, color: AppTheme.textMuted)),
+                    Text(
+                      currencyFormat.format(s.price),
+                      style: AppTheme.headingSmall(fontSize: 16, color: AppTheme.accentGold),
+                    ),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (widget.onNavigateToBooking != null) {
+                      widget.onNavigateToBooking!(s.id);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accentGold,
+                    foregroundColor: AppTheme.charcoal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  ),
+                  child: Text(
+                    'Đặt Lịch Ngay',
+                    style: AppTheme.bodySmall(color: AppTheme.charcoal, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  // TAB 2: DANH SÁCH MASTER BARBER
+  Widget _buildStylistsTab() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      itemCount: _allStylists.length,
+      itemBuilder: (context, index) {
+        final barber = _allStylists[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppTheme.borderColor),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 72,
+                    height: 72,
+                    child: EditorialImage(
+                      imageUrl: barber.avatar,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentGold.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              barber.level.toUpperCase(),
+                              style: AppTheme.labelUppercase(fontSize: 9, color: AppTheme.accentGold),
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(Icons.star_rounded, size: 15, color: AppTheme.accentGold),
+                          const SizedBox(width: 3),
+                          Text(
+                            barber.rating.toStringAsFixed(1),
+                            style: AppTheme.bodySmall(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        barber.name,
+                        style: AppTheme.headingSmall(fontSize: 16),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Chi nhánh: ${barber.branchId} • Trực ca sáng/chiều',
+                        style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.calendar_month_outlined, color: AppTheme.accentGold, size: 22),
+                  tooltip: 'Đặt lịch với thợ này',
+                  onPressed: () {
+                    if (widget.onNavigateToBooking != null) {
+                      widget.onNavigateToBooking!(null);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

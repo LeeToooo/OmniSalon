@@ -36,14 +36,14 @@ class OmniImage extends StatelessWidget {
           return Container(
             width: width,
             height: height,
-            color: const Color(0xFFF1F5F9),
+            color: const Color(0xFF1C1917),
             child: Center(
               child: SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: const Color(0xFFB48312),
+                  color: const Color(0xFFC59B27),
                   value: loadingProgress.expectedTotalBytes != null
                       ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                       : null,

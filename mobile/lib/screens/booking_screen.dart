@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../theme/app_theme.dart';
 import '../models/service.dart';
-import '../models/stylist.dart';
 import '../models/branch.dart';
+import '../models/stylist.dart';
 import '../models/booking.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
-import '../widgets/omni_image.dart';
-import 'my_bookings_screen.dart';
+import '../widgets/editorial_image.dart';
 
 class BookingScreen extends StatefulWidget {
-  final String? preselectedServiceId;
+  final Branch? initialBranch;
   final String? preselectedBranchId;
+  final String? preselectedServiceId;
 
   const BookingScreen({
     super.key,
-    this.preselectedServiceId,
+    this.initialBranch,
     this.preselectedBranchId,
+    this.preselectedServiceId,
   });
 
   @override
@@ -24,780 +26,861 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0);
+  final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
 
-  List<Branch> branches = [];
-  List<SalonService> services = [];
-  List<Stylist> stylists = [];
-  List<Map<String, dynamic>> timeSlots = [];
+  int _currentStep = 0;
+  bool _isLoading = true;
+  bool _isSubmitting = false;
 
-  bool isLoading = true;
-  bool isLoadingSlots = false;
-  bool isSubmitting = false;
+  List<Branch> _branches = [];
+  List<SalonService> _services = [];
+  List<Stylist> _stylists = [];
 
-  // Luồng đặt lịch 5 bước chuẩn Web
-  Branch? selectedBranch;
-  SalonService? selectedService;
-  Stylist? selectedStylist;
-  DateTime selectedDate = DateTime.now();
-  String? selectedTimeSlot;
+  Branch? _selectedBranch;
+  final Set<String> _selectedServiceIds = {};
+  Stylist? _selectedStylist;
+  DateTime _selectedDate = DateTime.now();
+  String _selectedTimeSlot = '09:00';
 
-  String serviceCategoryFilter = 'all';
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _notesController = TextEditingController();
 
-  final nameController = TextEditingController(text: AuthService.currentUser?.fullName ?? 'Khách Hàng Omni');
-  final phoneController = TextEditingController(text: AuthService.currentUser?.phone ?? '0988 123 456');
-  final notesController = TextEditingController();
-
-  String _formatSelectedDate(DateTime date) {
-    try {
-      return DateFormat('dd/MM/yyyy (EEEE)', 'vi').format(date);
-    } catch (_) {
-      return DateFormat('dd/MM/yyyy').format(date);
-    }
-  }
+  final List<String> _timeSlots = [
+    '09:00', '09:45', '10:30', '11:15', '13:30',
+    '14:15', '15:00', '16:00', '17:00', '18:15', '19:30', '20:15'
+  ];
 
   @override
   void initState() {
     super.initState();
-    if (AuthService.currentUser != null) {
-      nameController.text = AuthService.currentUser!.fullName;
-      phoneController.text = AuthService.currentUser!.phone;
-    }
-    _loadInitialData();
+    _initCustomerInfo();
+    _loadData();
   }
 
-  Future<void> _loadInitialData() async {
-    setState(() => isLoading = true);
-    final bList = await ApiService.fetchBranches();
-    final sList = await ApiService.fetchServices();
-
-    Branch? initBranch;
-    if (widget.preselectedBranchId != null) {
-      initBranch = bList.firstWhere(
-        (b) => b.id == widget.preselectedBranchId,
-        orElse: () => bList.isNotEmpty ? bList.first : _defaultBranch,
-      );
-    } else if (bList.isNotEmpty) {
-      initBranch = bList.first;
+  void _initCustomerInfo() {
+    final user = AuthService.currentUser;
+    if (user != null) {
+      _nameController.text = user.fullName;
+      _phoneController.text = user.phone;
     }
-
-    SalonService? initService;
-    if (widget.preselectedServiceId != null) {
-      initService = sList.firstWhere(
-        (s) => s.id == widget.preselectedServiceId,
-        orElse: () => sList.first,
-      );
-    }
-
-    final stList = await ApiService.fetchStylists(branchId: initBranch?.id);
-
-    setState(() {
-      branches = bList;
-      services = sList;
-      selectedBranch = initBranch;
-      selectedService = initService;
-      stylists = stList;
-      if (stList.isNotEmpty) selectedStylist = stList.first;
-      isLoading = false;
-    });
-
-    _refreshTimeSlots();
   }
 
-  Future<void> _onBranchSelected(Branch branch) async {
-    setState(() {
-      selectedBranch = branch;
-      selectedStylist = null;
-    });
-    final stList = await ApiService.fetchStylists(branchId: branch.id);
-    setState(() {
-      stylists = stList;
-      if (stList.isNotEmpty) selectedStylist = stList.first;
-    });
-    _refreshTimeSlots();
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 
-  Future<void> _refreshTimeSlots() async {
-    if (selectedStylist == null) return;
-    setState(() => isLoadingSlots = true);
-    final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
-    final slots = await ApiService.fetchAvailableSlots(dateStr, selectedStylist!.id);
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    final branches = await ApiService.fetchBranches();
+    final services = await ApiService.fetchServices();
+    final stylists = await ApiService.fetchStylists();
+
+    if (!mounted) return;
     setState(() {
-      timeSlots = slots;
-      if (selectedTimeSlot != null) {
-        final found = slots.firstWhere((s) => s['time'] == selectedTimeSlot && s['available'] == true, orElse: () => {});
-        if (found.isEmpty) selectedTimeSlot = null;
+      _branches = branches;
+      _services = services;
+      _stylists = stylists;
+
+      if (widget.initialBranch != null) {
+        _selectedBranch = widget.initialBranch;
+      } else if (widget.preselectedBranchId != null) {
+        _selectedBranch = branches.firstWhere(
+          (b) => b.id == widget.preselectedBranchId,
+          orElse: () => branches.isNotEmpty ? branches.first : null as dynamic,
+        );
+      } else if (branches.isNotEmpty) {
+        _selectedBranch = branches.first;
       }
-      isLoadingSlots = false;
+
+      if (widget.preselectedServiceId != null && widget.preselectedServiceId!.isNotEmpty) {
+        _selectedServiceIds.add(widget.preselectedServiceId!);
+      } else if (services.isNotEmpty) {
+        _selectedServiceIds.add(services.first.id);
+      }
+
+      _isLoading = false;
     });
+  }
+
+  int get _totalPrice {
+    int total = 0;
+    for (final id in _selectedServiceIds) {
+      final s = _services.firstWhere((item) => item.id == id, orElse: () => _services.first);
+      total += s.price;
+    }
+    return total;
+  }
+
+  int get _totalDuration {
+    int dur = 0;
+    for (final id in _selectedServiceIds) {
+      final s = _services.firstWhere((item) => item.id == id, orElse: () => _services.first);
+      dur += s.duration;
+    }
+    return dur > 0 ? dur : 45;
   }
 
   Future<void> _submitBooking() async {
-    if (selectedBranch == null) {
-      _showToast('Vui lòng chọn Chi nhánh làm đẹp!');
-      return;
-    }
-    if (selectedService == null) {
-      _showToast('Vui lòng chọn Dịch vụ hoặc Combo chăm sóc tóc!');
-      return;
-    }
-    if (selectedStylist == null) {
-      _showToast('Vui lòng chọn Thợ tạo mẫu tóc!');
-      return;
-    }
-    if (selectedTimeSlot == null) {
-      _showToast('Vui lòng chọn Khung giờ hẹn!');
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Vui lòng nhập họ và tên của quý khách', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          backgroundColor: AppTheme.statusDanger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
 
-    final name = nameController.text.trim();
-    final phone = phoneController.text.trim();
-    if (name.isEmpty || phone.isEmpty) {
-      _showToast('Vui lòng nhập Họ tên và Số điện thoại!');
+    if (_phoneController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Vui lòng nhập số điện thoại để nhận thông báo lịch hẹn', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          backgroundColor: AppTheme.statusDanger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
 
-    setState(() => isSubmitting = true);
+    if (_selectedServiceIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Vui lòng chọn ít nhất 1 dịch vụ chăm sóc tóc', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          backgroundColor: AppTheme.statusDanger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-    final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
-    final bookingCode = 'LH${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+    setState(() => _isSubmitting = true);
 
-    final newBooking = Booking(
-      id: bookingCode,
-      bookingCode: bookingCode,
-      customerName: name,
-      customerPhone: phone,
-      branchId: selectedBranch!.id,
-      branchName: selectedBranch!.name,
-      serviceId: selectedService!.id,
-      serviceName: selectedService!.name,
-      stylistId: selectedStylist!.id,
-      stylistName: selectedStylist!.name,
-      date: dateStr,
-      timeSlot: selectedTimeSlot!,
-      totalPrice: selectedService!.price,
-      status: 'Confirmed',
-      createdAt: DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
-      serviceImage: selectedService!.image,
+    final bookingCode = 'OS${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+    final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
+
+    final selectedServicesList = _services
+        .where((s) => _selectedServiceIds.contains(s.id))
+        .map((s) => {'id': s.id, 'name': s.name, 'price': s.price, 'duration': s.duration})
+        .toList();
+
+    final firstService = _services.firstWhere(
+      (s) => _selectedServiceIds.contains(s.id),
+      orElse: () => _services.first,
     );
 
-    final result = await ApiService.createBooking(newBooking);
-    setState(() => isSubmitting = false);
+    final booking = Booking(
+      id: 'BK_${DateTime.now().millisecondsSinceEpoch}',
+      bookingCode: bookingCode,
+      customerName: _nameController.text.trim(),
+      customerPhone: _phoneController.text.trim(),
+      branchId: _selectedBranch?.id ?? 'CN01',
+      branchName: _selectedBranch?.name ?? 'Omni Salon Flagship',
+      serviceId: firstService.id,
+      serviceName: selectedServicesList.map((e) => e['name']).join(' + '),
+      serviceIds: _selectedServiceIds.toList(),
+      servicesList: selectedServicesList,
+      stylistId: _selectedStylist?.id ?? 'NV02',
+      stylistName: _selectedStylist?.name ?? 'Master Barber (Ngẫu nhiên)',
+      date: dateStr,
+      timeSlot: _selectedTimeSlot,
+      durationMinutes: _totalDuration,
+      totalPrice: _totalPrice,
+      status: 'Confirmed',
+      notes: _notesController.text.trim(),
+      createdAt: DateTime.now().toIso8601String(),
+    );
+
+    final res = await ApiService.createBooking(booking);
 
     if (!mounted) return;
+    setState(() => _isSubmitting = false);
 
-    if (result['success'] == true) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Row(
-            children: [
-              Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 28),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Đặt Lịch Thành Công!',
-                  style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w900),
-                ),
+    if (res['success'] == true) {
+      _showSuccessDialog(booking);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res['message'] ?? 'Đặt lịch thất bại. Vui lòng thử lại.', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          backgroundColor: AppTheme.statusDanger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _showSuccessDialog(Booking booking) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surfaceCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppTheme.statusSuccess.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
               ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFB48312)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.confirmation_number_outlined, color: Color(0xFFB48312)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Mã Lịch Hẹn: #${newBooking.bookingCode}',
-                        style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFB48312), fontSize: 15),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text('• Chi nhánh: ${newBooking.branchName}', style: const TextStyle(fontSize: 13, color: Color(0xFF334155))),
-              Text('• Dịch vụ: ${newBooking.serviceName}', style: const TextStyle(fontSize: 13, color: Color(0xFF334155), fontWeight: FontWeight.w700)),
-              Text('• Thợ tạo mẫu: ${newBooking.stylistName}', style: const TextStyle(fontSize: 13, color: Color(0xFF334155))),
-              Text('• Thời gian: ${newBooking.timeSlot} ngày ${DateFormat('dd/MM/yyyy').format(selectedDate)}', style: const TextStyle(fontSize: 13, color: Color(0xFFB48312), fontWeight: FontWeight.w800)),
-              Text('• Chi phí dự kiến: ${currencyFormat.format(newBooking.totalPrice)}', style: const TextStyle(fontSize: 13, color: Color(0xFFBE4D25), fontWeight: FontWeight.w900)),
-              const Divider(height: 20),
-              const Text(
-                'Lịch hẹn của bạn đã được ghi nhận trực tiếp vào cơ sở dữ liệu SQL Server. Bạn có thể tra cứu và quản lý bất kỳ lúc nào!',
-                style: TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.4),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
-                );
-              },
-              child: const Text('Xem Lịch Của Tôi'),
+              child: const Icon(Icons.check_circle_rounded, color: AppTheme.statusSuccess, size: 36),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB48312),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            const SizedBox(height: 16),
+            Text(
+              'Đặt Lịch Thành Công!',
+              style: AppTheme.headingSmall(fontSize: 20),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Mã lịch hẹn của bạn:',
+              style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceElevated,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
               ),
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Hoàn Tất'),
+              child: Text(
+                booking.bookingCode,
+                style: AppTheme.headingSmall(fontSize: 18, color: AppTheme.accentGold),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Hẹn gặp quý khách vào lúc ${booking.timeSlot} ngày ${booking.date} tại ${booking.branchName}.',
+              style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
-      );
-    } else {
-      _showToast(result['message'] ?? 'Đặt lịch thất bại, vui lòng thử lại');
-    }
-  }
-
-  void _showToast(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: const Color(0xFF0F172A)),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                setState(() => _currentStep = 0);
+              },
+              child: const Text('HOÀN TẤT & QUAY LẠI'),
+            ),
+          ),
+        ],
+      ),
     );
   }
-
-  static final Branch _defaultBranch = Branch(
-    id: 'CN01',
-    name: 'Omni Salon Barber Q1 - Bến Thành',
-    address: '120 Lê Lợi, Bến Thành, Quận 1, TP.HCM',
-    phone: '0901 111 001',
-    hours: '08:30 - 21:30',
-    city: 'TP. Hồ Chí Minh',
-    image: 'ChiNhanh_Omni/CN1.jpg',
-  );
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF1F3F6),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFFB48312))),
+        backgroundColor: AppTheme.bgPrimary,
+        body: Center(
+          child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
+        ),
       );
     }
 
-    final filteredServices = services.where((s) {
-      if (serviceCategoryFilter == 'all') return true;
-      if (serviceCategoryFilter == 'Combo VIP') return s.isCombo;
-      return s.category == serviceCategoryFilter;
-    }).toList();
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F3F6),
-      appBar: AppBar(
-        title: const Text(
-          'Đặt Lịch Chăm Sóc Tóc',
-          style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontSize: 18),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      backgroundColor: AppTheme.bgPrimary,
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ==========================================
-            // BƯỚC 1: CHỌN CHI NHÁNH
-            // ==========================================
-            _buildStepShell(
-              stepNumber: '1',
-              title: 'CHỌN CHI NHÁNH SALON',
-              subtitle: selectedBranch != null ? selectedBranch!.name : 'Chọn 1 trong 20 chi nhánh của Omni Salon',
-              isCompleted: selectedBranch != null,
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 120,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: branches.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 10),
-                      itemBuilder: (context, idx) {
-                        final b = branches[idx];
-                        final isSel = selectedBranch?.id == b.id;
-                        return InkWell(
-                          onTap: () => _onBranchSelected(b),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: 220,
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: isSel ? const Color(0xFFFEF3C7) : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSel ? const Color(0xFFB48312) : const Color(0xFFE2E8F0),
-                                width: isSel ? 2 : 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                OmniImage(
-                                  imageUrl: b.image,
-                                  width: 60,
-                                  height: double.infinity,
-                                  fit: BoxFit.cover,
-                                  borderRadius: BorderRadius.circular(8),
-                                  fallbackIcon: Icons.storefront,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        b.name,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: Color(0xFF0F172A)),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        b.hours,
-                                        style: const TextStyle(fontSize: 10.5, color: Color(0xFFB48312), fontWeight: FontWeight.w700),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+            // Header Stepper Indicator
+            _buildStepperHeader(),
+
+            // Nội dung theo từng bước
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: _buildCurrentStepContent(),
               ),
             ),
-            const SizedBox(height: 16),
 
-            // ==========================================
-            // BƯỚC 2: CHỌN DỊCH VỤ HOẶC COMBO QUÝ TỘC
-            // ==========================================
-            _buildStepShell(
-              stepNumber: '2',
-              title: 'CHỌN DỊCH VỤ HOẶC COMBO',
-              subtitle: selectedService != null ? '${selectedService!.name} (${currencyFormat.format(selectedService!.price)})' : 'Chọn gói dịch vụ quý khách mong muốn',
-              isCompleted: selectedService != null,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Filter Chips
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildCatFilterChip('all', 'Tất Cả'),
-                        _buildCatFilterChip('Combo VIP', 'Combo Quý Tộc'),
-                        _buildCatFilterChip('Cắt & Tạo Kiểu', 'Cắt & Tạo Kiểu'),
-                        _buildCatFilterChip('Uốn & Nhuộm', 'Uốn & Nhuộm'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ...filteredServices.map((s) {
-                    final isSel = selectedService?.id == s.id;
-                    return InkWell(
-                      onTap: () => setState(() => selectedService = s),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: isSel ? const Color(0xFFFEF3C7) : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSel ? const Color(0xFFB48312) : const Color(0xFFE2E8F0),
-                            width: isSel ? 2 : 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            OmniImage(
-                              imageUrl: s.image,
-                              width: 65,
-                              height: 65,
-                              fit: BoxFit.cover,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    s.name,
-                                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A)),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        currencyFormat.format(s.price),
-                                        style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFBE4D25), fontSize: 13.5),
-                                      ),
-                                      const Spacer(),
-                                      Text('Thời lượng: ${s.duration} phút', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (isSel)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 8),
-                                child: Icon(Icons.check_circle, color: Color(0xFFB48312), size: 22),
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ==========================================
-            // BƯỚC 3: CHỌN THỢ TẠO MẪU (STYLIST)
-            // ==========================================
-            _buildStepShell(
-              stepNumber: '3',
-              title: 'CHỌN NGHỆ NHÂN TẠO MẪU TÓC',
-              subtitle: selectedStylist != null ? selectedStylist!.name : 'Chọn thợ kéo vàng phục vụ bạn',
-              isCompleted: selectedStylist != null,
-              child: Column(
-                children: stylists.map((st) {
-                  final isSel = selectedStylist?.id == st.id;
-                  return InkWell(
-                    onTap: () {
-                      setState(() => selectedStylist = st);
-                      _refreshTimeSlots();
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: isSel ? const Color(0xFFFEF3C7) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSel ? const Color(0xFFB48312) : const Color(0xFFE2E8F0),
-                          width: isSel ? 2 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          OmniImage(
-                            imageUrl: st.avatar,
-                            width: 50,
-                            height: 50,
-                            borderRadius: BorderRadius.circular(25),
-                            fallbackIcon: Icons.person,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(st.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: Color(0xFF0F172A))),
-                                const SizedBox(height: 2),
-                                Text(st.level, style: const TextStyle(fontSize: 11.5, color: Color(0xFFB48312), fontWeight: FontWeight.w700)),
-                                const Text('Đánh giá: 5.0 (500+ lượt cắt)', style: TextStyle(fontSize: 10.5, color: Color(0xFFD97706), fontWeight: FontWeight.w600)),
-                              ],
-                            ),
-                          ),
-                          if (isSel)
-                            const Icon(Icons.check_circle, color: Color(0xFFB48312), size: 22),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ==========================================
-            // BƯỚC 4: CHỌN NGÀY & KHUNG GIỜ HẸN
-            // ==========================================
-            _buildStepShell(
-              stepNumber: '4',
-              title: 'CHỌN NGÀY & KHUNG GIỜ HẸN',
-              subtitle: selectedTimeSlot != null ? '$selectedTimeSlot ngày ${DateFormat('dd/MM/yyyy').format(selectedDate)}' : 'Kiểm tra slot trống thời gian thực',
-              isCompleted: selectedTimeSlot != null,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Chọn ngày
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_month, color: Color(0xFFB48312), size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Ngày: ${_formatSelectedDate(selectedDate)}',
-                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: Color(0xFF0F172A)),
-                            ),
-                          ],
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate,
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now().add(const Duration(days: 30)),
-                            );
-                            if (picked != null) {
-                              setState(() => selectedDate = picked);
-                              _refreshTimeSlots();
-                            }
-                          },
-                          child: const Text('Đổi Ngày', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFB48312))),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Text('Chọn khung giờ còn trống:', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF64748B))),
-                  const SizedBox(height: 8),
-                  if (isLoadingSlots)
-                    const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(color: Color(0xFFB48312))))
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: timeSlots.map((slot) {
-                        final time = slot['time'] as String;
-                        final isAvailable = slot['available'] == true;
-                        final isSelected = selectedTimeSlot == time;
-
-                        return ChoiceChip(
-                          label: Text(
-                            time,
-                            style: TextStyle(
-                              color: !isAvailable
-                                  ? const Color(0xFF94A3B8)
-                                  : (isSelected ? Colors.white : const Color(0xFF0F172A)),
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12.5,
-                            ),
-                          ),
-                          selected: isSelected,
-                          selectedColor: const Color(0xFFB48312),
-                          backgroundColor: isAvailable ? Colors.white : const Color(0xFFF1F5F9),
-                          side: BorderSide(
-                            color: !isAvailable
-                                ? const Color(0xFFE2E8F0)
-                                : (isSelected ? const Color(0xFFB48312) : const Color(0xFFCBD5E1)),
-                          ),
-                          onSelected: isAvailable ? (_) => setState(() => selectedTimeSlot = time) : null,
-                        );
-                      }).toList(),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ==========================================
-            // BƯỚC 5: THÔNG TIN KHÁCH HÀNG & XÁC NHẬN
-            // ==========================================
-            _buildStepShell(
-              stepNumber: '5',
-              title: 'THÔNG TIN KHÁCH HÀNG & XÁC NHẬN',
-              subtitle: 'Điền thông tin để hoàn tất vé hẹn',
-              isCompleted: false,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Họ và tên khách hàng *',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: 'Số điện thoại liên hệ *',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: notesController,
-                    maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'Ghi chú đặc biệt (tùy chọn)',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // TỔNG KẾT
-                  if (selectedService != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Tổng chi phí dịch vụ:', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-                              Text(
-                                currencyFormat.format(selectedService!.price),
-                                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFBE4D25), fontSize: 17),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Thanh toán:', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                              Text('Thanh toán tại quầy Salon sau khi cắt', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF059669))),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFB48312),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: isSubmitting ? null : _submitBooking,
-                    child: Center(
-                      child: isSubmitting
-                          ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Text(
-                              'XÁC NHẬN ĐẶT LỊCH',
-                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 40),
+            // Thanh điều hướng tiến/lùi bước phía dưới
+            _buildBottomNavControl(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCatFilterChip(String id, String label) {
-    final isSel = serviceCategoryFilter == id;
-    return Padding(
-      padding: const EdgeInsets.only(right: 6),
-      child: ChoiceChip(
-        label: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: isSel ? Colors.white : const Color(0xFF334155))),
-        selected: isSel,
-        selectedColor: const Color(0xFFB48312),
-        backgroundColor: const Color(0xFFF1F5F9),
-        onSelected: (_) => setState(() => serviceCategoryFilter = id),
-      ),
-    );
-  }
-
-  Widget _buildStepShell({
-    required String stepNumber,
-    required String title,
-    required String subtitle,
-    required bool isCompleted,
-    required Widget child,
-  }) {
+  Widget _buildStepperHeader() {
+    final stepTitles = ['Chi Nhánh', 'Dịch Vụ', 'Thợ Barber', 'Thời Gian', 'Xác Nhận'];
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 6, offset: Offset(0, 2))],
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: const BoxDecoration(
+        color: AppTheme.surfaceCard,
+        border: Border(bottom: BorderSide(color: AppTheme.borderColor)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: isCompleted ? const Color(0xFFB48312) : const Color(0xFF0F172A),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    stepNumber,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
-                  ),
-                ),
+              Text(
+                'BƯỚC ${_currentStep + 1} / 5: ${stepTitles[_currentStep].toUpperCase()}',
+                style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Color(0xFF0F172A))),
-                    Text(subtitle, style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  ],
-                ),
+              Text(
+                'Tổng: ${currencyFormat.format(_totalPrice)}',
+                style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
               ),
             ],
           ),
-          const Divider(height: 22),
-          child,
+          const SizedBox(height: 8),
+          Row(
+            children: List.generate(5, (index) {
+              final isDone = index < _currentStep;
+              final isCurrent = index == _currentStep;
+              return Expanded(
+                child: Container(
+                  height: 3.5,
+                  margin: EdgeInsets.only(right: index < 4 ? 6 : 0),
+                  decoration: BoxDecoration(
+                    color: isDone || isCurrent
+                        ? AppTheme.accentGold
+                        : AppTheme.borderColorSubtle,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrentStepContent() {
+    switch (_currentStep) {
+      case 0:
+        return _buildStepBranches();
+      case 1:
+        return _buildStepServices();
+      case 2:
+        return _buildStepStylists();
+      case 3:
+        return _buildStepDateTime();
+      case 4:
+        return _buildStepConfirm();
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  // BƯỚC 1: CHỌN CHI NHÁNH
+  Widget _buildStepBranches() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('1. Chọn Chi Nhánh Trải Nghiệm', style: AppTheme.headingSmall(fontSize: 20)),
+        const SizedBox(height: 4),
+        Text('Vui lòng chọn địa điểm salon thuận tiện nhất cho lịch trình của bạn.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+        const SizedBox(height: 16),
+        ..._branches.map((b) {
+          final isSelected = _selectedBranch?.id == b.id;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedBranch = b),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
+                  width: isSelected ? 1.5 : 1,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: SizedBox(
+                        width: 76,
+                        height: 76,
+                        child: EditorialImage(imageUrl: b.image, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(b.name, style: AppTheme.headingSmall(fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text(b.address, style: AppTheme.bodySmall(color: AppTheme.textSecondary), maxLines: 2),
+                          const SizedBox(height: 4),
+                          Text('Giờ mở cửa: ${b.hours}', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textMuted)),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      isSelected ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
+                      color: isSelected ? AppTheme.accentGold : AppTheme.textMuted,
+                      size: 22,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  // BƯỚC 2: CHỌN DỊCH VỤ & COMBO
+  Widget _buildStepServices() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('2. Chọn Gói Dịch Vụ', style: AppTheme.headingSmall(fontSize: 20)),
+        const SizedBox(height: 4),
+        Text('Bạn có thể chọn một hoặc nhiều dịch vụ kết hợp cùng lúc.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+        const SizedBox(height: 16),
+        ..._services.map((s) {
+          final isSelected = _selectedServiceIds.contains(s.id);
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                if (isSelected) {
+                  _selectedServiceIds.remove(s.id);
+                } else {
+                  _selectedServiceIds.add(s.id);
+                }
+              });
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
+                  width: isSelected ? 1.5 : 1,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(
+                      isSelected ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                      color: isSelected ? AppTheme.accentGold : AppTheme.textMuted,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(s.name, style: AppTheme.bodyLarge(fontWeight: FontWeight.w700)),
+                              if (s.isCombo) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.accentGold.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                  child: Text('VIP', style: AppTheme.labelUppercase(fontSize: 8.5, color: AppTheme.accentGold)),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text('${s.duration} phút • ${s.description}', style: AppTheme.bodySmall(color: AppTheme.textSecondary), maxLines: 1),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      currencyFormat.format(s.price),
+                      style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.accentGold),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  // BƯỚC 3: CHỌN THỢ TẠO MẪU
+  Widget _buildStepStylists() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('3. Chọn Master Barber', style: AppTheme.headingSmall(fontSize: 20)),
+        const SizedBox(height: 4),
+        Text('Chọn thợ barber quen thuộc hoặc để Omni Salon chỉ định thợ tay nghề phù hợp.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+        const SizedBox(height: 16),
+
+        // Tùy chọn bất kỳ
+        GestureDetector(
+          onTap: () => setState(() => _selectedStylist = null),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: _selectedStylist == null ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: _selectedStylist == null ? AppTheme.accentGold : AppTheme.borderColor,
+                width: _selectedStylist == null ? 1.5 : 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: AppTheme.accentGold.withValues(alpha: 0.15),
+                    child: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentGold, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Omni Tự Động Điều Phối', style: AppTheme.bodyLarge(fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 2),
+                        Text('Chỉ định Master Barber sẵn sàng phục vụ tốt nhất', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    _selectedStylist == null ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
+                    color: _selectedStylist == null ? AppTheme.accentGold : AppTheme.textMuted,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        ..._stylists.map((st) {
+          final isSelected = _selectedStylist?.id == st.id;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedStylist = st),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
+                  width: isSelected ? 1.5 : 1,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: SizedBox(
+                        width: 54,
+                        height: 54,
+                        child: EditorialImage(imageUrl: st.avatar, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(st.name, style: AppTheme.bodyLarge(fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Text(st.level, style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w600)),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.star_rounded, size: 14, color: AppTheme.accentGold),
+                              Text(st.rating.toStringAsFixed(1), style: AppTheme.bodySmall(fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      isSelected ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
+                      color: isSelected ? AppTheme.accentGold : AppTheme.textMuted,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  // BƯỚC 4: CHỌN NGÀY & KHUNG GIỜ
+  Widget _buildStepDateTime() {
+    final now = DateTime.now();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('4. Chọn Ngày & Khung Giờ', style: AppTheme.headingSmall(fontSize: 20)),
+        const SizedBox(height: 4),
+        Text('Thời lượng dự kiến: $_totalDuration phút cho các dịch vụ đã chọn.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+        const SizedBox(height: 16),
+
+        // Lịch 7 ngày tiếp theo dạng dải ngang
+        Text('CHỌN NGÀY PHỤC VỤ', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 72,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: 7,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, i) {
+              final date = now.add(Duration(days: i));
+              final isSelected = date.day == _selectedDate.day &&
+                  date.month == _selectedDate.month &&
+                  date.year == _selectedDate.year;
+              final dayName = i == 0 ? 'Hôm nay' : (i == 1 ? 'Ngày mai' : 'T${date.weekday + 1}');
+
+              return GestureDetector(
+                onTap: () => setState(() => _selectedDate = date),
+                child: Container(
+                  width: 68,
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppTheme.charcoal : AppTheme.surfaceCard,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        dayName,
+                        style: AppTheme.bodySmall(
+                          fontSize: 11,
+                          color: isSelected ? AppTheme.accentGold : AppTheme.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${date.day}/${date.month}',
+                        style: AppTheme.headingSmall(
+                          fontSize: 15,
+                          color: isSelected ? AppTheme.textLight : AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Khung giờ hẹn
+        Text('CHỌN KHUNG GIỜ CÒN TRỐNG', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: _timeSlots.map((time) {
+            final isSelected = _selectedTimeSlot == time;
+            return GestureDetector(
+              onTap: () => setState(() => _selectedTimeSlot = time),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.accentGold : AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
+                  ),
+                ),
+                child: Text(
+                  time,
+                  style: AppTheme.bodyMedium(
+                    color: isSelected ? AppTheme.charcoal : AppTheme.textPrimary,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  // BƯỚC 5: XÁC NHẬN THÔNG TIN & ĐẶT LỊCH
+  Widget _buildStepConfirm() {
+    final dateFormatted = DateFormat('dd/MM/yyyy').format(_selectedDate);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('5. Xác Nhận Thông Tin Lịch Hẹn', style: AppTheme.headingSmall(fontSize: 20)),
+        const SizedBox(height: 4),
+        Text('Kiểm tra lại thông tin và xác nhận để thợ barber chuẩn bị phục vụ quý khách chu đáo nhất.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+        const SizedBox(height: 18),
+
+        // Thẻ tóm tắt thông tin hẹn
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppTheme.borderColor),
+          ),
+          child: Column(
+            children: [
+              _buildConfirmRow('Chi nhánh:', _selectedBranch?.name ?? 'Omni Salon'),
+              const Divider(color: AppTheme.borderColorSubtle),
+              _buildConfirmRow('Thời gian:', '$_selectedTimeSlot • $dateFormatted'),
+              const Divider(color: AppTheme.borderColorSubtle),
+              _buildConfirmRow('Thợ Barber:', _selectedStylist?.name ?? 'Master Barber (Ngẫu nhiên)'),
+              const Divider(color: AppTheme.borderColorSubtle),
+              _buildConfirmRow('Dịch vụ:', '${_selectedServiceIds.length} dịch vụ ($_totalDuration phút)'),
+              const Divider(color: AppTheme.borderColorSubtle),
+              _buildConfirmRow('Tổng thanh toán:', currencyFormat.format(_totalPrice), isHighlight: true),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Nhập thông tin người đặt
+        Text('THÔNG TIN LIÊN HỆ', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
+        const SizedBox(height: 8),
+
+        TextFormField(
+          controller: _nameController,
+          style: AppTheme.bodyMedium(),
+          decoration: const InputDecoration(
+            labelText: 'Họ và tên quý khách *',
+            prefixIcon: Icon(Icons.person_outline_rounded, size: 20, color: AppTheme.textSecondary),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        TextFormField(
+          controller: _phoneController,
+          keyboardType: TextInputType.phone,
+          style: AppTheme.bodyMedium(),
+          decoration: const InputDecoration(
+            labelText: 'Số điện thoại nhận tin xác nhận *',
+            prefixIcon: Icon(Icons.phone_outlined, size: 20, color: AppTheme.textSecondary),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        TextFormField(
+          controller: _notesController,
+          maxLines: 2,
+          style: AppTheme.bodyMedium(),
+          decoration: const InputDecoration(
+            labelText: 'Yêu cầu đặc biệt (tùy chọn)',
+            hintText: 'Ví dụ: Tỉa tóc layer bay bổng, da đầu nhạy cảm...',
+            prefixIcon: Icon(Icons.edit_note_rounded, size: 20, color: AppTheme.textSecondary),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildConfirmRow(String label, String value, {bool isHighlight = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: isHighlight
+                  ? AppTheme.headingSmall(fontSize: 16, color: AppTheme.accentGold)
+                  : AppTheme.bodyMedium(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavControl() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: const BoxDecoration(
+        color: AppTheme.surfaceCard,
+        border: Border(top: BorderSide(color: AppTheme.borderColor)),
+      ),
+      child: Row(
+        children: [
+          if (_currentStep > 0) ...[
+            OutlinedButton(
+              onPressed: () => setState(() => _currentStep--),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              child: const Text('← Quay lại'),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                onPressed: _isSubmitting
+                    ? null
+                    : () {
+                        if (_currentStep < 4) {
+                          setState(() => _currentStep++);
+                        } else {
+                          _submitBooking();
+                        }
+                      },
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),
+                      )
+                    : Text(
+                        _currentStep < 4 ? 'TIẾP TỤC BƯỚC TIẾP THEO →' : 'XÁC NHẬN ĐẶT LỊCH HẸN',
+                        style: AppTheme.bodyMedium(fontWeight: FontWeight.w800, color: AppTheme.charcoal),
+                      ),
+              ),
+            ),
+          ),
         ],
       ),
     );

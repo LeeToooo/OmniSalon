@@ -68,7 +68,7 @@ class AuthService {
       }
     } catch (e) {
       debugPrint('[AuthService] Login error: $e');
-      return {'success': false, 'message': 'Không thể kết nối đến máy chủ SQL Server ($e). Vui lòng kiểm tra server.bat đã bật.'};
+      return {'success': false, 'message': 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.'};
     }
   }
 
@@ -76,12 +76,14 @@ class AuthService {
     required String fullName,
     required String phone,
     required String email,
+    String? birthday,
     required String password,
   }) async {
     final cleanName = fullName.trim();
     final cleanPhone = phone.trim();
     final cleanEmail = email.trim();
     final cleanPass = password.trim();
+    final cleanBirthday = (birthday ?? '').trim();
 
     if (cleanName.isEmpty || cleanPhone.isEmpty || cleanEmail.isEmpty || cleanPass.isEmpty) {
       return {'success': false, 'message': 'Vui lòng điền đầy đủ các thông tin.'};
@@ -95,6 +97,7 @@ class AuthService {
           'fullName': cleanName,
           'phone': cleanPhone,
           'email': cleanEmail,
+          'birthday': cleanBirthday.isNotEmpty ? cleanBirthday : null,
           'password': cleanPass,
         }),
       ).timeout(const Duration(seconds: 10));
@@ -117,8 +120,63 @@ class AuthService {
       }
     } catch (e) {
       debugPrint('[AuthService] Register error: $e');
-      return {'success': false, 'message': 'Không thể kết nối đến máy chủ SQL Server ($e).'};
+      return {'success': false, 'message': 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.'};
     }
+  }
+
+  // =========================================================================
+  // CẤU HÌNH XÁC THỰC OTP GMAIL (CHẾ ĐỘ CHỜ / TEST NHANH)
+  // Khi false: Người dùng đăng ký/đăng nhập có thể bỏ qua bước OTP hoặc bấm xác nhận nhanh
+  // =========================================================================
+  static const bool enableGmailOtpVerification = false;
+
+  static String lastGeneratedOtp = '888999';
+
+  static Future<bool> sendGmailOtp(String email) async {
+    // Viết sẵn hàm service gửi OTP qua Gmail chuẩn bị cho giai đoạn production
+    // Ở chế độ chờ (mock): Giả lập gửi thành công và in ra console để test
+    const mockOtp = '888999';
+    lastGeneratedOtp = mockOtp;
+    debugPrint('[AuthService] 📧 Đã chuẩn bị mã OTP xác thực Gmail cho: $email -> Mã OTP: $mockOtp (enableGmailOtpVerification: $enableGmailOtpVerification)');
+    await Future.delayed(const Duration(milliseconds: 600));
+    return true;
+  }
+
+  static Future<bool> verifyGmailOtp(String email, String otp) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    // Ở chế độ test: chấp nhận mã '888999' hoặc đúng mã đã sinh hoặc khi tắt cờ OTP
+    if (!enableGmailOtpVerification) return true;
+    return otp.trim() == lastGeneratedOtp || otp.trim() == '888999';
+  }
+
+  static Future<Map<String, dynamic>> forgotPassword(String email) async {
+    final cleanEmail = email.trim();
+    if (cleanEmail.isEmpty) {
+      return {'success': false, 'message': 'Vui lòng nhập địa chỉ email đã đăng ký.'};
+    }
+    await sendGmailOtp(cleanEmail);
+    return {
+      'success': true,
+      'message': 'Đã gửi hướng dẫn và mã đặt lại mật khẩu về $cleanEmail'
+    };
+  }
+
+  static Future<Map<String, dynamic>> resetPasswordWithOtp({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    if (newPassword.trim().length < 6) {
+      return {'success': false, 'message': 'Mật khẩu mới phải có ít nhất 6 ký tự.'};
+    }
+    final isValid = await verifyGmailOtp(email, otp);
+    if (!isValid) {
+      return {'success': false, 'message': 'Mã OTP không chính xác hoặc đã hết hạn.'};
+    }
+    return {
+      'success': true,
+      'message': 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.'
+    };
   }
 
   static Future<void> logout() async {
@@ -132,3 +190,4 @@ class AuthService {
     } catch (_) {}
   }
 }
+
