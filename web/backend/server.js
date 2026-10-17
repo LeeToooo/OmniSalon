@@ -333,7 +333,9 @@ async function getFullSqlDatabase() {
     reviewRows,
     userRows,
     thongBaoRows,
-    caLamViecRows
+    caLamViecRows,
+    kmDichVuRows,
+    kmSanPhamRows
   ] = await Promise.all([
     querySql(`SELECT MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, 
                      CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
@@ -426,7 +428,9 @@ async function getFullSqlDatabase() {
               FROM CaLamViec clv
               LEFT JOIN NhanVien nv ON clv.MaNhanVien = nv.MaNhanVien
               LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
-              ORDER BY clv.NgayLam DESC, clv.GioBatDau ASC`)
+              ORDER BY clv.NgayLam DESC, clv.GioBatDau ASC`),
+    querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`),
+    querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`)
   ]);
 
   const branches = branchRows.map(r => {
@@ -450,25 +454,99 @@ async function getFullSqlDatabase() {
     };
   });
 
-  const services = serviceRows.map(r => ({
-    id: r.MaDichVu,
-    MaDichVu: r.MaDichVu,
-    name: r.TenDichVu,
-    TenDichVu: r.TenDichVu,
-    price: parseFloat(r.Gia || 0),
-    Gia: parseFloat(r.Gia || 0),
-    duration: parseInt(r.ThoiLuong || 45, 10),
-    durationMinutes: parseInt(r.ThoiLuong || 45, 10),
-    ThoiLuong: parseInt(r.ThoiLuong || 45, 10),
-    description: r.MoTa,
-    MoTa: r.MoTa,
-    image: r.HinhAnh || '',
-    HinhAnh: r.HinhAnh || '',
-    category: ['DV01', 'DV02', 'DV06'].includes(r.MaDichVu) ? 'Cắt & Tạo Kiểu' : ['DV03', 'DV04', 'DV05', 'DV08', 'DV09'].includes(r.MaDichVu) ? 'Uốn & Nhuộm' : 'Chăm Sóc & Phục Hồi',
-    rating: 4.95,
-    reviewCount: 280,
-    status: r.TrangThai
-  }));
+  const promotions = promoRows.map(r => {
+    const serviceIds = (kmDichVuRows || [])
+      .filter(k => k.MaKhuyenMai === r.MaKhuyenMai)
+      .map(k => k.MaDichVu);
+    const productIds = (kmSanPhamRows || [])
+      .filter(k => k.MaKhuyenMai === r.MaKhuyenMai)
+      .map(k => k.MaSanPham);
+    const isPercent = (r.HinhThuc || '').toLowerCase().includes('%');
+    return {
+      id: r.MaKhuyenMai,
+      code: r.MaKhuyenMai,
+      MaKhuyenMai: r.MaKhuyenMai,
+      name: r.TenKhuyenMai,
+      TenKhuyenMai: r.TenKhuyenMai,
+      title: r.TenKhuyenMai,
+      type: r.HinhThuc,
+      HinhThuc: r.HinhThuc,
+      discountType: isPercent ? 'percent' : 'fixed',
+      value: parseFloat(r.GiaTriGiam || 0),
+      discountValue: parseFloat(r.GiaTriGiam || 0),
+      GiaTriGiam: parseFloat(r.GiaTriGiam || 0),
+      target: r.DoiTuongApDung,
+      DoiTuongApDung: r.DoiTuongApDung,
+      startDate: r.NgayBatDau,
+      NgayBatDau: r.NgayBatDau,
+      endDate: r.NgayKetThuc,
+      NgayKetThuc: r.NgayKetThuc,
+      status: r.TrangThai,
+      TrangThai: r.TrangThai,
+      serviceIds,
+      productIds,
+      isActive: r.TrangThai === 'Đang áp dụng'
+    };
+  });
+
+  const services = serviceRows.map(r => {
+    const origPrice = parseFloat(r.Gia || 0);
+    // Khớp khuyến mãi từ KhuyenMai_DichVu
+    const matchedPromo = promotions.find(p => 
+      p.isActive && p.serviceIds && p.serviceIds.includes(r.MaDichVu)
+    );
+    let finalPrice = origPrice;
+    let discountPercent = 0;
+    let promoInfo = null;
+
+    if (matchedPromo) {
+      if (matchedPromo.type && matchedPromo.type.includes('%')) {
+        discountPercent = matchedPromo.value;
+        finalPrice = Math.round(origPrice * (1 - (discountPercent / 100)));
+      } else {
+        const discountAmt = matchedPromo.value;
+        finalPrice = Math.max(0, origPrice - discountAmt);
+        discountPercent = origPrice > 0 ? Math.round((discountAmt / origPrice) * 100) : 0;
+      }
+      promoInfo = {
+        code: matchedPromo.id,
+        id: matchedPromo.id,
+        name: matchedPromo.name,
+        discountPercent,
+        type: matchedPromo.type
+      };
+    }
+
+    return {
+      id: r.MaDichVu,
+      MaDichVu: r.MaDichVu,
+      name: r.TenDichVu,
+      TenDichVu: r.TenDichVu,
+      price: finalPrice,
+      Gia: finalPrice,
+      originalPrice: origPrice,
+      GiaGoc: origPrice,
+      GiaNiemYetGoc: origPrice,
+      oldPrice: origPrice,
+      discountPercent,
+      PhanTramGiam: discountPercent,
+      hasPromotion: discountPercent > 0,
+      promotion: promoInfo,
+      duration: parseInt(r.ThoiLuong || 45, 10),
+      durationMinutes: parseInt(r.ThoiLuong || 45, 10),
+      ThoiLuong: parseInt(r.ThoiLuong || 45, 10),
+      description: r.MoTa,
+      MoTa: r.MoTa,
+      image: r.HinhAnh || '',
+      HinhAnh: r.HinhAnh || '',
+      category: ['DV01', 'DV02', 'DV06'].includes(r.MaDichVu) ? 'Cắt & Tạo Kiểu' : ['DV03', 'DV04', 'DV05', 'DV08', 'DV09'].includes(r.MaDichVu) ? 'Uốn & Nhuộm' : 'Chăm Sóc & Phục Hồi',
+      rating: 4.95,
+      reviewCount: 280,
+      status: r.TrangThai,
+      NgayApDung: r.NgayApDung,
+      effectiveDate: r.NgayApDung
+    };
+  });
 
   const combos = comboRows.map(r => ({
     id: r.MaCombo,
@@ -559,8 +637,33 @@ async function getFullSqlDatabase() {
     let discountPercent = 0;
     let isFlashSale = false;
     let finalPrice = price;
+    let promoInfo = null;
 
-    if (r.HanSuDung) {
+    // 1. Khớp khuyến mãi từ KhuyenMai_SanPham
+    const matchedPromo = promotions.find(p => 
+      p.isActive && p.productIds && p.productIds.includes(r.MaSanPham)
+    );
+    if (matchedPromo) {
+      if (matchedPromo.type && matchedPromo.type.includes('%')) {
+        discountPercent = matchedPromo.value;
+        finalPrice = Math.round(price * (1 - (discountPercent / 100)));
+      } else {
+        const discountAmt = matchedPromo.value;
+        finalPrice = Math.max(0, price - discountAmt);
+        discountPercent = price > 0 ? Math.round((discountAmt / price) * 100) : 0;
+      }
+      promoInfo = {
+        code: matchedPromo.id,
+        id: matchedPromo.id,
+        name: matchedPromo.name,
+        discountPercent,
+        type: matchedPromo.type
+      };
+      isFlashSale = true;
+    }
+
+    // 2. Nếu chưa có khuyến mãi từ bảng, xét cận hạn sử dụng
+    if (discountPercent === 0 && r.HanSuDung) {
       const expDate = new Date(r.HanSuDung);
       const diffTime = expDate - refDate;
       const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -596,6 +699,7 @@ async function getFullSqlDatabase() {
       originalPrice: price,
       GiaGoc: price,
       GiaNiemYetGoc: price,
+      oldPrice: price,
       costPrice: parseFloat(r.GiaNhap || 0),
       GiaNhap: parseFloat(r.GiaNhap || 0),
       image: r.HinhAnh,
@@ -609,6 +713,8 @@ async function getFullSqlDatabase() {
       isFlashSale,
       discountPercent,
       PhanTramGiam: discountPercent,
+      hasPromotion: Boolean(matchedPromo),
+      promotion: promoInfo,
       status: (r.TrangThaiKinhDoanh === 'Đang bán') ? 'Available' : 'Discontinued'
     };
   });
@@ -662,17 +768,6 @@ async function getFullSqlDatabase() {
     orderStatus: r.TrangThai === 'Đã giao' ? 'Completed' : 'Processing',
     TrangThai: r.TrangThai,
     notes: r.GhiChu
-  }));
-
-  const promotions = promoRows.map(r => ({
-    id: r.MaKhuyenMai,
-    name: r.TenKhuyenMai,
-    type: r.HinhThuc,
-    value: parseFloat(r.GiaTriGiam || 0),
-    target: r.DoiTuongApDung,
-    startDate: r.NgayBatDau,
-    endDate: r.NgayKetThuc,
-    status: r.TrangThai
   }));
 
   const reviews = reviewRows.map(r => ({
@@ -1301,25 +1396,66 @@ const server = http.createServer(async (req, res) => {
 
       // --- 10. SERVICES / DỊCH VỤ ---
       if (pathname === '/api/services' && method === 'GET') {
-        const rows = await querySql(`SELECT MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai FROM DichVu`);
-        const services = rows.map(r => ({
-          id: r.MaDichVu,
-          MaDichVu: r.MaDichVu,
-          name: r.TenDichVu,
-          TenDichVu: r.TenDichVu,
-          price: parseFloat(r.Gia || 0),
-          Gia: parseFloat(r.Gia || 0),
-          duration: parseInt(r.ThoiLuong || 45, 10),
-          durationMinutes: parseInt(r.ThoiLuong || 45, 10),
-          description: r.MoTa,
-          MoTa: r.MoTa,
-          image: r.HinhAnh || '',
-          HinhAnh: r.HinhAnh || '',
-          category: ['DV01', 'DV02', 'DV06'].includes(r.MaDichVu) ? 'Cắt & Tạo Kiểu' : ['DV03', 'DV04', 'DV05', 'DV08', 'DV09'].includes(r.MaDichVu) ? 'Uốn & Nhuộm' : 'Chăm Sóc & Phục Hồi',
-          rating: 4.95,
-          reviewCount: 280,
-          status: r.TrangThai
-        }));
+        const [rows, promoRows, kmDichVuRows] = await Promise.all([
+          querySql(`SELECT MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu`),
+          querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai FROM KhuyenMai WHERE TrangThai = N'Đang áp dụng'`),
+          querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`)
+        ]);
+        const services = rows.map(r => {
+          const origPrice = parseFloat(r.Gia || 0);
+          const link = (kmDichVuRows || []).find(k => k.MaDichVu === r.MaDichVu);
+          const promo = link ? (promoRows || []).find(p => p.MaKhuyenMai === link.MaKhuyenMai) : null;
+          let finalPrice = origPrice;
+          let discountPercent = 0;
+          let promoInfo = null;
+
+          if (promo) {
+            if (promo.HinhThuc && promo.HinhThuc.includes('%')) {
+              discountPercent = parseFloat(promo.GiaTriGiam || 0);
+              finalPrice = Math.round(origPrice * (1 - (discountPercent / 100)));
+            } else {
+              const discountAmt = parseFloat(promo.GiaTriGiam || 0);
+              finalPrice = Math.max(0, origPrice - discountAmt);
+              discountPercent = origPrice > 0 ? Math.round((discountAmt / origPrice) * 100) : 0;
+            }
+            promoInfo = {
+              code: promo.MaKhuyenMai,
+              id: promo.MaKhuyenMai,
+              name: promo.TenKhuyenMai,
+              discountPercent,
+              type: promo.HinhThuc
+            };
+          }
+
+          return {
+            id: r.MaDichVu,
+            MaDichVu: r.MaDichVu,
+            name: r.TenDichVu,
+            TenDichVu: r.TenDichVu,
+            price: finalPrice,
+            Gia: finalPrice,
+            originalPrice: origPrice,
+            GiaGoc: origPrice,
+            GiaNiemYetGoc: origPrice,
+            oldPrice: origPrice,
+            discountPercent,
+            PhanTramGiam: discountPercent,
+            hasPromotion: discountPercent > 0,
+            promotion: promoInfo,
+            duration: parseInt(r.ThoiLuong || 45, 10),
+            durationMinutes: parseInt(r.ThoiLuong || 45, 10),
+            description: r.MoTa,
+            MoTa: r.MoTa,
+            image: r.HinhAnh || '',
+            HinhAnh: r.HinhAnh || '',
+            category: ['DV01', 'DV02', 'DV06'].includes(r.MaDichVu) ? 'Cắt & Tạo Kiểu' : ['DV03', 'DV04', 'DV05', 'DV08', 'DV09'].includes(r.MaDichVu) ? 'Uốn & Nhuộm' : 'Chăm Sóc & Phục Hồi',
+            rating: 4.95,
+            reviewCount: 280,
+            status: r.TrangThai,
+            NgayApDung: r.NgayApDung,
+            effectiveDate: r.NgayApDung
+          };
+        });
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify(services));
       }
@@ -1347,7 +1483,7 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
           success: true,
-          service: { id: dvId, MaDichVu: dvId, name, TenDichVu: name, price, duration, description: desc, image: img, HinhAnh: img }
+          service: { id: dvId, MaDichVu: dvId, name, TenDichVu: name, price, duration, description: desc, image: img, HinhAnh: img, NgayApDung: new Date().toISOString().split('T')[0] }
         }));
       }
 
@@ -1355,9 +1491,32 @@ const server = http.createServer(async (req, res) => {
         const id = pathname.replace('/api/services/', '').trim();
         const srv = parsedBody || {};
         const img = srv.image !== undefined ? srv.image : srv.HinhAnh;
+        const newPrice = srv.price !== undefined ? parseFloat(srv.price) : (srv.Gia !== undefined ? parseFloat(srv.Gia) : null);
         await querySql(
-          `UPDATE DichVu SET TenDichVu = COALESCE(?, TenDichVu), MoTa = COALESCE(?, MoTa), ThoiLuong = COALESCE(?, ThoiLuong), Gia = COALESCE(?, Gia), HinhAnh = COALESCE(?, HinhAnh) WHERE MaDichVu = ?`,
-          [srv.name || srv.TenDichVu || null, srv.description || srv.MoTa || null, srv.duration || srv.ThoiLuong || null, srv.price || srv.Gia || null, img !== undefined ? img : null, id]
+          `UPDATE DichVu 
+           SET TenDichVu = COALESCE(?, TenDichVu), 
+               MoTa = COALESCE(?, MoTa), 
+               ThoiLuong = COALESCE(?, ThoiLuong), 
+               Gia = COALESCE(?, Gia), 
+               HinhAnh = COALESCE(?, HinhAnh),
+               NgayApDung = CASE 
+                              WHEN ? IS NOT NULL AND (? <> Gia OR Gia IS NULL) THEN CAST(GETDATE() AS DATE) 
+                              WHEN ? IS NOT NULL THEN ?
+                              ELSE NgayApDung 
+                            END
+           WHERE MaDichVu = ?`,
+          [
+            srv.name || srv.TenDichVu || null,
+            srv.description || srv.MoTa || null,
+            srv.duration || srv.ThoiLuong || null,
+            newPrice,
+            img !== undefined ? img : null,
+            newPrice,
+            newPrice,
+            srv.NgayApDung || null,
+            srv.NgayApDung || null,
+            id
+          ]
         );
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, id }));
@@ -1540,16 +1699,20 @@ const server = http.createServer(async (req, res) => {
 
       // --- 12. PRODUCTS / SẢN PHẨM ---
       if (pathname === '/api/products' && method === 'GET') {
-        const rows = await querySql(`SELECT sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
-                                            sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
-                                            dm.TenDanhMuc,
-                                            ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 25) AS SoLuongTon,
-                                            CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung
-                                     FROM SanPham sp
-                                     LEFT JOIN DanhMucSanPham dm ON sp.MaDanhMuc = dm.MaDanhMuc
-                                     OUTER APPLY (
-                                         SELECT TOP 1 HanSuDung FROM ChiTietPhieuNhap WHERE MaSanPham = sp.MaSanPham ORDER BY HanSuDung ASC
-                                     ) ctpn`);
+        const [rows, promoRows, kmSanPhamRows] = await Promise.all([
+          querySql(`SELECT sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
+                           sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
+                           dm.TenDanhMuc,
+                           ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 25) AS SoLuongTon,
+                           CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung
+                    FROM SanPham sp
+                    LEFT JOIN DanhMucSanPham dm ON sp.MaDanhMuc = dm.MaDanhMuc
+                    OUTER APPLY (
+                        SELECT TOP 1 HanSuDung FROM ChiTietPhieuNhap WHERE MaSanPham = sp.MaSanPham ORDER BY HanSuDung ASC
+                    ) ctpn`),
+          querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai FROM KhuyenMai WHERE TrangThai = N'Đang áp dụng'`),
+          querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`)
+        ]);
         const refDate = new Date();
         const products = rows.map(r => {
           let brand = 'Khác';
@@ -1563,8 +1726,32 @@ const server = http.createServer(async (req, res) => {
           let discountPercent = 0;
           let isFlashSale = false;
           let finalPrice = price;
+          let promoInfo = null;
 
-          if (r.HanSuDung) {
+          // 1. Khớp khuyến mãi từ KhuyenMai_SanPham
+          const link = (kmSanPhamRows || []).find(k => k.MaSanPham === r.MaSanPham);
+          const promo = link ? (promoRows || []).find(p => p.MaKhuyenMai === link.MaKhuyenMai) : null;
+          if (promo) {
+            if (promo.HinhThuc && promo.HinhThuc.includes('%')) {
+              discountPercent = parseFloat(promo.GiaTriGiam || 0);
+              finalPrice = Math.round(price * (1 - (discountPercent / 100)));
+            } else {
+              const discountAmt = parseFloat(promo.GiaTriGiam || 0);
+              finalPrice = Math.max(0, price - discountAmt);
+              discountPercent = price > 0 ? Math.round((discountAmt / price) * 100) : 0;
+            }
+            promoInfo = {
+              code: promo.MaKhuyenMai,
+              id: promo.MaKhuyenMai,
+              name: promo.TenKhuyenMai,
+              discountPercent,
+              type: promo.HinhThuc
+            };
+            isFlashSale = true;
+          }
+
+          // 2. Cận hạn sử dụng
+          if (discountPercent === 0 && r.HanSuDung) {
             const expDate = new Date(r.HanSuDung);
             const diffTime = expDate - refDate;
             const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -1583,16 +1770,24 @@ const server = http.createServer(async (req, res) => {
             categoryId: r.MaDanhMuc,
             category: r.TenDanhMuc || 'Sản phẩm tạo kiểu',
             price: finalPrice,
+            GiaBan: finalPrice,
+            GiaBanThucTe: finalPrice,
             originalPrice: price,
+            GiaGoc: price,
+            GiaNiemYetGoc: price,
+            oldPrice: price,
             costPrice: parseFloat(r.GiaNhap || 0),
             GiaNhap: parseFloat(r.GiaNhap || 0),
-            GiaBan: price,
             image: r.HinhAnh || '',
             HinhAnh: r.HinhAnh || '',
             description: r.MoTa,
             stock: parseInt(r.SoLuongTon || 25, 10),
             isFlashSale,
-            discountPercent
+            discountPercent,
+            PhanTramGiam: discountPercent,
+            hasPromotion: Boolean(promo),
+            promotion: promoInfo,
+            status: (r.TrangThaiKinhDoanh === 'Đang bán') ? 'Available' : 'Discontinued'
           };
         });
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

@@ -128,7 +128,11 @@
                 <div style="position: absolute; top: 12px; right: 12px; background: #C59B27; color: #141413; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; border: none; letter-spacing: 0.04em;">
                   COMBO ĐẶC BIỆT
                 </div>
-              ` : ''}
+              ` : (item.discountPercent > 0 ? `
+                <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; border: none; letter-spacing: 0.04em;">
+                  GIẢM -${item.discountPercent}%
+                </div>
+              ` : '')}
             </div>
 
             <!-- NỘI DUNG DỊCH VỤ EDITORIAL -->

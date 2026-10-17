@@ -502,7 +502,7 @@
             ids: ['overview', 'stylists', 'inventory', 'catalog']
           },
           {
-            groupLabel: 'QUYỀN THU NGÂN (KÈM THEO)',
+            groupLabel: 'QUYỀN THU NGÂN',
             ids: ['pos', 'bookings', 'audit']
           }
         ];
@@ -2156,6 +2156,11 @@
                     </td>
                     <td style="font-weight: 900; color: #c85a44;">
                       ${SalonUtils.formatCurrency(item.price)}
+                      ${(type === 'services' && (item.NgayApDung || item.effectiveDate)) ? `
+                        <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary, #888); margin-top: 2px;">
+                          Áp dụng: ${SalonUtils.formatDate(item.NgayApDung || item.effectiveDate)}
+                        </div>
+                      ` : ''}
                     </td>
                     <td>
                       <strong>${item.duration || 45}</strong> phút

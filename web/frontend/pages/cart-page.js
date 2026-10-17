@@ -186,8 +186,13 @@
                         <a href="/product?id=${item.productId}" class="cart-row-title font-serif tracking-tight leading-tight" style="font-size: 15px; font-weight: 700;" onclick="event.preventDefault(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');">
                           ${item.name}
                         </a>
-                        <div class="cart-row-variant">Dung tích: ${variant}</div>
-                        <div class="cart-row-unit-price">${SalonUtils.formatCurrency(item.price)}</div>
+                        <div class="cart-row-unit-price">
+                          ${(item.originalPrice && item.originalPrice > item.price) ? `
+                            <span style="text-decoration: line-through; opacity: 0.6; margin-right: 6px; font-size: 12px; color: var(--text-secondary);">${SalonUtils.formatCurrency(item.originalPrice)}</span>
+                            <span style="color: #ef4444; font-weight: 700;">${SalonUtils.formatCurrency(item.price)}</span>
+                            ${item.PhanTramGiam ? `<span style="font-size: 11px; background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 1px 5px; border-radius: 4px; font-weight: 800; margin-left: 4px;">-${item.PhanTramGiam}%</span>` : ''}
+                          ` : `${SalonUtils.formatCurrency(item.price)}`}
+                        </div>
                       </div>
 
                       <div class="cart-row-stepper-wrap">

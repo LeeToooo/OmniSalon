@@ -469,6 +469,7 @@
             
             <div class="svc-media-badges">
               ${isCombo ? '<span class="svc-badge-pill svc-badge-combo">COMBO HOT</span>' : '<span class="svc-badge-pill svc-badge-type">BARBER</span>'}
+              ${item.discountPercent > 0 ? `<span class="svc-badge-pill svc-badge-promo" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; font-weight: 800; border: none;">-${item.discountPercent}%</span>` : ''}
               ${meta.savings ? `<span class="svc-badge-pill svc-badge-savings">${meta.savings}</span>` : ''}
             </div>
 
@@ -490,7 +491,12 @@
             
             <div class="svc-card-footer">
               <div class="svc-card-price-box">
-                <span class="svc-card-price">${SalonUtils.formatCurrency(price)}</span>
+                ${(item.originalPrice && item.originalPrice > price) ? `
+                  <span class="svc-card-old-price" style="text-decoration: line-through; opacity: 0.6; font-size: 13px; margin-right: 6px; color: var(--text-secondary);">${SalonUtils.formatCurrency(item.originalPrice)}</span>
+                  <span class="svc-card-price font-bold" style="color: #ef4444;">${SalonUtils.formatCurrency(price)}</span>
+                ` : `
+                  <span class="svc-card-price">${SalonUtils.formatCurrency(price)}</span>
+                `}
               </div>
               <button type="button" class="svc-select-btn ${isSelected ? 'selected' : ''}" 
                       onclick="event.stopPropagation(); BookingPage.toggleSelectService('${item.id}')">
@@ -704,6 +710,27 @@
 
       const totalAvailable = availableSlots.filter(s => s.available).length;
 
+      // Tìm ngày kế tiếp sau ngày đang chọn
+      const currentDayIdx = nextDays.findIndex(d => d.iso === this.bookingState.date);
+      // Ưu tiên tìm ngày tiếp theo còn chỗ trong danh sách
+      const nextAvailableDay = nextDays.slice(currentDayIdx >= 0 ? currentDayIdx + 1 : 1).find(day => {
+        const dSlots = (window.store && typeof window.store.getAvailableSlots === 'function')
+          ? window.store.getAvailableSlots(day.iso, this.bookingState.stylistId, this.bookingState.branchId, duration)
+          : [];
+        return dSlots.some(s => s.available);
+      });
+      // Nếu không có ngày nào còn chỗ, lấy ngày liền kề tiếp theo trong 7 ngày
+      const nextTargetDay = nextAvailableDay || (currentDayIdx >= 0 && currentDayIdx < nextDays.length - 1 ? nextDays[currentDayIdx + 1] : (currentDayIdx === nextDays.length - 1 ? nextDays[0] : nextDays[1]));
+
+      let nextBtnText = 'Chuyển Sang Ngày Tiếp Theo';
+      if (nextTargetDay) {
+        if (currentDayIdx === 0 && nextTargetDay.iso === nextDays[1].iso) {
+          nextBtnText = `Chuyển Sang Ngày Mai (${nextTargetDay.dateFormatted}) →`;
+        } else {
+          nextBtnText = `Chuyển Sang ${nextTargetDay.dayName} (${nextTargetDay.dateFormatted})${nextAvailableDay ? ' [Còn chỗ]' : ''} →`;
+        }
+      }
+
       // Phân chia 3 ca làm việc chuẩn 4RAU Barbershop
       const shifts = [
         {
@@ -842,11 +869,17 @@
                 Tất cả các ca phục vụ của ngày ${SalonUtils.formatDate(this.bookingState.date)} đã kết thúc hoặc kín chỗ!
               </h4>
               <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 14px; line-height: 1.5;">
-                Quý khách vui lòng bấm chọn ngày mai hoặc các ngày tiếp theo ở thanh lịch phía trên để đặt trước với Barber.
+                Quý khách vui lòng bấm chọn ngày tiếp theo ${nextTargetDay ? `(${nextTargetDay.dayName} ${nextTargetDay.dateFormatted})` : ''} ở thanh lịch phía trên hoặc bấm nút bên dưới để chuyển ngày.
               </p>
-              <button type="button" class="btn-submit-terracotta" onclick="BookingPage.onSelectDate('${nextDays[1].iso}')" style="padding: 10px 22px; font-size: 13.5px; font-weight: 800;">
-                Chuyển Sang Ngày Mai (${nextDays[1].dateFormatted}) →
-              </button>
+              ${nextTargetDay ? `
+                <button type="button" class="btn-submit-terracotta" onclick="BookingPage.onSelectDate('${nextTargetDay.iso}')" style="padding: 10px 22px; font-size: 13.5px; font-weight: 800;">
+                  ${nextBtnText}
+                </button>
+              ` : `
+                <button type="button" class="btn-submit-terracotta" onclick="BookingPage.onSelectDate('${nextDays[0].iso}')" style="padding: 10px 22px; font-size: 13.5px; font-weight: 800;">
+                  Quay Lại Lịch Đầu Tuần →
+                </button>
+              `}
             </div>
           ` : ''}
         </div>

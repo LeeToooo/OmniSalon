@@ -9,7 +9,7 @@
 
   class SalonStore {
     constructor() {
-      this.storageKey = 'OMNISALON_SQL_DIRECT_V12';
+      this.storageKey = 'OMNISALON_SQL_DIRECT_V13';
       this.listeners = [];
       this.liveServerUrl = (typeof window !== 'undefined' && window.location.origin && (window.location.origin.startsWith('http://') || window.location.origin.startsWith('https://')))
         ? `${window.location.origin}/api`
@@ -144,10 +144,16 @@
 
         // 10. Đồng bộ Khuyến mãi & Đánh giá từ SQL
         if (Array.isArray(db.promotions) && db.promotions.length > 0) {
-          this.state.promotions = db.promotions;
+          if (!this.state.promotions || JSON.stringify(this.state.promotions) !== JSON.stringify(db.promotions)) {
+            this.state.promotions = db.promotions;
+            changed = true;
+          }
         }
         if (Array.isArray(db.reviews) && db.reviews.length > 0) {
-          this.state.reviews = db.reviews;
+          if (!this.state.reviews || JSON.stringify(this.state.reviews) !== JSON.stringify(db.reviews)) {
+            this.state.reviews = db.reviews;
+            changed = true;
+          }
         }
 
         if (changed) {
@@ -409,16 +415,16 @@
 
       // 10 Dịch Vụ Chuẩn từ CSDL QL_SALON.sql
       const services = [
-        { id: 'DV01', MaDichVu: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', price: 120000, Gia: 120000, duration: '45 phút', durationMinutes: 45, ThoiLuong: 45, description: 'Tư vấn dáng mặt, cắt fade hiện đại, cạo viền sắc nét và vuốt sáp/pomade cao cấp.', category: 'Cắt & Tạo Kiểu', rating: 4.95, reviewCount: 420, image: 'Men_Grooming_Products/DichVu_Men/DV1.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV1.jpg' },
-        { id: 'DV02', MaDichVu: 'DV02', name: 'Cắt & Ép Side tóc nam (Down Perm Combo)', price: 250000, Gia: 250000, duration: '60 phút', durationMinutes: 60, ThoiLuong: 60, description: 'Cắt form chuẩn kết hợp ép xẹp tóc mai và gáy bị vểnh chỉa, giữ nếp 1-2 tháng.', category: 'Cắt & Tạo Kiểu', rating: 4.98, reviewCount: 310, image: 'Men_Grooming_Products/DichVu_Men/DV2.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV2.jpg' },
-        { id: 'DV03', MaDichVu: 'DV03', name: 'Uốn tóc xoăn Texture / Ziczac phồng Hàn Quốc', price: 650000, Gia: 650000, duration: '90 phút', durationMinutes: 90, ThoiLuong: 90, description: 'Uốn lạnh tạo lọn sóng phồng tự nhiên, giúp tóc bồng bềnh dễ sấy tạo kiểu.', category: 'Uốn & Nhuộm', rating: 4.92, reviewCount: 280, image: 'Men_Grooming_Products/DichVu_Men/DV3.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV3.jpg' },
-        { id: 'DV04', MaDichVu: 'DV04', name: 'Nhuộm màu thời trang nam (Khói / Rêu / Bạch kim)', price: 950000, Gia: 950000, duration: '120 phút', durationMinutes: 120, ThoiLuong: 120, description: 'Tẩy khử ánh sắc và nhuộm tông màu thời trang cao cấp bảo vệ sợi tóc.', category: 'Uốn & Nhuộm', rating: 4.90, reviewCount: 195, image: 'Men_Grooming_Products/DichVu_Men/DV4.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV4.jpg' },
-        { id: 'DV05', MaDichVu: 'DV05', name: 'Uốn tóc con sâu Dreadlocks / Uốn Ruffled phá cách', price: 800000, Gia: 800000, duration: '100 phút', durationMinutes: 100, ThoiLuong: 100, description: 'Kỹ thuật uốn giấy bạc / uốn con sâu tạo hiệu ứng xù gai góc, phong cách hip-hop cá tính.', category: 'Uốn & Nhuộm', rating: 4.96, reviewCount: 250, image: 'Men_Grooming_Products/DichVu_Men/DV5.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV5.jpg' },
-        { id: 'DV06', MaDichVu: 'DV06', name: 'Kẻ Line Hair Tattoo nghệ thuật & Điêu khắc chân tóc', price: 150000, Gia: 150000, duration: '30 phút', durationMinutes: 30, ThoiLuong: 30, description: 'Kỹ thuật dùng dao lam điêu khắc các họa tiết hoa văn, đường line sắc nét tạo điểm nhấn.', category: 'Cắt & Tạo Kiểu', rating: 4.93, reviewCount: 310, image: 'Men_Grooming_Products/DichVu_Men/DV6.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV6.jpg' },
-        { id: 'DV07', MaDichVu: 'DV07', name: 'Cạo mặt, tỉa râu truyền thống & Khăn nóng', price: 80000, Gia: 80000, duration: '30 phút', durationMinutes: 30, ThoiLuong: 30, description: 'Cạo râu bằng dao cạo bọt kem Proraso, chườm khăn nóng làm sạch lỗ chân lông.', category: 'Chăm Sóc & Phục Hồi', rating: 4.97, reviewCount: 520, image: 'Men_Grooming_Products/DichVu_Men/DV7.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV7.jpg' },
-        { id: 'DV08', MaDichVu: 'DV08', name: 'Nhuộm đen phủ bạc thảo dược tự nhiên cho nam giới', price: 180000, Gia: 180000, duration: '45 phút', durationMinutes: 45, ThoiLuong: 45, description: 'Phủ bạc 100% bằng chiết xuất thảo mộc không mùi hắc, trả lại màu tóc đen khỏe tự nhiên.', category: 'Uốn & Nhuộm', rating: 4.94, reviewCount: 380, image: 'Men_Grooming_Products/DichVu_Men/DV8.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV8.jpg' },
-        { id: 'DV09', MaDichVu: 'DV09', name: 'Tẩy tóc nâng tông thời trang (1 Lần)', price: 300000, Gia: 300000, duration: '60 phút', durationMinutes: 60, ThoiLuong: 60, description: 'Nâng sáng từ 3-4 cấp độ màu chuẩn bị trước khi phủ màu khói sáng.', category: 'Uốn & Nhuộm', rating: 4.91, reviewCount: 220, image: 'Men_Grooming_Products/DichVu_Men/DV9.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV9.jpg' },
-        { id: 'DV10', MaDichVu: 'DV10', name: 'Lấy ráy tai êm ái Barber & Chăm sóc da mặt Facial', price: 100000, Gia: 100000, duration: '35 phút', durationMinutes: 35, ThoiLuong: 35, description: 'Lấy ráy tai chuyên nghiệp bằng đèn quang học, hút bã nhờn và dưỡng ẩm da mặt.', category: 'Chăm Sóc & Phục Hồi', rating: 4.99, reviewCount: 610, image: 'Men_Grooming_Products/DichVu_Men/DV10.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV10.jpg' }
+        { id: 'DV01', MaDichVu: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', price: 130000, Gia: 130000, originalPrice: 130000, NgayApDung: '2026-10-17', duration: '45 phút', durationMinutes: 45, ThoiLuong: 45, description: 'Tư vấn dáng mặt, cắt fade hiện đại, cạo viền sắc nét và vuốt sáp/pomade cao cấp.', category: 'Cắt & Tạo Kiểu', rating: 4.95, reviewCount: 420, image: 'Men_Grooming_Products/DichVu_Men/DV1.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV1.jpg' },
+        { id: 'DV02', MaDichVu: 'DV02', name: 'Cắt & Ép Side tóc nam (Down Perm Combo)', price: 250000, Gia: 250000, originalPrice: 250000, NgayApDung: '2026-01-01', duration: '60 phút', durationMinutes: 60, ThoiLuong: 60, description: 'Cắt form chuẩn kết hợp ép xẹp tóc mai và gáy bị vểnh chỉa, giữ nếp 1-2 tháng.', category: 'Cắt & Tạo Kiểu', rating: 4.98, reviewCount: 310, image: 'Men_Grooming_Products/DichVu_Men/DV2.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV2.jpg' },
+        { id: 'DV03', MaDichVu: 'DV03', name: 'Uốn tóc xoăn Texture / Ziczac phồng Hàn Quốc', price: 585000, Gia: 585000, originalPrice: 650000, discountPercent: 10, hasPromotion: true, promotion: { id: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', discount: 10, discountPercent: 10, type: 'Giảm giá %' }, NgayApDung: '2026-01-01', duration: '90 phút', durationMinutes: 90, ThoiLuong: 90, description: 'Uốn lạnh tạo lọn sóng phồng tự nhiên, giúp tóc bồng bềnh dễ sấy tạo kiểu.', category: 'Uốn & Nhuộm', rating: 4.92, reviewCount: 280, image: 'Men_Grooming_Products/DichVu_Men/DV3.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV3.jpg' },
+        { id: 'DV04', MaDichVu: 'DV04', name: 'Nhuộm màu thời trang nam (Khói / Rêu / Bạch kim)', price: 855000, Gia: 855000, originalPrice: 950000, discountPercent: 10, hasPromotion: true, promotion: { id: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', discount: 10, discountPercent: 10, type: 'Giảm giá %' }, NgayApDung: '2026-01-01', duration: '120 phút', durationMinutes: 120, ThoiLuong: 120, description: 'Tẩy khử ánh sắc và nhuộm tông màu thời trang cao cấp bảo vệ sợi tóc.', category: 'Uốn & Nhuộm', rating: 4.90, reviewCount: 195, image: 'Men_Grooming_Products/DichVu_Men/DV4.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV4.jpg' },
+        { id: 'DV05', MaDichVu: 'DV05', name: 'Uốn tóc con sâu Dreadlocks / Uốn Ruffled phá cách', price: 680000, Gia: 680000, originalPrice: 800000, discountPercent: 15, hasPromotion: true, promotion: { id: 'KM02', code: 'KM02', name: 'Đặc quyền Salon VIP', discount: 15, discountPercent: 15, type: 'Giảm giá %' }, NgayApDung: '2026-01-01', duration: '100 phút', durationMinutes: 100, ThoiLuong: 100, description: 'Kỹ thuật uốn giấy bạc / uốn con sâu tạo hiệu ứng xù gai góc, phong cách hip-hop cá tính.', category: 'Uốn & Nhuộm', rating: 4.96, reviewCount: 250, image: 'Men_Grooming_Products/DichVu_Men/DV5.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV5.jpg' },
+        { id: 'DV06', MaDichVu: 'DV06', name: 'Kẻ Line Hair Tattoo nghệ thuật & Điêu khắc chân tóc', price: 150000, Gia: 150000, originalPrice: 150000, NgayApDung: '2026-01-01', duration: '30 phút', durationMinutes: 30, ThoiLuong: 30, description: 'Kỹ thuật dùng dao lam điêu khắc các họa tiết hoa văn, đường line sắc nét tạo điểm nhấn.', category: 'Cắt & Tạo Kiểu', rating: 4.93, reviewCount: 310, image: 'Men_Grooming_Products/DichVu_Men/DV6.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV6.jpg' },
+        { id: 'DV07', MaDichVu: 'DV07', name: 'Cạo mặt, tỉa râu truyền thống & Khăn nóng', price: 80000, Gia: 80000, originalPrice: 80000, NgayApDung: '2026-01-01', duration: '30 phút', durationMinutes: 30, ThoiLuong: 30, description: 'Cạo râu bằng dao cạo bọt kem Proraso, chườm khăn nóng làm sạch lỗ chân lông.', category: 'Chăm Sóc & Phục Hồi', rating: 4.97, reviewCount: 520, image: 'Men_Grooming_Products/DichVu_Men/DV7.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV7.jpg' },
+        { id: 'DV08', MaDichVu: 'DV08', name: 'Nhuộm đen phủ bạc thảo dược tự nhiên cho nam giới', price: 180000, Gia: 180000, originalPrice: 180000, NgayApDung: '2026-01-01', duration: '45 phút', durationMinutes: 45, ThoiLuong: 45, description: 'Phủ bạc 100% bằng chiết xuất thảo mộc không mùi hắc, trả lại màu tóc đen khỏe tự nhiên.', category: 'Uốn & Nhuộm', rating: 4.94, reviewCount: 380, image: 'Men_Grooming_Products/DichVu_Men/DV8.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV8.jpg' },
+        { id: 'DV09', MaDichVu: 'DV09', name: 'Tẩy tóc nâng tông thời trang (1 Lần)', price: 300000, Gia: 300000, originalPrice: 300000, NgayApDung: '2026-01-01', duration: '60 phút', durationMinutes: 60, ThoiLuong: 60, description: 'Nâng sáng từ 3-4 cấp độ màu chuẩn bị trước khi phủ màu khói sáng.', category: 'Uốn & Nhuộm', rating: 4.91, reviewCount: 220, image: 'Men_Grooming_Products/DichVu_Men/DV9.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV9.jpg' },
+        { id: 'DV10', MaDichVu: 'DV10', name: 'Lấy ráy tai êm ái Barber & Chăm sóc da mặt Facial', price: 100000, Gia: 100000, originalPrice: 100000, NgayApDung: '2026-01-01', duration: '35 phút', durationMinutes: 35, ThoiLuong: 35, description: 'Lấy ráy tai chuyên nghiệp bằng đèn quang học, hút bã nhờn và dưỡng ẩm da mặt.', category: 'Chăm Sóc & Phục Hồi', rating: 4.99, reviewCount: 610, image: 'Men_Grooming_Products/DichVu_Men/DV10.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV10.jpg' }
       ];
 
       // 4 Gói Combo VIP từ CSDL QL_SALON.sql
@@ -506,12 +512,12 @@
 
       // 130 Sản phẩm thực tế từ CSDL QL_SALON.sql
       const products = [
-        { id: 'SP01', name: 'Apestomen Volcanic Clay', brand: 'Apestomen', categoryId: 'DM01', price: 480000, originalPrice: 480000, costPrice: 340000, stock: 24, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg', description: 'Tạo texture, tăng độ phồng, giữ tóc vào nếp với hiệu ứng khô tự nhiên.' },
+        { id: 'SP01', name: 'Apestomen Volcanic Clay', brand: 'Apestomen', categoryId: 'DM01', price: 432000, originalPrice: 480000, discountPercent: 10, hasPromotion: true, promotion: { id: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', discount: 10, discountPercent: 10, type: 'Giảm giá %' }, costPrice: 340000, stock: 24, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg', description: 'Tạo texture, tăng độ phồng, giữ tóc vào nếp với hiệu ứng khô tự nhiên.' },
         { id: 'SP02', name: 'Hanz de Fuko Gravity Paste', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Gravity_Paste.jpg', description: 'Tạo độ phồng, texture rõ và giữ nếp chắc.' },
         { id: 'SP03', name: 'Hanz de Fuko Claymation', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Claymation.jpg', description: 'Clay kết hợp wax, tạo texture mạnh và giữ nếp lâu.' },
         { id: 'SP04', name: 'Hanz de Fuko Heavymade', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 690000, originalPrice: 690000, costPrice: 520000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Heavymade.jpg', description: 'Giữ nếp mạnh, tạo độ bóng vừa và kiểu tóc gọn gàng.' },
         { id: 'SP05', name: 'Hanz de Fuko Quicksand', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Quicksand.jpg', description: 'Tạo texture, volume và cảm giác tóc khô tự nhiên.' },
-        { id: 'SP06', name: 'Hanz de Fuko Modify', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Modify.jpg', description: 'Tạo kiểu linh hoạt, dễ chỉnh sửa và tạo độ bóng tự nhiên.' },
+        { id: 'SP06', name: 'Hanz de Fuko Modify', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 747150, originalPrice: 879000, discountPercent: 15, hasPromotion: true, promotion: { id: 'KM02', code: 'KM02', name: 'Đặc quyền Salon VIP', discount: 15, discountPercent: 15, type: 'Giảm giá %' }, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Modify.jpg', description: 'Tạo kiểu linh hoạt, dễ chỉnh sửa và tạo độ bóng tự nhiên.' },
         { id: 'SP07', name: 'Hanz de Fuko Sponge Wax', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Sponge_Wax.jpg', description: 'Tạo texture, volume và giữ tóc tự nhiên.' },
         { id: 'SP08', name: 'Blumaan Monarch Matte Paste', brand: 'Blumaan', categoryId: 'DM01', price: 615000, originalPrice: 615000, costPrice: 499000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Blumaan/Blumaan_Monarch_Matte_Paste.jpg', description: 'Tạo texture, volume và hiệu ứng lì tự nhiên.' },
         { id: 'SP09', name: 'Blumaan Meraki Original Styling', brand: 'Blumaan', categoryId: 'DM01', price: 559000, originalPrice: 559000, costPrice: 429000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Blumaan/Blumaan_Meraki_Original_Styling.jpg', description: 'Tăng volume, texture và tạo kiểu linh hoạt.' },
@@ -551,6 +557,12 @@
         }
       }
 
+      // 2 Khuyến Mãi Chuẩn từ CSDL QL_SALON.sql (KM01 - 10%, KM02 - 15%)
+      const promotions = [
+        { id: 'KM01', MaKhuyenMai: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', TenKhuyenMai: 'Chào Thu Rực Rỡ', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 10, GiaTriGiam: 10, target: 'Tất cả khách hàng', DoiTuongApDung: 'Tất cả khách hàng', startDate: '2026-09-01', NgayBatDau: '2026-09-01', endDate: '2026-10-31', NgayKetThuc: '2026-10-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV03', 'DV04'], productIds: ['SP01'] },
+        { id: 'KM02', MaKhuyenMai: 'KM02', code: 'KM02', name: 'Đặc quyền Salon VIP', TenKhuyenMai: 'Đặc quyền Salon VIP', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 15, GiaTriGiam: 15, target: 'Hội viên thân thiết', DoiTuongApDung: 'Hội viên thân thiết', startDate: '2026-01-01', NgayBatDau: '2026-01-01', endDate: '2026-12-31', NgayKetThuc: '2026-12-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV05'], productIds: ['SP06'] }
+      ];
+
       return {
         branches,
         services,
@@ -560,6 +572,7 @@
         stylists,
         bookings,
         orders,
+        promotions,
         posOrders: [],
         cart: [],
         favorites: [],
@@ -573,7 +586,7 @@
     initStore() {
       // Dọn dẹp cache phiên bản cũ
       try {
-        ['OMNISALON_SQL_DIRECT', 'OMNISALON_OMNI_V5_LIVE', 'OMNISALON_OMNI_V6_SQL', 'OMNISALON_OMNI_V7_SQL', 'OMNISALON_OMNI_V8_SQL'].forEach(k => {
+        ['OMNISALON_SQL_DIRECT', 'OMNISALON_OMNI_V5_LIVE', 'OMNISALON_OMNI_V6_SQL', 'OMNISALON_OMNI_V7_SQL', 'OMNISALON_OMNI_V8_SQL', 'OMNISALON_SQL_DIRECT_V9', 'OMNISALON_SQL_DIRECT_V10', 'OMNISALON_SQL_DIRECT_V11', 'OMNISALON_SQL_DIRECT_V12'].forEach(k => {
           if (localStorage.getItem(k)) localStorage.removeItem(k);
         });
       } catch (_) { }
@@ -618,6 +631,9 @@
         }
         if (!Array.isArray(this.state.orders) || this.state.orders.length < 10) {
           this.state.orders = baseline.orders;
+        }
+        if (!Array.isArray(this.state.promotions) || this.state.promotions.length === 0) {
+          this.state.promotions = baseline.promotions;
         }
         if (!this.state.users || this.state.users.length === 0) {
           this.state.users = baseline.users;
@@ -922,6 +938,11 @@
     updateService(serviceId, updates) {
       const srv = this.getServiceById(serviceId);
       if (!srv) return false;
+      if (updates.price !== undefined && Number(updates.price) !== Number(srv.price || srv.Gia)) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        updates.NgayApDung = todayStr;
+        updates.effectiveDate = todayStr;
+      }
       Object.assign(srv, updates);
       this.logAudit('UPDATE_SERVICE', `Dịch vụ: #${serviceId}`, 'Cập nhật thông tin dịch vụ');
       this.saveState();

@@ -631,6 +631,25 @@ BEGIN
 END;
 GO
 
+-- Trigger tự động cập nhật Ngày Áp Dụng (NgayApDung) của Dịch vụ khi thay đổi giá (Gia)
+CREATE OR ALTER TRIGGER trg_DichVu_CapNhatNgayApDung
+ON DichVu
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF UPDATE(Gia)
+    BEGIN
+        UPDATE d
+        SET NgayApDung = CAST(GETDATE() AS DATE)
+        FROM DichVu d
+        INNER JOIN inserted i ON d.MaDichVu = i.MaDichVu
+        INNER JOIN deleted del ON d.MaDichVu = del.MaDichVu
+        WHERE (i.Gia <> del.Gia) OR (del.Gia IS NULL AND i.Gia IS NOT NULL);
+    END
+END;
+GO
+
 -- =========================================================================
 -- 5. PROCEDURES FEFO ĐA LÔ THEO CHI NHÁNH
 -- =========================================================================

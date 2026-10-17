@@ -1820,6 +1820,9 @@
             if (savings.isDiscounted) {
               savingsBadge = `<span style="font-size: 11px; color: #10B981; font-weight: 700; margin-left: 6px;">-${savings.savingsPercent}%</span>`;
             }
+          } else if (s.discountPercent > 0 || (s.originalPrice && s.originalPrice > s.price)) {
+            const pct = s.discountPercent || Math.round((1 - (s.price / s.originalPrice)) * 100);
+            savingsBadge = `<span style="font-size: 11px; color: #ef4444; font-weight: 700; margin-left: 6px; background: rgba(239, 68, 68, 0.15); padding: 1px 6px; border-radius: 4px;">-${pct}%</span>`;
           }
 
           const fallbackImg = 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
@@ -1852,6 +1855,9 @@
                 </p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.15);">
                   <div style="display: flex; align-items: baseline; gap: 4px;">
+                    ${(s.originalPrice && s.originalPrice > s.price) ? `
+                      <span style="font-size: 13px; text-decoration: line-through; opacity: 0.65; color: #E2E8F0;">${SalonUtils.formatCurrency(s.originalPrice)}</span>
+                    ` : ''}
                     <span style="font-size: 17px; font-weight: 800; color: #C59B27;">${SalonUtils.formatCurrency(s.price)}</span>
                     ${savingsBadge}
                   </div>
@@ -1873,6 +1879,9 @@
           if (savings.isDiscounted) {
             savingsBadge = `<div style="font-size: 11px; color: #10B981; font-weight: 700; margin-top: 2px;">Tiết kiệm ${savings.formattedSavings} (-${savings.savingsPercent}%)</div>`;
           }
+        } else if (s.discountPercent > 0 || (s.originalPrice && s.originalPrice > s.price)) {
+          const pct = s.discountPercent || Math.round((1 - (s.price / s.originalPrice)) * 100);
+          savingsBadge = `<div style="font-size: 11px; color: #ef4444; font-weight: 700; margin-top: 2px;">Ưu đãi giảm -${pct}%</div>`;
         }
 
         const fallbackImg = 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
@@ -1897,7 +1906,12 @@
             <p class="service-card-desc" style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 14px; min-height: 38px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${this.escapeHtml(s.description || 'Chăm sóc chu đáo, tạo kiểu tự nhiên dễ vuốt sáp hằng ngày.')}</p>
             <div class="service-card-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px;">
               <div style="display: flex; flex-direction: column;">
-                <span class="service-card-price" style="font-size: 16px; font-weight: 800; color: #C59B27;">${SalonUtils.formatCurrency(s.price)}</span>
+                <div style="display: flex; align-items: baseline; gap: 6px;">
+                  ${(s.originalPrice && s.originalPrice > s.price) ? `
+                    <span style="font-size: 13px; text-decoration: line-through; opacity: 0.6; color: var(--text-secondary);">${SalonUtils.formatCurrency(s.originalPrice)}</span>
+                  ` : ''}
+                  <span class="service-card-price" style="font-size: 16px; font-weight: 800; color: #C59B27;">${SalonUtils.formatCurrency(s.price)}</span>
+                </div>
                 ${savingsBadge}
               </div>
               <button class="service-card-cta-btn" onclick="UICommon.openBookingModal('${s.id}')" style="display: inline-flex; align-items: center; gap: 6px; background: #C59B27; color: #141413; font-weight: 700; font-size: 13px; padding: 7px 14px; border-radius: 6px; border: none; cursor: pointer;">
