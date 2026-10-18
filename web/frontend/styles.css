@@ -278,13 +278,13 @@ button:active,
 .nordic-container,
 .web-container,
 .max-w-7xl {
-  width: 100%;
+  width: 100% !important;
   max-width: 100% !important;
-  margin-left: 0;
-  margin-right: 0;
-  padding-left: clamp(16px, 2.5vw, 36px);
-  padding-right: clamp(16px, 2.5vw, 36px);
-  box-sizing: border-box;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: clamp(20px, 3vw, 56px) !important;
+  padding-right: clamp(20px, 3vw, 56px) !important;
+  box-sizing: border-box !important;
 }
 
 @media (max-width: 1024px) {
@@ -8652,17 +8652,29 @@ body.light .inv-status-badge.inv-status-ok,
 }
 
 .table-search-input {
-  padding: 6px 14px;
-  font-size: 12px;
-  border: 1px solid #dcdce0;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1.5px solid var(--border-color, #4A4A44);
   border-radius: var(--radius-pill);
   outline: none;
   font-family: inherit;
-  width: 200px;
+  width: 250px;
+  background: var(--surface-card, #262624);
+  color: var(--text-primary, #FAF8F5);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.table-search-input::placeholder {
+  color: #C0C0BA;
+  opacity: 0.9;
 }
 
 .table-search-input:focus {
-  border-color: var(--color-terracotta);
+  border-color: #F59E0B;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+  background: #2D2D29;
 }
 
 .table-select-filter {
@@ -8745,6 +8757,26 @@ html.light .admin-enterprise-table tr:hover td,
 .status-in_progress .pulse-dot {
   background: #f59e0b;
   box-shadow: 0 0 6px #f59e0b;
+}
+
+.status-waiting {
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #f59e0b !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+.status-waiting .pulse-dot {
+  background: #f59e0b !important;
+  box-shadow: 0 0 6px #f59e0b !important;
+}
+
+.booking-row-waiting {
+  background: rgba(245, 158, 11, 0.06) !important;
+}
+
+.kanban-booking-card.booking-waiting {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.18) !important;
 }
 
 .status-completed {
@@ -13530,7 +13562,7 @@ body {
 .branch-media-box {
   position: relative;
   width: 100%;
-  height: 190px;
+  aspect-ratio: 16 / 10;
   background: var(--surface-elevated, #181d2a);
   overflow: hidden;
 }
@@ -17310,3 +17342,233 @@ body.light .modal-close-icon-btn:hover {
   background: #ef4444;
   color: #ffffff;
 }
+
+/* ==========================================================================
+   FLUID RESPONSIVE SYSTEM (1080p, 2K, 4K) — CHỐNG MÉO ẢNH & LOẠI BỎ MÉP TRẮNG
+   ========================================================================== */
+
+/* Khung trang tràn viền đồng bộ với Header trên mọi độ phân giải */
+.services-fluid-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 clamp(20px, 3vw, 56px) !important;
+  box-sizing: border-box !important;
+}
+
+/* Lưới cố định 4 cột trên Desktop (cả 1080p và 2K) để hiển thị "y chang nhau", tự kéo giãn theo màn hình */
+.services-catalog-grid,
+#servicesCatalogGrid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: clamp(18px, 1.4vw, 32px) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1200px) {
+  .services-catalog-grid,
+  #servicesCatalogGrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .services-catalog-grid,
+  #servicesCatalogGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .services-catalog-grid,
+  #servicesCatalogGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Thẻ dịch vụ tự kéo giãn tỷ lệ thuận */
+.service-editorial-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.service-editorial-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(197, 155, 39, 0.5) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Khung ảnh khóa tỉ lệ vàng 16:10 — Scale đến đâu cũng giữ nguyên tỉ lệ, không giãn nở (méo) hay dư (cắt cụt) */
+.service-card-media {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 16 / 10 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  background: #141413 !important;
+}
+
+.service-card-media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.service-editorial-card:hover .service-card-media img {
+  transform: scale(1.04) !important;
+}
+
+/* Nội dung thẻ tự co giãn tỉ lệ chữ & padding theo Viewport */
+.service-card-body {
+  padding: clamp(16px, 1.2vw, 24px) !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  box-sizing: border-box !important;
+}
+
+.service-card-title {
+  font-size: clamp(17px, 1.15vw, 22px) !important;
+  font-weight: 700 !important;
+  margin: 0 0 8px !important;
+}
+
+.service-card-desc {
+  font-size: clamp(13px, 0.85vw, 15px) !important;
+  line-height: 1.6 !important;
+  margin: 0 0 16px !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  min-height: clamp(54px, 3.8vw, 68px) !important;
+}
+
+.service-card-footer {
+  margin-top: auto !important;
+  padding-top: 14px !important;
+  border-top: 1px solid var(--border-color) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.service-card-price {
+  font-size: clamp(18px, 1.2vw, 23px) !important;
+  font-weight: 800 !important;
+  color: #C59B27 !important;
+}
+
+.service-card-btn {
+  min-height: clamp(38px, 2.4vw, 44px) !important;
+  height: clamp(38px, 2.4vw, 44px) !important;
+  padding: 0 clamp(14px, 1.1vw, 22px) !important;
+  border-radius: 6px !important;
+  font-size: clamp(13px, 0.85vw, 15px) !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+
+/* Khung Shop tràn viền đồng bộ */
+.shop-fluid-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 clamp(20px, 3vw, 56px) !important;
+  box-sizing: border-box !important;
+}
+
+#shopCatalogGrid {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: clamp(16px, 1.3vw, 24px) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1440px) {
+  #shopCatalogGrid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  #shopCatalogGrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  #shopCatalogGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #shopCatalogGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Lưới Thợ cắt tóc 4 cột đồng bộ trên Desktop, tự kéo giãn theo độ phân giải */
+#stylistsProfilesGrid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: clamp(18px, 1.4vw, 32px) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1200px) {
+  #stylistsProfilesGrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 860px) {
+  #stylistsProfilesGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  #stylistsProfilesGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Lưới Chi nhánh 3 cột đồng bộ trên Desktop, tự kéo giãn theo độ phân giải */
+#branchesCardsGrid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: clamp(18px, 1.4vw, 32px) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1100px) {
+  #branchesCardsGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 680px) {
+  #branchesCardsGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+

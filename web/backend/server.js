@@ -724,7 +724,7 @@ async function getFullSqlDatabase() {
     const cPhone = r.SdtKhachHang || '0908888999';
     const sName = r.TenDichVu || 'Dịch vụ chăm sóc tóc Omni';
     const st = r.TrangThai;
-    const uiStatus = st === 'Hoàn thành' ? 'Completed' : (st === 'Đã hủy' ? 'Cancelled' : (st === 'In_Progress' ? 'in_progress' : 'Confirmed'));
+    const uiStatus = (st === 'Hoàn thành' || st === 'Completed') ? 'Completed' : ((st === 'Đã hủy' || st === 'Cancelled') ? 'Cancelled' : ((st === 'In_Progress' || st === 'in_progress' || st === 'Đang phục vụ') ? 'in_progress' : ((st === 'Chờ vào ghế' || st === 'Waiting' || st === 'waiting') ? 'waiting' : 'Confirmed')));
 
     return {
       id: r.MaLichHen,
@@ -752,23 +752,32 @@ async function getFullSqlDatabase() {
     };
   });
 
-  const orders = orderRows.map(r => ({
-    id: r.MaDonHang,
-    MaDonHang: r.MaDonHang,
-    customerId: r.MaKhachHang,
-    customerName: r.TenKhachHang || 'Khách Hàng Omni',
-    customerPhone: r.SdtKhachHang || '0908888999',
-    branchId: r.MaChiNhanh,
-    branchName: r.TenChiNhanh,
-    orderDate: r.NgayDat,
-    totalAmount: parseFloat(r.TongTien || 0),
-    TongTien: parseFloat(r.TongTien || 0),
-    shippingAddress: r.DiaChiGiaoHang,
-    receiveMethod: r.HinhThucNhan,
-    orderStatus: r.TrangThai === 'Đã giao' ? 'Completed' : 'Processing',
-    TrangThai: r.TrangThai,
-    notes: r.GhiChu
-  }));
+  const orders = orderRows.map(r => {
+    let oStatus = 'Processing';
+    const tt = (r.TrangThai || '').trim();
+    if (tt === 'Đã giao' || tt === 'Completed') oStatus = 'Completed';
+    else if (tt === 'Đã hủy' || tt === 'Cancelled') oStatus = 'Cancelled';
+    else if (tt === 'Đang giao' || tt === 'Delivering' || tt === 'Shipped') oStatus = 'Delivering';
+
+    return {
+      id: r.MaDonHang,
+      MaDonHang: r.MaDonHang,
+      orderCode: r.MaDonHang,
+      customerId: r.MaKhachHang,
+      customerName: r.TenKhachHang || 'Khách Hàng Omni',
+      customerPhone: r.SdtKhachHang || '0908888999',
+      branchId: r.MaChiNhanh,
+      branchName: r.TenChiNhanh,
+      orderDate: r.NgayDat,
+      totalAmount: parseFloat(r.TongTien || 0),
+      TongTien: parseFloat(r.TongTien || 0),
+      shippingAddress: r.DiaChiGiaoHang,
+      receiveMethod: r.HinhThucNhan,
+      orderStatus: oStatus,
+      TrangThai: r.TrangThai,
+      notes: r.GhiChu
+    };
+  });
 
   const reviews = reviewRows.map(r => ({
     id: r.MaDanhGia,
@@ -1089,16 +1098,18 @@ const server = http.createServer(async (req, res) => {
 
       // --- 6. AUTH: LOGIN ---
       if (pathname === '/api/auth/login' && method === 'POST') {
-        const { identifier, password } = parsedBody || {};
-        if (!identifier || !password) {
+        const { identifier, username, email, taiKhoan, password, matKhau } = parsedBody || {};
+        const rawIdent = identifier || username || email || taiKhoan;
+        const rawPass = password || matKhau;
+        if (!rawIdent || !rawPass) {
           res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
           return res.end(JSON.stringify({ success: false, message: 'Vui lòng nhập tài khoản và mật khẩu.' }));
         }
 
-        const ident = identifier.trim().toLowerCase();
-        const pass = String(password).trim();
+        const ident = String(rawIdent).trim().toLowerCase();
+        const pass = String(rawPass).trim();
 
-        if ((ident === 'admin' || ident === 'quantri') && pass === 'admin123') {
+        if ((ident === 'admin' || ident === 'quantri') && (pass === 'admin123' || pass === 'password123')) {
           return res.end(JSON.stringify({
             success: true,
             message: 'Đăng nhập Quản Trị thành công!',
@@ -1380,8 +1391,23 @@ const server = http.createServer(async (req, res) => {
         const id = pathname.replace('/api/stylists/', '').trim();
         const st = parsedBody || {};
         await querySql(
-          `UPDATE NhanVien SET HoTen = ?, MaChiNhanh = ?, SoDienThoai = ?, Email = ?, CapBac = ?, ChucVu = ? WHERE MaNhanVien = ?`,
-          [st.name || st.HoTen, st.branchId || st.MaChiNhanh, st.phone || st.SoDienThoai, st.email, st.level || st.CapBac, st.role || st.ChucVu, id]
+          `UPDATE NhanVien 
+           SET HoTen = COALESCE(?, HoTen), 
+               MaChiNhanh = COALESCE(?, MaChiNhanh), 
+               SoDienThoai = COALESCE(?, SoDienThoai), 
+               Email = COALESCE(?, Email), 
+               CapBac = COALESCE(?, CapBac), 
+               ChucVu = COALESCE(?, ChucVu) 
+           WHERE MaNhanVien = ?`,
+          [
+            st.name || st.HoTen || null,
+            st.branchId || st.MaChiNhanh || null,
+            st.phone || st.SoDienThoai || null,
+            st.email || null,
+            st.level || st.CapBac || null,
+            st.role || st.ChucVu || null,
+            id
+          ]
         );
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, id }));
@@ -2006,7 +2032,7 @@ const server = http.createServer(async (req, res) => {
           const cName = r.TenKhachHang || 'Khách Hàng Omni';
           const cPhone = r.SdtKhachHang || '0908888999';
           const sName = r.TenDichVu || 'Dịch vụ chăm sóc tóc Omni';
-          const uiStatus = r.TrangThai === 'Hoàn thành' ? 'Completed' : (r.TrangThai === 'Đã hủy' ? 'Cancelled' : (r.TrangThai === 'In_Progress' ? 'in_progress' : 'Confirmed'));
+          const uiStatus = (r.TrangThai === 'Hoàn thành' || r.TrangThai === 'Completed') ? 'Completed' : ((r.TrangThai === 'Đã hủy' || r.TrangThai === 'Cancelled') ? 'Cancelled' : ((r.TrangThai === 'In_Progress' || r.TrangThai === 'in_progress' || r.TrangThai === 'Đang phục vụ') ? 'in_progress' : ((r.TrangThai === 'Chờ vào ghế' || r.TrangThai === 'Waiting' || r.TrangThai === 'waiting') ? 'waiting' : 'Confirmed')));
 
           return {
             id: r.MaLichHen,
@@ -2100,7 +2126,8 @@ const server = http.createServer(async (req, res) => {
         // Validation chống đặt lịch ở quá khứ
         const [slotH, slotMin] = rawTime.split(':').map(Number);
         const slotMinutes = (slotH || 0) * 60 + (slotMin || 0);
-        if (date < todayIso || (date === todayIso && slotMinutes <= currentMinutes)) {
+        const isWalkinOrWaiting = booking.status === 'Waiting' || booking.status === 'waiting' || booking.status === 'Chờ vào ghế' || booking.status === 'In_Progress' || booking.isWalkin;
+        if (!isWalkinOrWaiting && (date < todayIso || (date === todayIso && slotMinutes < currentMinutes - 5))) {
           res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
           return res.end(JSON.stringify({
             success: false,
@@ -2114,11 +2141,12 @@ const server = http.createServer(async (req, res) => {
         // 8. Price calculation
         const price = parseFloat(booking.totalPrice || srvInfo.price || 120000);
         const deposit = parseFloat(booking.depositAmount || 0);
+        const initialStatus = (booking.status === 'Waiting' || booking.status === 'waiting' || booking.status === 'Chờ vào ghế') ? 'Chờ vào ghế' : ((booking.status === 'In_Progress' || booking.status === 'in_progress') ? 'In_Progress' : 'Đã xác nhận');
 
         // 9. INSERT INTO LichHen
         await querySql(
-          `INSERT INTO LichHen (MaLichHen, MaKhachHang, MaNhanVien, MaChiNhanh, NgayHen, GioBatDau, GioKetThuc, TrangThai, TongTien, TienCoc, GhiChu, LyDoHuy) VALUES (?, ?, ?, ?, ?, ?, ?, N'Đã xác nhận', ?, ?, ?, NULL)`,
-          [id, khId, nvId, cnId, date, startTime, endTime, price, deposit, cleanNotes || null]
+          `INSERT INTO LichHen (MaLichHen, MaKhachHang, MaNhanVien, MaChiNhanh, NgayHen, GioBatDau, GioKetThuc, TrangThai, TongTien, TienCoc, GhiChu, LyDoHuy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+          [id, khId, nvId, cnId, date, startTime, endTime, initialStatus, price, deposit, cleanNotes || null]
         );
 
         // 10. INSERT INTO ChiTietLichHen (Chuẩn CSDL SQL Server: MaDichVu/MaCombo, hỗ trợ đặt combo + dịch vụ)
@@ -2201,7 +2229,8 @@ const server = http.createServer(async (req, res) => {
             serviceName: srvInfo.name,
             totalPrice: price,
             notes: cleanNotes,
-            status: 'Confirmed'
+            status: initialStatus === 'Chờ vào ghế' ? 'Waiting' : (initialStatus === 'In_Progress' ? 'in_progress' : 'Confirmed'),
+            TrangThai: initialStatus
           }
         }));
       }
@@ -2209,13 +2238,17 @@ const server = http.createServer(async (req, res) => {
       if (pathname.startsWith('/api/bookings/') && (method === 'DELETE' || method === 'PUT' || method === 'PATCH')) {
         const id = pathname.replace('/api/bookings/', '').replace('/cancel', '').replace('/status', '').replace('/checkin', '').trim();
         const b = parsedBody || {};
-        if (method === 'DELETE' || b.status === 'Cancelled' || b.status === 'Đã hủy' || pathname.includes('/cancel')) {
+        if (method === 'DELETE' || b.status === 'Cancelled' || b.status === 'cancelled' || b.status === 'Đã hủy' || pathname.includes('/cancel')) {
           const reason = b.cancellationReason || b.reason || 'Khách hủy lịch';
           await querySql(`UPDATE LichHen SET TrangThai = N'Đã hủy', LyDoHuy = ? WHERE MaLichHen = ?`, [reason, id]);
-        } else if (pathname.includes('/checkin') || b.status === 'In_Progress' || b.status === 'in_progress') {
+        } else if (pathname.includes('/checkin') || b.status === 'In_Progress' || b.status === 'in_progress' || b.status === 'Đang phục vụ') {
           await querySql(`UPDATE LichHen SET TrangThai = N'In_Progress' WHERE MaLichHen = ?`, [id]);
-        } else if (b.status === 'Completed' || b.status === 'Hoàn thành') {
+        } else if (b.status === 'Waiting' || b.status === 'waiting' || b.status === 'Chờ vào ghế') {
+          await querySql(`UPDATE LichHen SET TrangThai = N'Chờ vào ghế' WHERE MaLichHen = ?`, [id]);
+        } else if (b.status === 'Completed' || b.status === 'completed' || b.status === 'Hoàn thành') {
           await querySql(`UPDATE LichHen SET TrangThai = N'Hoàn thành' WHERE MaLichHen = ?`, [id]);
+        } else if (b.status === 'Confirmed' || b.status === 'confirmed' || b.status === 'Đã xác nhận') {
+          await querySql(`UPDATE LichHen SET TrangThai = N'Đã xác nhận' WHERE MaLichHen = ?`, [id]);
         } else if (b.date || b.timeSlot) {
           const newDate = b.date || b.bookingDate || new Date().toISOString().split('T')[0];
           const newTime = b.timeSlot ? (b.timeSlot.length === 5 ? `${b.timeSlot}:00` : b.timeSlot) : '09:00:00';
@@ -2230,33 +2263,84 @@ const server = http.createServer(async (req, res) => {
       }
 
       // --- 16. ORDERS / ĐƠN HÀNG ONLINE ---
-      if (pathname === '/api/orders' && method === 'GET') {
-        const rows = await querySql(`SELECT dh.MaDonHang, dh.MaKhachHang, dh.MaChiNhanh, 
-                                            CONVERT(VARCHAR(19), dh.NgayDat, 120) AS NgayDat,
-                                            dh.TongTien, dh.DiaChiGiaoHang, dh.HinhThucNhan, dh.TrangThai, dh.GhiChu,
-                                            kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
-                                            cn.TenChiNhanh
-                                     FROM DonHang dh
-                                     LEFT JOIN KhachHang kh ON dh.MaKhachHang = kh.MaKhachHang
-                                     LEFT JOIN ChiNhanh cn ON dh.MaChiNhanh = cn.MaChiNhanh
-                                     ORDER BY dh.NgayDat DESC`);
-        const orders = rows.map(r => ({
-          id: r.MaDonHang,
-          MaDonHang: r.MaDonHang,
-          customerId: r.MaKhachHang,
-          customerName: r.TenKhachHang || 'Khách Hàng Omni',
-          customerPhone: r.SdtKhachHang || '0908888999',
-          branchId: r.MaChiNhanh,
-          branchName: r.TenChiNhanh,
-          orderDate: r.NgayDat,
-          totalAmount: parseFloat(r.TongTien || 0),
-          TongTien: parseFloat(r.TongTien || 0),
-          shippingAddress: r.DiaChiGiaoHang,
-          receiveMethod: r.HinhThucNhan,
-          orderStatus: r.TrangThai === 'Đã giao' ? 'Completed' : 'Processing',
-          TrangThai: r.TrangThai,
-          notes: r.GhiChu
-        }));
+      if ((pathname === '/api/orders' || pathname.startsWith('/api/orders/')) && !pathname.endsWith('/cancel') && method === 'GET') {
+        const orderIdParam = pathname.startsWith('/api/orders/') ? pathname.replace('/api/orders/', '').trim() : null;
+        let queryStr = `SELECT dh.MaDonHang, dh.MaKhachHang, dh.MaChiNhanh, 
+                               CONVERT(VARCHAR(19), dh.NgayDat, 120) AS NgayDat,
+                               dh.TongTien, dh.DiaChiGiaoHang, dh.HinhThucNhan, dh.TrangThai, dh.GhiChu,
+                               kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
+                               cn.TenChiNhanh
+                        FROM DonHang dh
+                        LEFT JOIN KhachHang kh ON dh.MaKhachHang = kh.MaKhachHang
+                        LEFT JOIN ChiNhanh cn ON dh.MaChiNhanh = cn.MaChiNhanh`;
+        const params = [];
+        if (orderIdParam) {
+          queryStr += ' WHERE dh.MaDonHang = ?';
+          params.push(orderIdParam);
+        } else {
+          queryStr += ' ORDER BY dh.NgayDat DESC';
+        }
+        const rows = await querySql(queryStr, params);
+        if (orderIdParam && (!rows || rows.length === 0)) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${orderIdParam}!` }));
+        }
+
+        const mapOrder = async (r) => {
+          let oStatus = 'Processing';
+          const tt = (r.TrangThai || '').trim();
+          if (tt === 'Đã giao' || tt === 'Completed') oStatus = 'Completed';
+          else if (tt === 'Đã hủy' || tt === 'Cancelled') oStatus = 'Cancelled';
+          else if (tt === 'Đang giao' || tt === 'Delivering' || tt === 'Shipped') oStatus = 'Delivering';
+
+          let items = [];
+          if (orderIdParam) {
+            const itemRows = await querySql(`
+              SELECT ctdh.MaChiTietDonHang, ctdh.MaSanPham, ctdh.SoLuong, ctdh.DonGiaThucTe, ctdh.ThanhTien,
+                     sp.TenSanPham, sp.HinhAnh
+              FROM ChiTietDonHang ctdh
+              LEFT JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham
+              WHERE ctdh.MaDonHang = ?
+            `, [r.MaDonHang]);
+            items = (itemRows || []).map(it => ({
+              id: it.MaChiTietDonHang,
+              productId: it.MaSanPham,
+              name: it.TenSanPham,
+              price: parseFloat(it.DonGiaThucTe || 0),
+              quantity: it.SoLuong,
+              total: parseFloat(it.ThanhTien || 0),
+              image: it.HinhAnh
+            }));
+          }
+
+          return {
+            id: r.MaDonHang,
+            MaDonHang: r.MaDonHang,
+            orderCode: r.MaDonHang,
+            customerId: r.MaKhachHang,
+            customerName: r.TenKhachHang || 'Khách Hàng Omni',
+            customerPhone: r.SdtKhachHang || '0908888999',
+            branchId: r.MaChiNhanh,
+            branchName: r.TenChiNhanh,
+            orderDate: r.NgayDat,
+            totalAmount: parseFloat(r.TongTien || 0),
+            TongTien: parseFloat(r.TongTien || 0),
+            shippingAddress: r.DiaChiGiaoHang,
+            receiveMethod: r.HinhThucNhan,
+            orderStatus: oStatus,
+            TrangThai: r.TrangThai,
+            notes: r.GhiChu,
+            items: orderIdParam ? items : undefined
+          };
+        };
+
+        if (orderIdParam) {
+          const singleOrder = await mapOrder(rows[0]);
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify(singleOrder));
+        }
+
+        const orders = await Promise.all(rows.map(mapOrder));
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify(orders));
       }
@@ -2405,6 +2489,58 @@ const server = http.createServer(async (req, res) => {
 
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, message: `Đã hủy đơn hàng #${id} thành công!` }));
+      }
+
+      // --- CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (PUT /api/orders/:id) ---
+      if (pathname.startsWith('/api/orders/') && !pathname.endsWith('/cancel') && method === 'PUT') {
+        const id = pathname.replace('/api/orders/', '').trim();
+        const body = parsedBody || {};
+        const statusRaw = body.status || body.TrangThai || body.orderStatus || '';
+        const notes = body.notes !== undefined ? body.notes : (body.GhiChu !== undefined ? body.GhiChu : null);
+
+        let trangThai = null;
+        const sLower = statusRaw.toLowerCase();
+        if (sLower.includes('chờ') || sLower.includes('xử lý') || sLower.includes('processing') || sLower.includes('pending')) {
+          trangThai = 'Đang xử lý';
+        } else if (sLower.includes('giao') || sLower.includes('ship') || sLower.includes('delivering')) {
+          trangThai = 'Đang giao';
+        } else if (sLower.includes('hoàn thành') || sLower.includes('đã giao') || sLower.includes('completed') || sLower.includes('delivered')) {
+          trangThai = 'Đã giao';
+        } else if (sLower.includes('hủy') || sLower.includes('cancel')) {
+          trangThai = 'Đã hủy';
+        } else if (statusRaw) {
+          trangThai = statusRaw;
+        }
+
+        const updateFields = [];
+        const params = [];
+        if (trangThai) {
+          updateFields.push('TrangThai = ?');
+          params.push(trangThai);
+        }
+        if (notes !== null) {
+          updateFields.push('GhiChu = ?');
+          params.push(notes);
+        }
+
+        if (updateFields.length > 0) {
+          params.push(id);
+          await querySql(`UPDATE DonHang SET ${updateFields.join(', ')} WHERE MaDonHang = ?`, params);
+        }
+
+        if (trangThai === 'Đã hủy') {
+          const ctdhRows = await querySql('SELECT MaChiTietPhieuNhap, SoLuong FROM ChiTietDonHang WHERE MaDonHang = ?', [id]);
+          if (ctdhRows && ctdhRows.length > 0) {
+            for (const item of ctdhRows) {
+              if (item.MaChiTietPhieuNhap && item.SoLuong > 0) {
+                await querySql('UPDATE ChiTietPhieuNhap SET SoLuongConLai = SoLuongConLai + ? WHERE MaChiTietPhieuNhap = ?', [item.SoLuong, item.MaChiTietPhieuNhap]);
+              }
+            }
+          }
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, message: `Cập nhật đơn hàng #${id} thành công!`, TrangThai: trangThai }));
       }
 
       // --- 17. POS CHECKOUT  - HÓA ĐƠN & THANH TOÁN TẠI QUẦY -  ---
@@ -2590,22 +2726,152 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify(rows));
       }
 
-      // --- 20. REVIEWS / ĐÁNH GIÁ ---
-      if (pathname === '/api/reviews' && method === 'GET') {
-        const rows = await querySql(
-          `SELECT dg.MaDanhGia, dg.MaKhachHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
-                  CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGia,
-                  kh.HoTen AS TenKhachHang
-           FROM DanhGia dg
-           LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
-           WHERE dg.TrangThai = N'Hiển thị'`
-        );
+      // --- 19.1 CUSTOMERS / DANH SÁCH KHÁCH HÀNG THÀNH VIÊN ---
+      if (pathname === '/api/customers' && method === 'GET') {
+        const rows = await querySql(`
+          SELECT kh.MaKhachHang, kh.HoTen, kh.SoDienThoai, kh.Email,
+                 CONVERT(VARCHAR(10), kh.NgaySinh, 120) AS NgaySinh,
+                 ISNULL(tk.TrangThai, N'Hoạt động') AS TrangThai,
+                 (SELECT COUNT(*) FROM LichHen WHERE MaKhachHang = kh.MaKhachHang) AS TongLichHen,
+                 (SELECT COUNT(*) FROM DonHang WHERE MaKhachHang = kh.MaKhachHang) AS TongDonHang,
+                 ISNULL((SELECT SUM(TongTien) FROM HoaDon WHERE MaKhachHang = kh.MaKhachHang AND TrangThai = N'Đã thanh toán'), 0) AS TongChiTieu
+          FROM KhachHang kh
+          LEFT JOIN TaiKhoan tk ON kh.MaKhachHang = tk.MaKhachHang
+          ORDER BY kh.MaKhachHang ASC
+        `);
+        const customers = rows.map(r => ({
+          id: r.MaKhachHang,
+          MaKhachHang: r.MaKhachHang,
+          name: r.HoTen,
+          fullName: r.HoTen,
+          phone: r.SoDienThoai,
+          email: r.Email,
+          birthday: r.NgaySinh,
+          status: r.TrangThai || 'Hoạt động',
+          totalBookings: r.TongLichHen || 0,
+          totalOrders: r.TongDonHang || 0,
+          totalSpent: parseFloat(r.TongChiTieu || 0)
+        }));
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify(rows));
+        return res.end(JSON.stringify(customers));
+      }
+
+      // --- 20. REVIEWS / ĐÁNH GIÁ (KẾT NỐI TRỰC TIẾP BẢNG DanhGia SQL SERVER) ---
+      if (pathname === '/api/reviews' && method === 'GET') {
+        const orderIdParam = parsedUrl.searchParams.get('order_id') || parsedUrl.searchParams.get('orderId');
+        const customerIdParam = parsedUrl.searchParams.get('customer_id') || parsedUrl.searchParams.get('customerId');
+
+        let queryStr = `
+          SELECT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
+                 CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGia,
+                 dg.TrangThai,
+                 kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
+          FROM DanhGia dg
+          LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
+          WHERE dg.TrangThai = N'Hiển thị'
+        `;
+        const params = [];
+        if (orderIdParam) {
+          queryStr += ' AND dg.MaDonHang = ?';
+          params.push(orderIdParam);
+        } else if (customerIdParam) {
+          queryStr += ' AND dg.MaKhachHang = ?';
+          params.push(customerIdParam);
+        }
+        queryStr += ' ORDER BY dg.NgayDanhGia DESC';
+
+        const rows = await querySql(queryStr, params);
+        const mapped = rows.map(r => ({
+          id: r.MaDanhGia,
+          MaDanhGia: r.MaDanhGia,
+          customerId: r.MaKhachHang,
+          customerName: r.TenKhachHang || 'Khách Hàng',
+          customerPhone: r.SdtKhachHang || '',
+          bookingId: r.MaLichHen,
+          orderId: r.MaDonHang,
+          rating: r.SoSao,
+          comment: r.NoiDung,
+          image: r.HinhAnh,
+          date: r.NgayDanhGia,
+          status: r.TrangThai
+        }));
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(mapped));
       }
 
       if (pathname === '/api/reviews' && method === 'POST') {
         const r = parsedBody || {};
+        const comment = (r.comment || r.content || r.NoiDung || 'Sản phẩm và dịch vụ rất tốt!').trim();
+        const stars = Math.min(5, Math.max(1, parseInt(r.rating || r.SoSao || 5, 10)));
+        let dhId = (r.orderId || r.MaDonHang || '').trim() || null;
+        let lhId = (r.bookingId || r.MaLichHen || '').trim() || null;
+
+        // Xác thực khách hàng hoặc tự động liên kết từ Đơn Hàng / Lịch Hẹn
+        let khId = r.customerId || r.userId || null;
+
+        if (dhId) {
+          // Kiểm tra đơn hàng có thật trong bảng DonHang của SQL Server không
+          const orderRows = await querySql('SELECT MaDonHang, MaKhachHang, TrangThai FROM DonHang WHERE MaDonHang = ?', [dhId]);
+          if (!orderRows || orderRows.length === 0) {
+            res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+            return res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${dhId} trong cơ sở dữ liệu SQL Server!` }));
+          }
+          if (!khId) {
+            khId = orderRows[0].MaKhachHang;
+          }
+          lhId = null; // Ràng buộc CK_DanhGia_DoiTuong: đúng 1 trong 2 trường được phép NOT NULL
+        } else if (lhId) {
+          const bookingRows = await querySql('SELECT MaLichHen, MaKhachHang FROM LichHen WHERE MaLichHen = ?', [lhId]);
+          if (bookingRows && bookingRows[0] && !khId) {
+            khId = bookingRows[0].MaKhachHang;
+          }
+          dhId = null;
+        } else {
+          // Nếu không truyền cụ thể, tìm đơn hàng gần nhất của khách
+          if (khId) {
+            const recentDh = await querySql('SELECT TOP 1 MaDonHang FROM DonHang WHERE MaKhachHang = ? ORDER BY NgayDat DESC', [khId]);
+            if (recentDh && recentDh[0]) {
+              dhId = recentDh[0].MaDonHang;
+              lhId = null;
+            } else {
+              const recentLh = await querySql('SELECT TOP 1 MaLichHen FROM LichHen WHERE MaKhachHang = ? ORDER BY NgayHen DESC', [khId]);
+              lhId = (recentLh && recentLh[0]) ? recentLh[0].MaLichHen : 'LH01';
+              dhId = null;
+            }
+          } else {
+            lhId = 'LH01';
+            dhId = null;
+          }
+        }
+
+        if (!khId) {
+          khId = await resolveOrCreateCustomer({
+            customerId: r.customerId || r.userId,
+            customerName: r.customerName || 'Khách Hàng',
+            customerPhone: r.customerPhone || '0908888999'
+          });
+        }
+
+        // Kiểm tra xem đơn hàng này đã từng được đánh giá trong SQL chưa -> Nếu có thì UPDATE
+        if (dhId) {
+          const existingReview = await querySql('SELECT TOP 1 MaDanhGia FROM DanhGia WHERE MaDonHang = ?', [dhId]);
+          if (existingReview && existingReview.length > 0) {
+            const existingId = existingReview[0].MaDanhGia;
+            await querySql(
+              `UPDATE DanhGia SET SoSao = ?, NoiDung = ?, NgayDanhGia = GETDATE(), TrangThai = N'Hiển thị' WHERE MaDanhGia = ?`,
+              [stars, comment, existingId]
+            );
+            console.log(`[SQL EXEC] Cập nhật đánh giá cho đơn hàng ${dhId} (Mã: ${existingId}) thành ${stars} sao trong SQL Server!`);
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            return res.end(JSON.stringify({
+              success: true,
+              message: 'Cập nhật đánh giá thành công!',
+              review: { id: existingId, orderId: dhId, rating: stars, comment, customerId: khId }
+            }));
+          }
+        }
+
+        // Sinh mã đánh giá tự tăng chuẩn SQL Server (DG01, DG02, DG03...)
         const maxDg = await querySql(`SELECT TOP 1 MaDanhGia FROM DanhGia WHERE MaDanhGia LIKE 'DG%' ORDER BY LEN(MaDanhGia) DESC, MaDanhGia DESC`);
         let nextN = 11;
         if (maxDg && maxDg[0]) {
@@ -2613,33 +2879,25 @@ const server = http.createServer(async (req, res) => {
           if (nm) nextN = parseInt(nm[1], 10) + 1;
         }
         const dgId = 'DG' + (nextN < 10 ? '0' + nextN : nextN);
-        const khId = await resolveOrCreateCustomer({
-          customerId: r.customerId || r.userId,
-          customerName: r.customerName,
-          customerPhone: r.customerPhone
-        });
-        const stars = parseInt(r.rating || 5, 10);
-        let lhId = r.bookingId || null;
-        let dhId = r.orderId || null;
-        if (!lhId && !dhId) {
-          const recentLh = await querySql('SELECT TOP 1 MaLichHen FROM LichHen WHERE MaKhachHang = ? ORDER BY NgayHen DESC', [khId]);
-          lhId = (recentLh && recentLh[0]) ? recentLh[0].MaLichHen : 'LH01';
-          dhId = null;
-        } else if (lhId && dhId) {
-          dhId = null; // Ràng buộc CK_DanhGia_DoiTuong: đúng 1 trong 2 trường được phép NOT NULL
-        }
 
         await querySql(
-          `INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag) VALUES (?, ?, ?, ?, ?, ?, NULL, GETDATE(), N'Hiển thị', 0)`,
+          `INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag) 
+           VALUES (?, ?, ?, ?, ?, ?, NULL, GETDATE(), N'Hiển thị', 0)`,
           [dgId, khId, lhId, dhId, stars, comment]
         );
 
+        console.log(`[SQL EXEC] Lưu đánh giá mới ${dgId} (${stars} sao) cho ${dhId ? 'đơn hàng ' + dhId : 'lịch hẹn ' + lhId} vào SQL Server!`);
+
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, review: { id: dgId, rating: stars, comment } }));
+        return res.end(JSON.stringify({ 
+          success: true, 
+          message: 'Gửi đánh giá đơn hàng thành công!',
+          review: { id: dgId, orderId: dhId, bookingId: lhId, rating: stars, comment, customerId: khId } 
+        }));
       }
 
-      // --- 21. PROMOTIONS / KHUYẾN MÃI ---
-      if (pathname === '/api/promotions' && method === 'GET') {
+      // --- 21. PROMOTIONS / VOUCHERS / KHUYẾN MÃI ---
+      if ((pathname === '/api/promotions' || pathname === '/api/coupons' || pathname === '/api/vouchers') && method === 'GET') {
         const rows = await querySql(
           `SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, DoiTuongApDung, 
                   CONVERT(VARCHAR(10), NgayBatDau, 120) AS NgayBatDau, 
@@ -2672,14 +2930,38 @@ const server = http.createServer(async (req, res) => {
 
       if (pathname === '/api/auth/profile' && method === 'PUT') {
         const { id, fullName, phone, email, birthday, ngaySinh } = parsedBody || {};
-        const bday = (birthday || ngaySinh || '').trim() || null;
+        const bday = (birthday || ngaySinh || '').trim();
+        const cleanPhone = (phone || '').trim();
+        const cleanEmail = (email || '').trim().toLowerCase();
+
         if (id) {
           if (id.startsWith('TK_NV') || id.startsWith('NV')) {
             const nvId = id.replace('TK_', '');
-            await querySql(`UPDATE NhanVien SET HoTen = ISNULL(?, HoTen), SoDienThoai = ISNULL(?, SoDienThoai), Email = ISNULL(?, Email) WHERE MaNhanVien = ?`, [fullName, phone, email, nvId]);
+            if (cleanPhone) {
+              const dupNv = await querySql('SELECT MaNhanVien FROM NhanVien WHERE SoDienThoai = ? AND MaNhanVien <> ?', [cleanPhone, nvId]);
+              if (dupNv && dupNv.length > 0) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+                return res.end(JSON.stringify({ success: false, message: 'Số điện thoại này đã được sử dụng bởi nhân viên khác!' }));
+              }
+            }
+            await querySql(`UPDATE NhanVien SET HoTen = COALESCE(?, HoTen), SoDienThoai = COALESCE(?, SoDienThoai), Email = COALESCE(?, Email) WHERE MaNhanVien = ?`, [fullName || null, cleanPhone || null, cleanEmail || null, nvId]);
           } else {
             const khId = id.replace('TK_', '');
-            await querySql(`UPDATE KhachHang SET HoTen = ISNULL(?, HoTen), SoDienThoai = ISNULL(?, SoDienThoai), Email = ISNULL(?, Email), NgaySinh = ISNULL(?, NgaySinh) WHERE MaKhachHang = ?`, [fullName, phone, email, bday, khId]);
+            if (cleanPhone) {
+              const dupKh = await querySql('SELECT MaKhachHang FROM KhachHang WHERE SoDienThoai = ? AND MaKhachHang <> ?', [cleanPhone, khId]);
+              if (dupKh && dupKh.length > 0) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+                return res.end(JSON.stringify({ success: false, message: 'Số điện thoại này đã được sử dụng bởi khách hàng khác!' }));
+              }
+            }
+            if (bday) {
+              await querySql(`UPDATE KhachHang SET HoTen = COALESCE(?, HoTen), SoDienThoai = COALESCE(?, SoDienThoai), Email = COALESCE(?, Email), NgaySinh = ? WHERE MaKhachHang = ?`, [fullName || null, cleanPhone || null, cleanEmail || null, bday, khId]);
+            } else {
+              await querySql(`UPDATE KhachHang SET HoTen = COALESCE(?, HoTen), SoDienThoai = COALESCE(?, SoDienThoai), Email = COALESCE(?, Email) WHERE MaKhachHang = ?`, [fullName || null, cleanPhone || null, cleanEmail || null, khId]);
+            }
+            if (cleanPhone) {
+              await querySql(`UPDATE TaiKhoan SET TenDangNhap = ? WHERE MaKhachHang = ?`, [cleanPhone, khId]);
+            }
           }
         }
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

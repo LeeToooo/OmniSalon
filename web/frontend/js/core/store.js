@@ -1281,6 +1281,10 @@
       const oldStatus = booking.status;
       booking.status = newStatus;
 
+      if (newStatus === 'Waiting' || newStatus === 'waiting') {
+        booking.status = 'Waiting';
+        booking.waitingAt = new Date().toISOString();
+      }
       if (newStatus === 'In_Progress' && !booking.checkedInAt) {
         booking.checkedInAt = new Date().toISOString();
       }
@@ -1300,6 +1304,10 @@
 
     checkinBooking(bookingId) {
       return this.updateBookingStatus(bookingId, 'In_Progress');
+    }
+
+    checkinBookingWaiting(bookingId) {
+      return this.updateBookingStatus(bookingId, 'Waiting');
     }
 
     checkinBookingEarlyToday(bookingId) {
@@ -1327,6 +1335,34 @@
       this.logAudit('EARLY_CHECKIN', `Lịch: #${b.bookingCode || b.id}`, `Khách làm sớm hôm nay: ${b.customerName} (${todayStr} ${nowTime})`);
       this.saveState();
       this.syncBookingStatusToLiveServer(b.id, 'In_Progress', { note: b.notes });
+      return b;
+    }
+
+    checkinWaitingEarlyToday(bookingId) {
+      const b = (this.state.bookings || []).find(x => x.id === bookingId || x.bookingCode === bookingId);
+      if (!b) return false;
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+      const nowH = String(today.getHours()).padStart(2, '0');
+      const nowM = String(today.getMinutes()).padStart(2, '0');
+      const nowTime = `${nowH}:${nowM}`;
+
+      const oldDate = b.date || b.bookingDate;
+      const oldTime = b.timeSlot;
+      b.date = todayStr;
+      b.bookingDate = todayStr;
+      b.timeSlot = nowTime;
+      b.status = 'Waiting';
+      b.waitingAt = new Date().toISOString();
+      const noteSuffix = `[Đến sớm chờ ghế hôm nay lúc ${nowTime} (Lịch gốc: ${oldDate} ${oldTime})]`;
+      b.notes = b.notes ? `${b.notes} • ${noteSuffix}` : noteSuffix;
+
+      this.logAudit('EARLY_WAITING', `Lịch: #${b.bookingCode || b.id}`, `Khách đến sớm chờ ghế: ${b.customerName} (${todayStr} ${nowTime})`);
+      this.saveState();
+      this.syncBookingStatusToLiveServer(b.id, 'Waiting', { note: b.notes });
       return b;
     }
 
@@ -1730,6 +1766,70 @@
 
     getOrders() {
       return this.state.orders || [];
+    }
+
+    getReviews() {
+      return this.state.reviews || [];
+    }
+
+    getReviewByOrderId(orderId) {
+      if (!orderId) return null;
+      const reviews = this.getReviews();
+      const norm = String(orderId).trim().toLowerCase();
+      return reviews.find(r => 
+        (r.orderId && String(r.orderId).trim().toLowerCase() === norm) || 
+        (r.MaDonHang && String(r.MaDonHang).trim().toLowerCase() === norm)
+      ) || null;
+    }
+
+    async submitOrderReview({ orderId, rating, comment, customerId, customerName, customerPhone }) {
+      const payload = {
+        orderId,
+        rating: Number(rating) || 5,
+        comment: (comment || '').trim() || 'Sản phẩm rất tốt và đóng gói cẩn thận!',
+        customerId,
+        customerName,
+        customerPhone
+      };
+
+      try {
+        const res = await fetch(`${this.liveServerUrl}/reviews`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || 'Lỗi khi gửi đánh giá đơn hàng!');
+        }
+
+        const reviewData = data.review || {
+          id: 'DG' + Date.now(),
+          orderId,
+          rating: payload.rating,
+          comment: payload.comment,
+          customerName: customerName || 'Khách Hàng',
+          date: new Date().toISOString()
+        };
+
+        if (!this.state.reviews) this.state.reviews = [];
+        const norm = String(orderId).trim().toLowerCase();
+        const existingIdx = this.state.reviews.findIndex(r => 
+          (r.orderId && String(r.orderId).trim().toLowerCase() === norm) || 
+          (r.MaDonHang && String(r.MaDonHang).trim().toLowerCase() === norm)
+        );
+        if (existingIdx >= 0) {
+          this.state.reviews[existingIdx] = { ...this.state.reviews[existingIdx], ...reviewData };
+        } else {
+          this.state.reviews.unshift(reviewData);
+        }
+        this.saveState();
+        this.notify('REVIEW_SUBMITTED', reviewData);
+        return { success: true, message: data.message || 'Đánh giá thành công!', review: reviewData };
+      } catch (err) {
+        console.error('[REVIEW ERROR]', err);
+        return { success: false, error: err.message };
+      }
     }
 
     async createOrder(orderData) {

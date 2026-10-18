@@ -1672,8 +1672,24 @@ INSERT INTO ThanhToan (MaThanhToan, MaHoaDon, MaNhanVien, SoTien, PhuongThuc, Th
 ('TT01', 'HD01', 'NV61', 408000, N'Chuyển khoản QR', '2026-10-10 10:20:00', N'Thành công', 'VNPAY9872123'),
 ('TT02', 'HD02', 'NV71', 286000, N'Tiền mặt',        '2026-10-05 10:05:00', N'Thành công', 'CASH001');
 
--- Đánh giá phản hồi
+-- Đánh giá phản hồi khách hàng (Gồm cả Lịch Hẹn dịch vụ & Đơn Hàng mỹ phẩm đã mua)
 INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag) VALUES
-('DG01', 'KH01', 'LH01', NULL,   5, N'Thợ cắt rất khéo, sáp Volcanic mua tại quầy dùng giữ nếp rất tốt.', NULL, '2026-10-10 11:30:00', N'Hiển thị', 0),
-('DG02', 'KH11', NULL,   'DH01', 5, N'Giao hàng nhanh, dầu gội Kerasys đóng gói cẩn thận chống sốc tốt.',  NULL, '2026-10-06 18:00:00', N'Hiển thị', 0);
+-- 1. Đánh giá đơn hàng mỹ phẩm mua trực tuyến / tại quầy (MaDonHang NOT NULL, MaLichHen NULL):
+('DG01', 'KH11', NULL,   'DH01', 5, N'Giao hàng siêu nhanh trong 2h, dầu gội Kerasys đóng gói cẩn thận 3 lớp chống sốc, có tem chống hàng giả chuẩn Omni Salon.', NULL, '2026-10-06 18:00:00', N'Hiển thị', 0),
+('DG02', 'KH12', NULL,   'DH02', 5, N'Sáp Pomade Brosh chính hãng độ giữ nếp cực tốt cả ngày, mùi hương nam tính cổ điển rất sang trọng. Nhận tại quầy CN12 phục vụ rất chu đáo.', NULL, '2026-10-06 19:30:00', N'Hiển thị', 0),
+('DG03', 'KH13', NULL,   'DH03', 5, N'Gôm xịt Silhouette Schwarzkopf khóa nếp tóc rất tự nhiên, không bị bết rít hay để lại vảy trắng. Đóng gói rất kỹ.', NULL, '2026-10-07 08:45:00', N'Hiển thị', 0),
+('DG04', 'KH14', NULL,   'DH04', 5, N'Tinh dầu Moroccanoil dưỡng bóng mượt tóc tẩy nhuộm, mùi thơm nhẹ dễ chịu lưu hương cả ngày. Đáng tiền từng xu!', NULL, '2026-10-07 15:20:00', N'Hiển thị', 0),
+('DG05', 'KH15', NULL,   'DH05', 4, N'Bột tạo phồng Dapper Dan hút dầu cực tốt cho mùa hè, texture tóc lên rất tự nhiên. Nhân viên tư vấn cách vuốt nhiệt tình.', NULL, '2026-10-07 17:10:00', N'Hiển thị', 0),
+('DG06', 'KH16', NULL,   'DH06', 5, N'Bộ sản phẩm Proraso Italy nguyên seal chính hãng, cạo râu êm mượt không rát da. Giao hàng đúng hẹn.', NULL, '2026-10-08 09:00:00', N'Hiển thị', 0),
+('DG07', 'KH17', NULL,   'DH07', 5, N'Reuzel Blue Pomade gội rửa cực kỳ dễ dàng, giữ phom Pompadour chuẩn chỉ cả ngày dài làm việc. 5 sao cho shop!', NULL, '2026-10-08 11:30:00', N'Hiển thị', 0),
+('DG08', 'KH18', NULL,   'DH08', 5, N'Xịt muối biển Suavecito tạo độ phồng và độ nhám chuẩn chỉnh trước khi sấy tóc. Ship nhanh, tư vấn nhiệt tình.', NULL, '2026-10-08 14:00:00', N'Hiển thị', 0),
+('DG09', 'KH19', NULL,   'DH09', 5, N'Kevin Murphy Rough Rider giữ nếp cực khủng, không bóng bẩy, lên form tóc Crop cực chất. Rất hài lòng.', NULL, '2026-10-08 16:30:00', N'Hiển thị', 0),
+('DG10', 'KH20', NULL,   'DH10', 5, N'Bộ dao cạo Feather Nhật Bản sắc bén và hoàn thiện cơ khí tinh xảo, cạo rất ngọt và ôm sát chân râu. Hàng chuẩn 100%.', NULL, '2026-10-08 18:15:00', N'Hiển thị', 0),
+
+-- 2. Đánh giá trải nghiệm dịch vụ cắt tóc / combo VIP (MaLichHen NOT NULL, MaDonHang NULL):
+('DG11', 'KH01', 'LH01', NULL,   5, N'Master Stylist cắt tóc kỹ lưỡng, đường fade sắc nét và vuốt sáp tạo kiểu rất hợp với gương mặt mình.', NULL, '2026-10-10 11:30:00', N'Hiển thị', 0),
+('DG12', 'KH02', 'LH02', NULL,   5, N'Gói Combo VIP làm tóc thư giãn tuyệt vời, không gian phòng ốc sang trọng, nhạc jazz và trà thảo mộc rất chill.', NULL, '2026-10-10 14:00:00', N'Hiển thị', 0),
+('DG13', 'KH03', 'LH03', NULL,   5, N'Uốn tóc xoăn Texture tự nhiên, lọn tóc mềm mại không bị xơ khô. Stylist hướng dẫn chăm sóc tại nhà rất chi tiết.', NULL, '2026-10-10 16:30:00', N'Hiển thị', 0),
+('DG14', 'KH04', 'LH04', NULL,   5, N'Màu nhuộm khói sáng lên đều chuẩn tone mẫu tóc, da đầu không hề bị xót. Dịch vụ chuyên nghiệp hàng đầu thành phố.', NULL, '2026-10-10 18:00:00', N'Hiển thị', 0),
+('DG15', 'KH05', 'LH05', NULL,   5, N'Uốn con sâu Dreads bồng bềnh cá tính, thời gian hoàn thành đúng cam kết và form tóc giữ được rất lâu.', NULL, '2026-10-10 19:45:00', N'Hiển thị', 0);
 GO

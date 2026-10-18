@@ -39,6 +39,9 @@
       if (s === 'confirmed' || s === 'đã xác nhận' || s === 'xác nhận') {
         return { key: 'confirmed', label: 'Đã xác nhận', cssClass: 'status-confirmed' };
       }
+      if (s === 'waiting' || s === 'chờ vào ghế' || s === 'cho_vao_ghe' || s === 'đang chờ') {
+        return { key: 'waiting', label: 'Chờ vào ghế', cssClass: 'status-waiting' };
+      }
       if (s === 'in_progress' || s === 'đang phục vụ' || s === 'đang thực hiện') {
         return { key: 'in_progress', label: 'Đang phục vụ', cssClass: 'status-in_progress' };
       }

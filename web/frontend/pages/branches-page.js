@@ -9,7 +9,7 @@
   const BranchesPage = {
     selectedFilter: 'all',
     searchQuery: '',
-    pageSize: 8,
+    pageSize: 6,
     currentPage: 1,
 
     // Danh sách 19 quận / huyện chính thức của 20 chi nhánh
@@ -182,8 +182,8 @@
 
       container.innerHTML = `
         <div class="branches-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); width: 100%; padding: 48px 0 88px;">
-          <!-- Khung nội dung tràn viền 2 bên hiện đại -->
-          <div style="max-width: 1640px; width: 100%; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
+          <!-- Khung nội dung tràn viền toàn diện đồng bộ với Header -->
+          <div class="services-fluid-container" style="width: 100%; max-width: 100%; margin: 0; padding: 0 clamp(20px, 3vw, 56px); box-sizing: border-box;">
 
             <!-- TIÊU ĐỀ TRANG EDITORIAL -->
             <div style="text-align: center; margin-bottom: 36px;">
@@ -224,8 +224,8 @@
               </div>
             </div>
 
-            <!-- LƯỚI CHI NHÁNH EDITORIAL -->
-            <div id="branchesCardsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px;">
+            <!-- LƯỚI CHI NHÁNH EDITORIAL (3 CỘT ĐỒNG BỘ TỰ KÉO GIÃN THEO MÀN HÌNH) -->
+            <div id="branchesCardsGrid">
               ${this.renderBranchCardsHTML(branches)}
             </div>
 
@@ -347,7 +347,7 @@
         `;
       }
 
-      // Phân trang 8 chi nhánh mỗi trang (khớp lưới 4 cột x 2 dòng)
+      // Phân trang 6 chi nhánh mỗi trang (khớp lưới 3 cột x 2 dòng cân xứng)
       const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
       if (this.currentPage > totalPages) this.currentPage = 1;
       const startIdx = (this.currentPage - 1) * this.pageSize;

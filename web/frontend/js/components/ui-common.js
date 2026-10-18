@@ -2528,8 +2528,18 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 11. TOAST NOTIFICATION VÀ TIỆN ÍCH ĐÓNG MODAL
+  // 11. TOAST NOTIFICATION VÀ TIỆN ÍCH MODAL
   // -----------------------------------------------------------------------
+  openModal(html, type = '') {
+    const modal = document.getElementById('globalModal');
+    const modalBody = document.getElementById('globalModalBody');
+    if (!modal || !modalBody) return;
+    this.closeGlobalModal();
+    modalBody.innerHTML = html;
+    if (type) modal.classList.add(`modal-${type}`);
+    modal.classList.add('active');
+  },
+
   closeGlobalModal() {
     const modal = document.getElementById('globalModal');
     if (modal) {

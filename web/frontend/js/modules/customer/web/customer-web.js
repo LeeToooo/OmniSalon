@@ -1007,14 +1007,37 @@
                     <strong style="color: var(--brand-accent); font-size: 16px;">${SalonUtils.formatCurrency(o.totalAmount || 0)}</strong>
                   </div>
                 </div>
-                ${isCancellable ? `
-                  <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end;">
-                    <button class="pill-btn-outline" style="font-size: 11px; padding: 6px 14px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
-                            onclick="CustomerWeb.cancelOrderByCustomer('${o.id || o.orderCode}')">
-                      Hủy Đơn Hàng
-                    </button>
+
+                <!-- Đánh Giá Đơn Hàng & Thao Tác -->
+                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(oCode)) ? `
+                      <span style="color: #f59e0b; font-size: 13px;">${'★'.repeat(window.store.getReviewByOrderId(oCode).rating || 5)}${'☆'.repeat(5 - (window.store.getReviewByOrderId(oCode).rating || 5))}</span>
+                      <span style="color: var(--text-secondary); font-size: 12px; margin-left: 6px; font-style: italic;">"${this.escapeHtml(window.store.getReviewByOrderId(oCode).comment || 'Rất hài lòng')}"</span>
+                    ` : `
+                      <span style="font-size: 12px; color: var(--text-secondary);">Bạn đã nhận hàng? Đánh giá để nhận điểm thưởng.</span>
+                    `}
                   </div>
-                ` : ''}
+                  <div style="display: flex; gap: 8px;">
+                    ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(oCode)) ? `
+                      <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
+                              onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(oCode)}')">
+                        Sửa Đánh Giá
+                      </button>
+                    ` : `
+                      <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #d97706; display: inline-flex; align-items: center; gap: 4px;" 
+                              onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(oCode)}')">
+                        ⭐ Đánh Giá Đơn Hàng
+                      </button>
+                    `}
+                    ${isCancellable ? `
+                      <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
+                              onclick="CustomerWeb.cancelOrderByCustomer('${o.id || o.orderCode}')">
+                        Hủy Đơn Hàng
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
               </div>
             `;
           }).join('')}
@@ -3015,6 +3038,31 @@
                       `;
         }).join('')}
                   </div>
+
+                  <!-- Khối đánh giá khách hàng đã mua hàng -->
+                  <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.08)); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                      ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang)) ? `
+                        <span style="color: #f59e0b; font-size: 13px;">${'★'.repeat(window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang).rating || 5)}${'☆'.repeat(5 - (window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang).rating || 5))}</span>
+                        <span style="color: var(--text-secondary); font-size: 12px; margin-left: 6px; font-style: italic;">"${this.escapeHtml(window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang).comment || 'Rất hài lòng')}"</span>
+                      ` : `
+                        <span style="font-size: 12px; color: var(--text-secondary);">Bạn đã nhận được hàng? Hãy để lại đánh giá cho Omni Salon nhé!</span>
+                      `}
+                    </div>
+                    <div>
+                      ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang)) ? `
+                        <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
+                                onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
+                          Sửa Đánh Giá
+                        </button>
+                      ` : `
+                        <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #d97706; display: inline-flex; align-items: center; gap: 4px;" 
+                                onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
+                          ⭐ Đánh Giá Đơn Hàng
+                        </button>
+                      `}
+                    </div>
+                  </div>
                 </div>
               `;
       }).join('')}
@@ -3228,6 +3276,197 @@
         if (window.UICommon) window.UICommon.showToast('Đã lưu thông tin tài khoản!');
         this.renderHeader();
         this.renderCustomerPortalModalBody();
+      }
+    },
+
+    // -----------------------------------------------------------------------
+    // ĐÁNH GIÁ ĐƠN HÀNG MỸ PHẨM (KẾT NỐI TRỰC TIẾP SQL SERVER BẢNG DanhGia)
+    // -----------------------------------------------------------------------
+    _selectedReviewRating: 5,
+
+    openOrderReviewModal(orderId) {
+      if (!orderId) return;
+      const user = this.getCurrentUser();
+      const existingReview = (window.store && typeof window.store.getReviewByOrderId === 'function')
+        ? window.store.getReviewByOrderId(orderId)
+        : null;
+
+      const currentRating = existingReview ? (existingReview.rating || 5) : 5;
+      const currentComment = existingReview ? (existingReview.comment || '') : '';
+      this._selectedReviewRating = currentRating;
+
+      // Tìm thông tin đơn hàng để hiển thị
+      const orders = (window.store && typeof window.store.getOrders === 'function') ? window.store.getOrders() : [];
+      const order = orders.find(o => (o.id || o.orderCode || o.MaDonHang) === orderId) || {};
+      const items = order.items || [];
+      const itemsSummary = items.map(it => it.name || it.TenSanPham || 'Sản phẩm').join(', ');
+
+      const modalHtml = `
+        <div class="review-modal-content" style="max-width: 480px; margin: 0 auto; padding: 6px 4px;">
+          <div style="text-align: center; margin-bottom: 18px;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 10px;">
+              ⭐
+            </div>
+            <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
+              Đánh Giá Đơn Hàng #${this.escapeHtml(orderId)}
+            </h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+              ${itemsSummary ? `Sản phẩm: <strong>${this.escapeHtml(itemsSummary)}</strong>` : 'Chia sẻ trải nghiệm sử dụng sản phẩm từ Omni Salon'}
+            </p>
+          </div>
+
+          <!-- Bộ chọn sao tương tác 1 - 5 sao -->
+          <div style="margin-bottom: 18px; text-align: center;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px;">
+              Mức độ hài lòng của bạn:
+            </div>
+            <div id="reviewRatingStarsContainer" style="display: inline-flex; gap: 8px; font-size: 32px; cursor: pointer; user-select: none;">
+              ${[1, 2, 3, 4, 5].map(star => `
+                <span class="star-rating-item" data-star="${star}" 
+                      style="color: ${star <= currentRating ? '#f59e0b' : '#4a4a44'}; transition: transform 0.15s, color 0.15s;"
+                      onclick="CustomerWeb.setOrderReviewStars(${star})"
+                      onmouseover="CustomerWeb.previewOrderReviewStars(${star})"
+                      onmouseleave="CustomerWeb.resetOrderReviewStars()">
+                  ★
+                </span>
+              `).join('')}
+            </div>
+            <div id="reviewStarTextLabel" style="font-size: 13px; font-weight: 700; color: #f59e0b; margin-top: 4px;">
+              ${this._getStarLabel(currentRating)}
+            </div>
+            <input type="hidden" id="orderReviewSelectedRating" value="${currentRating}">
+          </div>
+
+          <!-- Khung nhập nội dung đánh giá -->
+          <div style="margin-bottom: 18px;">
+            <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+              Nhận xét chi tiết:
+            </label>
+            <textarea id="orderReviewCommentInput" 
+                      rows="4" 
+                      style="width: 100%; box-sizing: border-box; background: var(--surface-card, #242422); color: var(--text-primary, #FAF8F5); border: 1.5px solid var(--border-color, #4A4A44); border-radius: 10px; padding: 12px; font-size: 13.5px; font-family: inherit; resize: vertical; outline: none;"
+                      placeholder="Chất lượng sản phẩm, độ giữ nếp/mùi hương, thời gian giao hàng và quy cách đóng hộp...">${this.escapeHtml(currentComment)}</textarea>
+          </div>
+
+          <!-- Nút hành động -->
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn-cancel" 
+                    style="min-height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 600; background: var(--surface-elevated, #2a2a26); color: var(--text-secondary); border: 1px solid var(--border-color, #444);"
+                    onclick="CustomerWeb.closeOrderReviewModal()">
+              Hủy Bỏ
+            </button>
+            <button type="button" class="btn-submit-terracotta" 
+                    id="submitOrderReviewBtn"
+                    style="min-height: 42px; padding: 0 22px; border-radius: 10px; font-size: 13.5px; font-weight: 800; background: #d97706;"
+                    onclick="CustomerWeb.handleOrderReviewSubmit('${this.escapeHtml(orderId)}')">
+              ${existingReview ? 'Cập Nhật Đánh Giá' : 'Gửi Đánh Giá Ngay'}
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (window.UICommon && typeof window.UICommon.openModal === 'function') {
+        window.UICommon.openModal(modalHtml, 'review');
+      }
+    },
+
+    setOrderReviewStars(star) {
+      this._selectedReviewRating = star;
+      const input = document.getElementById('orderReviewSelectedRating');
+      if (input) input.value = star;
+      this._updateStarsVisual(star);
+    },
+
+    previewOrderReviewStars(star) {
+      this._updateStarsVisual(star);
+    },
+
+    resetOrderReviewStars() {
+      const input = document.getElementById('orderReviewSelectedRating');
+      const star = input ? parseInt(input.value, 10) : (this._selectedReviewRating || 5);
+      this._updateStarsVisual(star);
+    },
+
+    _updateStarsVisual(rating) {
+      const container = document.getElementById('reviewRatingStarsContainer');
+      const label = document.getElementById('reviewStarTextLabel');
+      if (container) {
+        const stars = container.querySelectorAll('.star-rating-item');
+        stars.forEach((s, idx) => {
+          s.style.color = (idx + 1) <= rating ? '#f59e0b' : '#4a4a44';
+          s.style.transform = (idx + 1) <= rating ? 'scale(1.12)' : 'scale(1)';
+        });
+      }
+      if (label) {
+        label.textContent = this._getStarLabel(rating);
+      }
+    },
+
+    _getStarLabel(stars) {
+      switch (stars) {
+        case 5: return 'Tuyệt vời! Rất hài lòng ★★★★★';
+        case 4: return 'Hài lòng, chất lượng tốt ★★★★☆';
+        case 3: return 'Bình thường, tạm ổn ★★★☆☆';
+        case 2: return 'Chưa hài lòng ★★☆☆☆';
+        case 1: return 'Rất không hài lòng ★☆☆☆☆';
+        default: return 'Rất hài lòng ★★★★★';
+      }
+    },
+
+    closeOrderReviewModal() {
+      if (window.UICommon && typeof window.UICommon.closeGlobalModal === 'function') {
+        window.UICommon.closeGlobalModal();
+      }
+    },
+
+    async handleOrderReviewSubmit(orderId) {
+      const ratingInput = document.getElementById('orderReviewSelectedRating');
+      const commentInput = document.getElementById('orderReviewCommentInput');
+      const btn = document.getElementById('submitOrderReviewBtn');
+
+      const rating = ratingInput ? parseInt(ratingInput.value, 10) : 5;
+      const comment = commentInput ? commentInput.value.trim() : '';
+      const user = this.getCurrentUser();
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Đang lưu vào SQL Server...';
+      }
+
+      if (window.store && typeof window.store.submitOrderReview === 'function') {
+        const res = await window.store.submitOrderReview({
+          orderId,
+          rating,
+          comment: comment || 'Đơn hàng rất chuẩn, sáp và sản phẩm chính hãng dùng rất thích!',
+          customerId: user ? (user.id || user.customerId) : null,
+          customerName: user ? (user.fullName || user.username) : 'Khách Hàng',
+          customerPhone: user ? user.phone : '0908888999'
+        });
+
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Gửi Đánh Giá Ngay';
+        }
+
+        if (res && res.success) {
+          if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+            window.UICommon.showToast(res.message || 'Cảm ơn quý khách đã đánh giá đơn hàng!', 'success');
+          }
+          this.closeOrderReviewModal();
+
+          // Tự động làm mới giao diện đang mở (Portal hoặc Tra Cứu)
+          if (this.portalActiveTab === 'orders') {
+            this.renderCustomerPortalModalBody();
+          }
+          const lookupContainer = document.getElementById('lookupResultsContainer');
+          if (lookupContainer) {
+            this.searchOrderLookup();
+          }
+        } else {
+          if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+            window.UICommon.showToast(res?.error || 'Lỗi lưu đánh giá!', 'error');
+          }
+        }
       }
     },
 

@@ -51,8 +51,8 @@
 
       container.innerHTML = `
         <div class="stylists-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); padding: 48px 0 88px;">
-          <!-- Khung nội dung tràn viền 2 bên hiện đại -->
-          <div style="max-width: 1640px; width: 100%; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
+          <!-- Khung nội dung tràn viền toàn diện đồng bộ với Header -->
+          <div class="services-fluid-container" style="width: 100%; max-width: 100%; margin: 0; padding: 0 clamp(20px, 3vw, 56px); box-sizing: border-box;">
             <!-- Header Banner -->
             <div style="text-align: center; margin-bottom: 40px;">
               <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
@@ -83,8 +83,8 @@
               </div>
             </div>
 
-            <!-- Stylists Grid (Khung hiển thị 8 thợ đầu tiên: 4 cột x 2 hàng) -->
-            <div id="stylistsProfilesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+            <!-- Stylists Grid (Khung hiển thị 4 cột tự kéo giãn đồng bộ trên mọi độ phân giải) -->
+            <div id="stylistsProfilesGrid">
               ${this.renderStylistCards(filtered)}
             </div>
 
@@ -333,9 +333,9 @@
                 <span style="flex: 1; height: 1px; background: var(--border-color);"></span>
               </div>
               <div class="stylist-card-gallery-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 18px;">
-                <img src="${p1}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 1" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300';">
-                <img src="${p2}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 2" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300';">
-                <img src="${p3}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 3" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300';">
+                <img src="${p1}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 1" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300';">
+                <img src="${p2}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 2" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300';">
+                <img src="${p3}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 3" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300';">
               </div>
             </div>
 

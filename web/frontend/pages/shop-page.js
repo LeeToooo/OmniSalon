@@ -93,7 +93,7 @@
 
       container.innerHTML = `
         <div class="shop-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); padding: 48px 0 88px;">
-          <div style="max-width: 1640px; width: 100%; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
+          <div class="shop-fluid-container">
             <!-- Header Banner (Editorial Visual Hierarchy) -->
             <div style="margin-bottom: 32px;">
               <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">

@@ -99,7 +99,7 @@
 
       const cleanSubtitle = (subtitle && !subtitle.toLowerCase().includes('khu vực'))
         ? subtitle
-        : (isFlagship ? 'Studio Flagship' : 'Cơ Sở Barbershop');
+        : 'Cơ Sở Barbershop';
 
       return {
         id,
@@ -139,12 +139,9 @@
                  class="branch-cover-img"
                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80';">
             
-            <!-- Huy hiệu quận & Loại chi nhánh -->
+            <!-- Huy hiệu quận -->
             <div class="branch-badges-top">
               <span class="branch-district-tag">${data.district}</span>
-              ${data.isFlagship ? `
-                <span class="branch-flagship-tag">FLAGSHIP VIP</span>
-              ` : ''}
             </div>
 
             <!-- Trạng thái hoạt động thời gian thực -->
