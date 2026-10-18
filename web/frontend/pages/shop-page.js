@@ -661,15 +661,20 @@
                   <span class="pdp-4rau-field-label">DUNG TÍCH / QUY CÁCH:</span>
                   <div class="pdp-4rau-chips-wrap" id="pdpVariantGroup">
                     ${variants.map((v, i) => `
-                      <button type="button" class="pdp-4rau-chip ${i === 0 ? 'active' : ''}" onclick="ShopPage.selectVariant(this, '${v}')">${v}</button>
+                      <button type="button" class="pdp-4rau-chip ${i === 0 ? 'active' : ''}" onclick="ShopPage.selectVariant(this, '${v}', '${prod.id}')">${v}</button>
                     `).join('')}
                   </div>
                 </div>
 
-                <!-- 7. Tồn Kho -->
-                <div class="pdp-4rau-field-row">
-                  <span class="pdp-4rau-field-label">TỒN KHO:</span>
-                  <span class="pdp-4rau-stock-val">${prod.stock || 80}</span>
+                <!-- 7. Tồn Kho & Chọn Chi Nhánh -->
+                <div class="pdp-4rau-field-row" style="align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    <span class="pdp-4rau-field-label">TỒN KHO:</span>
+                    <span class="pdp-4rau-stock-val">${prod.stock || 80}</span>
+                  </div>
+                  <button type="button" class="btn-check-branch-stock" onclick="ShopPage.openBranchStockModal('${prod.id}')" style="background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; color: #f59e0b; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                    📍 Chọn chi nhánh còn hàng
+                  </button>
                 </div>
 
                 <!-- 8. Số Lượng Chọn -->
@@ -1013,9 +1018,115 @@
       }
     },
 
-    selectVariant(btnEl, variantVal) {
+    selectVariant(btnEl, variantVal, productId) {
       document.querySelectorAll('.pdp-variant-btn, .pdp-4rau-chip').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
+      this.selectedVariant = variantVal;
+
+      const prod = window.store && typeof window.store.getProductById === 'function' ? window.store.getProductById(productId) : null;
+      if (!prod) return;
+
+      const basePrice = Number(prod.price || prod.GiaBan || prod.giaHienTai || 280000);
+      const baseOldPrice = Number(prod.originalPrice || prod.GiaNiemYet || basePrice * 1.15);
+
+      let mult = 1.0;
+      const vLower = String(variantVal || '').toLowerCase();
+      if (vLower.includes('100g') || vLower.includes('118ml') || vLower.includes('500ml') || vLower.includes('300ml')) {
+        mult = 1.55;
+      } else if (vLower.includes('150g') || vLower.includes('250ml') || vLower.includes('xl')) {
+        mult = 2.1;
+      } else if (vLower.includes('30ml') || vLower.includes('mini')) {
+        mult = 0.65;
+      }
+
+      const newPrice = Math.round((basePrice * mult) / 1000) * 1000;
+      const newOldPrice = Math.round((baseOldPrice * mult) / 1000) * 1000;
+
+      this.currentPdpPrice = newPrice;
+
+      const priceEl = document.querySelector('.pdp-4rau-price');
+      if (priceEl && window.SalonUtils) {
+        priceEl.textContent = SalonUtils.formatCurrency(newPrice);
+      }
+      const oldPriceEl = document.querySelector('.pdp-4rau-old-price');
+      if (oldPriceEl && window.SalonUtils) {
+        oldPriceEl.textContent = SalonUtils.formatCurrency(newOldPrice);
+      }
+    },
+
+    openBranchStockModal(productId) {
+      const modal = document.getElementById('globalModal');
+      const modalBody = document.getElementById('globalModalBody');
+      if (!modal || !modalBody) return;
+
+      const prod = (window.store && typeof window.store.getProductById === 'function') ? window.store.getProductById(productId) : null;
+      const prodName = prod ? (prod.name || prod.TenSanPham || 'Sản phẩm') : 'Sản phẩm';
+      const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
+
+      modal.classList.add('active');
+      modalBody.innerHTML = `
+        <div style="padding: 10px 4px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 11px; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">TỒN KHO THEO CHI NHÁNH</div>
+            <h2 style="font-size: 19px; font-weight: 800; color: #ffffff; margin: 0 0 6px;">${SalonUtils.escapeHtml(prodName)}</h2>
+            <p style="font-size: 13px; color: #94a3b8; margin: 0;">Quý khách vui lòng chọn chi nhánh còn hàng gần nhất để được phục vụ nhanh chóng</p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 380px; overflow-y: auto;">
+            ${branches.map((b, idx) => {
+              // Phân bổ mẫu tồn kho thực tế
+              const branchStock = idx === 0 ? 15 : (idx === 1 ? 8 : (idx === 2 ? 12 : 5));
+              const isAvailable = branchStock > 0;
+              return `
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 14.5px; color: #ffffff; margin-bottom: 2px;">${SalonUtils.escapeHtml(b.name)}</div>
+                    <div style="font-size: 12.5px; color: #94a3b8;">${SalonUtils.escapeHtml(b.address || 'TP. Hồ Chí Minh')}</div>
+                    <div style="margin-top: 6px;">
+                      ${isAvailable ? `
+                        <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 2px 8px; border-radius: 4px;">
+                          ✓ Còn ${branchStock} sản phẩm
+                        </span>
+                      ` : `
+                        <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #ef4444; background: rgba(239, 68, 68, 0.12); padding: 2px 8px; border-radius: 4px;">
+                          ✕ Tạm hết hàng
+                        </span>
+                      `}
+                    </div>
+                  </div>
+                  <div>
+                    ${isAvailable ? `
+                      <button class="btn-submit-terracotta" style="padding: 7px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; white-space: nowrap;"
+                              onclick="ShopPage.chooseBranchForProduct('${b.id}', '${SalonUtils.escapeHtml(b.name)}')">
+                        Chọn Chi Nhánh
+                      </button>
+                    ` : `
+                      <button disabled style="opacity: 0.5; padding: 7px 14px; font-size: 12px; border-radius: 8px; background: rgba(255,255,255,0.05); color: #888; border: none;">
+                        Hết Hàng
+                      </button>
+                    `}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div style="text-align: right;">
+            <button class="pill-btn-outline" style="padding: 8px 18px; font-size: 12.5px;" onclick="UICommon.closeGlobalModal()">Đóng</button>
+          </div>
+        </div>
+      `;
+    },
+
+    chooseBranchForProduct(branchId, branchName) {
+      if (window.CartPage && window.CartPage.checkoutData) {
+        window.CartPage.checkoutData.pickupBranchId = branchId;
+        window.CartPage.detectedNearestBranchId = branchId;
+      }
+      if (window.UICommon) {
+        window.UICommon.closeGlobalModal();
+        window.UICommon.showToast(`✓ Đã chọn ${branchName}. Đơn hàng nhận tại Salon sẽ được chuẩn bị sẵn tại đây!`, 'success');
+      }
     },
 
     changeDetailQty(delta) {
@@ -1029,8 +1140,11 @@
     handleDetailAddToCart(productId) {
       const input = document.getElementById('pdpDetailQtyInput');
       const qty = input ? (parseInt(input.value, 10) || 1) : 1;
+      const customData = {};
+      if (this.currentPdpPrice) customData.price = this.currentPdpPrice;
+      if (this.selectedVariant) customData.variant = this.selectedVariant;
       if (window.UICommon && typeof window.UICommon.addToCart === 'function') {
-        window.UICommon.addToCart(productId, 'product', qty);
+        window.UICommon.addToCart(productId, 'product', qty, customData);
       }
       this.updateCartBadge();
     },
@@ -1038,8 +1152,11 @@
     handleDetailBuyNow(productId) {
       const input = document.getElementById('pdpDetailQtyInput');
       const qty = input ? (parseInt(input.value, 10) || 1) : 1;
+      const customData = {};
+      if (this.currentPdpPrice) customData.price = this.currentPdpPrice;
+      if (this.selectedVariant) customData.variant = this.selectedVariant;
       if (window.UICommon && typeof window.UICommon.buyNow === 'function') {
-        window.UICommon.buyNow(productId, qty);
+        window.UICommon.buyNow(productId, qty, customData);
       }
     },
 

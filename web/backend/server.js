@@ -2263,6 +2263,40 @@ const server = http.createServer(async (req, res) => {
 
       if (pathname === '/api/orders' && method === 'POST') {
         const order = parsedBody || {};
+        const cnId = order.branchId || 'CN01';
+        const orderItems = Array.isArray(order.items) ? order.items : (Array.isArray(order.cartItems) ? order.cartItems : []);
+
+        // 1. Kiểm tra tồn kho khả dụng từng sản phẩm tại chi nhánh trước khi tạo đơn hàng
+        for (let i = 0; i < orderItems.length; i++) {
+          const it = orderItems[i];
+          const prodId = it.productId || it.id || it.MaSanPham;
+          const qty = parseInt(it.quantity || it.qty || it.SoLuong || 1, 10);
+          if (prodId && qty > 0) {
+            const stockCheck = await querySql(`
+              SELECT 
+                ISNULL(SUM(ctpn.SoLuongConLai), 0) AS TongTonKhaDung,
+                (SELECT TOP 1 TenSanPham FROM SanPham WHERE MaSanPham = ?) AS TenSanPham
+              FROM ChiTietPhieuNhap ctpn
+              INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
+              WHERE pnk.MaChiNhanh = ?
+                AND ctpn.MaSanPham = ?
+                AND ctpn.SoLuongConLai > 0
+                AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
+            `, [prodId, cnId, prodId]);
+
+            const availableStock = stockCheck && stockCheck[0] ? parseInt(stockCheck[0].TongTonKhaDung, 10) : 0;
+            const pName = stockCheck && stockCheck[0] && stockCheck[0].TenSanPham ? stockCheck[0].TenSanPham : (it.name || prodId);
+
+            if (availableStock < qty) {
+              res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+              return res.end(JSON.stringify({ 
+                success: false, 
+                error: `Sản phẩm "${pName}" tại chi nhánh chỉ còn ${availableStock} món, không đủ ${qty} yêu cầu!` 
+              }));
+            }
+          }
+        }
+
         const maxDh = await querySql(`SELECT TOP 1 MaDonHang FROM DonHang WHERE MaDonHang LIKE 'DH%' ORDER BY LEN(MaDonHang) DESC, MaDonHang DESC`);
         let nextN = 11;
         if (maxDh && maxDh[0]) {
@@ -2278,7 +2312,6 @@ const server = http.createServer(async (req, res) => {
           customerEmail: order.customerEmail
         });
 
-        const cnId = order.branchId || 'CN01';
         const total = parseFloat(order.totalAmount || order.totalPrice || 500000);
         const addr = (order.shippingAddress || 'Nhận tại quầy').trim();
         const methodStr = (order.receiveMethod || 'Giao hàng tận nơi').trim();
@@ -2290,31 +2323,42 @@ const server = http.createServer(async (req, res) => {
         );
 
         // Lưu chi tiết đơn hàng vào ChiTietDonHang chuẩn FEFO
-        const orderItems = Array.isArray(order.items) ? order.items : (Array.isArray(order.cartItems) ? order.cartItems : []);
-        for (let i = 0; i < orderItems.length; i++) {
-          const it = orderItems[i];
-          const prodId = it.productId || it.id || it.MaSanPham;
-          const qty = parseInt(it.quantity || it.qty || it.SoLuong || 1, 10);
-          if (prodId && qty > 0) {
-            try {
-              await querySql('EXEC sp_ThemChiTietDonHang @MaDonHang = ?, @MaSanPham = ?, @SoLuong = ?', [id, prodId, qty]);
-            } catch (spErr) {
-              const maxCtdh = await querySql(`SELECT TOP 1 MaChiTietDonHang FROM ChiTietDonHang WHERE MaChiTietDonHang LIKE 'CTDH%' AND LEN(MaChiTietDonHang) <= 10 ORDER BY LEN(MaChiTietDonHang) DESC, MaChiTietDonHang DESC`);
-              let nextCtdh = 11;
-              if (maxCtdh && maxCtdh[0]) {
-                const m = maxCtdh[0].MaChiTietDonHang.match(/CTDH(\d+)/i);
-                if (m) nextCtdh = parseInt(m[1], 10) + 1;
+        try {
+          for (let i = 0; i < orderItems.length; i++) {
+            const it = orderItems[i];
+            const prodId = it.productId || it.id || it.MaSanPham;
+            const qty = parseInt(it.quantity || it.qty || it.SoLuong || 1, 10);
+            if (prodId && qty > 0) {
+              try {
+                await querySql('EXEC sp_ThemChiTietDonHang @MaDonHang = ?, @MaSanPham = ?, @SoLuong = ?', [id, prodId, qty]);
+              } catch (spErr) {
+                // Nếu sp_ThemChiTietDonHang báo lỗi tồn kho, không chèn ép
+                const errMsg = spErr.message || '';
+                if (errMsg.includes('Tồn kho') || errMsg.includes('không đủ')) {
+                  throw spErr;
+                }
+                const maxCtdh = await querySql(`SELECT TOP 1 MaChiTietDonHang FROM ChiTietDonHang WHERE MaChiTietDonHang LIKE 'CTDH%' AND LEN(MaChiTietDonHang) <= 10 ORDER BY LEN(MaChiTietDonHang) DESC, MaChiTietDonHang DESC`);
+                let nextCtdh = 11;
+                if (maxCtdh && maxCtdh[0]) {
+                  const m = maxCtdh[0].MaChiTietDonHang.match(/CTDH(\d+)/i);
+                  if (m) nextCtdh = parseInt(m[1], 10) + 1;
+                }
+                const ctdhId = 'CTDH' + (nextCtdh < 10 ? '0' + nextCtdh : nextCtdh);
+                const unitPrice = parseFloat(it.price || it.actualPrice || it.GiaBan || 250000);
+                const ctpnRow = await querySql('SELECT TOP 1 MaChiTietPhieuNhap FROM ChiTietPhieuNhap WHERE MaSanPham = ? AND SoLuongConLai > 0 ORDER BY HanSuDung ASC', [prodId]);
+                const loId = (ctpnRow && ctpnRow[0]) ? ctpnRow[0].MaChiTietPhieuNhap : 'CTPN01001';
+                await querySql(
+                  `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+                  [ctdhId, id, prodId, loId, qty, unitPrice, unitPrice, unitPrice * qty]
+                );
               }
-              const ctdhId = 'CTDH' + (nextCtdh < 10 ? '0' + nextCtdh : nextCtdh);
-              const unitPrice = parseFloat(it.price || it.actualPrice || it.GiaBan || 250000);
-              const ctpnRow = await querySql('SELECT TOP 1 MaChiTietPhieuNhap FROM ChiTietPhieuNhap WHERE MaSanPham = ? AND SoLuongConLai > 0 ORDER BY HanSuDung ASC', [prodId]);
-              const loId = (ctpnRow && ctpnRow[0]) ? ctpnRow[0].MaChiTietPhieuNhap : 'CTPN01001';
-              await querySql(
-                `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
-                [ctdhId, id, prodId, loId, qty, unitPrice, unitPrice, unitPrice * qty]
-              );
             }
           }
+        } catch (detailErr) {
+          // Xóa đơn hàng chưa hoàn chỉnh nếu lỗi chi tiết
+          await querySql('DELETE FROM DonHang WHERE MaDonHang = ?', [id]);
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, error: detailErr.message || 'Lỗi xử lý tồn kho đơn hàng!' }));
         }
 
         console.log(`[SQL EXEC] Tạo đơn hàng mới chuẩn CSDL ${id} (Khách: ${khId}) cùng ${orderItems.length} chi tiết mặt hàng vào SQL Server!`);
@@ -2331,6 +2375,36 @@ const server = http.createServer(async (req, res) => {
             status: 'Processing' 
           } 
         }));
+      }
+
+      // --- HỦY ĐƠN HÀNG VÀ HOÀN TRẢ TỒN KHO ---
+      if (pathname.startsWith('/api/orders/') && pathname.endsWith('/cancel') && method === 'POST') {
+        const id = pathname.replace('/api/orders/', '').replace('/cancel', '').trim();
+        const reason = (parsedBody && parsedBody.reason) || 'Khách hàng yêu cầu hủy đơn';
+
+        const orderRow = await querySql('SELECT MaDonHang, TrangThai FROM DonHang WHERE MaDonHang = ?', [id]);
+        if (!orderRow || orderRow.length === 0) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${id}!` }));
+        }
+
+        // Cập nhật trạng thái đơn hàng sang Đã hủy
+        await querySql("UPDATE DonHang SET TrangThai = N'Đã hủy', GhiChu = ISNULL(GhiChu, '') + ' [Lý do hủy: ' + ? + ']' WHERE MaDonHang = ?", [reason, id]);
+
+        // Hoàn lại số lượng tồn kho theo từng lô ChiTietDonHang
+        const ctdhRows = await querySql('SELECT MaChiTietPhieuNhap, SoLuong FROM ChiTietDonHang WHERE MaDonHang = ?', [id]);
+        if (ctdhRows && ctdhRows.length > 0) {
+          for (const item of ctdhRows) {
+            if (item.MaChiTietPhieuNhap && item.SoLuong > 0) {
+              await querySql('UPDATE ChiTietPhieuNhap SET SoLuongConLai = SoLuongConLai + ? WHERE MaChiTietPhieuNhap = ?', [item.SoLuong, item.MaChiTietPhieuNhap]);
+            }
+          }
+        }
+
+        console.log(`[SQL EXEC] Đã hủy đơn hàng #${id} và hoàn trả tồn kho cho các lô CTPN thành công!`);
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, message: `Đã hủy đơn hàng #${id} thành công!` }));
       }
 
       // --- 17. POS CHECKOUT  - HÓA ĐƠN & THANH TOÁN TẠI QUẦY -  ---

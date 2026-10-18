@@ -662,6 +662,13 @@ const UICommon = {
       });
 
       this.closeGlobalModal();
+      if (window.BookingPage && typeof window.BookingPage.resetBookingState === 'function') {
+        window.BookingPage.resetBookingState();
+        const mainEl = document.getElementById('webMainContainer');
+        if (mainEl && mainEl.querySelector('#step1Content')) {
+          window.BookingPage.render(mainEl);
+        }
+      }
       this.openBookingSuccessModal(newBooking);
     } catch (err) {
       UICommon.showToast(err.message || 'Lỗi khi đặt lịch!', 'error');
@@ -743,10 +750,8 @@ const UICommon = {
   },
 
   showAddToCartSuccessModal(prod) {
-    const modal = document.getElementById('addToCartModal');
-    if (modal) {
-      modal.classList.add('active');
-    }
+    const prodName = prod ? (prod.name || prod.TenSanPham || 'Sản phẩm') : 'Sản phẩm';
+    this.showToast(`✓ Đã thêm "${prodName}" vào giỏ hàng thành công!`, 'success');
   },
 
   closeAddToCartModal() {

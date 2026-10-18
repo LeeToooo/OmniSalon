@@ -1507,8 +1507,6 @@
       const pagedBookings = filtered.slice((this.bookingsPage - 1) * this.pageSize, this.bookingsPage * this.pageSize);
 
       return `
-        ${customerSearchHtml}
-
         ${timelineHtml}
 
         <div class="admin-table-container">
@@ -1541,12 +1539,6 @@
                      value="${this.filterDate}" 
                      onchange="AdminWeb.filterDate = this.value; AdminWeb.bookingsPage = 1; AdminWeb.refreshBookingsTable();" 
                      title="Lọc theo ngày hẹn">
-            </div>
-
-            <div style="display:flex; gap: 8px;">
-              <button class="btn-submit-terracotta" style="padding: 6px 16px; font-size: 12px;" onclick="if(window.UICommon) window.UICommon.openBookingModal();">
-                + Thêm Lịch Hẹn Walk-in
-              </button>
             </div>
           </div>
 
@@ -3601,12 +3593,13 @@
       }
 
       if (this.auditSearchQuery) {
-        const q = this.auditSearchQuery.toLowerCase();
+        const norm = str => (str || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const q = norm(this.auditSearchQuery);
         filtered = filtered.filter(l =>
-          (l.operatorName && l.operatorName.toLowerCase().includes(q)) ||
-          (l.entity && l.entity.toLowerCase().includes(q)) ||
-          (l.details && l.details.toLowerCase().includes(q)) ||
-          (l.action && l.action.toLowerCase().includes(q))
+          norm(l.operatorName).includes(q) ||
+          norm(l.entity).includes(q) ||
+          norm(l.details).includes(q) ||
+          norm(l.action).includes(q)
         );
       }
 
@@ -3619,7 +3612,7 @@
         <div class="admin-table-container">
           <div class="admin-table-toolbar">
             <div class="table-filter-group">
-              <input type="text" class="table-search-input" placeholder="Tìm người, thao tác, đối tượng..." 
+              <input type="text" id="adminAuditSearchInput" class="table-search-input" placeholder="Tìm người, thao tác, đối tượng..." 
                      value="${this.escapeHtml(this.auditSearchQuery)}" 
                      oninput="AdminWeb.auditSearchQuery = this.value; AdminWeb.auditPage = 1; AdminWeb.refreshAuditView();">
 
@@ -3675,8 +3668,22 @@
     refreshAuditView() {
       const content = document.getElementById('adminSubTabContent');
       if (content && this.adminSubTab === 'audit') {
+        const input = document.getElementById('adminAuditSearchInput');
+        const hadFocus = input && document.activeElement === input;
+        const caret = input ? input.selectionStart : null;
+
         const auditLogs = window.store.getAuditLogs();
         content.innerHTML = this.renderAuditTab(auditLogs);
+
+        if (hadFocus) {
+          const newInput = document.getElementById('adminAuditSearchInput');
+          if (newInput) {
+            newInput.focus();
+            if (caret !== null) {
+              newInput.setSelectionRange(caret, caret);
+            }
+          }
+        }
       }
     },
 

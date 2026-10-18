@@ -7194,14 +7194,17 @@ body.dark .stylist-avatar-rating {
 .search-results-dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: -40px;
+  right: 0;
+  left: auto;
+  min-width: 380px;
+  width: 400px;
+  max-width: calc(100vw - 32px);
   background: var(--surface-elevated, #161A26);
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
   border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
   margin-top: 8px;
-  max-height: 380px;
+  max-height: 420px;
   overflow-y: auto;
   z-index: 1000;
   display: none;
@@ -7226,39 +7229,50 @@ body.dark .stylist-avatar-rating {
 }
 
 .search-result-group-title {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 800;
   color: #CBD5E1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 6px 8px 4px;
+  padding: 6px 10px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
 }
 
 .search-result-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px;
+  gap: 12px;
+  padding: 8px 10px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
 }
 
 .search-result-item:hover {
-  background: rgba(245, 158, 11, 0.12);
+  background: rgba(197, 155, 39, 0.14);
 }
 
 .search-item-thumb {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 6px;
   object-fit: cover;
   background: #10131C;
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  flex-shrink: 0;
+}
+
+.search-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .search-item-name {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #FFFFFF;
   white-space: nowrap;
@@ -7267,9 +7281,41 @@ body.dark .stylist-avatar-rating {
 }
 
 .search-item-meta {
-  font-size: 11px;
-  color: var(--brand-accent, #F59E0B);
+  font-size: 11.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #94A3B8;
+}
+
+.search-item-price {
+  color: #C59B27;
   font-weight: 800;
+}
+
+.search-item-sub {
+  color: #94A3B8;
+  font-weight: 500;
+  font-size: 11px;
+}
+
+.search-item-action-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #FAF8F5;
+  background: rgba(197, 155, 39, 0.16);
+  border: 1px solid rgba(197, 155, 39, 0.35);
+  border-radius: 6px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.search-result-item:hover .search-item-action-tag {
+  background: #C59B27;
+  color: #141413;
+  border-color: #C59B27;
 }
 
 /* Huy hiệu nổi bật */

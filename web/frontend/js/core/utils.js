@@ -35,19 +35,20 @@
      * Chuẩn hóa hiển thị trạng thái lịch hẹn (DRY Pattern)
      */
     formatBookingStatus(status) {
-      const s = String(status || '').toLowerCase();
-      switch (s) {
-        case 'confirmed':
-          return { key: 'confirmed', label: 'Đã xác nhận', cssClass: 'status-confirmed' };
-        case 'in_progress':
-          return { key: 'in_progress', label: 'Đang phục vụ', cssClass: 'status-in_progress' };
-        case 'completed':
-          return { key: 'completed', label: 'Đã hoàn thành', cssClass: 'status-completed' };
-        case 'cancelled':
-          return { key: 'cancelled', label: 'Đã hủy', cssClass: 'status-cancelled' };
-        default:
-          return { key: 'pending', label: 'Chờ xử lý', cssClass: 'status-confirmed' };
+      const s = String(status || '').toLowerCase().trim();
+      if (s === 'confirmed' || s === 'đã xác nhận' || s === 'xác nhận') {
+        return { key: 'confirmed', label: 'Đã xác nhận', cssClass: 'status-confirmed' };
       }
+      if (s === 'in_progress' || s === 'đang phục vụ' || s === 'đang thực hiện') {
+        return { key: 'in_progress', label: 'Đang phục vụ', cssClass: 'status-in_progress' };
+      }
+      if (s === 'completed' || s === 'đã hoàn thành' || s === 'hoàn thành') {
+        return { key: 'completed', label: 'Đã hoàn thành', cssClass: 'status-completed' };
+      }
+      if (s === 'cancelled' || s === 'đã hủy' || s === 'hủy' || s === 'canceled') {
+        return { key: 'cancelled', label: 'Đã hủy', cssClass: 'status-cancelled' };
+      }
+      return { key: 'pending', label: 'Chờ xử lý', cssClass: 'status-confirmed' };
     },
 
     generateId(prefix = 'id') {

@@ -186,23 +186,41 @@
     }
 
     async syncOrderToLiveServer(order) {
-      if (typeof fetch === 'undefined') return;
+      if (typeof fetch === 'undefined') return { success: true };
       try {
         const res = await fetch(`${this.liveServerUrl}/orders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(order)
         });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.order && data.order.id) {
-            order.id = data.order.id;
-            order.orderCode = data.order.id;
-            order.MaDonHang = data.order.id;
-            this.saveState();
-          }
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          return { success: false, error: data.error || 'Lỗi khi gửi đơn hàng tới máy chủ!' };
         }
-      } catch (_) { }
+        if (data && data.order && data.order.id) {
+          order.id = data.order.id;
+          order.orderCode = data.order.id;
+          order.MaDonHang = data.order.id;
+          this.saveState();
+        }
+        return { success: true, order: data.order || order };
+      } catch (err) {
+        return { success: true };
+      }
+    }
+
+    async syncCancelOrderToLiveServer(orderId, reason) {
+      if (typeof fetch === 'undefined') return { success: true };
+      try {
+        const res = await fetch(`${this.liveServerUrl}/orders/${orderId}/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        });
+        return await res.json().catch(() => ({ success: true }));
+      } catch (_) {
+        return { success: true };
+      }
     }
 
     async syncBookingStatusToLiveServer(bookingId, status, extraData = {}) {
@@ -1710,6 +1728,10 @@
       this.notify('CART_UPDATED', []);
     }
 
+    getOrders() {
+      return this.state.orders || [];
+    }
+
     async createOrder(orderData) {
       const branch = this.getBranchById(orderData.branchId) || this.getCurrentBranch();
 
@@ -1725,13 +1747,6 @@
           if (num > maxDhNum) maxDhNum = num;
         });
         orderCode = 'DH' + (maxDhNum + 1 < 10 ? '0' + (maxDhNum + 1) : (maxDhNum + 1));
-      }
-
-      // Trừ kho từng sản phẩm
-      if (Array.isArray(orderData.items)) {
-        orderData.items.forEach(it => {
-          this.decrementStock(branch ? branch.id : 'CN01', it.productId || it.id, it.qty || it.quantity || 1);
-        });
       }
 
       let discountAmount = Number(orderData.discountAmount || 0);
@@ -1773,14 +1788,51 @@
         createdAt: new Date().toISOString()
       };
 
+      // Gửi lên live server xác thực tồn kho trước
+      const syncResult = await this.syncOrderToLiveServer(newOrder);
+      if (syncResult && syncResult.success === false) {
+        return { error: syncResult.error || 'Tồn kho không đủ đáp ứng số lượng yêu cầu!' };
+      }
+
+      // Trừ kho từng sản phẩm sau khi server chấp thuận
+      if (Array.isArray(orderData.items)) {
+        orderData.items.forEach(it => {
+          this.decrementStock(branch ? branch.id : 'CN01', it.productId || it.id, it.qty || it.quantity || 1);
+        });
+      }
+
       if (!this.state.orders) this.state.orders = [];
       this.state.orders.unshift(newOrder);
       this.clearCart();
 
       this.logAudit('CREATE_ORDER', `Đơn: #${newOrder.orderCode}`, `Tổng: ${SalonUtils.formatCurrency(newOrder.totalAmount)}`);
       this.saveState();
-      await this.syncOrderToLiveServer(newOrder);
       return newOrder;
+    }
+
+    async cancelOrder(orderId, reason = 'Khách hàng yêu cầu hủy đơn') {
+      const order = (this.state.orders || []).find(o => o.id === orderId || o.orderCode === orderId || o.MaDonHang === orderId);
+      if (!order) return { success: false, error: 'Không tìm thấy đơn hàng cần hủy!' };
+
+      if (order.orderStatus === 'Cancelled' || order.TrangThai === 'Đã hủy') {
+        return { success: false, error: 'Đơn hàng này đã được hủy trước đó!' };
+      }
+
+      order.orderStatus = 'Cancelled';
+      order.TrangThai = 'Đã hủy';
+      order.cancelReason = reason;
+
+      // Hoàn lại tồn kho cho sản phẩm
+      if (Array.isArray(order.items)) {
+        order.items.forEach(it => {
+          this.incrementStock(order.branchId || 'CN01', it.productId || it.id, it.qty || it.quantity || 1);
+        });
+      }
+
+      this.logAudit('CANCEL_ORDER', `Đơn: #${order.orderCode || order.id}`, `Lý do: ${reason}`);
+      this.saveState();
+      await this.syncCancelOrderToLiveServer(order.id || order.orderCode, reason);
+      return { success: true, message: `Đã hủy đơn hàng #${order.orderCode || order.id} thành công!` };
     }
 
     // -----------------------------------------------------------------------
@@ -1801,7 +1853,7 @@
             shiftName: 'Ca Sáng (08:30 - 14:30)',
             date: new Date().toISOString().split('T')[0],
             status: 'ACTIVE',
-            note: 'Phụ trách 5 lượt khách cắt tóc hẹn trước'
+            note: 'Phục vụ khách cắt tóc theo lịch hẹn'
           },
           {
             id: 'shift-02',
@@ -1814,7 +1866,7 @@
             shiftName: 'Ca Trực Quản Lý (08:00 - 20:30)',
             date: new Date().toISOString().split('T')[0],
             status: 'ACTIVE',
-            note: 'Điều hành ca và tiếp đón khách VIP'
+            note: 'Điều hành ca và tiếp đón khách'
           },
           {
             id: 'shift-03',
@@ -1827,7 +1879,7 @@
             shiftName: 'Ca Thu Ngân Sáng (08:30 - 15:00)',
             date: new Date().toISOString().split('T')[0],
             status: 'ACTIVE',
-            note: 'Trực quầy POS 01 và in hóa đơn thanh toán'
+            note: 'Phụ trách máy POS và in hóa đơn thanh toán'
           }
         ];
       }

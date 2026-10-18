@@ -562,18 +562,6 @@
             `).join('')}
           </div>
 
-          <!-- MẸO GỢI Ý CHỌN NHIỀU GỌN GÀNG -->
-          <div style="background: rgba(197, 155, 39, 0.08); border-left: 3px solid #C59B27; border-radius: 6px; padding: 10px 16px; font-size: 13px; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-            <div>
-              <strong style="color: #C59B27;">Mẹo:</strong> Bạn có thể chọn <strong style="color: #C59B27;">nhiều dịch vụ cùng lúc</strong> (Cắt, Uốn, Cạo râu...). Omni Salon sẽ tự cộng dồn chi phí & thời lượng chuẩn xác.
-            </div>
-            ${calc.count > 0 ? `
-              <span style="font-size: 12px; font-weight: 700; color: #C59B27; background: rgba(197, 155, 39, 0.15); padding: 3px 10px; border-radius: 12px;">
-                Đã chọn ${calc.count} dịch vụ
-              </span>
-            ` : ''}
-          </div>
-
           <!-- DANH SÁCH GÓI COMBO TIẾT KIỆM (NẾU CÓ) -->
           ${filteredCombos.length > 0 ? `
             <div>

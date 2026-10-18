@@ -36,12 +36,16 @@
         ? window.store.getProducts()
         : [];
 
+      if (cart.length === 0 && this.currentStep !== 4) {
+        this.currentStep = 1;
+      }
+
       const totalQty = cart.reduce((sum, item) => sum + (Number(item.qty) || 1), 0);
       const subtotal = cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
 
-      // Tinh phi van chuyen va voucher
+      // Tinh phi van chuyen va voucher (30.000 đ khi giao hàng tận nơi)
       const isDelivery = this.checkoutData.deliveryType === 'DELIVERY';
-      const shippingFee = (subtotal >= 500000 || subtotal === 0 || !isDelivery) ? 0 : 30000;
+      const shippingFee = (subtotal === 0 || !isDelivery) ? 0 : 30000;
       let discountAmount = 0;
       let appliedVoucher = null;
 
@@ -56,11 +60,19 @@
         .filter(p => !cart.some(c => c.productId === (p.id || p.MaSanPham)))
         .slice(0, 6);
 
-      // Khoi tao du lieu nguoi nhan neu chua co
+      // Tự động cập nhật thông tin người nhận khi đăng nhập tài khoản khác
       const user = (window.store && typeof window.store.getCurrentUser === 'function') ? window.store.getCurrentUser() : null;
-      if (user && !this.checkoutData.recipientName) {
-        this.checkoutData.recipientName = user.fullName || user.name || '';
-        this.checkoutData.recipientPhone = user.phone || '';
+      const currentUserId = user ? (user.id || user.phone || user.username) : null;
+      if (this.lastUserId !== currentUserId) {
+        this.lastUserId = currentUserId;
+        if (user) {
+          this.checkoutData.recipientName = user.fullName || user.name || '';
+          this.checkoutData.recipientPhone = user.phone || '';
+        } else {
+          this.checkoutData.recipientName = '';
+          this.checkoutData.recipientPhone = '';
+        }
+        this.checkoutData.notes = '';
       }
 
       container.innerHTML = `
@@ -330,7 +342,7 @@
                   <input type="radio" name="delType" class="checkout-method-radio" ${this.checkoutData.deliveryType === 'DELIVERY' ? 'checked' : ''}>
                   <div class="checkout-method-info">
                     <div class="checkout-method-name">Giao hàng tận nơi</div>
-                    <div class="checkout-method-desc">Ship COD toàn quốc 30k</div>
+                    <div class="checkout-method-desc">Phí ship 30.000 đ</div>
                   </div>
                 </div>
               </div>
@@ -347,8 +359,12 @@
                   <label class="sub-label">Địa chỉ nhận hàng chi tiết:</label>
                   <input type="text" id="stepAddressInput" class="form-control-custom" 
                          placeholder="Số nhà, tên đường, phường xã, quận huyện, tỉnh thành..." 
-                         value="${this.checkoutData.recipientAddress || ''}"
-                         oninput="CartPage.checkoutData.recipientAddress = this.value" required>
+                         value="${this.escapeHtml(this.checkoutData.recipientAddress || '')}"
+                         oninput="CartPage.handleAddressInput(this.value)" required>
+                  <div id="nearestBranchNotice" style="margin-top: 8px; padding: 10px 14px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; font-size: 13px; color: #10b981; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">📍</span>
+                    <span>Đơn hàng sẽ được xuất từ chi nhánh gần bạn nhất: <strong id="nearestBranchName">${this._getNearestBranchName()}</strong> (Giao nhanh trong 2h)</span>
+                  </div>
                 </div>
               `}
 
@@ -543,9 +559,26 @@
         return;
       }
 
+      // Kiểm tra tồn kho khả dụng trước khi đặt (Issue 13 Doc 3)
+      for (const item of cart) {
+        const prod = (window.store && typeof window.store.getProductById === 'function') ? window.store.getProductById(item.productId) : null;
+        const availableStock = prod && prod.stock !== undefined ? Number(prod.stock) : 80;
+        const requestedQty = Number(item.qty || 1);
+        if (requestedQty > availableStock) {
+          if (window.UICommon) {
+            window.UICommon.showToast(`Sản phẩm "${item.name}" tại chi nhánh chỉ còn ${availableStock} món, không đủ ${requestedQty} yêu cầu!`, 'error');
+          }
+          return;
+        }
+      }
+
+      const orderBranchId = this.checkoutData.deliveryType === 'PICKUP_BRANCH'
+        ? this.checkoutData.pickupBranchId
+        : (this.detectedNearestBranchId || 'CN01');
+
       const orderData = {
         deliveryType: this.checkoutData.deliveryType,
-        branchId: this.checkoutData.pickupBranchId,
+        branchId: orderBranchId,
         customerName: this.checkoutData.recipientName,
         customerPhone: this.checkoutData.recipientPhone,
         shippingAddress: this.checkoutData.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : this.checkoutData.recipientAddress,
@@ -558,6 +591,11 @@
       let newOrder = null;
       if (window.store && typeof window.store.createOrder === 'function') {
         newOrder = await window.store.createOrder(orderData);
+      }
+
+      if (newOrder && newOrder.error) {
+        if (window.UICommon) window.UICommon.showToast(newOrder.error, 'error');
+        return;
       }
 
       if (!newOrder) {
@@ -624,10 +662,10 @@
           ` : ''}
 
           <div style="display: flex; gap: 12px; justify-content: center;">
-            <button type="button" class="cart-primary-action-btn" onclick="if(window.AppRouter) window.AppRouter.navigate('/shop');">
+            <button type="button" class="cart-primary-action-btn" onclick="CartPage.setStep(1); if(window.AppRouter) window.AppRouter.navigate('/shop');">
               ← Tiếp Tục Mua Sắm
             </button>
-            <button type="button" class="checkout-back-btn" style="flex: 0 0 auto; padding: 0 20px;" onclick="if(window.AppRouter) window.AppRouter.navigate('/');">
+            <button type="button" class="checkout-back-btn" style="flex: 0 0 auto; padding: 0 20px;" onclick="CartPage.setStep(1); if(window.AppRouter) window.AppRouter.navigate('/');">
               Về Trang Chủ
             </button>
           </div>
@@ -715,6 +753,31 @@
       if (container) {
         this.render(container);
       }
+    },
+
+    _getNearestBranchName() {
+      const addr = (this.checkoutData.recipientAddress || '').toLowerCase();
+      const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
+      if (addr.includes('quận 6') || addr.includes('hậu giang') || addr.includes('bình tân') || addr.includes('q6') || addr.includes('q.6')) {
+        this.detectedNearestBranchId = 'CN02';
+        const b = branches.find(x => x.id === 'CN02');
+        return b ? b.name : 'Omni Salon Barber Q6 - Hậu Giang';
+      }
+      if (addr.includes('quận 7') || addr.includes('phú mỹ hưng') || addr.includes('nhà bè') || addr.includes('q7') || addr.includes('q.7')) {
+        this.detectedNearestBranchId = 'CN03';
+        const b = branches.find(x => x.id === 'CN03');
+        return b ? b.name : 'Omni Salon Barber Q7 - Phú Mỹ Hưng';
+      }
+      this.detectedNearestBranchId = 'CN01';
+      const b = branches.find(x => x.id === 'CN01');
+      return b ? b.name : 'Omni Salon Barber Q1 - Bến Thành';
+    },
+
+    handleAddressInput(val) {
+      this.checkoutData.recipientAddress = val;
+      const name = this._getNearestBranchName();
+      const noticeEl = document.getElementById('nearestBranchName');
+      if (noticeEl) noticeEl.textContent = name;
     },
 
     _bindEvents() {

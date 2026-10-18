@@ -733,16 +733,19 @@
       let html = '';
 
       if (hasServices) {
-        html += `<div class="search-result-group-title">Dịch Vụ & Combo Trọn Gói (${results.services.length})</div>`;
+        html += `<div class="search-result-group-title">Dịch Vụ &amp; Combo Trọn Gói (${results.services.length})</div>`;
         results.services.slice(0, 5).forEach(s => {
           html += `
             <div class="search-result-item" onclick="CustomerWeb.selectSearchResultService('${s.id}')">
               <img src="${SalonUtils.formatImageUrl(s.image || (s.isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg'))}" class="search-item-thumb" alt="${this.escapeHtml(s.name)}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/Men_Grooming_Products/DichVu_Men/DV1.jpg');">
-              <div style="flex: 1; min-width: 0;">
-                <div class="search-item-name">${this.escapeHtml(s.name)}</div>
-                <div class="search-item-meta">${SalonUtils.formatCurrency(s.price)} • ${s.duration || 45} phút ${s.isCombo ? '• [Combo VIP]' : ''}</div>
+              <div class="search-item-info">
+                <div class="search-item-name" title="${this.escapeHtml(s.name)}">${this.escapeHtml(s.name)}</div>
+                <div class="search-item-meta">
+                  <span class="search-item-price">${SalonUtils.formatCurrency(s.price)}</span>
+                  <span class="search-item-sub">• ${s.duration || 45} phút ${s.isCombo ? '• Combo' : ''}</span>
+                </div>
               </div>
-              <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px;">Đặt Lịch</button>
+              <span class="search-item-action-tag">Đặt →</span>
             </div>
           `;
         });
@@ -750,16 +753,19 @@
 
       if (hasProducts) {
         html += `<div class="search-result-group-title">Sản Phẩm Tóc Chính Hãng (${results.products.length})</div>`;
-        results.products.slice(0, 5).forEach(p => {
+        results.products.slice(0, 6).forEach(p => {
           const pImg = SalonUtils.formatImageUrl(p.image || p.HinhAnh);
           html += `
             <div class="search-result-item" onclick="CustomerWeb.selectSearchResultProduct('${p.id}')">
               <img src="${pImg}" class="search-item-thumb" alt="${this.escapeHtml(p.name)}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=120&q=80');">
-              <div style="flex: 1; min-width: 0;">
-                <div class="search-item-name">${this.escapeHtml(p.name)}</div>
-                <div class="search-item-meta">${SalonUtils.formatCurrency(p.price)} • ${this.escapeHtml(p.brand || 'CHÍNH HÃNG')}</div>
+              <div class="search-item-info">
+                <div class="search-item-name" title="${this.escapeHtml(p.name)}">${this.escapeHtml(p.name)}</div>
+                <div class="search-item-meta">
+                  <span class="search-item-price">${SalonUtils.formatCurrency(p.price)}</span>
+                  <span class="search-item-sub">• ${this.escapeHtml(p.brand || 'CHÍNH HÃNG')}</span>
+                </div>
               </div>
-              <button class="btn-submit-terracotta" style="font-size: 11px; padding: 4px 10px;">Xem Chi Tiết</button>
+              <span class="search-item-action-tag">Xem →</span>
             </div>
           `;
         });
@@ -801,11 +807,12 @@
     // -----------------------------------------------------------------------
     // 3. TRA CỨU LỊCH HẸN BẰNG SĐT / MÃ LỊCH  #LH-...  KÈM HỦY LỊCH
     // -----------------------------------------------------------------------
-    openLookupModal(prefillValue = '') {
+    openLookupModal(prefillValue = '', initialTab = 'bookings') {
       const modal = document.getElementById('globalModal');
       const modalBody = document.getElementById('globalModalBody');
       if (!modal || !modalBody) return;
 
+      this.lookupTab = initialTab || 'bookings';
       const user = this.getCurrentUser();
       const isAdmin = this.isAdminUser(user);
       const isCustomer = user && !isAdmin;
@@ -815,46 +822,225 @@
       modal.classList.add('active', 'modal-lookup');
       const shell = modal.querySelector('.modal-content-shell');
       if (shell) {
-        shell.style.maxWidth = '520px';
+        shell.style.maxWidth = '560px';
       }
 
       modalBody.innerHTML = `
         <div class="lookup-modal-content">
-          <div class="lookup-modal-header" style="text-align: center; margin-bottom: 20px;">
-            <h2 class="lookup-modal-title" style="font-size: 20px; font-weight: 700; margin: 0 0 6px; color: #FFFFFF; letter-spacing: -0.01em;">Tra Cứu Lịch Hẹn</h2>
+          <div class="lookup-modal-header" style="text-align: center; margin-bottom: 16px;">
+            <h2 class="lookup-modal-title" style="font-size: 20px; font-weight: 700; margin: 0 0 6px; color: #FFFFFF; letter-spacing: -0.01em;">Tra Cứu Lịch Hẹn &amp; Đơn Hàng</h2>
             <p class="lookup-modal-subtitle" style="font-size: 13px; color: #94A3B8; margin: 0; line-height: 1.5;">
               ${isCustomer
-          ? `Lịch hẹn đã đặt của quý khách: <strong style="color: #F8FAFC;">${this.escapeHtml(user.fullName || user.name)}</strong>`
-          : 'Nhập số điện thoại hoặc mã lịch hẹn để kiểm tra trạng thái dịch vụ'}
+          ? `Thông tin lịch hẹn và đơn hàng của quý khách: <strong style="color: #F8FAFC;">${this.escapeHtml(user.fullName || user.name)}</strong>`
+          : 'Nhập số điện thoại hoặc mã tra cứu để kiểm tra trạng thái dịch vụ & đơn hàng'}
             </p>
           </div>
 
+          <!-- Tabs Chuyển Đổi Tra Cứu: Lịch Hẹn vs Đơn Hàng (Test 2 Issue 3) -->
+          <div style="display: flex; gap: 8px; margin-bottom: 16px; background: rgba(255, 255, 255, 0.05); padding: 4px; border-radius: 10px;">
+            <button id="lookupTabBookingsBtn" class="lookup-tab-switch-btn" onclick="CustomerWeb.switchLookupTab('bookings')" style="flex: 1; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; background: ${this.lookupTab !== 'orders' ? '#f59e0b' : 'transparent'}; color: ${this.lookupTab !== 'orders' ? '#000000' : '#94a3b8'}; transition: all 0.2s;">
+              📅 Lịch Hẹn Cắt Tóc
+            </button>
+            <button id="lookupTabOrdersBtn" class="lookup-tab-switch-btn" onclick="CustomerWeb.switchLookupTab('orders')" style="flex: 1; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; background: ${this.lookupTab === 'orders' ? '#f59e0b' : 'transparent'}; color: ${this.lookupTab === 'orders' ? '#000000' : '#94a3b8'}; transition: all 0.2s;">
+              📦 Đơn Hàng Mỹ Phẩm
+            </button>
+          </div>
+
           ${isCustomer ? `
-            <!-- Khach hang da dang nhap tu dong tai lich cua chinh minh -->
             <input type="hidden" id="lookupSearchInput" value="${this.escapeHtml(defaultQuery)}">
           ` : `
             <div class="lookup-search-bar" style="display: flex; gap: 8px; margin-bottom: 16px;">
               <input type="text" id="lookupSearchInput" class="form-control-custom" 
-                     placeholder="Nhập SĐT của bạn ví dụ 0908123456..." 
+                     placeholder="${this.lookupTab === 'orders' ? 'Nhập SĐT hoặc Mã đơn hàng (VD: DH11)...' : 'Nhập SĐT của bạn ví dụ 0908123456...'}" 
                      value="${this.escapeHtml(defaultQuery)}"
                      style="height: 44px; font-size: 14px; flex: 1;"
-                     onkeydown="if(event.key === 'Enter') CustomerWeb.searchBookingLookup()">
-              <button class="btn-submit-terracotta" style="white-space: nowrap; height: 44px; padding: 0 20px;" onclick="CustomerWeb.searchBookingLookup()">
-                Tìm Lịch
+                     onkeydown="if(event.key === 'Enter') (CustomerWeb.lookupTab === 'orders' ? CustomerWeb.searchOrderLookup() : CustomerWeb.searchBookingLookup())">
+              <button class="btn-submit-terracotta" id="lookupSearchSubmitBtn" style="white-space: nowrap; height: 44px; padding: 0 20px;" onclick="CustomerWeb.lookupTab === 'orders' ? CustomerWeb.searchOrderLookup() : CustomerWeb.searchBookingLookup()">
+                ${this.lookupTab === 'orders' ? 'Tìm Đơn' : 'Tìm Lịch'}
               </button>
             </div>
           `}
 
           <div id="lookupResultsContainer">
             <div style="padding: 28px 16px; text-align: center; color: #94A3B8; font-size: 13px; background: rgba(255, 255, 255, 0.03); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08);">
-              Đang tải thông tin lịch hẹn của bạn...
+              Đang tải thông tin...
             </div>
           </div>
         </div>
       `;
 
-      if (defaultQuery || isCustomer) {
-        setTimeout(() => this.searchBookingLookup(), 50);
+      setTimeout(() => {
+        if (this.lookupTab === 'orders') {
+          this.searchOrderLookup();
+        } else {
+          this.searchBookingLookup();
+        }
+      }, 50);
+    },
+
+    switchLookupTab(tab) {
+      this.lookupTab = tab;
+      const btnBookings = document.getElementById('lookupTabBookingsBtn');
+      const btnOrders = document.getElementById('lookupTabOrdersBtn');
+      const searchBtn = document.getElementById('lookupSearchSubmitBtn');
+      const searchInput = document.getElementById('lookupSearchInput');
+
+      if (btnBookings) {
+        btnBookings.style.background = tab === 'bookings' ? '#f59e0b' : 'transparent';
+        btnBookings.style.color = tab === 'bookings' ? '#000000' : '#94a3b8';
+      }
+      if (btnOrders) {
+        btnOrders.style.background = tab === 'orders' ? '#f59e0b' : 'transparent';
+        btnOrders.style.color = tab === 'orders' ? '#000000' : '#94a3b8';
+      }
+      if (searchBtn) {
+        searchBtn.textContent = tab === 'orders' ? 'Tìm Đơn' : 'Tìm Lịch';
+      }
+      if (searchInput && searchInput.type !== 'hidden') {
+        searchInput.placeholder = tab === 'orders' ? 'Nhập SĐT hoặc Mã đơn hàng (VD: DH11)...' : 'Nhập SĐT của bạn ví dụ 0908123456...';
+      }
+
+      if (tab === 'orders') {
+        this.searchOrderLookup();
+      } else {
+        this.searchBookingLookup();
+      }
+    },
+
+    searchOrderLookup() {
+      const container = document.getElementById('lookupResultsContainer');
+      const input = document.getElementById('lookupSearchInput');
+      if (!container) return;
+
+      const user = this.getCurrentUser();
+      const isAdmin = this.isAdminUser(user);
+      const isCustomer = user && !isAdmin;
+
+      const rawQuery = isCustomer ? (user.phone || user.id || '') : (input ? input.value.trim() : '');
+      const query = rawQuery.toLowerCase();
+
+      const orders = (window.store && typeof window.store.getOrders === 'function') 
+        ? window.store.getOrders() 
+        : (window.store && window.store.state && window.store.state.orders ? window.store.state.orders : []);
+
+      let matches = orders.filter(o => {
+        if (!query) return true;
+        const oCode = (o.orderCode || o.id || o.MaDonHang || '').toLowerCase();
+        const cPhone = (o.customerPhone || '').toLowerCase();
+        const cName = (o.customerName || '').toLowerCase();
+        const uId = (o.userId || '').toLowerCase();
+        return oCode.includes(query) || cPhone.includes(query) || cName.includes(query) || uId === query;
+      });
+
+      if (isCustomer) {
+        matches = matches.filter(o => (user.phone && o.customerPhone && o.customerPhone.trim() === user.phone.trim()) || (user.id && o.userId === user.id));
+      }
+
+      if (!matches || matches.length === 0) {
+        container.innerHTML = `
+          <div style="padding: 28px 20px; text-align: center; background: var(--surface-elevated); border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="font-size: 15px; font-weight: 700; color: #f59e0b; margin-bottom: 6px;">
+              ${isCustomer ? 'Quý khách chưa có đơn hàng mỹ phẩm nào.' : `Không tìm thấy đơn hàng nào khớp với "${this.escapeHtml(rawQuery)}".`}
+            </div>
+            <div style="color: var(--text-secondary); font-size: 13px; margin-bottom: 18px;">
+              ${isCustomer ? 'Mời quý khách ghé thăm danh mục sáp vuốt và mỹ phẩm chính hãng tại Omni Salon.' : 'Quý khách vui lòng kiểm tra lại số điện thoại hoặc mã đơn hàng.'}
+            </div>
+            <div>
+              <button class="btn-submit-terracotta" style="padding: 10px 24px; font-size: 13.5px; font-weight: 800; border-radius: 10px;" onclick="UICommon.closeGlobalModal(); if(window.AppRouter) window.AppRouter.navigate('/shop'); else CustomerWeb.switchTab('shop');">
+                + Mua Mỹ Phẩm Ngay
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px;">
+          ${isCustomer ? `Đơn hàng của bạn (${matches.length} đơn):` : `Tìm thấy ${matches.length} đơn hàng:`}
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto;">
+          ${matches.map(o => {
+            const oCode = o.orderCode || o.id || o.MaDonHang || 'DH';
+            const statusStr = String(o.orderStatus || o.TrangThai || 'Processing');
+            const isCancelled = statusStr === 'Cancelled' || statusStr === 'Đã hủy';
+            const isCompleted = statusStr === 'Completed' || statusStr === 'Đã giao';
+            const isCancellable = !isCancelled && !isCompleted;
+            const items = Array.isArray(o.items) ? o.items : [];
+            const formattedDate = o.createdAt ? SalonUtils.formatDate(o.createdAt) : (o.orderDate ? SalonUtils.formatDate(o.orderDate) : 'Hôm nay');
+
+            let statusLabel = 'Đang xử lý';
+            let statusBadgeClass = 'status-confirmed';
+            if (isCancelled) {
+              statusLabel = 'Đã hủy';
+              statusBadgeClass = 'status-cancelled';
+            } else if (isCompleted) {
+              statusLabel = 'Đã giao hàng';
+              statusBadgeClass = 'status-completed';
+            }
+
+            return `
+              <div class="lookup-card-result" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; opacity: ${isCancelled ? '0.75' : '1'};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <span style="font-size: 14.5px; font-weight: 800; color: var(--text-primary); font-family: monospace;">
+                    #${this.escapeHtml(oCode)}
+                  </span>
+                  <span class="status-pill-pulse ${statusBadgeClass}">
+                    <span class="pulse-dot"></span> ${statusLabel}
+                  </span>
+                </div>
+                <div style="font-size: 13px; line-height: 1.6; color: var(--text-secondary);">
+                  <div><strong style="color: var(--text-primary);">Ngày đặt:</strong> ${formattedDate}</div>
+                  <div><strong style="color: var(--text-primary);">Người nhận:</strong> ${this.escapeHtml(o.customerName || 'Khách hàng')} (${this.escapeHtml(o.customerPhone || '')})</div>
+                  <div><strong style="color: var(--text-primary);">Hình thức:</strong> ${this.escapeHtml(o.shippingAddress || (o.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy' : 'Giao tận nơi'))}</div>
+                  <div style="margin-top: 6px; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                    <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Sản phẩm (${items.length}):</div>
+                    ${items.map(it => `
+                      <div style="display: flex; justify-content: space-between; font-size: 12.5px;">
+                        <span>• ${this.escapeHtml(it.name || it.TenSanPham || 'Mỹ phẩm')} × ${it.qty || it.quantity || 1}</span>
+                        <strong style="color: var(--brand-accent);">${SalonUtils.formatCurrency((Number(it.price) || 0) * (Number(it.qty) || 1))}</strong>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: var(--text-primary);">Tổng thanh toán:</strong>
+                    <strong style="color: var(--brand-accent); font-size: 16px;">${SalonUtils.formatCurrency(o.totalAmount || 0)}</strong>
+                  </div>
+                </div>
+                ${isCancellable ? `
+                  <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end;">
+                    <button class="pill-btn-outline" style="font-size: 11px; padding: 6px 14px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
+                            onclick="CustomerWeb.cancelOrderByCustomer('${o.id || o.orderCode}')">
+                      Hủy Đơn Hàng
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    },
+
+    cancelOrderByCustomer(orderId) {
+      if (!orderId) return;
+      const reason = prompt(`Vui lòng nhập lý do hủy đơn hàng #${orderId}:`, 'Tôi muốn thay đổi địa chỉ hoặc sản phẩm');
+      if (reason === null) return;
+      const cleanReason = reason.trim();
+      if (!cleanReason || cleanReason.length < 3) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do hủy cụ thể (tối thiểu 3 ký tự)', 'warning');
+        return;
+      }
+
+      if (window.store && typeof window.store.cancelOrder === 'function') {
+        window.store.cancelOrder(orderId, cleanReason).then(res => {
+          if (res && res.success) {
+            if (window.UICommon) window.UICommon.showToast(res.message || `Đã hủy đơn hàng #${orderId} thành công!`);
+            this.searchOrderLookup();
+          } else {
+            if (window.UICommon) window.UICommon.showToast(res?.error || 'Lỗi khi hủy đơn hàng!', 'error');
+          }
+        });
       }
     },
 
@@ -915,13 +1101,44 @@
         <div style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;">
           ${matches.map(b => {
         const statusInfo = SalonUtils.formatBookingStatus(b.status);
-        const isCancellable = b.status !== 'cancelled' && b.status !== 'completed';
+        const isCompleted = statusInfo.key === 'completed';
+        const isCancelled = statusInfo.key === 'cancelled';
+        const isCancellable = !isCompleted && !isCancelled;
         const branch = branchMap.get(String(b.branchId)) || {};
         const stylist = stylistMap.get(String(b.stylistId)) || {};
         const service = serviceMap.get(String(b.serviceId)) || {};
         const branchName = b.branchName || branch.name || 'Omni Salon Suite';
         const stylistName = b.stylistName || stylist.name || 'Bất kỳ';
         const serviceName = b.serviceName || service.name || 'Cắt Tóc';
+
+        if (isCompleted) {
+          return `
+            <div class="lookup-card-result completed-booking-card" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 14px; opacity: 0.92;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">
+                  ${isAdmin ? `#${this.escapeHtml(b.id || b.bookingCode)}` : 'Lịch Hẹn Cắt Tóc'}
+                </span>
+                <span class="status-pill-pulse ${statusInfo.cssClass}" style="font-size: 11px; padding: 2px 8px;">
+                  <span class="pulse-dot"></span> ${statusInfo.label}
+                </span>
+              </div>
+              <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <div><strong style="color: var(--text-primary);">Dịch vụ:</strong> ${this.escapeHtml(serviceName)}</div>
+                <div><strong style="color: var(--text-primary);">Giờ hẹn:</strong> <span style="color: var(--brand-accent); font-weight: 700;">${b.timeSlot} | ${SalonUtils.formatDate(b.date || b.bookingDate)}</span></div>
+                <div><strong style="color: var(--text-primary);">Chi nhánh:</strong> ${this.escapeHtml(branchName)}</div>
+                <div><strong style="color: var(--text-primary);">Chi phí:</strong> <strong style="color: var(--brand-accent);">${SalonUtils.formatCurrency(b.totalPrice || 0)}</strong></div>
+              </div>
+              <div style="margin-top: 8px; display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px;" onclick="CustomerWeb.showTicketQr('${b.id}')">
+                  Xem Vé QR
+                </button>
+                <button class="btn-submit-terracotta" style="font-size: 11px; padding: 4px 12px;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
+                  + Đặt Lại Lịch
+                </button>
+              </div>
+            </div>
+          `;
+        }
 
         return `
               <div class="lookup-card-result" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
@@ -976,9 +1193,12 @@
       if (!modal || !modalBody) return;
 
       const roleUpper = String(user.role || user.vaiTroSql || user.VaiTro || user.ChucVu || '').toUpperCase();
-      const isStylist = roleUpper.includes('THỢ') || roleUpper.includes('STYLIST');
+      const capBacUpper = String(user.capBacSql || user.CapBac || '').toUpperCase();
+      const isThoPhu = roleUpper.includes('PHỤ') || capBacUpper.includes('JUNIOR') || capBacUpper.includes('PHỤ');
+      const isThoChinh = (roleUpper.includes('CHÍNH') || capBacUpper.includes('MASTER') || roleUpper.includes('QUẢN LÝ')) && !isThoPhu;
+      const isStylist = isThoPhu || isThoChinh || roleUpper.includes('THỢ') || roleUpper.includes('STYLIST');
       const isCashier = roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER');
-      const staffRoleName = isStylist ? 'Thợ Barber Tạo Mẫu' : (isCashier ? 'Thu Ngân Quầy POS' : 'Nhân Viên Salon');
+      const staffRoleName = isThoPhu ? 'Thợ Phụ Barber' : (isThoChinh ? 'Thợ Chính Barber' : (isCashier ? 'Thu Ngân Quầy POS' : 'Nhân Viên Salon'));
 
       const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
       const userBranch = branches.find(b => b.id === user.branchId) || branches[0] || { id: 'CN01', name: 'Omni Salon Barber Q1 - Bến Thành' };
@@ -992,8 +1212,19 @@
         shiftName: isStylist ? 'Ca Sáng (08:30 - 14:30)' : 'Ca Thu Ngân Sáng (08:30 - 15:00)',
         status: 'ACTIVE',
         branchName: userBranch.name,
-        note: isStylist ? 'Trực 5 ghế cắt chính và phục vụ khách hẹn trước' : 'Phụ trách máy POS 01 và in phiếu hóa đơn'
+        note: isCashier ? 'Phụ trách máy POS và in phiếu hóa đơn' : (isThoPhu ? 'Phục vụ khách cắt tóc' : 'Điều hành ca và tiếp đón khách')
       };
+
+      if (todayShift.note) {
+        todayShift.note = todayShift.note
+          .replace(/\s*VIP\s*/gi, ' ')
+          .replace(/Trực 5 ghế cắt chính và phục vụ khách hẹn trước/gi, isThoPhu ? 'Phục vụ khách cắt tóc' : 'Điều hành ca và tiếp đón khách')
+          .replace(/Phụ trách 5 lượt khách cắt tóc hẹn trước/gi, isThoPhu ? 'Phục vụ khách cắt tóc' : 'Điều hành ca và tiếp đón khách')
+          .replace(/Phụ trách máy POS 01/gi, 'Phụ trách máy POS')
+          .replace(/Trực quầy POS 01/gi, 'Trực quầy POS')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
 
       // Lấy danh sách khách hẹn của thợ hôm nay nếu là Stylist
       const allBookings = (window.store && typeof window.store.getBookings === 'function') ? window.store.getBookings() : [];
@@ -1039,7 +1270,7 @@
                 </div>
               ` : `
                 <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
-                  <strong>Trạng thái POS:</strong> <span style="color: #10b981; font-weight: 800;">Quầy 01 Sẵn Sàng Thanh Toán</span>
+                  <strong>Trạng thái POS:</strong> <span style="color: #10b981; font-weight: 800;">Quầy POS Sẵn Sàng Thanh Toán</span>
                 </div>
               `}
             </div>
