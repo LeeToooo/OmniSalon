@@ -126,7 +126,7 @@
         this.expandedSteps.step3 = true;
       }
 
-      if (!this.bookingState.branchId || this.bookingState.branchId === 'br-dbp') this.bookingState.branchId = 'CN01';
+      if (!this.bookingState.branchId) this.bookingState.branchId = 'CN01';
 
       if (user) {
         if (!this.bookingState.customerName) this.bookingState.customerName = user.name || user.fullName || '';

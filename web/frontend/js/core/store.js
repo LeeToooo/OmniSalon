@@ -839,12 +839,7 @@
     getBranchById(branchId) {
       if (!branchId) return null;
       const branches = this.getBranches();
-      const direct = branches.find(b => b.id === branchId || b.MaChiNhanh === branchId);
-      if (direct) return direct;
-      if (branchId === 'br-dbp' || branchId === 'br-td' || branchId === 'br-hn-hk') return branches.find(b => b.id === 'CN01') || branches[0];
-      if (branchId === 'br-nb' || branchId === 'br-tb') return branches.find(b => b.id === 'CN02') || branches[1];
-      if (branchId === 'br-q11' || branchId === 'br-bth' || branchId === 'br-q5') return branches.find(b => b.id === 'CN03') || branches[2];
-      return branches[0] || null;
+      return branches.find(b => b.id === branchId || b.MaChiNhanh === branchId) || null;
     }
 
     getCurrentBranch() {
@@ -960,13 +955,7 @@
     getServiceById(serviceId) {
       if (!serviceId) return null;
       const services = this.getServices();
-      const direct = services.find(s => s.id === serviceId || s.MaDichVu === serviceId);
-      if (direct) return direct;
-      if (serviceId === 'srv-1' || serviceId === 'srv-signature-cut' || serviceId === 'srv-haircut-men') return services.find(s => s.id === 'DV01') || services[0] || null;
-      if (serviceId === 'srv-2') return services.find(s => s.id === 'DV02') || services[1] || null;
-      if (serviceId === 'srv-4') return services.find(s => s.id === 'DV03') || services[2] || null;
-      if (serviceId === 'srv-6') return services.find(s => s.id === 'DV04') || services[3] || null;
-      return null;
+      return services.find(s => s.id === serviceId || s.MaDichVu === serviceId) || null;
     }
 
     getCombos() {
@@ -995,7 +984,7 @@
         duration: Number(comboData.duration || 75),
         image: comboData.image || 'DichVu_Men/CBDV1.jpg',
         description: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
-        services: Array.isArray(comboData.services) ? comboData.services : ['srv-1', 'srv-2'],
+        services: Array.isArray(comboData.services) ? comboData.services : ['DV01', 'DV02'],
         rating: 5.0,
         reviewsCount: 1
       };
@@ -1079,27 +1068,16 @@
     // -----------------------------------------------------------------------
     getStylists(branchId = null) {
       const list = (this.state.stylists || []).filter(s => s.role !== 'Thu ngân' && s.ChucVu !== 'Thu ngân' && !s.title?.toLowerCase().includes('thu ngân'));
-      if (!branchId) return list;
+      if (!branchId || branchId === 'all') return list;
       const tb = this.getBranchById(branchId);
       const tid = tb ? tb.id : branchId;
-      return list.filter(s => {
-        if (s.branchId === branchId || s.branchId === tid) return true;
-        if (s.MaChiNhanh && (s.MaChiNhanh === branchId || s.MaChiNhanh === tid)) return true;
-        if ((branchId === 'br-dbp' || tid === 'br-dbp') && (s.branchId === 'CN01' || s.MaChiNhanh === 'CN01')) return true;
-        if ((branchId === 'CN01' || tid === 'CN01') && (s.branchId === 'br-dbp')) return true;
-        return false;
-      });
+      return list.filter(s => (s.branchId === branchId || s.branchId === tid || s.MaChiNhanh === branchId || s.MaChiNhanh === tid));
     }
 
     getStylistById(stylistId) {
       if (!stylistId) return null;
       const stylists = this.getStylists();
-      const direct = stylists.find(s => s.id === stylistId || s.MaNhanVien === stylistId);
-      if (direct) return direct;
-      if (stylistId === 'st-1') return stylists.find(s => s.id === 'NV02') || stylists[0];
-      if (stylistId === 'st-2') return stylists.find(s => s.id === 'NV05') || stylists[1];
-      if (stylistId === 'st-3') return stylists.find(s => s.id === 'NV04') || stylists[2];
-      return stylists[0] || null;
+      return stylists.find(s => s.id === stylistId || s.MaNhanVien === stylistId) || null;
     }
 
     addStylist(stylistData) {
@@ -1502,11 +1480,7 @@
     // 6. QUẢN LÝ TỒN KHO CHI NHÁNH & TRỪ KHO NGUYÊN TỬ (ATOMIC STOCK)
     // -----------------------------------------------------------------------
     getBranchInventory(branchId = null) {
-      let bId = branchId;
-      if (bId === 'br-dbp') bId = 'CN01';
-      if (bId === 'br-nb') bId = 'CN02';
-      if (bId === 'br-q11') bId = 'CN03';
-      if (bId === 'all') bId = null;
+      const bId = (!branchId || branchId === 'all') ? null : branchId;
 
       const prods = this.state.products || [];
       const invList = this.state.inventory || [];
@@ -1575,13 +1549,8 @@
     }
 
     getProductStock(branchId, productId) {
-      let bId = branchId || 'CN01';
-      if (bId === 'br-dbp') bId = 'CN01';
-      if (bId === 'br-nb') bId = 'CN02';
-      if (bId === 'br-q11') bId = 'CN03';
-
-      let pId = productId || 'SP01';
-      if (pId === 'prod-new-1') pId = 'SP01';
+      const bId = branchId || 'CN01';
+      const pId = productId || 'SP01';
 
       const invList = this.state.inventory || [];
       const item = invList.find(i => 
@@ -1616,13 +1585,8 @@
     }
 
     decrementStock(branchId, productId, quantity = 1) {
-      let bId = branchId || 'CN01';
-      if (bId === 'br-dbp') bId = 'CN01';
-      if (bId === 'br-nb') bId = 'CN02';
-      if (bId === 'br-q11') bId = 'CN03';
-
-      let pId = productId || 'SP01';
-      if (pId === 'prod-new-1') pId = 'SP01';
+      const bId = branchId || 'CN01';
+      const pId = productId || 'SP01';
 
       const qty = Math.max(1, parseInt(quantity) || 1);
       if (!this.state.inventory) this.state.inventory = [];
@@ -1691,13 +1655,8 @@
     }
 
     incrementStock(branchId, productId, quantity = 1) {
-      let bId = branchId || 'CN01';
-      if (bId === 'br-dbp') bId = 'CN01';
-      if (bId === 'br-nb') bId = 'CN02';
-      if (bId === 'br-q11') bId = 'CN03';
-
-      let pId = productId || 'SP01';
-      if (pId === 'prod-new-1') pId = 'SP01';
+      const bId = branchId || 'CN01';
+      const pId = productId || 'SP01';
 
       const qty = Math.max(1, parseInt(quantity) || 1);
       if (!this.state.inventory) this.state.inventory = [];
@@ -1816,15 +1775,7 @@
     getProductById(productId) {
       if (!productId) return null;
       const products = this.getProducts();
-      const direct = products.find(p => p.id === productId || p.MaSanPham === productId);
-      if (direct) return direct;
-      if (productId === 'prod-new-1') {
-        const found = products.find(p => p.id === 'SP01') || products[0];
-        return { ...found, id: 'prod-new-1', price: 580000 };
-      }
-      if (productId === 'prod-best-1' || productId === 'prod-new-4') return products.find(p => p.id === 'SP04') || products[1];
-      if (productId === 'prod-best-2') return products.find(p => p.id === 'SP06') || products[2];
-      return products[0] || null;
+      return products.find(p => p.id === productId || p.MaSanPham === productId) || null;
     }
 
     addProduct(productData) {

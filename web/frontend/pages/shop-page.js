@@ -501,17 +501,14 @@
         prod = allProducts.find(p => p.id === 'SP02') || allProducts.find(p => p.id === 'SP01') || allProducts[0];
       }
       if (!prod) {
-        prod = {
-          id: 'SP02',
-          name: 'Hanz de Fuko Gravity Paste',
-          brand: 'Hanz de Fuko',
-          price: 879000,
-          originalPrice: 950000,
-          image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Gravity_Paste.jpg',
-          stock: 430,
-          reviewCount: 120,
-          description: 'Tạo độ phồng, texture rõ và giữ nếp chắc Dung tích: 2 oz / 56g; Loại: Paste; Giữ nếp: Cao; Finish: Matte tự nhiên; Phù hợp: Tóc ngắn – trung bình.'
-        };
+        container.innerHTML = `
+          <div class="shop-empty-state" style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
+            <h3 style="color: var(--text-primary); font-size: 20px; margin-bottom: 8px;">Không tìm thấy sản phẩm</h3>
+            <p style="font-size: 14px; margin-bottom: 20px;">Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.</p>
+            <button type="button" class="btn-submit-terracotta" onclick="if(window.AppRouter) window.AppRouter.navigate('/shop')">Quay lại Cửa Hàng</button>
+          </div>
+        `;
+        return;
       }
 
       const actualPrice = Number(prod.GiaBanThucTe || prod.price || 0);
@@ -1129,7 +1126,7 @@
                 : null;
               const branchStock = (rawStock !== null && rawStock !== undefined && !isNaN(rawStock))
                 ? Number(rawStock)
-                : (productId === 'SP01' && (b.id === 'CN01' || idx === 0) ? 19 : (productId === 'SP01' && (b.id === 'CN02' || idx === 1) ? 10 : 0));
+                : 0;
               const isAvailable = branchStock > 0;
               return `
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">

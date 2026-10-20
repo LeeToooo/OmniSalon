@@ -117,7 +117,7 @@
       // Lọc theo quận được chọn
       if (this.selectedFilter && this.selectedFilter !== 'all') {
         if (this.selectedFilter === 'flagship') {
-          filtered = filtered.filter(b => (b.group && (b.group.includes('FLAGSHIP') || b.group.includes('PRESIDENTIAL'))) || b.id === 'br-dbp' || b.id === 'CN01');
+          filtered = filtered.filter(b => (b.group && (b.group.includes('FLAGSHIP') || b.group.includes('PRESIDENTIAL'))) || b.id === 'CN01');
         } else {
           filtered = filtered.filter(b => this.getBranchDistrict(b) === this.selectedFilter);
         }

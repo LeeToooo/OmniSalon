@@ -726,7 +726,7 @@ const UICommon = {
   // -----------------------------------------------------------------------
   cartState: {
     deliveryType: 'PICKUP_BRANCH', // 'PICKUP_BRANCH' | 'DELIVERY'
-    pickupBranchId: 'br-dbp',
+    pickupBranchId: 'CN01',
     deliveryAddress: '',
     recipientName: '',
     recipientPhone: '',
@@ -1047,7 +1047,7 @@ const UICommon = {
       return;
     }
 
-    const branchId = this.cartState.pickupBranchId || 'br-dbp';
+    const branchId = this.cartState.pickupBranchId || 'CN01';
     const branch = window.store.getBranchById(branchId);
 
     // Ràng buộc dữ liệu người nhận và địa chỉ, chặn nhập số hoặc chuỗi bậy bạ
@@ -1102,7 +1102,7 @@ const UICommon = {
     if (!modal || !modalBody) return;
 
     const cart = window.store.getCart();
-    const branchId = this.cartState.pickupBranchId || 'br-dbp';
+    const branchId = this.cartState.pickupBranchId || 'CN01';
     const branch = window.store.getBranchById(branchId) || { name: 'Omni Salon Barber Q1 - Bến Thành', address: '128 Bến Thành, Quận 1, TP.HCM' };
     const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
     const discount = this.cartState.discountAmount || 0;

@@ -39,7 +39,7 @@
     auditPage: 1,
 
     posState: {
-      branchId: 'br-dbp',
+      branchId: 'CN01',
       selectedStylistId: '',
       customerName: 'Khách Cắt Quầy',
       customerPhone: '0900000000',
@@ -843,10 +843,7 @@
       }).join('');
 
       // Khử N+1: Eager loading map cho Barber Rankings
-      let scopedStylists = branchId ? stylists.filter(s => s.branchId === branchId) : stylists;
-      if (scopedStylists.length === 0 && (branchId === 'br-nb' || branchId === 'branch-004')) {
-        scopedStylists = stylists.filter(s => s.branchId === 'CN02' || s.branchId === 'br-nb');
-      }
+      let scopedStylists = branchId ? stylists.filter(s => s.branchId === branchId || s.MaChiNhanh === branchId) : stylists;
       if (scopedStylists.length === 0) {
         scopedStylists = stylists.slice(0, 5);
       }
@@ -1413,13 +1410,10 @@
 
       this.dispatchBranchFilter = this.dispatchBranchFilter || 'all';
       let scopedStylists = (this.isBranchManager(user) && user.branchId)
-        ? stylists.filter(s => s.branchId === user.branchId)
+        ? stylists.filter(s => s.branchId === user.branchId || s.MaChiNhanh === user.branchId)
         : (this.dispatchBranchFilter !== 'all'
-            ? stylists.filter(s => s.branchId === this.dispatchBranchFilter)
-            : (this.filterBranch !== 'all' ? stylists.filter(s => s.branchId === this.filterBranch) : stylists));
-      if (scopedStylists.length === 0 && (user.branchId === 'br-nb' || user.branchId === 'branch-004')) {
-        scopedStylists = stylists.filter(s => s.branchId === 'CN02' || s.branchId === 'br-nb');
-      }
+            ? stylists.filter(s => s.branchId === this.dispatchBranchFilter || s.MaChiNhanh === this.dispatchBranchFilter)
+            : (this.filterBranch !== 'all' ? stylists.filter(s => s.branchId === this.filterBranch || s.MaChiNhanh === this.filterBranch) : stylists));
       if (scopedStylists.length === 0) {
         scopedStylists = stylists.slice(0, 6);
       }
@@ -3825,11 +3819,7 @@
         ? window.store.getStylists(pos.branchId)
         : [];
       if (!branchStylists || branchStylists.length === 0) {
-        branchStylists = stylists.filter(s => {
-          if (s.branchId === pos.branchId || s.MaChiNhanh === pos.branchId) return true;
-          if ((pos.branchId === 'br-dbp' || pos.branchId === 'CN01') && (s.branchId === 'CN01' || s.branchId === 'br-dbp' || s.MaChiNhanh === 'CN01')) return true;
-          return false;
-        });
+        branchStylists = stylists.filter(s => (s.branchId === pos.branchId || s.MaChiNhanh === pos.branchId));
       }
       if (!branchStylists || branchStylists.length === 0) {
         branchStylists = stylists.filter(s => s.role !== 'Thu ngân' && s.ChucVu !== 'Thu ngân');

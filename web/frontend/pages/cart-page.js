@@ -11,7 +11,7 @@
     currentStep: 1, // 1: Gio hang, 2: Giao hang, 3: Thanh toan, 4: Hoan tat
     checkoutData: {
       deliveryType: 'PICKUP_BRANCH',
-      pickupBranchId: 'br-dbp',
+      pickupBranchId: 'CN01',
       recipientName: '',
       recipientPhone: '',
       recipientAddress: '',
@@ -599,13 +599,8 @@
       }
 
       if (!newOrder) {
-        newOrder = {
-          id: 'DH11',
-          orderCode: 'DH11',
-          MaDonHang: 'DH11',
-          totalAmount: finalTotal,
-          items: cart
-        };
+        if (window.UICommon) window.UICommon.showToast('Không thể tạo đơn hàng. Vui lòng thử lại!', 'error');
+        return;
       }
 
       this.checkoutData.completedOrder = newOrder;
@@ -624,7 +619,7 @@
     // BUOC 4: HOAN TAT DON HANG
     _renderOrderSuccessStep() {
       const order = this.checkoutData.completedOrder || {};
-      const orderCode = order.orderCode || order.id || order.MaDonHang || 'DH11';
+      const orderCode = order.orderCode || order.id || order.MaDonHang || '';
       const isVietQr = this.checkoutData.paymentMethod === 'VIETQR';
       const finalAmount = order.totalAmount || 0;
       const vietQrUrl = `https://img.vietqr.io/image/970422-0908123456-compact2.png?amount=${finalAmount}&addInfo=OMNI%20${orderCode}&accountName=OMNI%20SALON%20VIETNAM`;

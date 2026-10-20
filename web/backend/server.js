@@ -3434,20 +3434,6 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify(rows));
       }
 
-      // --- 22. WORK SHIFTS / CA LÀM VIỆC ---
-      if (pathname === '/api/shifts' && method === 'GET') {
-        const rows = await querySql(
-          `SELECT cv.MaCa, cv.MaNhanVien, CONVERT(VARCHAR(10), cv.NgayLam, 120) AS NgayLam,
-                  CONVERT(VARCHAR(8), cv.GioBatDau) AS GioBatDau,
-                  CONVERT(VARCHAR(8), cv.GioKetThuc) AS GioKetThuc,
-                  cv.TrangThai, nv.HoTen AS TenNhanVien
-           FROM CaLamViec cv
-           JOIN NhanVien nv ON cv.MaNhanVien = nv.MaNhanVien`
-        );
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify(rows));
-      }
-
       // --- 23. AUTH PROFILE & CURRENT USER ---
       if (pathname === '/api/auth/me' && method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

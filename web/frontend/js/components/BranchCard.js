@@ -74,7 +74,7 @@
       const totalChairs = Number(b.totalChairs || 16);
       const isFlagship = Boolean(
         (b.group && (b.group.includes('FLAGSHIP') || b.group.includes('PRESIDENTIAL'))) ||
-        id === 'br-dbp' || id === 'CN01'
+        id === 'CN01'
       );
 
       // Trích xuất quận
