@@ -602,7 +602,7 @@
 
       // 130 Sản phẩm thực tế từ CSDL QL_SALON.sql
       const products = [
-        { id: 'SP01', name: 'Apestomen Volcanic Clay', brand: 'Apestomen', categoryId: 'DM01', price: 432000, originalPrice: 480000, discountPercent: 10, hasPromotion: true, promotion: { id: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', discount: 10, discountPercent: 10, type: 'Giảm giá %' }, costPrice: 340000, stock: 24, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg', description: 'Tạo texture, tăng độ phồng, giữ tóc vào nếp với hiệu ứng khô tự nhiên.' },
+        { id: 'SP01', name: 'Apestomen Volcanic Clay', brand: 'Apestomen', categoryId: 'DM01', price: 288000, originalPrice: 480000, discountPercent: 40, nearExpiryDiscount: 40, nearExpiryBatch: 'CTPN01001', nearExpiryStock: 18, promoDiscount: 10, hasPromotion: true, promotion: { id: 'KM01', code: 'KM01', name: 'Xả kho cận hạn FEFO (-40%)', discount: 40, discountPercent: 40, type: 'Giảm giá %' }, costPrice: 340000, stock: 24, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg', description: 'Tạo texture, tăng độ phồng, giữ tóc vào nếp với hiệu ứng khô tự nhiên. Áp dụng ưu đãi cận hạn FEFO cao nhất (-40%) cho 18 hộp đầu tiên.' },
         { id: 'SP02', name: 'Hanz de Fuko Gravity Paste', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Gravity_Paste.jpg', description: 'Tạo độ phồng, texture rõ và giữ nếp chắc.' },
         { id: 'SP03', name: 'Hanz de Fuko Claymation', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Claymation.jpg', description: 'Clay kết hợp wax, tạo texture mạnh và giữ nếp lâu.' },
         { id: 'SP04', name: 'Hanz de Fuko Heavymade', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 690000, originalPrice: 690000, costPrice: 520000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Heavymade.jpg', description: 'Giữ nếp mạnh, tạo độ bóng vừa và kiểu tóc gọn gàng.' },
@@ -627,39 +627,17 @@
         { id: 'SP125', name: 'Y.S. Park Dragon Air Vent Styler', brand: 'Y.S. Park', categoryId: 'DM09', price: 862000, originalPrice: 862000, costPrice: 663000, stock: 24, image: 'Men_Grooming_Products/09_Dung_Cu_Tao_Kieu_Nam/Luoc_Ban_Nguyet/Luoc_Ban_Nguyet_YS_Park_Dragon_Air_Vent_Styler.jpg', description: 'Lược sấy tạo kiểu thoáng khí đẳng cấp Nhật Bản.' }
       ];
 
-      // Bổ sung đầy đủ 130 sản phẩm từ SP01 -> SP130
-      for (let i = 1; i <= 130; i++) {
-        const id = `SP${String(i).padStart(2, '0')}`;
-        if (!products.some(p => p.id === id)) {
-          const dmId = i <= 30 ? 'DM01' : (i <= 55 ? 'DM02' : (i <= 70 ? 'DM03' : (i <= 80 ? 'DM04' : (i <= 95 ? 'DM05' : (i <= 105 ? 'DM06' : (i <= 115 ? 'DM07' : (i <= 125 ? 'DM08' : 'DM09')))))));
-          products.push({
-            id,
-            name: `Sản Phẩm Tạo Kiểu & Dưỡng Tóc Nam ${id}`,
-            brand: 'CHÍNH HÃNG OMNI',
-            categoryId: dmId,
-            price: 250000 + (i * 5000),
-            originalPrice: 290000 + (i * 5000),
-            costPrice: 180000 + (i * 3000),
-            stock: 25,
-            image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg',
-            description: 'Sản phẩm chăm sóc và tạo kiểu tóc chuyên nghiệp dành cho nam giới.'
-          });
-        }
-      }
-
       // 2 Khuyến Mãi Chuẩn từ CSDL QL_SALON.sql (KM01 - 10%, KM02 - 15%)
       const promotions = [
         { id: 'KM01', MaKhuyenMai: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', TenKhuyenMai: 'Chào Thu Rực Rỡ', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 10, GiaTriGiam: 10, target: 'Tất cả khách hàng', DoiTuongApDung: 'Tất cả khách hàng', startDate: '2026-09-01', NgayBatDau: '2026-09-01', endDate: '2026-10-31', NgayKetThuc: '2026-10-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV03', 'DV04'], productIds: ['SP01'] },
         { id: 'KM02', MaKhuyenMai: 'KM02', code: 'KM02', name: 'Đặc quyền Salon VIP', TenKhuyenMai: 'Đặc quyền Salon VIP', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 15, GiaTriGiam: 15, target: 'Hội viên thân thiết', DoiTuongApDung: 'Hội viên thân thiết', startDate: '2026-01-01', NgayBatDau: '2026-01-01', endDate: '2026-12-31', NgayKetThuc: '2026-12-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV05'], productIds: ['SP06'] }
       ];
 
-      // Tồn Kho Chuẩn Xác theo CSDL QL_SALON.sql (SP01 tại CN01 = 19 do bán 1 ở HD01, CN02 = 10)
+      // Tồn Kho Khởi Tạo
       const inventory = [];
       branches.forEach((b, bIdx) => {
-        const bNum = bIdx + 1;
         products.forEach(p => {
-          const pNum = parseInt((p.id || '').replace(/\D/g, '') || '1', 10);
-          let st = 8 + ((pNum * 19 + bNum * 29 + 7) % 28);
+          let st = p.stock !== undefined ? p.stock : (p.SoLuongTon !== undefined ? p.SoLuongTon : 0);
           if (p.id === 'SP01') {
             if (b.id === 'CN01') st = 19;
             else if (b.id === 'CN02') st = 10;
@@ -1153,7 +1131,7 @@
         phone: stylistData.phone || '0912000000',
         email: stylistData.email || `${nextId.toLowerCase()}@salontoc.vn`,
         avatar: stylistData.avatar || (role === 'Thợ phụ' ? 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80' : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'),
-        rating: 4.95,
+        rating: 5.0,
         reviewCount: 0,
         specialty: stylistData.specialty || (role === 'Thợ phụ' ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn'),
         isAvailable: true
@@ -1617,14 +1595,12 @@
         if (item.SoLuongTon !== undefined) return parseInt(item.SoLuongTon, 10);
       }
 
-      // Khớp chính xác 100% CSDL QL_SALON.sql gốc
-      if (pId === 'SP01') {
-        if (bId === 'CN01') return 19; // 20 ban đầu - 1 đã bán (HD01) = 19
-        if (bId === 'CN02') return 10;
+      const p = (this.state.products || []).find(it => (it.id === pId || it.MaSanPham === pId));
+      if (p) {
+        if (typeof p.stock === 'number') return p.stock;
+        if (typeof p.SoLuongTon === 'number') return p.SoLuongTon;
       }
-      const pNum = parseInt(pId.replace(/\D/g, '') || '1', 10);
-      const bNum = parseInt(bId.replace(/\D/g, '') || '1', 10);
-      return 8 + ((pNum * 19 + bNum * 29 + 7) % 28);
+      return 0;
     }
 
     checkStockBatch(branchId, items = []) {
@@ -1681,6 +1657,23 @@
       if (prod) {
         if (typeof prod.stock === 'number') prod.stock = Math.max(0, prod.stock - qty);
         if (typeof prod.SoLuongTon === 'number') prod.SoLuongTon = Math.max(0, prod.SoLuongTon - qty);
+
+        // FEFO & Cận Hạn: Nếu bán hết lô cận hạn (18 sp của SP01), chuyển sang mức giảm tiếp theo (10%)
+        if (prod.nearExpiryStock !== undefined) {
+          prod.nearExpiryStock = Math.max(0, prod.nearExpiryStock - qty);
+          if (prod.nearExpiryStock <= 0) {
+            prod.discountPercent = prod.promoDiscount || 10;
+            prod.price = Math.round(prod.originalPrice * (1 - prod.discountPercent / 100));
+            prod.promotion = {
+              id: 'KM01',
+              code: 'KM01',
+              name: 'Chào Thu Rực Rỡ',
+              discount: prod.discountPercent,
+              discountPercent: prod.discountPercent,
+              type: 'Giảm giá %'
+            };
+          }
+        }
       }
 
       this.logAudit('STOCK_DECREMENT', `SP: ${productId} tại ${branchId}`, `Trừ ${qty} sản phẩm. Tồn mới: ${newStock}`);
@@ -1694,6 +1687,55 @@
           body: JSON.stringify({ stock: newStock, branchId: bId })
         }).catch(() => {});
       }
+      return true;
+    }
+
+    incrementStock(branchId, productId, quantity = 1) {
+      let bId = branchId || 'CN01';
+      if (bId === 'br-dbp') bId = 'CN01';
+      if (bId === 'br-nb') bId = 'CN02';
+      if (bId === 'br-q11') bId = 'CN03';
+
+      let pId = productId || 'SP01';
+      if (pId === 'prod-new-1') pId = 'SP01';
+
+      const qty = Math.max(1, parseInt(quantity) || 1);
+      if (!this.state.inventory) this.state.inventory = [];
+      let item = this.state.inventory.find(i => 
+        (i.branchId === bId || i.MaChiNhanh === bId) && 
+        (i.productId === pId || i.MaSanPham === pId)
+      );
+
+      if (item) {
+        const curStock = typeof item.stock === 'number' ? item.stock : (Number(item.SoLuongTon) || 0);
+        item.stock = curStock + qty;
+        item.SoLuongTon = curStock + qty;
+      }
+
+      const prod = (this.state.products || []).find(p => p.id === pId || p.MaSanPham === pId);
+      if (prod) {
+        if (typeof prod.stock === 'number') prod.stock += qty;
+        if (typeof prod.SoLuongTon === 'number') prod.SoLuongTon += qty;
+
+        if (prod.nearExpiryStock !== undefined) {
+          prod.nearExpiryStock = Math.min(18, (prod.nearExpiryStock || 0) + qty);
+          if (prod.nearExpiryStock > 0) {
+            prod.discountPercent = Math.max(prod.nearExpiryDiscount || 40, prod.promoDiscount || 10);
+            prod.price = Math.round(prod.originalPrice * (1 - prod.discountPercent / 100));
+            prod.promotion = {
+              id: 'KM01',
+              code: 'KM01',
+              name: 'Xả kho cận hạn FEFO (-40%)',
+              discount: prod.discountPercent,
+              discountPercent: prod.discountPercent,
+              type: 'Giảm giá %'
+            };
+          }
+        }
+      }
+
+      this.logAudit('STOCK_INCREMENT', `SP: ${productId} tại ${branchId}`, `Cộng hoàn ${qty} sản phẩm.`);
+      this.saveState();
       return true;
     }
 
@@ -2116,6 +2158,70 @@
       this.saveState();
       await this.syncCancelOrderToLiveServer(order.id || order.orderCode, reason);
       return { success: true, message: `Đã hủy đơn hàng #${order.orderCode || order.id} thành công!` };
+    }
+
+    async confirmOrderPayment(orderId, paymentMethod = 'VietQR') {
+      const norm = String(orderId).trim().toLowerCase();
+      const order = (this.state.orders || []).find(o => 
+        (o.id && String(o.id).trim().toLowerCase() === norm) || 
+        (o.orderCode && String(o.orderCode).trim().toLowerCase() === norm) ||
+        (o.MaDonHang && String(o.MaDonHang).trim().toLowerCase() === norm)
+      );
+
+      if (!order) return { success: false, error: 'Không tìm thấy đơn hàng trong hệ thống!' };
+
+      order.paymentStatus = 'Paid';
+      order.TrangThai = 'Đã thanh toán';
+      order.orderStatus = (order.orderStatus === 'Pending' || order.orderStatus === 'Chờ xác nhận') ? 'Processing' : (order.orderStatus || 'Processing');
+      order.paymentMethod = paymentMethod || order.paymentMethod || 'VietQR';
+      order.paidAt = new Date().toISOString();
+
+      // Lập bản ghi hóa đơn trong state nếu chưa có
+      const invoiceId = `HD-ORD-${order.id || order.orderCode}`;
+      if (!this.state.invoices) this.state.invoices = [];
+      const existingInv = this.state.invoices.find(i => i.MaDonHang === (order.id || order.orderCode) || i.id === invoiceId);
+      if (!existingInv) {
+        this.state.invoices.unshift({
+          id: invoiceId,
+          MaHoaDon: invoiceId,
+          MaDonHang: order.id || order.orderCode,
+          MaKhachHang: order.userId || order.customerId || 'KH01',
+          MaChiNhanh: order.branchId || 'CN01',
+          NgayLap: new Date().toISOString(),
+          TongTien: Number(order.totalAmount || 0),
+          TrangThai: 'Đã thanh toán',
+          MaSoHoaDon: `HD-${order.id || order.orderCode}`,
+          services: [],
+          products: order.items || [],
+          payment: {
+            paymentMethod: paymentMethod,
+            amount: Number(order.totalAmount || 0),
+            status: 'SUCCESS'
+          }
+        });
+      }
+
+      this.logAudit('ORDER_PAYMENT', `Đơn: #${order.orderCode || order.id}`, `Xác nhận thanh toán ${paymentMethod}: ${SalonUtils.formatCurrency(order.totalAmount)}`);
+      this.saveState();
+
+      // Đồng bộ trực tiếp vào SQL Server backend
+      try {
+        const res = await fetch(`${this.liveServerUrl}/orders/${order.id || order.orderCode}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentStatus: 'Paid',
+            status: order.orderStatus,
+            paymentMethod: paymentMethod,
+            totalAmount: order.totalAmount
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        return { success: true, message: data.message || `Đã xác nhận thanh toán đơn #${order.orderCode || order.id}!`, order };
+      } catch (err) {
+        console.warn('[CONFIRM PAYMENT SERVER SYNC]', err.message);
+        return { success: true, message: `Đã xác nhận thanh toán đơn #${order.orderCode || order.id}!`, order };
+      }
     }
 
     // -----------------------------------------------------------------------

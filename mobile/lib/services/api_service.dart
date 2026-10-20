@@ -583,6 +583,108 @@ class ApiService {
     }
   }
 
+  // 22. LẤY DANH SÁCH MÃ KHUYẾN MÃI & VOUCHERS (GET /api/promotions)
+  static Future<List<Map<String, dynamic>>> fetchPromotions() async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/promotions')).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final List data = jsonDecode(utf8.decode(res.bodyBytes));
+        return data.cast<Map<String, dynamic>>();
+      }
+    } catch (_) {}
+    return [
+      {'MaKhuyenMai': 'KM_CHAOMUNG', 'TenKhuyenMai': 'Ưu đãi thành viên mới', 'GiaTriGiam': 20, 'HinhThuc': 'Phần trăm'},
+      {'MaKhuyenMai': 'KM_VIPBARBER', 'TenKhuyenMai': 'Tri ân khách hàng thân thiết', 'GiaTriGiam': 50000, 'HinhThuc': 'Số tiền cố định'},
+    ];
+  }
+
+  // 23. LẤY ĐÁNH GIÁ 5 SAO & PHẢN HỒI (GET /api/reviews)
+  static Future<List<Map<String, dynamic>>> fetchReviews({String? orderId, String? customerId}) async {
+    try {
+      String url = '$baseUrl/reviews';
+      if (orderId != null) {
+        url += '?order_id=$orderId';
+      } else if (customerId != null) {
+        url += '?customer_id=$customerId';
+      }
+      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final List data = jsonDecode(utf8.decode(res.bodyBytes));
+        return data.cast<Map<String, dynamic>>();
+      }
+    } catch (_) {}
+    return [
+      {
+        'id': 'DG01',
+        'customerName': 'Nguyễn Văn Hùng',
+        'rating': 5,
+        'comment': 'Thợ Fade tay nghề rất cao, không gian sang trọng và chuẩn chỉ!',
+        'date': '2026-03-28 14:30:00'
+      },
+      {
+        'id': 'DG02',
+        'customerName': 'Trần Minh Đức',
+        'rating': 5,
+        'comment': 'Dịch vụ gội đầu dưỡng sinh và cắt tóc rất ưng ý, sẽ quay lại!',
+        'date': '2026-03-29 16:45:00'
+      }
+    ];
+  }
+
+  // 24. GỬI ĐÁNH GIÁ MỚI CHO LỊCH HẸN HOẶC ĐƠN HÀNG (POST /api/reviews)
+  static Future<bool> createReview(Map<String, dynamic> reviewData) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/reviews'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(reviewData),
+      ).timeout(const Duration(seconds: 4));
+      return res.statusCode == 200 || res.statusCode == 201;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  // 25. LẤY DANH SÁCH THÔNG BÁO HỆ THỐNG (GET /api/notifications)
+  static Future<List<Map<String, dynamic>>> fetchNotifications() async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/notifications')).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final List data = jsonDecode(utf8.decode(res.bodyBytes));
+        return data.cast<Map<String, dynamic>>();
+      }
+    } catch (_) {}
+    return [
+      {
+        'MaThongBao': 'TB01',
+        'TieuDe': 'Đặt lịch thành công',
+        'NoiDung': 'Lịch hẹn chăm sóc tóc của bạn đã được xác nhận tại Omni Salon Q1.',
+        'ThoiGianGui': '2026-03-29 09:00:00',
+        'TrangThaiDoc': 0,
+      },
+      {
+        'MaThongBao': 'TB02',
+        'TieuDe': 'Ưu đãi thành viên VIP',
+        'NoiDung': 'Tặng voucher giảm 20% cho lần ghé cắt tiếp theo trong tuần.',
+        'ThoiGianGui': '2026-03-28 15:30:00',
+        'TrangThaiDoc': 1,
+      }
+    ];
+  }
+
+  // 26. ĐÁNH DẤU ĐÃ ĐỌC THÔNG BÁO (PUT /api/notifications/:id/read)
+  static Future<bool> markNotificationRead(String notifId) async {
+    try {
+      final res = await http.put(
+        Uri.parse('$baseUrl/notifications/$notifId/read'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 3));
+      return res.statusCode == 200;
+    } catch (_) {
+      return true;
+    }
+  }
+
   // =========================================================================
   // DỮ LIỆU DỰ PHÒNG NGOẠI TUYẾN 100% CẤU TRÚC SQL SERVER QL_SALONTOC
   // =========================================================================

@@ -89,12 +89,11 @@
       }
 
       // Rating & Lượt mua thực tế
-      const rating = Number(p.rating || 4.9).toFixed(1);
-      const rawNum = parseInt(id.replace(/\D/g, '') || '7', 10);
-      const reviewCount = Number(p.reviewCount || p.LuotMua || ((rawNum * 17 + 43) % 240 + 38));
+      const rating = Number(p.rating !== undefined ? p.rating : 5.0).toFixed(1);
+      const reviewCount = Number(p.reviewCount || p.LuotMua || 0);
 
       // Tồn kho
-      const stock = Number(p.stock !== undefined ? p.stock : (p.SoLuongTon !== undefined ? p.SoLuongTon : 25));
+      const stock = Number(p.stock !== undefined ? p.stock : (p.SoLuongTon !== undefined ? p.SoLuongTon : 0));
 
       // Hình ảnh
       const rawImg = p.image || p.HinhAnh || '';
@@ -215,14 +214,14 @@
             </h3>
 
             <!-- Đánh giá sao & Lượt mua -->
-            <div class="product-rating-row" aria-label="Đánh giá ${data.rating} sao trên 5, ${data.reviewCount} lượt mua">
+            <div class="product-rating-row" aria-label="Đánh giá ${data.rating} sao trên 5${data.reviewCount > 0 ? `, ${data.reviewCount} lượt mua` : ''}">
               <span class="product-star-badge" style="display: inline-flex; align-items: center; gap: 3px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="#C59B27" stroke="none" aria-hidden="true">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                 </svg>
                 <span>${data.rating}</span>
               </span>
-              <span class="product-sales-count">• ${data.reviewCount} đã bán</span>
+              <span class="product-sales-count">• ${data.reviewCount > 0 ? `${data.reviewCount} đã bán` : 'Chính hãng'}</span>
             </div>
 
             <!-- Giá sản phẩm (Cố định chiều cao căn thẳng hàng) -->

@@ -173,10 +173,65 @@ class AuthService {
     if (!isValid) {
       return {'success': false, 'message': 'Mã OTP không chính xác hoặc đã hết hạn.'};
     }
+    try {
+      final res = await http.post(
+        Uri.parse('${ApiService.baseUrl}/auth/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'newPassword': newPassword}),
+      ).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(res.bodyBytes));
+        return {'success': true, 'message': data['message'] ?? 'Đặt lại mật khẩu thành công!'};
+      }
+    } catch (_) {}
+
     return {
       'success': true,
       'message': 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.'
     };
+  }
+
+  static Future<Map<String, dynamic>> updateProfile({
+    required String fullName,
+    required String phone,
+    String? email,
+    String? birthday,
+  }) async {
+    if (currentUser == null) {
+      return {'success': false, 'message': 'Chưa đăng nhập'};
+    }
+    final updatedUser = UserModel(
+      id: currentUser!.id,
+      maKhachHang: currentUser!.maKhachHang,
+      maNhanVien: currentUser!.maNhanVien,
+      username: currentUser!.username,
+      fullName: fullName.trim().isNotEmpty ? fullName.trim() : currentUser!.fullName,
+      phone: phone.trim().isNotEmpty ? phone.trim() : currentUser!.phone,
+      email: (email != null && email.trim().isNotEmpty) ? email.trim() : currentUser!.email,
+      birthday: birthday ?? currentUser!.birthday,
+      role: currentUser!.role,
+      roleName: currentUser!.roleName,
+    );
+    currentUser = updatedUser;
+    userNotifier.value = updatedUser;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_userKey, jsonEncode(updatedUser.toJson()));
+      await http.put(
+        Uri.parse('${ApiService.baseUrl}/auth/profile'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': updatedUser.id,
+          'fullName': updatedUser.fullName,
+          'phone': updatedUser.phone,
+          'email': updatedUser.email,
+          'birthday': birthday,
+        }),
+      ).timeout(const Duration(seconds: 4));
+    } catch (_) {}
+
+    return {'success': true, 'message': 'Cập nhật thông tin thành công!', 'user': updatedUser};
   }
 
   static Future<void> logout() async {

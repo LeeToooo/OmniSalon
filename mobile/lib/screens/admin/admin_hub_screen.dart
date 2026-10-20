@@ -44,7 +44,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
   String _posBranchId = 'CN01';
   String? _posStylistId;
   final _posCustomerNameController = TextEditingController(text: 'Khách Cắt Quầy');
-  final _posCustomerPhoneController = TextEditingController(text: '0908888999');
+  final _posCustomerPhoneController = TextEditingController();
   final _posVoucherController = TextEditingController();
   final List<SalonService> _posSelectedServices = [];
   final List<Product> _posSelectedProducts = [];

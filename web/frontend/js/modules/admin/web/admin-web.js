@@ -2311,7 +2311,7 @@
                     <div style="flex: 1; min-width: 0;">
                       <div style="display: flex; justify-content: space-between; align-items: baseline;">
                         <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${this.escapeHtml(st.name)}">${this.escapeHtml(st.name)}</h4>
-                        <span style="font-size: 12px; font-weight: 800; color: #f59e0b; flex-shrink: 0; margin-left: 6px;">${st.rating || '4.95'}</span>
+                        <span style="font-size: 12px; font-weight: 800; color: #f59e0b; flex-shrink: 0; margin-left: 6px;">${st.rating ? Number(st.rating).toFixed(1) : '5.0'}</span>
                       </div>
                       <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                         ${isAssis ? `
@@ -2820,7 +2820,7 @@
             </button>
             <button type="button" class="admin-tab-btn ${subType === 'rules' ? 'active' : ''}" 
                     style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('rules')">
-              🏢 NCC &amp; Quy Tắc Giảm Giá (${suppliers.length} NCC / ${discountRules.length} Quy Tắc)
+              🏢 Danh Sách Nhà Cung Cấp (${suppliers.length} NCC)
             </button>
           </div>
 
@@ -3094,11 +3094,11 @@
         `;
       }
 
-      // 4. Phân hệ Nhà Cung Cấp & Quy Tắc Giảm Giá (NhaCungCap, QuyTacGiamGiaTheoHan)
+      // 4. Phân hệ Nhà Cung Cấp Hàng Hóa (NhaCungCap)
       if (subType === 'rules') {
         return `
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
-            <!-- Cột Trái: Nhà Cung Cấp (NhaCungCap) -->
+          <div style="display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start;">
+            <!-- Danh Sách Nhà Cung Cấp Hàng Hóa (NhaCungCap) -->
             <div>
               <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: var(--primary-color, #c85a44);">
                 🏢 Danh Sách Nhà Cung Cấp Hàng Hóa (NhaCungCap)
@@ -3125,39 +3125,6 @@
                       </tr>
                     `).join('') : `
                       <tr><td colspan="5" style="text-align: center; padding: 20px; color: #888;">Chưa có dữ liệu nhà cung cấp.</td></tr>
-                    `}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Cột Phải: Quy Tắc Giảm Giá Theo Hạn (QuyTacGiamGiaTheoHan) -->
-            <div>
-              <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: var(--primary-color, #c85a44);">
-                🏷️ Quy Tắc Giảm Giá Hạn Sử Dụng (QuyTacGiamGiaTheoHan)
-              </h4>
-              <div style="overflow-x: auto;">
-                <table class="admin-enterprise-table">
-                  <thead>
-                    <tr>
-                      <th>Mã</th>
-                      <th>Tên Quy Tắc</th>
-                      <th>Hạn Còn Lại</th>
-                      <th>Mức Giảm</th>
-                      <th>Trạng Thái</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${discountRules.length > 0 ? discountRules.map(r => `
-                      <tr>
-                        <td><strong>${this.escapeHtml(r.id || r.MaQuyTac)}</strong></td>
-                        <td style="font-weight: 700;">${this.escapeHtml(r.name || r.TenQuyTac)}</td>
-                        <td>${r.minDays ?? r.SoNgayConLaiToiThieu} - ${r.maxDays ?? r.SoNgayConLaiToiDa} ngày</td>
-                        <td><span class="badge-terracotta" style="font-weight: 800;">-${r.discountPercent ?? r.PhanTramGiam}%</span></td>
-                        <td><span class="stock-badge-safe">${this.escapeHtml(r.status || 'Đang áp dụng')}</span></td>
-                      </tr>
-                    `).join('') : `
-                      <tr><td colspan="5" style="text-align: center; padding: 20px; color: #888;">Chưa có quy tắc giảm giá hạn sử dụng.</td></tr>
                     `}
                   </tbody>
                 </table>
@@ -3445,7 +3412,7 @@
         subTag = `${role} • ${st?.level || 'Master Barber'}`;
         name = st ? (st.name || st.HoTen) : id;
         const brName = this._getBranchShortName(st?.branchId || 'CN01');
-        detail1 = `<span style="color: #f59e0b; font-weight: 700;">${st?.rating || '4.95'}</span>`;
+        detail1 = `<span style="color: #f59e0b; font-weight: 700;">${st?.rating ? Number(st.rating).toFixed(1) : '5.0'}</span>`;
         detail2 = `<span style="color: #94a3b8;">Cơ sở: <strong style="color: #f1f5f9;">${brName}</strong></span>`;
         img = st?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80';
       } else if (type === 'bookings') {
@@ -3871,24 +3838,8 @@
         pos.selectedStylistId = branchStylists[0]?.id || (stylists[0]?.id || '');
       }
 
-      // Danh mục picker bên trái
-      const q = (pos.searchQuery || '').toLowerCase();
-      const cat = pos.activeCategory || 'all';
-
-      let allOfferings = [];
-      if (cat === 'all' || cat === 'services') {
-        services.forEach(s => allOfferings.push({ ...s, itemType: 'service' }));
-      }
-      if (cat === 'all' || cat === 'combos') {
-        combos.forEach(c => allOfferings.push({ ...c, itemType: 'service' }));
-      }
-      if (cat === 'all' || cat === 'products') {
-        products.forEach(p => allOfferings.push({ ...p, itemType: 'product' }));
-      }
-
-      if (q) {
-        allOfferings = allOfferings.filter(it => it.name.toLowerCase().includes(q) || (it.brand && it.brand.toLowerCase().includes(q)));
-      }
+      // Danh mục picker bên trái với chuẩn hóa tiếng Việt diacritic-insensitive
+      const allOfferings = this._getPosOfferings(pos.activeCategory || 'all', pos.searchQuery || '');
 
       // DRY: Tính toán hóa đơn tập trung qua _calculatePosSummary
       const summary = this._calculatePosSummary(pos);
@@ -3903,40 +3854,26 @@
                 <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0;">Danh Mục Dịch Vụ & Sản Phẩm Sáp</h3>
                 <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Nhấp vào thẻ để đưa vào hóa đơn quầy thu ngân</p>
               </div>
-              <input type="text" class="table-search-input" placeholder="Tìm dịch vụ / sáp..." 
-                     value="${this.escapeHtml(pos.searchQuery)}" 
-                     oninput="AdminWeb.posState.searchQuery = this.value; AdminWeb.refreshPosView();">
+              <input type="text" id="posCatalogSearchInput" class="table-search-input" placeholder="Tìm dịch vụ / sáp..." 
+                     value="${this.escapeHtml(pos.searchQuery || '')}" 
+                     oninput="AdminWeb.handlePosSearch(this.value)">
             </div>
 
             <!-- Filter Pills -->
             <div style="display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;">
-              <button type="button" class="admin-tab-btn ${pos.activeCategory === 'all' ? 'active' : ''}" 
-                      style="padding: 4px 10px; font-size: 11px;" onclick="AdminWeb.posState.activeCategory = 'all'; AdminWeb.refreshPosView();">Tất Cả</button>
-              <button type="button" class="admin-tab-btn ${pos.activeCategory === 'services' ? 'active' : ''}" 
-                      style="padding: 4px 10px; font-size: 11px;" onclick="AdminWeb.posState.activeCategory = 'services'; AdminWeb.refreshPosView();">Dịch Vụ Cắt</button>
-              <button type="button" class="admin-tab-btn ${pos.activeCategory === 'combos' ? 'active' : ''}" 
-                      style="padding: 4px 10px; font-size: 11px;" onclick="AdminWeb.posState.activeCategory = 'combos'; AdminWeb.refreshPosView();">Gói Combo VIP</button>
-              <button type="button" class="admin-tab-btn ${pos.activeCategory === 'products' ? 'active' : ''}" 
-                      style="padding: 4px 10px; font-size: 11px;" onclick="AdminWeb.posState.activeCategory = 'products'; AdminWeb.refreshPosView();">Sáp & Mỹ Phẩm</button>
+              <button type="button" class="admin-tab-btn pos-cat-btn ${pos.activeCategory === 'all' || !pos.activeCategory ? 'active' : ''}" data-cat="all"
+                      style="padding: 4px 10px; font-size: 11px;" onclick="AdminWeb.setPosCategory('all')">Tất Cả</button>
+              <button type="button" class="admin-tab-btn pos-cat-btn ${pos.activeCategory === 'services' ? 'active' : ''}" data-cat="services"
+                      style="padding: 4px 10px; font-size: 11px;" onclick="AdminWeb.setPosCategory('services')">Dịch Vụ Cắt</button>
+              <button type="button" class="admin-tab-btn pos-cat-btn ${pos.activeCategory === 'combos' ? 'active' : ''}" data-cat="combos"
+                      style="padding: 4px 10px; font-size: 11px;" onclick="AdminWeb.setPosCategory('combos')">Gói Combo VIP</button>
+              <button type="button" class="admin-tab-btn pos-cat-btn ${pos.activeCategory === 'products' ? 'active' : ''}" data-cat="products"
+                      style="padding: 4px 10px; font-size: 11px;" onclick="AdminWeb.setPosCategory('products')">Sáp & Mỹ Phẩm</button>
             </div>
 
-            <!-- Grid Items -->
-            <div class="pos-catalog-grid">
-              ${allOfferings.map(item => `
-                <div class="pos-item-card" onclick="${item.itemType === 'service' ? `AdminWeb.addPosService('${item.id}')` : `AdminWeb.addPosProduct('${item.id}')`}">
-                  <div>
-                    <img src="${SalonUtils.formatImageUrl(item.image || item.HinhAnh)}" 
-                         class="pos-item-card-img" alt="${this.escapeHtml(item.name)}"
-                         onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=300&q=80');">
-                    <div style="font-size: 11px; color: var(--brand-accent, #F59E0B); font-weight: 700;">${item.itemType === 'service' ? 'Dịch Vụ' : 'Sản Phẩm'}</div>
-                    <div style="font-size: 13px; font-weight: 800; color: var(--text-primary); line-height: 1.3; margin: 2px 0 4px;">${this.escapeHtml(item.name)}</div>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px;">
-                    <strong style="font-size: 13.5px; color: var(--brand-accent, #F59E0B); white-space: nowrap !important; display: inline-block;">${SalonUtils.formatCurrency(item.price)}</strong>
-                    <button type="button" class="pos-item-add-btn">+ Thêm</button>
-                  </div>
-                </div>
-              `).join('')}
+            <!-- Grid Items (Targeted DOM update không làm mất focus input tìm kiếm) -->
+            <div class="pos-catalog-grid" id="posCatalogGrid">
+              ${this._renderPosCatalogItems(allOfferings)}
             </div>
           </div>
 
@@ -4179,6 +4116,10 @@
     refreshPosView() {
       const content = document.getElementById('adminSubTabContent');
       if (content && this.adminSubTab === 'pos') {
+        const input = document.getElementById('posCatalogSearchInput');
+        const hadFocus = input && document.activeElement === input;
+        const caret = input ? input.selectionStart : null;
+
         const user = this.getCurrentUser();
         const services = window.store.getServices();
         const combos = window.store.getCombos();
@@ -4186,6 +4127,99 @@
         const branches = window.store.getBranches();
         const stylists = window.store.getStylists();
         content.innerHTML = this.renderPosTab(user, services, combos, products, branches, stylists);
+
+        if (hadFocus) {
+          const newInput = document.getElementById('posCatalogSearchInput');
+          if (newInput) {
+            newInput.focus();
+            if (caret !== null) {
+              newInput.setSelectionRange(caret, caret);
+            }
+          }
+        }
+      }
+    },
+
+    _getPosOfferings(category = 'all', searchQuery = '') {
+      const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
+      const combos = (window.store && typeof window.store.getCombos === 'function') ? window.store.getCombos() : [];
+      const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
+
+      let list = [];
+      if (category === 'all' || category === 'services') {
+        services.forEach(s => list.push({ ...s, itemType: 'service' }));
+      }
+      if (category === 'all' || category === 'combos') {
+        combos.forEach(c => list.push({ ...c, itemType: 'service' }));
+      }
+      if (category === 'all' || category === 'products') {
+        products.forEach(p => list.push({ ...p, itemType: 'product' }));
+      }
+
+      if (searchQuery && searchQuery.trim()) {
+        const norm = str => (str || '')
+          .toString()
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/đ/g, 'd')
+          .trim();
+        const normQ = norm(searchQuery);
+        list = list.filter(it => {
+          const normName = norm(it.name || it.TenSanPham || it.TenDichVu);
+          const normBrand = norm(it.brand || it.ThuongHieu || '');
+          const normCode = norm(it.id || it.MaSanPham || it.MaDichVu || '');
+          return normName.includes(normQ) || normBrand.includes(normQ) || normCode.includes(normQ);
+        });
+      }
+      return list;
+    },
+
+    _renderPosCatalogItems(allOfferings) {
+      if (!allOfferings || allOfferings.length === 0) {
+        return `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 36px 16px; color: var(--text-secondary); background: var(--surface-elevated, rgba(0,0,0,0.03)); border-radius: 10px;">
+            <p style="margin: 0; font-size: 13px;">Không tìm thấy dịch vụ hoặc sáp nào khớp với bộ lọc.</p>
+          </div>
+        `;
+      }
+      return allOfferings.map(item => `
+        <div class="pos-item-card" onclick="${item.itemType === 'service' ? `AdminWeb.addPosService('${item.id}')` : `AdminWeb.addPosProduct('${item.id}')`}">
+          <div>
+            <img src="${SalonUtils.formatImageUrl(item.image || item.HinhAnh)}" 
+                 class="pos-item-card-img" alt="${this.escapeHtml(item.name)}"
+                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=300&q=80');">
+            <div style="font-size: 11px; color: var(--brand-accent, #F59E0B); font-weight: 700;">${item.itemType === 'service' ? 'Dịch Vụ' : 'Sản Phẩm'}</div>
+            <div style="font-size: 13px; font-weight: 800; color: var(--text-primary); line-height: 1.3; margin: 2px 0 4px;">${this.escapeHtml(item.name)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px;">
+            <strong style="font-size: 13.5px; color: var(--brand-accent, #F59E0B); white-space: nowrap !important; display: inline-block;">${SalonUtils.formatCurrency(item.price)}</strong>
+            <button type="button" class="pos-item-add-btn">+ Thêm</button>
+          </div>
+        </div>
+      `).join('');
+    },
+
+    handlePosSearch(value) {
+      this.posState.searchQuery = value || '';
+      const grid = document.getElementById('posCatalogGrid');
+      if (grid) {
+        const offerings = this._getPosOfferings(this.posState.activeCategory || 'all', this.posState.searchQuery);
+        grid.innerHTML = this._renderPosCatalogItems(offerings);
+      }
+    },
+
+    setPosCategory(cat) {
+      this.posState.activeCategory = cat || 'all';
+      const buttons = document.querySelectorAll('.pos-cat-btn');
+      buttons.forEach(b => {
+        if (b.dataset.cat === this.posState.activeCategory) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+      const grid = document.getElementById('posCatalogGrid');
+      if (grid) {
+        const offerings = this._getPosOfferings(this.posState.activeCategory, this.posState.searchQuery);
+        grid.innerHTML = this._renderPosCatalogItems(offerings);
       }
     },
 
@@ -4296,6 +4330,7 @@
       const invoices = (window.store && typeof window.store.getInvoices === 'function') ? window.store.getInvoices() : [];
       const payments = (window.store && typeof window.store.getPayments === 'function') ? window.store.getPayments() : [];
       const notifications = (window.store && typeof window.store.getNotifications === 'function') ? window.store.getNotifications() : [];
+      const orders = (window.store && typeof window.store.getOrders === 'function') ? window.store.getOrders() : [];
 
       const q = (this.auditSearchQuery || '').toLowerCase().trim();
 
@@ -4310,6 +4345,10 @@
             <button type="button" class="admin-tab-btn ${subType === 'invoices' ? 'active' : ''}" 
                     style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchAuditSubTab('invoices')">
               🧾 Hóa Đơn Bán &amp; Thu Tiền (${invoices.length} Hóa Đơn / ${payments.length} GD)
+            </button>
+            <button type="button" class="admin-tab-btn ${subType === 'orders' ? 'active' : ''}" 
+                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchAuditSubTab('orders')">
+              📦 Đơn Hàng &amp; Xử Lý Thanh Toán (${orders.length} Đơn)
             </button>
             <button type="button" class="admin-tab-btn ${subType === 'notifications' ? 'active' : ''}" 
                     style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchAuditSubTab('notifications')">
@@ -4338,16 +4377,16 @@
             </div>
 
             <span style="font-size: 12px; color: #888;">
-              ${subType === 'logs' ? `Lưu vết an toàn ${logs.length} sự kiện gần nhất` : (subType === 'invoices' ? `${invoices.length} hóa đơn bán hàng lưu trong CSDL` : `${notifications.length} thông báo trong hệ thống`)}
+              ${subType === 'logs' ? `Lưu vết an toàn ${logs.length} sự kiện gần nhất` : (subType === 'invoices' ? `${invoices.length} hóa đơn bán hàng lưu trong CSDL` : (subType === 'orders' ? `${orders.length} đơn hàng trong hệ thống` : `${notifications.length} thông báo trong hệ thống`))}
             </span>
           </div>
 
-          ${this._renderAuditContent(subType, { logs, invoices, payments, notifications, q })}
+          ${this._renderAuditContent(subType, { logs, invoices, payments, notifications, orders, q })}
         </div>
       `;
     },
 
-    _renderAuditContent(subType, { logs, invoices, payments, notifications, q }) {
+    _renderAuditContent(subType, { logs, invoices, payments, notifications, orders, q }) {
       this.auditPage = this.auditPage || 1;
 
       // 1. Phân hệ Nhật Ký Kiểm Toán (logs)
@@ -4434,9 +4473,30 @@
               </thead>
               <tbody>
                 ${paged.length > 0 ? paged.map(inv => {
-                  const sTotal = Number(inv.serviceTotal || inv.TongTienDichVu || 0);
-                  const pTotal = Number(inv.productTotal || inv.TongTienSanPham || 0);
-                  const total = Number(inv.totalAmount || inv.TongThanhToan || (sTotal + pTotal));
+                  let sTotal = Number(inv.serviceTotal || inv.TongTienDichVu || 0);
+                  let pTotal = Number(inv.productTotal || inv.TongTienSanPham || 0);
+                  let total = Number(inv.totalAmount || inv.TongThanhToan || inv.TongTien || inv.total || 0);
+
+                  if (sTotal === 0 && Array.isArray(inv.services) && inv.services.length > 0) {
+                    sTotal = inv.services.reduce((sum, s) => sum + Number(s.price || s.DonGia || 0), 0);
+                  }
+                  if (pTotal === 0 && (Array.isArray(inv.items) || Array.isArray(inv.products))) {
+                    const pItems = inv.items || inv.products || [];
+                    pTotal = pItems.reduce((sum, it) => sum + (Number(it.price || it.DonGia || 0) * (it.qty || it.quantity || it.SoLuong || 1)), 0);
+                  }
+
+                  if (total === 0) {
+                    total = sTotal + pTotal;
+                  } else if (sTotal === 0 && pTotal === 0 && total > 0) {
+                    if (inv.bookingId || inv.MaLichHen) {
+                      sTotal = total;
+                    } else if (inv.orderId || inv.MaDonHang) {
+                      pTotal = total;
+                    } else {
+                      sTotal = total;
+                    }
+                  }
+
                   const isPaid = (inv.status || inv.TrangThai || '').toLowerCase().includes('đã thanh toán') || (inv.paymentStatus || '').toLowerCase() === 'paid';
 
                   return `
@@ -4519,7 +4579,98 @@
           ${this._renderPaginationControls(this.auditPage, totalPages, filtered.length, 'AdminWeb.setAuditPage', 'thông báo')}
         `;
       }
+
+      // 4. Phân hệ Đơn Đặt Hàng & Xử Lý Thanh Toán (DonHang, ChiTietDonHang, ThanhToan)
+      if (subType === 'orders') {
+        const orderList = orders || [];
+        let filtered = orderList.filter(o => {
+          if (!q) return true;
+          const code = (o.id || o.orderCode || o.MaDonHang || '').toLowerCase();
+          const cust = (o.customerName || '').toLowerCase();
+          const phone = (o.customerPhone || '').toLowerCase();
+          const paySt = (o.paymentStatus || o.TrangThai || '').toLowerCase();
+          return code.includes(q) || cust.includes(q) || phone.includes(q) || paySt.includes(q);
+        });
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.auditPage > totalPages) this.auditPage = totalPages;
+        const paged = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
+
+        return `
+          <div style="overflow-x: auto;">
+            <table class="admin-enterprise-table">
+              <thead>
+                <tr>
+                  <th>Mã Đơn Hàng</th>
+                  <th>Khách Hàng</th>
+                  <th>Thời Gian Đặt</th>
+                  <th>Sản Phẩm Đã Đặt</th>
+                  <th>Tổng Tiền</th>
+                  <th>Hình Thức Nhận</th>
+                  <th>Thanh Toán</th>
+                  <th style="text-align: center;">Hành Động Thu Tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${paged.length > 0 ? paged.map(o => {
+                  const oCode = o.id || o.orderCode || o.MaDonHang;
+                  const isPaid = (o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán');
+                  const items = o.items || [];
+                  const itemsSummary = items.map(it => `• ${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || 1})`).join('<br>');
+                  const isPickup = o.deliveryType === 'PICKUP_BRANCH' || (o.shippingAddress && o.shippingAddress.toLowerCase().includes('quầy'));
+                  return `
+                    <tr>
+                      <td style="font-weight: 800; color: var(--color-terracotta);">#${this.escapeHtml(oCode)}</td>
+                      <td>
+                        <strong>${this.escapeHtml(o.customerName || 'Khách Hàng')}</strong>
+                        <div style="font-size: 11px; color: #666;">${this.escapeHtml(o.customerPhone || '')}</div>
+                      </td>
+                      <td style="font-size: 12px; color: #666; white-space: nowrap;">${this.escapeHtml(o.createdAt || o.NgayDat || '—')}</td>
+                      <td style="font-size: 12px; line-height: 1.4;">${itemsSummary || '—'}</td>
+                      <td><strong style="color: #b48312; font-size: 13.5px;">${SalonUtils.formatCurrency(o.totalAmount || 0)}</strong></td>
+                      <td style="font-size: 12px;">${isPickup ? 'Nhận tại quầy chi nhánh' : 'Giao tận nơi'}</td>
+                      <td>
+                        <span style="font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px; display: inline-block; ${isPaid ? 'background: #dcfce7; color: #15803d;' : 'background: #fee2e2; color: #b91c1c;'}">
+                          ${isPaid ? '✓ ĐÃ THANH TOÁN' : '⏳ CHƯA THANH TOÁN'}
+                        </span>
+                        <div style="font-size: 10px; color: #888; margin-top: 2px;">${this.escapeHtml(o.paymentMethod || 'VietQR')}</div>
+                      </td>
+                      <td style="text-align: center; white-space: nowrap;">
+                        ${isPaid ? `
+                          <span style="font-size: 12px; color: #16a34a; font-weight: 700;">✓ Hoàn tất</span>
+                        ` : `
+                          <button type="button" class="btn-submit-terracotta" 
+                                  style="font-size: 11px; padding: 5px 12px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;"
+                                  onclick="AdminWeb.confirmOrderPayment('${this.escapeHtml(oCode)}')">
+                            ✓ Xác Nhận Thu Tiền
+                          </button>
+                        `}
+                      </td>
+                    </tr>
+                  `;
+                }).join('') : `
+                  <tr><td colspan="8" style="text-align: center; padding: 30px; color: #888;">Không tìm thấy đơn hàng nào khớp với tìm kiếm.</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
+          ${this._renderPaginationControls(this.auditPage, totalPages, filtered.length, 'AdminWeb.setAuditPage', 'đơn hàng')}
+        `;
+      }
       return '';
+    },
+
+    async confirmOrderPayment(orderId) {
+      if (!confirm(`Xác nhận đã nhận đủ tiền thanh toán cho đơn hàng #${orderId}?`)) return;
+      if (window.store && typeof window.store.confirmOrderPayment === 'function') {
+        const res = await window.store.confirmOrderPayment(orderId, 'VietQR');
+        if (res && res.success) {
+          if (window.UICommon) window.UICommon.showToast(`Đã xác nhận thanh toán thành công cho đơn hàng #${orderId}!`, 'success');
+          this.refreshAuditView();
+        } else {
+          if (window.UICommon) window.UICommon.showToast(res?.error || 'Lỗi khi xác nhận thanh toán đơn hàng!', 'error');
+        }
+      }
     },
 
     refreshAuditView() {

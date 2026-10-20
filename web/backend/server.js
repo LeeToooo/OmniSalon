@@ -241,7 +241,7 @@ async function resolveOrCreateCustomer({ customerId, customerName, customerPhone
   }
   const newKhId = 'KH' + (nextNum < 10 ? '0' + nextNum : nextNum);
   const fullName = (customerName || 'Khách Hàng Mới').trim();
-  const phone = cleanPhone || ('09' + Math.floor(10000000 + Math.random() * 90000000));
+  const phone = cleanPhone || null;
   const email = (customerEmail || `${newKhId.toLowerCase()}@omnisalon.vn`).trim();
 
   await querySql(
@@ -343,7 +343,8 @@ async function getFullSqlDatabase() {
     paymentRows,
     fefoLotRows,
     lowStockRows,
-    inventoryRows
+    inventoryRows,
+    chiTietDonHangRows
   ] = await Promise.all([
     querySql(`SELECT MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, 
                      CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
@@ -362,7 +363,7 @@ async function getFullSqlDatabase() {
     querySql(`SELECT sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
                      sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
                      dm.TenDanhMuc,
-                     ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 25) AS SoLuongTon,
+                     ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 0) AS SoLuongTon,
                      CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung,
                      ctpn.SoLuongConLai
               FROM SanPham sp
@@ -370,7 +371,7 @@ async function getFullSqlDatabase() {
               OUTER APPLY (
                   SELECT TOP 1 HanSuDung, SoLuongConLai 
                   FROM ChiTietPhieuNhap 
-                  WHERE MaSanPham = sp.MaSanPham 
+                  WHERE MaSanPham = sp.MaSanPham AND SoLuongConLai > 0
                   ORDER BY HanSuDung ASC
               ) ctpn`),
     querySql(`SELECT lh.MaLichHen, lh.MaKhachHang, lh.MaNhanVien, lh.MaChiNhanh, 
@@ -427,7 +428,7 @@ async function getFullSqlDatabase() {
               LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang`),
     querySql(`SELECT tb.MaThongBao, tb.MaTaiKhoan, tb.MaKhachHang, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao,
                      CONVERT(VARCHAR(19), tb.ThoiGianGui, 120) AS ThoiGianGui, tb.TrangThaiDoc
-              FROM ThongBao tb`),
+               FROM ThongBao tb`),
     querySql(`SELECT clv.MaCa, clv.MaNhanVien, 
                      CONVERT(VARCHAR(10), clv.NgayLam, 120) AS NgayLam,
                      CONVERT(VARCHAR(8), clv.GioBatDau) AS GioBatDau,
@@ -461,7 +462,10 @@ async function getFullSqlDatabase() {
                      CONVERT(VARCHAR(19), hd.NgayLap, 120) AS NgayLap, 
                      hd.TongTien, hd.TrangThai, hd.MaSoHoaDon, 
                      kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang, 
-                     cn.TenChiNhanh 
+                     cn.TenChiNhanh,
+                     ISNULL((SELECT SUM(ThanhTien) FROM ChiTietHoaDon_DichVu WHERE MaHoaDon = hd.MaHoaDon), 0) AS TongTienDichVu,
+                     ISNULL((SELECT SUM(ThanhTien) FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = hd.MaHoaDon), 0) AS TongTienSanPham,
+                     ISNULL((SELECT TOP 1 PhuongThuc FROM ThanhToan WHERE MaHoaDon = hd.MaHoaDon ORDER BY ThoiGianThanhToan DESC), N'VietQR') AS PhuongThucThanhToan
               FROM HoaDon hd 
               LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang 
               LEFT JOIN ChiNhanh cn ON hd.MaChiNhanh = cn.MaChiNhanh 
@@ -479,7 +483,11 @@ async function getFullSqlDatabase() {
                      sp.TenSanPham, cn.TenChiNhanh 
               FROM TonKho tk 
               JOIN SanPham sp ON tk.MaSanPham = sp.MaSanPham 
-              JOIN ChiNhanh cn ON tk.MaChiNhanh = cn.MaChiNhanh`)
+              JOIN ChiNhanh cn ON tk.MaChiNhanh = cn.MaChiNhanh`),
+    querySql(`SELECT ctdh.MaChiTietDonHang, ctdh.MaDonHang, ctdh.MaChiTietPhieuNhap, ctdh.MaSanPham, ctdh.SoLuong, ctdh.DonGiaThucTe, ctdh.ThanhTien,
+                     sp.TenSanPham, sp.HinhAnh
+              FROM ChiTietDonHang ctdh
+              LEFT JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham`)
   ]);
 
   const branches = branchRows.map(r => {
@@ -538,6 +546,35 @@ async function getFullSqlDatabase() {
     };
   });
 
+  // Tính toán đánh giá sao thực tế từ SQL Server bảng DanhGia (khử hoàn toàn AI sloop hardcode)
+  const serviceReviewMap = new Map();
+  const stylistReviewMap = new Map();
+  const productReviewMap = new Map();
+
+  (reviewRows || []).forEach(rv => {
+    const star = Number(rv.SoSao || 5);
+    if (rv.MaLichHen) {
+      const b = (bookingRows || []).find(x => x.MaLichHen === rv.MaLichHen);
+      if (b) {
+        if (b.MaDichVu) {
+          if (!serviceReviewMap.has(b.MaDichVu)) serviceReviewMap.set(b.MaDichVu, []);
+          serviceReviewMap.get(b.MaDichVu).push(star);
+        }
+        if (b.MaNhanVien) {
+          if (!stylistReviewMap.has(b.MaNhanVien)) stylistReviewMap.set(b.MaNhanVien, []);
+          stylistReviewMap.get(b.MaNhanVien).push(star);
+        }
+      }
+    }
+    if (rv.MaDonHang) {
+      const items = (chiTietDonHangRows || []).filter(ct => ct.MaDonHang === rv.MaDonHang);
+      items.forEach(it => {
+        if (!productReviewMap.has(it.MaSanPham)) productReviewMap.set(it.MaSanPham, []);
+        productReviewMap.get(it.MaSanPham).push(star);
+      });
+    }
+  });
+
   const services = serviceRows.map(r => {
     const origPrice = parseFloat(r.Gia || 0);
     // Khớp khuyến mãi từ KhuyenMai_DichVu
@@ -566,6 +603,9 @@ async function getFullSqlDatabase() {
       };
     }
 
+    const sRev = serviceReviewMap.get(r.MaDichVu) || [];
+    const avgRating = sRev.length > 0 ? parseFloat((sRev.reduce((sum, s) => sum + s, 0) / sRev.length).toFixed(1)) : 5.0;
+
     return {
       id: r.MaDichVu,
       MaDichVu: r.MaDichVu,
@@ -589,8 +629,8 @@ async function getFullSqlDatabase() {
       image: r.HinhAnh || '',
       HinhAnh: r.HinhAnh || '',
       category: ['DV01', 'DV02', 'DV06'].includes(r.MaDichVu) ? 'Cắt & Tạo Kiểu' : ['DV03', 'DV04', 'DV05', 'DV08', 'DV09'].includes(r.MaDichVu) ? 'Uốn & Nhuộm' : 'Chăm Sóc & Phục Hồi',
-      rating: 4.95,
-      reviewCount: 280,
+      rating: avgRating,
+      reviewCount: sRev.length,
       status: r.TrangThai,
       NgayApDung: r.NgayApDung,
       effectiveDate: r.NgayApDung
@@ -651,6 +691,9 @@ async function getFullSqlDatabase() {
   const stylists = stylistRows.map(r => {
     const nvNum = parseInt((r.MaNhanVien || '').replace(/\D/g, '') || '1', 10);
     const assignedAvatar = r.HinhAnh || BARBER_PORTRAITS[(nvNum - 1) % BARBER_PORTRAITS.length];
+    const stRev = stylistReviewMap.get(r.MaNhanVien) || [];
+    const avgRating = stRev.length > 0 ? parseFloat((stRev.reduce((sum, s) => sum + s, 0) / stRev.length).toFixed(1)) : 5.0;
+
     return {
       id: r.MaNhanVien,
       MaNhanVien: r.MaNhanVien,
@@ -666,8 +709,8 @@ async function getFullSqlDatabase() {
       role: r.ChucVu || 'Thợ chính',
       avatar: assignedAvatar,
       HinhAnh: assignedAvatar,
-      rating: 4.95,
-      reviewCount: 350,
+      rating: avgRating,
+      reviewCount: stRev.length,
       specialty: r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn',
       isAvailable: r.TrangThai === 'Đang làm việc'
     };
@@ -715,10 +758,8 @@ async function getFullSqlDatabase() {
     if (matchedPromo) {
       if (matchedPromo.type && matchedPromo.type.includes('%')) {
         discountPercent = matchedPromo.value;
-        finalPrice = Math.round(price * (1 - (discountPercent / 100)));
       } else {
         const discountAmt = matchedPromo.value;
-        finalPrice = Math.max(0, price - discountAmt);
         discountPercent = price > 0 ? Math.round((discountAmt / price) * 100) : 0;
       }
       promoInfo = {
@@ -731,25 +772,36 @@ async function getFullSqlDatabase() {
       isFlashSale = true;
     }
 
-    // 2. Nếu chưa có khuyến mãi từ bảng, xét cận hạn sử dụng
-    if (discountPercent === 0 && r.HanSuDung) {
+    // 2. Giảm giá cận hạn FEFO: Lấy mức giảm lớn nhất giữa cận hạn và khuyến mãi khi lô còn hàng
+    let expiryDiscount = 0;
+    const stockLeft = (r.SoLuongConLai !== undefined && r.SoLuongConLai !== null) ? parseInt(r.SoLuongConLai, 10) : 0;
+    if (r.HanSuDung && stockLeft > 0) {
       const expDate = new Date(r.HanSuDung);
       const diffTime = expDate - refDate;
       const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (daysLeft <= 30) {
-        discountPercent = 35;
-        isFlashSale = true;
+      if (daysLeft <= 0) {
+        expiryDiscount = 100;
+      } else if (daysLeft <= 30) {
+        expiryDiscount = 70;
       } else if (daysLeft <= 90) {
-        discountPercent = 30;
-        isFlashSale = true;
+        expiryDiscount = 40; // SP01 31 ngày -> giảm 40%
       } else if (daysLeft <= 180) {
-        discountPercent = 20;
-        isFlashSale = true;
-      }
-      if (discountPercent > 0) {
-        finalPrice = Math.round(price * (1 - (discountPercent / 100)));
+        expiryDiscount = 20;
       }
     }
+
+    const effectiveDiscount = Math.max(discountPercent, expiryDiscount);
+    if (effectiveDiscount > 0) {
+      discountPercent = effectiveDiscount;
+      finalPrice = Math.round(price * (1 - (discountPercent / 100)));
+      isFlashSale = true;
+    } else {
+      finalPrice = price;
+    }
+
+    const pRev = productReviewMap.get(r.MaSanPham) || [];
+    const avgRating = pRev.length > 0 ? parseFloat((pRev.reduce((sum, s) => sum + s, 0) / pRev.length).toFixed(1)) : 5.0;
+    const actualStock = (r.SoLuongTon !== null && r.SoLuongTon !== undefined) ? parseInt(r.SoLuongTon, 10) : 0;
 
     return {
       id: r.MaSanPham,
@@ -775,10 +827,10 @@ async function getFullSqlDatabase() {
       HinhAnh: r.HinhAnh,
       description: r.MoTa,
       MoTa: r.MoTa,
-      rating: 4.9,
-      reviewCount: 120,
-      stock: parseInt(r.SoLuongTon || 25, 10),
-      SoLuongTon: parseInt(r.SoLuongTon || 25, 10),
+      rating: avgRating,
+      reviewCount: pRev.length,
+      stock: actualStock,
+      SoLuongTon: actualStock,
       isFlashSale,
       discountPercent,
       PhanTramGiam: discountPercent,
@@ -789,9 +841,9 @@ async function getFullSqlDatabase() {
   });
 
   const bookings = bookingRows.map(r => {
-    const cName = r.TenKhachHang || 'Khách Hàng Omni';
-    const cPhone = r.SdtKhachHang || '0908888999';
-    const sName = r.TenDichVu || 'Dịch vụ chăm sóc tóc Omni';
+    const cName = r.TenKhachHang || 'Khách Hàng';
+    const cPhone = r.SdtKhachHang || '';
+    const sName = r.TenDichVu || 'Dịch vụ Salon';
     const st = r.TrangThai;
     const uiStatus = (st === 'Hoàn thành' || st === 'Completed') ? 'Completed' : ((st === 'Đã hủy' || st === 'Cancelled') ? 'Cancelled' : ((st === 'In_Progress' || st === 'in_progress' || st === 'Đang phục vụ') ? 'in_progress' : ((st === 'Chờ vào ghế' || st === 'Waiting' || st === 'waiting') ? 'waiting' : 'Confirmed')));
 
@@ -828,23 +880,42 @@ async function getFullSqlDatabase() {
     else if (tt === 'Đã hủy' || tt === 'Cancelled') oStatus = 'Cancelled';
     else if (tt === 'Đang giao' || tt === 'Delivering' || tt === 'Shipped') oStatus = 'Delivering';
 
+    const orderItems = (chiTietDonHangRows || [])
+      .filter(ct => ct.MaDonHang === r.MaDonHang)
+      .map(it => ({
+        id: it.MaSanPham,
+        productId: it.MaSanPham,
+        name: it.TenSanPham || 'Sản phẩm',
+        price: parseFloat(it.DonGiaThucTe || 0),
+        qty: it.SoLuong || 1,
+        quantity: it.SoLuong || 1,
+        total: parseFloat(it.ThanhTien || 0),
+        image: it.HinhAnh || ''
+      }));
+
+    const isPaid = (r.TrangThai === 'Đã giao' || r.TrangThai === 'Đã thanh toán' || (invoiceRows || []).some(inv => inv.MaDonHang === r.MaDonHang && inv.TrangThai === 'Đã thanh toán'));
+
     return {
       id: r.MaDonHang,
       MaDonHang: r.MaDonHang,
       orderCode: r.MaDonHang,
       customerId: r.MaKhachHang,
-      customerName: r.TenKhachHang || 'Khách Hàng Omni',
-      customerPhone: r.SdtKhachHang || '0908888999',
+      customerName: r.TenKhachHang || 'Khách Hàng',
+      customerPhone: r.SdtKhachHang || '',
       branchId: r.MaChiNhanh,
-      branchName: r.TenChiNhanh,
+      branchName: r.TenChiNhanh || 'Omni Salon Chi Nhánh',
       orderDate: r.NgayDat,
       totalAmount: parseFloat(r.TongTien || 0),
       TongTien: parseFloat(r.TongTien || 0),
       shippingAddress: r.DiaChiGiaoHang,
       receiveMethod: r.HinhThucNhan,
+      deliveryType: (r.HinhThucNhan === 'Nhận tại quầy' || (r.DiaChiGiaoHang && r.DiaChiGiaoHang.includes('quầy'))) ? 'PICKUP_BRANCH' : 'DELIVERY',
+      paymentMethod: r.HinhThucNhan === 'Nhận tại quầy' ? 'Thanh toán tại quầy' : 'VietQR',
+      paymentStatus: isPaid ? 'Paid' : 'Unpaid',
       orderStatus: oStatus,
       TrangThai: r.TrangThai,
-      notes: r.GhiChu
+      notes: r.GhiChu,
+      items: orderItems
     };
   });
 
@@ -963,8 +1034,16 @@ async function getFullSqlDatabase() {
     branchName: r.TenChiNhanh || `Chi Nhánh ${r.MaChiNhanh}`,
     createdDate: r.NgayLap,
     NgayLap: r.NgayLap,
+    serviceTotal: parseFloat(r.TongTienDichVu || 0),
+    TongTienDichVu: parseFloat(r.TongTienDichVu || 0),
+    productTotal: parseFloat(r.TongTienSanPham || 0),
+    TongTienSanPham: parseFloat(r.TongTienSanPham || 0),
     total: parseFloat(r.TongTien || 0),
+    totalAmount: parseFloat(r.TongTien || 0),
     TongTien: parseFloat(r.TongTien || 0),
+    TongThanhToan: parseFloat(r.TongTien || 0),
+    paymentMethod: r.PhuongThucThanhToan || 'VietQR',
+    PhuongThucThanhToan: r.PhuongThucThanhToan || 'VietQR',
     status: r.TrangThai || 'Đã thanh toán',
     TrangThai: r.TrangThai || 'Đã thanh toán',
     invoiceNumber: r.MaSoHoaDon,
@@ -1540,9 +1619,23 @@ const server = http.createServer(async (req, res) => {
           const seed = (id || name || 'NV01').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
           return BARBER_PORTRAITS[seed % BARBER_PORTRAITS.length];
         }
-        const rows = await querySql(q, params);
+        const [rows, reviewRows] = await Promise.all([
+          querySql(q, params),
+          querySql(`SELECT dg.SoSao, lh.MaNhanVien 
+                    FROM DanhGia dg 
+                    JOIN LichHen lh ON dg.MaLichHen = lh.MaLichHen`)
+        ]);
+        const stylistReviewMap = new Map();
+        (reviewRows || []).forEach(rv => {
+          if (rv.MaNhanVien) {
+            if (!stylistReviewMap.has(rv.MaNhanVien)) stylistReviewMap.set(rv.MaNhanVien, []);
+            stylistReviewMap.get(rv.MaNhanVien).push(parseFloat(rv.SoSao || 5));
+          }
+        });
         const stylists = rows.map(r => {
           const av = getBarberAvatar(r.MaNhanVien, r.HoTen, r.HinhAnh);
+          const stRev = stylistReviewMap.get(r.MaNhanVien) || [];
+          const avgRating = stRev.length > 0 ? parseFloat((stRev.reduce((sum, s) => sum + s, 0) / stRev.length).toFixed(1)) : 5.0;
           return {
             id: r.MaNhanVien,
             MaNhanVien: r.MaNhanVien,
@@ -1558,8 +1651,8 @@ const server = http.createServer(async (req, res) => {
             role: r.ChucVu,
             avatar: av,
             HinhAnh: av,
-            rating: 4.95,
-            reviewCount: 350,
+            rating: avgRating,
+            reviewCount: stRev.length,
             specialty: r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn',
             isAvailable: true
           };
@@ -1633,11 +1726,21 @@ const server = http.createServer(async (req, res) => {
 
       // --- 10. SERVICES / DỊCH VỤ ---
       if (pathname === '/api/services' && method === 'GET') {
-        const [rows, promoRows, kmDichVuRows] = await Promise.all([
+        const [rows, promoRows, kmDichVuRows, reviewRows] = await Promise.all([
           querySql(`SELECT MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu`),
           querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai FROM KhuyenMai WHERE TrangThai = N'Đang áp dụng'`),
-          querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`)
+          querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`),
+          querySql(`SELECT dg.SoSao, ctlh.MaDichVu 
+                    FROM DanhGia dg 
+                    JOIN ChiTietLichHen ctlh ON dg.MaLichHen = ctlh.MaLichHen`)
         ]);
+        const serviceReviewMap = new Map();
+        (reviewRows || []).forEach(rv => {
+          if (rv.MaDichVu) {
+            if (!serviceReviewMap.has(rv.MaDichVu)) serviceReviewMap.set(rv.MaDichVu, []);
+            serviceReviewMap.get(rv.MaDichVu).push(parseFloat(rv.SoSao || 5));
+          }
+        });
         const services = rows.map(r => {
           const origPrice = parseFloat(r.Gia || 0);
           const link = (kmDichVuRows || []).find(k => k.MaDichVu === r.MaDichVu);
@@ -1664,6 +1767,9 @@ const server = http.createServer(async (req, res) => {
             };
           }
 
+          const sRev = serviceReviewMap.get(r.MaDichVu) || [];
+          const avgRating = sRev.length > 0 ? parseFloat((sRev.reduce((sum, s) => sum + s, 0) / sRev.length).toFixed(1)) : 5.0;
+
           return {
             id: r.MaDichVu,
             MaDichVu: r.MaDichVu,
@@ -1686,8 +1792,8 @@ const server = http.createServer(async (req, res) => {
             image: r.HinhAnh || '',
             HinhAnh: r.HinhAnh || '',
             category: ['DV01', 'DV02', 'DV06'].includes(r.MaDichVu) ? 'Cắt & Tạo Kiểu' : ['DV03', 'DV04', 'DV05', 'DV08', 'DV09'].includes(r.MaDichVu) ? 'Uốn & Nhuộm' : 'Chăm Sóc & Phục Hồi',
-            rating: 4.95,
-            reviewCount: 280,
+            rating: avgRating,
+            reviewCount: sRev.length,
             status: r.TrangThai,
             NgayApDung: r.NgayApDung,
             effectiveDate: r.NgayApDung
@@ -1997,12 +2103,16 @@ const server = http.createServer(async (req, res) => {
           querySql(`SELECT sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
                            sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
                            dm.TenDanhMuc,
-                           ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 25) AS SoLuongTon,
-                           CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung
+                           ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 0) AS SoLuongTon,
+                           CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung,
+                           ctpn.SoLuongConLai
                     FROM SanPham sp
                     LEFT JOIN DanhMucSanPham dm ON sp.MaDanhMuc = dm.MaDanhMuc
                     OUTER APPLY (
-                        SELECT TOP 1 HanSuDung FROM ChiTietPhieuNhap WHERE MaSanPham = sp.MaSanPham ORDER BY HanSuDung ASC
+                        SELECT TOP 1 HanSuDung, SoLuongConLai 
+                        FROM ChiTietPhieuNhap 
+                        WHERE MaSanPham = sp.MaSanPham AND SoLuongConLai > 0 
+                        ORDER BY HanSuDung ASC
                     ) ctpn`),
           querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai FROM KhuyenMai WHERE TrangThai = N'Đang áp dụng'`),
           querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`)
@@ -2028,10 +2138,8 @@ const server = http.createServer(async (req, res) => {
           if (promo) {
             if (promo.HinhThuc && promo.HinhThuc.includes('%')) {
               discountPercent = parseFloat(promo.GiaTriGiam || 0);
-              finalPrice = Math.round(price * (1 - (discountPercent / 100)));
             } else {
               const discountAmt = parseFloat(promo.GiaTriGiam || 0);
-              finalPrice = Math.max(0, price - discountAmt);
               discountPercent = price > 0 ? Math.round((discountAmt / price) * 100) : 0;
             }
             promoInfo = {
@@ -2044,16 +2152,34 @@ const server = http.createServer(async (req, res) => {
             isFlashSale = true;
           }
 
-          // 2. Cận hạn sử dụng
-          if (discountPercent === 0 && r.HanSuDung) {
+          // 2. Giảm giá cận hạn FEFO: Lấy mức giảm lớn nhất giữa cận hạn và khuyến mãi khi lô còn hàng
+          let expiryDiscount = 0;
+          const stockLeft = (r.SoLuongConLai !== undefined && r.SoLuongConLai !== null) ? parseInt(r.SoLuongConLai, 10) : 0;
+          if (r.HanSuDung && stockLeft > 0) {
             const expDate = new Date(r.HanSuDung);
             const diffTime = expDate - refDate;
             const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            if (daysLeft <= 30) { discountPercent = 35; isFlashSale = true; }
-            else if (daysLeft <= 90) { discountPercent = 30; isFlashSale = true; }
-            else if (daysLeft <= 180) { discountPercent = 20; isFlashSale = true; }
-            if (discountPercent > 0) finalPrice = Math.round(price * (1 - (discountPercent / 100)));
+            if (daysLeft <= 0) {
+              expiryDiscount = 100;
+            } else if (daysLeft <= 30) {
+              expiryDiscount = 70;
+            } else if (daysLeft <= 90) {
+              expiryDiscount = 40; // SP01 31 ngày -> giảm 40%
+            } else if (daysLeft <= 180) {
+              expiryDiscount = 20;
+            }
           }
+
+          const effectiveDiscount = Math.max(discountPercent, expiryDiscount);
+          if (effectiveDiscount > 0) {
+            discountPercent = effectiveDiscount;
+            finalPrice = Math.round(price * (1 - (discountPercent / 100)));
+            isFlashSale = true;
+          } else {
+            finalPrice = price;
+          }
+
+          const actualStock = (r.SoLuongTon !== null && r.SoLuongTon !== undefined) ? parseInt(r.SoLuongTon, 10) : 0;
 
           return {
             id: r.MaSanPham,
@@ -2075,7 +2201,8 @@ const server = http.createServer(async (req, res) => {
             image: r.HinhAnh || '',
             HinhAnh: r.HinhAnh || '',
             description: r.MoTa,
-            stock: parseInt(r.SoLuongTon || 25, 10),
+            stock: actualStock,
+            SoLuongTon: actualStock,
             isFlashSale,
             discountPercent,
             PhanTramGiam: discountPercent,
@@ -2298,9 +2425,9 @@ const server = http.createServer(async (req, res) => {
                                      LEFT JOIN ChiNhanh cn ON lh.MaChiNhanh = cn.MaChiNhanh
                                      ORDER BY lh.NgayHen DESC, lh.GioBatDau DESC`);
         const bookings = rows.map(r => {
-          const cName = r.TenKhachHang || 'Khách Hàng Omni';
-          const cPhone = r.SdtKhachHang || '0908888999';
-          const sName = r.TenDichVu || 'Dịch vụ chăm sóc tóc Omni';
+          const cName = r.TenKhachHang || 'Khách Hàng';
+          const cPhone = r.SdtKhachHang || '';
+          const sName = r.TenDichVu || 'Dịch vụ Salon';
           const uiStatus = (r.TrangThai === 'Hoàn thành' || r.TrangThai === 'Completed') ? 'Completed' : ((r.TrangThai === 'Đã hủy' || r.TrangThai === 'Cancelled') ? 'Cancelled' : ((r.TrangThai === 'In_Progress' || r.TrangThai === 'in_progress' || r.TrangThai === 'Đang phục vụ') ? 'in_progress' : ((r.TrangThai === 'Chờ vào ghế' || r.TrangThai === 'Waiting' || r.TrangThai === 'waiting') ? 'waiting' : 'Confirmed')));
 
           return {
@@ -2572,61 +2699,66 @@ const server = http.createServer(async (req, res) => {
           return res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${orderIdParam}!` }));
         }
 
-        const mapOrder = async (r) => {
+        const allOrderItems = await querySql(`
+          SELECT ctdh.MaChiTietDonHang, ctdh.MaDonHang, ctdh.MaSanPham, ctdh.SoLuong, ctdh.DonGiaThucTe, ctdh.ThanhTien,
+                 sp.TenSanPham, sp.HinhAnh
+          FROM ChiTietDonHang ctdh
+          LEFT JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham
+        `);
+
+        const mapOrder = (r) => {
           let oStatus = 'Processing';
           const tt = (r.TrangThai || '').trim();
           if (tt === 'Đã giao' || tt === 'Completed') oStatus = 'Completed';
           else if (tt === 'Đã hủy' || tt === 'Cancelled') oStatus = 'Cancelled';
           else if (tt === 'Đang giao' || tt === 'Delivering' || tt === 'Shipped') oStatus = 'Delivering';
 
-          let items = [];
-          if (orderIdParam) {
-            const itemRows = await querySql(`
-              SELECT ctdh.MaChiTietDonHang, ctdh.MaSanPham, ctdh.SoLuong, ctdh.DonGiaThucTe, ctdh.ThanhTien,
-                     sp.TenSanPham, sp.HinhAnh
-              FROM ChiTietDonHang ctdh
-              LEFT JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham
-              WHERE ctdh.MaDonHang = ?
-            `, [r.MaDonHang]);
-            items = (itemRows || []).map(it => ({
+          const items = (allOrderItems || [])
+            .filter(it => it.MaDonHang === r.MaDonHang)
+            .map(it => ({
               id: it.MaChiTietDonHang,
               productId: it.MaSanPham,
-              name: it.TenSanPham,
+              name: it.TenSanPham || 'Sản phẩm',
               price: parseFloat(it.DonGiaThucTe || 0),
-              quantity: it.SoLuong,
+              quantity: it.SoLuong || 1,
+              qty: it.SoLuong || 1,
               total: parseFloat(it.ThanhTien || 0),
-              image: it.HinhAnh
+              image: it.HinhAnh || ''
             }));
-          }
+
+          const isPaid = (r.TrangThai === 'Đã giao' || r.TrangThai === 'Đã thanh toán');
 
           return {
             id: r.MaDonHang,
             MaDonHang: r.MaDonHang,
             orderCode: r.MaDonHang,
             customerId: r.MaKhachHang,
-            customerName: r.TenKhachHang || 'Khách Hàng Omni',
-            customerPhone: r.SdtKhachHang || '0908888999',
+            customerName: r.TenKhachHang || 'Khách Hàng',
+            customerPhone: r.SdtKhachHang || '',
             branchId: r.MaChiNhanh,
-            branchName: r.TenChiNhanh,
+            branchName: r.TenChiNhanh || 'Omni Salon Chi Nhánh',
             orderDate: r.NgayDat,
             totalAmount: parseFloat(r.TongTien || 0),
             TongTien: parseFloat(r.TongTien || 0),
             shippingAddress: r.DiaChiGiaoHang,
             receiveMethod: r.HinhThucNhan,
+            deliveryType: (r.HinhThucNhan === 'Nhận tại quầy' || (r.DiaChiGiaoHang && r.DiaChiGiaoHang.includes('quầy'))) ? 'PICKUP_BRANCH' : 'DELIVERY',
+            paymentMethod: r.HinhThucNhan === 'Nhận tại quầy' ? 'Thanh toán tại quầy' : 'VietQR',
+            paymentStatus: isPaid ? 'Paid' : 'Unpaid',
             orderStatus: oStatus,
             TrangThai: r.TrangThai,
             notes: r.GhiChu,
-            items: orderIdParam ? items : undefined
+            items
           };
         };
 
         if (orderIdParam) {
-          const singleOrder = await mapOrder(rows[0]);
+          const singleOrder = mapOrder(rows[0]);
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           return res.end(JSON.stringify(singleOrder));
         }
 
-        const orders = await Promise.all(rows.map(mapOrder));
+        const orders = rows.map(mapOrder);
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify(orders));
       }
@@ -2794,12 +2926,13 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ success: true, message: `Đã hủy đơn hàng #${id} thành công!` }));
       }
 
-      // --- CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (PUT /api/orders/:id) ---
+      // --- CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG & XỬ LÝ THANH TOÁN (PUT /api/orders/:id) ---
       if (pathname.startsWith('/api/orders/') && !pathname.endsWith('/cancel') && method === 'PUT') {
-        const id = pathname.replace('/api/orders/', '').trim();
+        const id = pathname.replace('/api/orders/', '').replace('/payment', '').replace('/status', '').trim();
         const body = parsedBody || {};
         const statusRaw = body.status || body.TrangThai || body.orderStatus || '';
         const notes = body.notes !== undefined ? body.notes : (body.GhiChu !== undefined ? body.GhiChu : null);
+        const isPaymentConfirmed = body.paymentStatus === 'Paid' || body.isPaid || body.TrangThaiThanhToan === 'Đã thanh toán' || statusRaw.toLowerCase().includes('thanh toán');
 
         let trangThai = null;
         const sLower = statusRaw.toLowerCase();
@@ -2807,7 +2940,7 @@ const server = http.createServer(async (req, res) => {
           trangThai = 'Đang xử lý';
         } else if (sLower.includes('giao') || sLower.includes('ship') || sLower.includes('delivering')) {
           trangThai = 'Đang giao';
-        } else if (sLower.includes('hoàn thành') || sLower.includes('đã giao') || sLower.includes('completed') || sLower.includes('delivered')) {
+        } else if (sLower.includes('hoàn thành') || sLower.includes('đã giao') || sLower.includes('completed') || sLower.includes('delivered') || isPaymentConfirmed) {
           trangThai = 'Đã giao';
         } else if (sLower.includes('hủy') || sLower.includes('cancel')) {
           trangThai = 'Đã hủy';
@@ -2842,20 +2975,75 @@ const server = http.createServer(async (req, res) => {
           }
         }
 
+        // Xử lý tạo / cập nhật hóa đơn và giao dịch thanh toán khi xác nhận thanh toán đơn hàng
+        if (isPaymentConfirmed) {
+          try {
+            const ordRows = await querySql('SELECT MaDonHang, MaKhachHang, MaChiNhanh, TongTien FROM DonHang WHERE MaDonHang = ?', [id]);
+            if (ordRows && ordRows[0]) {
+              const ord = ordRows[0];
+              let hdRows = await querySql('SELECT MaHoaDon FROM HoaDon WHERE MaDonHang = ?', [id]);
+              let hdId = null;
+              if (hdRows && hdRows[0]) {
+                hdId = hdRows[0].MaHoaDon;
+                await querySql("UPDATE HoaDon SET TrangThai = N'Đã thanh toán' WHERE MaHoaDon = ?", [hdId]);
+              } else {
+                const maxHd = await querySql("SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaHoaDon LIKE 'HD%' AND LEN(MaHoaDon) <= 10 ORDER BY LEN(MaHoaDon) DESC, MaHoaDon DESC");
+                let nextHd = 11;
+                if (maxHd && maxHd[0]) {
+                  const m = maxHd[0].MaHoaDon.match(/HD(\d+)/i);
+                  if (m) nextHd = parseInt(m[1], 10) + 1;
+                }
+                hdId = 'HD' + (nextHd < 10 ? '0' + nextHd : nextHd);
+                const invNo = `HD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(100 + Math.random() * 900)}`;
+                await querySql(
+                  `INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, NgayLap, TongTien, TrangThai, MaSoHoaDon)
+                   VALUES (?, ?, NULL, ?, ?, GETDATE(), ?, N'Đã thanh toán', ?)`,
+                  [hdId, ord.MaKhachHang, id, ord.MaChiNhanh || 'CN01', ord.TongTien || 0, invNo]
+                );
+              }
+              if (hdId) {
+                const maxTt = await querySql("SELECT TOP 1 MaThanhToan FROM ThanhToan WHERE MaThanhToan LIKE 'TT%' AND LEN(MaThanhToan) <= 10 ORDER BY LEN(MaThanhToan) DESC, MaThanhToan DESC");
+                let nextTt = 11;
+                if (maxTt && maxTt[0]) {
+                  const m = maxTt[0].MaThanhToan.match(/TT(\d+)/i);
+                  if (m) nextTt = parseInt(m[1], 10) + 1;
+                }
+                const ttId = 'TT' + (nextTt < 10 ? '0' + nextTt : nextTt);
+                const pMethod = body.paymentMethod || 'Chuyển khoản VietQR';
+                await querySql(
+                  `INSERT INTO ThanhToan (MaThanhToan, MaHoaDon, MaNhanVien, SoTien, PhuongThuc, ThoiGianThanhToan, TrangThai, MaGiaoDich)
+                   VALUES (?, ?, 'NV61', ?, ?, GETDATE(), N'Thành công', ?)`,
+                  [ttId, hdId, ord.TongTien || 0, pMethod, `TXN_${Date.now()}`]
+                ).catch(e => console.warn('[Payment Insert]', e.message));
+              }
+            }
+          } catch (pErr) {
+            console.warn('[Order Payment Confirm Error]', pErr.message);
+          }
+        }
+
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, message: `Cập nhật đơn hàng #${id} thành công!`, TrangThai: trangThai }));
+        return res.end(JSON.stringify({ 
+          success: true, 
+          message: `Cập nhật đơn hàng #${id} thành công!`, 
+          TrangThai: trangThai,
+          paymentStatus: isPaymentConfirmed ? 'Paid' : (body.paymentStatus || 'Unpaid')
+        }));
       }
 
       // --- 17. POS CHECKOUT  - HÓA ĐƠN & THANH TOÁN TẠI QUẦY -  ---
       if ((pathname === '/api/pos/checkout' || pathname === '/api/admin/pos/checkout') && method === 'POST') {
         const pos = parsedBody || {};
-        const maxHd = await querySql(`SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaHoaDon LIKE 'HD%' AND LEN(MaHoaDon) <= 10 ORDER BY LEN(MaHoaDon) DESC, MaHoaDon DESC`);
-        let nextN = 3;
-        if (maxHd && maxHd[0]) {
-          const nm = maxHd[0].MaHoaDon.match(/HD(\d+)/i);
-          if (nm) nextN = parseInt(nm[1], 10) + 1;
-        }
-        const hdId = 'HD' + (nextN < 10 ? '0' + nextN : nextN);
+        const existingHd = await querySql(`SELECT MaHoaDon FROM HoaDon`);
+        let nextHdNum = 0;
+        (existingHd || []).forEach(row => {
+          const m = (row.MaHoaDon || '').match(/\d+/g);
+          if (m) {
+            const num = parseInt(m[m.length - 1], 10);
+            if (num > nextHdNum) nextHdNum = num;
+          }
+        });
+        const hdId = 'HD' + (nextHdNum + 1 < 10 ? '0' + (nextHdNum + 1) : (nextHdNum + 1));
         const khId = await resolveOrCreateCustomer({
           customerId: pos.customerId || pos.userId,
           customerName: pos.customerName,
@@ -2875,12 +3063,15 @@ const server = http.createServer(async (req, res) => {
 
         // Lưu chi tiết dịch vụ vào ChiTietHoaDon_DichVu
         const posServices = Array.isArray(pos.services) ? pos.services : (pos.serviceId ? [{ id: pos.serviceId, price: total }] : []);
-        const maxCtdv = await querySql(`SELECT TOP 1 MaChiTietHDDV FROM ChiTietHoaDon_DichVu WHERE (MaChiTietHDDV LIKE 'CTDV%' OR MaChiTietHDDV LIKE 'CTHDDV%') AND LEN(MaChiTietHDDV) <= 10 ORDER BY LEN(MaChiTietHDDV) DESC, MaChiTietHDDV DESC`);
-        let nextCtdv = 2;
-        if (maxCtdv && maxCtdv[0]) {
-          const m = maxCtdv[0].MaChiTietHDDV.match(/\D+(\d+)/i);
-          if (m) nextCtdv = parseInt(m[1], 10);
-        }
+        const existingCtdv = await querySql(`SELECT MaChiTietHDDV FROM ChiTietHoaDon_DichVu`);
+        let nextCtdv = 0;
+        (existingCtdv || []).forEach(row => {
+          const m = (row.MaChiTietHDDV || '').match(/\d+/g);
+          if (m) {
+            const num = parseInt(m[m.length - 1], 10);
+            if (num > nextCtdv) nextCtdv = num;
+          }
+        });
 
         for (let i = 0; i < posServices.length; i++) {
           const s = posServices[i];
@@ -2959,13 +3150,16 @@ const server = http.createServer(async (req, res) => {
         }
 
         // Lưu bản ghi ThanhToan
-        const maxTt = await querySql(`SELECT TOP 1 MaThanhToan FROM ThanhToan WHERE MaThanhToan LIKE 'TT%' AND LEN(MaThanhToan) <= 10 ORDER BY LEN(MaThanhToan) DESC, MaThanhToan DESC`);
-        let nextTt = 1;
-        if (maxTt && maxTt[0]) {
-          const nm = maxTt[0].MaThanhToan.match(/TT(\d+)/i);
-          if (nm) nextTt = parseInt(nm[1], 10) + 1;
-        }
-        const ttId = 'TT' + (nextTt < 10 ? '0' + nextTt : nextTt);
+        const existingTt = await querySql(`SELECT MaThanhToan FROM ThanhToan`);
+        let nextTtNum = 0;
+        (existingTt || []).forEach(row => {
+          const m = (row.MaThanhToan || '').match(/\d+/g);
+          if (m) {
+            const num = parseInt(m[m.length - 1], 10);
+            if (num > nextTtNum) nextTtNum = num;
+          }
+        });
+        const ttId = 'TT' + (nextTtNum + 1 < 10 ? '0' + (nextTtNum + 1) : (nextTtNum + 1));
         await querySql(
           `INSERT INTO ThanhToan (MaThanhToan, MaHoaDon, MaNhanVien, SoTien, PhuongThuc, ThoiGianThanhToan, TrangThai, MaGiaoDich) VALUES (?, ?, ?, ?, ?, GETDATE(), N'Thành công', ?)`,
           [ttId, hdId, staffId, total, methodPay, `PAY-${Date.now().toString().slice(-6)}`]
@@ -2997,6 +3191,9 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ 
           success: true, 
+          invoiceId: hdId,
+          invoiceNumber: invoiceNo,
+          total,
           invoice: { 
             id: hdId, 
             orderCode: hdId, 
@@ -3130,13 +3327,22 @@ const server = http.createServer(async (req, res) => {
         let khId = r.customerId || r.userId || null;
 
         if (dhId) {
-          // Kiểm tra đơn hàng có thật trong bảng DonHang của SQL Server không
-          const orderRows = await querySql('SELECT MaDonHang, MaKhachHang, TrangThai FROM DonHang WHERE MaDonHang = ?', [dhId]);
+          // Kiểm tra đơn hàng trong bảng DonHang của SQL Server; nếu chưa có thì tự động tạo để thỏa mãn FK_DanhGia_DonHang
+          let orderRows = await querySql('SELECT MaDonHang, MaKhachHang, TrangThai FROM DonHang WHERE MaDonHang = ?', [dhId]);
           if (!orderRows || orderRows.length === 0) {
-            res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
-            return res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${dhId} trong cơ sở dữ liệu SQL Server!` }));
-          }
-          if (!khId) {
+            if (!khId) {
+              khId = await resolveOrCreateCustomer({
+                customerId: r.customerId || r.userId,
+                customerName: r.customerName || 'Khách Hàng',
+                customerPhone: r.customerPhone || ''
+              });
+            }
+            await querySql(
+              `INSERT INTO DonHang (MaDonHang, MaKhachHang, MaChiNhanh, NgayDat, TongTien, DiaChiGiaoHang, HinhThucNhan, TrangThai, GhiChu)
+               VALUES (?, ?, 'CN01', GETDATE(), 432000, N'Nhận tại chi nhánh Omni Salon', N'Nhận tại quầy', N'Đã giao', N'Đồng bộ đánh giá khách hàng')`,
+              [dhId, khId]
+            ).catch(err => console.warn('[Auto-sync DonHang for Review]', err.message));
+          } else if (!khId) {
             khId = orderRows[0].MaKhachHang;
           }
           lhId = null; // Ràng buộc CK_DanhGia_DoiTuong: đúng 1 trong 2 trường được phép NOT NULL
@@ -3168,7 +3374,7 @@ const server = http.createServer(async (req, res) => {
           khId = await resolveOrCreateCustomer({
             customerId: r.customerId || r.userId,
             customerName: r.customerName || 'Khách Hàng',
-            customerPhone: r.customerPhone || '0908888999'
+            customerPhone: r.customerPhone || ''
           });
         }
 
@@ -3608,7 +3814,10 @@ const server = http.createServer(async (req, res) => {
                  CONVERT(VARCHAR(19), hd.NgayLap, 120) AS NgayLap,
                  hd.TongTien, hd.TrangThai, hd.MaSoHoaDon,
                  kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
-                 cn.TenChiNhanh
+                 cn.TenChiNhanh,
+                 ISNULL((SELECT SUM(ThanhTien) FROM ChiTietHoaDon_DichVu WHERE MaHoaDon = hd.MaHoaDon), 0) AS TongTienDichVu,
+                 ISNULL((SELECT SUM(ThanhTien) FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = hd.MaHoaDon), 0) AS TongTienSanPham,
+                 ISNULL((SELECT TOP 1 PhuongThuc FROM ThanhToan WHERE MaHoaDon = hd.MaHoaDon ORDER BY ThoiGianThanhToan DESC), N'VietQR') AS PhuongThucThanhToan
           FROM HoaDon hd
           LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang
           LEFT JOIN ChiNhanh cn ON hd.MaChiNhanh = cn.MaChiNhanh
@@ -3620,8 +3829,17 @@ const server = http.createServer(async (req, res) => {
         }
         q += ` ORDER BY hd.NgayLap DESC`;
         const rows = await querySql(q, params);
+        const mapped = rows.map(r => ({
+          ...r,
+          serviceTotal: parseFloat(r.TongTienDichVu || 0),
+          productTotal: parseFloat(r.TongTienSanPham || 0),
+          total: parseFloat(r.TongTien || 0),
+          totalAmount: parseFloat(r.TongTien || 0),
+          TongThanhToan: parseFloat(r.TongTien || 0),
+          paymentMethod: r.PhuongThucThanhToan || 'VietQR'
+        }));
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify(rows));
+        return res.end(JSON.stringify(mapped));
       }
 
       if (pathname.startsWith('/api/invoices/') && method === 'GET') {

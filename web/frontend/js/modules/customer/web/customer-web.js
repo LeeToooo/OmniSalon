@@ -2734,7 +2734,7 @@
     // -----------------------------------------------------------------------
     // 6. MÀN HÌNH TRANG CÁ NHÂN KHÁCH HÀNG  CUSTOMER PORTAL ĐẦY ĐỦ 5 TABS 
     // -----------------------------------------------------------------------
-    openCustomerPortalModal() {
+    openCustomerPortalModal(initialTab = 'bookings') {
       const user = this.getCurrentUser();
       if (!user) {
         if (window.UICommon && typeof window.UICommon.openAuthModal === 'function') {
@@ -2743,7 +2743,7 @@
         return;
       }
 
-      this.portalActiveTab = 'bookings';
+      this.portalActiveTab = initialTab || 'bookings';
       this.renderCustomerPortalModalBody();
     },
 
@@ -3049,7 +3049,13 @@
                         <span style="font-size: 12px; color: var(--text-secondary);">Bạn đã nhận được hàng? Hãy để lại đánh giá cho Omni Salon nhé!</span>
                       `}
                     </div>
-                    <div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                      ${(o.paymentStatus !== 'Paid' && o.TrangThai !== 'Đã thanh toán') ? `
+                        <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;" 
+                                onclick="CustomerWeb.openOrderPaymentModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
+                          💳 Thanh Toán Ngay (VietQR)
+                        </button>
+                      ` : ''}
                       ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang)) ? `
                         <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
                                 onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
@@ -3414,9 +3420,100 @@
     },
 
     closeOrderReviewModal() {
-      if (window.UICommon && typeof window.UICommon.closeGlobalModal === 'function') {
-        window.UICommon.closeGlobalModal();
+      // Khi ấn Hủy Bỏ từ modal đánh giá, quay trở lại đúng Trang Cá Nhân & Điểm Thưởng tab Đơn Hàng
+      this.openCustomerPortalModal('orders');
+    },
+
+    openOrderPaymentModal(orderId) {
+      if (!orderId) return;
+      const orders = (window.store && typeof window.store.getOrders === 'function') ? window.store.getOrders() : [];
+      const order = orders.find(o => (o.id || o.orderCode || o.MaDonHang) === orderId) || {};
+      const amount = order.totalAmount || 0;
+      const oCode = order.id || order.orderCode || orderId;
+
+      const qrSvg = (SalonUtils && typeof SalonUtils.generateQrSvgCode === 'function')
+        ? SalonUtils.generateQrSvgCode(`VIETQR-OMNISALON-ORDER-${oCode}-${amount}`)
+        : '';
+
+      const modalHtml = `
+        <div class="order-payment-modal-box" style="max-width: 480px; margin: 0 auto; text-align: center; padding: 10px 4px;">
+          <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px;">
+            💳
+          </div>
+          <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
+            Thanh Toán Đơn Hàng #${this.escapeHtml(oCode)}
+          </h3>
+          <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;">
+            Quét mã VietQR bằng app ngân hàng hoặc chuyển khoản theo thông tin bên dưới:
+          </p>
+
+          <!-- VietQR Box -->
+          <div style="background: #ffffff; padding: 16px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 16px; border: 1px solid #e2e8f0;">
+            ${qrSvg ? `
+              <div style="width: 190px; height: 190px; margin: 0 auto;">${qrSvg}</div>
+            ` : `
+              <div style="width: 190px; height: 190px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px; font-weight: 800; color: #0284c7;">
+                VIETQR CODE
+              </div>
+            `}
+            <div style="font-size: 11px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
+          </div>
+
+          <!-- Thông tin tài khoản nhận -->
+          <div style="background: var(--surface-elevated, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 12px 16px; text-align: left; font-size: 13px; margin-bottom: 18px; line-height: 1.6;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Ngân hàng:</span>
+              <strong>MB BANK (Quân Đội)</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Số tài khoản:</span>
+              <strong style="color: #0284c7; font-size: 14px;">0900000000</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Chủ tài khoản:</span>
+              <strong>OMNISALON ENTERPRISE</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Số tiền cần trả:</span>
+              <strong style="color: var(--color-terracotta); font-size: 15px;">${SalonUtils.formatCurrency(amount)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Nội dung chuyển khoản:</span>
+              <strong style="color: #b48312;">THANHTOAN ${this.escapeHtml(oCode)}</strong>
+            </div>
+          </div>
+
+          <!-- Nút hành động -->
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn-cancel" 
+                    style="min-height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 600; background: var(--surface-elevated, #2a2a26); color: var(--text-secondary); border: 1px solid var(--border-color, #444);"
+                    onclick="CustomerWeb.openCustomerPortalModal('orders')">
+              Đóng
+            </button>
+            <button type="button" class="btn-submit-terracotta" 
+                    style="min-height: 42px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 800; background: #16a34a;"
+                    onclick="CustomerWeb.handleOrderPaymentConfirm('${this.escapeHtml(oCode)}')">
+              ✓ Tôi Đã Chuyển Khoản
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (window.UICommon && typeof window.UICommon.openModal === 'function') {
+        window.UICommon.openModal(modalHtml, 'payment');
       }
+    },
+
+    async handleOrderPaymentConfirm(orderId) {
+      if (window.store && typeof window.store.confirmOrderPayment === 'function') {
+        const res = await window.store.confirmOrderPayment(orderId, 'VietQR');
+        if (res && res.success) {
+          if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+            window.UICommon.showToast(`Xác nhận thanh toán đơn #${orderId} thành công! Cảm ơn quý khách.`, 'success');
+          }
+        }
+      }
+      this.openCustomerPortalModal('orders');
     },
 
     async handleOrderReviewSubmit(orderId) {
@@ -3440,7 +3537,7 @@
           comment: comment || 'Đơn hàng rất chuẩn, sáp và sản phẩm chính hãng dùng rất thích!',
           customerId: user ? (user.id || user.customerId) : null,
           customerName: user ? (user.fullName || user.username) : 'Khách Hàng',
-          customerPhone: user ? user.phone : '0908888999'
+          customerPhone: (user && user.phone) ? user.phone : ''
         });
 
         if (btn) {
@@ -3452,12 +3549,9 @@
           if (window.UICommon && typeof window.UICommon.showToast === 'function') {
             window.UICommon.showToast(res.message || 'Cảm ơn quý khách đã đánh giá đơn hàng!', 'success');
           }
-          this.closeOrderReviewModal();
+          // Quay trở lại trang cá nhân & điểm thưởng tab Đơn Hàng
+          this.openCustomerPortalModal('orders');
 
-          // Tự động làm mới giao diện đang mở (Portal hoặc Tra Cứu)
-          if (this.portalActiveTab === 'orders') {
-            this.renderCustomerPortalModalBody();
-          }
           const lookupContainer = document.getElementById('lookupResultsContainer');
           if (lookupContainer) {
             this.searchOrderLookup();
