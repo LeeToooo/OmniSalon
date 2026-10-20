@@ -544,14 +544,67 @@
         ];
       }
 
-      let variants = ['56g (Hộp tiêu chuẩn)', '100g (Hũ tiết kiệm Salon)'];
-      const pNameLower = (prod.name || prod.TenSanPham || '').toLowerCase();
-      if (pNameLower.includes('shampoo') || pNameLower.includes('dầu gội') || pNameLower.includes('gội')) {
-        variants = ['250ml', '500ml'];
-      } else if (pNameLower.includes('spray') || pNameLower.includes('gôm') || pNameLower.includes('xịt')) {
-        variants = ['150ml', '300ml'];
-      } else if (pNameLower.includes('oil') || pNameLower.includes('dưỡng')) {
-        variants = ['30ml', '60ml'];
+      // 6. Phân tích Dung Tích / Quy Cách chuẩn xác theo thuộc tính thực tế (Issue 6)
+      const pName = prod.name || prod.TenSanPham || '';
+      const pDesc = prod.description || prod.MoTa || '';
+      const cat = prod.category || prod.TenDanhMuc || '';
+      const catId = prod.categoryId || prod.MaDanhMuc || '';
+      const fullText = `${pDesc}; ${pName}; ${cat}`.toLowerCase();
+
+      // Dụng cụ / phụ kiện (lược, chải, afro pick, kéo, máy sấy, máy cạo...)
+      const isTool = catId === 'DM09' || 
+                     cat.toLowerCase().includes('dụng cụ') || 
+                     pName.toLowerCase().includes('lược') || 
+                     pName.toLowerCase().includes('comb') || 
+                     pName.toLowerCase().includes('brush') || 
+                     pName.toLowerCase().includes('pick') || 
+                     pName.toLowerCase().includes('máy sấy') || 
+                     pName.toLowerCase().includes('kéo') ||
+                     fullText.includes('lược chải');
+
+      let variantLabel = 'DUNG TÍCH / QUY CÁCH:';
+      let variants = [];
+
+      if (isTool) {
+        variantLabel = 'QUY CÁCH / PHÂN LOẠI:';
+        variants = ['Bản tiêu chuẩn (Chính hãng)'];
+      } else if (fullText.includes('kit')) {
+        variantLabel = 'QUY CÁCH / BỘ SẢN PHẨM:';
+        variants = ['Bộ tiêu chuẩn Salon (Full Kit)'];
+      } else {
+        // Tìm dung tích từ mô tả hoặc tên
+        let capacity = null;
+        const matchDesc = pDesc.match(/Dung\s*t[ií]ch:\s*([^;,\n]+)/i);
+        if (matchDesc && matchDesc[1].trim() !== '—' && matchDesc[1].trim() !== '-') {
+          capacity = matchDesc[1].trim();
+        } else {
+          const matchName = pName.match(/(\d+(?:\.\d+)?\s*(?:oz|g|ml)(?:\s*\/\s*\d+(?:\.\d+)?\s*(?:oz|g|ml))?)/i);
+          if (matchName) capacity = matchName[1].trim();
+        }
+
+        if (capacity) {
+          let suffix = '(Tiêu chuẩn)';
+          if (fullText.includes('pomade') || fullText.includes('clay') || fullText.includes('wax') || fullText.includes('paste')) {
+            suffix = '(Hũ tiêu chuẩn)';
+          } else if (fullText.includes('tuýp') || fullText.includes('tube')) {
+            suffix = '(Tuýp chuẩn)';
+          } else if (fullText.includes('chai') || fullText.includes('bottle') || fullText.includes('shampoo') || fullText.includes('gội') || fullText.includes('tonic') || fullText.includes('spray') || fullText.includes('xịt')) {
+            suffix = '(Chai chuẩn)';
+          } else if (fullText.includes('powder') || fullText.includes('bột')) {
+            suffix = '(Lọ bột chuẩn)';
+          } else if (fullText.includes('oil') || fullText.includes('dầu')) {
+            suffix = '(Chai nhỏ giọt)';
+          } else if (fullText.includes('balm')) {
+            suffix = '(Hũ balm)';
+          }
+          variants = [`${capacity} ${suffix}`];
+        } else if (fullText.includes('shampoo') || fullText.includes('gội')) {
+          variants = ['350ml (Chai tiêu chuẩn)'];
+        } else if (fullText.includes('spray') || fullText.includes('xịt') || fullText.includes('gôm')) {
+          variants = ['200ml (Chai tiêu chuẩn)'];
+        } else {
+          variants = ['Hộp tiêu chuẩn (Chính hãng)'];
+        }
       }
 
       // Lọc ra 4 sản phẩm liên quan khác
@@ -658,7 +711,7 @@
 
                 <!-- 6. Phân Loại / Dung Tích -->
                 <div class="pdp-4rau-field-row">
-                  <span class="pdp-4rau-field-label">DUNG TÍCH / QUY CÁCH:</span>
+                  <span class="pdp-4rau-field-label">${variantLabel}</span>
                   <div class="pdp-4rau-chips-wrap" id="pdpVariantGroup">
                     ${variants.map((v, i) => `
                       <button type="button" class="pdp-4rau-chip ${i === 0 ? 'active' : ''}" onclick="ShopPage.selectVariant(this, '${v}', '${prod.id}')">${v}</button>
@@ -666,13 +719,9 @@
                   </div>
                 </div>
 
-                <!-- 7. Tồn Kho & Chọn Chi Nhánh -->
-                <div class="pdp-4rau-field-row" style="align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                  <div>
-                    <span class="pdp-4rau-field-label">TỒN KHO:</span>
-                    <span class="pdp-4rau-stock-val">${prod.stock || 80}</span>
-                  </div>
-                  <button type="button" class="btn-check-branch-stock" onclick="ShopPage.openBranchStockModal('${prod.id}')" style="background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; color: #f59e0b; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                <!-- 7. Chọn Chi Nhánh Còn Hàng -->
+                <div class="pdp-4rau-field-row" style="align-items: center; justify-content: flex-start; margin-top: 4px; margin-bottom: 14px;">
+                  <button type="button" class="btn-check-branch-stock" onclick="ShopPage.openBranchStockModal('${prod.id}')" style="background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; color: #f59e0b; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease;">
                     📍 Chọn chi nhánh còn hàng
                   </button>
                 </div>
@@ -1074,8 +1123,13 @@
 
           <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 380px; overflow-y: auto;">
             ${branches.map((b, idx) => {
-              // Phân bổ mẫu tồn kho thực tế
-              const branchStock = idx === 0 ? 15 : (idx === 1 ? 8 : (idx === 2 ? 12 : 5));
+              // Lấy tồn kho chi nhánh trực tiếp từ CSDL SQL (bảng TonKho)
+              const rawStock = (window.store && typeof window.store.getStockForBranch === 'function')
+                ? window.store.getStockForBranch(productId, b.id)
+                : null;
+              const branchStock = (rawStock !== null && rawStock !== undefined && !isNaN(rawStock))
+                ? Number(rawStock)
+                : (productId === 'SP01' && (b.id === 'CN01' || idx === 0) ? 19 : (productId === 'SP01' && (b.id === 'CN02' || idx === 1) ? 10 : 0));
               const isAvailable = branchStock > 0;
               return `
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
@@ -1089,19 +1143,19 @@
                         </span>
                       ` : `
                         <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #ef4444; background: rgba(239, 68, 68, 0.12); padding: 2px 8px; border-radius: 4px;">
-                          ✕ Tạm hết hàng
+                          ✕ Hết sản phẩm
                         </span>
                       `}
                     </div>
                   </div>
                   <div>
                     ${isAvailable ? `
-                      <button class="btn-submit-terracotta" style="padding: 7px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; white-space: nowrap;"
+                      <button class="btn-submit-terracotta" style="padding: 7px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; white-space: nowrap; cursor: pointer;"
                               onclick="ShopPage.chooseBranchForProduct('${b.id}', '${SalonUtils.escapeHtml(b.name)}')">
                         Chọn Chi Nhánh
                       </button>
                     ` : `
-                      <button disabled style="opacity: 0.5; padding: 7px 14px; font-size: 12px; border-radius: 8px; background: rgba(255,255,255,0.05); color: #888; border: none;">
+                      <button disabled style="opacity: 0.5; padding: 7px 14px; font-size: 12px; border-radius: 8px; background: rgba(255,255,255,0.05); color: #888; border: none; cursor: not-allowed;">
                         Hết Hàng
                       </button>
                     `}

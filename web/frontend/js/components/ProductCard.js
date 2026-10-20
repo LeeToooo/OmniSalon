@@ -154,16 +154,10 @@
             <span class="stock-dot"></span>Hết hàng
           </span>
         `;
-      } else if (data.stock <= 5) {
-        stockBadgeHtml = `
-          <span class="stock-indicator-badge low-stock" title="Số lượng còn lại trong kho có hạn">
-            <span class="stock-dot"></span>Sắp hết (${data.stock})
-          </span>
-        `;
       } else {
         stockBadgeHtml = `
           <span class="stock-indicator-badge in-stock" title="Hàng sẵn có tại kho">
-            <span class="stock-dot"></span>Còn hàng (${data.stock})
+            <span class="stock-dot"></span>Còn hàng
           </span>
         `;
       }

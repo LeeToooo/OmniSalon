@@ -225,7 +225,7 @@ REM ----------------------------------------------------------------------------
 REM Bang Thong Tin Dashboard Server Khoi Chay
 REM -----------------------------------------------------------------------------
 echo %C_CYAN%===============================================================================%C_RST%
-echo %C_BOLD%%C_GREEN%   >> OMNISALON BACKEND ENGINE DANG HOAT DONG TREN CONG 3000%C_RST%
+echo %C_BOLD%%C_GREEN%   [*] OMNISALON BACKEND ENGINE DANG HOAT DONG TREN CONG 3000%C_RST%
 echo %C_CYAN%===============================================================================%C_RST%
 echo  %C_WHITE%  * Web Portal:       %C_BOLD%%C_CYAN%http://localhost:3000%C_RST%
 echo  %C_WHITE%  * REST API Health:  %C_CYAN%http://localhost:3000/api/health%C_RST%

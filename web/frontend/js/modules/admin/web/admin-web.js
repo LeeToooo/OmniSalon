@@ -20,7 +20,9 @@
     catalogTabType: 'services', // 'services' | 'combos' | 'products'
     catalogSearchQuery: '',
     inventorySearchQuery: '',
+    inventorySubTab: 'stock', // 'stock' | 'fefo' | 'receipts' | 'rules'
     auditActionFilter: 'all',
+    auditSubTab: 'logs', // 'logs' | 'invoices' | 'notifications',
     auditSearchQuery: '',
 
     // -----------------------------------------------------------------------
@@ -201,7 +203,11 @@
 
     setInventoryPage(p) {
       this.inventoryPage = p;
-      this.refreshInventoryView();
+      if (document.getElementById('adminInventoryContentContainer')) {
+        this._updateInventoryContentOnly();
+      } else {
+        this.refreshInventoryView();
+      }
     },
     setDispatchPage(p) {
       this.dispatchPage = p;
@@ -1252,6 +1258,63 @@
       `;
     },
 
+    _renderBookingServiceCell(b) {
+      let services = [];
+      if (Array.isArray(b.servicesList) && b.servicesList.length > 0) {
+        services = b.servicesList.map(s => (typeof s === 'string' ? s : (s.name || s.TenDichVu || s.TenCombo || '')).trim()).filter(Boolean);
+      }
+      if (services.length <= 1 && b.serviceName && b.serviceName.includes('+')) {
+        const parts = b.serviceName.split(/\s*\+\s*/).map(s => s.trim()).filter(Boolean);
+        if (parts.length > 1) {
+          services = parts;
+        }
+      }
+      if (services.length === 0) {
+        services = [b.serviceName || 'Dịch vụ'];
+      }
+
+      const primary = services[0];
+      const extraCount = services.length - 1;
+
+      if (extraCount <= 0) {
+        return `
+          <td style="max-width: 220px; line-height: 1.35;">
+            <strong style="display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${this.escapeHtml(primary)}">
+              ${this.escapeHtml(primary)}
+            </strong>
+          </td>
+        `;
+      }
+
+      const tooltipItemsHtml = services.map((s, idx) => `
+        <div class="service-tooltip-item">
+          <span class="tooltip-num">${idx + 1}.</span>
+          <span>${this.escapeHtml(s)}</span>
+        </div>
+      `).join('');
+
+      const plainTooltipText = services.map((s, idx) => `${idx + 1}. ${s}`).join('\n');
+
+      return `
+        <td style="max-width: 240px; line-height: 1.35;">
+          <div style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+            <strong style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 145px; font-size: 13px;" title="${this.escapeHtml(primary)}">
+              ${this.escapeHtml(primary)}
+            </strong>
+            <span class="booking-service-badge has-service-tooltip" title="${this.escapeHtml(plainTooltipText)}">
+              +${extraCount} dịch vụ
+              <span class="service-tooltip-content">
+                <div class="service-tooltip-title">Chi Tiết Dịch Vụ (${services.length})</div>
+                <div class="service-tooltip-items">
+                  ${tooltipItemsHtml}
+                </div>
+              </span>
+            </span>
+          </div>
+        </td>
+      `;
+    },
+
     // -----------------------------------------------------------------------
     // SUB-TAB 2: ĐIỀU PHỐI LỊCH HẸN (BOOKINGS DISPATCHER REALTIME 4RAU)
     // -----------------------------------------------------------------------
@@ -1375,10 +1438,6 @@
               <span style="font-size: 13px; color: var(--text-secondary);">Gõ Tên, SĐT hoặc Mã vé để kiểm tra ca hẹn và check-in vào ghế làm ngay hoặc xếp vào sảnh chờ</span>
             </div>
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <button type="button" class="btn-submit-terracotta" style="padding: 7px 14px; font-size: 12.5px; background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: 800; border-radius: 8px; cursor: pointer;" 
-                      onclick="AdminWeb.openQuickWalkinModal()" title="Thêm khách vãng lai trực tiếp vào sảnh chờ ghế">
-                + Nhận Khách Chờ (Walk-in)
-              </button>
               <span style="font-size: 12px; font-weight: 700; color: #C59B27; background: rgba(197, 155, 39, 0.12); padding: 5px 12px; border-radius: 6px;">
                 Hiện tại: ${nowTime} • Hôm Nay: ${SalonUtils.formatDate(todayStr)}
               </span>
@@ -1582,17 +1641,17 @@
             <table class="admin-enterprise-table">
               <thead>
                 <tr>
-                  <th>Mã Lịch</th>
-                  <th>Khách Hàng</th>
-                  <th>Số Điện Thoại</th>
-                  <th>Dịch Vụ Đã Đặt</th>
-                  <th>Chi Nhánh</th>
-                  <th>Barber Phục Vụ</th>
-                  <th>Ngày & Giờ Hẹn</th>
-                  <th>Tổng Tiền</th>
-                  <th>Trạng Thái</th>
-                  <th>Chuyển Trạng Thái Nhanh</th>
-                  <th>Hành Động</th>
+                  <th style="white-space: nowrap;">Mã Lịch</th>
+                  <th style="white-space: nowrap;">Khách Hàng</th>
+                  <th style="white-space: nowrap;">Số Điện Thoại</th>
+                  <th style="white-space: nowrap;">Dịch Vụ Đã Đặt</th>
+                  <th style="white-space: nowrap;">Chi Nhánh</th>
+                  <th style="white-space: nowrap;">Barber Phục Vụ</th>
+                  <th style="white-space: nowrap;">Ngày &amp; Giờ Hẹn</th>
+                  <th style="white-space: nowrap;">Tổng Tiền</th>
+                  <th style="white-space: nowrap; text-align: center;">Trạng Thái</th>
+                  <th style="white-space: nowrap;">Chuyển Trạng Thái Nhanh</th>
+                  <th style="white-space: nowrap;">Hành Động</th>
                 </tr>
               </thead>
               <tbody id="adminBookingsTbody">
@@ -1616,75 +1675,72 @@
 
                   return `
                     <tr class="${rowClass}">
-                      <td><strong>${this.escapeHtml(b.bookingCode || b.id)}</strong></td>
+                      <td style="white-space: nowrap;"><strong>${this.escapeHtml(b.bookingCode || b.id)}</strong></td>
                       <td style="font-weight: 700; white-space: nowrap;">
-                        <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
-                          <span style="font-size: 13.5px; color: var(--text-primary, #FAF8F5); min-width: 75px;">${this.escapeHtml(b.customerName)}</span>
-                          ${isNearest ? `<span class="booking-nearest-tag" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 8px; margin: 0;">GẦN NHẤT</span>` : (isToday ? `<span class="booking-today-badge" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 7px; margin: 0;">HÔM NAY</span>` : '')}
+                        <div style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                          <span style="font-size: 13px; color: var(--text-primary, #FAF8F5);">${this.escapeHtml(b.customerName)}</span>
+                          ${isNearest ? `<span class="booking-nearest-tag" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 6px; margin: 0;">GẦN NHẤT</span>` : (isToday ? `<span class="booking-today-badge" style="white-space: nowrap; flex-shrink: 0; font-size: 10px; padding: 2px 6px; margin: 0;">HÔM NAY</span>` : '')}
                         </div>
                       </td>
-                      <td>${this.escapeHtml(b.customerPhone)}</td>
-                      <td>
-                        <strong>${this.escapeHtml(b.serviceName || 'Dịch vụ')}</strong>
-                        ${b.servicesList && b.servicesList.length > 1 ? `<div style="font-size: 11px; color: #f59e0b;">(${b.servicesList.length} dịch vụ gộp)</div>` : ''}
-                      </td>
-                      <td>${this.escapeHtml(this._getBranchShortName(b.branchName || b.branchId, bMap))}</td>
-                      <td><strong>${this.escapeHtml(b.stylistName || (window.store && window.store.getStylistById(b.stylistId)?.name) || 'Tự Động Xếp Barber')}</strong></td>
-                      <td>
-                        <strong style="font-size: ${isToday ? '15px' : '13.5px'}; color: ${isNearest ? '#f59e0b' : 'inherit'};">
+                      <td style="white-space: nowrap;">${this.escapeHtml(b.customerPhone)}</td>
+                      ${this._renderBookingServiceCell(b)}
+                      <td style="white-space: nowrap;">${this.escapeHtml(this._getBranchShortName(b.branchName || b.branchId, bMap))}</td>
+                      <td style="white-space: nowrap;"><strong>${this.escapeHtml(b.stylistName || (window.store && window.store.getStylistById(b.stylistId)?.name) || 'Tự Động Xếp Barber')}</strong></td>
+                      <td style="white-space: nowrap;">
+                        <strong style="font-size: ${isToday ? '14px' : '13px'}; color: ${isNearest ? '#f59e0b' : 'inherit'};">
                           ${this.escapeHtml(b.timeSlot || '')}
                         </strong>
-                        <div style="font-size: 12px; color: ${isToday ? '#f59e0b; font-weight: 800;' : '#888;'}">
+                        <div style="font-size: 11.5px; color: ${isToday ? '#f59e0b; font-weight: 800;' : '#888;'}">
                           ${isToday ? 'Hôm Nay' : SalonUtils.formatDate(bDate)}
                           ${isPast ? ' (Quá giờ)' : ''}
                         </div>
                       </td>
-                      <td style="font-weight: 900; color: #f59e0b; font-size: ${isToday ? '15px' : '13.5px'};">${SalonUtils.formatCurrency(b.totalPrice)}</td>
-                      <td>
+                      <td style="font-weight: 900; color: #f59e0b; white-space: nowrap; font-size: ${isToday ? '14px' : '13px'};">${SalonUtils.formatCurrency(b.totalPrice)}</td>
+                      <td style="white-space: nowrap; text-align: center;">
                         <span class="status-pill-pulse ${statusInfo.cssClass}">
                           <span class="pulse-dot"></span> ${statusInfo.label}
                         </span>
                       </td>
-                      <td>
-                        <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+                      <td style="white-space: nowrap;">
+                        <div style="display: flex; gap: 4px; align-items: center; white-space: nowrap;">
                           <!-- Nếu khách hẹn ngày mai/ngày khác nhưng hôm nay tới làm sớm lúc 9h -> Nút check-in làm sớm -->
                           ${!isToday && !isInProgress && !isCompleted && !isWaiting ? `
-                            <button class="btn-submit-terracotta" style="padding: 3px 6px; font-size: 10px; background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: 700;" 
+                            <button class="btn-submit-terracotta" style="padding: 3px 6px; font-size: 10px; background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: 700; white-space: nowrap;" 
                                     onclick="AdminWeb.checkinWaitingEarlyToday('${b.id}')" title="Khách đặt ngày ${SalonUtils.formatDate(bDate)} nhưng hôm nay tới chờ ghế">
                               Chờ Hôm Nay
                             </button>
-                            <button class="btn-submit-terracotta" style="padding: 3px 6px; font-size: 10px; background: #d97706;" 
+                            <button class="btn-submit-terracotta" style="padding: 3px 6px; font-size: 10px; background: #d97706; white-space: nowrap;" 
                                     onclick="AdminWeb.checkinEarlyToday('${b.id}')" title="Khách đặt ngày ${SalonUtils.formatDate(bDate)} nhưng hôm nay tới làm luôn">
                               Làm Hôm Nay
                             </button>
                           ` : ''}
 
                           ${isConfirmed && isToday ? `
-                            <button class="btn-submit-terracotta" style="padding: 3px 6px; font-size: 10px; background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: 700;" 
+                            <button class="btn-submit-terracotta" style="padding: 3px 7px; font-size: 10.5px; background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: 800; white-space: nowrap;" 
                                     onclick="AdminWeb.checkinBookingWaiting('${b.id}')" title="Khách đã có mặt tại sảnh, xếp vào danh sách chờ ghế">
                               Chờ Ghế
                             </button>
-                            <button class="btn-submit-terracotta" style="padding: 3px 6px; font-size: 10px;" 
+                            <button class="btn-submit-terracotta" style="padding: 3px 7px; font-size: 10.5px; white-space: nowrap;" 
                                     onclick="AdminWeb.updateBookingStatus('${b.id}', 'In_Progress')" title="Nhận khách vào ghế cắt">
                               Vào Ghế
                             </button>
                           ` : ''}
 
                           ${isWaiting ? `
-                            <button class="btn-submit-terracotta" style="padding: 3px 8px; font-size: 10px; background: #10B981; border-color: #10B981; color: #fff; font-weight: 700;" 
+                            <button class="btn-submit-terracotta" style="padding: 3px 8px; font-size: 10.5px; background: #10B981; border-color: #10B981; color: #fff; font-weight: 800; white-space: nowrap;" 
                                     onclick="AdminWeb.updateBookingStatus('${b.id}', 'In_Progress')" title="Đưa khách từ sảnh chờ vào ghế cắt">
                               ✂ Vào Ghế
                             </button>
                           ` : ''}
 
                           ${isInProgress ? `
-                            <button class="btn-submit-terracotta" style="padding: 3px 8px; font-size: 10px; background: #059669;" 
+                            <button class="btn-submit-terracotta" style="padding: 3px 8px; font-size: 10.5px; background: #059669; white-space: nowrap;" 
                                     onclick="AdminWeb.updateBookingStatus('${b.id}', 'Completed')" title="Hoàn tất ca cắt tóc">
                               Xong Ca
                             </button>
                           ` : ''}
 
-                          <select class="table-select-filter" style="padding: 3px 6px; font-size: 10px;" 
+                          <select class="table-select-filter" style="padding: 3px 6px; font-size: 10.5px; white-space: nowrap; max-width: 110px;" 
                                   onchange="AdminWeb.updateBookingStatus('${b.id}', this.value)">
                             <option value="Confirmed" ${isConfirmed ? 'selected' : ''}>Đã xác nhận</option>
                             <option value="Waiting" ${isWaiting ? 'selected' : ''}>Chờ vào ghế</option>
@@ -1694,8 +1750,8 @@
                           </select>
                         </div>
                       </td>
-                      <td>
-                        <div style="display: flex; gap: 4px;">
+                      <td style="white-space: nowrap;">
+                        <div style="display: flex; gap: 4px; align-items: center; white-space: nowrap;">
                           <button class="pill-btn-outline" style="padding: 3px 6px; font-size: 10px;" 
                                   onclick="AdminWeb.viewBookingQrTicket('${b.id}')" title="Xem mã QR vé">
                             QR
@@ -1941,7 +1997,7 @@
                 Sảnh Chờ Hiện Đang Trống
               </div>
               <div style="font-size: 12px; color: var(--text-secondary);">
-                Chưa có khách nào đang chờ tại sảnh. Tiếp nhận khách bằng cách tìm kiếm lịch hẹn ở trên hoặc bấm "+ Nhận Khách Chờ (Walk-in)".
+                Chưa có khách nào đang chờ tại sảnh. Tiếp nhận khách bằng cách tìm kiếm khách hàng hoặc lịch hẹn ở trên.
               </div>
             </div>
           ` : `
@@ -2724,43 +2780,56 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB 5: QUẢN LÝ KHO HÀNG ĐA CHI NHÁNH (INVENTORY)
+    // SUB-TAB 5: QUẢN LÝ KHO HÀNG ĐA CHI NHÁNH (INVENTORY, FEFO, RECEIPTS, SUPPLIERS)
     // -----------------------------------------------------------------------
+    switchInventorySubTab(type) {
+      this.inventorySubTab = type;
+      this.inventoryPage = 1;
+      this.refreshInventoryView();
+    },
+
     renderInventoryTab(user, branches, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
-      const inventory = (window.store && typeof window.store.getBranchInventory === 'function')
-        ? window.store.getBranchInventory(branchId)
-        : [];
+      const subType = this.inventorySubTab || 'stock';
 
-      const q = (this.inventorySearchQuery || '').toLowerCase();
-      let lowStockCount = 0;
-      const filtered = [];
+      const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];
+      const fefoLots = (window.store && typeof window.store.getFefoLots === 'function') ? window.store.getFefoLots(branchId) : [];
+      const receipts = (window.store && typeof window.store.getReceipts === 'function') ? window.store.getReceipts(branchId) : [];
+      const suppliers = (window.store && typeof window.store.getSuppliers === 'function') ? window.store.getSuppliers() : [];
+      const discountRules = (window.store && typeof window.store.getDiscountRules === 'function') ? window.store.getDiscountRules() : [];
+      const lowStockList = (window.store && typeof window.store.getLowStockWarnings === 'function') ? window.store.getLowStockWarnings(branchId) : [];
 
-      // Khử lọc 2 lần: Đếm và lọc trong 1 lượt O(Inventory)
-      inventory.forEach(it => {
-        if (it.isLowStock || (it.stock <= 5)) lowStockCount++;
-        if (!q || 
-            (it.productName && it.productName.toLowerCase().includes(q)) || 
-            (it.brand && it.brand.toLowerCase().includes(q)) ||
-            (it.productId && it.productId.toLowerCase().includes(q))) {
-          filtered.push(it);
-        }
-      });
-
-      this.inventoryPage = this.inventoryPage || 1;
-      const invTotalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
-      if (this.inventoryPage > invTotalPages) this.inventoryPage = invTotalPages;
-      const pagedInventory = filtered.slice((this.inventoryPage - 1) * this.pageSize, this.inventoryPage * this.pageSize);
+      const q = (this.inventorySearchQuery || '').toLowerCase().trim();
 
       return `
         <div class="admin-table-container">
+          <!-- Thanh Chuyển Đổi Phân Hệ Kho (SQL 100% Entities) -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 10px;">
+            <button type="button" class="admin-tab-btn ${subType === 'stock' ? 'active' : ''}" 
+                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('stock')">
+              📦 Tồn Kho &amp; Sản Phẩm (${inventory.length})
+            </button>
+            <button type="button" class="admin-tab-btn ${subType === 'fefo' ? 'active' : ''}" 
+                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('fefo')">
+              🏷️ Lô Hàng FEFO &amp; Giá Cận Hạn (${fefoLots.length})
+            </button>
+            <button type="button" class="admin-tab-btn ${subType === 'receipts' ? 'active' : ''}" 
+                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('receipts')">
+              📥 Phiếu Nhập Kho (${receipts.length})
+            </button>
+            <button type="button" class="admin-tab-btn ${subType === 'rules' ? 'active' : ''}" 
+                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('rules')">
+              🏢 NCC &amp; Quy Tắc Giảm Giá (${suppliers.length} NCC / ${discountRules.length} Quy Tắc)
+            </button>
+          </div>
+
           <!-- Toolbar Kho Hàng -->
           <div class="admin-table-toolbar">
             <div class="table-filter-group">
-              <input type="text" class="table-search-input" placeholder="Tìm sản phẩm sáp, pomade..." 
-                     value="${this.escapeHtml(this.inventorySearchQuery)}" 
-                     oninput="AdminWeb.inventorySearchQuery = this.value; AdminWeb.inventoryPage = 1; AdminWeb.refreshInventoryView();">
+              <input type="text" id="adminInventorySearchInput" class="table-search-input" placeholder="Tìm theo tên, mã hoặc số lô..." 
+                     value="${this.escapeHtml(this.inventorySearchQuery || '')}" 
+                     oninput="AdminWeb.handleInventorySearch(this.value);">
 
               ${this.isBranchManager(user) ? `
                 <span class="badge-terracotta">Chi nhánh của bạn</span>
@@ -2773,108 +2842,366 @@
             </div>
 
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              ${lowStockCount > 0 ? `
+              ${lowStockList.length > 0 ? `
                 <span class="stock-badge-critical" style="padding: 6px 12px; font-size: 12px;">
-                  Có ${lowStockCount} sản phẩm sắp hết hàng (&lt;= 5)!
+                  ⚠️ Cảnh báo: ${lowStockList.length} mặt hàng tồn thấp theo SQL View!
                 </span>
               ` : `
                 <span class="stock-badge-safe" style="padding: 6px 12px; font-size: 12px;">
-                  Kho hàng ổn định
+                  ✓ Kho hàng ổn định
                 </span>
               `}
-              <button type="button" class="btn-submit-terracotta" style="padding: 7px 16px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;" onclick="AdminWeb.openProductModal()">
-                + Thêm Sản Phẩm Mới
-              </button>
+              ${subType === 'stock' ? `
+                <button type="button" class="btn-submit-terracotta" style="padding: 7px 16px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;" onclick="AdminWeb.openProductModal()">
+                  + Thêm Sản Phẩm Mới
+                </button>
+              ` : ''}
             </div>
           </div>
 
-          <!-- Bảng Tồn Kho & Quản Lý Sản Phẩm Gộp Hoàn Chỉnh -->
+          <div id="adminInventoryContentContainer">
+            ${this._renderInventoryContent(subType, { inventory, fefoLots, receipts, suppliers, discountRules, q })}
+          </div>
+        </div>
+      `;
+    },
+
+    _renderInventoryContent(subType, { inventory, fefoLots, receipts, suppliers, discountRules, q }) {
+      this.inventoryPage = this.inventoryPage || 1;
+
+      // 1. Phân hệ Tồn Kho & Sản Phẩm (stock)
+      if (subType === 'stock') {
+        const normQ = this._normalizeSearchText(q);
+        const filtered = inventory.filter(it => {
+          if (!normQ) return true;
+          const name = this._normalizeSearchText(it.productName || it.name || '');
+          const brand = this._normalizeSearchText(it.brand || '');
+          const id = this._normalizeSearchText(it.productId || it.id || '');
+          return name.includes(normQ) || brand.includes(normQ) || id.includes(normQ);
+        });
+        const invTotalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.inventoryPage > invTotalPages) this.inventoryPage = invTotalPages;
+        const pagedInventory = filtered.slice((this.inventoryPage - 1) * this.pageSize, this.inventoryPage * this.pageSize);
+
+        return `
           <div style="overflow-x: auto;">
             <table class="admin-enterprise-table">
               <thead>
                 <tr>
-                  <th style="width: 52px;">Ảnh</th>
-                  <th style="width: 75px;">Mã SP</th>
-                  <th>Tên Sản Phẩm</th>
-                  <th>Thương Hiệu</th>
-                  <th>Đơn Giá Bán</th>
-                  <th style="color: #10b981;">Giá Gốc (Nhập)</th>
-                  <th>Tồn Kho</th>
-                  <th>Tình Trạng Kho</th>
-                  <th style="min-width: 175px;">Điều Chỉnh Nhanh</th>
-                  <th style="min-width: 130px;">Sửa Thông Tin &amp; Xóa</th>
+                  <th style="width: 44px; white-space: nowrap; text-align: center;">Ảnh</th>
+                  <th style="width: 65px; white-space: nowrap;">Mã SP</th>
+                  <th style="white-space: nowrap;">Tên Sản Phẩm</th>
+                  <th style="white-space: nowrap;">Thương Hiệu</th>
+                  <th style="white-space: nowrap;">Đơn Giá Bán</th>
+                  <th style="color: #10b981; white-space: nowrap;">Giá Gốc (Nhập)</th>
+                  <th style="white-space: nowrap; text-align: center;">Số Lượng Tồn</th>
+                  <th style="white-space: nowrap;">Điều Chỉnh Nhanh</th>
+                  <th style="white-space: nowrap; text-align: center;">Hành Động</th>
                 </tr>
               </thead>
               <tbody>
                 ${pagedInventory.length > 0 ? pagedInventory.map(item => {
                   const stock = item.stock || 0;
                   const costPriceVal = item.costPrice !== undefined ? item.costPrice : (item.GiaNhap !== undefined ? item.GiaNhap : Math.round((item.price || 250000) * 0.7));
-                  let badge = '';
-                  if (stock > 5) {
-                    badge = `<span class="stock-badge-safe">Còn Hàng (${stock})</span>`;
-                  } else if (stock > 0) {
-                    badge = `<span class="stock-badge-low">Sắp Hết (${stock})</span>`;
-                  } else {
-                    badge = `<span class="stock-badge-critical">HẾT HÀNG (0)</span>`;
-                  }
-
                   return `
                     <tr>
-                      <td>
+                      <td style="text-align: center; white-space: nowrap;">
                         <img src="${SalonUtils.formatImageUrl(item.image || item.HinhAnh)}" 
-                             style="width: 44px; height: 44px; border-radius: 8px; object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid var(--border-color, #e2e8f0);" alt="${this.escapeHtml(item.productName)}"
+                             style="width: 36px; height: 36px; border-radius: 6px; object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid var(--border-color, #e2e8f0); display: inline-block; vertical-align: middle;" alt="${this.escapeHtml(item.productName)}"
                              onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=120&q=80');">
                       </td>
-                      <td><strong>${this.escapeHtml(item.productId)}</strong></td>
-                      <td style="font-weight: 700;">${this.escapeHtml(item.productName)}</td>
-                      <td>
-                        <span class="badge-terracotta" style="font-size: 10px; padding: 2px 8px;">
-                          ${this.escapeHtml(item.brand || 'CHÍNH HÃNG')}
-                        </span>
+                      <td style="white-space: nowrap;"><strong>${this.escapeHtml(item.productId)}</strong></td>
+                      <td style="font-weight: 700; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${this.escapeHtml(item.productName)}">${this.escapeHtml(item.productName)}</td>
+                      <td style="white-space: nowrap;"><span class="badge-terracotta" style="font-size: 10px; padding: 2px 7px;">${this.escapeHtml(item.brand || 'CHÍNH HÃNG')}</span></td>
+                      <td style="font-weight: 800; color: #f59e0b; white-space: nowrap;">${SalonUtils.formatCurrency(item.price)}</td>
+                      <td style="font-weight: 700; color: #10b981; white-space: nowrap;">${SalonUtils.formatCurrency(costPriceVal)}</td>
+                      <td style="white-space: nowrap; text-align: center;">
+                        ${stock > 5 ? `
+                          <span class="stock-badge-safe" style="font-size: 12px; font-weight: 700; padding: 4px 10px; display: inline-flex; align-items: center; gap: 5px;">
+                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+                            Còn ${stock} hộp/cái
+                          </span>
+                        ` : (stock > 0 ? `
+                          <span class="stock-badge-low" style="font-size: 12px; font-weight: 700; padding: 4px 10px; display: inline-flex; align-items: center; gap: 5px;">
+                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></span>
+                            Sắp hết: ${stock} hộp/cái
+                          </span>
+                        ` : `
+                          <span class="stock-badge-critical" style="font-size: 12px; font-weight: 800; padding: 4px 10px; display: inline-flex; align-items: center; gap: 5px;">
+                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
+                            HẾT HÀNG (0)
+                          </span>
+                        `)}
                       </td>
-                      <td style="font-weight: 800; color: #f59e0b;">${SalonUtils.formatCurrency(item.price)}</td>
-                      <td style="font-weight: 700; color: #10b981;">${SalonUtils.formatCurrency(costPriceVal)}</td>
-                      <td><strong style="font-size: 14px;">${stock}</strong> hộp/cái</td>
-                      <td>${badge}</td>
-                      <td>
-                        <div style="display: flex; gap: 4px; align-items: center;">
-                          <button class="pill-btn-outline" style="padding: 2px 8px; font-size: 11px;" title="Trừ 1 sản phẩm"
-                                  onclick="AdminWeb.adjustStock('${item.id}', ${stock - 1})">-1</button>
-                          <button class="pill-btn-outline" style="padding: 2px 8px; font-size: 11px;" title="Cộng 5 sản phẩm"
-                                  onclick="AdminWeb.adjustStock('${item.id}', ${stock + 5})">+5</button>
-                          <button class="pill-btn-outline" style="padding: 2px 8px; font-size: 11px;" title="Cộng 20 sản phẩm"
-                                  onclick="AdminWeb.adjustStock('${item.id}', ${stock + 20})">+20</button>
-                          <button class="btn-submit-terracotta" style="padding: 2px 8px; font-size: 10px;" title="Nhập số kiểm kê thực tế"
-                                  onclick="AdminWeb.promptExactStock('${item.id}', ${stock})">Nhập số</button>
+                      <td style="white-space: nowrap;">
+                        <div style="display: flex; gap: 3px; align-items: center; white-space: nowrap;">
+                          <button class="pill-btn-outline" style="padding: 2px 6px; font-size: 10.5px; font-weight: 700;" onclick="AdminWeb.adjustStock('${item.id}', ${stock - 1})">-1</button>
+                          <button class="pill-btn-outline" style="padding: 2px 6px; font-size: 10.5px; font-weight: 700;" onclick="AdminWeb.adjustStock('${item.id}', ${stock + 5})">+5</button>
+                          <button class="pill-btn-outline" style="padding: 2px 6px; font-size: 10.5px; font-weight: 700;" onclick="AdminWeb.adjustStock('${item.id}', ${stock + 20})">+20</button>
+                          <button class="btn-submit-terracotta" style="padding: 2px 7px; font-size: 10.5px; white-space: nowrap;" onclick="AdminWeb.promptExactStock('${item.id}', ${stock})">Nhập số</button>
                         </div>
                       </td>
-                      <td>
-                        <div style="display: flex; gap: 5px; align-items: center;">
-                          <button class="pill-btn-outline" style="padding: 3px 9px; font-size: 11px; display: inline-flex; align-items: center; gap: 3px;" 
-                                  onclick="AdminWeb.openProductModal('${item.productId}')" title="Chỉnh sửa thông tin chi tiết sản phẩm">
-                            Sửa
-                          </button>
-                          <button class="pill-btn-outline" style="padding: 3px 9px; font-size: 11px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: inline-flex; align-items: center; gap: 3px;" 
-                                  onclick="AdminWeb.deleteInventoryProduct('${item.productId}')" title="Xóa sản phẩm khỏi kho hàng">
-                            Xóa
-                          </button>
+                      <td style="white-space: nowrap; text-align: center;">
+                        <div style="display: flex; gap: 4px; align-items: center; justify-content: center; white-space: nowrap;">
+                          <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="AdminWeb.openProductModal('${item.productId}')">Sửa</button>
+                          <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="AdminWeb.deleteInventoryProduct('${item.productId}')">Xóa</button>
                         </div>
                       </td>
                     </tr>
                   `;
                 }).join('') : `
-                  <tr>
-                    <td colspan="10" style="text-align: center; padding: 30px; color: #888;">
-                      Không tìm thấy bản ghi tồn kho nào phù hợp.
-                    </td>
-                  </tr>
+                  <tr><td colspan="9" style="text-align: center; padding: 30px; color: #888;">Không tìm thấy bản ghi tồn kho nào phù hợp.</td></tr>
                 `}
               </tbody>
             </table>
           </div>
           ${this._renderPaginationControls(this.inventoryPage, invTotalPages, filtered.length, 'AdminWeb.setInventoryPage', 'sản phẩm')}
-        </div>
-      `;
+        `;
+      }
+
+      // 2. Phân hệ Định Giá Lô FEFO (vw_GiaBanTheoLoHienTai)
+      if (subType === 'fefo') {
+        const normQ = this._normalizeSearchText(q);
+        const filtered = fefoLots.filter(l => {
+          if (!normQ) return true;
+          const name = this._normalizeSearchText(l.productName || '');
+          const lot = this._normalizeSearchText(l.lotNumber || '');
+          const id = this._normalizeSearchText(l.productId || l.id || '');
+          return name.includes(normQ) || lot.includes(normQ) || id.includes(normQ);
+        });
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.inventoryPage > totalPages) this.inventoryPage = totalPages;
+        const paged = filtered.slice((this.inventoryPage - 1) * this.pageSize, this.inventoryPage * this.pageSize);
+
+        return `
+          <div style="overflow-x: auto;">
+            <table class="admin-enterprise-table">
+              <thead>
+                <tr>
+                  <th>Số Lô</th>
+                  <th>Mã Lô Chi Tiết</th>
+                  <th>Sản Phẩm</th>
+                  <th>Chi Nhánh</th>
+                  <th>Hạn Sử Dụng</th>
+                  <th>Ngày Còn Lại</th>
+                  <th>Tồn Khả Dụng</th>
+                  <th>Giá Niêm Yết</th>
+                  <th>% Giảm Cận Hạn</th>
+                  <th>Giá Bán Thực Tế</th>
+                  <th>Tình Trạng Lô Hàng</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${paged.length > 0 ? paged.map(lot => {
+                  const daysLeft = lot.daysLeft !== undefined ? lot.daysLeft : 100;
+                  const isExp = daysLeft <= 0;
+                  const isNearExp = daysLeft > 0 && daysLeft <= 90;
+                  let stBadge = isExp
+                    ? `<span class="stock-badge-critical">Đã hết hạn - Thu hồi</span>`
+                    : (isNearExp ? `<span class="stock-badge-low">${lot.statusNote || 'Cận hạn giảm giá'}</span>` : `<span class="stock-badge-safe">Hạn sử dụng tốt</span>`);
+
+                  return `
+                    <tr>
+                      <td><strong>${this.escapeHtml(lot.lotNumber || '—')}</strong></td>
+                      <td style="font-size: 11px; color: #888;">${this.escapeHtml(lot.id || lot.MaChiTietPhieuNhap)}</td>
+                      <td style="font-weight: 700;">${this.escapeHtml(lot.productName)}</td>
+                      <td>${this.escapeHtml(lot.branchName || `CN ${lot.branchId}`)}</td>
+                      <td style="white-space: nowrap;">${this.escapeHtml(lot.expiryDate || '—')}</td>
+                      <td>
+                        <strong style="color: ${isExp ? '#ef4444' : (isNearExp ? '#f59e0b' : '#10b981')};">
+                          ${daysLeft} ngày
+                        </strong>
+                      </td>
+                      <td><strong style="font-size: 14px;">${lot.remainingQuantity || 0}</strong></td>
+                      <td style="text-decoration: ${lot.discountPercent > 0 ? 'line-through' : 'none'}; color: #888;">
+                        ${SalonUtils.formatCurrency(lot.originalPrice)}
+                      </td>
+                      <td>
+                        <span class="badge-terracotta" style="font-weight: 800; font-size: 11px;">
+                          -${lot.discountPercent || 0}%
+                        </span>
+                      </td>
+                      <td style="font-weight: 800; color: #f59e0b; font-size: 14px;">
+                        ${SalonUtils.formatCurrency(lot.actualPrice)}
+                      </td>
+                      <td>${stBadge}</td>
+                    </tr>
+                  `;
+                }).join('') : `
+                  <tr><td colspan="11" style="text-align: center; padding: 30px; color: #888;">Không có dữ liệu lô hàng FEFO nào.</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
+          ${this._renderPaginationControls(this.inventoryPage, totalPages, filtered.length, 'AdminWeb.setInventoryPage', 'lô hàng FEFO')}
+        `;
+      }
+
+      // 3. Phân hệ Phiếu Nhập Kho (PhieuNhapKho & ChiTietPhieuNhap)
+      if (subType === 'receipts') {
+        const normQ = this._normalizeSearchText(q);
+        const filtered = receipts.filter(r => {
+          if (!normQ) return true;
+          const id = this._normalizeSearchText(r.id || r.MaPhieuNhap || '');
+          const sup = this._normalizeSearchText(r.supplierName || '');
+          const br = this._normalizeSearchText(r.branchName || '');
+          return id.includes(normQ) || sup.includes(normQ) || br.includes(normQ);
+        });
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.inventoryPage > totalPages) this.inventoryPage = totalPages;
+        const paged = filtered.slice((this.inventoryPage - 1) * this.pageSize, this.inventoryPage * this.pageSize);
+
+        return `
+          <div style="overflow-x: auto;">
+            <table class="admin-enterprise-table">
+              <thead>
+                <tr>
+                  <th>Mã Phiếu</th>
+                  <th>Chi Nhánh</th>
+                  <th>Nhà Cung Cấp</th>
+                  <th>Người Lập</th>
+                  <th>Người Duyệt</th>
+                  <th>Ngày Lập</th>
+                  <th>Tổng Tiền</th>
+                  <th>Mặt Hàng</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${paged.length > 0 ? paged.map(r => `
+                  <tr>
+                    <td><strong>${this.escapeHtml(r.id || r.MaPhieuNhap)}</strong></td>
+                    <td>${this.escapeHtml(r.branchName || `Chi Nhánh ${r.branchId}`)}</td>
+                    <td style="font-weight: 700;">${this.escapeHtml(r.supplierName || 'NCC Chính Hãng')}</td>
+                    <td>${this.escapeHtml(r.staffName || 'Nhân viên kho')}</td>
+                    <td>${this.escapeHtml(r.approverName || '—')}</td>
+                    <td style="white-space: nowrap; font-size: 12px; color: #666;">${this.escapeHtml(r.createdDate || r.NgayLap)}</td>
+                    <td style="font-weight: 800; color: #10b981;">${SalonUtils.formatCurrency(r.total || r.TongTien)}</td>
+                    <td><span class="badge-terracotta" style="font-size: 11px;">${r.itemCount || 0} mục</span></td>
+                    <td>
+                      <span class="${r.status === 'Đã duyệt' || r.TrangThai === 'Đã duyệt' ? 'stock-badge-safe' : 'stock-badge-critical'}">
+                        ${this.escapeHtml(r.status || r.TrangThai || 'Đã duyệt')}
+                      </span>
+                    </td>
+                  </tr>
+                `).join('') : `
+                  <tr><td colspan="9" style="text-align: center; padding: 30px; color: #888;">Không tìm thấy phiếu nhập kho nào.</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
+          ${this._renderPaginationControls(this.inventoryPage, totalPages, filtered.length, 'AdminWeb.setInventoryPage', 'phiếu nhập kho')}
+        `;
+      }
+
+      // 4. Phân hệ Nhà Cung Cấp & Quy Tắc Giảm Giá (NhaCungCap, QuyTacGiamGiaTheoHan)
+      if (subType === 'rules') {
+        return `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+            <!-- Cột Trái: Nhà Cung Cấp (NhaCungCap) -->
+            <div>
+              <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: var(--primary-color, #c85a44);">
+                🏢 Danh Sách Nhà Cung Cấp Hàng Hóa (NhaCungCap)
+              </h4>
+              <div style="overflow-x: auto;">
+                <table class="admin-enterprise-table">
+                  <thead>
+                    <tr>
+                      <th>Mã</th>
+                      <th>Tên Nhà Cung Cấp</th>
+                      <th>Số Điện Thoại</th>
+                      <th>Email</th>
+                      <th>Trạng Thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${suppliers.length > 0 ? suppliers.map(s => `
+                      <tr>
+                        <td><strong>${this.escapeHtml(s.id || s.MaNhaCungCap)}</strong></td>
+                        <td style="font-weight: 700;">${this.escapeHtml(s.name || s.TenNhaCungCap)}</td>
+                        <td>${this.escapeHtml(s.phone || s.SoDienThoai || '—')}</td>
+                        <td style="font-size: 11px; color: #666;">${this.escapeHtml(s.email || s.Email || '—')}</td>
+                        <td><span class="stock-badge-safe">${this.escapeHtml(s.status || 'Hoạt động')}</span></td>
+                      </tr>
+                    `).join('') : `
+                      <tr><td colspan="5" style="text-align: center; padding: 20px; color: #888;">Chưa có dữ liệu nhà cung cấp.</td></tr>
+                    `}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Cột Phải: Quy Tắc Giảm Giá Theo Hạn (QuyTacGiamGiaTheoHan) -->
+            <div>
+              <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: var(--primary-color, #c85a44);">
+                🏷️ Quy Tắc Giảm Giá Hạn Sử Dụng (QuyTacGiamGiaTheoHan)
+              </h4>
+              <div style="overflow-x: auto;">
+                <table class="admin-enterprise-table">
+                  <thead>
+                    <tr>
+                      <th>Mã</th>
+                      <th>Tên Quy Tắc</th>
+                      <th>Hạn Còn Lại</th>
+                      <th>Mức Giảm</th>
+                      <th>Trạng Thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${discountRules.length > 0 ? discountRules.map(r => `
+                      <tr>
+                        <td><strong>${this.escapeHtml(r.id || r.MaQuyTac)}</strong></td>
+                        <td style="font-weight: 700;">${this.escapeHtml(r.name || r.TenQuyTac)}</td>
+                        <td>${r.minDays ?? r.SoNgayConLaiToiThieu} - ${r.maxDays ?? r.SoNgayConLaiToiDa} ngày</td>
+                        <td><span class="badge-terracotta" style="font-weight: 800;">-${r.discountPercent ?? r.PhanTramGiam}%</span></td>
+                        <td><span class="stock-badge-safe">${this.escapeHtml(r.status || 'Đang áp dụng')}</span></td>
+                      </tr>
+                    `).join('') : `
+                      <tr><td colspan="5" style="text-align: center; padding: 20px; color: #888;">Chưa có quy tắc giảm giá hạn sử dụng.</td></tr>
+                    `}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      return '';
+    },
+
+
+    _normalizeSearchText(str) {
+      if (!str) return '';
+      return String(str)
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .trim();
+    },
+
+    handleInventorySearch(val) {
+      this.inventorySearchQuery = val;
+      this.inventoryPage = 1;
+      this._updateInventoryContentOnly();
+    },
+
+    _updateInventoryContentOnly() {
+      const container = document.getElementById('adminInventoryContentContainer');
+      if (container) {
+        const user = this.getCurrentUser();
+        const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
+        const subType = this.inventorySubTab || 'stock';
+        const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];
+        const fefoLots = (window.store && typeof window.store.getFefoLots === 'function') ? window.store.getFefoLots(branchId) : [];
+        const receipts = (window.store && typeof window.store.getReceipts === 'function') ? window.store.getReceipts(branchId) : [];
+        const suppliers = (window.store && typeof window.store.getSuppliers === 'function') ? window.store.getSuppliers() : [];
+        const discountRules = (window.store && typeof window.store.getDiscountRules === 'function') ? window.store.getDiscountRules() : [];
+        const q = (this.inventorySearchQuery || '').trim();
+        container.innerHTML = this._renderInventoryContent(subType, { inventory, fefoLots, receipts, suppliers, discountRules, q });
+      } else {
+        this.refreshInventoryView();
+      }
     },
 
     refreshInventoryView() {
@@ -3955,53 +4282,96 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB 7: NHẬT KÝ KIỂM TOÁN HỆ THỐNG (AUDIT LOGS)
+    // SUB-TAB 7: NHẬT KÝ KIỂM TOÁN & HÓA ĐƠN HỆ THỐNG (AUDIT, INVOICES, NOTIFICATIONS)
     // -----------------------------------------------------------------------
+    switchAuditSubTab(type) {
+      this.auditSubTab = type;
+      this.auditPage = 1;
+      this.refreshAuditView();
+    },
+
     renderAuditTab(auditLogs) {
-      let filtered = [...auditLogs];
+      const subType = this.auditSubTab || 'logs';
+      const logs = auditLogs || (window.store && typeof window.store.getAuditLogs === 'function' ? window.store.getAuditLogs() : []);
+      const invoices = (window.store && typeof window.store.getInvoices === 'function') ? window.store.getInvoices() : [];
+      const payments = (window.store && typeof window.store.getPayments === 'function') ? window.store.getPayments() : [];
+      const notifications = (window.store && typeof window.store.getNotifications === 'function') ? window.store.getNotifications() : [];
 
-      if (this.auditActionFilter !== 'all') {
-        filtered = filtered.filter(l => (l.action || '').toUpperCase().includes(this.auditActionFilter.toUpperCase()));
-      }
-
-      if (this.auditSearchQuery) {
-        const norm = str => (str || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-        const q = norm(this.auditSearchQuery);
-        filtered = filtered.filter(l =>
-          norm(l.operatorName).includes(q) ||
-          norm(l.entity).includes(q) ||
-          norm(l.details).includes(q) ||
-          norm(l.action).includes(q)
-        );
-      }
-
-      this.auditPage = this.auditPage || 1;
-      const auditTotalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
-      if (this.auditPage > auditTotalPages) this.auditPage = auditTotalPages;
-      const pagedAudit = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
+      const q = (this.auditSearchQuery || '').toLowerCase().trim();
 
       return `
         <div class="admin-table-container">
+          <!-- Thanh Chuyển Đổi Phân Hệ Kiểm Toán & Lịch Sử (SQL 100% Entities) -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 10px;">
+            <button type="button" class="admin-tab-btn ${subType === 'logs' ? 'active' : ''}" 
+                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchAuditSubTab('logs')">
+              📝 Sự Kiện Kiểm Toán (${logs.length})
+            </button>
+            <button type="button" class="admin-tab-btn ${subType === 'invoices' ? 'active' : ''}" 
+                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchAuditSubTab('invoices')">
+              🧾 Hóa Đơn Bán &amp; Thu Tiền (${invoices.length} Hóa Đơn / ${payments.length} GD)
+            </button>
+            <button type="button" class="admin-tab-btn ${subType === 'notifications' ? 'active' : ''}" 
+                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchAuditSubTab('notifications')">
+              🔔 Thông Báo Hệ Thống (${notifications.length})
+            </button>
+          </div>
+
+          <!-- Toolbar Kiểm Toán -->
           <div class="admin-table-toolbar">
             <div class="table-filter-group">
-              <input type="text" id="adminAuditSearchInput" class="table-search-input" placeholder="Tìm người, thao tác, đối tượng..." 
+              <input type="text" id="adminAuditSearchInput" class="table-search-input" placeholder="Tìm theo mã, nội dung, người thực hiện..." 
                      value="${this.escapeHtml(this.auditSearchQuery)}" 
                      oninput="AdminWeb.auditSearchQuery = this.value; AdminWeb.auditPage = 1; AdminWeb.refreshAuditView();">
 
-              <select class="table-select-filter" onchange="AdminWeb.auditActionFilter = this.value; AdminWeb.auditPage = 1; AdminWeb.refreshAuditView();">
-                <option value="all" ${this.auditActionFilter === 'all' ? 'selected' : ''}>Tất cả hành động</option>
-                <option value="BOOKING" ${this.auditActionFilter === 'BOOKING' ? 'selected' : ''}>Lịch Hẹn (Booking)</option>
-                <option value="STOCK" ${this.auditActionFilter === 'STOCK' ? 'selected' : ''}>Kho Hàng (Stock)</option>
-                <option value="PRODUCT" ${this.auditActionFilter === 'PRODUCT' ? 'selected' : ''}>Sản Phẩm (Product)</option>
-                <option value="SERVICE" ${this.auditActionFilter === 'SERVICE' ? 'selected' : ''}>Dịch Vụ (Service)</option>
-                <option value="ORDER" ${this.auditActionFilter === 'ORDER' ? 'selected' : ''}>Hóa Đơn / POS</option>
-                <option value="AUTH" ${this.auditActionFilter === 'AUTH' ? 'selected' : ''}>Xác Thực (Auth)</option>
-              </select>
+              ${subType === 'logs' ? `
+                <select class="table-select-filter" onchange="AdminWeb.auditActionFilter = this.value; AdminWeb.auditPage = 1; AdminWeb.refreshAuditView();">
+                  <option value="all" ${this.auditActionFilter === 'all' ? 'selected' : ''}>Tất cả hành động</option>
+                  <option value="BOOKING" ${this.auditActionFilter === 'BOOKING' ? 'selected' : ''}>Lịch Hẹn (Booking)</option>
+                  <option value="STOCK" ${this.auditActionFilter === 'STOCK' ? 'selected' : ''}>Kho Hàng (Stock)</option>
+                  <option value="PRODUCT" ${this.auditActionFilter === 'PRODUCT' ? 'selected' : ''}>Sản Phẩm (Product)</option>
+                  <option value="SERVICE" ${this.auditActionFilter === 'SERVICE' ? 'selected' : ''}>Dịch Vụ (Service)</option>
+                  <option value="ORDER" ${this.auditActionFilter === 'ORDER' ? 'selected' : ''}>Hóa Đơn / POS</option>
+                  <option value="AUTH" ${this.auditActionFilter === 'AUTH' ? 'selected' : ''}>Xác Thực (Auth)</option>
+                </select>
+              ` : ''}
             </div>
 
-            <span style="font-size: 12px; color: #888;">Lưu vết an toàn ${auditLogs.length} sự kiện gần nhất</span>
+            <span style="font-size: 12px; color: #888;">
+              ${subType === 'logs' ? `Lưu vết an toàn ${logs.length} sự kiện gần nhất` : (subType === 'invoices' ? `${invoices.length} hóa đơn bán hàng lưu trong CSDL` : `${notifications.length} thông báo trong hệ thống`)}
+            </span>
           </div>
 
+          ${this._renderAuditContent(subType, { logs, invoices, payments, notifications, q })}
+        </div>
+      `;
+    },
+
+    _renderAuditContent(subType, { logs, invoices, payments, notifications, q }) {
+      this.auditPage = this.auditPage || 1;
+
+      // 1. Phân hệ Nhật Ký Kiểm Toán (logs)
+      if (subType === 'logs') {
+        let filtered = [...logs];
+        if (this.auditActionFilter !== 'all') {
+          filtered = filtered.filter(l => (l.action || '').toUpperCase().includes(this.auditActionFilter.toUpperCase()));
+        }
+        if (q) {
+          const norm = str => (str || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          const normQ = norm(q);
+          filtered = filtered.filter(l =>
+            norm(l.operatorName).includes(normQ) ||
+            norm(l.entity).includes(normQ) ||
+            norm(l.details).includes(normQ) ||
+            norm(l.action).includes(normQ)
+          );
+        }
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.auditPage > totalPages) this.auditPage = totalPages;
+        const paged = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
+
+        return `
           <div style="overflow-x: auto;">
             <table class="admin-enterprise-table">
               <thead>
@@ -4014,7 +4384,7 @@
                 </tr>
               </thead>
               <tbody>
-                ${pagedAudit.length > 0 ? pagedAudit.map(l => `
+                ${paged.length > 0 ? paged.map(l => `
                   <tr>
                     <td style="font-size: 12px; color: #666; white-space: nowrap;">${this.escapeHtml(l.timestamp)}</td>
                     <td><span class="badge-terracotta" style="font-size: 10px; padding: 2px 6px;">${this.escapeHtml(l.action)}</span></td>
@@ -4023,18 +4393,133 @@
                     <td style="color: #444;">${this.escapeHtml(l.details)}</td>
                   </tr>
                 `).join('') : `
-                  <tr>
-                    <td colspan="5" style="text-align: center; padding: 30px; color: #888;">
-                      Không tìm thấy sự kiện nào khớp với bộ lọc kiểm toán.
-                    </td>
-                  </tr>
+                  <tr><td colspan="5" style="text-align: center; padding: 30px; color: #888;">Không tìm thấy sự kiện nào khớp với bộ lọc kiểm toán.</td></tr>
                 `}
               </tbody>
             </table>
           </div>
-          ${this._renderPaginationControls(this.auditPage, auditTotalPages, filtered.length, 'AdminWeb.setAuditPage', 'nhật ký')}
-        </div>
-      `;
+          ${this._renderPaginationControls(this.auditPage, totalPages, filtered.length, 'AdminWeb.setAuditPage', 'nhật ký')}
+        `;
+      }
+
+      // 2. Phân hệ Hóa Đơn & Thanh Toán (HoaDon, ChiTietHoaDon, ThanhToan)
+      if (subType === 'invoices') {
+        const filtered = invoices.filter(inv => {
+          if (!q) return true;
+          const code = (inv.id || inv.MaHoaDon || '').toLowerCase();
+          const cust = (inv.customerName || inv.TenKhachHang || '').toLowerCase();
+          const branch = (inv.branchName || inv.MaChiNhanh || '').toLowerCase();
+          return code.includes(q) || cust.includes(q) || branch.includes(q);
+        });
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.auditPage > totalPages) this.auditPage = totalPages;
+        const paged = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
+
+        return `
+          <div style="overflow-x: auto;">
+            <table class="admin-enterprise-table">
+              <thead>
+                <tr>
+                  <th>Mã Hóa Đơn</th>
+                  <th>Chi Nhánh</th>
+                  <th>Khách Hàng</th>
+                  <th>Thời Gian Lập</th>
+                  <th>Tiền Dịch Vụ</th>
+                  <th>Tiền Sản Phẩm</th>
+                  <th>Tổng Hóa Đơn</th>
+                  <th>PT Thanh Toán</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${paged.length > 0 ? paged.map(inv => {
+                  const sTotal = Number(inv.serviceTotal || inv.TongTienDichVu || 0);
+                  const pTotal = Number(inv.productTotal || inv.TongTienSanPham || 0);
+                  const total = Number(inv.totalAmount || inv.TongThanhToan || (sTotal + pTotal));
+                  const isPaid = (inv.status || inv.TrangThai || '').toLowerCase().includes('đã thanh toán') || (inv.paymentStatus || '').toLowerCase() === 'paid';
+
+                  return `
+                    <tr>
+                      <td><strong>${this.escapeHtml(inv.id || inv.MaHoaDon)}</strong></td>
+                      <td>${this.escapeHtml(inv.branchName || `Chi Nhánh ${inv.branchId || inv.MaChiNhanh}`)}</td>
+                      <td style="font-weight: 700;">${this.escapeHtml(inv.customerName || inv.TenKhachHang || 'Khách vãng lai')}</td>
+                      <td style="white-space: nowrap; font-size: 12px; color: #666;">${this.escapeHtml(inv.createdDate || inv.NgayLap || '—')}</td>
+                      <td>${SalonUtils.formatCurrency(sTotal)}</td>
+                      <td>${SalonUtils.formatCurrency(pTotal)}</td>
+                      <td style="font-weight: 800; color: #10b981; font-size: 14px;">${SalonUtils.formatCurrency(total)}</td>
+                      <td><span class="badge-terracotta" style="font-size: 11px;">${this.escapeHtml(inv.paymentMethod || inv.PhuongThucThanhToan || 'VietQR')}</span></td>
+                      <td>
+                        <span class="${isPaid ? 'stock-badge-safe' : 'stock-badge-critical'}">
+                          ${this.escapeHtml(inv.status || inv.TrangThai || 'Đã thanh toán')}
+                        </span>
+                      </td>
+                    </tr>
+                  `;
+                }).join('') : `
+                  <tr><td colspan="9" style="text-align: center; padding: 30px; color: #888;">Không tìm thấy hóa đơn nào trong CSDL.</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
+          ${this._renderPaginationControls(this.auditPage, totalPages, filtered.length, 'AdminWeb.setAuditPage', 'hóa đơn')}
+        `;
+      }
+
+      // 3. Phân hệ Thông Báo Hệ Thống (ThongBao)
+      if (subType === 'notifications') {
+        const filtered = notifications.filter(n => {
+          if (!q) return true;
+          const title = (n.title || n.TieuDe || '').toLowerCase();
+          const content = (n.content || n.NoiDung || '').toLowerCase();
+          const type = (n.type || n.LoaiThongBao || '').toLowerCase();
+          return title.includes(q) || content.includes(q) || type.includes(q);
+        });
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.auditPage > totalPages) this.auditPage = totalPages;
+        const paged = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
+
+        return `
+          <div style="overflow-x: auto;">
+            <table class="admin-enterprise-table">
+              <thead>
+                <tr>
+                  <th style="width: 90px;">Mã TB</th>
+                  <th>Tiêu Đề Thông Báo</th>
+                  <th>Nội Dung Chi Tiết</th>
+                  <th>Phân Loại</th>
+                  <th>Thời Gian Nhận</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${paged.length > 0 ? paged.map(n => {
+                  const isRead = n.isRead || n.DaDoc;
+                  return `
+                    <tr>
+                      <td style="font-size: 11px; color: #888;">${this.escapeHtml(n.id || n.MaThongBao)}</td>
+                      <td style="font-weight: 700;">${this.escapeHtml(n.title || n.TieuDe)}</td>
+                      <td style="color: #444;">${this.escapeHtml(n.content || n.NoiDung)}</td>
+                      <td><span class="badge-terracotta" style="font-size: 10px;">${this.escapeHtml(n.type || n.LoaiThongBao || 'Hệ thống')}</span></td>
+                      <td style="white-space: nowrap; font-size: 12px; color: #666;">${this.escapeHtml(n.createdAt || n.NgayTao || '—')}</td>
+                      <td>
+                        <span class="${isRead ? 'stock-badge-safe' : 'stock-badge-low'}">
+                          ${isRead ? '✓ Đã đọc' : 'Chưa đọc'}
+                        </span>
+                      </td>
+                    </tr>
+                  `;
+                }).join('') : `
+                  <tr><td colspan="6" style="text-align: center; padding: 30px; color: #888;">Không có thông báo nào trong hệ thống.</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
+          ${this._renderPaginationControls(this.auditPage, totalPages, filtered.length, 'AdminWeb.setAuditPage', 'thông báo')}
+        `;
+      }
+      return '';
     },
 
     refreshAuditView() {
@@ -4044,7 +4529,11 @@
         const hadFocus = input && document.activeElement === input;
         const caret = input ? input.selectionStart : null;
 
-        const auditLogs = window.store.getAuditLogs();
+        const auditLogs = (window.store && typeof window.store.getAuditLogs === 'function') ? window.store.getAuditLogs() : [];
+        const invoices = (window.store && typeof window.store.getInvoices === 'function') ? window.store.getInvoices() : [];
+        const payments = (window.store && typeof window.store.getPayments === 'function') ? window.store.getPayments() : [];
+        const notifications = (window.store && typeof window.store.getNotifications === 'function') ? window.store.getNotifications() : [];
+
         content.innerHTML = this.renderAuditTab(auditLogs);
 
         if (hadFocus) {
@@ -4058,6 +4547,7 @@
         }
       }
     },
+
 
     refreshSubTab() {
       const container = document.getElementById('webMainContainer');

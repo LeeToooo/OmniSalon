@@ -7667,6 +7667,20 @@ body:has(.admin-dashboard-layout) .page-view {
   padding: 0 !important;
 }
 
+:root {
+  --admin-sidebar-width: 240px;
+}
+@media (max-width: 1440px) {
+  :root {
+    --admin-sidebar-width: 220px;
+  }
+}
+@media (max-width: 1280px) {
+  :root {
+    --admin-sidebar-width: 200px;
+  }
+}
+
 /* Bố cục bảng điều hành quản trị với menu dọc chính thức */
 .admin-dashboard-layout {
   display: flex !important;
@@ -7704,9 +7718,9 @@ body:has(.admin-dashboard-layout) .page-view {
 
 /* Khung menu dọc quản trị - Ghim sát góc trái màn hình tuyệt đối (True Flush Left Edge) */
 .admin-sidebar {
-  width: 280px !important;
-  min-width: 280px !important;
-  max-width: 280px !important;
+  width: var(--admin-sidebar-width, 240px) !important;
+  min-width: var(--admin-sidebar-width, 240px) !important;
+  max-width: var(--admin-sidebar-width, 240px) !important;
   height: 100vh !important;
   max-height: 100vh !important;
   background: var(--surface-card, #121214);
@@ -8036,15 +8050,15 @@ html.light .admin-sidebar-nav-item:hover {
 .admin-main-viewport {
   flex: 1 1 0% !important;
   min-width: 0 !important;
-  margin-left: 280px !important;
-  width: calc(100% - 280px) !important;
+  margin-left: var(--admin-sidebar-width, 240px) !important;
+  width: calc(100% - var(--admin-sidebar-width, 240px)) !important;
   height: 100vh !important;
   max-height: 100vh !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   display: flex !important;
   flex-direction: column !important;
-  padding: 24px 32px 80px;
+  padding: 16px clamp(12px, 1.8vw, 24px) 80px;
   box-sizing: border-box;
   background: var(--bg-primary, #0A0A0B);
   -webkit-overflow-scrolling: touch;
@@ -8690,23 +8704,24 @@ body.light .inv-status-badge.inv-status-ok,
 .admin-enterprise-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 12.5px;
   text-align: left;
 }
 
 .admin-enterprise-table th {
   background: var(--surface-elevated, #f4f4f7);
-  padding: 12px 16px;
+  padding: 10px 10px;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--text-secondary, #666);
   border-bottom: 1px solid var(--border-color, #e2e2e6);
+  white-space: nowrap;
 }
 
 .admin-enterprise-table td {
-  padding: 12px 16px;
+  padding: 10px 10px;
   border-bottom: 1px solid var(--border-color, #f0f0f4);
   color: var(--text-primary, #222);
   vertical-align: middle;
@@ -8721,7 +8736,7 @@ html.light .admin-enterprise-table tr:hover td,
   background: #f8fafc;
 }
 
-/* Huy hiệu trạng thái có chấm nhấp nháy */
+/* Huy hiệu trạng thái có chấm nhấp nháy - Luôn thẳng hàng 1 dòng */
 .status-pill-pulse {
   display: inline-flex;
   align-items: center;
@@ -8731,6 +8746,48 @@ html.light .admin-enterprise-table tr:hover td,
   font-size: 11px;
   font-weight: 800;
   line-height: 1;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.admin-table-container::-webkit-scrollbar,
+.admin-table-container > div[style*="overflow-x"]::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.admin-table-container::-webkit-scrollbar-track,
+.admin-table-container > div[style*="overflow-x"]::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+}
+.admin-table-container::-webkit-scrollbar-thumb,
+.admin-table-container > div[style*="overflow-x"]::-webkit-scrollbar-thumb {
+  background: rgba(217, 119, 6, 0.4);
+  border-radius: 4px;
+}
+.admin-table-container::-webkit-scrollbar-thumb:hover,
+.admin-table-container > div[style*="overflow-x"]::-webkit-scrollbar-thumb:hover {
+  background: #d97706;
+}
+
+@media (max-width: 1440px) {
+  .admin-enterprise-table {
+    font-size: 11.5px;
+  }
+  .admin-enterprise-table th,
+  .admin-enterprise-table td {
+    padding: 8px 8px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .admin-enterprise-table {
+    font-size: 11px;
+  }
+  .admin-enterprise-table th,
+  .admin-enterprise-table td {
+    padding: 7px 6px;
+  }
 }
 
 .pulse-dot {
@@ -8810,6 +8867,8 @@ html.light .admin-enterprise-table tr:hover td,
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }
 
 .stock-badge-low {
@@ -8823,6 +8882,8 @@ html.light .admin-enterprise-table tr:hover td,
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }
 
 .stock-badge-critical {
@@ -8836,6 +8897,8 @@ html.light .admin-enterprise-table tr:hover td,
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
   animation: pulseCritical 1.5s infinite;
 }
 
@@ -17568,6 +17631,122 @@ body.light .modal-close-icon-btn:hover {
   #branchesCardsGrid {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* =========================================================================
+   TOOLTIP & BADGE DỊCH VỤ ĐÃ ĐẶT GỘP (ADMIN BOOKING TABLE - FIXED ROW HEIGHT)
+   ========================================================================= */
+.booking-service-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.2s ease;
+  line-height: 1.3;
+}
+
+.booking-service-badge:hover {
+  background: rgba(245, 158, 11, 0.3);
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
+
+.booking-service-badge .service-tooltip-content {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #18181b;
+  color: #f4f4f5;
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.85), 0 0 15px rgba(245, 158, 11, 0.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 220px;
+  max-width: 320px;
+  z-index: 999999;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s ease;
+  white-space: normal;
+  text-align: left;
+}
+
+.booking-service-badge .service-tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #18181b transparent transparent transparent;
+}
+
+.booking-service-badge:hover .service-tooltip-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Đảo chiều tooltip xuống dưới nếu nằm ở 2 hàng đầu tiên để không bị che khuất */
+tr:first-child .booking-service-badge .service-tooltip-content,
+tr:nth-child(2) .booking-service-badge .service-tooltip-content {
+  bottom: auto;
+  top: calc(100% + 9px);
+  transform: translateX(-50%) translateY(-4px);
+}
+tr:first-child .booking-service-badge:hover .service-tooltip-content,
+tr:nth-child(2) .booking-service-badge:hover .service-tooltip-content {
+  transform: translateX(-50%) translateY(0);
+}
+tr:first-child .booking-service-badge .service-tooltip-content::after,
+tr:nth-child(2) .booking-service-badge .service-tooltip-content::after {
+  top: auto;
+  bottom: 100%;
+  border-color: transparent transparent #18181b transparent;
+}
+
+.service-tooltip-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: #f59e0b;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.service-tooltip-items {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.service-tooltip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #e4e4e7;
+}
+
+.service-tooltip-item .tooltip-num {
+  font-weight: 700;
+  color: #f59e0b;
+  flex-shrink: 0;
 }
 
 

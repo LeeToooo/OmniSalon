@@ -683,6 +683,164 @@
       const live = await this._request('/audit/logs');
       if (live) return live;
       return window.SalonStore ? window.SalonStore.getAuditLogs() : [];
+    },
+
+    // -----------------------------------------------------------------------
+    // MODULE 8: WAREHOUSE, SUPPLIERS, RULES, INVOICES & NOTIFICATIONS
+    // (Đồng bộ 100% CSDL QL_SALON.sql)
+    // -----------------------------------------------------------------------
+    // 8.1. Nhà Cung Cấp (NhaCungCap)
+    async getSuppliers() {
+      const live = await this._request('/suppliers');
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getSuppliers() : [];
+    },
+
+    async createSupplier(supplierData) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'thêm nhà cung cấp');
+      return await this._request('/suppliers', { method: 'POST', body: JSON.stringify(supplierData) });
+    },
+
+    async updateSupplier(supplierId, updates) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'cập nhật nhà cung cấp');
+      return await this._request(`/suppliers/${supplierId}`, { method: 'PUT', body: JSON.stringify(updates) });
+    },
+
+    async deleteSupplier(supplierId) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'xóa nhà cung cấp');
+      return await this._request(`/suppliers/${supplierId}`, { method: 'DELETE' });
+    },
+
+    // 8.2. Quy Tắc Giảm Giá Cận Hạn (QuyTacGiamGiaTheoHan)
+    async getDiscountRules() {
+      const live = await this._request('/inventory/discount-rules');
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getDiscountRules() : [];
+    },
+
+    async saveDiscountRule(ruleData) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'lưu quy tắc giảm giá hạn sử dụng');
+      return await this._request('/inventory/discount-rules', { method: 'POST', body: JSON.stringify(ruleData) });
+    },
+
+    async deleteDiscountRule(ruleId) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'xóa quy tắc giảm giá');
+      return await this._request(`/inventory/discount-rules/${ruleId}`, { method: 'DELETE' });
+    },
+
+    // 8.3. Phiếu Nhập Kho (PhieuNhapKho & ChiTietPhieuNhap)
+    async getReceipts(branchId = null) {
+      const endpoint = branchId ? `/inventory/receipts?branch_id=${branchId}` : '/inventory/receipts';
+      const live = await this._request(endpoint);
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getReceipts(branchId) : [];
+    },
+
+    async getReceiptDetail(receiptId) {
+      return await this._request(`/inventory/receipts/${receiptId}`);
+    },
+
+    async createReceipt(receiptData) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'tạo phiếu nhập kho');
+      return await this._request('/inventory/receipts', { method: 'POST', body: JSON.stringify(receiptData) });
+    },
+
+    async updateReceiptStatus(receiptId, status, approverId = null, rejectReason = null) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'duyệt phiếu nhập kho');
+      return await this._request(`/inventory/receipts/${receiptId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status, approverId, rejectReason })
+      });
+    },
+
+    // 8.4. Hóa Đơn & Lịch Sử Giao Dịch (HoaDon, ChiTietHoaDon_DichVu, ChiTietHoaDon_SanPham, ThanhToan)
+    async getInvoices(branchId = null) {
+      const endpoint = branchId ? `/invoices?branch_id=${branchId}` : '/invoices';
+      const live = await this._request(endpoint);
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getInvoices(branchId) : [];
+    },
+
+    async getInvoiceDetail(invoiceId) {
+      return await this._request(`/invoices/${invoiceId}`);
+    },
+
+    async getPayments() {
+      const live = await this._request('/payments');
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getPayments() : [];
+    },
+
+    // 8.5. Views FEFO & Cảnh Báo Tồn Thấp (vw_GiaBanTheoLoHienTai, vw_SanPhamCanhBaoTonThap)
+    async getFefoLots(branchId = null) {
+      const endpoint = branchId ? `/inventory/lots?branch_id=${branchId}` : '/inventory/lots';
+      const live = await this._request(endpoint);
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getFefoLots(branchId) : [];
+    },
+
+    async getLowStockWarnings() {
+      const live = await this._request('/inventory/low-stock');
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getLowStockWarnings() : [];
+    },
+
+    // 8.6. Danh Mục Sản Phẩm (DanhMucSanPham)
+    async getCategories() {
+      const live = await this._request('/categories');
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getCategories() : [];
+    },
+
+    async createCategory(categoryData) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'thêm danh mục sản phẩm');
+      return await this._request('/categories', { method: 'POST', body: JSON.stringify(categoryData) });
+    },
+
+    async updateCategory(categoryId, updates) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'cập nhật danh mục sản phẩm');
+      return await this._request(`/categories/${categoryId}`, { method: 'PUT', body: JSON.stringify(updates) });
+    },
+
+    async deleteCategory(categoryId) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'xóa danh mục sản phẩm');
+      return await this._request(`/categories/${categoryId}`, { method: 'DELETE' });
+    },
+
+    // 8.7. Khuyến Mãi (KhuyenMai, KhuyenMai_DichVu, KhuyenMai_SanPham)
+    async getPromotions() {
+      const live = await this._request('/promotions');
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getPromotions() : [];
+    },
+
+    async savePromotion(promoData) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'lưu chương trình khuyến mãi');
+      return await this._request('/promotions', { method: 'POST', body: JSON.stringify(promoData) });
+    },
+
+    async deletePromotion(promoId) {
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'xóa chương trình khuyến mãi');
+      return await this._request(`/promotions/${promoId}`, { method: 'DELETE' });
+    },
+
+    // 8.8. Thông Báo Hệ Thống (ThongBao)
+    async getNotifications(userId = null) {
+      const live = await this._request('/notifications');
+      if (live) return live;
+      return window.SalonStore ? window.SalonStore.getNotifications(userId) : [];
+    },
+
+    async createNotification(notifData) {
+      return await this._request('/notifications', { method: 'POST', body: JSON.stringify(notifData) });
+    },
+
+    async markNotificationAsRead(notifId) {
+      return await this._request(`/notifications/${notifId}/read`, { method: 'PUT' });
+    },
+
+    async deleteNotification(notifId) {
+      return await this._request(`/notifications/${notifId}`, { method: 'DELETE' });
     }
   };
 

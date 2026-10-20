@@ -335,7 +335,15 @@ async function getFullSqlDatabase() {
     thongBaoRows,
     caLamViecRows,
     kmDichVuRows,
-    kmSanPhamRows
+    kmSanPhamRows,
+    chiTietComboRows,
+    discountRuleRows,
+    receiptRows,
+    invoiceRows,
+    paymentRows,
+    fefoLotRows,
+    lowStockRows,
+    inventoryRows
   ] = await Promise.all([
     querySql(`SELECT MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, 
                      CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
@@ -350,7 +358,7 @@ async function getFullSqlDatabase() {
               LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh 
               WHERE nv.TrangThai = N'Đang làm việc' AND nv.ChucVu <> N'Thu ngân'`),
     querySql(`SELECT MaDanhMuc, TenDanhMuc, MoTa, TrangThai FROM DanhMucSanPham`),
-    querySql(`SELECT MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi FROM NhaCungCap`),
+    querySql(`SELECT MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi, TrangThai FROM NhaCungCap`),
     querySql(`SELECT sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
                      sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
                      dm.TenDanhMuc,
@@ -430,7 +438,48 @@ async function getFullSqlDatabase() {
               LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
               ORDER BY clv.NgayLam DESC, clv.GioBatDau ASC`),
     querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`),
-    querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`)
+    querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`),
+    querySql(`SELECT ct.MaCombo, ct.MaDichVu, ct.SoLuong, dv.TenDichVu, dv.Gia, dv.ThoiLuong, dv.HinhAnh 
+              FROM ChiTietComboDichVu ct 
+              JOIN DichVu dv ON ct.MaDichVu = dv.MaDichVu`),
+    querySql(`SELECT MaQuyTac, TenQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam, TrangThai 
+              FROM QuyTacGiamGiaTheoHan ORDER BY PhanTramGiam ASC`),
+    querySql(`SELECT pnk.MaPhieuNhap, pnk.MaChiNhanh, pnk.MaNhanVien, pnk.MaNguoiDuyet, pnk.MaNhaCungCap, 
+                     CONVERT(VARCHAR(19), pnk.NgayLap, 120) AS NgayLap, 
+                     CONVERT(VARCHAR(19), pnk.NgayDuyet, 120) AS NgayDuyet, 
+                     pnk.TongTien, pnk.TrangThai, pnk.LyDoTuChoi, 
+                     cn.TenChiNhanh, ncc.TenNhaCungCap, 
+                     nv1.HoTen AS TenNguoiLap, nv2.HoTen AS TenNguoiDuyet,
+                     (SELECT COUNT(*) FROM ChiTietPhieuNhap WHERE MaPhieuNhap = pnk.MaPhieuNhap) AS SoLuongMatHang 
+              FROM PhieuNhapKho pnk 
+              LEFT JOIN ChiNhanh cn ON pnk.MaChiNhanh = cn.MaChiNhanh 
+              LEFT JOIN NhaCungCap ncc ON pnk.MaNhaCungCap = ncc.MaNhaCungCap 
+              LEFT JOIN NhanVien nv1 ON pnk.MaNhanVien = nv1.MaNhanVien 
+              LEFT JOIN NhanVien nv2 ON pnk.MaNguoiDuyet = nv2.MaNhanVien 
+              ORDER BY pnk.NgayLap DESC`),
+    querySql(`SELECT hd.MaHoaDon, hd.MaKhachHang, hd.MaLichHen, hd.MaDonHang, hd.MaChiNhanh, 
+                     CONVERT(VARCHAR(19), hd.NgayLap, 120) AS NgayLap, 
+                     hd.TongTien, hd.TrangThai, hd.MaSoHoaDon, 
+                     kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang, 
+                     cn.TenChiNhanh 
+              FROM HoaDon hd 
+              LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang 
+              LEFT JOIN ChiNhanh cn ON hd.MaChiNhanh = cn.MaChiNhanh 
+              ORDER BY hd.NgayLap DESC`),
+    querySql(`SELECT tt.MaThanhToan, tt.MaHoaDon, tt.MaNhanVien, tt.SoTien, tt.PhuongThuc, 
+                     CONVERT(VARCHAR(19), tt.ThoiGianThanhToan, 120) AS ThoiGianThanhToan, 
+                     tt.TrangThai, tt.MaGiaoDich, nv.HoTen AS TenNhanVien 
+              FROM ThanhToan tt 
+              LEFT JOIN NhanVien nv ON tt.MaNhanVien = nv.MaNhanVien 
+              ORDER BY tt.ThoiGianThanhToan DESC`),
+    querySql(`SELECT * FROM vw_GiaBanTheoLoHienTai`),
+    querySql(`SELECT * FROM vw_SanPhamCanhBaoTonThap`),
+    querySql(`SELECT tk.MaSanPham, tk.MaChiNhanh, tk.SoLuongTon, tk.MucCanhBao, 
+                     CONVERT(VARCHAR(19), tk.NgayCapNhat, 120) AS NgayCapNhat, 
+                     sp.TenSanPham, cn.TenChiNhanh 
+              FROM TonKho tk 
+              JOIN SanPham sp ON tk.MaSanPham = sp.MaSanPham 
+              JOIN ChiNhanh cn ON tk.MaChiNhanh = cn.MaChiNhanh`)
   ]);
 
   const branches = branchRows.map(r => {
@@ -548,21 +597,41 @@ async function getFullSqlDatabase() {
     };
   });
 
-  const combos = comboRows.map(r => ({
-    id: r.MaCombo,
-    MaCombo: r.MaCombo,
-    name: r.TenCombo,
-    TenCombo: r.TenCombo,
-    price: parseFloat(r.GiaCombo || 0),
-    GiaCombo: parseFloat(r.GiaCombo || 0),
-    duration: parseInt(r.ThoiLuong || 90, 10),
-    durationMinutes: parseInt(r.ThoiLuong || 90, 10),
-    description: r.MoTa,
-    MoTa: r.MoTa,
-    image: r.HinhAnh || '',
-    HinhAnh: r.HinhAnh || '',
-    status: r.TrangThai
-  }));
+  const combos = comboRows.map(r => {
+    const items = (chiTietComboRows || [])
+      .filter(ct => ct.MaCombo === r.MaCombo)
+      .map(ct => ({
+        id: ct.MaDichVu,
+        MaDichVu: ct.MaDichVu,
+        name: ct.TenDichVu,
+        TenDichVu: ct.TenDichVu,
+        quantity: ct.SoLuong || 1,
+        SoLuong: ct.SoLuong || 1,
+        price: parseFloat(ct.Gia || 0),
+        Gia: parseFloat(ct.Gia || 0),
+        duration: ct.ThoiLuong || 30,
+        ThoiLuong: ct.ThoiLuong || 30,
+        image: ct.HinhAnh || '',
+        HinhAnh: ct.HinhAnh || ''
+      }));
+    return {
+      id: r.MaCombo,
+      MaCombo: r.MaCombo,
+      name: r.TenCombo,
+      TenCombo: r.TenCombo,
+      price: parseFloat(r.GiaCombo || 0),
+      GiaCombo: parseFloat(r.GiaCombo || 0),
+      duration: parseInt(r.ThoiLuong || 90, 10),
+      durationMinutes: parseInt(r.ThoiLuong || 90, 10),
+      description: r.MoTa,
+      MoTa: r.MoTa,
+      image: r.HinhAnh || '',
+      HinhAnh: r.HinhAnh || '',
+      status: r.TrangThai,
+      items,
+      services: items
+    };
+  });
 
   const BARBER_PORTRAITS = [
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
@@ -835,6 +904,139 @@ async function getFullSqlDatabase() {
     status: r.TrangThai || 'REGISTERED'
   }));
 
+  const discountRules = (discountRuleRows || []).map(r => ({
+    id: r.MaQuyTac,
+    MaQuyTac: r.MaQuyTac,
+    name: r.TenQuyTac,
+    TenQuyTac: r.TenQuyTac,
+    minDays: r.SoNgayConLaiToiThieu,
+    SoNgayConLaiToiThieu: r.SoNgayConLaiToiThieu,
+    maxDays: r.SoNgayConLaiToiDa,
+    SoNgayConLaiToiDa: r.SoNgayConLaiToiDa,
+    discountPercent: parseFloat(r.PhanTramGiam || 0),
+    PhanTramGiam: parseFloat(r.PhanTramGiam || 0),
+    status: r.TrangThai || 'Áp dụng',
+    TrangThai: r.TrangThai || 'Áp dụng'
+  }));
+
+  const receipts = (receiptRows || []).map(r => ({
+    id: r.MaPhieuNhap,
+    MaPhieuNhap: r.MaPhieuNhap,
+    branchId: r.MaChiNhanh,
+    MaChiNhanh: r.MaChiNhanh,
+    branchName: r.TenChiNhanh || `Chi Nhánh ${r.MaChiNhanh}`,
+    supplierId: r.MaNhaCungCap,
+    MaNhaCungCap: r.MaNhaCungCap,
+    supplierName: r.TenNhaCungCap || 'Nhà Cung Cấp',
+    staffId: r.MaNhanVien,
+    MaNhanVien: r.MaNhanVien,
+    staffName: r.TenNguoiLap || 'Nhân viên kho',
+    approverId: r.MaNguoiDuyet,
+    MaNguoiDuyet: r.MaNguoiDuyet,
+    approverName: r.TenNguoiDuyet || null,
+    createdDate: r.NgayLap,
+    NgayLap: r.NgayLap,
+    approvedDate: r.NgayDuyet,
+    NgayDuyet: r.NgayDuyet,
+    total: parseFloat(r.TongTien || 0),
+    TongTien: parseFloat(r.TongTien || 0),
+    status: r.TrangThai || 'Đã duyệt',
+    TrangThai: r.TrangThai || 'Đã duyệt',
+    rejectReason: r.LyDoTuChoi || null,
+    LyDoTuChoi: r.LyDoTuChoi || null,
+    itemCount: r.SoLuongMatHang || 0
+  }));
+
+  const invoices = (invoiceRows || []).map(r => ({
+    id: r.MaHoaDon,
+    MaHoaDon: r.MaHoaDon,
+    customerId: r.MaKhachHang,
+    MaKhachHang: r.MaKhachHang,
+    customerName: r.TenKhachHang || 'Khách Vãng Lai',
+    customerPhone: r.SdtKhachHang || '',
+    bookingId: r.MaLichHen,
+    MaLichHen: r.MaLichHen,
+    orderId: r.MaDonHang,
+    MaDonHang: r.MaDonHang,
+    branchId: r.MaChiNhanh,
+    MaChiNhanh: r.MaChiNhanh,
+    branchName: r.TenChiNhanh || `Chi Nhánh ${r.MaChiNhanh}`,
+    createdDate: r.NgayLap,
+    NgayLap: r.NgayLap,
+    total: parseFloat(r.TongTien || 0),
+    TongTien: parseFloat(r.TongTien || 0),
+    status: r.TrangThai || 'Đã thanh toán',
+    TrangThai: r.TrangThai || 'Đã thanh toán',
+    invoiceNumber: r.MaSoHoaDon,
+    MaSoHoaDon: r.MaSoHoaDon
+  }));
+
+  const payments = (paymentRows || []).map(r => ({
+    id: r.MaThanhToan,
+    MaThanhToan: r.MaThanhToan,
+    invoiceId: r.MaHoaDon,
+    MaHoaDon: r.MaHoaDon,
+    staffId: r.MaNhanVien,
+    MaNhanVien: r.MaNhanVien,
+    staffName: r.TenNhanVien || 'Thu ngân',
+    amount: parseFloat(r.SoTien || 0),
+    SoTien: parseFloat(r.SoTien || 0),
+    method: r.PhuongThuc || 'Tiền mặt',
+    PhuongThuc: r.PhuongThuc || 'Tiền mặt',
+    paymentTime: r.ThoiGianThanhToan,
+    ThoiGianThanhToan: r.ThoiGianThanhToan,
+    status: r.TrangThai || 'Thành công',
+    TrangThai: r.TrangThai || 'Thành công',
+    transactionCode: r.MaGiaoDich,
+    MaGiaoDich: r.MaGiaoDich
+  }));
+
+  const fefoLots = (fefoLotRows || []).map(r => ({
+    id: r.MaChiTietPhieuNhap,
+    MaChiTietPhieuNhap: r.MaChiTietPhieuNhap,
+    branchId: r.MaChiNhanh,
+    MaChiNhanh: r.MaChiNhanh,
+    branchName: r.TenChiNhanh,
+    lotNumber: r.SoLo,
+    SoLo: r.SoLo,
+    productId: r.MaSanPham,
+    MaSanPham: r.MaSanPham,
+    productName: r.TenSanPham,
+    originalPrice: parseFloat(r.GiaNiemYetGoc || 0),
+    expiryDate: r.HanSuDung ? new Date(r.HanSuDung).toISOString().split('T')[0] : null,
+    remainingQuantity: r.SoLuongConLai,
+    daysLeft: r.SoNgayConLai,
+    discountPercent: parseFloat(r.PhanTramGiam || 0),
+    actualPrice: parseFloat(r.GiaBanThucTe || 0),
+    statusNote: r.GhiChuTrangThai
+  }));
+
+  const lowStockWarnings = (lowStockRows || []).map(r => ({
+    productId: r.MaSanPham,
+    MaSanPham: r.MaSanPham,
+    productName: r.TenSanPham,
+    branchId: r.MaChiNhanh,
+    MaChiNhanh: r.MaChiNhanh,
+    branchName: r.TenChiNhanh,
+    stock: r.SoLuongTon,
+    warningThreshold: r.MucCanhBao,
+    deficit: r.SoLuongThieuHut,
+    severity: r.MucDoCanhBao
+  }));
+
+  const inventory = (inventoryRows || []).map(r => ({
+    productId: r.MaSanPham,
+    MaSanPham: r.MaSanPham,
+    productName: r.TenSanPham,
+    branchId: r.MaChiNhanh,
+    MaChiNhanh: r.MaChiNhanh,
+    branchName: r.TenChiNhanh,
+    stock: r.SoLuongTon,
+    SoLuongTon: r.SoLuongTon,
+    warningThreshold: r.MucCanhBao,
+    updatedDate: r.NgayCapNhat
+  }));
+
   return {
     version: '5.2.0 (SSMS 20 Complete Schema Engine)',
     engine: 'Microsoft SQL Server (T-SQL Direct)',
@@ -854,7 +1056,14 @@ async function getFullSqlDatabase() {
     reviews,
     users,
     notifications,
-    shifts
+    shifts,
+    discountRules,
+    receipts,
+    invoices,
+    payments,
+    fefoLots,
+    lowStockWarnings,
+    inventory
   };
 }
 
@@ -1555,24 +1764,49 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ success: true, message: 'Đã xóa dịch vụ khỏi SQL Server', id }));
       }
 
-      // --- 11. COMBOS / GÓI COMBO VIP ---
+      // --- 11. COMBOS / GÓI COMBO VIP & CHI TIẾT COMBO (ChiTietComboDichVu) ---
       if (pathname === '/api/combos' && method === 'GET') {
-        const rows = await querySql(`SELECT MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`);
-        const combos = rows.map(r => ({
-          id: r.MaCombo,
-          MaCombo: r.MaCombo,
-          name: r.TenCombo,
-          TenCombo: r.TenCombo,
-          price: parseFloat(r.GiaCombo || 0),
-          GiaCombo: parseFloat(r.GiaCombo || 0),
-          duration: parseInt(r.ThoiLuong || 90, 10),
-          durationMinutes: parseInt(r.ThoiLuong || 90, 10),
-          description: r.MoTa,
-          MoTa: r.MoTa,
-          image: r.HinhAnh || '',
-          HinhAnh: r.HinhAnh || '',
-          status: r.TrangThai
-        }));
+        const [rows, detailRows] = await Promise.all([
+          querySql(`SELECT MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`),
+          querySql(`SELECT ct.MaCombo, ct.MaDichVu, ct.SoLuong, dv.TenDichVu, dv.Gia, dv.ThoiLuong, dv.HinhAnh 
+                    FROM ChiTietComboDichVu ct 
+                    JOIN DichVu dv ON ct.MaDichVu = dv.MaDichVu`)
+        ]);
+        const combos = rows.map(r => {
+          const items = (detailRows || [])
+            .filter(d => d.MaCombo === r.MaCombo)
+            .map(d => ({
+              id: d.MaDichVu,
+              MaDichVu: d.MaDichVu,
+              name: d.TenDichVu,
+              TenDichVu: d.TenDichVu,
+              quantity: d.SoLuong || 1,
+              SoLuong: d.SoLuong || 1,
+              price: parseFloat(d.Gia || 0),
+              Gia: parseFloat(d.Gia || 0),
+              duration: d.ThoiLuong || 30,
+              ThoiLuong: d.ThoiLuong || 30,
+              image: d.HinhAnh || '',
+              HinhAnh: d.HinhAnh || ''
+            }));
+          return {
+            id: r.MaCombo,
+            MaCombo: r.MaCombo,
+            name: r.TenCombo,
+            TenCombo: r.TenCombo,
+            price: parseFloat(r.GiaCombo || 0),
+            GiaCombo: parseFloat(r.GiaCombo || 0),
+            duration: parseInt(r.ThoiLuong || 90, 10),
+            durationMinutes: parseInt(r.ThoiLuong || 90, 10),
+            description: r.MoTa,
+            MoTa: r.MoTa,
+            image: r.HinhAnh || '',
+            HinhAnh: r.HinhAnh || '',
+            status: r.TrangThai,
+            items,
+            services: items
+          };
+        });
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify(combos));
       }
@@ -1597,6 +1831,19 @@ const server = http.createServer(async (req, res) => {
           [cbId, name, desc, price, duration, img]
         );
 
+        // Lưu chi tiết các dịch vụ thành phần vào ChiTietComboDichVu
+        const rawItems = cb.items || cb.services || cb.serviceIds || [];
+        for (const item of rawItems) {
+          const dvId = typeof item === 'string' ? item : (item.id || item.MaDichVu);
+          const qty = (typeof item === 'object' && item.quantity) ? item.quantity : (item.SoLuong || 1);
+          if (dvId) {
+            await querySql(
+              `INSERT INTO ChiTietComboDichVu (MaCombo, MaDichVu, SoLuong) VALUES (?, ?, ?)`,
+              [cbId, dvId, qty]
+            ).catch(() => {});
+          }
+        }
+
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, combo: { id: cbId, name, price, duration, description: desc, image: img, HinhAnh: img } }));
       }
@@ -1609,15 +1856,34 @@ const server = http.createServer(async (req, res) => {
           `UPDATE ComboDichVu SET TenCombo = COALESCE(?, TenCombo), MoTa = COALESCE(?, MoTa), GiaCombo = COALESCE(?, GiaCombo), ThoiLuong = COALESCE(?, ThoiLuong), HinhAnh = COALESCE(?, HinhAnh) WHERE MaCombo = ?`,
           [cb.name || cb.TenCombo || null, cb.description || cb.MoTa || null, cb.price || cb.GiaCombo || null, cb.duration || cb.ThoiLuong || null, img !== undefined ? img : null, id]
         );
+
+        // Cập nhật dịch vụ thành phần ChiTietComboDichVu nếu có
+        if (cb.items || cb.services || cb.serviceIds) {
+          await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?`, [id]);
+          const rawItems = cb.items || cb.services || cb.serviceIds || [];
+          for (const item of rawItems) {
+            const dvId = typeof item === 'string' ? item : (item.id || item.MaDichVu);
+            const qty = (typeof item === 'object' && item.quantity) ? item.quantity : (item.SoLuong || 1);
+            if (dvId) {
+              await querySql(
+                `INSERT INTO ChiTietComboDichVu (MaCombo, MaDichVu, SoLuong) VALUES (?, ?, ?)`,
+                [id, dvId, qty]
+              ).catch(() => {});
+            }
+          }
+        }
+
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, id }));
       }
 
       if (pathname.startsWith('/api/combos/') && method === 'DELETE') {
         const id = pathname.replace('/api/combos/', '').trim();
+        // Xóa chi tiết combo trước để đảm bảo toàn vẹn khóa ngoại
+        await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?`, [id]);
         await querySql(`DELETE FROM ComboDichVu WHERE MaCombo = ?`, [id]);
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, message: 'Đã xóa combo khỏi SQL Server', id }));
+        return res.end(JSON.stringify({ success: true, message: 'Đã xóa combo và toàn bộ chi tiết dịch vụ khỏi SQL Server', id }));
       }
 
       // --- 11.1 SHIFTS / CA LÀM VIỆC ---
@@ -1865,12 +2131,13 @@ const server = http.createServer(async (req, res) => {
 
         if (prod.stock !== undefined || prod.SoLuongTon !== undefined) {
           const stock = parseInt(prod.stock !== undefined ? prod.stock : prod.SoLuongTon, 10) || 0;
+          const targetBranch = prod.branchId || prod.MaChiNhanh || 'CN01';
           await querySql(
-            `IF EXISTS (SELECT 1 FROM TonKho WHERE MaSanPham = ?)
-               UPDATE TonKho SET SoLuongTon = ? WHERE MaSanPham = ?
+            `IF EXISTS (SELECT 1 FROM TonKho WHERE MaSanPham = ? AND MaChiNhanh = ?)
+               UPDATE TonKho SET SoLuongTon = ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?
              ELSE
-               INSERT INTO TonKho (MaSanPham, MaChiNhanh, SoLuongTon, MucCanhBao) VALUES (?, 'CN01', ?, 5)`,
-            [id, stock, id, id, stock]
+               INSERT INTO TonKho (MaSanPham, MaChiNhanh, SoLuongTon, MucCanhBao, NgayCapNhat) VALUES (?, ?, ?, 5, GETDATE())`,
+            [id, targetBranch, stock, id, targetBranch, id, targetBranch, stock]
           );
         }
 
@@ -2208,6 +2475,23 @@ const server = http.createServer(async (req, res) => {
           );
         }
 
+        // Tự động tạo Thông Báo cho khách hàng vào bảng ThongBao
+        try {
+          const maxTb = await querySql(`SELECT TOP 1 MaThongBao FROM ThongBao WHERE MaThongBao LIKE 'TB%' ORDER BY LEN(MaThongBao) DESC, MaThongBao DESC`).catch(() => []);
+          let nextTb = 11;
+          if (maxTb && maxTb[0]) {
+            const m = maxTb[0].MaThongBao.match(/TB(\d+)/i);
+            if (m) nextTb = parseInt(m[1], 10) + 1;
+          }
+          const tbId = 'TB' + (nextTb < 10 ? '0' + nextTb : nextTb);
+          await querySql(
+            `INSERT INTO ThongBao (MaThongBao, MaTaiKhoan, MaKhachHang, TieuDe, NoiDung, LoaiThongBao, ThoiGianGui, TrangThaiDoc) VALUES (?, NULL, ?, ?, ?, ?, GETDATE(), 0)`,
+            [tbId, khId, 'Xác nhận đặt lịch hẹn thành công', `Lịch hẹn #${id} của bạn đã được xác nhận vào lúc ${startTime.slice(0,5)} ngày ${date}. Cảm ơn bạn đã lựa chọn OmniSalon!`, 'Lịch hẹn']
+          );
+        } catch (e) {
+          console.warn('[ThongBao] Lỗi tạo thông báo đặt lịch:', e.message);
+        }
+
         console.log(`[SQL EXEC] Đặt lịch hẹn mới chuẩn CSDL ${id} (Khách: ${khId}, Thợ: ${nvId}, Giờ: ${startTime} - ${endTime})`);
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -2445,6 +2729,23 @@ const server = http.createServer(async (req, res) => {
           return res.end(JSON.stringify({ success: false, error: detailErr.message || 'Lỗi xử lý tồn kho đơn hàng!' }));
         }
 
+        // Tự động tạo Thông Báo cho khách hàng vào bảng ThongBao
+        try {
+          const maxTb = await querySql(`SELECT TOP 1 MaThongBao FROM ThongBao WHERE MaThongBao LIKE 'TB%' ORDER BY LEN(MaThongBao) DESC, MaThongBao DESC`).catch(() => []);
+          let nextTb = 11;
+          if (maxTb && maxTb[0]) {
+            const m = maxTb[0].MaThongBao.match(/TB(\d+)/i);
+            if (m) nextTb = parseInt(m[1], 10) + 1;
+          }
+          const tbId = 'TB' + (nextTb < 10 ? '0' + nextTb : nextTb);
+          await querySql(
+            `INSERT INTO ThongBao (MaThongBao, MaTaiKhoan, MaKhachHang, TieuDe, NoiDung, LoaiThongBao, ThoiGianGui, TrangThaiDoc) VALUES (?, NULL, ?, ?, ?, ?, GETDATE(), 0)`,
+            [tbId, khId, 'Đặt hàng thành công', `Đơn hàng #${id} trị giá ${total.toLocaleString('vi-VN')} đ đã được tiếp nhận và đang xử lý!`, 'Đơn hàng']
+          );
+        } catch (e) {
+          console.warn('[ThongBao] Lỗi tạo thông báo đơn hàng:', e.message);
+        }
+
         console.log(`[SQL EXEC] Tạo đơn hàng mới chuẩn CSDL ${id} (Khách: ${khId}) cùng ${orderItems.length} chi tiết mặt hàng vào SQL Server!`);
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -2670,6 +2971,23 @@ const server = http.createServer(async (req, res) => {
 
         if (lhId) {
           await querySql(`UPDATE LichHen SET TrangThai = N'Hoàn thành' WHERE MaLichHen = ?`, [lhId]);
+        }
+
+        // Tự động tạo Thông Báo thanh toán vào bảng ThongBao
+        try {
+          const maxTb = await querySql(`SELECT TOP 1 MaThongBao FROM ThongBao WHERE MaThongBao LIKE 'TB%' ORDER BY LEN(MaThongBao) DESC, MaThongBao DESC`).catch(() => []);
+          let nextTb = 11;
+          if (maxTb && maxTb[0]) {
+            const m = maxTb[0].MaThongBao.match(/TB(\d+)/i);
+            if (m) nextTb = parseInt(m[1], 10) + 1;
+          }
+          const tbId = 'TB' + (nextTb < 10 ? '0' + nextTb : nextTb);
+          await querySql(
+            `INSERT INTO ThongBao (MaThongBao, MaTaiKhoan, MaKhachHang, TieuDe, NoiDung, LoaiThongBao, ThoiGianGui, TrangThaiDoc) VALUES (?, NULL, ?, ?, ?, ?, GETDATE(), 0)`,
+            [tbId, khId, 'Thanh toán thành công', `Hóa đơn #${hdId} trị giá ${total.toLocaleString('vi-VN')} đ đã thanh toán thành công qua hình thức ${methodPay}.`, 'Hóa đơn']
+          );
+        } catch (e) {
+          console.warn('[ThongBao] Lỗi tạo thông báo POS:', e.message);
         }
 
         console.log(`[SQL EXEC] POS Thanh toán thành công hóa đơn ${hdId} (${total} đ)! Thanh toán: ${ttId}, Thu ngân: ${staffId}`);
@@ -3033,7 +3351,469 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify(rows));
       }
 
-      // --- 28. PHỤC VỤ FILE TĨNH  - STATIC FILES -  & SPA FALLBACK ---
+      // --- 28. SUPPLIERS / NHÀ CUNG CẤP (NhaCungCap) ---
+      if (pathname === '/api/suppliers' && method === 'GET') {
+        const rows = await querySql(`SELECT MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi, TrangThai FROM NhaCungCap`);
+        const suppliers = rows.map(r => ({
+          id: r.MaNhaCungCap,
+          MaNhaCungCap: r.MaNhaCungCap,
+          name: r.TenNhaCungCap,
+          TenNhaCungCap: r.TenNhaCungCap,
+          phone: r.SoDienThoai,
+          SoDienThoai: r.SoDienThoai,
+          email: r.Email,
+          Email: r.Email,
+          address: r.DiaChi,
+          DiaChi: r.DiaChi,
+          status: r.TrangThai || 'Hoạt động',
+          TrangThai: r.TrangThai || 'Hoạt động'
+        }));
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(suppliers));
+      }
+
+      if (pathname === '/api/suppliers' && method === 'POST') {
+        const body = parsedBody || {};
+        const maxRows = await querySql(`SELECT TOP 1 MaNhaCungCap FROM NhaCungCap ORDER BY LEN(MaNhaCungCap) DESC, MaNhaCungCap DESC`);
+        let nextN = 6;
+        if (maxRows && maxRows[0]) {
+          const m = maxRows[0].MaNhaCungCap.match(/NCC(\d+)/i);
+          if (m) nextN = parseInt(m[1], 10) + 1;
+        }
+        const nccId = (body.id || body.MaNhaCungCap || ('NCC' + (nextN < 10 ? '0' + nextN : nextN))).trim();
+        const name = body.name || body.TenNhaCungCap || 'Nhà cung cấp mới';
+        const phone = body.phone || body.SoDienThoai || '';
+        const email = body.email || body.Email || '';
+        const address = body.address || body.DiaChi || '';
+        const status = body.status || body.TrangThai || 'Hoạt động';
+
+        await querySql(
+          `INSERT INTO NhaCungCap (MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi, TrangThai) VALUES (?, ?, ?, ?, ?, ?)`,
+          [nccId, name, phone, email, address, status]
+        );
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, supplier: { id: nccId, MaNhaCungCap: nccId, name, phone, email, address, status } }));
+      }
+
+      if (pathname.startsWith('/api/suppliers/') && method === 'PUT') {
+        const id = pathname.replace('/api/suppliers/', '').trim();
+        const body = parsedBody || {};
+        await querySql(
+          `UPDATE NhaCungCap SET TenNhaCungCap = COALESCE(?, TenNhaCungCap), SoDienThoai = COALESCE(?, SoDienThoai), Email = COALESCE(?, Email), DiaChi = COALESCE(?, DiaChi), TrangThai = COALESCE(?, TrangThai) WHERE MaNhaCungCap = ?`,
+          [body.name || body.TenNhaCungCap || null, body.phone || body.SoDienThoai || null, body.email || body.Email || null, body.address || body.DiaChi || null, body.status || body.TrangThai || null, id]
+        );
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, id }));
+      }
+
+      if (pathname.startsWith('/api/suppliers/') && method === 'DELETE') {
+        const id = pathname.replace('/api/suppliers/', '').trim();
+        await querySql(`DELETE FROM NhaCungCap WHERE MaNhaCungCap = ?`, [id]);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, message: 'Đã xóa nhà cung cấp khỏi SQL Server', id }));
+      }
+
+      // --- 29. DISCOUNT RULES / QUY TẮC GIẢM GIÁ CẬN HẠN (QuyTacGiamGiaTheoHan) ---
+      if (pathname === '/api/inventory/discount-rules' && method === 'GET') {
+        const rows = await querySql(`SELECT MaQuyTac, TenQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam, TrangThai FROM QuyTacGiamGiaTheoHan ORDER BY PhanTramGiam ASC`);
+        const rules = rows.map(r => ({
+          id: r.MaQuyTac,
+          MaQuyTac: r.MaQuyTac,
+          name: r.TenQuyTac,
+          TenQuyTac: r.TenQuyTac,
+          minDays: r.SoNgayConLaiToiThieu,
+          SoNgayConLaiToiThieu: r.SoNgayConLaiToiThieu,
+          maxDays: r.SoNgayConLaiToiDa,
+          SoNgayConLaiToiDa: r.SoNgayConLaiToiDa,
+          discountPercent: parseFloat(r.PhanTramGiam || 0),
+          PhanTramGiam: parseFloat(r.PhanTramGiam || 0),
+          status: r.TrangThai,
+          TrangThai: r.TrangThai
+        }));
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(rules));
+      }
+
+      if (pathname === '/api/inventory/discount-rules' && method === 'POST') {
+        const body = parsedBody || {};
+        const maxRules = await querySql(`SELECT TOP 1 MaQuyTac FROM QuyTacGiamGiaTheoHan ORDER BY LEN(MaQuyTac) DESC, MaQuyTac DESC`);
+        let nextN = 6;
+        if (maxRules && maxRules[0]) {
+          const m = maxRules[0].MaQuyTac.match(/QT(\d+)/i);
+          if (m) nextN = parseInt(m[1], 10) + 1;
+        }
+        const qtId = (body.id || body.MaQuyTac || ('QT' + (nextN < 10 ? '0' + nextN : nextN))).trim();
+        const name = body.name || body.TenQuyTac || 'Quy tắc mới';
+        const minDays = body.minDays ?? body.SoNgayConLaiToiThieu ?? 0;
+        const maxDays = body.maxDays ?? body.SoNgayConLaiToiDa ?? 30;
+        const discountPercent = parseFloat(body.discountPercent ?? body.PhanTramGiam ?? 10);
+        const status = body.status || body.TrangThai || 'Áp dụng';
+
+        await querySql(
+          `INSERT INTO QuyTacGiamGiaTheoHan (MaQuyTac, TenQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam, TrangThai) VALUES (?, ?, ?, ?, ?, ?)`,
+          [qtId, name, minDays, maxDays, discountPercent, status]
+        );
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, rule: { id: qtId, MaQuyTac: qtId, name, minDays, maxDays, discountPercent, status } }));
+      }
+
+      if (pathname.startsWith('/api/inventory/discount-rules/') && method === 'PUT') {
+        const id = pathname.replace('/api/inventory/discount-rules/', '').trim();
+        const body = parsedBody || {};
+        await querySql(
+          `UPDATE QuyTacGiamGiaTheoHan SET TenQuyTac = COALESCE(?, TenQuyTac), SoNgayConLaiToiThieu = COALESCE(?, SoNgayConLaiToiThieu), SoNgayConLaiToiDa = COALESCE(?, SoNgayConLaiToiDa), PhanTramGiam = COALESCE(?, PhanTramGiam), TrangThai = COALESCE(?, TrangThai) WHERE MaQuyTac = ?`,
+          [body.name || body.TenQuyTac || null, body.minDays ?? body.SoNgayConLaiToiThieu ?? null, body.maxDays ?? body.SoNgayConLaiToiDa ?? null, body.discountPercent ?? body.PhanTramGiam ?? null, body.status || body.TrangThai || null, id]
+        );
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, id }));
+      }
+
+      if (pathname.startsWith('/api/inventory/discount-rules/') && method === 'DELETE') {
+        const id = pathname.replace('/api/inventory/discount-rules/', '').trim();
+        await querySql(`DELETE FROM QuyTacGiamGiaTheoHan WHERE MaQuyTac = ?`, [id]);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, message: 'Đã xóa quy tắc giảm giá khỏi SQL Server', id }));
+      }
+
+      // --- 30. WAREHOUSE RECEIPTS / PHIẾU NHẬP KHO (PhieuNhapKho & ChiTietPhieuNhap) ---
+      if (pathname === '/api/inventory/receipts' && method === 'GET') {
+        const branchParam = parsedUrl.searchParams.get('branch_id');
+        let q = `
+          SELECT pnk.MaPhieuNhap, pnk.MaChiNhanh, pnk.MaNhanVien, pnk.MaNguoiDuyet, pnk.MaNhaCungCap,
+                 CONVERT(VARCHAR(19), pnk.NgayLap, 120) AS NgayLap,
+                 CONVERT(VARCHAR(19), pnk.NgayDuyet, 120) AS NgayDuyet,
+                 pnk.TongTien, pnk.TrangThai, pnk.LyDoTuChoi,
+                 cn.TenChiNhanh, ncc.TenNhaCungCap,
+                 nv1.HoTen AS TenNguoiLap, nv2.HoTen AS TenNguoiDuyet,
+                 (SELECT COUNT(*) FROM ChiTietPhieuNhap WHERE MaPhieuNhap = pnk.MaPhieuNhap) AS SoLuongMatHang
+          FROM PhieuNhapKho pnk
+          LEFT JOIN ChiNhanh cn ON pnk.MaChiNhanh = cn.MaChiNhanh
+          LEFT JOIN NhaCungCap ncc ON pnk.MaNhaCungCap = ncc.MaNhaCungCap
+          LEFT JOIN NhanVien nv1 ON pnk.MaNhanVien = nv1.MaNhanVien
+          LEFT JOIN NhanVien nv2 ON pnk.MaNguoiDuyet = nv2.MaNhanVien
+        `;
+        const params = [];
+        if (branchParam) {
+          q += ` WHERE pnk.MaChiNhanh = ?`;
+          params.push(branchParam);
+        }
+        q += ` ORDER BY pnk.NgayLap DESC`;
+        const rows = await querySql(q, params);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(rows));
+      }
+
+      if (pathname.startsWith('/api/inventory/receipts/') && !pathname.includes('/status') && method === 'GET') {
+        const pnId = pathname.replace('/api/inventory/receipts/', '').trim();
+        const pnRows = await querySql(`
+          SELECT pnk.MaPhieuNhap, pnk.MaChiNhanh, pnk.MaNhanVien, pnk.MaNguoiDuyet, pnk.MaNhaCungCap,
+                 CONVERT(VARCHAR(19), pnk.NgayLap, 120) AS NgayLap,
+                 CONVERT(VARCHAR(19), pnk.NgayDuyet, 120) AS NgayDuyet,
+                 pnk.TongTien, pnk.TrangThai, pnk.LyDoTuChoi,
+                 cn.TenChiNhanh, ncc.TenNhaCungCap,
+                 nv1.HoTen AS TenNguoiLap, nv2.HoTen AS TenNguoiDuyet
+          FROM PhieuNhapKho pnk
+          LEFT JOIN ChiNhanh cn ON pnk.MaChiNhanh = cn.MaChiNhanh
+          LEFT JOIN NhaCungCap ncc ON pnk.MaNhaCungCap = ncc.MaNhaCungCap
+          LEFT JOIN NhanVien nv1 ON pnk.MaNhanVien = nv1.MaNhanVien
+          LEFT JOIN NhanVien nv2 ON pnk.MaNguoiDuyet = nv2.MaNhanVien
+          WHERE pnk.MaPhieuNhap = ?
+        `, [pnId]);
+
+        if (!pnRows || pnRows.length === 0) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Không tìm thấy phiếu nhập kho' }));
+        }
+
+        const items = await querySql(`
+          SELECT ctpn.MaChiTietPhieuNhap, ctpn.MaSanPham, ctpn.SoLo,
+                 CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung,
+                 ctpn.SoLuong, ctpn.SoLuongConLai, ctpn.DonGiaNhap, ctpn.ThanhTien,
+                 sp.TenSanPham, sp.HinhAnh
+          FROM ChiTietPhieuNhap ctpn
+          JOIN SanPham sp ON ctpn.MaSanPham = sp.MaSanPham
+          WHERE ctpn.MaPhieuNhap = ?
+          ORDER BY ctpn.MaChiTietPhieuNhap ASC
+        `, [pnId]);
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ ...pnRows[0], items }));
+      }
+
+      if (pathname === '/api/inventory/receipts' && method === 'POST') {
+        const body = parsedBody || {};
+        const { branchId, supplierId, staffId, items } = body;
+        const maxPn = await querySql(`SELECT TOP 1 MaPhieuNhap FROM PhieuNhapKho ORDER BY LEN(MaPhieuNhap) DESC, MaPhieuNhap DESC`);
+        let nextN = 21;
+        if (maxPn && maxPn[0]) {
+          const m = maxPn[0].MaPhieuNhap.match(/PN(\d+)/i);
+          if (m) nextN = parseInt(m[1], 10) + 1;
+        }
+        const pnId = 'PN' + (nextN < 10 ? '0' + nextN : nextN);
+        const bId = branchId || 'CN01';
+        const sId = supplierId || 'NCC01';
+        const nvId = staffId || 'NV01';
+
+        let totalAmount = 0;
+        (items || []).forEach(it => {
+          totalAmount += (parseFloat(it.price || it.DonGiaNhap || 0) * parseInt(it.quantity || it.SoLuong || 1, 10));
+        });
+
+        await querySql(
+          `INSERT INTO PhieuNhapKho (MaPhieuNhap, MaChiNhanh, MaNhanVien, MaNguoiDuyet, MaNhaCungCap, NgayLap, TongTien, TrangThai) VALUES (?, ?, ?, NULL, ?, GETDATE(), ?, N'Đã duyệt')`,
+          [pnId, bId, nvId, sId, totalAmount]
+        );
+
+        for (let i = 0; i < (items || []).length; i++) {
+          const it = items[i];
+          const prodId = it.productId || it.MaSanPham;
+          const qty = parseInt(it.quantity || it.SoLuong || 1, 10);
+          const cost = parseFloat(it.price || it.DonGiaNhap || 0);
+          const total = cost * qty;
+          const ctpnId = `CTPN${pnId.replace('PN','')}${String(i + 1).padStart(3, '0')}`;
+          const soLo = it.lotNumber || it.SoLo || `LO2026_${pnId}_${i + 1}`;
+          const expDate = it.expiryDate || it.HanSuDung || '2027-12-31';
+
+          await querySql(
+            `INSERT INTO ChiTietPhieuNhap (MaChiTietPhieuNhap, MaPhieuNhap, MaSanPham, SoLo, HanSuDung, SoLuong, SoLuongConLai, DonGiaNhap, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [ctpnId, pnId, prodId, soLo, expDate, qty, qty, cost, total]
+          );
+        }
+
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, receiptId: pnId, total: totalAmount, itemsCount: (items || []).length }));
+      }
+
+      if (pathname.includes('/inventory/receipts/') && pathname.includes('/status') && method === 'PUT') {
+        const pnId = pathname.split('/')[4];
+        const body = parsedBody || {};
+        const { status, approverId, rejectReason } = body;
+        const appStaff = approverId || 'NV01';
+        const st = status === 'Approved' ? 'Đã duyệt' : (status === 'Rejected' ? 'Từ chối' : status);
+        await querySql(
+          `UPDATE PhieuNhapKho SET TrangThai = ?, MaNguoiDuyet = ?, NgayDuyet = GETDATE(), LyDoTuChoi = ? WHERE MaPhieuNhap = ?`,
+          [st, appStaff, rejectReason || null, pnId]
+        );
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, receiptId: pnId, status: st }));
+      }
+
+      // --- 31. INVOICES / HÓA ĐƠN & CHI TIẾT (HoaDon, ChiTietHoaDon_DichVu, ChiTietHoaDon_SanPham) ---
+      if (pathname === '/api/invoices' && method === 'GET') {
+        const branchParam = parsedUrl.searchParams.get('branch_id');
+        let q = `
+          SELECT hd.MaHoaDon, hd.MaKhachHang, hd.MaLichHen, hd.MaDonHang, hd.MaChiNhanh,
+                 CONVERT(VARCHAR(19), hd.NgayLap, 120) AS NgayLap,
+                 hd.TongTien, hd.TrangThai, hd.MaSoHoaDon,
+                 kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
+                 cn.TenChiNhanh
+          FROM HoaDon hd
+          LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang
+          LEFT JOIN ChiNhanh cn ON hd.MaChiNhanh = cn.MaChiNhanh
+        `;
+        const params = [];
+        if (branchParam) {
+          q += ` WHERE hd.MaChiNhanh = ?`;
+          params.push(branchParam);
+        }
+        q += ` ORDER BY hd.NgayLap DESC`;
+        const rows = await querySql(q, params);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(rows));
+      }
+
+      if (pathname.startsWith('/api/invoices/') && method === 'GET') {
+        const hdId = pathname.replace('/api/invoices/', '').trim();
+        const hdRows = await querySql(`
+          SELECT hd.MaHoaDon, hd.MaKhachHang, hd.MaLichHen, hd.MaDonHang, hd.MaChiNhanh,
+                 CONVERT(VARCHAR(19), hd.NgayLap, 120) AS NgayLap,
+                 hd.TongTien, hd.TrangThai, hd.MaSoHoaDon,
+                 kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang, kh.Email AS EmailKhachHang,
+                 cn.TenChiNhanh, cn.DiaChi AS DiaChiChiNhanh, cn.SoDienThoai AS SdtChiNhanh
+          FROM HoaDon hd
+          LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang
+          LEFT JOIN ChiNhanh cn ON hd.MaChiNhanh = cn.MaChiNhanh
+          WHERE hd.MaHoaDon = ?
+        `, [hdId]);
+
+        if (!hdRows || hdRows.length === 0) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Không tìm thấy hóa đơn' }));
+        }
+
+        const [serviceItems, productItems, payments] = await Promise.all([
+          querySql(`
+            SELECT cthd.MaChiTietHDDV, cthd.MaDichVu, cthd.MaCombo, cthd.SoLuong, cthd.DonGia, cthd.ThanhTien,
+                   ISNULL(dv.TenDichVu, cb.TenCombo) AS TenDichVu
+            FROM ChiTietHoaDon_DichVu cthd
+            LEFT JOIN DichVu dv ON cthd.MaDichVu = dv.MaDichVu
+            LEFT JOIN ComboDichVu cb ON cthd.MaCombo = cb.MaCombo
+            WHERE cthd.MaHoaDon = ?
+          `, [hdId]),
+          querySql(`
+            SELECT cthd.MaChiTietHDSanPham, cthd.MaSanPham, cthd.MaChiTietPhieuNhap, cthd.SoLuong,
+                   cthd.DonGiaGoc, cthd.PhanTramGiamGia, cthd.DonGiaThucTe, cthd.ThanhTien,
+                   sp.TenSanPham, sp.HinhAnh
+            FROM ChiTietHoaDon_SanPham cthd
+            JOIN SanPham sp ON cthd.MaSanPham = sp.MaSanPham
+            WHERE cthd.MaHoaDon = ?
+          `, [hdId]),
+          querySql(`
+            SELECT tt.MaThanhToan, tt.MaNhanVien, tt.SoTien, tt.PhuongThuc,
+                   CONVERT(VARCHAR(19), tt.ThoiGianThanhToan, 120) AS ThoiGianThanhToan,
+                   tt.TrangThai, tt.MaGiaoDich, nv.HoTen AS TenThuNgan
+            FROM ThanhToan tt
+            LEFT JOIN NhanVien nv ON tt.MaNhanVien = nv.MaNhanVien
+            WHERE tt.MaHoaDon = ?
+          `, [hdId])
+        ]);
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({
+          ...hdRows[0],
+          services: serviceItems,
+          products: productItems,
+          payments: payments
+        }));
+      }
+
+      // --- 32. PAYMENTS / LỊCH SỬ GIAO DỊCH THANH TOÁN (ThanhToan) ---
+      if (pathname === '/api/payments' && method === 'GET') {
+        const rows = await querySql(`
+          SELECT tt.MaThanhToan, tt.MaHoaDon, tt.MaNhanVien, tt.SoTien, tt.PhuongThuc,
+                 CONVERT(VARCHAR(19), tt.ThoiGianThanhToan, 120) AS ThoiGianThanhToan,
+                 tt.TrangThai, tt.MaGiaoDich,
+                 nv.HoTen AS TenNhanVien,
+                 hd.MaChiNhanh, hd.TongTien AS TongTienHoaDon, hd.MaSoHoaDon,
+                 kh.HoTen AS TenKhachHang
+          FROM ThanhToan tt
+          LEFT JOIN NhanVien nv ON tt.MaNhanVien = nv.MaNhanVien
+          LEFT JOIN HoaDon hd ON tt.MaHoaDon = hd.MaHoaDon
+          LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang
+          ORDER BY tt.ThoiGianThanhToan DESC
+        `);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(rows));
+      }
+
+      // --- 33. CATEGORIES MANAGEMENT (DanhMucSanPham) ---
+      if (pathname === '/api/categories' && method === 'POST') {
+        const body = parsedBody || {};
+        const maxCat = await querySql(`SELECT TOP 1 MaDanhMuc FROM DanhMucSanPham ORDER BY LEN(MaDanhMuc) DESC, MaDanhMuc DESC`);
+        let nextN = 5;
+        if (maxCat && maxCat[0]) {
+          const m = maxCat[0].MaDanhMuc.match(/DM(\d+)/i);
+          if (m) nextN = parseInt(m[1], 10) + 1;
+        }
+        const dmId = (body.id || body.MaDanhMuc || ('DM' + (nextN < 10 ? '0' + nextN : nextN))).trim();
+        const name = body.name || body.TenDanhMuc || 'Danh mục mới';
+        const desc = body.description || body.MoTa || '';
+        const status = body.status || body.TrangThai || 'Kinh doanh';
+        await querySql(
+          `INSERT INTO DanhMucSanPham (MaDanhMuc, TenDanhMuc, MoTa, TrangThai) VALUES (?, ?, ?, ?)`,
+          [dmId, name, desc, status]
+        );
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, category: { id: dmId, MaDanhMuc: dmId, name, TenDanhMuc: name, description: desc, status } }));
+      }
+
+      if (pathname.startsWith('/api/categories/') && method === 'PUT') {
+        const id = pathname.replace('/api/categories/', '').trim();
+        const body = parsedBody || {};
+        await querySql(
+          `UPDATE DanhMucSanPham SET TenDanhMuc = COALESCE(?, TenDanhMuc), MoTa = COALESCE(?, MoTa), TrangThai = COALESCE(?, TrangThai) WHERE MaDanhMuc = ?`,
+          [body.name || body.TenDanhMuc || null, body.description || body.MoTa || null, body.status || body.TrangThai || null, id]
+        );
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, id }));
+      }
+
+      if (pathname.startsWith('/api/categories/') && method === 'DELETE') {
+        const id = pathname.replace('/api/categories/', '').trim();
+        await querySql(`DELETE FROM DanhMucSanPham WHERE MaDanhMuc = ?`, [id]);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, message: 'Đã xóa danh mục khỏi SQL Server', id }));
+      }
+
+      // --- 34. PROMOTIONS MANAGEMENT (KhuyenMai, KhuyenMai_DichVu, KhuyenMai_SanPham) ---
+      if (pathname === '/api/promotions' && method === 'POST') {
+        const body = parsedBody || {};
+        const maxKm = await querySql(`SELECT TOP 1 MaKhuyenMai FROM KhuyenMai ORDER BY LEN(MaKhuyenMai) DESC, MaKhuyenMai DESC`);
+        let nextN = 6;
+        if (maxKm && maxKm[0]) {
+          const m = maxKm[0].MaKhuyenMai.match(/KM(\d+)/i);
+          if (m) nextN = parseInt(m[1], 10) + 1;
+        }
+        const kmId = (body.id || body.MaKhuyenMai || body.code || ('KM' + (nextN < 10 ? '0' + nextN : nextN))).trim();
+        const name = body.name || body.TenKhuyenMai || body.title || 'Khuyến mãi mới';
+        const type = body.type || body.HinhThuc || (body.discountType === 'percent' ? `Giảm ${body.value}%` : `Giảm ${body.value}đ`);
+        const value = parseFloat(body.value || body.GiaTriGiam || 10);
+        const target = body.target || body.DoiTuongApDung || 'Tất cả khách hàng';
+        const startDate = body.startDate || body.NgayBatDau || new Date().toISOString().split('T')[0];
+        const endDate = body.endDate || body.NgayKetThuc || '2027-12-31';
+        const status = body.status || body.TrangThai || 'Đang áp dụng';
+
+        await querySql(
+          `INSERT INTO KhuyenMai (MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, DoiTuongApDung, NgayBatDau, NgayKetThuc, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [kmId, name, type, value, target, startDate, endDate, status]
+        );
+
+        if (Array.isArray(body.serviceIds)) {
+          for (const sId of body.serviceIds) {
+            await querySql(`INSERT INTO KhuyenMai_DichVu (MaKhuyenMai, MaDichVu) VALUES (?, ?)`, [kmId, sId]).catch(() => {});
+          }
+        }
+        if (Array.isArray(body.productIds)) {
+          for (const pId of body.productIds) {
+            await querySql(`INSERT INTO KhuyenMai_SanPham (MaKhuyenMai, MaSanPham) VALUES (?, ?)`, [kmId, pId]).catch(() => {});
+          }
+        }
+
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, promotion: { id: kmId, code: kmId, name, type, value, startDate, endDate, status } }));
+      }
+
+      if (pathname.startsWith('/api/promotions/') && method === 'DELETE') {
+        const id = pathname.replace('/api/promotions/', '').trim();
+        await querySql(`DELETE FROM KhuyenMai_DichVu WHERE MaKhuyenMai = ?`, [id]);
+        await querySql(`DELETE FROM KhuyenMai_SanPham WHERE MaKhuyenMai = ?`, [id]);
+        await querySql(`DELETE FROM KhuyenMai WHERE MaKhuyenMai = ?`, [id]);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, message: 'Đã xóa khuyến mãi khỏi SQL Server', id }));
+      }
+
+      // --- 35. NOTIFICATIONS MANAGEMENT (ThongBao) ---
+      if (pathname === '/api/notifications' && method === 'POST') {
+        const body = parsedBody || {};
+        const maxTb = await querySql(`SELECT TOP 1 MaThongBao FROM ThongBao WHERE MaThongBao LIKE 'TB%' ORDER BY LEN(MaThongBao) DESC, MaThongBao DESC`).catch(() => []);
+        let nextN = 11;
+        if (maxTb && maxTb[0]) {
+          const m = maxTb[0].MaThongBao.match(/TB(\d+)/i);
+          if (m) nextN = parseInt(m[1], 10) + 1;
+        }
+        const tbId = (body.id || body.MaThongBao || ('TB' + (nextN < 10 ? '0' + nextN : nextN))).trim();
+        const khId = body.customerId || body.MaKhachHang || null;
+        const tkId = body.accountId || body.MaTaiKhoan || null;
+        const title = body.title || body.TieuDe || 'Thông báo mới';
+        const content = body.content || body.NoiDung || '';
+        const type = body.type || body.LoaiThongBao || 'Hệ thống';
+
+        await querySql(
+          `INSERT INTO ThongBao (MaThongBao, MaTaiKhoan, MaKhachHang, TieuDe, NoiDung, LoaiThongBao, ThoiGianGui, TrangThaiDoc) VALUES (?, ?, ?, ?, ?, ?, GETDATE(), 0)`,
+          [tbId, tkId, khId, title, content, type]
+        );
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, notification: { id: tbId, title, content, type } }));
+      }
+
+      if (pathname.startsWith('/api/notifications/') && method === 'DELETE') {
+        const id = pathname.replace('/api/notifications/', '').replace('/read', '').trim();
+        await querySql(`DELETE FROM ThongBao WHERE MaThongBao = ?`, [id]);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, message: 'Đã xóa thông báo khỏi SQL Server', id }));
+      }
+
+      // --- 36. PHỤC VỤ FILE TĨNH  - STATIC FILES -  & SPA FALLBACK ---
       let rawPath = pathname.replace(/^\/+/, '');
       try { rawPath = decodeURIComponent(rawPath); } catch (_) { }
 
