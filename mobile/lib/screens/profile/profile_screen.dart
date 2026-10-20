@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
-import '../admin/admin_entry_placeholder_screen.dart';
+import '../admin/admin_hub_screen.dart';
 import '../my_bookings_screen.dart';
+import '../branches_screen.dart';
+import '../stylists_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,6 +23,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         (user.role == 'ADMIN' ||
             user.role == 'SUPER_ADMIN' ||
             user.role == 'BRANCH_MANAGER' ||
+            user.role == 'CASHIER' ||
+            user.role == 'STYLIST' ||
             user.username == 'admin');
 
     return Scaffold(
@@ -169,8 +173,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               _buildOptionTile(
                 icon: Icons.calendar_month_outlined,
-                title: 'Lịch hẹn đã đặt của tôi',
-                subtitle: 'Tra cứu, theo dõi tiến độ hoặc hủy hẹn',
+                title: 'Lịch hẹn & Đơn hàng của tôi',
+                subtitle: 'Tra cứu, mã vé QR check-in hoặc hủy hẹn',
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
@@ -179,24 +183,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
 
               _buildOptionTile(
-                icon: Icons.storefront_outlined,
-                title: 'Danh sách chi nhánh Omni Salon',
-                subtitle: 'Địa chỉ, số điện thoại & giờ mở cửa',
+                icon: Icons.content_cut_outlined,
+                title: 'Đội ngũ Master Stylist & Art Director',
+                subtitle: 'Khám phá các tay kéo cừ khôi và đặt lịch trực tiếp',
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Vui lòng chọn mục Chi nhánh tại trang chủ hoặc tab Đặt lịch', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
-                      backgroundColor: AppTheme.charcoal,
-                      behavior: SnackBarBehavior.floating,
-                    ),
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const StylistsScreen()),
                   );
+                },
+              ),
+
+              _buildOptionTile(
+                icon: Icons.storefront_outlined,
+                title: 'Hệ thống 20 chi nhánh Omni Salon',
+                subtitle: 'Địa chỉ, số điện thoại & giờ mở cửa đón khách',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const BranchesScreen()),
+                  );
+                },
+              ),
+
+              _buildOptionTile(
+                icon: Icons.auto_awesome_outlined,
+                title: 'Bộ sưu tập phom tóc AI của tôi',
+                subtitle: 'Xem lại các mẫu tóc 3D đã thử nghiệm và lưu lại',
+                onTap: () {
+                  _showAiGalleryDialog(context);
                 },
               ),
 
               _buildOptionTile(
                 icon: Icons.shield_moon_outlined,
                 title: 'Chính sách bảo hành kiểu tóc 7 ngày',
-                subtitle: 'Miễn phí chỉnh sửa và gội sấy trong tuần đầu',
+                subtitle: 'Miễn phí 100% chỉnh sửa và gội sấy trong tuần đầu',
                 onTap: () {
                   _showWarrantyDialog(context);
                 },
@@ -204,8 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 20),
 
               // =========================================================
-              // LỐI VÀO GIAO DIỆN QUẢN TRỊ (ADMIN PANEL ENTRY) DỰNG SẴN
-              // Tinh tế, không phô trương ngoài trang chủ
+              // LỐI VÀO GIAO DIỆN QUẢN TRỊ (ADMIN PANEL HUB)
               // =========================================================
               Text(
                 'QUẢN TRỊ & HỆ THỐNG',
@@ -219,7 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isAdmin ? AppTheme.accentGold : AppTheme.borderColor,
-                    width: isAdmin ? 1.2 : 1,
+                    width: isAdmin ? 1.4 : 1,
                   ),
                 ),
                 child: ListTile(
@@ -227,26 +246,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.accentGold.withValues(alpha: 0.12),
+                      color: AppTheme.accentGold.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.admin_panel_settings_rounded, color: AppTheme.accentGold, size: 22),
+                    child: const Icon(Icons.admin_panel_settings_rounded, color: AppTheme.accentGold, size: 24),
                   ),
-                  title: Text(
-                    'Chuyển sang Giao diện Quản trị (Admin Panel)',
-                    style: AppTheme.bodyMedium(fontWeight: FontWeight.w700),
+                  title: Row(
+                    children: [
+                      Text(
+                        'Trung Tâm Quản Trị Omni Admin',
+                        style: AppTheme.bodyMedium(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentGold,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: const Text('FULL HUB', style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: AppTheme.charcoal)),
+                      ),
+                    ],
                   ),
                   subtitle: Text(
-                    isAdmin
-                        ? 'Dành cho Quản trị viên, Quản lý chi nhánh & Thu ngân'
-                        : 'Lối vào thử nghiệm phân hệ quản lý salon',
+                    'Điều phối lịch hẹn, thợ barber, POS quầy thu ngân, kho FEFO & hóa đơn',
                     style: AppTheme.bodySmall(color: AppTheme.textSecondary),
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textSecondary),
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const AdminEntryPlaceholderScreen(),
+                        builder: (_) => const AdminHubScreen(),
                       ),
                     );
                   },
@@ -346,6 +376,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text('ĐÃ HIỂU', style: AppTheme.bodyMedium(color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAiGalleryDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surfaceCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Row(
+          children: [
+            const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentGold, size: 20),
+            const SizedBox(width: 8),
+            Text('Bộ Sưu Tập AI Studio', style: AppTheme.headingSmall(fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Các phom tóc 3D bạn đã thử nghiệm bằng AI Neural Engine được lưu trữ tại đây để bạn tiện trao đổi với Master Stylist khi đến salon.',
+              style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceElevated,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(
+                      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=120&q=80',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Layer Texture Tự Nhiên', style: AppTheme.bodySmall(fontWeight: FontWeight.w700)),
+                        Text('Tông màu: Đen Tự Nhiên • Độ dài: 8cm', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.check_circle_rounded, color: AppTheme.accentGold, size: 18),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('ĐÓNG', style: AppTheme.bodyMedium(color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
           ),
         ],
       ),

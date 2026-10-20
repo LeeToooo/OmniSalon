@@ -4,9 +4,12 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../models/service.dart';
 import '../models/branch.dart';
+import '../models/stylist.dart';
 import '../services/api_service.dart';
 import '../widgets/editorial_image.dart';
 import '../widgets/marquee_banner.dart';
+import 'stylists_screen.dart';
+import 'booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int)? onNavigateToTab;
@@ -26,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
 
   List<SalonService> _featuredServices = [];
+  List<Stylist> _featuredStylists = [];
   List<Branch> _branches = [];
   bool _isLoading = true;
 
@@ -38,11 +42,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     final services = await ApiService.fetchServices();
+    final stylists = await ApiService.fetchStylists();
     final branches = await ApiService.fetchBranches();
 
     if (!mounted) return;
     setState(() {
       _featuredServices = services.take(4).toList();
+      _featuredStylists = stylists.take(3).toList();
       _branches = branches.take(3).toList();
       _isLoading = false;
     });
@@ -63,23 +69,17 @@ class _HomeScreenState extends State<HomeScreen> {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          // ========================================================
-          // 1. HERO BANNER BỐ CỤC DỌC CHUẨN MOBILE
-          // ========================================================
+          // 1. HERO BANNER
           SliverToBoxAdapter(
             child: _buildHeroBanner(context),
           ),
 
-          // ========================================================
-          // 2. THANH CHỮ CHẠY NGANG (MARQUEE BANNER)
-          // ========================================================
+          // 2. MARQUEE BANNER
           const SliverToBoxAdapter(
             child: MarqueeBanner(),
           ),
 
-          // ========================================================
           // 3. ASYMMETRIC MOBILE BENTO GRID
-          // ========================================================
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
@@ -107,9 +107,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ========================================================
-          // 4. DỊCH VỤ TẠO KIỂU ĐƯỢC ƯA CHUỘNG
-          // ========================================================
+          // 4. AI STUDIO 3D TEASER BANNER (ĐỒNG BỘ 100% VỚI WEB)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: _buildAiStudioBanner(),
+            ),
+          ),
+
+          // 5. DỊCH VỤ TẠO KIỂU ĐƯỢC ƯA CHUỘNG
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
@@ -158,9 +164,60 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ========================================================
-          // 5. HỆ THỐNG CHI NHÁNH CHUYÊN NGHIỆP
-          // ========================================================
+          // 6. ĐỘI NGŨ MASTER STYLIST (ĐỒNG BỘ 100% VỚI WEB 3-COLUMN SHOWCASE)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'NGHỆ NHÂN TẠO MẪU',
+                        style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Master Stylist & Art Director',
+                        style: AppTheme.headingMedium(fontSize: 22),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const StylistsScreen()),
+                      );
+                    },
+                    child: Text(
+                      'Xem toàn bộ thợ →',
+                      style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 275,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: _featuredStylists.length,
+                itemBuilder: (context, idx) {
+                  final sty = _featuredStylists[idx];
+                  return _buildStylistPreviewCard(sty);
+                },
+              ),
+            ),
+          ),
+
+          // 7. HỆ THỐNG CHI NHÁNH CHUYÊN NGHIỆP
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
@@ -193,7 +250,181 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 1. Hero Banner: Bố cục dọc chuẩn Mobile với ảnh nghệ thuật phủ gradient tối
+  // AI Studio 3D Teaser Card
+  Widget _buildAiStudioBanner() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.charcoal,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.5), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.accentGold.withValues(alpha: 0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.accentGold.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
+              ),
+              child: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentGold, size: 28),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text('OMNI AI STUDIO 3D', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.statusSuccess.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: const Text('NEURAL SCAN', style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: AppTheme.statusSuccess)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text('Thử Kiểu Tóc 3D Trên Khuôn Mặt', style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.textLight)),
+                  const SizedBox(height: 2),
+                  Text('Tự động nhận diện ngũ quan & phối màu nhuộm thời thượng', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textLightSecondary), maxLines: 1),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () {
+                if (widget.onNavigateToTab != null) widget.onNavigateToTab!(3);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentGold,
+                foregroundColor: AppTheme.charcoal,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Trải Nghiệm', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Thẻ thợ tạo mẫu Master Stylist nằm ngang
+  Widget _buildStylistPreviewCard(Stylist s) {
+    return Container(
+      width: 200,
+      margin: const EdgeInsets.only(right: 14),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(9)),
+            child: SizedBox(
+              height: 125,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  EditorialImage(imageUrl: s.avatar, fit: BoxFit.cover),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded, size: 12, color: AppTheme.accentGold),
+                          const SizedBox(width: 2),
+                          Text('${s.rating}', style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentGold.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Text(s.level.toUpperCase(), style: AppTheme.labelUppercase(fontSize: 8.5, color: AppTheme.accentGold)),
+                ),
+                const SizedBox(height: 3),
+                Text(s.name, style: AppTheme.headingSmall(fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text('${s.experienceYears}+ Năm KN • ${s.branchName.split("-").last.trim()}', style: AppTheme.bodySmall(fontSize: 10.5, color: AppTheme.textSecondary), maxLines: 1),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  height: 32,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => BookingScreen(preselectedBranchId: s.branchId),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentGold,
+                      foregroundColor: AppTheme.charcoal,
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                    ),
+                    child: const Text('Đặt Lịch', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 1. Hero Banner
   Widget _buildHeroBanner(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -204,13 +435,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Ảnh nền nghệ thuật ấm
             const EditorialImage(
               imageUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1000&q=80',
               fit: BoxFit.cover,
             ),
-
-            // Lớp phủ Gradient tối sâu dần từ trên xuống dưới
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -225,8 +453,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
-            // Nội dung chính của Hero Banner
             Positioned(
               left: 20,
               right: 20,
@@ -234,7 +460,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Nhãn nhỏ Open Sans
                   Text(
                     'CHUẨN MỰC BARBERSHOP ĐƯƠNG ĐẠI',
                     style: AppTheme.labelUppercase(
@@ -244,8 +469,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 6),
-
-                  // Tiêu đề lớn Playfair Display
                   Text(
                     'Định Hình Phong Cách & Bản Lĩnh Phái Mạnh',
                     style: AppTheme.headingLarge(
@@ -254,8 +477,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  // Thẻ kính mờ BackdropFilter: 4.9★ (2,500+ Đánh giá) • Bảo hành kiểu tóc 7 ngày
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: BackdropFilter(
@@ -286,8 +507,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 18),
-
-                  // 2 Nút CTA: Đặt Lịch Hẹn Ngay & Xem bảng giá →
                   Row(
                     children: [
                       Expanded(
@@ -340,12 +559,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 2. Asymmetric Mobile Bento Grid:
-  // Thẻ lớn ngang trên + 2 thẻ dọc lệch tỷ lệ ở giữa + 1 thẻ ngang ở dưới
+  // 2. Bento Grid
   Widget _buildAsymmetricBentoGrid() {
     return Column(
       children: [
-        // Thẻ lớn ngang ở trên: Không gian Authentic Barbershop
         _buildBentoCard(
           height: 160,
           title: 'Không Gian Authentic Barbershop',
@@ -354,11 +571,8 @@ class _HomeScreenState extends State<HomeScreen> {
           imageUrl: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80',
         ),
         const SizedBox(height: 10),
-
-        // 2 Thẻ dọc lệch tỷ lệ ở giữa (1.2x và 0.8x)
         Row(
           children: [
-            // Thẻ dọc trái (1.2x): Master Barber
             Expanded(
               flex: 12,
               child: _buildBentoCard(
@@ -370,8 +584,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(width: 10),
-
-            // Thẻ dọc phải (1.0x): Dược liệu & Pomade
             Expanded(
               flex: 10,
               child: _buildBentoCard(
@@ -385,8 +597,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 10),
-
-        // Thẻ ngang ở dưới: Gội Dưỡng Sinh & Trị Liệu Đầu
         _buildBentoCard(
           height: 140,
           title: 'Gội Dưỡng Sinh & Bấm Huyệt Đỉnh Cao',

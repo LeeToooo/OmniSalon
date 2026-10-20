@@ -1509,7 +1509,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       // --- 9. STYLISTS / NHÂN VIÊN ---
-      if (pathname === '/api/stylists' && method === 'GET') {
+      if ((pathname === '/api/stylists' || pathname === '/api/admin/staff') && method === 'GET') {
         const branchParam = parsedUrl.searchParams.get('branch_id');
         let q = `SELECT nv.MaNhanVien, nv.MaChiNhanh, nv.HoTen, nv.SoDienThoai, nv.Email, 
                         nv.CapBac, nv.ChucVu, nv.TrangThai, cn.TenChiNhanh 
@@ -1596,8 +1596,8 @@ const server = http.createServer(async (req, res) => {
         }));
       }
 
-      if (pathname.startsWith('/api/stylists/') && method === 'PUT') {
-        const id = pathname.replace('/api/stylists/', '').trim();
+      if ((pathname.startsWith('/api/stylists/') || pathname.startsWith('/api/admin/staff/')) && method === 'PUT') {
+        const id = pathname.replace('/api/stylists/', '').replace('/api/admin/staff/', '').trim();
         const st = parsedBody || {};
         await querySql(
           `UPDATE NhanVien 
@@ -1606,7 +1606,8 @@ const server = http.createServer(async (req, res) => {
                SoDienThoai = COALESCE(?, SoDienThoai), 
                Email = COALESCE(?, Email), 
                CapBac = COALESCE(?, CapBac), 
-               ChucVu = COALESCE(?, ChucVu) 
+               ChucVu = COALESCE(?, ChucVu),
+               TrangThai = COALESCE(?, TrangThai) 
            WHERE MaNhanVien = ?`,
           [
             st.name || st.HoTen || null,
@@ -1615,6 +1616,7 @@ const server = http.createServer(async (req, res) => {
             st.email || null,
             st.level || st.CapBac || null,
             st.role || st.ChucVu || null,
+            st.status || st.TrangThai || null,
             id
           ]
         );
@@ -2153,7 +2155,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       // --- 13. INVENTORY / KHO HÀNG ---
-      if (pathname === '/api/inventory' && method === 'GET') {
+      if ((pathname === '/api/inventory' || pathname === '/api/admin/inventory') && method === 'GET') {
         const branchParam = parsedUrl.searchParams.get('branch_id');
         let q = `SELECT tk.MaSanPham, tk.MaChiNhanh, tk.SoLuongTon, tk.MucCanhBao,
                         sp.TenSanPham, sp.GiaBan, sp.GiaNhap, sp.HinhAnh,
@@ -2845,7 +2847,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       // --- 17. POS CHECKOUT  - HÓA ĐƠN & THANH TOÁN TẠI QUẦY -  ---
-      if (pathname === '/api/pos/checkout' && method === 'POST') {
+      if ((pathname === '/api/pos/checkout' || pathname === '/api/admin/pos/checkout') && method === 'POST') {
         const pos = parsedBody || {};
         const maxHd = await querySql(`SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaHoaDon LIKE 'HD%' AND LEN(MaHoaDon) <= 10 ORDER BY LEN(MaHoaDon) DESC, MaHoaDon DESC`);
         let nextN = 3;
@@ -3338,7 +3340,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       // --- 27. FEFO LOT PRICING VIEW / GIÁ BÁN THEO LÔ HẠN SỬ DỤNG ---
-      if (pathname === '/api/inventory/lots' && method === 'GET') {
+      if ((pathname === '/api/inventory/lots' || pathname === '/api/admin/fefo') && method === 'GET') {
         const branchParam = parsedUrl.searchParams.get('branch_id');
         let q = `SELECT * FROM vw_GiaBanTheoLoHienTai`;
         const params = [];
@@ -3599,7 +3601,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       // --- 31. INVOICES / HÓA ĐƠN & CHI TIẾT (HoaDon, ChiTietHoaDon_DichVu, ChiTietHoaDon_SanPham) ---
-      if (pathname === '/api/invoices' && method === 'GET') {
+      if ((pathname === '/api/invoices' || pathname === '/api/admin/invoices') && method === 'GET') {
         const branchParam = parsedUrl.searchParams.get('branch_id');
         let q = `
           SELECT hd.MaHoaDon, hd.MaKhachHang, hd.MaLichHen, hd.MaDonHang, hd.MaChiNhanh,
