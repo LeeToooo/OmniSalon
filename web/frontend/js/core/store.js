@@ -1959,11 +1959,12 @@
     }
 
     async submitOrderReview({ orderId, rating, comment, customerId, customerName, customerPhone }) {
+      const cleanKhId = customerId ? String(customerId).replace(/^TK_/, '') : null;
       const payload = {
         orderId,
         rating: Number(rating) || 5,
         comment: (comment || '').trim() || 'Sản phẩm rất tốt và đóng gói cẩn thận!',
-        customerId,
+        customerId: cleanKhId,
         customerName,
         customerPhone
       };
@@ -1975,8 +1976,8 @@
           body: JSON.stringify(payload)
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.error || 'Lỗi khi gửi đánh giá đơn hàng!');
+        if (!res.ok || (data && data.success === false)) {
+          throw new Error(data.message || data.error || 'Lỗi khi gửi đánh giá đơn hàng!');
         }
 
         const reviewData = data.review || {
@@ -2172,6 +2173,71 @@
       } catch (err) {
         console.warn('[CONFIRM PAYMENT SERVER SYNC]', err.message);
         return { success: true, message: `Đã xác nhận thanh toán đơn #${order.orderCode || order.id}!`, order };
+      }
+    }
+
+    async updateOrderStatus(orderId, newStatus, notes = '') {
+      const norm = String(orderId).trim().toLowerCase();
+      const order = (this.state.orders || []).find(o => 
+        (o.id && String(o.id).trim().toLowerCase() === norm) || 
+        (o.orderCode && String(o.orderCode).trim().toLowerCase() === norm) ||
+        (o.MaDonHang && String(o.MaDonHang).trim().toLowerCase() === norm)
+      );
+
+      if (!order) return { success: false, error: 'Không tìm thấy đơn hàng trong hệ thống!' };
+
+      let normalizedStatus = 'Processing';
+      let vietnameseStatus = 'Đang xử lý';
+
+      const sLow = (newStatus || '').toLowerCase();
+      if (sLow === 'pending' || sLow.includes('chờ')) {
+        normalizedStatus = 'Pending';
+        vietnameseStatus = 'Chờ xử lý';
+      } else if (sLow === 'processing' || sLow.includes('đóng gói') || sLow.includes('xử lý')) {
+        normalizedStatus = 'Processing';
+        vietnameseStatus = 'Đang xử lý';
+      } else if (sLow === 'delivering' || sLow === 'shipping' || (sLow.includes('giao') && !sLow.includes('đã giao'))) {
+        normalizedStatus = 'Delivering';
+        vietnameseStatus = 'Đang giao';
+      } else if (sLow === 'completed' || sLow === 'delivered' || sLow.includes('hoàn tất') || sLow.includes('đã giao')) {
+        normalizedStatus = 'Completed';
+        vietnameseStatus = 'Đã giao';
+      } else if (sLow === 'cancelled' || sLow.includes('hủy')) {
+        normalizedStatus = 'Cancelled';
+        vietnameseStatus = 'Đã hủy';
+      }
+
+      order.orderStatus = normalizedStatus;
+      order.TrangThai = vietnameseStatus;
+      if (notes) order.notes = notes;
+
+      this.logAudit('UPDATE_ORDER_STATUS', `Đơn: #${order.orderCode || order.id}`, `Chuyển tiến trình: ${vietnameseStatus} (${normalizedStatus})`);
+      this.saveState();
+      this.notify('ORDER_STATUS_UPDATED', order);
+
+      // Kênh đồng bộ BroadcastChannel tức thì sang tab khách hàng và mobile app
+      if (this.syncChannel) {
+        try {
+          this.syncChannel.postMessage({ type: 'DATA_UPDATED', entity: 'ORDER', orderId: order.id, status: normalizedStatus });
+        } catch (_) {}
+      }
+
+      // Đồng bộ trực tiếp vào SQL Server backend qua API PUT
+      try {
+        const res = await fetch(`${this.liveServerUrl}/orders/${order.id || order.orderCode}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: vietnameseStatus,
+            orderStatus: normalizedStatus,
+            notes: notes || order.notes || ''
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        return { success: true, message: data.message || `Đã cập nhật tiến trình đơn #${order.orderCode || order.id} sang "${vietnameseStatus}"!`, order };
+      } catch (err) {
+        console.warn('[UPDATE ORDER STATUS SERVER SYNC]', err.message);
+        return { success: true, message: `Đã cập nhật tiến trình đơn #${order.orderCode || order.id} sang "${vietnameseStatus}"!`, order };
       }
     }
 

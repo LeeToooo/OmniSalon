@@ -2994,7 +2994,20 @@
           </div>
           <div style="max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
             ${orders.map(o => {
-        const status = (o.orderStatus || o.status || 'Pending').toLowerCase();
+        const rawSt = (o.orderStatus || o.status || o.TrangThai || 'Pending').toLowerCase();
+        let step = 1;
+        if (rawSt.includes('hủy') || rawSt === 'cancelled') {
+          step = 0;
+        } else if (rawSt.includes('hoàn tất') || rawSt.includes('đã giao') || rawSt === 'completed' || rawSt === 'delivered') {
+          step = 4;
+        } else if (rawSt.includes('đang giao') || rawSt === 'delivering' || rawSt === 'shipping' || (rawSt.includes('giao') && !rawSt.includes('đã giao'))) {
+          step = 3;
+        } else if (rawSt.includes('đóng gói') || rawSt.includes('xử lý') || rawSt === 'processing') {
+          step = 2;
+        } else {
+          step = 1; // Pending / Chờ xác nhận
+        }
+
         const isPickup = o.deliveryType === 'PICKUP_BRANCH';
         const items = o.items || [];
         return `
@@ -3007,20 +3020,34 @@
                     <strong style="color: var(--color-terracotta); font-size: 14px;">${SalonUtils.formatCurrency(o.totalAmount || 0)}</strong>
                   </div>
 
-                  <!-- Visual Order Timeline -->
-                  <div class="order-status-timeline" style="display: flex; align-items: center; justify-content: space-between; margin: 10px 0; padding: 8px 12px; background: var(--surface-elevated, #f8fafc); border-radius: 8px; font-size: 11px;">
-                    <span style="font-weight: ${status === 'pending' ? '800; color:#c85a44' : '600; color:var(--text-secondary, #666)'}">① Chờ Xác Nhận</span>
-                    <span style="color:#ccc;">→</span>
-                    <span style="font-weight: ${status === 'processing' ? '800; color:#c85a44' : '600; color:var(--text-secondary, #666)'}">② Đang Đóng Gói</span>
-                    <span style="color:#ccc;">→</span>
-                    <span style="font-weight: ${status === 'shipping' ? '800; color:#c85a44' : '600; color:var(--text-secondary, #666)'}">③ Đang Giao</span>
-                    <span style="color:#ccc;">→</span>
-                    <span style="font-weight: ${status === 'completed' ? '800; color:#16a34a' : '600; color:var(--text-secondary, #666)'}">④ Hoàn Tất</span>
-                  </div>
+                  <!-- Visual Order Timeline 4 Bước -->
+                  ${step === 0 ? `
+                    <div style="margin: 10px 0; padding: 8px 12px; background: #fee2e2; border-radius: 8px; font-size: 11.5px; font-weight: 700; color: #b91c1c; text-align: center;">
+                      ❌ Đơn hàng đã được hủy
+                    </div>
+                  ` : `
+                    <div class="order-status-timeline" style="display: flex; align-items: center; justify-content: space-between; margin: 10px 0; padding: 8px 12px; background: var(--surface-elevated, #f8fafc); border-radius: 8px; font-size: 11px;">
+                      <span style="font-weight: ${step >= 1 ? '800' : '500'}; color: ${step === 1 ? '#ea580c' : (step > 1 ? '#16a34a' : 'var(--text-secondary, #888)')}; display: inline-flex; align-items: center; gap: 2px;">
+                        ${step > 1 ? '✓' : '①'} Chờ Xác Nhận
+                      </span>
+                      <span style="color: ${step > 1 ? '#16a34a' : '#ccc'}; font-weight: 700;">→</span>
+                      <span style="font-weight: ${step >= 2 ? '800' : '500'}; color: ${step === 2 ? '#ea580c' : (step > 2 ? '#16a34a' : 'var(--text-secondary, #888)')}; display: inline-flex; align-items: center; gap: 2px;">
+                        ${step > 2 ? '✓' : '②'} Đang Đóng Gói
+                      </span>
+                      <span style="color: ${step > 2 ? '#16a34a' : '#ccc'}; font-weight: 700;">→</span>
+                      <span style="font-weight: ${step >= 3 ? '800' : '500'}; color: ${step === 3 ? '#0284c7' : (step > 3 ? '#16a34a' : 'var(--text-secondary, #888)')}; display: inline-flex; align-items: center; gap: 2px;">
+                        ${step > 3 ? '✓' : '③'} Đang Giao
+                      </span>
+                      <span style="color: ${step > 3 ? '#16a34a' : '#ccc'}; font-weight: 700;">→</span>
+                      <span style="font-weight: ${step === 4 ? '800' : '500'}; color: ${step === 4 ? '#16a34a' : 'var(--text-secondary, #888)'}; display: inline-flex; align-items: center; gap: 2px;">
+                        ${step === 4 ? '✓' : '④'} Hoàn Tất
+                      </span>
+                    </div>
+                  `}
 
                   <div style="font-size: 12px; color: var(--text-secondary, #555); line-height: 1.5;">
                     <div>Hình thức: <strong>${isPickup ? 'Nhận tại chi nhánh Omni Salon' : 'Giao hàng tận nhà'}</strong></div>
-                    <div>Thanh toán: <strong>${this.escapeHtml(o.paymentMethod || 'VietQR')}</strong> • Trạng thái: <strong style="color:${o.paymentStatus === 'Paid' ? '#16a34a' : '#ea580c'}">${o.paymentStatus === 'Paid' ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</strong></div>
+                    <div>Thanh toán: <strong>${this.escapeHtml(o.paymentMethod || 'VietQR')}</strong> • Trạng thái: <strong style="color:${(o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán') ? '#16a34a' : '#ea580c'}">${(o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán') ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</strong></div>
                   </div>
 
                   <!-- Danh sách món hàng tóm tắt -->
@@ -3483,17 +3510,17 @@
             </div>
           </div>
 
+          <!-- Thông báo hệ thống tự động xác nhận -->
+          <div style="background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; color: #0284c7; line-height: 1.5; text-align: left;">
+            ℹ️ <strong>Hệ thống tự động xác nhận:</strong> Sau khi quý khách quét mã chuyển khoản thành công, hệ thống / thu ngân sẽ tự động kiểm tra giao dịch và cập nhật trạng thái "Đã Thanh Toán" cho đơn hàng. Quý khách không cần tự xác nhận.
+          </div>
+
           <!-- Nút hành động -->
-          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <div style="display: flex; justify-content: center;">
             <button type="button" class="btn-cancel" 
-                    style="min-height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 600; background: var(--surface-elevated, #2a2a26); color: var(--text-secondary); border: 1px solid var(--border-color, #444);"
+                    style="min-height: 42px; min-width: 140px; padding: 0 24px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
                     onclick="CustomerWeb.openCustomerPortalModal('orders')">
-              Đóng
-            </button>
-            <button type="button" class="btn-submit-terracotta" 
-                    style="min-height: 42px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 800; background: #16a34a;"
-                    onclick="CustomerWeb.handleOrderPaymentConfirm('${this.escapeHtml(oCode)}')">
-              ✓ Tôi Đã Chuyển Khoản
+              Đóng Cửa Sổ
             </button>
           </div>
         </div>
@@ -3504,18 +3531,6 @@
       }
     },
 
-    async handleOrderPaymentConfirm(orderId) {
-      if (window.store && typeof window.store.confirmOrderPayment === 'function') {
-        const res = await window.store.confirmOrderPayment(orderId, 'VietQR');
-        if (res && res.success) {
-          if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-            window.UICommon.showToast(`Xác nhận thanh toán đơn #${orderId} thành công! Cảm ơn quý khách.`, 'success');
-          }
-        }
-      }
-      this.openCustomerPortalModal('orders');
-    },
-
     async handleOrderReviewSubmit(orderId) {
       const ratingInput = document.getElementById('orderReviewSelectedRating');
       const commentInput = document.getElementById('orderReviewCommentInput');
@@ -3524,6 +3539,7 @@
       const rating = ratingInput ? parseInt(ratingInput.value, 10) : 5;
       const comment = commentInput ? commentInput.value.trim() : '';
       const user = this.getCurrentUser();
+      const cleanCustomerId = user ? (user.MaKhachHang || (user.id ? String(user.id).replace(/^TK_/, '') : null) || user.customerId) : null;
 
       if (btn) {
         btn.disabled = true;
@@ -3535,7 +3551,7 @@
           orderId,
           rating,
           comment: comment || 'Đơn hàng rất chuẩn, sáp và sản phẩm chính hãng dùng rất thích!',
-          customerId: user ? (user.id || user.customerId) : null,
+          customerId: cleanCustomerId,
           customerName: user ? (user.fullName || user.username) : 'Khách Hàng',
           customerPhone: (user && user.phone) ? user.phone : ''
         });
@@ -3558,7 +3574,7 @@
           }
         } else {
           if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-            window.UICommon.showToast(res?.error || 'Lỗi lưu đánh giá!', 'error');
+            window.UICommon.showToast(res?.error || res?.message || 'Lỗi khi gửi đánh giá đơn hàng!', 'error');
           }
         }
       }

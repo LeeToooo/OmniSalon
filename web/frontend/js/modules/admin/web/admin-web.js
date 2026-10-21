@@ -4591,14 +4591,15 @@
             <table class="admin-enterprise-table">
               <thead>
                 <tr>
-                  <th>Mã Đơn Hàng</th>
+                  <th>Mã Đơn</th>
                   <th>Khách Hàng</th>
                   <th>Thời Gian Đặt</th>
                   <th>Sản Phẩm Đã Đặt</th>
                   <th>Tổng Tiền</th>
-                  <th>Hình Thức Nhận</th>
+                  <th>Hình Thức</th>
                   <th>Thanh Toán</th>
-                  <th style="text-align: center;">Hành Động Thu Tiền</th>
+                  <th style="text-align: center;">Tiến Trình Xử Lý</th>
+                  <th style="text-align: center; min-width: 170px;">Thao Tác Đơn Hàng</th>
                 </tr>
               </thead>
               <tbody>
@@ -4608,6 +4609,40 @@
                   const items = o.items || [];
                   const itemsSummary = items.map(it => `• ${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || 1})`).join('<br>');
                   const isPickup = o.deliveryType === 'PICKUP_BRANCH' || (o.shippingAddress && o.shippingAddress.toLowerCase().includes('quầy'));
+
+                  const rawSt = (o.orderStatus || o.status || o.TrangThai || 'Pending').toLowerCase();
+                  let step = 1;
+                  let stepLabel = '① Chờ Xác Nhận';
+                  let stepColor = '#b45309';
+                  let stepBg = '#fef3c7';
+
+                  if (rawSt.includes('hủy') || rawSt === 'cancelled') {
+                    step = 0;
+                    stepLabel = '❌ Đã Hủy';
+                    stepColor = '#b91c1c';
+                    stepBg = '#fee2e2';
+                  } else if (rawSt.includes('hoàn tất') || rawSt.includes('đã giao') || rawSt === 'completed' || rawSt === 'delivered') {
+                    step = 4;
+                    stepLabel = '✅ ④ Hoàn Tất';
+                    stepColor = '#15803d';
+                    stepBg = '#dcfce7';
+                  } else if (rawSt.includes('đang giao') || rawSt === 'delivering' || rawSt === 'shipping' || (rawSt.includes('giao') && !rawSt.includes('đã giao'))) {
+                    step = 3;
+                    stepLabel = '🚚 ③ Đang Giao';
+                    stepColor = '#0369a1';
+                    stepBg = '#e0f2fe';
+                  } else if (rawSt.includes('đóng gói') || rawSt.includes('xử lý') || rawSt === 'processing') {
+                    step = 2;
+                    stepLabel = '📦 ② Đang Đóng Gói';
+                    stepColor = '#c2410c';
+                    stepBg = '#ffedd5';
+                  } else {
+                    step = 1;
+                    stepLabel = '⏳ ① Chờ Xác Nhận';
+                    stepColor = '#b45309';
+                    stepBg = '#fef3c7';
+                  }
+
                   return `
                     <tr>
                       <td style="font-weight: 800; color: var(--color-terracotta);">#${this.escapeHtml(oCode)}</td>
@@ -4626,20 +4661,66 @@
                         <div style="font-size: 10px; color: #888; margin-top: 2px;">${this.escapeHtml(o.paymentMethod || 'VietQR')}</div>
                       </td>
                       <td style="text-align: center; white-space: nowrap;">
-                        ${isPaid ? `
-                          <span style="font-size: 12px; color: #16a34a; font-weight: 700;">✓ Hoàn tất</span>
-                        ` : `
-                          <button type="button" class="btn-submit-terracotta" 
-                                  style="font-size: 11px; padding: 5px 12px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;"
-                                  onclick="AdminWeb.confirmOrderPayment('${this.escapeHtml(oCode)}')">
-                            ✓ Xác Nhận Thu Tiền
-                          </button>
-                        `}
+                        <span style="font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; background: ${stepBg}; color: ${stepColor};">
+                          ${stepLabel}
+                        </span>
+                      </td>
+                      <td style="text-align: center; white-space: nowrap;">
+                        <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
+                          <!-- Nút thao tác chuyển bước kế tiếp -->
+                          ${step === 1 ? `
+                            <button type="button" class="btn-submit-terracotta" 
+                                    style="font-size: 10.5px; padding: 4px 10px; background: #d97706; display: inline-flex; align-items: center; gap: 4px; width: 100%; justify-content: center;"
+                                    onclick="AdminWeb.updateOrderStatus('${this.escapeHtml(oCode)}', 'Processing')">
+                              📦 Đóng Gói Ngay
+                            </button>
+                          ` : ''}
+                          ${step === 2 ? `
+                            <button type="button" class="btn-submit-terracotta" 
+                                    style="font-size: 10.5px; padding: 4px 10px; background: #0284c7; display: inline-flex; align-items: center; gap: 4px; width: 100%; justify-content: center;"
+                                    onclick="AdminWeb.updateOrderStatus('${this.escapeHtml(oCode)}', 'Delivering')">
+                              🚚 Giao Hàng
+                            </button>
+                          ` : ''}
+                          ${step === 3 ? `
+                            <button type="button" class="btn-submit-terracotta" 
+                                    style="font-size: 10.5px; padding: 4px 10px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px; width: 100%; justify-content: center;"
+                                    onclick="AdminWeb.updateOrderStatus('${this.escapeHtml(oCode)}', 'Completed')">
+                              ✓ Hoàn Tất Đơn
+                            </button>
+                          ` : ''}
+
+                          <!-- Menu chuyển trạng thái tiến trình linh hoạt -->
+                          ${step !== 0 ? `
+                            <select onchange="AdminWeb.updateOrderStatus('${this.escapeHtml(oCode)}', this.value)"
+                                    style="font-size: 10.5px; padding: 3px 6px; border-radius: 6px; border: 1px solid var(--border-color, #ccc); background: var(--surface-card, #fff); color: var(--text-primary, #333); outline: none; cursor: pointer; width: 100%;">
+                              <option value="" disabled selected>Chuyển bước...</option>
+                              <option value="Pending" ${step === 1 ? 'disabled' : ''}>① Chờ Xác Nhận</option>
+                              <option value="Processing" ${step === 2 ? 'disabled' : ''}>② Đang Đóng Gói</option>
+                              <option value="Delivering" ${step === 3 ? 'disabled' : ''}>③ Đang Giao</option>
+                              <option value="Completed" ${step === 4 ? 'disabled' : ''}>④ Hoàn Tất</option>
+                              <option value="Cancelled">❌ Hủy Đơn Hàng</option>
+                            </select>
+                          ` : `
+                            <span style="font-size: 11px; color: #b91c1c; font-weight: 700;">Đã hủy</span>
+                          `}
+
+                          <!-- Nút xác nhận thu tiền -->
+                          ${!isPaid ? `
+                            <button type="button" class="btn-submit-terracotta" 
+                                    style="font-size: 10.5px; padding: 3px 8px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px; width: 100%; justify-content: center; margin-top: 2px;"
+                                    onclick="AdminWeb.confirmOrderPayment('${this.escapeHtml(oCode)}')">
+                              💳 Xác Nhận Thu Tiền
+                            </button>
+                          ` : `
+                            <span style="font-size: 10px; color: #15803d; font-weight: 700;">✓ Đã thu tiền</span>
+                          `}
+                        </div>
                       </td>
                     </tr>
                   `;
                 }).join('') : `
-                  <tr><td colspan="8" style="text-align: center; padding: 30px; color: #888;">Không tìm thấy đơn hàng nào khớp với tìm kiếm.</td></tr>
+                  <tr><td colspan="9" style="text-align: center; padding: 30px; color: #888;">Không tìm thấy đơn hàng nào khớp với tìm kiếm.</td></tr>
                 `}
               </tbody>
             </table>
@@ -4648,6 +4729,32 @@
         `;
       }
       return '';
+    },
+
+    async updateOrderStatus(orderId, newStatus) {
+      if (!orderId || !newStatus) return;
+      const statusLabels = {
+        'Pending': '① Chờ Xác Nhận',
+        'Processing': '② Đang Đóng Gói',
+        'Delivering': '③ Đang Giao Hàng',
+        'Completed': '④ Hoàn Tất',
+        'Cancelled': 'Hủy Đơn Hàng'
+      };
+      const label = statusLabels[newStatus] || newStatus;
+      if (!confirm(`Xác nhận chuyển trạng thái đơn hàng #${orderId} sang "${label}"?`)) {
+        this.refreshAuditView();
+        return;
+      }
+
+      if (window.store && typeof window.store.updateOrderStatus === 'function') {
+        const res = await window.store.updateOrderStatus(orderId, newStatus);
+        if (res && res.success) {
+          if (window.UICommon) window.UICommon.showToast(res.message || `Đã chuyển đơn #${orderId} sang "${label}"!`, 'success');
+          this.refreshAuditView();
+        } else {
+          if (window.UICommon) window.UICommon.showToast(res?.error || 'Lỗi khi cập nhật trạng thái đơn hàng!', 'error');
+        }
+      }
     },
 
     async confirmOrderPayment(orderId) {

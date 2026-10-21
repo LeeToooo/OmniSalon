@@ -3138,67 +3138,186 @@ body.light .btn-cancel:hover {
   color: var(--color-terracotta);
 }
 
-/* Thông báo nổi nhanh */
+/* ========================================================
+   HỆ THỐNG THÔNG BÁO GIỮA MÀN HÌNH (CENTER TOAST MODAL)
+   Thiết kế tối giản, tinh tế, viền nhẹ, không hiệu ứng LED
+   ======================================================== */
 .toast-container {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100000;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
+  width: min(480px, calc(100vw - 32px));
+  max-width: 480px;
 }
 
 .toast-pill-message {
-  background: #111111;
-  color: #ffffff;
-  padding: 10px 20px;
-  border-radius: var(--radius-pill);
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-  animation: toastSlideIn 0.3s ease;
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-radius: 14px;
+  background: #18191e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  color: #f3f4f6;
+  cursor: pointer;
   pointer-events: auto;
+  user-select: none;
+  animation: toastCenterPop 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
-@keyframes toastSlideIn {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.toast-pill-message:hover {
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .toast-pill-message.fade-out {
   opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
+  transform: scale(0.96) translateY(-8px);
+  pointer-events: none;
+  transition: all 0.2s ease;
 }
 
-.toast-pill-message.toast-success {
-  border-left: 4px solid #10b981;
-  background: #0f172a;
+@keyframes toastCenterPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
+/* Biểu tượng trạng thái */
+.toast-card-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+/* Khối nội dung thông báo */
+.toast-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  min-width: 0;
+}
+
+.toast-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--toast-title-color, #9ca3af);
+  line-height: 1.2;
+}
+
+.toast-card-text {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #ffffff;
+  word-break: break-word;
+}
+
+/* Nút X đóng thông báo */
+.toast-close-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  padding: 0;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.toast-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Phân loại màu sắc tinh tế - chỉ viền nhẹ & màu icon, không phát sáng LED */
 .toast-pill-message.toast-warning {
-  border-left: 4px solid #f59e0b;
-  background: #1c1917;
+  --toast-title-color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.28);
+}
+.toast-pill-message.toast-warning .toast-card-icon {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
 }
 
 .toast-pill-message.toast-error {
-  border-left: 4px solid #ef4444;
-  background: #1e1b1b;
+  --toast-title-color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.28);
+}
+.toast-pill-message.toast-error .toast-card-icon {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.toast-pill-message.toast-success {
+  --toast-title-color: #10b981;
+  border-color: rgba(16, 185, 129, 0.28);
+}
+.toast-pill-message.toast-success .toast-card-icon {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
 }
 
 .toast-pill-message.toast-info {
-  border-left: 4px solid var(--color-terracotta);
-  background: #111111;
+  --toast-title-color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.28);
 }
+.toast-pill-message.toast-info .toast-card-icon {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    width: calc(100vw - 28px);
+  }
+
+  .toast-pill-message {
+    padding: 16px 16px;
+    gap: 12px;
+  }
+
+  .toast-card-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .toast-card-text {
+    font-size: 14.5px;
+  }
+}
+
 
 /* Nâng cấp giao diện kính mờ hiện đại */
 
