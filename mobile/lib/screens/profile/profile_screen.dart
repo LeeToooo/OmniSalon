@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
-import '../admin/admin_hub_screen.dart';
 import '../my_bookings_screen.dart';
 import '../branches_screen.dart';
 import '../stylists_screen.dart';
@@ -220,67 +219,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () {
                   _showWarrantyDialog(context);
                 },
-              ),
-              const SizedBox(height: 20),
-
-              // =========================================================
-              // LỐI VÀO GIAO DIỆN QUẢN TRỊ (ADMIN PANEL HUB)
-              // =========================================================
-              Text(
-                'QUẢN TRỊ & HỆ THỐNG',
-                style: AppTheme.labelUppercase(fontSize: 11, color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 8),
-
-              Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceCard,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isAdmin ? AppTheme.accentGold : AppTheme.borderColor,
-                    width: isAdmin ? 1.4 : 1,
-                  ),
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentGold.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.admin_panel_settings_rounded, color: AppTheme.accentGold, size: 24),
-                  ),
-                  title: Row(
-                    children: [
-                      Text(
-                        'Trung Tâm Quản Trị Omni Admin',
-                        style: AppTheme.bodyMedium(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppTheme.accentGold,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                        child: const Text('FULL HUB', style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: AppTheme.charcoal)),
-                      ),
-                    ],
-                  ),
-                  subtitle: Text(
-                    'Điều phối lịch hẹn, thợ barber, POS quầy thu ngân, kho FEFO & hóa đơn',
-                    style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textSecondary),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const AdminHubScreen(),
-                      ),
-                    );
-                  },
-                ),
               ),
               const SizedBox(height: 20),
 

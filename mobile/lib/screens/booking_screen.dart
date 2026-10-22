@@ -8,6 +8,7 @@ import '../models/booking.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/editorial_image.dart';
+import 'my_bookings_screen.dart';
 
 class BookingScreen extends StatefulWidget {
   final Branch? initialBranch;
@@ -46,6 +47,14 @@ class _BookingScreenState extends State<BookingScreen> {
   final _phoneController = TextEditingController();
   final _notesController = TextEditingController();
 
+  final _serviceSearchController = TextEditingController();
+  String _serviceQuery = '';
+  final _stylistSearchController = TextEditingController();
+  String _stylistQuery = '';
+
+  List<Map<String, dynamic>> _slotAvailability = [];
+  bool _isLoadingSlots = false;
+
   final List<String> _timeSlots = [
     '09:00', '09:45', '10:30', '11:15', '13:30',
     '14:15', '15:00', '16:00', '17:00', '18:15', '19:30', '20:15'
@@ -71,6 +80,8 @@ class _BookingScreenState extends State<BookingScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _notesController.dispose();
+    _serviceSearchController.dispose();
+    _stylistSearchController.dispose();
     super.dispose();
   }
 
@@ -104,6 +115,34 @@ class _BookingScreenState extends State<BookingScreen> {
       }
 
       _isLoading = false;
+    });
+
+    _loadAvailableSlots();
+  }
+
+  Future<void> _loadAvailableSlots() async {
+    setState(() => _isLoadingSlots = true);
+    final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final stylistId = _selectedStylist?.id ?? '';
+    final slots = await ApiService.fetchAvailableSlots(dateStr, stylistId);
+    if (!mounted) return;
+    setState(() {
+      _slotAvailability = slots;
+      _isLoadingSlots = false;
+      // Nếu ca giờ đang chọn bị kín lịch thì tự động đổi sang ca giờ trống đầu tiên
+      final current = _slotAvailability.firstWhere(
+        (s) => s['time'] == _selectedTimeSlot,
+        orElse: () => {'available': true, 'isBooked': false},
+      );
+      if (current['available'] == false || current['isBooked'] == true) {
+        final firstAvail = _slotAvailability.firstWhere(
+          (s) => s['available'] == true && s['isBooked'] != true,
+          orElse: () => {},
+        );
+        if (firstAvail.isNotEmpty && firstAvail['time'] != null) {
+          _selectedTimeSlot = firstAvail['time'] as String;
+        }
+      }
     });
   }
 
@@ -159,9 +198,25 @@ class _BookingScreenState extends State<BookingScreen> {
       return;
     }
 
+    // Kiểm tra tính khả dụng của ca giờ trước khi ghi nhận
+    final selectedSlotInfo = _slotAvailability.firstWhere(
+      (s) => s['time'] == _selectedTimeSlot,
+      orElse: () => {'available': true, 'isBooked': false},
+    );
+    if (selectedSlotInfo['isBooked'] == true || selectedSlotInfo['available'] == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Khung giờ $_selectedTimeSlot thợ đã kín lịch! Vui lòng chọn ca khác.', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          backgroundColor: AppTheme.statusDanger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
-    final bookingCode = 'OS${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+    final bookingCode = ApiService.generateNextBookingCode();
     final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
     final selectedServicesList = _services
@@ -175,7 +230,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
 
     final booking = Booking(
-      id: 'BK_${DateTime.now().millisecondsSinceEpoch}',
+      id: bookingCode,
       bookingCode: bookingCode,
       customerName: _nameController.text.trim(),
       customerPhone: _phoneController.text.trim(),
@@ -202,7 +257,43 @@ class _BookingScreenState extends State<BookingScreen> {
     setState(() => _isSubmitting = false);
 
     if (res['success'] == true) {
-      _showSuccessDialog(booking);
+      // Làm mới trạng thái ca giờ ngay sau khi đặt
+      _loadAvailableSlots();
+
+      // Lấy mã chuẩn CSDL từ backend trả về nếu có (LH...)
+      String finalCode = bookingCode;
+      if (res['booking'] is Map) {
+        final bMap = res['booking'] as Map;
+        final innerBooking = bMap['booking'] is Map ? bMap['booking'] : bMap;
+        final sCode = innerBooking['bookingCode'] ?? innerBooking['id'] ?? innerBooking['MaLichHen'];
+        if (sCode != null && sCode.toString().isNotEmpty) {
+          finalCode = sCode.toString();
+        }
+      }
+
+      final confirmedBooking = Booking(
+        id: finalCode,
+        bookingCode: finalCode,
+        customerName: booking.customerName,
+        customerPhone: booking.customerPhone,
+        branchId: booking.branchId,
+        branchName: booking.branchName,
+        serviceId: booking.serviceId,
+        serviceName: booking.serviceName,
+        serviceIds: booking.serviceIds,
+        servicesList: booking.servicesList,
+        stylistId: booking.stylistId,
+        stylistName: booking.stylistName,
+        date: booking.date,
+        timeSlot: booking.timeSlot,
+        durationMinutes: booking.durationMinutes,
+        totalPrice: booking.totalPrice,
+        status: booking.status,
+        notes: booking.notes,
+        createdAt: booking.createdAt,
+      );
+
+      _showSuccessDialog(confirmedBooking);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -277,6 +368,29 @@ class _BookingScreenState extends State<BookingScreen> {
               child: const Text('HOÀN TẤT & QUAY LẠI'),
             ),
           ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            height: 42,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.search_rounded, size: 18, color: AppTheme.accentGold),
+              label: const Text(
+                'TRA CỨU / XEM LỊCH HẸN NÀY',
+                style: TextStyle(color: AppTheme.accentGold, fontWeight: FontWeight.w700, fontSize: 13),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppTheme.accentGold),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                setState(() => _currentStep = 0);
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -319,8 +433,9 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _buildStepperHeader() {
     final stepTitles = ['Chi Nhánh', 'Dịch Vụ', 'Thợ Barber', 'Thời Gian', 'Xác Nhận'];
+    final canPop = Navigator.of(context).canPop();
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: EdgeInsets.fromLTRB(canPop ? 6 : 16, canPop ? 6 : 12, 16, 12),
       decoration: const BoxDecoration(
         color: AppTheme.surfaceCard,
         border: Border(bottom: BorderSide(color: AppTheme.borderColor)),
@@ -329,11 +444,22 @@ class _BookingScreenState extends State<BookingScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'BƯỚC ${_currentStep + 1} / 5: ${stepTitles[_currentStep].toUpperCase()}',
-                style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
+              if (canPop) ...[
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppTheme.accentGold),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  tooltip: 'Trở về',
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                const SizedBox(width: 4),
+              ],
+              Expanded(
+                child: Text(
+                  'BƯỚC ${_currentStep + 1} / 5: ${stepTitles[_currentStep].toUpperCase()}',
+                  style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
+                ),
               ),
               Text(
                 'Tổng: ${currencyFormat.format(_totalPrice)}',
@@ -447,191 +573,308 @@ class _BookingScreenState extends State<BookingScreen> {
 
   // BƯỚC 2: CHỌN DỊCH VỤ & COMBO
   Widget _buildStepServices() {
+    final query = _serviceQuery.trim().toLowerCase();
+    final filtered = _services.where((s) {
+      if (query.isEmpty) return true;
+      return s.name.toLowerCase().contains(query) ||
+          s.description.toLowerCase().contains(query) ||
+          s.category.toLowerCase().contains(query);
+    }).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('2. Chọn Gói Dịch Vụ', style: AppTheme.headingSmall(fontSize: 20)),
         const SizedBox(height: 4),
         Text('Bạn có thể chọn một hoặc nhiều dịch vụ kết hợp cùng lúc.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
-        const SizedBox(height: 16),
-        ..._services.map((s) {
-          final isSelected = _selectedServiceIds.contains(s.id);
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                if (isSelected) {
-                  _selectedServiceIds.remove(s.id);
-                } else {
-                  _selectedServiceIds.add(s.id);
-                }
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
-                  width: isSelected ? 1.5 : 1,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Icon(
-                      isSelected ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-                      color: isSelected ? AppTheme.accentGold : AppTheme.textMuted,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(s.name, style: AppTheme.bodyLarge(fontWeight: FontWeight.w700)),
-                              if (s.isCombo) ...[
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.accentGold.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                  child: Text('VIP', style: AppTheme.labelUppercase(fontSize: 8.5, color: AppTheme.accentGold)),
-                                ),
-                              ],
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text('${s.duration} phút • ${s.description}', style: AppTheme.bodySmall(color: AppTheme.textSecondary), maxLines: 1),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      currencyFormat.format(s.price),
-                      style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.accentGold),
-                    ),
-                  ],
-                ),
-              ),
+        const SizedBox(height: 14),
+
+        // Thanh tìm kiếm dịch vụ
+        Container(
+          height: 42,
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceCard,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppTheme.borderColor),
+          ),
+          child: TextField(
+            controller: _serviceSearchController,
+            onChanged: (val) => setState(() => _serviceQuery = val),
+            style: AppTheme.bodyMedium(),
+            decoration: InputDecoration(
+              hintText: 'Tìm kiếm gói dịch vụ, cắt tóc, uốn, combo...',
+              hintStyle: AppTheme.bodySmall(color: AppTheme.textMuted),
+              prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.accentGold),
+              suffixIcon: _serviceQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
+                      onPressed: () {
+                        _serviceSearchController.clear();
+                        setState(() => _serviceQuery = '');
+                      },
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
-          );
-        }),
+          ),
+        ),
+
+        if (filtered.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text('Không tìm thấy dịch vụ phù hợp', style: AppTheme.bodyMedium(color: AppTheme.textSecondary)),
+            ),
+          )
+        else
+          ...filtered.map((s) {
+            final isSelected = _selectedServiceIds.contains(s.id);
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (isSelected) {
+                    _selectedServiceIds.remove(s.id);
+                  } else {
+                    _selectedServiceIds.add(s.id);
+                  }
+                });
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isSelected ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                        color: isSelected ? AppTheme.accentGold : AppTheme.textMuted,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    s.name,
+                                    style: AppTheme.bodyLarge(fontWeight: FontWeight.w700),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (s.isCombo) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.accentGold.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: Text('VIP', style: AppTheme.labelUppercase(fontSize: 8.5, color: AppTheme.accentGold)),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${s.duration} phút • ${s.description}',
+                              style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        currencyFormat.format(s.price),
+                        style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.accentGold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
       ],
     );
   }
 
   // BƯỚC 3: CHỌN THỢ TẠO MẪU
   Widget _buildStepStylists() {
+    final query = _stylistQuery.trim().toLowerCase();
+    final filtered = _stylists.where((st) {
+      if (query.isEmpty) return true;
+      return st.name.toLowerCase().contains(query) ||
+          st.level.toLowerCase().contains(query) ||
+          st.branchName.toLowerCase().contains(query);
+    }).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('3. Chọn Master Barber', style: AppTheme.headingSmall(fontSize: 20)),
         const SizedBox(height: 4),
         Text('Chọn thợ barber quen thuộc hoặc để Omni Salon chỉ định thợ tay nghề phù hợp.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
-        // Tùy chọn bất kỳ
-        GestureDetector(
-          onTap: () => setState(() => _selectedStylist = null),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: _selectedStylist == null ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: _selectedStylist == null ? AppTheme.accentGold : AppTheme.borderColor,
-                width: _selectedStylist == null ? 1.5 : 1,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: AppTheme.accentGold.withValues(alpha: 0.15),
-                    child: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentGold, size: 24),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Omni Tự Động Điều Phối', style: AppTheme.bodyLarge(fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 2),
-                        Text('Chỉ định Master Barber sẵn sàng phục vụ tốt nhất', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    _selectedStylist == null ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
-                    color: _selectedStylist == null ? AppTheme.accentGold : AppTheme.textMuted,
-                  ),
-                ],
-              ),
+        // Thanh tìm kiếm thợ
+        Container(
+          height: 42,
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceCard,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppTheme.borderColor),
+          ),
+          child: TextField(
+            controller: _stylistSearchController,
+            onChanged: (val) => setState(() => _stylistQuery = val),
+            style: AppTheme.bodyMedium(),
+            decoration: InputDecoration(
+              hintText: 'Tìm kiếm thợ theo tên, cấp bậc...',
+              hintStyle: AppTheme.bodySmall(color: AppTheme.textMuted),
+              prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.accentGold),
+              suffixIcon: _stylistQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
+                      onPressed: () {
+                        _stylistSearchController.clear();
+                        setState(() => _stylistQuery = '');
+                      },
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
           ),
         ),
 
-        ..._stylists.map((st) {
-          final isSelected = _selectedStylist?.id == st.id;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedStylist = st),
+        // Tùy chọn bất kỳ (chỉ hiển thị khi không tìm kiếm hoặc tìm kiếm rỗng)
+        if (query.isEmpty)
+          GestureDetector(
+            onTap: () {
+              setState(() => _selectedStylist = null);
+              _loadAvailableSlots();
+            },
             child: Container(
-              margin: const EdgeInsets.only(bottom: 10),
+              margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: isSelected ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
+                color: _selectedStylist == null ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
-                  width: isSelected ? 1.5 : 1,
+                  color: _selectedStylist == null ? AppTheme.accentGold : AppTheme.borderColor,
+                  width: _selectedStylist == null ? 1.5 : 1,
                 ),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: SizedBox(
-                        width: 54,
-                        height: 54,
-                        child: EditorialImage(imageUrl: st.avatar, fit: BoxFit.cover),
-                      ),
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: AppTheme.accentGold.withValues(alpha: 0.15),
+                      child: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentGold, size: 24),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(st.name, style: AppTheme.bodyLarge(fontWeight: FontWeight.w700)),
+                          Text('Omni Tự Động Điều Phối', style: AppTheme.bodyLarge(fontWeight: FontWeight.w700)),
                           const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Text(st.level, style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w600)),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.star_rounded, size: 14, color: AppTheme.accentGold),
-                              Text(st.rating.toStringAsFixed(1), style: AppTheme.bodySmall(fontWeight: FontWeight.w600)),
-                            ],
-                          ),
+                          Text('Chỉ định Master Barber sẵn sàng phục vụ tốt nhất', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
                         ],
                       ),
                     ),
                     Icon(
-                      isSelected ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
-                      color: isSelected ? AppTheme.accentGold : AppTheme.textMuted,
+                      _selectedStylist == null ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
+                      color: _selectedStylist == null ? AppTheme.accentGold : AppTheme.textMuted,
                     ),
                   ],
                 ),
               ),
             ),
-          );
-        }),
+          ),
+
+        if (filtered.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text('Không tìm thấy thợ phù hợp', style: AppTheme.bodyMedium(color: AppTheme.textSecondary)),
+            ),
+          )
+        else
+          ...filtered.map((st) {
+            final isSelected = _selectedStylist?.id == st.id;
+            return GestureDetector(
+              onTap: () {
+                setState(() => _selectedStylist = st);
+                _loadAvailableSlots();
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 54,
+                          height: 54,
+                          child: EditorialImage(imageUrl: st.avatar, fit: BoxFit.cover),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(st.name, style: AppTheme.bodyLarge(fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Text(st.level, style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w600)),
+                                const SizedBox(width: 8),
+                                const Icon(Icons.star_rounded, size: 14, color: AppTheme.accentGold),
+                                Text(st.rating.toStringAsFixed(1), style: AppTheme.bodySmall(fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        isSelected ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
+                        color: isSelected ? AppTheme.accentGold : AppTheme.textMuted,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
       ],
     );
   }
@@ -665,7 +908,10 @@ class _BookingScreenState extends State<BookingScreen> {
               final dayName = i == 0 ? 'Hôm nay' : (i == 1 ? 'Ngày mai' : 'T${date.weekday + 1}');
 
               return GestureDetector(
-                onTap: () => setState(() => _selectedDate = date),
+                onTap: () {
+                  setState(() => _selectedDate = date);
+                  _loadAvailableSlots();
+                },
                 child: Container(
                   width: 68,
                   decoration: BoxDecoration(
@@ -705,35 +951,109 @@ class _BookingScreenState extends State<BookingScreen> {
         const SizedBox(height: 24),
 
         // Khung giờ hẹn
-        Text('CHỌN KHUNG GIỜ CÒN TRỐNG', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: _timeSlots.map((time) {
-            final isSelected = _selectedTimeSlot == time;
-            return GestureDetector(
-              onTap: () => setState(() => _selectedTimeSlot = time),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.accentGold : AppTheme.surfaceCard,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
-                  ),
-                ),
-                child: Text(
-                  time,
-                  style: AppTheme.bodyMedium(
-                    color: isSelected ? AppTheme.charcoal : AppTheme.textPrimary,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  ),
-                ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('CHỌN KHUNG GIỜ CÒN TRỐNG', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
+            if (_selectedStylist != null)
+              Text(
+                'Thợ: ${_selectedStylist!.name.split(" ").last}',
+                style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textMuted),
               ),
-            );
-          }).toList(),
+          ],
         ),
+        const SizedBox(height: 10),
+        _isLoadingSlots
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
+                  ),
+                ),
+              )
+            : Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: _timeSlots.map((time) {
+                  final slotInfo = _slotAvailability.firstWhere(
+                    (s) => s['time'] == time,
+                    orElse: () => {'available': true, 'isBooked': false, 'isPast': false},
+                  );
+                  final isBooked = slotInfo['isBooked'] == true;
+                  final isPast = slotInfo['isPast'] == true;
+                  final isAvailable = slotInfo['available'] == true && !isBooked && !isPast;
+                  final isSelected = _selectedTimeSlot == time && isAvailable;
+
+                  return GestureDetector(
+                    onTap: isAvailable
+                        ? () => setState(() => _selectedTimeSlot = time)
+                        : () {
+                            final reason = isBooked
+                                ? 'Khung giờ $time thợ ${_selectedStylist?.name ?? "được chọn"} đã kín lịch! Vui lòng chọn ca khác.'
+                                : 'Khung giờ $time đã trôi qua so với thời gian hiện tại!';
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(reason, style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+                                backgroundColor: AppTheme.statusDanger,
+                                duration: const Duration(seconds: 3),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppTheme.accentGold
+                            : (!isAvailable
+                                ? AppTheme.surfaceCard.withValues(alpha: 0.35)
+                                : AppTheme.surfaceCard),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppTheme.accentGold
+                              : (!isAvailable
+                                  ? AppTheme.borderColorSubtle
+                                  : AppTheme.borderColor),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            time,
+                            style: AppTheme.bodyMedium(
+                              color: isSelected
+                                  ? AppTheme.charcoal
+                                  : (!isAvailable
+                                      ? AppTheme.textMuted
+                                      : AppTheme.textPrimary),
+                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                            ).copyWith(
+                              decoration: !isAvailable ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                          if (!isAvailable) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              isBooked ? 'Kín' : 'Qua',
+                              style: const TextStyle(
+                                fontSize: 8.5,
+                                color: AppTheme.statusDanger,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
       ],
     );
   }
@@ -864,6 +1184,9 @@ class _BookingScreenState extends State<BookingScreen> {
                     : () {
                         if (_currentStep < 4) {
                           setState(() => _currentStep++);
+                          if (_currentStep == 3) {
+                            _loadAvailableSlots();
+                          }
                         } else {
                           _submitBooking();
                         }

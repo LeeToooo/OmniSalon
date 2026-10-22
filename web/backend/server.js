@@ -289,6 +289,16 @@ async function generateNextBookingId() {
   return 'LH' + (nextNum < 10 ? '0' + nextNum : nextNum);
 }
 
+async function generateNextOrderId() {
+  const rows = await querySql("SELECT TOP 1 MaDonHang FROM DonHang WHERE MaDonHang LIKE 'DH%' AND LEN(MaDonHang) <= 6 ORDER BY LEN(MaDonHang) DESC, MaDonHang DESC");
+  let nextNum = 11;
+  if (rows && rows.length > 0) {
+    const m = rows[0].MaDonHang.match(/DH(\d+)/i);
+    if (m) nextNum = parseInt(m[1], 10) + 1;
+  }
+  return 'DH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+}
+
 async function resolveServiceInfo(serviceId, serviceName) {
   if (serviceId) {
     const dv = await querySql('SELECT MaDichVu, TenDichVu, ThoiLuong, Gia FROM DichVu WHERE MaDichVu = ?', [serviceId]);
@@ -2340,15 +2350,41 @@ const server = http.createServer(async (req, res) => {
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
         const date = parsedUrl.searchParams.get('date') || todayIso;
-        const stylistId = parsedUrl.searchParams.get('stylistId') || 'NV02';
-        const bookedRows = await querySql(
-          `SELECT CONVERT(VARCHAR(8), GioBatDau) AS GioBatDau 
-           FROM LichHen 
-           WHERE MaNhanVien = ? AND CONVERT(VARCHAR(10), NgayHen, 120) = ? AND TrangThai NOT IN (N'Đã hủy')`,
-          [stylistId, date]
-        );
-        const bookedTimes = new Set(bookedRows.map(r => formatTime(r.GioBatDau)));
-        const allSlots = ['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30', '19:30', '20:30'];
+        const stylistId = (parsedUrl.searchParams.get('stylistId') || '').trim();
+
+        let bookedRows = [];
+        if (stylistId && stylistId !== 'all') {
+          bookedRows = await querySql(
+            `SELECT CONVERT(VARCHAR(8), lh.GioBatDau) AS GioBatDau 
+             FROM LichHen lh
+             LEFT JOIN NhanVien nv ON lh.MaNhanVien = nv.MaNhanVien
+             WHERE (lh.MaNhanVien = ? OR nv.HoTen LIKE ?) 
+               AND CONVERT(VARCHAR(10), lh.NgayHen, 120) = ? 
+               AND lh.TrangThai NOT IN (N'Đã hủy')`,
+            [stylistId, `%${stylistId}%`, date]
+          );
+        } else {
+          bookedRows = await querySql(
+            `SELECT CONVERT(VARCHAR(8), GioBatDau) AS GioBatDau 
+             FROM LichHen 
+             WHERE CONVERT(VARCHAR(10), NgayHen, 120) = ? AND TrangThai NOT IN (N'Đã hủy')`,
+            [date]
+          );
+        }
+
+        const formatTimeStr = (val) => {
+          if (!val) return '';
+          const str = String(val).trim();
+          const parts = str.split(':');
+          return parts.length >= 2 ? `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}` : str.substring(0, 5);
+        };
+
+        const bookedTimes = new Set(bookedRows.map(r => formatTimeStr(r.GioBatDau)));
+        const allSlots = [
+          '09:00', '09:45', '10:30', '11:15', '13:30',
+          '14:15', '15:00', '16:00', '17:00', '18:15',
+          '19:30', '20:15'
+        ];
         const isToday = (date === todayIso);
         const isPastDate = (date < todayIso);
 
@@ -2803,13 +2839,15 @@ const server = http.createServer(async (req, res) => {
           }
         }
 
-        const maxDh = await querySql(`SELECT TOP 1 MaDonHang FROM DonHang WHERE MaDonHang LIKE 'DH%' ORDER BY LEN(MaDonHang) DESC, MaDonHang DESC`);
-        let nextN = 11;
-        if (maxDh && maxDh[0]) {
-          const nm = maxDh[0].MaDonHang.match(/DH(\d+)/i);
-          if (nm) nextN = parseInt(nm[1], 10) + 1;
+        let id = order.id || order.orderCode;
+        if (!id || !id.startsWith('DH') || id.length > 6 || isNaN(parseInt(id.replace('DH', ''), 10))) {
+          id = await generateNextOrderId();
+        } else {
+          const existing = await querySql('SELECT MaDonHang FROM DonHang WHERE MaDonHang = ?', [id]);
+          if (existing && existing.length > 0) {
+            id = await generateNextOrderId();
+          }
         }
-        const id = order.id && order.id.startsWith('DH') && order.id.length <= 20 ? order.id : ('DH' + (nextN < 10 ? '0' + nextN : nextN));
 
         const khId = await resolveOrCreateCustomer({
           customerId: order.customerId || order.userId,

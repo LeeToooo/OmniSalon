@@ -32,6 +32,11 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
     {'id': 'Chăm Sóc & Phục Hồi', 'label': 'Dưỡng Sinh & Râu'},
   ];
 
+  final _stylistSearchController = TextEditingController();
+  String _stylistQuery = '';
+  final _serviceSearchController = TextEditingController();
+  String _serviceQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +47,8 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
   @override
   void dispose() {
     _tabController.dispose();
+    _stylistSearchController.dispose();
+    _serviceSearchController.dispose();
     super.dispose();
   }
 
@@ -253,17 +260,57 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
       );
     }
 
+    final query = _serviceQuery.trim().toLowerCase();
     final filtered = _allServices.where((s) {
-      if (_selectedCategory == 'all') return true;
-      if (_selectedCategory == 'Combo VIP') return s.isCombo;
-      return s.category == _selectedCategory;
+      final matchesCat = _selectedCategory == 'all'
+          ? true
+          : (_selectedCategory == 'Combo VIP' ? s.isCombo : s.category == _selectedCategory);
+      if (!matchesCat) return false;
+      if (query.isEmpty) return true;
+      return s.name.toLowerCase().contains(query) ||
+          s.description.toLowerCase().contains(query) ||
+          s.category.toLowerCase().contains(query);
     }).toList();
 
     return Column(
       children: [
+        // Thanh tìm kiếm dịch vụ
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
+          child: Container(
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: TextField(
+              controller: _serviceSearchController,
+              onChanged: (val) => setState(() => _serviceQuery = val),
+              style: AppTheme.bodyMedium(),
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm dịch vụ, combo, uốn nhuộm...',
+                hintStyle: AppTheme.bodySmall(color: AppTheme.textMuted),
+                prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.accentGold),
+                suffixIcon: _serviceQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
+                        onPressed: () {
+                          _serviceSearchController.clear();
+                          setState(() => _serviceQuery = '');
+                        },
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+            ),
+          ),
+        ),
+
         // Filter Chips ngang
         SizedBox(
-          height: 46,
+          height: 44,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             scrollDirection: Axis.horizontal,
@@ -297,14 +344,21 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
         const SizedBox(height: 6),
 
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            itemCount: filtered.length,
-            itemBuilder: (context, index) {
-              final s = filtered[index];
-              return _buildDetailedServiceCard(s);
-            },
-          ),
+          child: filtered.isEmpty
+              ? Center(
+                  child: Text(
+                    'Không tìm thấy dịch vụ phù hợp',
+                    style: AppTheme.bodyMedium(color: AppTheme.textSecondary),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final s = filtered[index];
+                    return _buildDetailedServiceCard(s);
+                  },
+                ),
         ),
       ],
     );
@@ -437,88 +491,143 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      itemCount: _allStylists.length,
-      itemBuilder: (context, index) {
-        final barber = _allStylists[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceCard,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppTheme.borderColor),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: SizedBox(
-                    width: 72,
-                    height: 72,
-                    child: EditorialImage(
-                      imageUrl: barber.avatar,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.accentGold.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              barber.level.toUpperCase(),
-                              style: AppTheme.labelUppercase(fontSize: 9, color: AppTheme.accentGold),
-                            ),
-                          ),
-                          const Spacer(),
-                          const Icon(Icons.star_rounded, size: 15, color: AppTheme.accentGold),
-                          const SizedBox(width: 3),
-                          Text(
-                            barber.rating.toStringAsFixed(1),
-                            style: AppTheme.bodySmall(fontWeight: FontWeight.w700),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        barber.name,
-                        style: AppTheme.headingSmall(fontSize: 16),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${barber.experienceYears}+ Năm KN • ${barber.branchName.split("-").last.trim()}',
-                        style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.calendar_month_outlined, color: AppTheme.accentGold, size: 22),
-                  tooltip: 'Đặt lịch với thợ này',
-                  onPressed: () {
-                    if (widget.onNavigateToBooking != null) {
-                      widget.onNavigateToBooking!(null);
-                    }
-                  },
-                ),
-              ],
+    final query = _stylistQuery.trim().toLowerCase();
+    final filtered = _allStylists.where((barber) {
+      if (query.isEmpty) return true;
+      return barber.name.toLowerCase().contains(query) ||
+          barber.level.toLowerCase().contains(query) ||
+          barber.branchName.toLowerCase().contains(query);
+    }).toList();
+
+    return Column(
+      children: [
+        // Thanh tìm kiếm thợ
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
+          child: Container(
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: TextField(
+              controller: _stylistSearchController,
+              onChanged: (val) => setState(() => _stylistQuery = val),
+              style: AppTheme.bodyMedium(),
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm thợ theo tên, tay nghề, chi nhánh...',
+                hintStyle: AppTheme.bodySmall(color: AppTheme.textMuted),
+                prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.accentGold),
+                suffixIcon: _stylistQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
+                        onPressed: () {
+                          _stylistSearchController.clear();
+                          setState(() => _stylistQuery = '');
+                        },
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
             ),
           ),
-        );
-      },
+        ),
+
+        Expanded(
+          child: filtered.isEmpty
+              ? Center(
+                  child: Text(
+                    'Không tìm thấy thợ phù hợp',
+                    style: AppTheme.bodyMedium(color: AppTheme.textSecondary),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final barber = filtered[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.borderColor),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: SizedBox(
+                                width: 72,
+                                height: 72,
+                                child: EditorialImage(
+                                  imageUrl: barber.avatar,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.accentGold.withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          barber.level.toUpperCase(),
+                                          style: AppTheme.labelUppercase(fontSize: 9, color: AppTheme.accentGold),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      const Icon(Icons.star_rounded, size: 15, color: AppTheme.accentGold),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        barber.rating.toStringAsFixed(1),
+                                        style: AppTheme.bodySmall(fontWeight: FontWeight.w700),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    barber.name,
+                                    style: AppTheme.headingSmall(fontSize: 16),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${barber.experienceYears}+ Năm KN • ${barber.branchName.split("-").last.trim()}',
+                                    style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.calendar_month_outlined, color: AppTheme.accentGold, size: 22),
+                              tooltip: 'Đặt lịch với thợ này',
+                              onPressed: () {
+                                if (widget.onNavigateToBooking != null) {
+                                  widget.onNavigateToBooking!(null);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

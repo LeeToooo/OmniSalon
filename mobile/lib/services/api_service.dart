@@ -134,22 +134,54 @@ class ApiService {
 
   // 4. LẤY KHUNG GIỜ TRỐNG CHO ĐẶT LỊCH
   static Future<List<Map<String, dynamic>>> fetchAvailableSlots(String date, String stylistId) async {
+    final defaultSlots = [
+      '09:00', '09:45', '10:30', '11:15', '13:30',
+      '14:15', '15:00', '16:00', '17:00', '18:15',
+      '19:30', '20:15'
+    ];
+
+    List<Map<String, dynamic>> slots = [];
     try {
       final res = await http.get(
         Uri.parse('$baseUrl/bookings/available-slots?date=$date&stylistId=$stylistId'),
       ).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data.cast<Map<String, dynamic>>();
+        slots = data.cast<Map<String, dynamic>>();
       }
     } catch (_) {}
 
-    final defaultSlots = [
-      '08:30', '09:15', '10:00', '10:45', '11:30',
-      '14:00', '14:45', '15:30', '16:15', '17:00',
-      '18:00', '18:45', '19:30', '20:15'
-    ];
-    return defaultSlots.map((t) => {'time': t, 'available': true}).toList();
+    if (slots.isEmpty) {
+      slots = defaultSlots.map((t) => {'time': t, 'available': true, 'isBooked': false}).toList();
+    }
+
+    // Luôn đối soát thêm với các lịch hẹn cục bộ mới tạo trong phiên
+    final localBookedTimes = _localBookings.where((b) {
+      if (b.status == 'Cancelled' || b.status == 'Đã hủy') return false;
+      if (b.date != date) return false;
+      if (stylistId.isNotEmpty && stylistId != 'all') {
+        return b.stylistId == stylistId ||
+            b.stylistName.toLowerCase().contains(stylistId.toLowerCase());
+      }
+      return true;
+    }).map((b) => b.timeSlot).toSet();
+
+    if (localBookedTimes.isNotEmpty) {
+      slots = slots.map((s) {
+        final t = s['time'] as String;
+        if (localBookedTimes.contains(t)) {
+          return {
+            'time': t,
+            'available': false,
+            'isBooked': true,
+            'reason': 'Kín lịch'
+          };
+        }
+        return s;
+      }).toList();
+    }
+
+    return slots;
   }
 
   // 5. LẤY DANH SÁCH SẢN PHẨM & TÌM KIẾM
@@ -217,9 +249,34 @@ class ApiService {
     ).toList();
   }
 
+  // 7b. SINH MÃ LỊCH HẸN TUẦN TỰ CHUẨN CSDL (LH01, LH02... LH11, LH12...)
+  static String generateNextBookingCode() {
+    int maxSeq = 10;
+    for (final b in _localBookings) {
+      final m = RegExp(r'LH(\d+)', caseSensitive: false).firstMatch(b.bookingCode);
+      if (m != null) {
+        final n = int.tryParse(m.group(1) ?? '0') ?? 0;
+        if (n > maxSeq) maxSeq = n;
+      }
+    }
+    return 'LH${(maxSeq + 1).toString().padLeft(2, '0')}';
+  }
+
+  // 7c. SINH MÃ ĐƠN HÀNG TUẦN TỰ CHUẨN CSDL (DH01, DH02... DH11, DH12...)
+  static String generateNextOrderCode() {
+    int maxSeq = 10;
+    for (final o in _localOrders) {
+      final m = RegExp(r'DH(\d+)', caseSensitive: false).firstMatch(o.orderCode);
+      if (m != null) {
+        final n = int.tryParse(m.group(1) ?? '0') ?? 0;
+        if (n > maxSeq) maxSeq = n;
+      }
+    }
+    return 'DH${(maxSeq + 1).toString().padLeft(2, '0')}';
+  }
+
   // 8. ĐẶT LỊCH MỚI
   static Future<Map<String, dynamic>> createBooking(Booking booking) async {
-    _localBookings.insert(0, booking);
     try {
       final res = await http.post(
         Uri.parse('$baseUrl/bookings'),
@@ -228,6 +285,36 @@ class ApiService {
       ).timeout(const Duration(seconds: 5));
       if (res.statusCode == 200 || res.statusCode == 201) {
         final data = jsonDecode(utf8.decode(res.bodyBytes));
+        String finalCode = booking.bookingCode;
+        if (data is Map) {
+          final innerBooking = data['booking'] is Map ? data['booking'] : data;
+          final sCode = innerBooking['bookingCode'] ?? innerBooking['id'] ?? innerBooking['MaLichHen'];
+          if (sCode != null && sCode.toString().isNotEmpty) {
+            finalCode = sCode.toString();
+          }
+        }
+        final updatedBooking = Booking(
+          id: finalCode,
+          bookingCode: finalCode,
+          customerName: booking.customerName,
+          customerPhone: booking.customerPhone,
+          branchId: booking.branchId,
+          branchName: booking.branchName,
+          serviceId: booking.serviceId,
+          serviceName: booking.serviceName,
+          serviceIds: booking.serviceIds,
+          servicesList: booking.servicesList,
+          stylistId: booking.stylistId,
+          stylistName: booking.stylistName,
+          date: booking.date,
+          timeSlot: booking.timeSlot,
+          durationMinutes: booking.durationMinutes,
+          totalPrice: booking.totalPrice,
+          status: booking.status,
+          notes: booking.notes,
+          createdAt: booking.createdAt,
+        );
+        _localBookings.insert(0, updatedBooking);
         return {'success': true, 'booking': data};
       } else {
         try {
@@ -236,7 +323,44 @@ class ApiService {
         } catch (_) {}
       }
     } catch (_) {
-      return {'success': true, 'offline': true, 'message': 'Đã ghi nhận lịch hẹn trên thiết bị!'};
+      // Fallback offline: Sinh mã tuần tự LH01, LH02...
+      int maxSeq = 10;
+      for (final b in _localBookings) {
+        final m = RegExp(r'LH(\d+)', caseSensitive: false).firstMatch(b.bookingCode);
+        if (m != null) {
+          final n = int.tryParse(m.group(1) ?? '0') ?? 0;
+          if (n > maxSeq) maxSeq = n;
+        }
+      }
+      final nextLh = 'LH${(maxSeq + 1).toString().padLeft(2, '0')}';
+      final offlineBooking = Booking(
+        id: nextLh,
+        bookingCode: nextLh,
+        customerName: booking.customerName,
+        customerPhone: booking.customerPhone,
+        branchId: booking.branchId,
+        branchName: booking.branchName,
+        serviceId: booking.serviceId,
+        serviceName: booking.serviceName,
+        serviceIds: booking.serviceIds,
+        servicesList: booking.servicesList,
+        stylistId: booking.stylistId,
+        stylistName: booking.stylistName,
+        date: booking.date,
+        timeSlot: booking.timeSlot,
+        durationMinutes: booking.durationMinutes,
+        totalPrice: booking.totalPrice,
+        status: booking.status,
+        notes: booking.notes,
+        createdAt: booking.createdAt,
+      );
+      _localBookings.insert(0, offlineBooking);
+      return {
+        'success': true,
+        'offline': true,
+        'booking': {'bookingCode': nextLh, 'id': nextLh},
+        'message': 'Đã ghi nhận lịch hẹn trên thiết bị!'
+      };
     }
     return {'success': false, 'message': 'Không thể kết nối máy chủ'};
   }
@@ -339,19 +463,74 @@ class ApiService {
     return _localOrders;
   }
 
-  // 13. TẠO ĐƠN HÀNG MỚI
-  static Future<bool> createOrder(SalonOrder order) async {
-    _localOrders.insert(0, order);
+  // 13. TẠO ĐƠN HÀNG MỚI (TRẢ VỀ MÃ ĐƠN HÀNG CHUẨN CSDL DH01, DH02...)
+  static Future<String?> createOrder(SalonOrder order) async {
     try {
       final res = await http.post(
         Uri.parse('$baseUrl/orders'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(order.toJson()),
       ).timeout(const Duration(seconds: 5));
-      return res.statusCode == 200 || res.statusCode == 201;
-    } catch (_) {
-      return true;
+
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final data = jsonDecode(utf8.decode(res.bodyBytes));
+        String? serverId;
+        if (data is Map) {
+          if (data['order'] is Map) {
+            serverId = (data['order']['orderCode'] ?? data['order']['id'] ?? data['order']['MaDonHang'])?.toString();
+          } else {
+            serverId = (data['orderCode'] ?? data['id'] ?? data['MaDonHang'])?.toString();
+          }
+        }
+        if (serverId != null && serverId.isNotEmpty) {
+          final serverOrder = SalonOrder(
+            id: serverId,
+            orderCode: serverId,
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            shippingAddress: order.shippingAddress,
+            items: order.items,
+            totalAmount: order.totalAmount,
+            discountAmount: order.discountAmount,
+            voucherCode: order.voucherCode,
+            paymentMethod: order.paymentMethod,
+            paymentStatus: order.paymentStatus,
+            orderStatus: order.orderStatus,
+            createdAt: order.createdAt,
+          );
+          _localOrders.insert(0, serverOrder);
+          return serverId;
+        }
+      }
+    } catch (_) {}
+
+    // Fallback offline: Sinh mã tuần tự chuẩn CSDL (DH01, DH02... DH11, DH12...)
+    int maxSeq = 10;
+    for (final o in _localOrders) {
+      final m = RegExp(r'DH(\d+)', caseSensitive: false).firstMatch(o.id);
+      if (m != null) {
+        final n = int.tryParse(m.group(1) ?? '0') ?? 0;
+        if (n > maxSeq) maxSeq = n;
+      }
     }
+    final nextId = 'DH${(maxSeq + 1).toString().padLeft(2, '0')}';
+    final offlineOrder = SalonOrder(
+      id: nextId,
+      orderCode: nextId,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      shippingAddress: order.shippingAddress,
+      items: order.items,
+      totalAmount: order.totalAmount,
+      discountAmount: order.discountAmount,
+      voucherCode: order.voucherCode,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      orderStatus: order.orderStatus,
+      createdAt: order.createdAt,
+    );
+    _localOrders.insert(0, offlineOrder);
+    return nextId;
   }
 
   // =========================================================================
@@ -506,7 +685,15 @@ class ApiService {
 
   // 20. TẠO HÓA ĐƠN POS THU NGÂN TẠI QUẦY (POST /api/pos/checkout)
   static Future<Invoice> createPosInvoice(Map<String, dynamic> billData) async {
-    final invoiceNumber = 'HD${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+    int maxInv = 10;
+    for (final inv in _seedInvoices) {
+      final m = RegExp(r'HD(\d+)', caseSensitive: false).firstMatch(inv.invoiceNumber);
+      if (m != null) {
+        final n = int.tryParse(m.group(1) ?? '0') ?? 0;
+        if (n > maxInv) maxInv = n;
+      }
+    }
+    final invoiceNumber = 'HD${(maxInv + 1).toString().padLeft(2, '0')}';
     final inv = Invoice(
       id: invoiceNumber,
       invoiceNumber: invoiceNumber,

@@ -5,6 +5,7 @@ import '../models/order.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/editorial_image.dart';
+import 'auth/login_screen.dart';
 
 class CartScreen extends StatefulWidget {
   final List<OrderItem> cart;
@@ -80,8 +81,167 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  void _showRequireLoginDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surfaceCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppTheme.accentGold.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.lock_outline_rounded, color: AppTheme.accentGold, size: 30),
+            ),
+            const SizedBox(height: 16),
+            Text('Yêu Cầu Đăng Nhập', style: AppTheme.headingSmall(fontSize: 19)),
+            const SizedBox(height: 10),
+            Text(
+              'Quý khách cần đăng nhập tài khoản để đặt hàng mỹ phẩm và theo dõi đơn hàng.',
+              style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('ĐỂ SAU'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    Navigator.of(ctx).pop();
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => LoginScreen(
+                          onLoginSuccess: () {
+                            if (mounted) {
+                              setState(() {
+                                final u = AuthService.currentUser;
+                                if (u != null) {
+                                  _nameController.text = u.fullName;
+                                  _phoneController.text = u.phone;
+                                }
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    );
+                    if (mounted && AuthService.isLoggedIn) {
+                      setState(() {
+                        final u = AuthService.currentUser;
+                        if (u != null) {
+                          _nameController.text = u.fullName;
+                          _phoneController.text = u.phone;
+                        }
+                      });
+                    }
+                  },
+                  child: const Text('ĐĂNG NHẬP'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoginNoticeBanner() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline_rounded, color: AppTheme.accentGold, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Chưa đăng nhập tài khoản',
+                  style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.accentGold),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Vui lòng đăng nhập để tiến hành đặt hàng.',
+                  style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontSize: 11.5),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => LoginScreen(
+                    onLoginSuccess: () {
+                      if (mounted) {
+                        setState(() {
+                          final u = AuthService.currentUser;
+                          if (u != null) {
+                            _nameController.text = u.fullName;
+                            _phoneController.text = u.phone;
+                          }
+                        });
+                      }
+                    },
+                  ),
+                ),
+              );
+              if (mounted && AuthService.isLoggedIn) {
+                setState(() {
+                  final u = AuthService.currentUser;
+                  if (u != null) {
+                    _nameController.text = u.fullName;
+                    _phoneController.text = u.phone;
+                  }
+                });
+              }
+            },
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              backgroundColor: AppTheme.accentGold.withValues(alpha: 0.15),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            child: Text(
+              'Đăng nhập',
+              style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.accentGold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _processCheckout() async {
     if (widget.cart.isEmpty) return;
+
+    // 1. Yêu cầu bắt buộc đăng nhập tài khoản mới cho đặt hàng
+    if (!AuthService.isLoggedIn || AuthService.currentUser == null) {
+      _showRequireLoginDialog();
+      return;
+    }
 
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
@@ -98,10 +258,10 @@ class _CartScreenState extends State<CartScreen> {
 
     setState(() => _isCheckingOut = true);
 
-    final orderCode = 'DH${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+    // Không dùng timestamp random (DH057533...) mà để server/database sinh mã chuẩn DH01, DH02...
     final newOrder = SalonOrder(
-      id: orderCode,
-      orderCode: orderCode,
+      id: '',
+      orderCode: '',
       customerName: name,
       customerPhone: phone,
       shippingAddress: _addressController.text.trim().isEmpty ? 'Nhận tại quầy chi nhánh' : _addressController.text.trim(),
@@ -115,7 +275,7 @@ class _CartScreenState extends State<CartScreen> {
       createdAt: DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
     );
 
-    await ApiService.createOrder(newOrder);
+    final assignedOrderCode = await ApiService.createOrder(newOrder);
 
     setState(() {
       widget.cart.clear();
@@ -125,7 +285,7 @@ class _CartScreenState extends State<CartScreen> {
     if (widget.onUpdateCart != null) widget.onUpdateCart!();
     if (!mounted) return;
 
-    _showSuccessDialog(orderCode);
+    _showSuccessDialog(assignedOrderCode ?? 'DH01');
   }
 
   void _showSuccessDialog(String orderCode) {
@@ -215,6 +375,7 @@ class _CartScreenState extends State<CartScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (!AuthService.isLoggedIn) _buildLoginNoticeBanner(),
                     Text('DANH SÁCH SẢN PHẨM (${widget.cart.length})', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
                     const SizedBox(height: 10),
 
