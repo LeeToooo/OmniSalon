@@ -30,12 +30,38 @@ class MainScaffoldState extends State<MainScaffold> {
   final List<OrderItem> _sharedCart = [];
   List<Branch> _branches = [];
   Branch? _selectedBranch;
+  String? _lastUserId;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _lastUserId = AuthService.currentUser?.id;
+    AuthService.userNotifier.addListener(_onAuthChanged);
     _loadBranches();
+  }
+
+  void _onAuthChanged() {
+    final currentUser = AuthService.userNotifier.value;
+    final currentId = currentUser?.id;
+    // Tự động xóa sạch giỏ hàng khi người dùng đăng xuất hoặc chuyển đổi tài khoản khác
+    if (_lastUserId != null && _lastUserId != currentId) {
+      _sharedCart.clear();
+    }
+    _lastUserId = currentId;
+    if (mounted) setState(() {});
+  }
+
+  void clearCart() {
+    setState(() {
+      _sharedCart.clear();
+    });
+  }
+
+  @override
+  void dispose() {
+    AuthService.userNotifier.removeListener(_onAuthChanged);
+    super.dispose();
   }
 
   Future<void> _loadBranches() async {

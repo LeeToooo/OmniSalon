@@ -48,6 +48,7 @@ class OrderItem {
 class SalonOrder {
   final String id;
   final String orderCode;
+  final String? userId;
   final String customerName;
   final String customerPhone;
   final String shippingAddress;
@@ -63,6 +64,7 @@ class SalonOrder {
   SalonOrder({
     required this.id,
     required this.orderCode,
+    this.userId,
     required this.customerName,
     required this.customerPhone,
     required this.shippingAddress,
@@ -92,6 +94,7 @@ class SalonOrder {
     return SalonOrder(
       id: json['id'] ?? json['MaDonHang'] ?? '',
       orderCode: json['orderCode'] ?? json['MaDonHang'] ?? json['id'] ?? 'DH01',
+      userId: json['userId']?.toString() ?? json['MaKhachHang']?.toString(),
       customerName: json['customerName'] ?? json['TenKhachHang'] ?? 'Khách Hàng',
       customerPhone: json['customerPhone'] ?? json['SdtKhachHang'] ?? json['SoDienThoai'] ?? '',
       shippingAddress: json['shippingAddress'] ?? json['DiaChiGiaoHang'] ?? json['DiaChiGiao'] ?? 'Nhận tại quầy',
@@ -110,6 +113,7 @@ class SalonOrder {
     return {
       'id': id,
       'orderCode': orderCode,
+      'userId': userId,
       'customerName': customerName,
       'customerPhone': customerPhone,
       'shippingAddress': shippingAddress,

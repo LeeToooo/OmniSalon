@@ -5,9 +5,16 @@
 // =========================================================================
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const sql = require('msnodesqlv8');
+let aiService = null;
+try {
+  aiService = require('./ai_service');
+} catch (_) {
+  aiService = null;
+}
 
 const PORT = process.env.PORT || 3000;
 const DB_NAME = process.env.SQL_DATABASE || 'QL_SALONTOC';
@@ -1371,6 +1378,8 @@ const server = http.createServer(async (req, res) => {
       if (pathname === '/api/auth/reset-password' && method === 'POST') {
         const data = parsedBody || {};
         const identifier = (data.identifier || data.email || data.phone || '').trim();
+        const email = (data.email || identifier).trim();
+        const phone = (data.phone || identifier).trim();
         const newPassword = (data.newPassword || data.password || '').trim();
 
         if (!identifier || !newPassword) {
@@ -1381,11 +1390,13 @@ const server = http.createServer(async (req, res) => {
         await querySql(
           `UPDATE TaiKhoan 
            SET MatKhau = ? 
-           WHERE TenDangNhap = ? 
-              OR MaKhachHang IN (SELECT MaKhachHang FROM KhachHang WHERE Email = ? OR SoDienThoai = ?)
-              OR MaNhanVien IN (SELECT MaNhanVien FROM NhanVien WHERE Email = ? OR SoDienThoai = ?);`,
-          [newPassword, identifier, identifier, identifier, identifier, identifier]
+           WHERE TenDangNhap = ? OR TenDangNhap = ? OR TenDangNhap = ?
+              OR MaKhachHang IN (SELECT MaKhachHang FROM KhachHang WHERE Email = ? OR Email = ? OR SoDienThoai = ? OR SoDienThoai = ?)
+              OR MaNhanVien IN (SELECT MaNhanVien FROM NhanVien WHERE Email = ? OR Email = ? OR SoDienThoai = ? OR SoDienThoai = ?);`,
+          [newPassword, identifier, phone, email, identifier, email, identifier, phone, identifier, email, identifier, phone]
         );
+
+        console.log(`[SQL EXEC] Đã đổi mật khẩu thành công cho tài khoản ${identifier} (phone: ${phone}, email: ${email})!`);
 
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
@@ -2381,9 +2392,9 @@ const server = http.createServer(async (req, res) => {
 
         const bookedTimes = new Set(bookedRows.map(r => formatTimeStr(r.GioBatDau)));
         const allSlots = [
-          '09:00', '09:45', '10:30', '11:15', '13:30',
-          '14:15', '15:00', '16:00', '17:00', '18:15',
-          '19:30', '20:15'
+          '08:30', '09:30', '10:30', '11:30',
+          '13:30', '14:30', '15:30', '16:30',
+          '17:30', '18:30', '19:30', '20:30'
         ];
         const isToday = (date === todayIso);
         const isPastDate = (date < todayIso);
@@ -4098,7 +4109,169 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ success: true, message: 'Đã xóa thông báo khỏi SQL Server', id }));
       }
 
-      // --- 36. PHỤC VỤ FILE TĨNH  - STATIC FILES -  & SPA FALLBACK ---
+      // --- 36. AI BARBER VISION & RESTYLE ENGINE (REAL AI ENDPOINTS) ---
+      if (pathname.startsWith('/api/ai/')) {
+        if (!aiService) {
+          res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Tính năng AI Studio đang tạm thời tắt để kiểm thử.' }));
+        }
+      }
+
+      // 36.1. Danh mục phom tóc & màu nhuộm AI
+      if (pathname === '/api/ai/hairstyles' && method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({
+          success: true,
+          hairstyles: Object.values(aiService.HAIRSTYLES),
+          hairColors: Object.values(aiService.HAIR_COLORS)
+        }));
+      }
+
+      // 36.2. Phân tích ngũ quan, dáng mặt & sắc tố da thật
+      if (pathname === '/api/ai/analyze-face' && method === 'POST') {
+        const body = parsedBody || {};
+        const image = body.image || body.imageBase64 || body.url || body.photoUrl || '';
+        try {
+          const analysis = await aiService.analyzeFaceGeometry(image);
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify(analysis));
+        } catch (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Lỗi phân tích ngũ quan AI: ' + err.message }));
+        }
+      }
+
+      // 36.3. Sinh ảnh đổi kiểu tóc thật (Photorealistic Neural Restyle)
+      if (pathname === '/api/ai/restyle-hair' && method === 'POST') {
+        const body = parsedBody || {};
+        const image = body.image || body.originalImageBase64 || body.url || body.photoUrl || '';
+        const hairstyleId = body.hairstyleId || body.selectedHairstyle || body.hairstyleName || 'layer-korean';
+        const colorId = body.colorId || body.selectedColor || body.hairColorName || 'natural-black';
+        const customPrompt = body.customPrompt || body.prompt || '';
+        const balanceLighting = body.balanceLighting !== undefined ? body.balanceLighting : true;
+        const smoothSkin = body.smoothSkin !== undefined ? body.smoothSkin : true;
+        const geminiApiKey = body.geminiApiKey || body.apiKey || '';
+        try {
+          const result = await aiService.generateAiHairRestyle({
+            imageBase64OrUrl: image,
+            hairstyleId,
+            colorId,
+            customPrompt,
+            balanceLighting,
+            smoothSkin,
+            geminiApiKey
+          });
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify(result));
+        } catch (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Lỗi sinh ảnh kiểu tóc AI: ' + err.message }));
+        }
+      }
+
+      // 36.4. Tư vấn trực tiếp với Barber Master AI
+      if (pathname === '/api/ai/consultation' && method === 'POST') {
+        const body = parsedBody || {};
+        const message = body.message || body.prompt || body.content || '';
+        const context = body.context || {};
+        try {
+          const reply = await aiService.askBarberMasterAi(message, context);
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify(reply));
+        } catch (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Lỗi kết nối Barber Master AI: ' + err.message }));
+        }
+      }
+
+      // 36.5. Cấu hình AI Engine (Hỗ trợ cấu hình thêm Gemini / HuggingFace)
+      if (pathname === '/api/ai/config' && method === 'GET') {
+        const cfg = aiService.loadAiConfig();
+        // Ẩn bớt API key nhạy cảm
+        const safeCfg = {
+          ...cfg,
+          geminiApiKey: cfg.geminiApiKey ? '••••••••' + cfg.geminiApiKey.slice(-4) : '',
+          huggingFaceKey: cfg.huggingFaceKey ? '••••••••' + cfg.huggingFaceKey.slice(-4) : ''
+        };
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, config: safeCfg }));
+      }
+
+      if (pathname === '/api/ai/config' && method === 'POST') {
+        const body = parsedBody || {};
+        const current = aiService.loadAiConfig();
+        const updated = {
+          provider: body.provider || current.provider,
+          geminiApiKey: (body.geminiApiKey && !body.geminiApiKey.includes('••••')) ? body.geminiApiKey : current.geminiApiKey,
+          huggingFaceKey: (body.huggingFaceKey && !body.huggingFaceKey.includes('••••')) ? body.huggingFaceKey : current.huggingFaceKey,
+          model: body.model || current.model
+        };
+        aiService.saveAiConfig(updated);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, message: 'Đã lưu cấu hình AI thành công!' }));
+      }
+
+      // 36.6. Kiểm tra tính hợp lệ của Google Gemini API Key
+      if (pathname === '/api/ai/test-key' && method === 'POST') {
+        const body = parsedBody || {};
+        const key = (body.apiKey || body.geminiApiKey || '').trim();
+        if (!key) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Vui lòng nhập API Key để kiểm tra' }));
+        }
+        try {
+          const testRes = await aiService.testGoogleGeminiApiKey(key);
+          res.writeHead(testRes.success ? 200 : 400, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify(testRes));
+        } catch (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Lỗi kiểm tra API Key: ' + err.message }));
+        }
+      }
+
+      // 36.7. Proxy ảnh chân dung để tránh lỗi CORS / Canvas Tainting
+      if (pathname === '/api/ai/proxy-image' && method === 'GET') {
+        const targetUrl = parsedUrl.searchParams.get('url');
+        if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'URL không hợp lệ' }));
+        }
+        try {
+          const client = targetUrl.startsWith('https://') ? https : http;
+          client.get(targetUrl, { timeout: 10000 }, (proxyRes) => {
+            const status = proxyRes.statusCode || 200;
+            if (status >= 300 && status < 400 && proxyRes.headers.location) {
+              const redirectClient = proxyRes.headers.location.startsWith('https://') ? https : http;
+              return redirectClient.get(proxyRes.headers.location, { timeout: 10000 }, (redirRes) => {
+                res.writeHead(200, {
+                  'Content-Type': redirRes.headers['content-type'] || 'image/jpeg',
+                  'Access-Control-Allow-Origin': '*',
+                  'Cache-Control': 'public, max-age=86400'
+                });
+                redirRes.pipe(res);
+              }).on('error', (e) => {
+                res.writeHead(502);
+                res.end('Proxy redirect error: ' + e.message);
+              });
+            }
+            res.writeHead(status, {
+              'Content-Type': proxyRes.headers['content-type'] || 'image/jpeg',
+              'Access-Control-Allow-Origin': '*',
+              'Cache-Control': 'public, max-age=86400'
+            });
+            proxyRes.pipe(res);
+          }).on('error', (e) => {
+            res.writeHead(502);
+            res.end('Proxy fetch error: ' + e.message);
+          });
+        } catch (proxyErr) {
+          res.writeHead(500);
+          res.end('Proxy error: ' + proxyErr.message);
+        }
+        return;
+      }
+
+      // --- 37. PHỤC VỤ FILE TĨNH  - STATIC FILES -  & SPA FALLBACK ---
       let rawPath = pathname.replace(/^\/+/, '');
       try { rawPath = decodeURIComponent(rawPath); } catch (_) { }
 

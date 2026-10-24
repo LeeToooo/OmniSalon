@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/omni_image.dart';
 import 'booking_screen.dart';
+import 'auth/login_screen.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -33,7 +34,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     });
 
     if (AuthService.currentUser != null && AuthService.currentUser!.phone.isNotEmpty) {
-      searchController.text = AuthService.currentUser!.phone;
+      final user = AuthService.currentUser!;
+      final isStaffOrAdmin = user.role.toUpperCase() == 'ADMIN' ||
+          user.role.toUpperCase() == 'STAFF' ||
+          user.role.toUpperCase() == 'QUANLY';
+      if (isStaffOrAdmin) {
+        searchController.text = user.phone;
+      }
     }
     _loadData();
   }
@@ -46,29 +53,86 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
   }
 
   Future<void> _loadData() async {
+    final user = AuthService.currentUser;
+    if (user == null) {
+      if (mounted) {
+        setState(() {
+          bookings = [];
+          orders = [];
+          isLoading = false;
+        });
+      }
+      return;
+    }
+
     setState(() => isLoading = true);
+    final role = user.role.toUpperCase();
+    final isStaffOrAdmin = role == 'ADMIN' || role == 'STAFF' || role == 'QUANLY';
+    final userPhone = user.phone.trim().replaceAll(RegExp(r'\D'), '');
+    final userId = user.id.trim();
     final q = searchController.text.trim();
-    
-    // Tải lịch hẹn
-    final bList = q.isNotEmpty
-        ? await ApiService.lookupBookings(q)
-        : await ApiService.fetchBookings();
-        
-    // Tải đơn hàng
-    final oList = await ApiService.fetchOrders();
-    
+
+    // 1. TẢI LỊCH HẸN
+    List<Booking> fetchedBookings = [];
+    if (isStaffOrAdmin) {
+      fetchedBookings = q.isNotEmpty
+          ? await ApiService.lookupBookings(q)
+          : await ApiService.fetchBookings();
+    } else {
+      // Bảo mật riêng tư: Khách hàng chỉ xem lịch của chính mình
+      final queryParam = user.phone.trim().isNotEmpty ? user.phone.trim() : userId;
+      final rawList = await ApiService.lookupBookings(queryParam);
+      fetchedBookings = rawList.where((b) {
+        final bPhone = b.customerPhone.replaceAll(RegExp(r'\D'), '');
+        final matchPhone = userPhone.isNotEmpty && bPhone.isNotEmpty && bPhone == userPhone;
+        final matchUserId = (b.userId != null && b.userId!.isNotEmpty && (b.userId == userId || b.userId == user.maKhachHang));
+        return matchPhone || matchUserId;
+      }).toList();
+
+      if (q.isNotEmpty) {
+        final qLower = q.toLowerCase();
+        fetchedBookings = fetchedBookings.where((b) =>
+          b.bookingCode.toLowerCase().contains(qLower) ||
+          b.serviceName.toLowerCase().contains(qLower) ||
+          b.stylistName.toLowerCase().contains(qLower) ||
+          b.branchName.toLowerCase().contains(qLower)
+        ).toList();
+      }
+    }
+
+    // 2. TẢI ĐƠN HÀNG MỸ PHẨM
+    List<SalonOrder> fetchedOrders = await ApiService.fetchOrders();
+    if (!isStaffOrAdmin) {
+      // Bảo mật riêng tư: Khách hàng chỉ xem đơn hàng của chính mình
+      fetchedOrders = fetchedOrders.where((o) {
+        final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
+        final matchPhone = userPhone.isNotEmpty && oPhone.isNotEmpty && oPhone == userPhone;
+        final matchUserId = (o.userId != null && o.userId!.isNotEmpty && (o.userId == userId || o.userId == user.maKhachHang));
+        return matchPhone || matchUserId;
+      }).toList();
+
+      if (q.isNotEmpty) {
+        final qLower = q.toLowerCase();
+        fetchedOrders = fetchedOrders.where((o) =>
+          o.orderCode.toLowerCase().contains(qLower) ||
+          o.items.any((it) => it.name.toLowerCase().contains(qLower)) ||
+          o.paymentStatus.toLowerCase().contains(qLower) ||
+          o.orderStatus.toLowerCase().contains(qLower)
+        ).toList();
+      }
+    } else if (q.isNotEmpty) {
+      final qLower = q.toLowerCase();
+      fetchedOrders = fetchedOrders.where((o) =>
+        o.orderCode.toLowerCase().contains(qLower) ||
+        o.customerPhone.contains(q) ||
+        o.customerName.toLowerCase().contains(qLower)
+      ).toList();
+    }
+
     if (!mounted) return;
     setState(() {
-      bookings = bList;
-      if (q.isNotEmpty) {
-        orders = oList.where((o) =>
-          o.orderCode.toLowerCase().contains(q.toLowerCase()) ||
-          o.customerPhone.contains(q) ||
-          o.customerName.toLowerCase().contains(q.toLowerCase())
-        ).toList();
-      } else {
-        orders = oList;
-      }
+      bookings = fetchedBookings;
+      orders = fetchedOrders;
       isLoading = false;
     });
   }
@@ -215,7 +279,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     DateTime newDate = DateTime.tryParse(booking.date) ?? DateTime.now().add(const Duration(days: 1));
     String newTime = booking.timeSlot;
 
-    final timeSlots = ['08:30', '09:15', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:30', '19:30'];
+    final timeSlots = [
+      '08:30', '09:30', '10:30', '11:30',
+      '13:30', '14:30', '15:30', '16:30',
+      '17:30', '18:30', '19:30', '20:30'
+    ];
 
     showDialog(
       context: context,
@@ -377,10 +445,83 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
       return true;
     }).toList();
 
+    final user = AuthService.currentUser;
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF141413),
+        appBar: AppBar(
+          title: const Text('Lịch Hẹn & Đơn Hàng', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 18)),
+          backgroundColor: const Color(0xFF141413),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Color(0xFFFAF8F5)),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFC59B27).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFC59B27), width: 1.5),
+                  ),
+                  child: const Icon(Icons.lock_person_outlined, size: 36, color: Color(0xFFC59B27)),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Yêu Cầu Đăng Nhập',
+                  style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 20),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Quý khách vui lòng đăng nhập tài khoản để tra cứu lịch hẹn và xem chi tiết các đơn hàng mỹ phẩm của riêng mình.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 13.5, height: 1.5),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFC59B27),
+                      foregroundColor: const Color(0xFF141413),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      );
+                      if (mounted) {
+                        setState(() {});
+                        _loadData();
+                      }
+                    },
+                    child: const Text('ĐĂNG NHẬP / ĐĂNG KÝ NGAY', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final isStaffOrAdmin = user.role.toUpperCase() == 'ADMIN' ||
+        user.role.toUpperCase() == 'STAFF' ||
+        user.role.toUpperCase() == 'QUANLY';
+
     return Scaffold(
       backgroundColor: const Color(0xFF141413),
       appBar: AppBar(
-        title: const Text('Tra Cứu & Lịch Hẹn', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 18)),
+        title: Text(
+          isStaffOrAdmin ? 'Tra Cứu & Lịch Hẹn' : 'Lịch Hẹn & Đơn Hàng Của Tôi',
+          style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 18),
+        ),
         backgroundColor: const Color(0xFF141413),
         elevation: 0,
         iconTheme: const IconThemeData(color: Color(0xFFFAF8F5)),
@@ -417,7 +558,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                     onSubmitted: (_) => _loadData(),
                     style: const TextStyle(color: Color(0xFFFAF8F5)),
                     decoration: InputDecoration(
-                      hintText: 'Nhập SĐT hoặc Mã (VD: 0988... / LH01 / DH01)',
+                      hintText: isStaffOrAdmin
+                          ? 'Nhập SĐT hoặc Mã (VD: 0988... / LH01 / DH01)'
+                          : 'Tìm theo mã #LH, dịch vụ hoặc sản phẩm...',
                       hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFFA8A29E)),
                       prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFFC59B27)),
                       suffixIcon: searchController.text.isNotEmpty

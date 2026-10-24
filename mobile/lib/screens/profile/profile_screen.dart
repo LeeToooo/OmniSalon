@@ -5,6 +5,7 @@ import '../auth/login_screen.dart';
 import '../my_bookings_screen.dart';
 import '../branches_screen.dart';
 import '../stylists_screen.dart';
+import '../main_scaffold.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -167,7 +168,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.calendar_month_outlined,
                 title: 'Lịch hẹn & Đơn hàng của tôi',
                 subtitle: 'Tra cứu, mã vé QR check-in hoặc hủy hẹn',
-                onTap: () {
+                onTap: () async {
+                  if (AuthService.currentUser == null) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Vui lòng đăng nhập để xem lịch hẹn và đơn hàng của bạn!', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+                        backgroundColor: AppTheme.charcoal,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                    if (mounted) setState(() {});
+                    if (AuthService.currentUser == null) return;
+                  }
+                  if (!context.mounted) return;
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
                   );
@@ -222,6 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 48,
                   child: OutlinedButton.icon(
                     onPressed: () async {
+                      MainScaffold.of(context)?.clearCart();
                       await AuthService.logout();
                       setState(() {});
                       if (!context.mounted) return;

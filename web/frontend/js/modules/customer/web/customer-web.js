@@ -1251,10 +1251,6 @@
                       Hủy Lịch Hẹn
                     </button>
                   ` : ''}
-                  <button class="btn-submit-terracotta" style="font-size: 11px; padding: 6px 14px;" 
-                          onclick="UICommon.showToast('Hotline hỗ trợ chỉ đường: 1900 4407 (Miễn phí cước gọi)!');">
-                    Chỉ Đường & Hỗ Trợ
-                  </button>
                 </div>
               </div>
             `;

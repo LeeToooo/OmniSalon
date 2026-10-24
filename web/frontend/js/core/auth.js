@@ -513,10 +513,31 @@
       const userMap = new Map();
       // Luôn bảo tồn SEED_USERS (bao gồm TK_ADMIN / admin)
       SEED_USERS.forEach(u => userMap.set(u.id || u.username, u));
-      // Kết hợp dữ liệu tài khoản từ SQL Server
-      serverList.forEach(u => userMap.set(u.id || u.username, u));
-      // Kết hợp tài khoản thành viên vừa đăng ký
-      dynamicUsers.forEach(u => userMap.set(u.id || u.username, u));
+      // Kết hợp tài khoản thành viên đăng ký cục bộ
+      dynamicUsers.forEach(u => {
+        const k = (u.username || u.phone || u.id || '').toLowerCase();
+        if (k) userMap.set(k, u);
+      });
+      // Dữ liệu tài khoản từ SQL Server là nguồn chuẩn tuyệt đối
+      serverList.forEach(u => {
+        const k = (u.username || u.phone || u.id || '').toLowerCase();
+        // Nếu đã có trong userMap (từ local/seed), đồng bộ mật khẩu & vai trò mới nhất từ SQL Server
+        for (const [key, val] of userMap.entries()) {
+          const valPhone = (val.phone || '').trim();
+          const valEmail = (val.email || '').trim().toLowerCase();
+          const valUser = (val.username || '').trim().toLowerCase();
+          const uPhone = (u.phone || '').trim();
+          const uEmail = (u.email || '').trim().toLowerCase();
+          const uUser = (u.username || '').trim().toLowerCase();
+          if ((uPhone && valPhone === uPhone) || (uEmail && valEmail === uEmail) || (uUser && valUser === uUser)) {
+            val.password = u.password;
+            val.alternatePassword = u.alternatePassword || u.password;
+            val.MaKhachHang = u.MaKhachHang || val.MaKhachHang;
+            val.MaNhanVien = u.MaNhanVien || val.MaNhanVien;
+          }
+        }
+        if (k) userMap.set(k, u);
+      });
 
       return Array.from(userMap.values());
     }
@@ -579,14 +600,85 @@
     }
 
     static save(newUser) {
+      if (!newUser) return false;
       try {
         const raw = localStorage.getItem(STORAGE_KEYS.REGISTERED_USERS);
-        const dynamicUsers = raw ? JSON.parse(raw) : [];
-        dynamicUsers.push(newUser);
+        let dynamicUsers = raw ? JSON.parse(raw) : [];
+        const cleanPhone = (newUser.phone || '').trim();
+        const cleanEmail = (newUser.email || '').trim().toLowerCase();
+        const cleanUsername = (newUser.username || '').trim().toLowerCase();
+        const cleanId = (newUser.id || newUser.MaTaiKhoan || '').trim();
+
+        const idx = dynamicUsers.findIndex(u => {
+          if (cleanId && (u.id === cleanId || u.MaTaiKhoan === cleanId)) return true;
+          if (cleanPhone && (u.phone || '').trim() === cleanPhone) return true;
+          if (cleanEmail && (u.email || '').trim().toLowerCase() === cleanEmail) return true;
+          if (cleanUsername && (u.username || '').trim().toLowerCase() === cleanUsername) return true;
+          return false;
+        });
+
+        if (idx >= 0) {
+          dynamicUsers[idx] = { ...dynamicUsers[idx], ...newUser };
+        } else {
+          dynamicUsers.push(newUser);
+        }
         localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(dynamicUsers));
+
+        if (this._serverAccounts && Array.isArray(this._serverAccounts)) {
+          const sIdx = this._serverAccounts.findIndex(u => {
+            if (cleanId && (u.id === cleanId || u.MaTaiKhoan === cleanId)) return true;
+            if (cleanPhone && (u.phone || '').trim() === cleanPhone) return true;
+            if (cleanEmail && (u.email || '').trim().toLowerCase() === cleanEmail) return true;
+            if (cleanUsername && (u.username || '').trim().toLowerCase() === cleanUsername) return true;
+            return false;
+          });
+          if (sIdx >= 0) {
+            this._serverAccounts[sIdx] = { ...this._serverAccounts[sIdx], ...newUser };
+          }
+        }
         return true;
       } catch (e) {
         console.error('[UserRepository] Error saving user:', e);
+        return false;
+      }
+    }
+
+    static updatePassword(identifier, newPassword) {
+      if (!identifier || !newPassword) return false;
+      const clean = identifier.trim().toLowerCase();
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.REGISTERED_USERS);
+        let dynamicUsers = raw ? JSON.parse(raw) : [];
+        let updated = false;
+        dynamicUsers.forEach(u => {
+          const email = (u.email || '').toLowerCase();
+          const username = (u.username || '').toLowerCase();
+          const phone = (u.phone || '').trim();
+          const id = (u.id || u.MaTaiKhoan || '').toLowerCase();
+          if (email === clean || username === clean || phone === clean || id === clean) {
+            u.password = newPassword;
+            u.alternatePassword = newPassword;
+            updated = true;
+          }
+        });
+        if (updated) {
+          localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(dynamicUsers));
+        }
+
+        if (this._serverAccounts && Array.isArray(this._serverAccounts)) {
+          this._serverAccounts.forEach(u => {
+            const email = (u.email || '').toLowerCase();
+            const username = (u.username || '').toLowerCase();
+            const phone = (u.phone || '').trim();
+            const id = (u.id || u.MaTaiKhoan || '').toLowerCase();
+            if (email === clean || username === clean || phone === clean || id === clean) {
+              u.password = newPassword;
+              u.alternatePassword = newPassword;
+            }
+          });
+        }
+        return true;
+      } catch (e) {
         return false;
       }
     }
@@ -996,15 +1088,24 @@
         }
       }
 
+      // 1. Cập nhật mật khẩu ngay vào UserRepository local
+      UserRepository.updatePassword(identifier, newPassword);
+      if (email && email !== identifier) {
+        UserRepository.updatePassword(email, newPassword);
+      }
+
       const user = UserRepository.findByIdentifier(identifier) || (email ? UserRepository.findByEmail(email) : null);
       if (user) {
         user.password = newPassword;
         user.alternatePassword = newPassword;
+        if (user.phone) UserRepository.updatePassword(user.phone, newPassword);
+        if (user.email) UserRepository.updatePassword(user.email, newPassword);
+        if (user.username) UserRepository.updatePassword(user.username, newPassword);
         UserRepository.save(user);
         this._syncStore('PASSWORD_RESET', user);
       }
 
-      // Đồng bộ mật khẩu mới trực tiếp vào CSDL SQL Server
+      // 2. Đồng bộ mật khẩu mới trực tiếp vào CSDL SQL Server
       if (typeof fetch !== 'undefined') {
         const apiUrl = (typeof window !== 'undefined' && window.location.origin)
           ? `${window.location.origin}/api/auth/reset-password`
@@ -1015,9 +1116,11 @@
           body: JSON.stringify({
             identifier: identifier || email,
             email: email || identifier,
-            phone: identifier,
+            phone: (user && user.phone) ? user.phone : identifier,
             newPassword
           })
+        }).then(() => {
+          UserRepository.syncWithServer();
         }).catch(() => {});
       }
 
@@ -1025,6 +1128,42 @@
         success: true,
         message: 'Đổi mật khẩu thành công! Mật khẩu mới đã được lưu và cập nhật vào SQL Server.'
       };
+    }
+
+    setSessionFromBackend(backendUser, token) {
+      if (!backendUser) return null;
+      const role = backendUser.role || ROLES.CUSTOMER;
+      const mappedUser = {
+        id: backendUser.id || backendUser.MaTaiKhoan || ('TK_' + (backendUser.MaKhachHang || backendUser.MaNhanVien || Date.now())),
+        username: backendUser.username || backendUser.TenDangNhap || backendUser.phone || '',
+        fullName: backendUser.fullName || backendUser.HoTenNV || backendUser.HoTenKH || '',
+        email: backendUser.email || backendUser.EmailNV || backendUser.EmailKH || '',
+        phone: backendUser.phone || backendUser.SdtNV || backendUser.SdtKH || '',
+        role: role,
+        roleName: backendUser.roleName || backendUser.ChucVu || backendUser.vaiTroSql || 'Khách Hàng',
+        MaNhanVien: backendUser.MaNhanVien || null,
+        MaKhachHang: backendUser.MaKhachHang || null,
+        CapBac: backendUser.CapBac || null,
+        ChucVu: backendUser.ChucVu || null,
+        vaiTroSql: backendUser.vaiTroSql || null,
+        branchId: backendUser.branchId || null,
+        branchName: backendUser.branchName || 'Chi Nhánh OmniSalon',
+        avatarUrl: backendUser.avatarUrl || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
+        rewardPoints: backendUser.rewardPoints || 100,
+        tier: backendUser.tier || 'Thành Viên',
+        permissions: ROLE_PERMISSIONS[role] || []
+      };
+
+      this.currentUser = mappedUser;
+      this.accessToken = token || ('JWT_' + Date.now());
+      this.refreshToken = 'REFRESH_' + Date.now();
+
+      SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
+      this._syncStore('LOGIN', this.currentUser);
+      this.notifySubscribers('LOGIN', this.currentUser);
+
+      UserRepository.save(mappedUser);
+      return this.currentUser;
     }
 
     refreshSession(refreshTokenStr) {
@@ -1270,6 +1409,7 @@
   window.ROLE_NAMES = ROLE_NAMES;
   window.ROLE_PERMISSIONS = ROLE_PERMISSIONS;
   window.normalizeRole = normalizeRole;
+  window.UserRepository = UserRepository;
   window.AuthEngine = authInstance;
   window.Auth = authInstance;
 

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -32,6 +33,21 @@ class EditorialImage extends StatelessWidget {
 
     if (cleanUrl.isEmpty) {
       imageWidget = _buildPlaceholder();
+    } else if (cleanUrl.startsWith('data:image/')) {
+      try {
+        final commaIdx = cleanUrl.indexOf(',');
+        final b64Str = commaIdx != -1 ? cleanUrl.substring(commaIdx + 1) : cleanUrl;
+        final bytes = base64Decode(b64Str);
+        imageWidget = Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+        );
+      } catch (_) {
+        imageWidget = _buildPlaceholder();
+      }
     } else {
       final int targetCacheWidth = (width != null && width!.isFinite && width! > 0)
           ? (width! * 2).clamp(160, 1200).toInt()

@@ -135,9 +135,9 @@ class ApiService {
   // 4. LẤY KHUNG GIỜ TRỐNG CHO ĐẶT LỊCH
   static Future<List<Map<String, dynamic>>> fetchAvailableSlots(String date, String stylistId) async {
     final defaultSlots = [
-      '09:00', '09:45', '10:30', '11:15', '13:30',
-      '14:15', '15:00', '16:00', '17:00', '18:15',
-      '19:30', '20:15'
+      '08:30', '09:30', '10:30', '11:30',
+      '13:30', '14:30', '15:30', '16:30',
+      '17:30', '18:30', '19:30', '20:30'
     ];
 
     List<Map<String, dynamic>> slots = [];
@@ -870,6 +870,67 @@ class ApiService {
     } catch (_) {
       return true;
     }
+  }
+
+  // 27. REAL AI BARBER VISION: PHÂN TÍCH NGŨ QUAN & DÁNG MẶT (POST /api/ai/analyze-face)
+  static Future<Map<String, dynamic>?> analyzeFace(String imageBase64OrUrl) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/ai/analyze-face'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'image': imageBase64OrUrl}),
+      ).timeout(const Duration(seconds: 5));
+
+      if (res.statusCode == 200) {
+        return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] analyzeFace error: $e');
+    }
+    return null;
+  }
+
+  // 28. REAL AI BARBER VISION: BIẾN ĐỔI KIỂU TÓC THẬT (POST /api/ai/restyle-hair)
+  static Future<Map<String, dynamic>?> restyleHair({
+    required String imageBase64OrUrl,
+    required String hairstyleId,
+    required String colorId,
+  }) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/ai/restyle-hair'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'image': imageBase64OrUrl,
+          'hairstyleId': hairstyleId,
+          'colorId': colorId,
+        }),
+      ).timeout(const Duration(seconds: 12));
+
+      if (res.statusCode == 200) {
+        return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] restyleHair error: $e');
+    }
+    return null;
+  }
+
+  // 29. TƯ VẤN TRỰC TIẾP VỚI MASTER BARBER AI (POST /api/ai/consultation)
+  static Future<String> askBarberAi(String message) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/ai/consultation'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'message': message}),
+      ).timeout(const Duration(seconds: 8));
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(res.bodyBytes));
+        if (data['reply'] != null) return data['reply'].toString();
+      }
+    } catch (_) {}
+    return 'Master Barber khuyên bạn nên chọn kiểu tóc tôn góc cạnh xương hàm và sấy phồng chân tóc nhẹ!';
   }
 
   // =========================================================================

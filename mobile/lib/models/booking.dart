@@ -21,11 +21,13 @@ class Booking {
   String status;
   final String notes;
   final String createdAt;
+  final String? userId;
   final String serviceImage;
 
   Booking({
     required this.id,
     required this.bookingCode,
+    this.userId,
     required this.customerName,
     required this.customerPhone,
     required this.branchId,
@@ -69,6 +71,7 @@ class Booking {
     return Booking(
       id: json['id'] ?? json['MaLichHen'] ?? '',
       bookingCode: json['bookingCode'] ?? json['MaLichHen'] ?? json['id'] ?? 'LH01',
+      userId: json['userId']?.toString() ?? json['MaKhachHang']?.toString(),
       customerName: json['customerName'] ?? json['TenKhachHang'] ?? 'Khách Hàng',
       customerPhone: json['customerPhone'] ?? json['SdtKhachHang'] ?? json['SoDienThoai'] ?? '',
       branchId: json['branchId'] ?? json['MaChiNhanh'] ?? 'CN01',
@@ -80,7 +83,7 @@ class Booking {
       stylistId: json['stylistId'] ?? json['MaNhanVien'] ?? 'NV02',
       stylistName: json['stylistName'] ?? json['TenNhanVien'] ?? 'Master Barber',
       date: json['date'] ?? json['NgayHen'] ?? '',
-      timeSlot: json['timeSlot'] ?? json['GioBatDau'] ?? json['GioHen'] ?? '09:00',
+      timeSlot: json['timeSlot'] ?? json['GioBatDau'] ?? json['GioHen'] ?? '08:30',
       durationMinutes: int.tryParse(json['durationMinutes']?.toString() ?? '45') ?? 45,
       estimatedEndTime: json['endTime'] ?? json['estimatedEndTime'] ?? '',
       totalPrice: priceNum.toInt(),
@@ -95,6 +98,7 @@ class Booking {
     return {
       'id': id,
       'bookingCode': bookingCode,
+      'userId': userId,
       'customerName': customerName,
       'customerPhone': customerPhone,
       'branchId': branchId,

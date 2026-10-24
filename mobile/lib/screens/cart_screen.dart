@@ -262,6 +262,7 @@ class _CartScreenState extends State<CartScreen> {
     final newOrder = SalonOrder(
       id: '',
       orderCode: '',
+      userId: AuthService.currentUser?.id,
       customerName: name,
       customerPhone: phone,
       shippingAddress: _addressController.text.trim().isEmpty ? 'Nhận tại quầy chi nhánh' : _addressController.text.trim(),

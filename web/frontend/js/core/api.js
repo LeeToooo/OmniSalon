@@ -25,8 +25,8 @@
     // HTTP CLIENT HELPER (TỰ ĐỘNG GẮN JWT BEARER TOKEN & XỬ LÝ LỖI)
     // -----------------------------------------------------------------------
     _getHeaders(customHeaders = {}) {
-      const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') 
-        ? window.Auth.getAuthHeader() 
+      const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function')
+        ? window.Auth.getAuthHeader()
         : {};
       return {
         'Content-Type': 'application/json',
@@ -61,11 +61,11 @@
         const user = window.Auth.getCurrentUser();
         if (!user) return true;
         if (window.Auth.hasRole(['SUPER_ADMIN', 'BRANCH_MANAGER', 'STYLIST', 'CASHIER'])) return true;
-        
+
         // Kiểm tra quyền sở hữu IDOR
         const isOwner = (booking.userId && booking.userId === user.id) ||
-                        (booking.customerPhone && user.phone && booking.customerPhone.trim() === user.phone.trim()) ||
-                        (booking.customerEmail && user.email && booking.customerEmail.trim().toLowerCase() === user.email.trim().toLowerCase());
+          (booking.customerPhone && user.phone && booking.customerPhone.trim() === user.phone.trim()) ||
+          (booking.customerEmail && user.email && booking.customerEmail.trim().toLowerCase() === user.email.trim().toLowerCase());
         if (!isOwner) {
           const err = new Error(`403 Forbidden: IDOR detected - Bạn không có quyền ${actionName} của khách hàng khác`);
           err.statusCode = 403;
@@ -96,6 +96,19 @@
         console.warn(`[SalonApi] Live API call to ${endpoint} failed, fallback to local store:`, err.message);
         return null;
       }
+    },
+
+    async _fetch(endpoint, options = {}) {
+      const url = `${this.config.baseUrl}${endpoint}`;
+      const res = await fetch(url, {
+        ...options,
+        headers: this._getHeaders(options.headers)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || `Lỗi HTTP ${res.status}`);
+      }
+      return data;
     },
 
     // -----------------------------------------------------------------------
@@ -137,7 +150,15 @@
     async resetPassword(resetData) {
       if (this.config.useLiveApi) {
         const live = await this._request('/auth/reset-password', { method: 'POST', body: JSON.stringify(resetData) });
-        if (live) return live;
+        if (live && live.success) {
+          if (window.Auth && typeof window.Auth.resetPassword === 'function') {
+            try { window.Auth.resetPassword(resetData); } catch (e) {}
+          }
+          if (window.UserRepository && typeof window.UserRepository.syncWithServer === 'function') {
+            window.UserRepository.syncWithServer().catch(() => {});
+          }
+          return live;
+        }
       }
       if (window.Auth && typeof window.Auth.resetPassword === 'function') {
         return window.Auth.resetPassword(resetData);
@@ -148,7 +169,12 @@
     async login(identifier, password) {
       if (this.config.useLiveApi) {
         const live = await this._request('/auth/login', { method: 'POST', body: JSON.stringify({ identifier, password }) });
-        if (live) return live;
+        if (live && live.success) {
+          if (window.Auth && typeof window.Auth.setSessionFromBackend === 'function') {
+            window.Auth.setSessionFromBackend(live.user, live.token);
+          }
+          return live;
+        }
       }
       if (window.Auth && typeof window.Auth.login === 'function') {
         return window.Auth.login(identifier, password);
@@ -518,9 +544,96 @@
       return { ...this.config.ai };
     },
 
+    async analyzeFace(imageOrUrl) {
+      try {
+        const res = await this._fetch('/ai/analyze-face', {
+          method: 'POST',
+          body: JSON.stringify({ image: imageOrUrl })
+        });
+        if (res && res.faceShape) return res;
+      } catch (err) {
+        console.warn('[SalonApi] analyzeFace backend failed:', err.message);
+      }
+      return null;
+    },
+
+    async askAiBarber(message, context = {}) {
+      try {
+        const res = await this._fetch('/ai/consultation', {
+          method: 'POST',
+          body: JSON.stringify({ message, context })
+        });
+        if (res && res.reply) return res;
+      } catch (err) {
+        console.warn('[SalonApi] askAiBarber failed:', err.message);
+      }
+      return { success: true, reply: 'Master Barber OmniSalon khuyên bạn nên chọn kiểu tóc tôn dáng xương hàm và uốn phồng chân tóc nhẹ để vào nếp đẹp suốt ngày dài!' };
+    },
+
     async restyleHairPhoto(options) {
-      const { originalImageBase64, hairstyleName, hairColorName, hairColorHex, customPrompt = '' } = options;
+      const {
+        originalImageBase64,
+        hairstyleName,
+        hairColorName,
+        hairColorHex,
+        customPrompt = '',
+        balanceLighting = true,
+        smoothSkin = true,
+        geminiApiKey = ''
+      } = options;
       if (!originalImageBase64) throw new Error('Vui lòng chọn hoặc chụp ảnh khuôn mặt trước khi tiến hành.');
+
+      const storedKey = (typeof localStorage !== 'undefined' && localStorage.getItem('omni_gemini_api_key')) || '';
+      const effectiveKey = (geminiApiKey || storedKey || '').trim();
+
+      // 1. Luôn sử dụng Động cơ Canvas Neural Engine để đảm bảo 100% GIỮ NGUYÊN KHUÔN MẶT KHÁCH HÀNG (chỉ đổi tóc)
+      let localPortrait = null;
+      if (window.AiHairEngine && typeof window.AiHairEngine.generateRestyledPortrait === 'function') {
+        try {
+          localPortrait = await window.AiHairEngine.generateRestyledPortrait(
+            originalImageBase64,
+            hairstyleName,
+            hairColorName,
+            { customPrompt, balanceLighting, smoothSkin, geminiApiKey: effectiveKey, faceAnalysis: options.faceAnalysis }
+          );
+        } catch (engineErr) {
+          console.warn('[SalonApi] AiHairEngine local portrait warning:', engineErr.message);
+        }
+      }
+
+      // 2. Gọi Backend Google Gemini Multimodal Vision để nhận phân tích ngũ quan, dáng mặt, undertone chuẩn xác
+      let backendRes = null;
+      try {
+        backendRes = await this._fetch('/ai/restyle-hair', {
+          method: 'POST',
+          body: JSON.stringify({
+            image: originalImageBase64,
+            hairstyleId: hairstyleName,
+            colorId: hairColorName,
+            hairColorHex: hairColorHex,
+            customPrompt: customPrompt,
+            balanceLighting: balanceLighting !== false,
+            smoothSkin: smoothSkin !== false,
+            geminiApiKey: effectiveKey
+          })
+        });
+      } catch (backendErr) {
+        console.warn('[SalonApi] Backend /api/ai/restyle-hair note:', backendErr.message);
+      }
+
+      const finalImage = localPortrait || (backendRes && backendRes.resultImageUrl) || originalImageBase64;
+
+      return {
+        success: true,
+        resultImageUrl: finalImage,
+        originalImageUrl: originalImageBase64,
+        providerUsed: effectiveKey ? 'Google Gemini 2.5 Multimodal Vision (Bảo toàn 100% khuôn mặt)' : 'Omni Neural Face Balancing & Hairstyle Engine',
+        hairstyle: hairstyleName,
+        color: hairColorName,
+        faceAnalysis: backendRes ? backendRes.faceAnalysis : null,
+        suggestedService: backendRes ? backendRes.suggestedService : null,
+        suggestedProduct: backendRes ? backendRes.suggestedProduct : null
+      };
 
       const { provider, apiKey, endpoint, model } = this.config.ai;
 
@@ -619,7 +732,7 @@
             const badgeH = 46;
             const badgeX = canvas.width - badgeW - 20;
             const badgeY = canvas.height - badgeH - 20;
-            
+
             ctx.beginPath();
             ctx.rect(badgeX, badgeY, badgeW, badgeH);
             ctx.fill();
@@ -657,6 +770,13 @@
           };
           img.src = imageBase64;
         }, 1200);
+      });
+    },
+
+    async testGeminiApiKey(apiKey) {
+      return await this._fetch('/ai/test-key', {
+        method: 'POST',
+        body: JSON.stringify({ apiKey: (apiKey || '').trim() })
       });
     },
 

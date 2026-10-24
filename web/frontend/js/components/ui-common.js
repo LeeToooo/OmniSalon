@@ -1640,7 +1640,7 @@ const UICommon = {
     modal.classList.add('active');
   },
 
-  handleLogin() {
+  async handleLogin() {
     const acc = document.getElementById('loginAccount')?.value.trim();
     const pass = document.getElementById('loginPassword')?.value;
     if (!acc) {
@@ -1653,10 +1653,56 @@ const UICommon = {
     }
 
     let res = null;
-    if (window.AuthEngine && typeof window.AuthEngine.login === 'function') {
-      res = window.AuthEngine.login(acc, pass);
-    } else if (window.store && typeof window.store.login === 'function') {
-      res = window.store.login(acc, pass);
+    let liveAttempted = false;
+
+    // 1. Ưu tiên xác thực trực tiếp qua Backend API / SQL Server (Nguồn chân lý)
+    try {
+      const apiRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: acc, password: pass })
+      });
+      const data = await apiRes.json().catch(() => null);
+      liveAttempted = true;
+
+      if (apiRes.ok && data && data.success) {
+        res = data;
+        // Đồng bộ phiên đăng nhập vào AuthEngine, store và session storage
+        if (window.AuthEngine && typeof window.AuthEngine.setSessionFromBackend === 'function') {
+          window.AuthEngine.setSessionFromBackend(data.user, data.token);
+        } else if (window.AuthEngine) {
+          window.AuthEngine.currentUser = data.user;
+          window.AuthEngine.accessToken = data.token;
+          if (window.SessionStorageService) {
+            window.SessionStorageService.saveSession(data.token, data.token, data.user);
+          }
+          if (typeof window.AuthEngine.notifySubscribers === 'function') {
+            window.AuthEngine.notifySubscribers('LOGIN', data.user);
+          }
+        }
+        if (window.store) {
+          window.store.state.currentUser = data.user;
+          if (typeof window.store.saveState === 'function') window.store.saveState();
+          if (typeof window.store.notify === 'function') window.store.notify('AUTH_CHANGED', data.user);
+        }
+      } else if (apiRes.status === 401 && data && data.success === false) {
+        // Backend SQL Server đã từ chối xác thực vì sai thông tin hoặc sai mật khẩu
+        this.showToast(data.message || 'Mật khẩu không chính xác. Vui lòng kiểm tra lại.', 'error');
+        return;
+      }
+    } catch (e) {
+      console.warn('[handleLogin] Không thể kết nối live API, fallback chế độ offline:', e.message);
+    }
+
+    // 2. Chỉ fallback qua AuthEngine / store local nếu server backend hoàn toàn không kết nối được
+    if (!res || !res.success) {
+      if (!liveAttempted) {
+        if (window.AuthEngine && typeof window.AuthEngine.login === 'function') {
+          res = window.AuthEngine.login(acc, pass);
+        } else if (window.store && typeof window.store.login === 'function') {
+          res = window.store.login(acc, pass);
+        }
+      }
     }
 
     if (res && res.success) {
@@ -1961,9 +2007,25 @@ const UICommon = {
     let res = null;
     try {
       if (window.SalonApi && typeof window.SalonApi.resetPassword === 'function') {
-        res = await window.SalonApi.resetPassword({ identifier, email: identifier, otp, newPassword });
-      } else if (window.AuthEngine && typeof window.AuthEngine.resetPassword === 'function') {
-        res = window.AuthEngine.resetPassword({ identifier, email: identifier, otp, newPassword });
+        res = await window.SalonApi.resetPassword({ identifier, email: identifier, phone: identifier, otp, newPassword });
+      } else {
+        const apiRes = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, email: identifier, phone: identifier, newPassword })
+        });
+        res = await apiRes.json().catch(() => null);
+      }
+
+      // Đồng thời cập nhật đồng bộ 100% vào AuthEngine & UserRepository
+      if (window.AuthEngine && typeof window.AuthEngine.resetPassword === 'function') {
+        window.AuthEngine.resetPassword({ identifier, email: identifier, phone: identifier, otp, newPassword });
+      }
+      if (window.UserRepository && typeof window.UserRepository.updatePassword === 'function') {
+        window.UserRepository.updatePassword(identifier, newPassword);
+      }
+      if (window.UserRepository && typeof window.UserRepository.syncWithServer === 'function') {
+        window.UserRepository.syncWithServer().catch(() => {});
       }
     } catch (e) {
       res = { success: false, message: e.message };

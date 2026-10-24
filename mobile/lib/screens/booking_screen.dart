@@ -9,6 +9,7 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/editorial_image.dart';
 import 'my_bookings_screen.dart';
+import 'auth/login_screen.dart';
 
 class BookingScreen extends StatefulWidget {
   final Branch? initialBranch;
@@ -41,7 +42,7 @@ class _BookingScreenState extends State<BookingScreen> {
   final Set<String> _selectedServiceIds = {};
   Stylist? _selectedStylist;
   DateTime _selectedDate = DateTime.now();
-  String _selectedTimeSlot = '09:00';
+  String _selectedTimeSlot = '08:30';
 
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -56,8 +57,9 @@ class _BookingScreenState extends State<BookingScreen> {
   bool _isLoadingSlots = false;
 
   final List<String> _timeSlots = [
-    '09:00', '09:45', '10:30', '11:15', '13:30',
-    '14:15', '15:00', '16:00', '17:00', '18:15', '19:30', '20:15'
+    '08:30', '09:30', '10:30', '11:30',
+    '13:30', '14:30', '15:30', '16:30',
+    '17:30', '18:30', '19:30', '20:30'
   ];
 
   @override
@@ -165,6 +167,32 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _submitBooking() async {
+    // BẮT BUỘC ĐĂNG NHẬP MỚI CHO ĐẶT LỊCH (Requirement 3)
+    if (AuthService.currentUser == null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Vui lòng đăng nhập tài khoản để đặt lịch hẹn và tích điểm hội viên!',
+            style: AppTheme.bodyMedium(color: AppTheme.textLight),
+          ),
+          backgroundColor: AppTheme.charcoal,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+      if (mounted) {
+        _initCustomerInfo();
+        setState(() {});
+      }
+      if (AuthService.currentUser == null) {
+        return; // Chưa đăng nhập thì chặn không cho tạo lịch hẹn
+      }
+    }
+    if (!mounted) return;
+
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -232,6 +260,7 @@ class _BookingScreenState extends State<BookingScreen> {
     final booking = Booking(
       id: bookingCode,
       bookingCode: bookingCode,
+      userId: AuthService.currentUser?.id,
       customerName: _nameController.text.trim(),
       customerPhone: _phoneController.text.trim(),
       branchId: _selectedBranch?.id ?? 'CN01',
@@ -1092,7 +1121,52 @@ class _BookingScreenState extends State<BookingScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        // Thông báo yêu cầu đăng nhập nếu chưa đăng nhập
+        if (AuthService.currentUser == null) ...[
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppTheme.accentGold.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.35)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.lock_outline_rounded, color: AppTheme.accentGold, size: 24),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'CẦN ĐĂNG NHẬP TÀI KHOẢN',
+                        style: AppTheme.bodyMedium(fontWeight: FontWeight.w800, color: AppTheme.accentGold),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Đăng nhập để xác nhận lịch hẹn, tích điểm hội viên và quản lý lịch cắt.',
+                        style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                    if (mounted) {
+                      _initCustomerInfo();
+                      setState(() {});
+                    }
+                  },
+                  child: const Text('ĐĂNG NHẬP', style: TextStyle(fontWeight: FontWeight.w800, color: AppTheme.accentGold)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
 
         // Nhập thông tin người đặt
         Text('THÔNG TIN LIÊN HỆ', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
@@ -1181,13 +1255,32 @@ class _BookingScreenState extends State<BookingScreen> {
               child: ElevatedButton(
                 onPressed: _isSubmitting
                     ? null
-                    : () {
+                    : () async {
                         if (_currentStep < 4) {
                           setState(() => _currentStep++);
                           if (_currentStep == 3) {
                             _loadAvailableSlots();
                           }
                         } else {
+                          // BƯỚC 5: Yêu cầu đăng nhập trước khi xác nhận đặt lịch
+                          if (AuthService.currentUser == null) {
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Vui lòng đăng nhập tài khoản để xác nhận đặt lịch hẹn!', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+                                backgroundColor: AppTheme.charcoal,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            );
+                            if (mounted) {
+                              _initCustomerInfo();
+                              setState(() {});
+                            }
+                            if (AuthService.currentUser == null) return;
+                          }
                           _submitBooking();
                         }
                       },
