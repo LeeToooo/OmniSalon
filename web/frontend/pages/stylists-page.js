@@ -341,7 +341,7 @@
 
             <!-- Nút Đặt Lịch Trực Tiếp -->
             <button type="button" class="stylist-card-cta-btn" onclick="StylistsPage.bookWithStylist('${stylist.id}', '${stylist.branchId || ''}')"
-                    style="width: 100%; min-height: 40px; height: 40px; border-radius: 6px; background: #141413; border: 1px solid #141413; color: #FAF8F5; font-size: 13.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s ease, border-color 0.2s ease;">
+                    style="width: 100%; min-height: 40px; height: 40px; border-radius: 6px; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
               <span>Đặt Lịch Với ${cleanName.split(' ').pop()} →</span>
             </button>
           </div>

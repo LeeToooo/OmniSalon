@@ -18,13 +18,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final user = AuthService.currentUser;
     final isLoggedIn = AuthService.isLoggedIn;
-    final isAdmin = user != null &&
-        (user.role == 'ADMIN' ||
-            user.role == 'SUPER_ADMIN' ||
-            user.role == 'BRANCH_MANAGER' ||
-            user.role == 'CASHIER' ||
-            user.role == 'STYLIST' ||
-            user.username == 'admin');
 
     return Scaffold(
       backgroundColor: AppTheme.bgPrimary,
@@ -103,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             border: Border.all(color: AppTheme.accentGold),
                           ),
                           child: Text(
-                            isLoggedIn ? (isAdmin ? 'ADMIN' : 'GOLD VIP') : 'GUEST',
+                            isLoggedIn ? 'GOLD VIP' : 'GUEST',
                             style: AppTheme.labelUppercase(fontSize: 9.5, color: AppTheme.accentGold),
                           ),
                         ),

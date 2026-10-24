@@ -244,7 +244,7 @@ class MainScaffoldState extends State<MainScaffold> {
             ],
           ),
 
-          // Nút Profile avatar -> Mở ProfileScreen (nơi chứa lối vào Admin)
+          // Nút Profile avatar -> Mở ProfileScreen (Hồ sơ hội viên)
           Padding(
             padding: const EdgeInsets.only(right: 14, left: 2),
             child: GestureDetector(

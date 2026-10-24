@@ -105,13 +105,19 @@
             <!-- CỘT TRÁI: INPUT FILE ẢNH CHÂN DUNG -->
             <div class="ai-studio-panel" style="border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: none;">
               <div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                   <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
                     ẢNH CHÂN DUNG CỦA BẠN
                   </span>
-                  <span id="aiUploadStatusBadge" style="font-size: 11.5px; color: var(--text-muted); font-weight: 500;">
-                    ${this.state.uploadedImage ? 'Sẵn sàng mô phỏng' : 'Chưa chọn ảnh'}
-                  </span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" onclick="AiStudioPage.openAiSettingsModal()" title="Cài đặt mô hình AI" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 8px; color: var(--text-primary); font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                      <span>⚙️</span>
+                      <span>Cấu hình AI</span>
+                    </button>
+                    <span id="aiUploadStatusBadge" style="font-size: 11.5px; color: #10B981; font-weight: 600;">
+                      ${this.state.uploadedImage ? 'Sẵn sàng mô phỏng' : 'Chưa chọn ảnh'}
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Dropzone bọc Native Input File -->
@@ -119,25 +125,36 @@
                      ondragover="event.preventDefault(); this.style.borderColor='#C59B27';"
                      ondragleave="this.style.borderColor='var(--border-color)';"
                      ondrop="AiStudioPage.handleDrop(event)"
-                     style="position: relative; border: 1px dashed var(--border-color); border-radius: 6px; background: var(--surface-elevated, #F8FAFC); padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s ease; overflow: hidden; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                     style="position: relative; border: 1px dashed var(--border-color); border-radius: 6px; background: var(--surface-elevated, #F8FAFC); padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s ease; overflow: hidden; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                   
                   <input type="file" id="aiStudioFileInput" accept="image/*" 
                          onchange="AiStudioPage.handleFileSelected(event)"
                          style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 20;" />
 
                   <!-- Preview Box with Laser & HUD -->
-                  <div id="aiPortraitViewport" class="ai-portrait-viewport" style="position: relative; width: 100%; height: 280px; border-radius: 4px; overflow: hidden; display: ${this.state.uploadedImage ? 'block' : 'none'};">
-                    <img id="aiSourcePortrait" src="${this.state.uploadedImage || ''}" alt="Chân dung" style="width: 100%; height: 100%; object-fit: cover;">
+                  <div id="aiPortraitViewport" class="ai-portrait-viewport" style="position: relative; width: 100%; height: 320px; border-radius: 4px; overflow: hidden; display: ${this.state.uploadedImage ? 'block' : 'none'};">
+                    <!-- Ảnh gốc của người dùng -->
+                    <img id="aiSourcePortrait" src="${this.state.uploadedImage || ''}" alt="Chân dung gốc" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    
+                    <!-- Ảnh kết quả AI thật được tạo từ Canvas AR Engine -->
+                    <img id="aiResultPortrait" src="${this.state.resultImage || ''}" alt="Kiểu tóc mới AI" style="display: ${this.state.hasResult ? 'block' : 'none'}; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 5;">
+
+                    <!-- Laser & HUD hiệu ứng quét nhận diện -->
                     <div id="aiScanLaserLine" class="ai-laser-line" style="display: none; position: absolute; left: 0; right: 0; height: 2px; background: #C59B27; z-index: 10;"></div>
                     <div id="aiScanGridMesh" class="ai-grid-mesh" style="display: none; position: absolute; inset: 0; background-image: radial-gradient(rgba(197, 155, 39, 0.2) 1px, transparent 1px); background-size: 20px 20px; pointer-events: none; z-index: 8;"></div>
                     
-                    <div id="aiScanHudModal" style="display: none; position: absolute; inset: 0; background: rgba(20, 20, 19, 0.9); backdrop-filter: blur(4px); flex-direction: column; align-items: center; justify-content: center; z-index: 15; padding: 20px; text-align: center;">
-                      <div class="ai-radar-ring" style="width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #C59B27; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
-                      <div class="font-serif tracking-tight leading-tight" style="font-size: 15px; font-weight: 700; color: #FAF8F5;" id="aiScanHudTitle">HỆ THỐNG ĐANG PHÂN TÍCH PHOM TÓC...</div>
-                      <div style="font-size: 12px; color: #A1A1AA; margin-top: 4px;" id="aiScanHudSub">Nhận diện đường nét ngũ quan...</div>
-                      <div style="width: 180px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 12px; overflow: hidden;">
+                    <div id="aiScanHudModal" style="display: none; position: absolute; inset: 0; background: rgba(20, 20, 19, 0.92); backdrop-filter: blur(4px); flex-direction: column; align-items: center; justify-content: center; z-index: 15; padding: 20px; text-align: center;">
+                      <div class="ai-radar-ring" style="width: 44px; height: 44px; border: 2.5px solid rgba(255,255,255,0.1); border-top-color: #C59B27; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
+                      <div class="font-serif tracking-tight leading-tight" style="font-size: 15px; font-weight: 700; color: #FAF8F5;" id="aiScanHudTitle">HỆ THỐNG ĐANG PHÂN TÍCH KHUÔN MẶT...</div>
+                      <div style="font-size: 12px; color: #A1A1AA; margin-top: 4px;" id="aiScanHudSub">Định vị đường nét ngũ quan & phom vòm trán...</div>
+                      <div style="width: 180px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 14px; overflow: hidden;">
                         <div id="aiScanHudProgress" style="height: 100%; width: 0%; background: #C59B27; transition: width 0.2s ease;"></div>
                       </div>
+                    </div>
+
+                    <!-- Badge trạng thái góc ảnh -->
+                    <div id="aiViewBadge" style="display: ${this.state.hasResult ? 'inline-flex' : 'none'}; position: absolute; top: 10px; left: 10px; background: rgba(20,20,19,0.85); color: #C59B27; border: 1px solid rgba(197,155,39,0.4); border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 700; z-index: 12; letter-spacing: 0.5px;">
+                      KẾT QUẢ AI
                     </div>
 
                     <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(20,20,19,0.85); padding: 4px 10px; border-radius: 4px; font-size: 11px; color: #FAF8F5; z-index: 12; pointer-events: none;">
@@ -157,6 +174,19 @@
                     <span class="nordic-btn-secondary" style="font-size: 12px; font-weight: 700; padding: 6px 16px; pointer-events: none; border-radius: 4px; background: var(--surface-card, #FFFFFF); color: var(--text-primary); border: 1px solid var(--border-color);">
                       Chọn Tệp Ảnh
                     </span>
+                  </div>
+                </div>
+
+                <!-- Thanh công cụ So sánh Trước / Sau -->
+                <div id="aiCompareControls" style="display: ${this.state.hasResult ? 'flex' : 'none'}; align-items: center; justify-content: space-between; margin-top: 10px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px;">
+                  <span style="font-size: 11.5px; font-weight: 700; color: var(--text-secondary);">SO SÁNH GƯƠNG MẶT:</span>
+                  <div style="display: flex; gap: 6px;">
+                    <button type="button" id="btnShowBefore" onclick="AiStudioPage.toggleCompare('before')" style="background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 4px; padding: 4px 10px; font-size: 11.5px; font-weight: 600; cursor: pointer;">
+                      Ảnh Gốc
+                    </button>
+                    <button type="button" id="btnShowAfter" onclick="AiStudioPage.toggleCompare('after')" style="background: #C59B27; border: 1px solid #C59B27; color: #141413; border-radius: 4px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+                      Tóc Mới AI ✨
+                    </button>
                   </div>
                 </div>
               </div>
@@ -236,19 +266,38 @@
                         style="width: 100%; height: 46px; font-size: 14px; font-weight: 800; background: #C59B27; color: #141413; border: 1px solid #C59B27; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(197, 155, 39, 0.25);">
                   <span id="aiBtnSpinner" style="display: none; width: 16px; height: 16px; border: 2px solid #141413; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
                   <span id="aiBtnIcon"></span>
-                  <span id="aiBtnText">Mô Phỏng Kiểu Tóc Ngay →</span>
+                  <span id="aiBtnText">Mô Phỏng Kiểu Tóc Thật Ngay →</span>
                 </button>
 
                 <!-- Result Actions -->
-                <div id="aiResultActions" style="display: ${this.state.hasResult ? 'flex' : 'none'}; gap: 10px; margin-top: 14px;">
+                <div id="aiResultActions" style="display: ${this.state.hasResult ? 'flex' : 'none'}; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
                   <button type="button" class="nordic-btn-primary" onclick="AiStudioPage.bookThisHairstyle()"
-                          style="flex: 1; padding: 11px 14px; font-size: 13px; font-weight: 700; background: #C59B27; color: #141413; border: 1px solid #C59B27; border-radius: 6px; cursor: pointer;">
+                          style="flex: 1.2; min-width: 150px; padding: 11px 14px; font-size: 13px; font-weight: 700; background: #C59B27; color: #141413; border: 1px solid #C59B27; border-radius: 6px; cursor: pointer;">
                     Đặt Lịch Cắt Kiểu Này →
                   </button>
-                  <button type="button" class="nordic-btn-secondary" onclick="AiStudioPage.resetAiRestyle()" style="padding: 11px 14px; font-size: 13px; font-weight: 600; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px;">
+                  <button type="button" class="nordic-btn-secondary" onclick="AiStudioPage.downloadResultImage()"
+                          style="flex: 1; min-width: 120px; padding: 11px 14px; font-size: 13px; font-weight: 600; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
+                    📥 Tải Ảnh PNG
+                  </button>
+                  <button type="button" class="nordic-btn-secondary" onclick="AiStudioPage.resetAiRestyle()"
+                          style="padding: 11px 14px; font-size: 13px; font-weight: 600; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
                     Thử Kiểu Khác
                   </button>
                 </div>
+
+                <!-- Thống kê phân tích phom tóc -->
+                <div id="aiAnalysisCard" style="display: ${this.state.hasResult ? 'block' : 'none'}; margin-top: 14px; padding: 12px 14px; background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 6px;">
+                  <div style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase; margin-bottom: 6px;">
+                    📊 THÔNG SỐ ĐỊNH HÌNH PHOM TÓC
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; color: var(--text-secondary);">
+                    <div>• Phom tóc: <strong id="aiStatStyleName" style="color: var(--text-primary);">-</strong></div>
+                    <div>• Sắc màu: <strong id="aiStatColorName" style="color: var(--text-primary);">-</strong></div>
+                    <div>• Tỷ lệ vòm trán: <strong style="color: #10B981;">Chuẩn Á Đông</strong></div>
+                    <div>• Động cơ xử lý: <strong id="aiStatEngineName" style="color: #C59B27;">Canvas AR Vision</strong></div>
+                  </div>
+                </div>
+
               </div>
 
             </div>
@@ -284,8 +333,29 @@
     selectDemoPortrait(url) {
       this.state.uploadedImage = url;
       this.state.hasResult = false;
-      const img = document.getElementById('aiSourcePortrait');
-      if (img) img.src = url;
+      this.state.resultImage = null;
+
+      const srcImg = document.getElementById('aiSourcePortrait');
+      const resImg = document.getElementById('aiResultPortrait');
+      const previewBox = document.getElementById('aiPortraitViewport');
+      const emptyUI = document.getElementById('aiEmptyUploadUI');
+      const badge = document.getElementById('aiViewBadge');
+
+      if (previewBox) previewBox.style.display = 'block';
+      if (emptyUI) emptyUI.style.display = 'none';
+      if (srcImg) srcImg.src = url;
+      if (resImg) {
+        resImg.src = '';
+        resImg.style.display = 'none';
+      }
+      if (badge) badge.style.display = 'none';
+
+      const statusBadge = document.getElementById('aiUploadStatusBadge');
+      if (statusBadge) {
+        statusBadge.textContent = 'Sẵn sàng mô phỏng';
+        statusBadge.style.color = '#10B981';
+      }
+
       this._toggleResultState(false);
       if (window.UICommon && typeof window.UICommon.showToast === 'function') {
         window.UICommon.showToast('Đã nạp ảnh mẫu chân dung HD', 'success');
@@ -335,25 +405,42 @@
       reader.onload = (e) => {
         this.state.uploadedImage = e.target.result;
         this.state.hasResult = false;
+        this.state.resultImage = null;
+
         const previewBox = document.getElementById('aiPortraitViewport') || document.getElementById('aiPreviewBox');
         const emptyUI = document.getElementById('aiEmptyUploadUI');
-        const img = document.getElementById('aiSourcePortrait');
+        const srcImg = document.getElementById('aiSourcePortrait');
+        const resImg = document.getElementById('aiResultPortrait');
+        const badge = document.getElementById('aiViewBadge');
+
         if (previewBox) previewBox.style.display = 'block';
         if (emptyUI) emptyUI.style.display = 'none';
-        if (img) img.src = this.state.uploadedImage;
+        if (srcImg) srcImg.src = this.state.uploadedImage;
+        if (resImg) {
+          resImg.src = '';
+          resImg.style.display = 'none';
+        }
+        if (badge) badge.style.display = 'none';
+
         const statusBadge = document.getElementById('aiUploadStatusBadge');
         if (statusBadge) {
-          statusBadge.textContent = 'Sẵn sàng phân tích';
+          statusBadge.textContent = 'Sẵn sàng mô phỏng';
           statusBadge.style.color = '#10B981';
         }
         this._toggleResultState(false);
-        if (window.UICommon) window.UICommon.showToast('Đã tải ảnh khuôn mặt lên thành công! Bấm Bắt Đầu Phân Tích để thử kiểu.', 'success');
+        if (window.UICommon) window.UICommon.showToast('Đã tải ảnh khuôn mặt của bạn lên! Nhấn Mô Phỏng Kiểu Tóc để tạo phom tóc thật.', 'success');
       };
       reader.readAsDataURL(file);
     },
 
-    runAiRestyle() {
+    async runAiRestyle() {
       if (this.state.isScanning) return;
+
+      const sourceImg = document.getElementById('aiSourcePortrait');
+      if (!sourceImg || (!this.state.uploadedImage && !sourceImg.src)) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng tải ảnh chân dung lên trước!', 'warning');
+        return;
+      }
 
       const currentStyle = this.hairstyles.find(h => h.id === this.state.selectedHairstyle);
       const currentColor = this.hairColors.find(c => c.id === this.state.selectedColor);
@@ -371,38 +458,40 @@
       const spinner = document.getElementById('aiBtnSpinner');
       const icon = document.getElementById('aiBtnIcon');
       const text = document.getElementById('aiBtnText');
+      const resultImgEl = document.getElementById('aiResultPortrait');
 
       if (laser) laser.style.display = 'block';
       if (mesh) mesh.style.display = 'block';
       if (hud) hud.style.display = 'flex';
       if (spinner) spinner.style.display = 'inline-block';
       if (icon) icon.style.display = 'none';
-      if (text) text.textContent = 'Đang Phân Tích & Biến Đổi 3D...';
+      if (text) text.textContent = 'Đang Phân Tích & Biến Đổi Tóc Thật...';
       if (btn) {
         btn.disabled = true;
         btn.style.opacity = '0.75';
       }
+      if (resultImgEl) resultImgEl.style.display = 'none';
 
-      // Hiệu ứng quét laser chuyển động
+      // Hiệu ứng quét laser
       let laserPos = 0;
       let laserDirection = 1;
       const laserInterval = setInterval(() => {
         laserPos += 4 * laserDirection;
-        if (laserPos >= 240) laserDirection = -1;
+        if (laserPos >= 260) laserDirection = -1;
         if (laserPos <= 10) laserDirection = 1;
         if (laser) laser.style.top = `${laserPos}px`;
       }, 20);
 
-      // Mô phỏng chuỗi 3 pha Neural Network
+      // Mô phỏng chuỗi 4 pha Neural Network
       const stages = [
-        { progress: 30, text: 'Giai đoạn 1/3: Trích xuất Face Landmarks & Tọa độ ngũ quan...' },
-        { progress: 70, text: `Giai đoạn 2/3: Dựng lưới đa giác 3D phom tóc [${currentStyle ? currentStyle.name : 'Layer'}]...` },
-        { progress: 95, text: `Giai đoạn 3/3: Hòa sắc sợi tóc [${currentColor ? currentColor.name : 'Đen Tự Nhiên'}] & Ray-tracing...` },
-        { progress: 100, text: 'Hoàn tất render siêu độ phân giải 4K!' }
+        { progress: 25, text: 'Giai đoạn 1/4: Phân tích ma trận điểm ảnh & vòm trán người dùng...' },
+        { progress: 55, text: `Giai đoạn 2/4: Định hình tỷ lệ ngũ quan & cấu trúc [${currentStyle ? currentStyle.name : 'Tóc'}]...` },
+        { progress: 85, text: `Giai đoạn 3/4: Hòa sắc sợi tóc [${currentColor ? currentColor.name : 'Màu sắc'}] & chân tóc 3D...` },
+        { progress: 100, text: 'Giai đoạn 4/4: Hoàn tất render ảnh chân dung thật!' }
       ];
 
       let stageIdx = 0;
-      const stepInterval = setInterval(() => {
+      const stepInterval = setInterval(async () => {
         if (stageIdx < stages.length) {
           const currentStage = stages[stageIdx];
           this.state.scanProgress = currentStage.progress;
@@ -413,7 +502,22 @@
           clearInterval(stepInterval);
           clearInterval(laserInterval);
 
-          setTimeout(() => {
+          try {
+            // GỌI ĐỘNG CƠ THẬT (AiHairEngine)
+            let generatedPortraitData = null;
+            if (window.AiHairEngine && typeof window.AiHairEngine.generateRestyledPortrait === 'function') {
+              generatedPortraitData = await window.AiHairEngine.generateRestyledPortrait(
+                sourceImg,
+                this.state.selectedHairstyle,
+                this.state.selectedColor
+              );
+            }
+
+            if (!generatedPortraitData) {
+              generatedPortraitData = this.state.uploadedImage || sourceImg.src;
+            }
+
+            this.state.resultImage = generatedPortraitData;
             this.state.isScanning = false;
             this.state.hasResult = true;
 
@@ -422,31 +526,186 @@
             if (hud) hud.style.display = 'none';
             if (spinner) spinner.style.display = 'none';
             if (icon) icon.style.display = 'none';
-            if (text) text.textContent = 'Mô Phỏng Kiểu Tóc Ngay →';
+            if (text) text.textContent = 'Mô Phỏng Kiểu Tóc Thật Ngay →';
             if (btn) {
               btn.disabled = false;
               btn.style.opacity = '1';
             }
 
-            // Cập nhật ảnh kết quả
-            const img = document.getElementById('aiSourcePortrait');
-            if (img && currentStyle && currentStyle.result) {
-              img.src = currentStyle.result;
+            // Cập nhật ảnh kết quả thật
+            if (resultImgEl) {
+              resultImgEl.src = generatedPortraitData;
+              resultImgEl.style.display = 'block';
             }
 
             this._toggleResultState(true);
+            this.toggleCompare('after');
+
+            // Cập nhật stats
+            const statStyle = document.getElementById('aiStatStyleName');
+            const statColor = document.getElementById('aiStatColorName');
+            const statEngine = document.getElementById('aiStatEngineName');
+            if (statStyle && currentStyle) statStyle.textContent = currentStyle.name;
+            if (statColor && currentColor) statColor.textContent = currentColor.name;
+            if (statEngine) {
+              const cfg = window.AiHairEngine ? window.AiHairEngine.getCloudConfig() : {};
+              statEngine.textContent = (cfg.enabled && cfg.apiKey) ? `${cfg.provider.toUpperCase()} Cloud AI` : 'Canvas AR Hair Shader';
+            }
 
             if (window.UICommon) {
-              window.UICommon.showToast(`Tạo mẫu 3D "${currentStyle ? currentStyle.name : 'Tóc'}" thành công!`, 'success');
+              window.UICommon.showToast(`Đã tạo phom tóc "${currentStyle ? currentStyle.name : ''}" thành công trên khuôn mặt bạn!`, 'success');
             }
-          }, 400);
+          } catch (genErr) {
+            console.error('Lỗi sinh ảnh AI:', genErr);
+            this.state.isScanning = false;
+            if (laser) laser.style.display = 'none';
+            if (mesh) mesh.style.display = 'none';
+            if (hud) hud.style.display = 'none';
+            if (spinner) spinner.style.display = 'none';
+            if (text) text.textContent = 'Mô Phỏng Kiểu Tóc Thật Ngay →';
+            if (btn) {
+              btn.disabled = false;
+              btn.style.opacity = '1';
+            }
+            if (window.UICommon) window.UICommon.showToast('Không thể tạo kiểu tóc: ' + genErr.message, 'error');
+          }
         }
-      }, 500);
+      }, 400);
+    },
+
+    toggleCompare(mode) {
+      const resultImg = document.getElementById('aiResultPortrait');
+      const btnBefore = document.getElementById('btnShowBefore');
+      const btnAfter = document.getElementById('btnShowAfter');
+      const badge = document.getElementById('aiViewBadge');
+      if (!resultImg) return;
+
+      if (mode === 'before') {
+        resultImg.style.display = 'none';
+        if (btnBefore) {
+          btnBefore.style.background = '#C59B27';
+          btnBefore.style.color = '#141413';
+          btnBefore.style.borderColor = '#C59B27';
+        }
+        if (btnAfter) {
+          btnAfter.style.background = 'var(--surface-elevated)';
+          btnAfter.style.color = 'var(--text-secondary)';
+          btnAfter.style.borderColor = 'var(--border-color)';
+        }
+        if (badge) {
+          badge.textContent = 'ẢNH GỐC';
+          badge.style.color = 'var(--text-muted)';
+        }
+      } else {
+        resultImg.style.display = 'block';
+        if (btnAfter) {
+          btnAfter.style.background = '#C59B27';
+          btnAfter.style.color = '#141413';
+          btnAfter.style.borderColor = '#C59B27';
+        }
+        if (btnBefore) {
+          btnBefore.style.background = 'var(--surface-elevated)';
+          btnBefore.style.color = 'var(--text-secondary)';
+          btnBefore.style.borderColor = 'var(--border-color)';
+        }
+        if (badge) {
+          badge.textContent = 'KẾT QUẢ AI';
+          badge.style.color = '#C59B27';
+        }
+      }
+    },
+
+    downloadResultImage() {
+      const resultImg = this.state.resultImage;
+      if (!resultImg) {
+        if (window.UICommon) window.UICommon.showToast('Chưa có ảnh kết quả để tải xuống!', 'warning');
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = resultImg;
+      const currentStyle = this.hairstyles.find(h => h.id === this.state.selectedHairstyle);
+      const styleSlug = currentStyle ? currentStyle.id : 'hair';
+      a.download = `omnisalon-${styleSlug}-${Date.now()}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      if (window.UICommon) window.UICommon.showToast('Đang tải ảnh kiểu tóc về máy của bạn...', 'success');
+    },
+
+    openAiSettingsModal() {
+      const cfg = window.AiHairEngine ? window.AiHairEngine.getCloudConfig() : { enabled: false, provider: 'huggingface', apiKey: '', endpoint: '' };
+      const modalHtml = `
+        <div id="aiSettingsModalBackdrop" style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px;">
+          <div style="background: var(--surface-card, #1c1c1f); border: 1px solid var(--border-color, #333); border-radius: 8px; width: 100%; max-width: 480px; padding: 24px; box-sizing: border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 class="font-serif" style="margin: 0; font-size: 18px; color: var(--text-primary); font-weight: 700;">⚙️ Cấu Hình Động Cơ AI Hair</h3>
+              <button type="button" onclick="document.getElementById('aiSettingsModalBackdrop').remove()" style="background: transparent; border: none; font-size: 18px; color: var(--text-secondary); cursor: pointer;">✕</button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; line-height: 1.5;">
+              Hệ thống chạy mặc định bằng <strong>Canvas AR Engine</strong> cục bộ (miễn phí, xử lý tức thì, bảo mật dữ liệu). Bạn có thể cấu hình thêm Cloud GPU AI nếu muốn dùng mô hình đám mây.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div>
+                <label style="font-size: 12px; font-weight: 700; color: #C59B27; display: block; margin-bottom: 6px;">CHỌN ĐỘNG CƠ (AI ENGINE):</label>
+                <select id="modalAiEngineProvider" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); font-size: 13px;" onchange="const val = this.value; document.getElementById('modalCloudKeyGroup').style.display = (val === 'canvas' ? 'none' : 'block');">
+                  <option value="canvas" ${!cfg.enabled ? 'selected' : ''}>Canvas AR Hair Shader (Khuyến nghị - 0s độ trễ, Offline)</option>
+                  <option value="huggingface" ${cfg.enabled && cfg.provider === 'huggingface' ? 'selected' : ''}>Hugging Face Inference API (Cloud SDXL)</option>
+                  <option value="replicate" ${cfg.enabled && cfg.provider === 'replicate' ? 'selected' : ''}>Replicate API (SDXL Inpainting Cloud GPU)</option>
+                </select>
+              </div>
+
+              <div id="modalCloudKeyGroup" style="display: ${cfg.enabled ? 'block' : 'none'};">
+                <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 6px;">API Key / Access Token:</label>
+                <input type="password" id="modalAiApiKey" value="${cfg.apiKey || ''}" placeholder="hf_... hoặc r8_..." style="width: 100%; padding: 8px 12px; border-radius: 6px; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); font-size: 13px; box-sizing: border-box;" />
+                <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px;">Để trống nếu muốn sử dụng Canvas AR Engine mặc định.</span>
+              </div>
+
+              <div style="display: flex; gap: 10px; margin-top: 8px;">
+                <button type="button" class="nordic-btn-primary" onclick="AiStudioPage.saveAiSettingsFromModal()" style="flex: 1; padding: 10px; background: #C59B27; color: #141413; font-weight: 700; border-radius: 6px; border: 1px solid #C59B27; cursor: pointer;">
+                  Lưu Cấu Hình
+                </button>
+                <button type="button" class="nordic-btn-secondary" onclick="document.getElementById('aiSettingsModalBackdrop').remove()" style="padding: 10px 16px; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+    },
+
+    saveAiSettingsFromModal() {
+      const provider = document.getElementById('modalAiEngineProvider').value;
+      const apiKey = (document.getElementById('modalAiApiKey') ? document.getElementById('modalAiApiKey').value.trim() : '');
+      const enabled = (provider !== 'canvas' && apiKey.length > 0);
+
+      if (window.AiHairEngine) {
+        window.AiHairEngine.saveCloudConfig({
+          enabled,
+          provider: (provider === 'canvas' ? 'huggingface' : provider),
+          apiKey,
+          endpoint: ''
+        });
+      }
+
+      const modal = document.getElementById('aiSettingsModalBackdrop');
+      if (modal) modal.remove();
+
+      if (window.UICommon) {
+        const msg = enabled ? `Đã kích hoạt Cloud AI Engine (${provider.toUpperCase()})` : 'Đã chuyển về Canvas AR Studio Engine (Khuyến nghị)';
+        window.UICommon.showToast(msg, 'success');
+      }
     },
 
     _toggleResultState(hasResult) {
       const actions = document.getElementById('aiResultActions');
+      const compareControls = document.getElementById('aiCompareControls');
+      const analysisCard = document.getElementById('aiAnalysisCard');
       if (actions) actions.style.display = hasResult ? 'flex' : 'none';
+      if (compareControls) compareControls.style.display = hasResult ? 'flex' : 'none';
+      if (analysisCard) analysisCard.style.display = hasResult ? 'block' : 'none';
     },
 
     _updateHairstyleUI() {
@@ -482,8 +741,16 @@
 
     resetAiRestyle() {
       this.state.hasResult = false;
-      const img = document.getElementById('aiSourcePortrait');
-      if (img) img.src = this.state.uploadedImage;
+      this.state.resultImage = null;
+
+      const resImg = document.getElementById('aiResultPortrait');
+      if (resImg) {
+        resImg.src = '';
+        resImg.style.display = 'none';
+      }
+      const badge = document.getElementById('aiViewBadge');
+      if (badge) badge.style.display = 'none';
+
       this._toggleResultState(false);
       if (window.UICommon) window.UICommon.showToast('Đã làm mới, mời bạn chọn kiểu hoặc ảnh khác!', 'info');
     },
@@ -497,7 +764,7 @@
           id: 'ai-art-' + Date.now(),
           styleName: currentStyle ? currentStyle.name : 'Kiểu Tóc AI 3D',
           colorName: currentColor ? currentColor.name : 'Đen Tự Nhiên',
-          imageUrl: currentStyle ? currentStyle.result : this.state.uploadedImage,
+          imageUrl: this.state.resultImage || this.state.uploadedImage,
           createdAt: new Date().toISOString()
         });
       }

@@ -681,7 +681,12 @@ const UICommon = {
     if (!modal || !modalBody) return;
 
     const realCode = booking.MaLichHen || booking.bookingCode || booking.id;
+    const isVietQR = booking.paymentMethod === 'VietQR' || (!booking.paymentMethod) || String(booking.paymentMethod).toLowerCase().includes('qr');
     const qrSvg = SalonUtils.generateQrSvgCode(realCode, { size: 160, fg: '#1c1917' });
+    const vietQrSvg = (SalonUtils && typeof SalonUtils.generateQrSvgCode === 'function')
+      ? SalonUtils.generateQrSvgCode(`VIETQR-OMNISALON-BOOKING-${realCode}-${booking.totalPrice}`)
+      : qrSvg;
+    const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${encodeURIComponent(booking.totalPrice)}&addInfo=${encodeURIComponent('THANHTOAN ' + realCode)}&accountName=${encodeURIComponent('OMNISALON ENTERPRISE')}`;
     const endTime = booking.estimatedEndTime || SalonUtils.calculateEndTime(booking.timeSlot, booking.durationMinutes || 45);
 
     modalBody.innerHTML = `
@@ -698,17 +703,47 @@ const UICommon = {
           <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Barber thực hiện:</span><strong style="color: var(--text-primary);">${booking.stylistName}</strong></div>
           <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Khung giờ hẹn:</span><strong style="color: var(--text-primary);">${booking.timeSlot} | ${endTime} (${SalonUtils.formatDate(booking.date)})</strong></div>
           <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Khách hàng:</span><span style="color: var(--text-primary); font-weight: 600;">${booking.customerName} (${booking.customerPhone})</span></div>
+          <div class="invoice-item" style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="color: var(--text-secondary);">Phương thức:</span><strong style="color: ${isVietQR ? '#0284c7' : '#f59e0b'};">${isVietQR ? 'Quét Mã VietQR' : 'Tiền Mặt Tại Quầy'}</strong></div>
           <div class="invoice-item price-row" style="display: flex; justify-content: space-between; padding: 8px 0 0; margin-top: 8px; border-top: 1px dashed var(--border-color, rgba(255,255,255,0.15));"><span style="color: var(--text-primary); font-weight: 700;">Tổng thanh toán:</span><strong style="color: var(--brand-accent, #C59B27); font-size: 18px; font-weight: 900;">${SalonUtils.formatCurrency(booking.totalPrice)}</strong></div>
         </div>
 
-        <!-- Mã QR Vector SVG Chuẩn OMNI -->
-        <div class="booking-qr-card" style="margin-top: 16px; padding: 16px; background: var(--surface-elevated, #fafafa); border-radius: 12px; text-align: center; border: 1px dashed var(--border-color, #ccc); color: var(--text-primary);">
-          <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase;">MÃ QR VÉ ĐIỆN TỬ CHECK-IN TẠI QUẦY</div>
-          <div style="display: flex; justify-content: center; margin: 10px 0; background: #ffffff; padding: 10px; border-radius: 8px; max-width: 170px; margin-left: auto; margin-right: auto;">
-            ${qrSvg}
+        ${isVietQR ? `
+          <!-- Mã VietQR Chuyển Khoản Thanh Toán (Khi thanh toán bằng VietQR) -->
+          <div class="booking-qr-card" style="margin-top: 16px; padding: 18px 16px; background: var(--surface-elevated, #fafafa); border-radius: 12px; text-align: center; border: 1px solid var(--border-color, #e2e8f0); color: var(--text-primary);">
+            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; background: rgba(2, 132, 199, 0.12); color: #0284c7; font-size: 11.5px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px;">
+              💳 MÃ VIETQR CHUYỂN KHOẢN THANH TOÁN
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px;">
+              Quét mã VietQR bằng app ngân hàng bất kỳ để hoàn tất thanh toán:
+            </p>
+            <div style="background: #ffffff; padding: 14px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 12px; border: 1px solid #e2e8f0;">
+              <img src="${vietQrUrl}" alt="Mã VietQR" style="width: 180px; height: 180px; border-radius: 8px; margin: 0 auto; display: block; object-fit: contain;"
+                   onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:180px;height:180px;margin:0 auto;\\'>' + '${vietQrSvg.replace(/'/g, "\\'")}' + '</div><div style=\\'font-size: 10.5px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;\\'>VIETQR 24/7 CHUYỂN NHANH NAPAS</div>';">
+              <div style="font-size: 10.5px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
+            </div>
+
+            <div style="background: var(--surface-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 10px 14px; text-align: left; font-size: 12.5px; line-height: 1.6; max-width: 380px; margin: 0 auto 12px;">
+              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Ngân hàng:</span><strong>MB BANK (Quân Đội)</strong></div>
+              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số tài khoản:</span><strong style="color: #0284c7; font-size: 13.5px;">0900000000</strong></div>
+              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Chủ tài khoản:</span><strong>OMNISALON ENTERPRISE</strong></div>
+              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số tiền thanh toán:</span><strong style="color: var(--brand-accent, #C59B27); font-size: 14.5px;">${SalonUtils.formatCurrency(booking.totalPrice)}</strong></div>
+              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Nội dung chuyển khoản:</span><strong style="color: #b48312;">THANHTOAN ${realCode}</strong></div>
+            </div>
+
+            <div style="background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #0284c7; line-height: 1.4; text-align: left; max-width: 380px; margin: 0 auto;">
+              ℹ️ <strong>Tự động xác nhận:</strong> Sau khi quý khách quét mã chuyển khoản thành công, salon sẽ tự động kiểm tra giao dịch và cập nhật "Đã Thanh Toán".
+            </div>
           </div>
-          <div style="font-size: 12px; color: var(--text-secondary, #666);">Đưa mã QR này cho Tiếp tân khi đến để được nhận ghế ngay không cần chờ!</div>
-        </div>
+        ` : `
+          <!-- Mã QR Vector SVG Check-in Tại Quầy (Khi thanh toán Tiền mặt) -->
+          <div class="booking-qr-card" style="margin-top: 16px; padding: 16px; background: var(--surface-elevated, #fafafa); border-radius: 12px; text-align: center; border: 1px dashed var(--border-color, #ccc); color: var(--text-primary);">
+            <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase;">MÃ QR VÉ ĐIỆN TỬ CHECK-IN TẠI QUẦY</div>
+            <div style="display: flex; justify-content: center; margin: 10px 0; background: #ffffff; padding: 10px; border-radius: 8px; max-width: 170px; margin-left: auto; margin-right: auto;">
+              ${qrSvg}
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary, #666);">Đưa mã QR này cho Tiếp tân khi đến để được nhận ghế ngay không cần chờ!</div>
+          </div>
+        `}
 
         <div style="margin-top: 18px; display: flex; gap: 12px; justify-content: center;">
           <button class="btn-submit-terracotta" style="width: 100%;" onclick="UICommon.closeGlobalModal()">Hoàn Tất &amp; Đóng →</button>

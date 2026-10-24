@@ -3,7 +3,7 @@
 /* Phần thiết lập cơ bản */
 /* Hệ thống thiết kế chuẩn Omni Salon */
 
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 :root {
   /* Bảng màu tối đương đại (Charcoal Black & Burnished Gold) */
@@ -54,10 +54,10 @@
   --color-collab-gray: #242422;
   --color-footer-bg: #141413;
 
-  /* Phông chữ tiêu chuẩn: Open Sans cho nội dung & Playfair Display cho tiêu đề */
+  /* Phông chữ tiêu chuẩn: Open Sans đồng bộ toàn diện (Nội dung & Tiêu đề) */
   --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-serif: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Bo góc thẻ và nút bấm */
   --radius-sm: 4px;
@@ -108,7 +108,7 @@ body,
   overflow-x: clip;
 }
 
-/* Áp dụng font Playfair Display cho toàn bộ thẻ tiêu đề */
+/* Áp dụng font Open Sans cho toàn bộ thẻ tiêu đề */
 h1,
 h2,
 h3,
@@ -140,6 +140,18 @@ h4,
 
 .tracking-widest {
   letter-spacing: 0.15em !important;
+}
+
+.hero-eyebrow {
+  font-family: var(--font-sans) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  font-size: clamp(16.5px, 1.4vw, 19px) !important;
+  font-weight: 800 !important;
+  color: #C59B27 !important;
+  display: inline-block !important;
+  line-height: 1.35 !important;
+  margin-bottom: 2px !important;
 }
 
 .leading-tight {
@@ -387,7 +399,11 @@ body.light {
   --color-terracotta-dark: #826012;
   --color-brown-leather: #FFFFFF;
   --color-brown-dark: #F3EFEA;
-  --color-footer-bg: #141413;
+  --color-footer-bg: var(--surface-elevated, #F3EFEA);
+  --color-footer-border: var(--border-color, rgba(20, 20, 19, 0.08));
+  --color-footer-title: var(--text-primary, #141413);
+  --color-footer-text: var(--text-secondary, #575752);
+  --color-footer-muted: #8E8E8A;
   --theme-toggle-icon: '🌙';
 }
 
@@ -439,7 +455,11 @@ body.dark {
   --color-terracotta-dark: #A27B1C;
   --color-brown-leather: #1C1C1A;
   --color-brown-dark: #141413;
-  --color-footer-bg: #0E0E0D;
+  --color-footer-bg: #141413;
+  --color-footer-border: rgba(255, 255, 255, 0.08);
+  --color-footer-title: #FAF8F5;
+  --color-footer-text: #A6A6A0;
+  --color-footer-muted: #8E8E8A;
   --theme-toggle-icon: '☀️';
 }
 
@@ -7200,12 +7220,30 @@ body.dark .stylist-avatar-rating {
 }
 
 
-/* Chân trang trang web */
+/* Chân trang trang web (Web Footer Component) */
 .web-footer {
-  background: var(--color-footer-bg);
-  color: #ffffff;
-  padding: 50px 20px 20px;
-  margin-top: 60px;
+  background: var(--color-footer-bg) !important;
+  color: var(--color-footer-text) !important;
+  border-top: 1px solid var(--color-footer-border) !important;
+  padding: 52px 20px 28px !important;
+  margin-top: 56px !important;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+body.light .web-footer,
+[data-theme="light"] .web-footer,
+html.light .web-footer {
+  background: #F3EFEA !important;
+  border-top: 1px solid rgba(20, 20, 19, 0.08) !important;
+  color: #575752 !important;
+}
+
+body.dark .web-footer,
+[data-theme="dark"] .web-footer,
+html.dark .web-footer {
+  background: #141413 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #A6A6A0 !important;
 }
 
 .footer-inner {
@@ -7216,7 +7254,7 @@ body.dark .stylist-avatar-rating {
   grid-template-columns: 1.2fr 2fr 2fr;
   gap: 40px;
   padding-bottom: 40px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--color-footer-border);
   box-sizing: border-box;
 }
 
@@ -7226,35 +7264,135 @@ body.dark .stylist-avatar-rating {
   }
 }
 
-.footer-logo-OMNI {
-  font-size: 38px;
+.web-footer .footer-logo-OMNI,
+.web-footer .footer-brand-title {
+  font-size: 26px;
   font-weight: 900;
-  font-style: italic;
-  color: #fff;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
 }
 
-.footer-col-title {
-  font-size: 14px;
+body.light .web-footer .footer-logo-OMNI,
+body.light .web-footer .footer-brand-title,
+[data-theme="light"] .web-footer .footer-logo-OMNI,
+[data-theme="light"] .web-footer .footer-brand-title {
+  color: #141413 !important;
+}
+
+body.dark .web-footer .footer-logo-OMNI,
+body.dark .web-footer .footer-brand-title,
+[data-theme="dark"] .web-footer .footer-logo-OMNI,
+[data-theme="dark"] .web-footer .footer-brand-title {
+  color: #FAF8F5 !important;
+}
+
+.web-footer h4,
+.web-footer .footer-col-title,
+.web-footer .footer-col-heading {
+  font-size: 13.5px;
   font-weight: 800;
   letter-spacing: 0.06em;
   margin-bottom: 14px;
-  color: #fff;
+  text-transform: uppercase;
 }
 
-.footer-info-list,
-.footer-policy-list {
-  list-style: none;
-  font-size: 13px;
-  color: #aaa;
-  line-height: 1.8;
+body.light .web-footer h4,
+body.light .web-footer .footer-col-title,
+body.light .web-footer .footer-col-heading,
+[data-theme="light"] .web-footer h4,
+[data-theme="light"] .web-footer .footer-col-title,
+[data-theme="light"] .web-footer .footer-col-heading {
+  color: #141413 !important;
 }
 
-.footer-bottom-bar {
+body.dark .web-footer h4,
+body.dark .web-footer .footer-col-title,
+body.dark .web-footer .footer-col-heading,
+[data-theme="dark"] .web-footer h4,
+[data-theme="dark"] .web-footer .footer-col-title,
+[data-theme="dark"] .web-footer .footer-col-heading {
+  color: #FAF8F5 !important;
+}
+
+.web-footer p,
+.web-footer .footer-desc,
+.web-footer .footer-info-list,
+.web-footer .footer-policy-list,
+.web-footer .footer-nav-list {
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+body.light .web-footer p,
+body.light .web-footer .footer-desc,
+body.light .web-footer .footer-info-list,
+body.light .web-footer .footer-policy-list,
+body.light .web-footer .footer-nav-list,
+body.light .web-footer li,
+[data-theme="light"] .web-footer p,
+[data-theme="light"] .web-footer .footer-desc,
+[data-theme="light"] .web-footer .footer-info-list,
+[data-theme="light"] .web-footer .footer-policy-list,
+[data-theme="light"] .web-footer .footer-nav-list,
+[data-theme="light"] .web-footer li {
+  color: #575752 !important;
+}
+
+body.dark .web-footer p,
+body.dark .web-footer .footer-desc,
+body.dark .web-footer .footer-info-list,
+body.dark .web-footer .footer-policy-list,
+body.dark .web-footer .footer-nav-list,
+body.dark .web-footer li,
+[data-theme="dark"] .web-footer p,
+[data-theme="dark"] .web-footer .footer-desc,
+[data-theme="dark"] .web-footer .footer-info-list,
+[data-theme="dark"] .web-footer .footer-policy-list,
+[data-theme="dark"] .web-footer .footer-nav-list,
+[data-theme="dark"] .web-footer li {
+  color: #A6A6A0 !important;
+}
+
+.web-footer a {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+body.light .web-footer a:not([style*="color: #C59B27"]):not([style*="color: rgb(197, 155, 39)"]):not(.btn-hero-primary),
+[data-theme="light"] .web-footer a:not([style*="color: #C59B27"]):not([style*="color: rgb(197, 155, 39)"]):not(.btn-hero-primary) {
+  color: #575752 !important;
+}
+
+body.dark .web-footer a:not([style*="color: #C59B27"]):not([style*="color: rgb(197, 155, 39)"]):not(.btn-hero-primary),
+[data-theme="dark"] .web-footer a:not([style*="color: #C59B27"]):not([style*="color: rgb(197, 155, 39)"]):not(.btn-hero-primary) {
+  color: #A6A6A0 !important;
+}
+
+.web-footer a:hover {
+  color: #C59B27 !important;
+}
+
+.web-footer .footer-bottom-bar,
+.web-footer .footer-copyright {
   text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding-top: 20px;
+  font-size: 13px;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-footer-border) !important;
+}
+
+body.light .web-footer .footer-bottom-bar,
+body.light .web-footer .footer-copyright,
+[data-theme="light"] .web-footer .footer-bottom-bar,
+[data-theme="light"] .web-footer .footer-copyright {
+  border-top-color: rgba(20, 20, 19, 0.08) !important;
+  color: #8E8E8A !important;
+}
+
+body.dark .web-footer .footer-bottom-bar,
+body.dark .web-footer .footer-copyright,
+[data-theme="dark"] .web-footer .footer-bottom-bar,
+[data-theme="dark"] .web-footer .footer-copyright {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  color: #8E8E8A !important;
 }
 
 /* Nâng cấp tìm kiếm trực tiếp và câu hỏi thường gặp */
@@ -17653,7 +17791,8 @@ body.light .modal-close-icon-btn:hover {
   color: #C59B27 !important;
 }
 
-.service-card-btn {
+.service-card-btn,
+.stylist-card-cta-btn {
   min-height: clamp(38px, 2.4vw, 44px) !important;
   height: clamp(38px, 2.4vw, 44px) !important;
   padding: 0 clamp(14px, 1.1vw, 22px) !important;
@@ -17661,6 +17800,41 @@ body.light .modal-close-icon-btn:hover {
   font-size: clamp(13px, 0.85vw, 15px) !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.service-card-btn:hover,
+.stylist-card-cta-btn:hover {
+  border-color: #C59B27 !important;
+  color: #C59B27 !important;
+  background: var(--surface-card) !important;
+}
+
+[data-theme="light"] .service-card-btn,
+[data-theme="light"] .stylist-card-cta-btn,
+html.light .service-card-btn,
+html.light .stylist-card-cta-btn {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .service-card-btn:hover,
+[data-theme="light"] .stylist-card-cta-btn:hover,
+html.light .service-card-btn:hover,
+html.light .stylist-card-cta-btn:hover {
+  border-color: #C59B27 !important;
+  color: #C59B27 !important;
+  background: #FFFFFF !important;
 }
 
 /* Khung Shop tràn viền đồng bộ */

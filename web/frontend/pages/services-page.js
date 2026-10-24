@@ -153,7 +153,7 @@
                 </div>
                 <button onclick="ServicesPage.selectAndBook('${item.id}')"
                         class="service-card-btn"
-                        style="min-height: clamp(38px, 2.4vw, 44px); height: clamp(38px, 2.4vw, 44px); padding: 0 clamp(16px, 1.1vw, 24px); border-radius: 6px; background: #141413; border: 1px solid #141413; color: #FAF8F5; font-size: clamp(13px, 0.85vw, 15px); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s ease, border-color 0.2s ease; white-space: nowrap;">
+                        style="min-height: clamp(38px, 2.4vw, 44px); height: clamp(38px, 2.4vw, 44px); padding: 0 clamp(16px, 1.1vw, 24px); border-radius: 6px; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); font-size: clamp(13px, 0.85vw, 15px); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; white-space: nowrap;">
                   Đặt Lịch →
                 </button>
               </div>

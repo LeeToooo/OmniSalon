@@ -84,7 +84,7 @@
               
               <!-- Cột trái: Nhãn nhỏ, Tiêu đề lớn Playfair Display & CTA tinh gọn -->
               <div class="nordic-hero-content-col" style="display: flex; flex-direction: column; gap: 14px;">
-                <span class="hero-eyebrow" style="font-family: var(--font-sans); text-transform: uppercase; letter-spacing: 0.15em; font-size: 13px; font-weight: 700; color: #C59B27; display: inline-block;">
+                <span class="hero-eyebrow" style="font-family: var(--font-sans); text-transform: uppercase; letter-spacing: 0.12em; font-size: clamp(16.5px, 1.4vw, 19px); font-weight: 800; color: #C59B27; display: inline-block; line-height: 1.35; margin-bottom: 2px;">
                   CHUẨN MỰC BARBERSHOP ĐƯƠNG ĐẠI
                 </span>
                 
@@ -508,7 +508,7 @@
                 </div>
 
                 <div style="margin-top: 6px;">
-                  <button type="button" class="nordic-btn-primary" style="width: 100%; height: 46px; background: #C59B27; color: #141413; font-weight: 800; font-size: 14.5px; border-radius: 6px; border: 1px solid #C59B27; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(197, 155, 39, 0.25);" onclick="AppRouter.navigate('/ai-studio')">
+                  <button type="button" class="nordic-btn-primary" style="width: 100%; height: 46px; background: #C59B27; color: #141413; font-weight: 800; font-size: 14.5px; border-radius: 6px; border: 1px solid #C59B27; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(197, 155, 39, 0.25);" onclick="HomePage.startAiStudio()">
                     <span>Thử Kiểu Tóc Ngay Bằng AI</span>
                     <span>→</span>
                   </button>
@@ -520,40 +520,40 @@
           <!-- ========================================================
                9. CHÂN TRANG DOANH NGHIỆP (FOOTER)
                ======================================================== -->
-          <footer class="web-footer" style="background: #141413; border-top: 1px solid rgba(255, 255, 255, 0.08); padding: 52px 0 32px; margin-top: 48px; color: #FAF8F5;">
+          <footer class="web-footer">
             <div class="omni-container" style="max-width: 1640px; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-bottom: 36px;">
               <div>
                 <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px;">
-                  <span style="font-size: 20px; font-weight: 900; color: #FAF8F5;">OMNI SALON</span>
+                  <span class="footer-brand-title" style="font-size: 20px; font-weight: 900;">OMNI SALON</span>
                   <span style="font-size: 11px; font-weight: 700; color: #C59B27; letter-spacing: 0.08em;">AUTHENTIC BARBER</span>
                 </div>
-                <p style="font-size: 14px; color: #A6A6A0; line-height: 1.6; margin: 0 0 16px;">
+                <p class="footer-desc" style="font-size: 14px; line-height: 1.6; margin: 0 0 16px;">
                   Chuỗi cắt tóc và chăm sóc tóc nam phong cách Barber đương đại. Nơi tôn vinh bản lĩnh và khí chất của người đàn ông.
                 </p>
                 <span style="font-size: 14px; font-weight: 700; color: #C59B27;">TỔNG ĐÀI ĐẶT LỊCH: 1900 8899</span>
               </div>
               <div>
-                <h4 style="font-size: 13.5px; font-weight: 700; color: #FAF8F5; text-transform: uppercase; margin: 0 0 14px; letter-spacing: 0.05em;">ĐIỀU HƯỚNG TRANG</h4>
-                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
-                  <li><a href="/" onclick="event.preventDefault(); AppRouter.navigate('/')" style="color: #A6A6A0; text-decoration: none; font-weight: 500;">Trang Chủ</a></li>
-                  <li><a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" style="color: #A6A6A0; text-decoration: none; font-weight: 500;">Bảng Giá Dịch Vụ</a></li>
-                  <li><a href="/stylists" onclick="event.preventDefault(); AppRouter.navigate('/stylists')" style="color: #A6A6A0; text-decoration: none; font-weight: 500;">Đội Ngũ Thợ Tạo Mẫu</a></li>
-                  <li><a href="/booking" onclick="event.preventDefault(); AppRouter.navigate('/booking')" style="color: #A6A6A0; text-decoration: none; font-weight: 500;">Đặt Lịch Hẹn</a></li>
-                  <li><a href="/shop" onclick="event.preventDefault(); AppRouter.navigate('/shop')" style="color: #A6A6A0; text-decoration: none; font-weight: 500;">Cửa Hàng Mỹ Phẩm</a></li>
-                  <li><a href="/branches" onclick="event.preventDefault(); AppRouter.navigate('/branches')" style="color: #A6A6A0; text-decoration: none; font-weight: 500;">Hệ Thống Chi Nhánh</a></li>
+                <h4 class="footer-col-heading" style="font-size: 13.5px; font-weight: 700; text-transform: uppercase; margin: 0 0 14px; letter-spacing: 0.05em;">ĐIỀU HƯỚNG TRANG</h4>
+                <ul class="footer-nav-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+                  <li><a href="/" onclick="event.preventDefault(); AppRouter.navigate('/')" style="font-weight: 500;">Trang Chủ</a></li>
+                  <li><a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" style="font-weight: 500;">Bảng Giá Dịch Vụ</a></li>
+                  <li><a href="/stylists" onclick="event.preventDefault(); AppRouter.navigate('/stylists')" style="font-weight: 500;">Đội Ngũ Thợ Tạo Mẫu</a></li>
+                  <li><a href="/booking" onclick="event.preventDefault(); AppRouter.navigate('/booking')" style="font-weight: 500;">Đặt Lịch Hẹn</a></li>
+                  <li><a href="/shop" onclick="event.preventDefault(); AppRouter.navigate('/shop')" style="font-weight: 500;">Cửa Hàng Mỹ Phẩm</a></li>
+                  <li><a href="/branches" onclick="event.preventDefault(); AppRouter.navigate('/branches')" style="font-weight: 500;">Hệ Thống Chi Nhánh</a></li>
                 </ul>
               </div>
               <div>
-                <h4 style="font-size: 13.5px; font-weight: 700; color: #FAF8F5; text-transform: uppercase; margin: 0 0 14px; letter-spacing: 0.05em;">GIỜ MỞ CỬA</h4>
-                <p style="font-size: 14px; color: #A6A6A0; line-height: 1.8; margin: 0;">
+                <h4 class="footer-col-heading" style="font-size: 13.5px; font-weight: 700; text-transform: uppercase; margin: 0 0 14px; letter-spacing: 0.05em;">GIỜ MỞ CỬA</h4>
+                <p class="footer-desc" style="font-size: 14px; line-height: 1.8; margin: 0;">
                   Thứ 2 - Thứ 6: 09:00 - 21:00<br>
                   Thứ 7 - Chủ Nhật: 08:30 - 21:30<br>
                   Phục vụ tất cả các ngày trong tuần và ngày lễ.
                 </p>
               </div>
               <div>
-                <h4 style="font-size: 13.5px; font-weight: 700; color: #FAF8F5; text-transform: uppercase; margin: 0 0 14px; letter-spacing: 0.05em;">KẾT NỐI VỚI CHÚNG TÔI</h4>
-                <p style="font-size: 14px; color: #A6A6A0; margin: 0 0 14px;">Theo dõi các mẫu tóc mới nhất và khuyến mãi hấp dẫn:</p>
+                <h4 class="footer-col-heading" style="font-size: 13.5px; font-weight: 700; text-transform: uppercase; margin: 0 0 14px; letter-spacing: 0.05em;">KẾT NỐI VỚI CHÚNG TÔI</h4>
+                <p class="footer-desc" style="font-size: 14px; margin: 0 0 14px;">Theo dõi các mẫu tóc mới nhất và khuyến mãi hấp dẫn:</p>
                 <div style="display: flex; gap: 16px; font-size: 14px; font-weight: 700;">
                   <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style="color: #C59B27; text-decoration: none;">Facebook</a>
                   <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style="color: #C59B27; text-decoration: none;">Instagram</a>
@@ -562,12 +562,43 @@
                 </div>
               </div>
             </div>
-            <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 13px; color: #8E8E8A;">
+            <div class="footer-bottom-bar" style="text-align: center; padding-top: 20px; font-size: 13px;">
               © 2026 OMNI SALON. CHUẨN MỰC BARBERSHOP ĐƯƠNG ĐẠI.
             </div>
           </footer>
         </div>
       `;
+    },
+
+    startAiStudio() {
+      const fileInput = document.getElementById('homeAiFileInput');
+      const activePill = document.querySelector('.ai-home-style-pill.active');
+      let selectedStyle = 'layer-korean';
+      if (activePill) {
+        const text = activePill.textContent.trim();
+        if (text.includes('Vuốt Ngược')) selectedStyle = 'pompadour-luxury';
+        else if (text.includes('Đuôi Dài')) selectedStyle = 'mullet-modern';
+        else if (text.includes('Rẽ Ngôi')) selectedStyle = 'sidepart-gentleman';
+      }
+
+      if (window.AiStudioPage) {
+        window.AiStudioPage.state.selectedHairstyle = selectedStyle;
+      }
+
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (window.AiStudioPage) {
+            window.AiStudioPage.state.uploadedImage = e.target.result;
+            window.AiStudioPage.state.hasResult = false;
+            window.AiStudioPage.state.resultImage = null;
+          }
+          if (window.AppRouter) window.AppRouter.navigate('/ai-studio');
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        if (window.AppRouter) window.AppRouter.navigate('/ai-studio');
+      }
     }
   };
 

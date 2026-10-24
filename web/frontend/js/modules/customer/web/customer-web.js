@@ -1133,28 +1133,59 @@
         const branchName = b.branchName || branch.name || 'Omni Salon Suite';
         const stylistName = b.stylistName || stylist.name || 'Bất kỳ';
         const serviceName = b.serviceName || service.name || 'Cắt Tóc';
+        const bCode = b.id || b.bookingCode || b.MaLichHen;
+        const isPaid = (b.paymentStatus === 'Paid' || b.paymentStatus === 'PAID' || b.TrangThaiThanhToan === 'Đã thanh toán');
+        const bReview = (window.store && typeof window.store.getReviewByBookingId === 'function') ? window.store.getReviewByBookingId(bCode) : null;
+        const payMethodLabel = (b.paymentMethod === 'Cash' || b.paymentMethod === 'Counter_Cash' || b.paymentMethod === 'Tiền Mặt Tại Quầy') ? 'Tiền Mặt Tại Quầy' : 'VietQR';
 
         if (isCompleted) {
           return `
-            <div class="lookup-card-result completed-booking-card" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 14px; opacity: 0.92;">
+            <div class="lookup-card-result completed-booking-card" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; opacity: 0.95;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">
-                  ${isAdmin ? `#${this.escapeHtml(b.id || b.bookingCode)}` : 'Lịch Hẹn Cắt Tóc'}
+                <span style="font-size: 14px; font-weight: 800; color: var(--text-primary); font-family: monospace;">
+                  #${this.escapeHtml(bCode)}
                 </span>
                 <span class="status-pill-pulse ${statusInfo.cssClass}" style="font-size: 11px; padding: 2px 8px;">
                   <span class="pulse-dot"></span> ${statusInfo.label}
                 </span>
               </div>
-              <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+              <div style="font-size: 12.5px; line-height: 1.6; color: var(--text-secondary); display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
                 <div><strong style="color: var(--text-primary);">Dịch vụ:</strong> ${this.escapeHtml(serviceName)}</div>
                 <div><strong style="color: var(--text-primary);">Giờ hẹn:</strong> <span style="color: var(--brand-accent); font-weight: 700;">${b.timeSlot} | ${SalonUtils.formatDate(b.date || b.bookingDate)}</span></div>
                 <div><strong style="color: var(--text-primary);">Chi nhánh:</strong> ${this.escapeHtml(branchName)}</div>
                 <div><strong style="color: var(--text-primary);">Chi phí:</strong> <strong style="color: var(--brand-accent);">${SalonUtils.formatCurrency(b.totalPrice || 0)}</strong></div>
+                <div style="grid-column: 1 / -1;"><strong style="color: var(--text-primary);">Thanh toán:</strong> <strong>${payMethodLabel}</strong> • Trạng thái: <strong style="color: ${isPaid ? '#16a34a' : '#ea580c'};">${isPaid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</strong></div>
               </div>
-              <div style="margin-top: 8px; display: flex; gap: 8px; justify-content: flex-end;">
+              <!-- Đánh giá lịch hẹn -->
+              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 12px;">
+                ${bReview ? `
+                  <span style="color: #f59e0b; font-size: 13px;">${'★'.repeat(bReview.rating || 5)}${'☆'.repeat(5 - (bReview.rating || 5))}</span>
+                  <span style="color: var(--text-secondary); font-size: 12px; margin-left: 6px; font-style: italic;">"${this.escapeHtml(bReview.comment || 'Rất hài lòng')}"</span>
+                ` : `
+                  <span style="color: var(--text-secondary);">Bạn đã trải nghiệm dịch vụ? Hãy để lại đánh giá cho Omni Salon nhé!</span>
+                `}
+              </div>
+              <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
                 <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px;" onclick="CustomerWeb.showTicketQr('${b.id}')">
                   Xem Vé QR
                 </button>
+                ${(!isPaid) ? `
+                  <button class="btn-submit-terracotta" style="font-size: 11px; padding: 4px 12px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;" 
+                          onclick="CustomerWeb.openBookingPaymentModal('${this.escapeHtml(bCode)}')">
+                    💳 Thanh Toán Ngay (VietQR)
+                  </button>
+                ` : ''}
+                ${bReview ? `
+                  <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
+                          onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
+                    Sửa Đánh Giá
+                  </button>
+                ` : `
+                  <button class="btn-submit-terracotta" style="font-size: 11px; padding: 4px 12px; background: #d97706; display: inline-flex; align-items: center; gap: 4px;" 
+                          onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
+                    ⭐ Đánh Giá Lịch Hẹn
+                  </button>
+                `}
                 <button class="btn-submit-terracotta" style="font-size: 11px; padding: 4px 12px;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
                   + Đặt Lại Lịch
                 </button>
@@ -1166,9 +1197,8 @@
         return `
               <div class="lookup-card-result" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                  <!-- Yêu cầu: Khách hàng không hiện mã kỹ thuật #LH... -->
-                  <span style="font-size: 14.5px; font-weight: 800; color: var(--text-primary);">
-                    ${isAdmin ? `#${this.escapeHtml(b.id || b.bookingCode)}` : 'Lịch Hẹn Cắt Tóc'}
+                  <span style="font-size: 14.5px; font-weight: 800; color: var(--text-primary); font-family: monospace;">
+                    #${this.escapeHtml(bCode)}
                   </span>
                   <span class="status-pill-pulse ${statusInfo.cssClass}">
                     <span class="pulse-dot"></span> ${statusInfo.label}
@@ -1181,11 +1211,40 @@
                   <div><strong style="color: var(--text-primary);">Giờ hẹn:</strong> <span style="color: var(--brand-accent); font-weight: 800;">${b.timeSlot} | ${SalonUtils.formatDate(b.date || b.bookingDate)}</span></div>
                   <div><strong style="color: var(--text-primary);">Khách hàng:</strong> ${this.escapeHtml(b.customerName)} (<span data-phone="${this.escapeHtml(b.customerPhone)}">${this.escapeHtml(SalonUtils.maskPhone ? SalonUtils.maskPhone(b.customerPhone) : b.customerPhone)}</span>)</div>
                   <div><strong style="color: var(--text-primary);">Chi phí:</strong> <strong style="color: var(--brand-accent);">${SalonUtils.formatCurrency(b.totalPrice || 0)}</strong></div>
+                  <div><strong style="color: var(--text-primary);">Thanh toán:</strong> <strong>${payMethodLabel}</strong> • Trạng thái: <strong style="color: ${isPaid ? '#16a34a' : '#ea580c'};">${isPaid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</strong></div>
                 </div>
-                <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+
+                <!-- Khối đánh giá dịch vụ -->
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 12px;">
+                  ${bReview ? `
+                    <span style="color: #f59e0b; font-size: 13px;">${'★'.repeat(bReview.rating || 5)}${'☆'.repeat(5 - (bReview.rating || 5))}</span>
+                    <span style="color: var(--text-secondary); font-size: 12px; margin-left: 6px; font-style: italic;">"${this.escapeHtml(bReview.comment || 'Rất hài lòng')}"</span>
+                  ` : `
+                    <span style="color: var(--text-secondary);">Bạn đã trải nghiệm dịch vụ? Hãy để lại đánh giá cho Omni Salon nhé!</span>
+                  `}
+                </div>
+
+                <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
                   <button class="pill-btn-outline" style="font-size: 11px; padding: 6px 14px;" onclick="CustomerWeb.showTicketQr('${b.id}')">
                     Xem Vé QR
                   </button>
+                  ${(!isPaid && !isCancelled) ? `
+                    <button class="btn-submit-terracotta" style="font-size: 11px; padding: 6px 14px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;" 
+                            onclick="CustomerWeb.openBookingPaymentModal('${this.escapeHtml(bCode)}')">
+                      💳 Thanh Toán Ngay (VietQR)
+                    </button>
+                  ` : ''}
+                  ${(!isCancelled) ? (bReview ? `
+                    <button class="pill-btn-outline" style="font-size: 11px; padding: 6px 14px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
+                            onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
+                      Sửa Đánh Giá
+                    </button>
+                  ` : `
+                    <button class="btn-submit-terracotta" style="font-size: 11px; padding: 6px 14px; background: #d97706; display: inline-flex; align-items: center; gap: 4px;" 
+                            onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
+                      ⭐ Đánh Giá Lịch Hẹn
+                    </button>
+                  `) : ''}
                   ${isCancellable ? `
                     <button class="pill-btn-outline" style="font-size: 11px; padding: 6px 14px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
                             onclick="CustomerWeb.cancelBookingByCustomer('${b.id}')">
@@ -2928,18 +2987,24 @@
           <div style="max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
             ${bookings.map(b => {
         const statusInfo = SalonUtils.formatBookingStatus(b.status);
-        const isCancellable = b.status !== 'cancelled' && b.status !== 'completed';
+        const isCompleted = statusInfo.key === 'completed';
+        const isCancelled = statusInfo.key === 'cancelled';
+        const isCancellable = !isCompleted && !isCancelled;
         const branch = branchMap.get(String(b.branchId)) || {};
         const stylist = stylistMap.get(String(b.stylistId)) || {};
         const service = serviceMap.get(String(b.serviceId)) || {};
         const branchName = b.branchName || branch.name || 'Omni Salon Suite';
         const stylistName = b.stylistName || stylist.name || 'Chỉ định';
         const serviceName = b.serviceName || service.name || 'Dịch vụ Omni Salon';
+        const bCode = b.id || b.bookingCode || b.MaLichHen;
+        const isPaid = (b.paymentStatus === 'Paid' || b.paymentStatus === 'PAID' || b.TrangThaiThanhToan === 'Đã thanh toán');
+        const bReview = (window.store && typeof window.store.getReviewByBookingId === 'function') ? window.store.getReviewByBookingId(bCode) : null;
+        const payMethodLabel = (b.paymentMethod === 'Cash' || b.paymentMethod === 'Counter_Cash' || b.paymentMethod === 'Tiền Mặt Tại Quầy') ? 'Tiền Mặt Tại Quầy' : 'VietQR';
         return `
                 <div class="portal-card-history" style="background: var(--surface-card, #ffffff); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-radius: 12px; padding: 14px;">
                   <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
                     <div>
-                      <strong style="color: var(--text-primary, #111); font-size: 14px;">#${this.escapeHtml(b.id || b.bookingCode)}</strong>
+                      <strong style="color: var(--text-primary, #111); font-size: 14px;">#${this.escapeHtml(bCode)}</strong>
                       <span style="font-size: 13px; font-weight: 700; color: var(--color-accent-gold); margin-left: 6px;">: ${this.escapeHtml(serviceName)}</span>
                     </div>
                     <span class="status-pill-pulse ${statusInfo.cssClass}" style="font-size: 10px;">
@@ -2950,11 +3015,40 @@
                     <div>Chi nhánh: <strong>${this.escapeHtml(branchName)}</strong></div>
                     <div>Master Stylist: <strong>${this.escapeHtml(stylistName)}</strong> • Giờ hẹn: <span style="color: var(--brand-accent, #c85a44); font-weight:800;">${b.timeSlot} (${SalonUtils.formatDate(b.date || b.bookingDate)})</span></div>
                     <div>Chi phí: <strong>${SalonUtils.formatCurrency(b.totalPrice || 0)}</strong></div>
+                    <div>Thanh toán: <strong>${payMethodLabel}</strong> • Trạng thái: <strong style="color: ${isPaid ? '#16a34a' : '#ea580c'};">${isPaid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</strong></div>
                   </div>
-                  <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px;">
+
+                  <!-- Khối đánh giá dịch vụ -->
+                  <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color, rgba(255,255,255,0.08)); font-size: 11.5px; color: var(--text-secondary, #666);">
+                    ${bReview ? `
+                      <span style="color: #f59e0b; font-size: 13px;">${'★'.repeat(bReview.rating || 5)}${'☆'.repeat(5 - (bReview.rating || 5))}</span>
+                      <span style="color: var(--text-secondary); font-size: 12px; margin-left: 6px; font-style: italic;">"${this.escapeHtml(bReview.comment || 'Rất hài lòng')}"</span>
+                    ` : `
+                      <span>Bạn đã trải nghiệm dịch vụ? Hãy để lại đánh giá cho Omni Salon nhé!</span>
+                    `}
+                  </div>
+
+                  <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap; margin-top: 10px;">
                     <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px;" onclick="CustomerWeb.showTicketQr('${b.id}')">
                       Xem Vé QR
                     </button>
+                    ${(!isPaid && !isCancelled) ? `
+                      <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;" 
+                              onclick="CustomerWeb.openBookingPaymentModal('${this.escapeHtml(bCode)}')">
+                        💳 Thanh Toán Ngay (VietQR)
+                      </button>
+                    ` : ''}
+                    ${(!isCancelled) ? (bReview ? `
+                      <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
+                              onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
+                        Sửa Đánh Giá
+                      </button>
+                    ` : `
+                      <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #d97706; display: inline-flex; align-items: center; gap: 4px;" 
+                              onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
+                        ⭐ Đánh Giá Lịch Hẹn
+                      </button>
+                    `) : ''}
                     ${isCancellable ? `
                       <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #b91c1c; border-color: #fca5a5;" onclick="CustomerWeb.cancelBookingByCustomer('${b.id}')">
                         Hủy Lịch
@@ -3575,6 +3669,287 @@
         } else {
           if (window.UICommon && typeof window.UICommon.showToast === 'function') {
             window.UICommon.showToast(res?.error || res?.message || 'Lỗi khi gửi đánh giá đơn hàng!', 'error');
+          }
+        }
+      }
+    },
+
+    // -----------------------------------------------------------------------
+    // THANH TOÁN LỊCH HẸN BẰNG VIETQR (ĐỒNG BỘ 100% VỚI ĐƠN HÀNG)
+    // -----------------------------------------------------------------------
+    openBookingPaymentModal(bookingId) {
+      if (!bookingId) return;
+      const bookings = (window.store && typeof window.store.getBookings === 'function') ? window.store.getBookings() : (window.store?.state?.bookings || []);
+      const booking = bookings.find(b => (b.id || b.bookingCode || b.MaLichHen) === bookingId) || {};
+      const amount = booking.totalPrice || 0;
+      const bCode = booking.id || booking.bookingCode || booking.MaLichHen || bookingId;
+
+      const qrSvg = (SalonUtils && typeof SalonUtils.generateQrSvgCode === 'function')
+        ? SalonUtils.generateQrSvgCode(`VIETQR-OMNISALON-BOOKING-${bCode}-${amount}`)
+        : '';
+      const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${encodeURIComponent(amount)}&addInfo=${encodeURIComponent('THANHTOAN ' + bCode)}&accountName=${encodeURIComponent('OMNISALON ENTERPRISE')}`;
+
+      const modalHtml = `
+        <div class="order-payment-modal-box" style="max-width: 480px; margin: 0 auto; text-align: center; padding: 10px 4px;">
+          <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px;">
+            💳
+          </div>
+          <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
+            Thanh Toán Lịch Hẹn #${this.escapeHtml(bCode)}
+          </h3>
+          <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;">
+            Quét mã VietQR bằng app ngân hàng hoặc chuyển khoản theo thông tin bên dưới:
+          </p>
+
+          <!-- VietQR Box -->
+          <div style="background: #ffffff; padding: 16px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 16px; border: 1px solid #e2e8f0;">
+            <img src="${vietQrUrl}" alt="Mã VietQR" style="width: 190px; height: 190px; border-radius: 8px; margin: 0 auto; display: block; object-fit: contain;"
+                 onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:190px;height:190px;margin:0 auto;\\'>' + '${qrSvg ? qrSvg.replace(/'/g, "\\'") : 'VIETQR CODE'}' + '</div><div style=\\'font-size: 11px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;\\'>VIETQR 24/7 CHUYỂN NHANH NAPAS</div>';">
+            <div style="font-size: 11px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
+          </div>
+
+          <!-- Thông tin tài khoản nhận -->
+          <div style="background: var(--surface-elevated, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 12px 16px; text-align: left; font-size: 13px; margin-bottom: 18px; line-height: 1.6;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Ngân hàng:</span>
+              <strong>MB BANK (Quân Đội)</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Số tài khoản:</span>
+              <strong style="color: #0284c7; font-size: 14px;">0900000000</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Chủ tài khoản:</span>
+              <strong>OMNISALON ENTERPRISE</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Số tiền cần trả:</span>
+              <strong style="color: var(--color-terracotta); font-size: 15px;">${SalonUtils.formatCurrency(amount)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Nội dung chuyển khoản:</span>
+              <strong style="color: #b48312;">THANHTOAN ${this.escapeHtml(bCode)}</strong>
+            </div>
+          </div>
+
+          <!-- Thông báo hệ thống tự động xác nhận -->
+          <div style="background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; color: #0284c7; line-height: 1.5; text-align: left;">
+            ℹ️ <strong>Hệ thống tự động xác nhận:</strong> Sau khi quý khách quét mã chuyển khoản thành công, hệ thống / thu ngân sẽ tự động kiểm tra giao dịch và cập nhật trạng thái "Đã Thanh Toán" cho lịch hẹn. Quý khách không cần tự xác nhận.
+          </div>
+
+          <!-- Nút hành động -->
+          <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn-cancel" 
+                    style="min-height: 42px; min-width: 130px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
+                    onclick="CustomerWeb.closeBookingPaymentModal()">
+              Đóng Cửa Sổ
+            </button>
+            <button type="button" class="btn-submit-terracotta" 
+                    style="min-height: 42px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: #16a34a; color: #fff; border: none; cursor: pointer;"
+                    onclick="CustomerWeb.confirmBookingPaid('${this.escapeHtml(bCode)}')">
+              ✓ Tôi Đã Chuyển Khoản
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (window.UICommon && typeof window.UICommon.openModal === 'function') {
+        window.UICommon.openModal(modalHtml, 'payment');
+      }
+    },
+
+    closeBookingPaymentModal() {
+      const portalActive = document.querySelector('.customer-portal-shell');
+      if (portalActive || this.currentPortalTab) {
+        this.openCustomerPortalModal('bookings');
+      } else {
+        this.openLookupModal();
+      }
+    },
+
+    async confirmBookingPaid(bookingCode) {
+      if (window.store && typeof window.store.payBooking === 'function') {
+        await window.store.payBooking(bookingCode);
+      }
+      if (window.UICommon) {
+        window.UICommon.showToast(`Lịch hẹn #${bookingCode} đã ghi nhận thanh toán VietQR thành công!`, 'success');
+      }
+      this.closeBookingPaymentModal();
+    },
+
+    // -----------------------------------------------------------------------
+    // ĐÁNH GIÁ LỊCH HẸN CẮT TÓC (KẾT NỐI TRỰC TIẾP SQL SERVER BẢNG DanhGia)
+    // -----------------------------------------------------------------------
+    _selectedBookingReviewRating: 5,
+
+    openBookingReviewModal(bookingId) {
+      if (!bookingId) return;
+      const user = this.getCurrentUser();
+      const existingReview = (window.store && typeof window.store.getReviewByBookingId === 'function')
+        ? window.store.getReviewByBookingId(bookingId)
+        : null;
+
+      const currentRating = existingReview ? (existingReview.rating || 5) : 5;
+      const currentComment = existingReview ? (existingReview.comment || '') : '';
+      this._selectedBookingReviewRating = currentRating;
+
+      const bookings = (window.store && typeof window.store.getBookings === 'function') ? window.store.getBookings() : (window.store?.state?.bookings || []);
+      const booking = bookings.find(b => (b.id || b.bookingCode || b.MaLichHen) === bookingId) || {};
+      const svcName = booking.serviceName || 'Dịch Vụ Cắt Tóc';
+      const stylName = booking.stylistName || 'Master Barber';
+
+      const modalHtml = `
+        <div class="review-modal-content" style="max-width: 480px; margin: 0 auto; padding: 6px 4px;">
+          <div style="text-align: center; margin-bottom: 18px;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 10px;">
+              ⭐
+            </div>
+            <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
+              Đánh Giá Lịch Hẹn #${this.escapeHtml(bookingId)}
+            </h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+              Dịch vụ: <strong>${this.escapeHtml(svcName)}</strong> • Barber: <strong>${this.escapeHtml(stylName)}</strong>
+            </p>
+          </div>
+
+          <!-- Bộ chọn sao tương tác 1 - 5 sao -->
+          <div style="margin-bottom: 18px; text-align: center;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px;">
+              Mức độ hài lòng của bạn:
+            </div>
+            <div id="bookingReviewRatingStarsContainer" style="display: inline-flex; gap: 8px; font-size: 32px; cursor: pointer; user-select: none;">
+              ${[1, 2, 3, 4, 5].map(star => `
+                <span class="star-rating-item" data-star="${star}" 
+                      style="color: ${star <= currentRating ? '#f59e0b' : '#4a4a44'}; transition: transform 0.15s, color 0.15s;"
+                      onclick="CustomerWeb.setBookingReviewStars(${star})"
+                      onmouseover="CustomerWeb.previewBookingReviewStars(${star})"
+                      onmouseleave="CustomerWeb.resetBookingReviewStars()">
+                  ★
+                </span>
+              `).join('')}
+            </div>
+            <div id="bookingReviewStarTextLabel" style="font-size: 13px; font-weight: 700; color: #f59e0b; margin-top: 4px;">
+              ${this._getStarLabel(currentRating)}
+            </div>
+            <input type="hidden" id="bookingReviewSelectedRating" value="${currentRating}">
+          </div>
+
+          <!-- Khung nhập nội dung đánh giá -->
+          <div style="margin-bottom: 18px;">
+            <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+              Nhận xét chi tiết:
+            </label>
+            <textarea id="bookingReviewCommentInput" 
+                      rows="4" 
+                      style="width: 100%; box-sizing: border-box; background: var(--surface-card, #242422); color: var(--text-primary, #FAF8F5); border: 1.5px solid var(--border-color, #4A4A44); border-radius: 10px; padding: 12px; font-size: 13.5px; font-family: inherit; resize: vertical; outline: none;"
+                      placeholder="Chất lượng đường kéo, cạo mặt khăn nóng, gội đầu thư giãn, độ chu đáo của Barber và không gian Salon...">${this.escapeHtml(currentComment)}</textarea>
+          </div>
+
+          <!-- Nút hành động -->
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn-cancel" 
+                    style="min-height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 600; background: var(--surface-elevated, #2a2a26); color: var(--text-secondary); border: 1px solid var(--border-color, #444);"
+                    onclick="CustomerWeb.closeBookingReviewModal()">
+              Hủy Bỏ
+            </button>
+            <button type="button" class="btn-submit-terracotta" 
+                    id="submitBookingReviewBtn"
+                    style="min-height: 42px; padding: 0 22px; border-radius: 10px; font-size: 13.5px; font-weight: 800; background: #d97706;"
+                    onclick="CustomerWeb.handleBookingReviewSubmit('${this.escapeHtml(bookingId)}')">
+              ${existingReview ? 'Cập Nhật Đánh Giá' : 'Gửi Đánh Giá Ngay'}
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (window.UICommon && typeof window.UICommon.openModal === 'function') {
+        window.UICommon.openModal(modalHtml, 'review');
+      }
+    },
+
+    setBookingReviewStars(star) {
+      this._selectedBookingReviewRating = star;
+      const input = document.getElementById('bookingReviewSelectedRating');
+      if (input) input.value = star;
+      this._updateBookingStarsVisual(star);
+    },
+
+    previewBookingReviewStars(star) {
+      this._updateBookingStarsVisual(star);
+    },
+
+    resetBookingReviewStars() {
+      const input = document.getElementById('bookingReviewSelectedRating');
+      const star = input ? parseInt(input.value, 10) : (this._selectedBookingReviewRating || 5);
+      this._updateBookingStarsVisual(star);
+    },
+
+    _updateBookingStarsVisual(rating) {
+      const container = document.getElementById('bookingReviewRatingStarsContainer');
+      const label = document.getElementById('bookingReviewStarTextLabel');
+      if (container) {
+        const stars = container.querySelectorAll('.star-rating-item');
+        stars.forEach((s, idx) => {
+          s.style.color = (idx + 1) <= rating ? '#f59e0b' : '#4a4a44';
+          s.style.transform = (idx + 1) <= rating ? 'scale(1.12)' : 'scale(1)';
+        });
+      }
+      if (label) {
+        label.textContent = this._getStarLabel(rating);
+      }
+    },
+
+    closeBookingReviewModal() {
+      const portalActive = document.querySelector('.customer-portal-shell');
+      if (portalActive || this.currentPortalTab) {
+        this.openCustomerPortalModal('bookings');
+      } else {
+        this.openLookupModal();
+      }
+    },
+
+    async handleBookingReviewSubmit(bookingId) {
+      const ratingInput = document.getElementById('bookingReviewSelectedRating');
+      const commentInput = document.getElementById('bookingReviewCommentInput');
+      const btn = document.getElementById('submitBookingReviewBtn');
+
+      const rating = ratingInput ? parseInt(ratingInput.value, 10) : 5;
+      const comment = commentInput ? commentInput.value.trim() : '';
+      const user = this.getCurrentUser();
+      const cleanCustomerId = user ? (user.MaKhachHang || (user.id ? String(user.id).replace(/^TK_/, '') : null) || user.customerId) : null;
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Đang lưu vào SQL Server...';
+      }
+
+      if (window.store && typeof window.store.submitBookingReview === 'function') {
+        const res = await window.store.submitBookingReview({
+          bookingId,
+          rating,
+          comment: comment || 'Dịch vụ cắt tóc và tạo kiểu rất đẹp, thợ chu đáo!',
+          customerId: cleanCustomerId,
+          customerName: user ? (user.fullName || user.username) : 'Khách Hàng',
+          customerPhone: (user && user.phone) ? user.phone : ''
+        });
+
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Gửi Đánh Giá Ngay';
+        }
+
+        if (res && res.success) {
+          if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+            window.UICommon.showToast(res.message || 'Cảm ơn quý khách đã đánh giá dịch vụ!', 'success');
+          }
+          this.closeBookingReviewModal();
+          const lookupContainer = document.getElementById('lookupResultsContainer');
+          if (lookupContainer) {
+            this.searchBookingLookup();
+          }
+        } else {
+          if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+            window.UICommon.showToast(res?.error || res?.message || 'Lỗi khi gửi đánh giá lịch hẹn!', 'error');
           }
         }
       }

@@ -3407,6 +3407,19 @@ const server = http.createServer(async (req, res) => {
             const bookingRows = await querySql('SELECT MaLichHen, MaKhachHang FROM LichHen WHERE MaLichHen = ?', [lhId]);
             if (bookingRows && bookingRows[0] && !khId) {
               khId = bookingRows[0].MaKhachHang;
+            } else if (!bookingRows || bookingRows.length === 0) {
+              if (!khId) {
+                khId = await resolveOrCreateCustomer({
+                  customerId: rawKhId,
+                  customerName: r.customerName || 'Khách Hàng',
+                  customerPhone: r.customerPhone || ''
+                });
+              }
+              await querySql(
+                `INSERT INTO LichHen (MaLichHen, MaKhachHang, MaChiNhanh, MaNhanVien, NgayHen, GioHen, TongTien, TrangThai, GhiChu)
+                 VALUES (?, ?, 'CN01', 'NV02', CAST(GETDATE() AS DATE), '10:00:00', 330000, N'Đã hoàn thành', N'Đồng bộ đánh giá lịch hẹn')`,
+                [lhId, khId]
+              ).catch(err => console.warn('[Auto-sync LichHen for Review Warning]', err.message));
             }
             dhId = null;
           }

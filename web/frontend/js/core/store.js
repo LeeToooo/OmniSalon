@@ -2009,6 +2009,86 @@
       }
     }
 
+    getReviewByBookingId(bookingId) {
+      if (!bookingId) return null;
+      const reviews = this.getReviews();
+      const norm = String(bookingId).trim().toLowerCase();
+      return reviews.find(r => 
+        (r.bookingId && String(r.bookingId).trim().toLowerCase() === norm) || 
+        (r.MaLichHen && String(r.MaLichHen).trim().toLowerCase() === norm)
+      ) || null;
+    }
+
+    async submitBookingReview({ bookingId, rating, comment, customerId, customerName, customerPhone }) {
+      const cleanKhId = customerId ? String(customerId).replace(/^TK_/, '') : null;
+      const payload = {
+        bookingId,
+        rating: Number(rating) || 5,
+        comment: (comment || '').trim() || 'Dịch vụ cắt tóc và tạo kiểu rất đẹp, thợ chu đáo!',
+        customerId: cleanKhId,
+        customerName,
+        customerPhone
+      };
+
+      try {
+        const res = await fetch(`${this.liveServerUrl}/reviews`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || (data && data.success === false)) {
+          throw new Error(data.message || data.error || 'Lỗi khi gửi đánh giá lịch hẹn!');
+        }
+
+        const reviewData = data.review || {
+          id: 'DG' + Date.now(),
+          bookingId,
+          rating: payload.rating,
+          comment: payload.comment,
+          customerName: customerName || 'Khách Hàng',
+          date: new Date().toISOString()
+        };
+
+        if (!this.state.reviews) this.state.reviews = [];
+        const norm = String(bookingId).trim().toLowerCase();
+        const existingIdx = this.state.reviews.findIndex(r => 
+          (r.bookingId && String(r.bookingId).trim().toLowerCase() === norm) || 
+          (r.MaLichHen && String(r.MaLichHen).trim().toLowerCase() === norm)
+        );
+        if (existingIdx >= 0) {
+          this.state.reviews[existingIdx] = { ...this.state.reviews[existingIdx], ...reviewData };
+        } else {
+          this.state.reviews.unshift(reviewData);
+        }
+        this.saveState();
+        this.notify('REVIEW_SUBMITTED', reviewData);
+        return { success: true, message: data.message || 'Đánh giá thành công!', review: reviewData };
+      } catch (err) {
+        console.error('[BOOKING REVIEW ERROR]', err);
+        return { success: false, error: err.message };
+      }
+    }
+
+    async payBooking(bookingId) {
+      if (!bookingId) return { success: false };
+      const norm = String(bookingId).trim().toLowerCase();
+      const booking = (this.state.bookings || []).find(b => 
+        (b.id && String(b.id).trim().toLowerCase() === norm) || 
+        (b.bookingCode && String(b.bookingCode).trim().toLowerCase() === norm) || 
+        (b.MaLichHen && String(b.MaLichHen).trim().toLowerCase() === norm)
+      );
+      if (booking) {
+        booking.paymentStatus = 'Paid';
+        booking.TrangThaiThanhToan = 'Đã thanh toán';
+        this.saveState();
+        this.syncBookingStatusToLiveServer(booking.id, booking.status, { paymentStatus: 'Paid', TrangThaiThanhToan: 'Đã thanh toán' }).catch(() => {});
+        this.notify('BOOKING_UPDATED', booking);
+        return { success: true, booking };
+      }
+      return { success: false };
+    }
+
     async createOrder(orderData) {
       const branch = this.getBranchById(orderData.branchId) || this.getCurrentBranch();
 

@@ -274,11 +274,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: () => _fillSampleAccount('0901111222', '123456'),
                           ),
                           ActionChip(
-                            label: const Text('Admin: admin'),
+                            label: const Text('Khách VIP: 0988000001'),
                             labelStyle: AppTheme.bodySmall(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
                             backgroundColor: AppTheme.surfaceCard,
                             side: const BorderSide(color: AppTheme.borderColor),
-                            onPressed: () => _fillSampleAccount('admin', '123456'),
+                            onPressed: () => _fillSampleAccount('0988000001', '123456'),
                           ),
                         ],
                       ),
