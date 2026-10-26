@@ -557,6 +557,19 @@
       return null;
     },
 
+    async preprocessCustomerPhoto(imageOrUrl, backgroundMode = 'studio') {
+      try {
+        const res = await this._fetch('/ai/preprocess-customer-photo', {
+          method: 'POST',
+          body: JSON.stringify({ image: imageOrUrl, backgroundMode })
+        });
+        if (res && res.success) return res;
+      } catch (err) {
+        console.warn('[SalonApi] preprocessCustomerPhoto backend failed:', err.message);
+      }
+      return null;
+    },
+
     async askAiBarber(message, context = {}) {
       try {
         const res = await this._fetch('/ai/consultation', {
@@ -586,22 +599,7 @@
       const storedKey = (typeof localStorage !== 'undefined' && localStorage.getItem('omni_gemini_api_key')) || '';
       const effectiveKey = (geminiApiKey || storedKey || '').trim();
 
-      // 1. Luôn sử dụng Động cơ Canvas Neural Engine để đảm bảo 100% GIỮ NGUYÊN KHUÔN MẶT KHÁCH HÀNG (chỉ đổi tóc)
-      let localPortrait = null;
-      if (window.AiHairEngine && typeof window.AiHairEngine.generateRestyledPortrait === 'function') {
-        try {
-          localPortrait = await window.AiHairEngine.generateRestyledPortrait(
-            originalImageBase64,
-            hairstyleName,
-            hairColorName,
-            { customPrompt, balanceLighting, smoothSkin, geminiApiKey: effectiveKey, faceAnalysis: options.faceAnalysis }
-          );
-        } catch (engineErr) {
-          console.warn('[SalonApi] AiHairEngine local portrait warning:', engineErr.message);
-        }
-      }
-
-      // 2. Gọi Backend Google Gemini Multimodal Vision để nhận phân tích ngũ quan, dáng mặt, undertone chuẩn xác
+      // 1. Gọi Backend Real AI Vision Engine (MediaPipe 3D Landmark Warping + Poisson Seamless Blend)
       let backendRes = null;
       try {
         backendRes = await this._fetch('/ai/restyle-hair', {
@@ -621,13 +619,22 @@
         console.warn('[SalonApi] Backend /api/ai/restyle-hair note:', backendErr.message);
       }
 
-      const finalImage = localPortrait || (backendRes && backendRes.resultImageUrl) || originalImageBase64;
+      // 2. Nhận kết quả ảnh thật 100% từ backend AI Vision
+      const finalImage = (backendRes && backendRes.resultImageUrl) ? backendRes.resultImageUrl : null;
+
+      if (!finalImage) {
+        return {
+          success: false,
+          message: backendRes?.message || 'Không thể nhận diện khuôn mặt rõ nét trong ảnh để đổi kiểu tóc. Vui lòng thử lại với ảnh chân dung rõ mặt.',
+          originalImageUrl: originalImageBase64
+        };
+      }
 
       return {
         success: true,
         resultImageUrl: finalImage,
         originalImageUrl: originalImageBase64,
-        providerUsed: effectiveKey ? 'Google Gemini 2.5 Multimodal Vision (Bảo toàn 100% khuôn mặt)' : 'Omni Neural Face Balancing & Hairstyle Engine',
+        providerUsed: backendRes?.providerUsed || 'Omni Real AI Face-Preserving Engine (MediaPipe Multiclass Segmenter + 3D Mesh)',
         hairstyle: hairstyleName,
         color: hairColorName,
         faceAnalysis: backendRes ? backendRes.faceAnalysis : null,

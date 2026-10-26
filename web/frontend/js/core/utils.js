@@ -172,8 +172,15 @@
         clean = 'Men_Grooming_Products/' + clean;
       }
 
-      if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') {
-        return '../../' + clean;
+      if (typeof window !== 'undefined' && window.location) {
+        if (window.location.protocol === 'file:') {
+          return '../../' + clean;
+        }
+        // Hỗ trợ GitHub Pages (khi URL có tiền tố subpath /OmniSalon/)
+        const segments = (window.location.pathname || '').split('/').filter(Boolean);
+        if (segments.length > 0 && !['index.html', 'admin', 'customer', 'api', 'pages'].includes(segments[0])) {
+          return '/' + segments[0] + '/' + clean;
+        }
       }
       return '/' + clean;
     },

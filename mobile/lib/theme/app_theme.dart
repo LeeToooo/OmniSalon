@@ -30,9 +30,9 @@ class AppTheme {
   static const Color statusWarning = Color(0xFFF59E0B);
   static const Color statusDanger = Color(0xFFEF4444);
 
-  // Typography Editorial: Open Sans (Body/Button/Input) + Playfair Display (Headings)
+  // Typography Đương đại: Open Sans đồng bộ toàn diện (Giống phiên bản Web Omni Salon)
   static TextStyle headingLarge({Color color = textPrimary, double fontSize = 28}) {
-    return GoogleFonts.playfairDisplay(
+    return GoogleFonts.openSans(
       fontSize: fontSize,
       fontWeight: FontWeight.w700,
       color: color,
@@ -42,7 +42,7 @@ class AppTheme {
   }
 
   static TextStyle headingMedium({Color color = textPrimary, double fontSize = 22}) {
-    return GoogleFonts.playfairDisplay(
+    return GoogleFonts.openSans(
       fontSize: fontSize,
       fontWeight: FontWeight.w700,
       color: color,
@@ -52,7 +52,7 @@ class AppTheme {
   }
 
   static TextStyle headingSmall({Color color = textPrimary, double fontSize = 18}) {
-    return GoogleFonts.playfairDisplay(
+    return GoogleFonts.openSans(
       fontSize: fontSize,
       fontWeight: FontWeight.w700,
       color: color,

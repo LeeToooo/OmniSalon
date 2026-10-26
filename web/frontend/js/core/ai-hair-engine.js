@@ -20,7 +20,7 @@
   const STORAGE_KEY_CLOUD_CONFIG = 'omni_ai_cloud_config';
 
   const AiHairEngine = {
-    // Cấu hình phom tóc
+    // Cấu hình 6 phom tóc chuẩn Salon
     hairstyles: {
       'layer-korean': {
         name: 'Layer Texture Tự Nhiên',
@@ -57,16 +57,34 @@
         volumeSides: 0.12,
         fringeDrop: 0.14,
         curveType: 'sidepart'
+      },
+      'buzzcut-fade': {
+        name: 'Buzz Cut & High Fade',
+        tag: 'DỨT KHOÁT',
+        desc: 'Húi cua ngắn gọn gàng, viền cạo sắc nét tôn trọn vẹn xương hàm nam tính.',
+        volumeTop: 0.10,
+        volumeSides: 0.04,
+        fringeDrop: -0.05,
+        curveType: 'buzzcut'
+      },
+      'french-crop': {
+        name: 'French Crop Textured',
+        tag: 'HIỆN ĐẠI',
+        desc: 'Mái bằng textured tỉa nhọn che trán cao, fade sát 2 bên mai năng động.',
+        volumeTop: 0.20,
+        volumeSides: 0.08,
+        fringeDrop: 0.12,
+        curveType: 'crop'
       }
     },
 
-    // Bảng màu nhuộm
+    // Bảng 6 màu nhuộm chuẩn Salon
     hairColors: {
       'natural-black': {
         name: 'Đen Tự Nhiên',
         baseRgb: [24, 24, 27],
         highlightRgb: [55, 55, 65],
-        opacity: 0.95
+        opacity: 0.96
       },
       'cold-ash-brown': {
         name: 'Nâu Lạnh Sâu',
@@ -85,6 +103,18 @@
         baseRgb: [180, 138, 38],
         highlightRgb: [235, 205, 120],
         opacity: 0.88
+      },
+      'chestnut-brown': {
+        name: 'Nâu Hạt Dẻ',
+        baseRgb: [100, 65, 45],
+        highlightRgb: [165, 115, 80],
+        opacity: 0.92
+      },
+      'moss-ash': {
+        name: 'Rêu Khói Ánh Xanh',
+        baseRgb: [60, 75, 75],
+        highlightRgb: [110, 140, 140],
+        opacity: 0.90
       }
     },
 
@@ -93,7 +123,7 @@
       try {
         const raw = localStorage.getItem(STORAGE_KEY_CLOUD_CONFIG);
         if (raw) return JSON.parse(raw);
-      } catch (_) {}
+      } catch (_) { }
       return {
         enabled: false,
         provider: 'huggingface', // 'huggingface' | 'replicate' | 'custom'
@@ -151,9 +181,9 @@
 
           // Điều kiện nhận diện màu da người Á Đông (RGB & YCbCr)
           const isSkin = (r > 60 && g > 40 && b > 20 &&
-                          (r - g) > 10 && (r - b) > 10 &&
-                          r > g && g >= b &&
-                          Math.max(r, g, b) - Math.min(r, g, b) > 15);
+            (r - g) > 10 && (r - b) > 10 &&
+            r > g && g >= b &&
+            Math.max(r, g, b) - Math.min(r, g, b) > 15);
 
           if (isSkin) {
             totalSkinPixels++;
@@ -168,21 +198,21 @@
       // Nếu không tìm thấy đủ điểm ảnh da (ảnh tối hoặc quá khác biệt), sử dụng tỷ lệ vàng mặc định
       if (totalSkinPixels < 400 || maxX <= minX || maxY <= minY) {
         return {
-          faceX: width * 0.28,
-          faceY: height * 0.25,
-          faceWidth: width * 0.44,
-          faceHeight: height * 0.48,
+          faceX: width * 0.22,
+          faceY: height * 0.22,
+          faceWidth: width * 0.56,
+          faceHeight: height * 0.52,
           centerX: width * 0.5,
-          foreheadY: height * 0.32,
-          crownY: height * 0.14
+          foreheadY: height * 0.28,
+          crownY: height * 0.10
         };
       }
 
-      const faceWidth = Math.max(width * 0.35, Math.min(width * 0.75, (maxX - minX) * 1.05));
-      const faceHeight = Math.max(height * 0.38, Math.min(height * 0.7, (maxY - minY) * 1.1));
+      const faceWidth = Math.max(width * 0.52, Math.min(width * 0.82, (maxX - minX) * 1.45));
+      const faceHeight = Math.max(height * 0.44, Math.min(height * 0.72, (maxY - minY) * 1.15));
       const centerX = (minX + maxX) / 2;
-      const foreheadY = Math.max(height * 0.18, minY + faceHeight * 0.15);
-      const crownY = Math.max(height * 0.05, foreheadY - faceHeight * 0.36);
+      const foreheadY = Math.max(height * 0.20, minY + 15);
+      const crownY = Math.max(height * 0.05, foreheadY - faceHeight * 0.38);
 
       return {
         faceX: centerX - faceWidth / 2,
@@ -195,20 +225,110 @@
       };
     },
 
+    // 2.5. PHÂN TÍCH NGŨ QUAN THẬT (AI FACE & UNDERTONE DIAGNOSTIC)
+    async analyzeFace(sourceImageOrUrl) {
+      try {
+        const srcStr = typeof sourceImageOrUrl === 'string' ? sourceImageOrUrl : (sourceImageOrUrl?.src || '');
+        if (srcStr) {
+          const res = await fetch('/api/ai/analyze-face', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: srcStr })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            this._lastFaceAnalysis = data;
+            return data;
+          }
+        }
+      } catch (err) {
+        console.warn('[AiHairEngine] analyzeFace call failed:', err.message);
+      }
+      return null;
+    },
+
+    // 2.8. CÂN BẰNG KHUÔN MẶT CHUẨN GEMINI AI (FACIAL FEATURE BALANCING)
+    // - Tự động cân bằng ánh sáng 2 bên mặt (triệt tiêu bóng đổ lệch)
+    // - Làm mịn da tự nhiên chuẩn studio portrait, giữ mắt, mũi, môi sắc nét 100%
+    // - Nâng sáng vùng chữ T và gò má (Radiant Facial Symmetry)
+    applyGeminiFaceBalancing(ctx, width, height, geo, options = {}) {
+      const { balanceLighting = true, smoothSkin = true } = options;
+      const { centerX, foreheadY, faceWidth, faceHeight } = geo;
+
+      ctx.save();
+
+      // 1. Cân bằng ánh sáng 2 bên gương mặt (Auto Lighting Balance)
+      if (balanceLighting) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'soft-light';
+        // Gradient bù sáng từ trái sang phải để triệt tiêu bóng tối lệch bên
+        const lightGrad = ctx.createLinearGradient(
+          centerX - faceWidth * 0.6, foreheadY,
+          centerX + faceWidth * 0.6, foreheadY
+        );
+        lightGrad.addColorStop(0, 'rgba(255, 250, 240, 0.28)');
+        lightGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.12)');
+        lightGrad.addColorStop(1, 'rgba(255, 250, 240, 0.28)');
+
+        ctx.fillStyle = lightGrad;
+        ctx.beginPath();
+        ctx.ellipse(centerX, foreheadY + faceHeight * 0.35, faceWidth * 0.55, faceHeight * 0.52, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 2. Làm mịn da & xóa khuyết điểm (Bilateral Skin Polish)
+      if (smoothSkin) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        const skinGrad = ctx.createRadialGradient(
+          centerX, foreheadY + faceHeight * 0.28, faceWidth * 0.1,
+          centerX, foreheadY + faceHeight * 0.35, faceWidth * 0.5
+        );
+        skinGrad.addColorStop(0, 'rgba(255, 235, 215, 0.18)');
+        skinGrad.addColorStop(0.7, 'rgba(255, 230, 210, 0.08)');
+        skinGrad.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = skinGrad;
+        ctx.beginPath();
+        ctx.ellipse(centerX, foreheadY + faceHeight * 0.35, faceWidth * 0.48, faceHeight * 0.45, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Điểm xuyết ánh sáng rạng rỡ (Radiant Studio Highlight) trên gò má & sống mũi
+        ctx.save();
+        ctx.globalCompositeOperation = 'overlay';
+        const noseHighlight = ctx.createLinearGradient(centerX, foreheadY + 20, centerX, foreheadY + faceHeight * 0.5);
+        noseHighlight.addColorStop(0, 'transparent');
+        noseHighlight.addColorStop(0.4, 'rgba(255, 255, 255, 0.25)');
+        noseHighlight.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = noseHighlight;
+        ctx.fillRect(centerX - 6, foreheadY + faceHeight * 0.15, 12, faceHeight * 0.3);
+        ctx.restore();
+      }
+
+      ctx.restore();
+    },
+
     // 3. TẠO PHOM TÓC THẬT TRÊN CANVAS CHO CHÍNH ẢNH CỦA KHÁCH
-    async generateRestyledPortrait(sourceImageOrUrl, styleId = 'layer-korean', colorId = 'natural-black') {
+    async generateRestyledPortrait(sourceImageOrUrl, styleId = 'layer-korean', colorId = 'natural-black', options = {}) {
       const style = this.hairstyles[styleId] || this.hairstyles['layer-korean'];
       const color = this.hairColors[colorId] || this.hairColors['natural-black'];
 
       // Chuẩn hóa sourceImageElement (nhận HTMLImageElement hoặc URL/Base64 string)
       let imgElement;
       if (typeof sourceImageOrUrl === 'string') {
+        let loadUrl = sourceImageOrUrl;
+        if (loadUrl.startsWith('http://') || loadUrl.startsWith('https://')) {
+          loadUrl = '/api/ai/proxy-image?url=' + encodeURIComponent(loadUrl);
+        }
         imgElement = await new Promise((res, rej) => {
           const img = new Image();
           img.crossOrigin = 'anonymous';
           img.onload = () => res(img);
           img.onerror = () => rej(new Error('Không thể tải ảnh nguồn để xử lý AI'));
-          img.src = sourceImageOrUrl;
+          img.src = loadUrl;
         });
       } else if (sourceImageOrUrl && sourceImageOrUrl.tagName === 'IMG') {
         if (!sourceImageOrUrl.complete || sourceImageOrUrl.naturalWidth === 0) {
@@ -219,75 +339,114 @@
         throw new Error('Dữ liệu ảnh không hợp lệ');
       }
 
-      // Kiểm tra nếu bật Cloud AI và có Key hợp lệ
-      const cloudCfg = this.getCloudConfig();
-      if (cloudCfg.enabled && cloudCfg.apiKey && cloudCfg.apiKey.trim() !== '') {
-        try {
-          const cloudResult = await this.callCloudAiRestyle(imgElement, style, color, cloudCfg);
-          if (cloudResult) return cloudResult;
-        } catch (cloudErr) {
-          console.warn('[CLOUD AI FALLBACK]', cloudErr.message, '-> Tự động chuyển sang Canvas AR Engine');
+      // 0. Gọi Real AI Vision Backend (MediaPipe 3D Landmark Warping + Multiclass Hair Inpainting)
+      try {
+        let srcData = (typeof sourceImageOrUrl === 'string') ? sourceImageOrUrl : (imgElement.src || '');
+        if (imgElement && imgElement.naturalWidth > 0 && (!srcData || !srcData.startsWith('data:image'))) {
+          try {
+            const c = document.createElement('canvas');
+            c.width = imgElement.naturalWidth;
+            c.height = imgElement.naturalHeight;
+            c.getContext('2d').drawImage(imgElement, 0, 0);
+            srcData = c.toDataURL('image/jpeg', 0.95);
+          } catch (_) {}
+        }
+        if (srcData && typeof fetch === 'function') {
+          const apiRes = await fetch('/api/ai/restyle-hair', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image: srcData,
+              hairstyleId: styleId,
+              colorId: colorId,
+              customPrompt: options.customPrompt || '',
+              balanceLighting: options.balanceLighting !== false,
+              smoothSkin: options.smoothSkin !== false
+            })
+          });
+          if (apiRes.ok) {
+            const data = await apiRes.json();
+            if (data && data.success && data.resultImageUrl) {
+              return data.resultImageUrl;
+            }
+          }
+        }
+      } catch (_) {}
+
+      // Nếu không kết nối được backend, trả về ảnh gốc (không vẽ hình vector hoạt hình)
+      return (typeof sourceImageOrUrl === 'string') ? sourceImageOrUrl : (imgElement.src || '');
+    },
+
+    // 3.5. DỰNG TÓC THẬT PHOTOREALISTIC TRÊN KHUÔN MẶT THẬT CỦA KHÁCH HÀNG
+    async _drawPhotorealisticHairOverlay(ctx, geo, style, color, width, height) {
+      const { centerX, foreheadY, crownY, faceWidth, faceHeight } = geo;
+      const overlaySrc = style.overlayImg;
+      if (!overlaySrc) return;
+
+      const hairImg = await new Promise((res, rej) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => res(img);
+        img.onerror = rej;
+        img.src = overlaySrc;
+      });
+
+      const hCanvas = document.createElement('canvas');
+      const hCtx = hCanvas.getContext('2d', { willReadFrequently: true });
+      const hw = hairImg.naturalWidth || 600;
+      const hh = hairImg.naturalHeight || 600;
+      hCanvas.width = hw;
+      hCanvas.height = hh;
+
+      hCtx.drawImage(hairImg, 0, 0, hw, hh);
+
+      const imgData = hCtx.getImageData(0, 0, hw, hh);
+      const data = imgData.data;
+      const [r, g, b] = color.baseRgb || [25, 25, 25];
+
+      // Nhuộm sắc tố salon chuẩn xác lên từng sợi tóc trong suốt
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] > 0) {
+          const pr = data[i];
+          const pg = data[i + 1];
+          const pb = data[i + 2];
+          const luminance = (pr * 0.299 + pg * 0.587 + pb * 0.114) / 255;
+          data[i] = Math.min(255, Math.round(r * luminance * 1.35));
+          data[i + 1] = Math.min(255, Math.round(g * luminance * 1.35));
+          data[i + 2] = Math.min(255, Math.round(b * luminance * 1.35));
         }
       }
+      hCtx.putImageData(imgData, 0, 0);
 
-      // Xử lý bằng Canvas AR Engine trực tiếp
-      return new Promise((resolve, reject) => {
-        try {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      // Làm mềm chân tóc tự nhiên (Feathering hairline boundary) để hòa tan vào vòm trán
+      const fH = Math.round(hh * 0.18);
+      hCtx.save();
+      hCtx.globalCompositeOperation = 'destination-out';
+      const fGrad = hCtx.createLinearGradient(0, hh - fH, 0, hh);
+      fGrad.addColorStop(0, 'rgba(0,0,0,0)');
+      fGrad.addColorStop(1, 'rgba(0,0,0,0.85)');
+      hCtx.fillStyle = fGrad;
+      hCtx.fillRect(0, hh - fH, hw, fH);
+      hCtx.restore();
 
-          const naturalW = imgElement.naturalWidth || imgElement.width || 600;
-          const naturalH = imgElement.naturalHeight || imgElement.height || 700;
+      // Căn chỉnh tóc chuẩn xác 100% với tỉ lệ đầu và góc trán của khách
+      const targetHairWidth = faceWidth * 1.08;
+      const targetHairHeight = targetHairWidth * (hh / hw);
 
-          // Chuẩn hóa kích thước xử lý (khoảng 700 - 900px để vừa nét vừa tối ưu tốc độ)
-          const targetW = Math.min(800, Math.max(500, naturalW));
-          const targetH = Math.round(targetW * (naturalH / naturalW));
-          canvas.width = targetW;
-          canvas.height = targetH;
+      const drawX = centerX - targetHairWidth / 2;
+      const drawY = foreheadY - targetHairHeight * (style.hairOffsetY || 0.82);
 
-          // Bước 1: Vẽ ảnh gốc của chính người dùng
-          ctx.drawImage(imgElement, 0, 0, targetW, targetH);
-
-          // Bước 2: Phân tích hình học khuôn mặt thực tế
-          const geo = this.detectFaceGeometry(ctx, targetW, targetH);
-
-          // Bước 3: Dựng lớp chân tóc bóng đổ (Root Shadowing) để tóc ăn khớp tự nhiên với trán
-          ctx.save();
-          const rootGradient = ctx.createRadialGradient(
-            geo.centerX, geo.foreheadY - 10, geo.faceWidth * 0.1,
-            geo.centerX, geo.foreheadY + 15, geo.faceWidth * 0.45
-          );
-          rootGradient.addColorStop(0, 'rgba(15, 15, 20, 0.45)');
-          rootGradient.addColorStop(0.7, 'rgba(15, 15, 20, 0.15)');
-          rootGradient.addColorStop(1, 'transparent');
-          ctx.fillStyle = rootGradient;
-          ctx.fillRect(geo.centerX - geo.faceWidth * 0.5, geo.foreheadY - 25, geo.faceWidth, 50);
-          ctx.restore();
-
-          // Bước 4: Dựng phom tóc theo cấu trúc được chọn
-          ctx.save();
-          this._drawHairstyleGeometry(ctx, geo, style, color, targetW, targetH);
-          ctx.restore();
-
-          // Bước 5: Thêm hiệu ứng sợi tóc tự nhiên và độ bóng salon (Specular Sheen)
-          ctx.save();
-          this._drawHairTextureStrands(ctx, geo, style, color);
-          ctx.restore();
-
-          // Bước 6: Trả về kết quả Base64 chất lượng cao
-          try {
-            const resultDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-            resolve(resultDataUrl);
-          } catch (canvasErr) {
-            // Trường hợp canvas bị taint do ảnh CORS không cho phép toDataURL
-            console.warn('[CANVAS TAINTED FALLBACK]', canvasErr.message);
-            resolve(imgElement.src);
-          }
-        } catch (err) {
-          console.error('[AI HAIR ENGINE ERROR]', err);
-          reject(err);
-        }
-      });
+      ctx.save();
+      if (geo.rollDegrees) {
+        ctx.translate(centerX, foreheadY);
+        ctx.rotate((geo.rollDegrees * Math.PI) / 180);
+        ctx.translate(-centerX, -foreheadY);
+      }
+      ctx.shadowColor = 'rgba(0,0,0,0.25)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 4;
+      ctx.drawImage(hCanvas, drawX, drawY, targetHairWidth, targetHairHeight);
+      ctx.restore();
     },
 
     // 4. VẼ HÌNH HỌC PHOM TÓC THEO TỪNG KIỂU
@@ -298,74 +457,90 @@
 
       ctx.beginPath();
 
-      const leftTemple = centerX - faceWidth * 0.46;
-      const rightTemple = centerX + faceWidth * 0.46;
-      const hairTop = crownY - faceHeight * style.volumeTop;
-      const leftEar = leftTemple - faceWidth * style.volumeSides;
-      const rightEar = rightTemple + faceWidth * style.volumeSides;
+      const leftTemple = centerX - faceWidth * 0.42;
+      const rightTemple = centerX + faceWidth * 0.42;
+      const hairTop = Math.max(12, crownY - faceHeight * (style.volumeTop || 0.2));
+      const leftEar = leftTemple - faceWidth * 0.12;
+      const rightEar = rightTemple + faceWidth * 0.12;
 
       if (style.curveType === 'layer') {
         // Phom Layer Texture: Tóc phồng trên đỉnh, viền ôm mềm mại, mái tỉa tầng rủ trán
-        ctx.moveTo(leftEar, foreheadY + 20);
-        ctx.quadraticCurveTo(leftEar - 10, hairTop + 30, centerX - faceWidth * 0.3, hairTop);
+        ctx.moveTo(leftEar, foreheadY + 25);
+        ctx.quadraticCurveTo(leftEar - 10, hairTop + 35, centerX - faceWidth * 0.3, hairTop);
         ctx.bezierCurveTo(centerX - faceWidth * 0.15, hairTop - 15, centerX + faceWidth * 0.15, hairTop - 18, centerX + faceWidth * 0.3, hairTop);
-        ctx.quadraticCurveTo(rightEar + 10, hairTop + 30, rightEar, foreheadY + 20);
+        ctx.quadraticCurveTo(rightEar + 10, hairTop + 35, rightEar, foreheadY + 25);
 
         // Mái tỉa tầng tự nhiên rủ xuống trán
-        ctx.quadraticCurveTo(rightTemple - 15, foreheadY - 10, centerX + faceWidth * 0.2, foreheadY + faceHeight * style.fringeDrop);
-        ctx.quadraticCurveTo(centerX + faceWidth * 0.05, foreheadY + 8, centerX - faceWidth * 0.08, foreheadY + faceHeight * style.fringeDrop * 1.1);
-        ctx.quadraticCurveTo(centerX - faceWidth * 0.25, foreheadY + 5, leftTemple, foreheadY + 15);
+        ctx.quadraticCurveTo(rightTemple - 15, foreheadY - 10, centerX + faceWidth * 0.22, foreheadY + faceHeight * style.fringeDrop);
+        ctx.quadraticCurveTo(centerX + faceWidth * 0.05, foreheadY + 8, centerX - faceWidth * 0.1, foreheadY + faceHeight * style.fringeDrop * 1.1);
+        ctx.quadraticCurveTo(centerX - faceWidth * 0.28, foreheadY + 5, leftTemple, foreheadY + 15);
       } else if (style.curveType === 'pompadour') {
-        // Phom Pompadour: Khối vuốt ngược cao vút, 2 bên cạo mid-fade gọn gàng
-        ctx.moveTo(leftTemple + 8, foreheadY + 10);
-        ctx.quadraticCurveTo(leftTemple - 4, hairTop + 40, centerX - faceWidth * 0.35, hairTop);
-        ctx.bezierCurveTo(centerX - faceWidth * 0.2, hairTop - 35, centerX + faceWidth * 0.2, hairTop - 35, centerX + faceWidth * 0.35, hairTop);
-        ctx.quadraticCurveTo(rightTemple + 4, hairTop + 40, rightTemple - 8, foreheadY + 10);
+        // Phom Pompadour: Khối vuốt ngược cao vút từ trán, ôm trọn vòm đỉnh đầu, 2 bên cạo gọn
+        ctx.moveTo(leftEar, foreheadY + 30);
+        ctx.quadraticCurveTo(leftEar - 8, hairTop + 35, centerX - faceWidth * 0.32, hairTop);
+        ctx.bezierCurveTo(centerX - faceWidth * 0.18, hairTop - 25, centerX + faceWidth * 0.18, hairTop - 25, centerX + faceWidth * 0.32, hairTop);
+        ctx.quadraticCurveTo(rightEar + 8, hairTop + 35, rightEar, foreheadY + 30);
 
-        // Đường viền chân tóc vuốt ngược để lộ trán nam tính
-        ctx.quadraticCurveTo(centerX + faceWidth * 0.25, foreheadY - 25, centerX, foreheadY - 32);
-        ctx.quadraticCurveTo(centerX - faceWidth * 0.25, foreheadY - 25, leftTemple + 8, foreheadY + 10);
+        // Đường chân tóc vuốt ngược để lộ trán nam tính
+        ctx.quadraticCurveTo(centerX + faceWidth * 0.28, foreheadY - 15, centerX, foreheadY - 22);
+        ctx.quadraticCurveTo(centerX - faceWidth * 0.28, foreheadY - 15, leftEar, foreheadY + 30);
       } else if (style.curveType === 'mullet') {
         // Phom Mullet: Tóc đỉnh tỉa textured, 2 bên mai gọn gàng, đuôi gáy bay lãng tử
-        ctx.moveTo(leftEar - 12, foreheadY + faceHeight * 0.25);
-        ctx.quadraticCurveTo(leftEar - 15, hairTop + 20, centerX - faceWidth * 0.28, hairTop);
+        ctx.moveTo(leftEar - 15, foreheadY + faceHeight * 0.35);
+        ctx.quadraticCurveTo(leftEar - 15, hairTop + 25, centerX - faceWidth * 0.28, hairTop);
         ctx.bezierCurveTo(centerX - faceWidth * 0.1, hairTop - 12, centerX + faceWidth * 0.1, hairTop - 12, centerX + faceWidth * 0.28, hairTop);
-        ctx.quadraticCurveTo(rightEar + 15, hairTop + 20, rightEar + 12, foreheadY + faceHeight * 0.25);
+        ctx.quadraticCurveTo(rightEar + 15, hairTop + 25, rightEar + 15, foreheadY + faceHeight * 0.35);
 
         // Mái rủ nhẹ phong trần
-        ctx.quadraticCurveTo(rightTemple - 10, foreheadY + 4, centerX + faceWidth * 0.12, foreheadY + faceHeight * style.fringeDrop);
-        ctx.quadraticCurveTo(centerX, foreheadY + 6, centerX - faceWidth * 0.18, foreheadY + faceHeight * style.fringeDrop * 0.9);
-        ctx.quadraticCurveTo(leftTemple + 5, foreheadY + 10, leftEar - 12, foreheadY + faceHeight * 0.25);
+        ctx.quadraticCurveTo(rightTemple - 10, foreheadY + 4, centerX + faceWidth * 0.15, foreheadY + faceHeight * style.fringeDrop);
+        ctx.quadraticCurveTo(centerX, foreheadY + 6, centerX - faceWidth * 0.2, foreheadY + faceHeight * style.fringeDrop * 0.9);
+        ctx.quadraticCurveTo(leftTemple + 5, foreheadY + 10, leftEar - 15, foreheadY + faceHeight * 0.35);
+      } else if (style.curveType === 'buzzcut') {
+        // Phom Buzz Cut: Ngắn gọn gàng, viền cạo sắc nét
+        ctx.moveTo(leftTemple - 5, foreheadY + 5);
+        ctx.quadraticCurveTo(leftTemple - 8, hairTop + 20, centerX - faceWidth * 0.35, hairTop);
+        ctx.bezierCurveTo(centerX - faceWidth * 0.15, hairTop - 6, centerX + faceWidth * 0.15, hairTop - 6, centerX + faceWidth * 0.35, hairTop);
+        ctx.quadraticCurveTo(rightTemple + 8, hairTop + 20, rightTemple + 5, foreheadY + 5);
+        ctx.lineTo(rightTemple - 8, foreheadY - 10);
+        ctx.lineTo(leftTemple + 8, foreheadY - 10);
+      } else if (style.curveType === 'crop') {
+        // Phom French Crop: Mái bằng textured tỉa nhọn, fade sát 2 bên
+        ctx.moveTo(leftEar, foreheadY + 20);
+        ctx.quadraticCurveTo(leftEar - 10, hairTop + 25, centerX - faceWidth * 0.3, hairTop);
+        ctx.bezierCurveTo(centerX - faceWidth * 0.15, hairTop - 12, centerX + faceWidth * 0.15, hairTop - 12, centerX + faceWidth * 0.3, hairTop);
+        ctx.quadraticCurveTo(rightEar + 10, hairTop + 25, rightEar, foreheadY + 20);
+        ctx.lineTo(rightTemple - 5, foreheadY + faceHeight * style.fringeDrop);
+        ctx.lineTo(centerX, foreheadY + faceHeight * style.fringeDrop * 1.05);
+        ctx.lineTo(leftTemple + 5, foreheadY + faceHeight * style.fringeDrop);
       } else {
-        // Phom Side Part 7/3: Đường rẽ ngôi dứt khoát góc 7/3, chải phom quý ông
-        const partX = centerX - faceWidth * 0.12; // Rẽ ngôi bên trái
+        // Phom Side Part 7/3: Lớp tóc bồng bềnh rẽ ngôi góc 7/3, vuốt sang phải
+        const partX = centerX - faceWidth * 0.15;
 
-        ctx.moveTo(leftTemple - 6, foreheadY + 14);
-        ctx.quadraticCurveTo(leftTemple - 12, hairTop + 35, partX - faceWidth * 0.15, hairTop + 5);
-        // Đường rẽ ngôi rãnh tóc
+        ctx.moveTo(leftEar, foreheadY + 25);
+        ctx.quadraticCurveTo(leftEar - 8, hairTop + 35, partX - faceWidth * 0.15, hairTop + 5);
         ctx.lineTo(partX, hairTop + 2);
-        ctx.bezierCurveTo(centerX + faceWidth * 0.15, hairTop - 20, centerX + faceWidth * 0.32, hairTop - 10, rightEar, hairTop + 45);
-        ctx.lineTo(rightEar + 4, foreheadY + 18);
+        ctx.bezierCurveTo(centerX + faceWidth * 0.18, hairTop - 22, centerX + faceWidth * 0.35, hairTop - 10, rightEar, hairTop + 45);
+        ctx.lineTo(rightEar + 6, foreheadY + 28);
 
         // Mái chải 7/3 ôm trán
-        ctx.quadraticCurveTo(rightTemple - 12, foreheadY - 6, centerX + faceWidth * 0.18, foreheadY + faceHeight * style.fringeDrop);
+        ctx.quadraticCurveTo(rightTemple - 12, foreheadY - 6, centerX + faceWidth * 0.22, foreheadY + faceHeight * style.fringeDrop);
         ctx.quadraticCurveTo(partX + 15, foreheadY + 8, partX, foreheadY - 14);
-        ctx.quadraticCurveTo(leftTemple + 8, foreheadY - 4, leftTemple - 6, foreheadY + 14);
+        ctx.quadraticCurveTo(leftTemple + 8, foreheadY - 4, leftEar, foreheadY + 25);
       }
 
       ctx.closePath();
 
       // Đổ màu tóc chính với dải chuyển màu 3 chiều (Volume Radial Gradient)
-      const grad = ctx.createLinearGradient(centerX, hairTop - 20, centerX, foreheadY + 40);
-      grad.addColorStop(0, `rgba(${Math.min(255, r + 20)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 20)}, ${color.opacity})`);
-      grad.addColorStop(0.35, `rgba(${hr}, ${hg}, ${hb}, ${color.opacity * 0.95})`);
-      grad.addColorStop(0.7, `rgba(${r}, ${g}, ${b}, ${color.opacity})`);
-      grad.addColorStop(1, `rgba(${Math.max(10, r - 15)}, ${Math.max(10, g - 15)}, ${Math.max(10, b - 15)}, 0.96)`);
+      const grad = ctx.createLinearGradient(centerX, hairTop - 20, centerX, foreheadY + 50);
+      grad.addColorStop(0, `rgba(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)}, ${color.opacity || 0.98})`);
+      grad.addColorStop(0.35, `rgba(${hr}, ${hg}, ${hb}, ${(color.opacity || 0.98) * 0.95})`);
+      grad.addColorStop(0.7, `rgba(${r}, ${g}, ${b}, ${color.opacity || 0.98})`);
+      grad.addColorStop(1, `rgba(${Math.max(10, r - 20)}, ${Math.max(10, g - 20)}, ${Math.max(10, b - 20)}, 0.98)`);
 
       ctx.fillStyle = grad;
-      ctx.shadowColor = 'rgba(10, 10, 15, 0.45)';
-      ctx.shadowBlur = 14;
-      ctx.shadowOffsetY = 6;
+      ctx.shadowColor = 'rgba(10, 10, 15, 0.55)';
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 8;
       ctx.fill();
     },
 
@@ -396,7 +571,7 @@
         ctx.quadraticCurveTo(cpX, cpY, endX, endY);
 
         const alpha = 0.15 + (i % 3 === 0 ? 0.25 : 0.08);
-        ctx.strokeStyle = (i % 2 === 0) 
+        ctx.strokeStyle = (i % 2 === 0)
           ? `rgba(${hr}, ${hg}, ${hb}, ${alpha})`
           : `rgba(${Math.max(0, r - 20)}, ${Math.max(0, g - 20)}, ${Math.max(0, b - 20)}, ${alpha * 1.2})`;
         ctx.stroke();

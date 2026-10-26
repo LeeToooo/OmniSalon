@@ -127,16 +127,16 @@
 
               <!-- Các bong bóng chi nhánh cụ thể -->
               ${branches.map(b => {
-                const rawName = b.TenChiNhanh || b.name || '';
-                const cleanBranch = rawName
-                  .replace(/^(Men\s+Salon\s+Barber|Omni\s+Salon\s+Barber|Omni\s+Salon)\s*[-–—]?\s*/gi, '')
-                  .replace(/^Q(\d+)\b/i, 'Quận $1')
-                  .replace(/[–—]/g, '-')
-                  .trim();
-                const isSelected = this.selectedBranch === b.id;
-                const stylistCountInBranch = allStylists.filter(s => s.branchId === b.id || s.MaChiNhanh === b.id).length;
+        const rawName = b.TenChiNhanh || b.name || '';
+        const cleanBranch = rawName
+          .replace(/^(Men\s+Salon\s+Barber|Omni\s+Salon\s+Barber|Omni\s+Salon)\s*[-–—]?\s*/gi, '')
+          .replace(/^Q(\d+)\b/i, 'Quận $1')
+          .replace(/[–—]/g, '-')
+          .trim();
+        const isSelected = this.selectedBranch === b.id;
+        const stylistCountInBranch = allStylists.filter(s => s.branchId === b.id || s.MaChiNhanh === b.id).length;
 
-                return `
+        return `
                   <button class="branch-bubble-item ${isSelected ? 'active' : ''}" 
                           onclick="StylistsPage.selectBubbleBranch('${b.id}')"
                           style="padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? '#C59B27' : 'var(--surface-elevated)'}; color: ${isSelected ? '#141413' : 'var(--text-primary)'}; box-shadow: none; display: inline-flex; align-items: center; gap: 6px;">
@@ -144,7 +144,7 @@
                     <span style="font-size: 11px; opacity: ${isSelected ? '1' : '0.85'}; font-weight: 800; background: ${isSelected ? 'rgba(20,20,19,0.15)' : 'var(--surface-card)'}; padding: 2px 6px; border-radius: 4px;">${stylistCountInBranch} thợ</span>
                   </button>
                 `;
-              }).join('')}
+      }).join('')}
             </div>
 
             <!-- Nút đóng nhanh dưới đáy -->
@@ -395,20 +395,20 @@
 
             <div style="display: inline-flex; align-items: center; gap: 6px;">
               ${pages.map(p => {
-                if (p === '...') {
-                  return `<span style="padding: 0 6px; color: var(--text-secondary); font-weight: 800; font-size: 14px;">…</span>`;
-                }
-                const isActive = p === this.currentPage;
-                return `
+        if (p === '...') {
+          return `<span style="padding: 0 6px; color: var(--text-secondary); font-weight: 800; font-size: 14px;">…</span>`;
+        }
+        const isActive = p === this.currentPage;
+        return `
                   <button onclick="StylistsPage.changePage(${p})"
                           style="min-width: 42px; height: 42px; padding: 0 10px; border-radius: 10px; font-size: 13px; font-weight: ${isActive ? '800' : '600'}; cursor: pointer; transition: all 0.2s ease; ${isActive
-                    ? 'background: var(--brand-accent); color: #ffffff; border: 1.5px solid var(--brand-accent); box-shadow: 0 2px 10px rgba(180,131,18,0.3);'
-                    : 'background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color);'
-                  }">
+            ? 'background: var(--brand-accent); color: #ffffff; border: 1.5px solid var(--brand-accent); box-shadow: 0 2px 10px rgba(180,131,18,0.3);'
+            : 'background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color);'
+          }">
                     ${p}
                   </button>
                 `;
-              }).join('')}
+      }).join('')}
             </div>
 
             <button id="stylistNextPageBtn"

@@ -11,6 +11,10 @@
 email_config.json
 email_config.*.json
 !email_config.example.json
+ai_config.json
+ai_config.*.json
+!ai_config.example.json
+web/backend/ai_config.json
 
 # Internal agent configurations & metadata
 .agents/
@@ -63,3 +67,7 @@ test_theme_out.txt
 *.njsproj
 *.sln
 *.sw?
+
+# Python Cache
+__pycache__/
+*.py[cod]

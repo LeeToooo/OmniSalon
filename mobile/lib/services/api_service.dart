@@ -890,6 +890,24 @@ class ApiService {
     return null;
   }
 
+  // 27b. REAL AI BARBER VISION: TIỀN XỬ LÝ ẢNH (CẮT ẢNH, XÓA NỀN & XÓA TÓC CŨ)
+  static Future<Map<String, dynamic>?> preprocessCustomerPhoto(String imageBase64OrUrl) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/ai/preprocess-customer-photo'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'image': imageBase64OrUrl}),
+      ).timeout(const Duration(seconds: 8));
+
+      if (res.statusCode == 200) {
+        return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] preprocessCustomerPhoto error: $e');
+    }
+    return null;
+  }
+
   // 28. REAL AI BARBER VISION: BIẾN ĐỔI KIỂU TÓC THẬT (POST /api/ai/restyle-hair)
   static Future<Map<String, dynamic>?> restyleHair({
     required String imageBase64OrUrl,

@@ -4130,7 +4130,7 @@ const server = http.createServer(async (req, res) => {
       // 36.2. Phân tích ngũ quan, dáng mặt & sắc tố da thật
       if (pathname === '/api/ai/analyze-face' && method === 'POST') {
         const body = parsedBody || {};
-        const image = body.image || body.imageBase64 || body.url || body.photoUrl || '';
+        const image = body.image || body.imageBase64OrUrl || body.imageBase64 || body.url || body.photoUrl || '';
         try {
           const analysis = await aiService.analyzeFaceGeometry(image);
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -4141,10 +4141,33 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
+      // 36.2b. Tiền xử lý ảnh khách hàng: Tự động cắt góc chân dung, xóa phông nền & xóa tóc cũ
+      if (pathname === '/api/ai/preprocess-customer-photo' && method === 'POST') {
+        const body = parsedBody || {};
+        const image = body.image || body.imageBase64OrUrl || body.imageBase64 || body.url || body.photoUrl || '';
+        const backgroundMode = body.backgroundMode || 'studio';
+        try {
+          const result = aiService.runPythonVisionPreprocess({
+            imageBase64OrUrl: image,
+            backgroundMode
+          });
+          if (result && result.success) {
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            return res.end(JSON.stringify(result));
+          } else {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            return res.end(JSON.stringify(result || { success: false, message: 'Không thể tiền xử lý ảnh khuôn mặt.' }));
+          }
+        } catch (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ success: false, message: 'Lỗi tiền xử lý ảnh AI: ' + err.message }));
+        }
+      }
+
       // 36.3. Sinh ảnh đổi kiểu tóc thật (Photorealistic Neural Restyle)
       if (pathname === '/api/ai/restyle-hair' && method === 'POST') {
         const body = parsedBody || {};
-        const image = body.image || body.originalImageBase64 || body.url || body.photoUrl || '';
+        const image = body.image || body.imageBase64OrUrl || body.imageBase64 || body.originalImageBase64 || body.url || body.photoUrl || '';
         const hairstyleId = body.hairstyleId || body.selectedHairstyle || body.hairstyleName || 'layer-korean';
         const colorId = body.colorId || body.selectedColor || body.hairColorName || 'natural-black';
         const customPrompt = body.customPrompt || body.prompt || '';

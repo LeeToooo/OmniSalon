@@ -28,7 +28,6 @@ class MainScaffold extends StatefulWidget {
 class MainScaffoldState extends State<MainScaffold> {
   late int _currentIndex;
   final List<OrderItem> _sharedCart = [];
-  List<Branch> _branches = [];
   Branch? _selectedBranch;
   String? _lastUserId;
 
@@ -68,7 +67,6 @@ class MainScaffoldState extends State<MainScaffold> {
     final list = await ApiService.fetchBranches();
     if (!mounted) return;
     setState(() {
-      _branches = list;
       if (list.isNotEmpty && _selectedBranch == null) {
         _selectedBranch = list.first;
       }
@@ -109,57 +107,6 @@ class MainScaffoldState extends State<MainScaffold> {
 
   int get cartCount => _sharedCart.fold(0, (sum, i) => sum + i.quantity);
 
-  void _showBranchPicker() {
-    if (_branches.isEmpty) return;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppTheme.surfaceCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Chọn Chi Nhánh Phục Vụ', style: AppTheme.headingSmall(fontSize: 18)),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 20),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(color: AppTheme.borderColor),
-              ..._branches.map((b) {
-                final isSelected = _selectedBranch?.id == b.id;
-                return ListTile(
-                  leading: Icon(
-                    Icons.store_mall_directory_outlined,
-                    color: isSelected ? AppTheme.accentGold : AppTheme.textSecondary,
-                  ),
-                  title: Text(b.name, style: AppTheme.bodyMedium(fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500)),
-                  subtitle: Text(b.address, style: AppTheme.bodySmall(color: AppTheme.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: AppTheme.accentGold, size: 20) : null,
-                  onTap: () {
-                    setState(() => _selectedBranch = b);
-                    Navigator.of(ctx).pop();
-                  },
-                );
-              }),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,43 +137,23 @@ class MainScaffoldState extends State<MainScaffold> {
         backgroundColor: AppTheme.bgPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                Text(
-                  'OMNI SALON',
-                  style: AppTheme.headingSmall(fontSize: 18, color: AppTheme.textPrimary),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accentGold.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: Text(
-                    'BARBER',
-                    style: AppTheme.labelUppercase(fontSize: 8.5, color: AppTheme.accentGold),
-                  ),
-                ),
-              ],
+            Text(
+              'OMNI SALON',
+              style: AppTheme.headingSmall(fontSize: 18, color: AppTheme.textPrimary),
             ),
-            GestureDetector(
-              onTap: _showBranchPicker,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.location_on_outlined, size: 12, color: AppTheme.accentGold),
-                  const SizedBox(width: 3),
-                  Text(
-                    _selectedBranch != null ? _selectedBranch!.name : 'Chọn chi nhánh...',
-                    style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
-                  ),
-                  const Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: AppTheme.textSecondary),
-                ],
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppTheme.accentGold.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: Text(
+                'BARBER',
+                style: AppTheme.labelUppercase(fontSize: 8.5, color: AppTheme.accentGold),
               ),
             ),
           ],

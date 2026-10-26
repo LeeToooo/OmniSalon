@@ -435,8 +435,8 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const EditorialImage(
-              imageUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1000&q=80',
+            EditorialImage(
+              imageUrl: ApiService.getImageUrl('Men_Grooming_Products/DichVu_Men/CBDV1.jpg'),
               fit: BoxFit.cover,
             ),
             Container(
@@ -568,7 +568,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: 'Không Gian Authentic Barbershop',
           subtitle: 'Kiến trúc cổ điển kết hợp ánh sáng tự nhiên và hương gỗ đàn hương thư giãn.',
           tag: 'KHÔNG GIAN ĐẶC QUYỀN',
-          imageUrl: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80',
+          imageUrl: ApiService.getImageUrl('Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg'),
         ),
         const SizedBox(height: 10),
         Row(
@@ -580,7 +580,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: 'Master Barber',
                 subtitle: 'Kỹ thuật kéo tỉa kinh nghiệm trên 8 năm.',
                 tag: 'TAY NGHỀ',
-                imageUrl: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=500&q=80',
+                imageUrl: ApiService.getImageUrl('Men_Grooming_Products/DichVu_Men/DV1.jpg'),
               ),
             ),
             const SizedBox(width: 10),
@@ -591,7 +591,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: 'Pomade & Dược Liệu',
                 subtitle: '100% nhập khẩu chính ngạch.',
                 tag: 'CHẤT LƯỢNG',
-                imageUrl: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=500&q=80',
+                imageUrl: ApiService.getImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg'),
+                fit: BoxFit.contain,
               ),
             ),
           ],
@@ -602,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: 'Gội Dưỡng Sinh & Bấm Huyệt Đỉnh Cao',
           subtitle: 'Khai thông kinh lạc vùng cổ vai gáy, xua tan căng thẳng mệt mỏi.',
           tag: 'THƯ GIÃN CHUYÊN SÂU',
-          imageUrl: 'https://images.unsplash.com/photo-1517832606589-7629c3395907?auto=format&fit=crop&w=800&q=80',
+          imageUrl: ApiService.getImageUrl('Men_Grooming_Products/DichVu_Men/DV7.jpg'),
         ),
       ],
     );
@@ -614,6 +615,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required String subtitle,
     required String tag,
     required String imageUrl,
+    BoxFit fit = BoxFit.cover,
   }) {
     return Container(
       height: height,
@@ -629,7 +631,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             EditorialImage(
               imageUrl: imageUrl,
-              fit: BoxFit.cover,
+              fit: fit,
             ),
             Container(
               decoration: BoxDecoration(
