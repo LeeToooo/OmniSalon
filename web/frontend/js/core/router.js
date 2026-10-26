@@ -79,8 +79,13 @@
       this.routes[routePath] = handler;
     },
 
+    isStaticHosting() {
+      if (typeof window === 'undefined' || !window.location) return false;
+      return window.location.protocol === 'file:' || (window.location.hostname && window.location.hostname.endsWith('github.io'));
+    },
+
     getCurrentPath() {
-      // Ưu tiên đọc từ Hash nếu có (hỗ trợ file:// và static server)
+      // Ưu tiên đọc từ Hash nếu có (hỗ trợ file:// và static server / GitHub Pages)
       const hash = window.location.hash;
       if (hash && hash.startsWith('#/')) {
         return hash.replace(/^#/, '');
@@ -92,6 +97,17 @@
       if (clean === '') clean = '/';
       if (clean.length > 1 && clean.endsWith('/')) {
         clean = clean.slice(0, -1);
+      }
+
+      // Loại bỏ subpath tên repository trên GitHub Pages (ví dụ: /OmniSalon -> /)
+      if (window.location.hostname && window.location.hostname.endsWith('github.io')) {
+        const segments = clean.split('/').filter(Boolean);
+        if (segments.length === 1 && segments[0].toLowerCase() === 'omnisalon') {
+          return '/';
+        }
+        if (segments.length > 1 && segments[0].toLowerCase() === 'omnisalon') {
+          return '/' + segments.slice(1).join('/');
+        }
       }
       return clean;
     },
@@ -112,8 +128,9 @@
       const normalized = this._normalizePath(routePath);
 
       if (pushState) {
-        if (window.location.protocol === 'file:') {
-          window.location.hash = `#${path}`;
+        if (this.isStaticHosting()) {
+          const hashTarget = path.startsWith('/') ? path : `/${path}`;
+          window.location.hash = `#${hashTarget}`;
         } else {
           try {
             window.history.pushState({ route: normalized }, '', path);

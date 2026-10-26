@@ -113,18 +113,18 @@
                 <div style="position: relative; width: 100%; max-width: 490px; height: 380px;">
                   <!-- Ảnh chân dung lớn -->
                   <div style="position: absolute; left: 0; top: 0; width: 84%; height: 340px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(20, 20, 19, 0.1); background: #141413;">
-                    <img src="/Men_Grooming_Products/DichVu_Men/CBDV1.jpg"
+                    <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/CBDV1.jpg')}"
                          style="width: 100%; height: 100%; object-fit: cover;"
                          alt="Omni Salon Barbershop Combo Quý Tộc"
-                         onerror="this.onerror=null; this.src='Men_Grooming_Products/DichVu_Men/CBDV1.jpg';">
+                         onerror="SalonUtils.handleImgError(this)">
                   </div>
                   
                   <!-- Ảnh chi tiết nhỏ chồng lên góc dưới phải -->
                   <div style="position: absolute; right: 0; bottom: 0; width: 185px; height: 185px; border-radius: 10px; overflow: hidden; border: 4px solid var(--bg-primary, #FAF8F5); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18); background: #141413; z-index: 3;">
-                    <img src="/Men_Grooming_Products/DichVu_Men/DV6.jpg"
+                    <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV6.jpg')}"
                          style="width: 100%; height: 100%; object-fit: cover;"
                          alt="Kỹ thuật kẻ line tattoo chân tóc"
-                         onerror="this.onerror=null; this.src='Men_Grooming_Products/DichVu_Men/DV6.jpg';">
+                         onerror="SalonUtils.handleImgError(this)">
                   </div>
 
                   <!-- Floating Badge kính mờ (Glassmorphism) -->
@@ -147,7 +147,7 @@
               <!-- Thẻ 1: Không gian chi nhánh -->
               <div class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid rgba(20, 20, 19, 0.08); display: flex; flex-direction: column;">
                 <div style="position: relative; height: 180px; overflow: hidden; background: #141413;">
-                  <img src="/Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg" alt="Không gian chi nhánh OmniSalon" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg';">
+                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg')}" alt="Không gian chi nhánh OmniSalon" style="width: 100%; height: 100%; object-fit: cover;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
                   <div>
@@ -166,7 +166,7 @@
               <!-- Thẻ 2: Đội ngũ thợ -->
               <div class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid rgba(20, 20, 19, 0.08); display: flex; flex-direction: column;">
                 <div style="position: relative; height: 180px; overflow: hidden; background: #141413;">
-                  <img src="/Men_Grooming_Products/DichVu_Men/DV1.jpg" alt="Dịch vụ tạo mẫu chuẩn mực uy tín" style="width: 100%; height: 100%; object-fit: cover; object-position: center top;" onerror="this.onerror=null; this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg';">
+                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV1.jpg')}" alt="Dịch vụ tạo mẫu chuẩn mực uy tín" style="width: 100%; height: 100%; object-fit: cover; object-position: center top;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
                   <div>
@@ -185,7 +185,7 @@
               <!-- Thẻ 3: Mỹ phẩm nam chính hãng -->
               <div class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid rgba(20, 20, 19, 0.08); display: flex; flex-direction: column;">
                 <div style="position: relative; height: 180px; overflow: hidden; background: #FFFFFF; display: flex; align-items: center; justify-content: center;">
-                  <img src="/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg?v=3" alt="Sáp vuốt &amp; Pomade chính hãng" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.onerror=null; this.src='Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';">
+                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg')}" alt="Sáp vuốt &amp; Pomade chính hãng" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
                   <div>
@@ -204,7 +204,7 @@
               <!-- Thẻ 4: Gội dưỡng sinh & Thư giãn -->
               <div class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid rgba(20, 20, 19, 0.08); display: flex; flex-direction: column;">
                 <div style="position: relative; height: 180px; overflow: hidden; background: #141413;">
-                  <img src="/Men_Grooming_Products/DichVu_Men/DV7.jpg" alt="Gội đầu dưỡng sinh thư giãn" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='Men_Grooming_Products/DichVu_Men/DV7.jpg';">
+                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV7.jpg')}" alt="Gội đầu dưỡng sinh thư giãn" style="width: 100%; height: 100%; object-fit: cover;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
                   <div>

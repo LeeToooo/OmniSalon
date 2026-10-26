@@ -87,9 +87,10 @@
       }
 
       // Hình ảnh
-      const image = (b.image && b.image.length > 5)
-        ? b.image
-        : 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
+      const rawImage = b.image || b.HinhAnh || '';
+      const image = (typeof window.SalonUtils !== 'undefined' && typeof window.SalonUtils.formatImageUrl === 'function')
+        ? window.SalonUtils.formatImageUrl(rawImage)
+        : (rawImage || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80');
 
       const opStatus = this.getOperatingStatus(hours);
 
@@ -137,7 +138,7 @@
                  alt="${data.shortName}" 
                  loading="lazy" 
                  class="branch-cover-img"
-                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80';">
+                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80');">
             
             <!-- Huy hiệu quận -->
             <div class="branch-badges-top">

@@ -157,32 +157,52 @@
       return clean.replace(/(\d{3})\d{3,4}(\d{3,4})$/, '$1****$2');
     },
 
+    getBasePrefix() {
+      if (typeof window === 'undefined' || !window.location) return '/';
+      if (window.location.protocol === 'file:') return '../../';
+
+      // Hỗ trợ GitHub Pages (hostname kết thúc bằng github.io)
+      if (window.location.hostname && window.location.hostname.endsWith('github.io')) {
+        const segments = (window.location.pathname || '').split('/').filter(Boolean);
+        const repo = (segments.length > 0 && !['index.html', 'admin', 'customer', 'api', 'pages', 'services', 'stylists', 'booking', 'shop', 'cart', 'product', 'branches', 'ai-studio'].includes(segments[0]))
+          ? segments[0]
+          : 'OmniSalon';
+        return '/' + repo + '/';
+      }
+
+      // Hỗ trợ local / subdirectory nếu có
+      const segments = (window.location.pathname || '').split('/').filter(Boolean);
+      if (segments.length > 0 && segments[0].toLowerCase() === 'omnisalon') {
+        return '/OmniSalon/';
+      }
+      return '/';
+    },
+
     formatImageUrl(path) {
       if (!path || typeof path !== 'string') {
-        return 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
+        return this.getBasePrefix() + 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
       }
-      if (path.startsWith('http://') || path.startsWith('https://')) return path;
+      if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:') || path.startsWith('blob:')) {
+        return path;
+      }
       let clean = path.replace(/^\/+/, '');
       if (clean.startsWith('web/frontend/')) clean = clean.substring(13);
       else if (clean.startsWith('web/')) clean = clean.substring(4);
       else if (clean.startsWith('frontend/')) clean = clean.substring(9);
 
-      // Chuẩn hóa đường dẫn: Dịch vụ luôn dùng Men_Grooming_Products/DichVu_Men/
+      // Chuẩn hóa đường dẫn: Dịch vụ & Chi nhánh luôn nằm trong Men_Grooming_Products/
       if (clean.startsWith('DichVu_Men/')) {
+        clean = 'Men_Grooming_Products/' + clean;
+      } else if (clean.startsWith('ChiNhanh_Omni/')) {
         clean = 'Men_Grooming_Products/' + clean;
       }
 
-      if (typeof window !== 'undefined' && window.location) {
-        if (window.location.protocol === 'file:') {
-          return '../../' + clean;
-        }
-        // Hỗ trợ GitHub Pages (khi URL có tiền tố subpath /OmniSalon/)
-        const segments = (window.location.pathname || '').split('/').filter(Boolean);
-        if (segments.length > 0 && !['index.html', 'admin', 'customer', 'api', 'pages'].includes(segments[0])) {
-          return '/' + segments[0] + '/' + clean;
-        }
+      const prefix = this.getBasePrefix();
+      const cleanPrefix = prefix.replace(/^\/|\/$/g, '');
+      if (cleanPrefix && clean.startsWith(cleanPrefix + '/')) {
+        clean = clean.substring(cleanPrefix.length + 1);
       }
-      return '/' + clean;
+      return prefix + clean;
     },
 
     handleImgError(imgEl) {
@@ -191,26 +211,25 @@
       if (!imgEl._retryStep) imgEl._retryStep = 0;
       imgEl._retryStep++;
 
+      const prefix = this.getBasePrefix();
+
       // Xử lý ảnh DichVu_Men -> luôn trỏ về folder chuẩn Men_Grooming_Products/DichVu_Men
       if (src.includes('DichVu_Men')) {
         const fileMatch = src.match(/(DV\d+|CBDV\d+)\.(jpg|jpeg|png|webp)/i);
         const fileName = fileMatch ? fileMatch[0] : 'DV1.jpg';
         const target = 'Men_Grooming_Products/DichVu_Men/' + fileName;
         if (imgEl._retryStep === 1) {
-          imgEl.src = '/' + target;
+          imgEl.src = prefix + target;
           return;
         } else if (imgEl._retryStep === 2) {
-          imgEl.src = '../../' + target;
+          imgEl.src = target;
           return;
         } else if (imgEl._retryStep === 3) {
-          imgEl.src = '../' + target;
-          return;
-        } else if (imgEl._retryStep === 4) {
-          imgEl.src = target;
+          imgEl.src = prefix + 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
           return;
         }
         imgEl.onerror = null;
-        imgEl.src = '/Men_Grooming_Products/DichVu_Men/DV1.jpg';
+        imgEl.src = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80';
         return;
       }
 
@@ -219,29 +238,23 @@
         const fileName = fileMatch ? fileMatch[0] : 'CN1.jpg';
         const target = 'Men_Grooming_Products/ChiNhanh_Omni/' + fileName;
         if (imgEl._retryStep === 1) {
-          imgEl.src = '/' + target;
+          imgEl.src = prefix + target;
           return;
         } else if (imgEl._retryStep === 2) {
-          imgEl.src = '/' + 'ChiNhanh_Omni/' + fileName;
-          return;
-        } else if (imgEl._retryStep === 3) {
-          imgEl.src = '../../' + target;
+          imgEl.src = target;
           return;
         }
+        imgEl.onerror = null;
+        imgEl.src = 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80';
+        return;
       }
 
       if (src.includes('Men_Grooming_Products')) {
-        const clean = src.replace(/.*Men_Grooming_Products/, 'Men_Grooming_Products');
+        const clean = src.replace(/.*Men_Grooming_Products/, 'Men_Grooming_Products').replace(/^\/+/, '');
         if (imgEl._retryStep === 1) {
-          imgEl.src = '/' + clean;
+          imgEl.src = prefix + clean;
           return;
         } else if (imgEl._retryStep === 2) {
-          imgEl.src = '../../' + clean;
-          return;
-        } else if (imgEl._retryStep === 3) {
-          imgEl.src = '../' + clean;
-          return;
-        } else if (imgEl._retryStep === 4) {
           imgEl.src = clean;
           return;
         }

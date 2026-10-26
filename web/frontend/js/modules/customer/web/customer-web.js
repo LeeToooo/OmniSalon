@@ -737,7 +737,7 @@
         results.services.slice(0, 5).forEach(s => {
           html += `
             <div class="search-result-item" onclick="CustomerWeb.selectSearchResultService('${s.id}')">
-              <img src="${SalonUtils.formatImageUrl(s.image || (s.isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg'))}" class="search-item-thumb" alt="${this.escapeHtml(s.name)}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/Men_Grooming_Products/DichVu_Men/DV1.jpg');">
+              <img src="${SalonUtils.formatImageUrl(s.image || (s.isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg'))}" class="search-item-thumb" alt="${this.escapeHtml(s.name)}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=120&q=80');">
               <div class="search-item-info">
                 <div class="search-item-name" title="${this.escapeHtml(s.name)}">${this.escapeHtml(s.name)}</div>
                 <div class="search-item-meta">
