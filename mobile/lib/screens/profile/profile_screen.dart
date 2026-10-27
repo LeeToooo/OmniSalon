@@ -5,7 +5,6 @@ import '../auth/login_screen.dart';
 import '../my_bookings_screen.dart';
 import '../branches_screen.dart';
 import '../stylists_screen.dart';
-import '../main_scaffold.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -239,7 +238,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 48,
                   child: OutlinedButton.icon(
                     onPressed: () async {
-                      MainScaffold.of(context)?.clearCart();
                       await AuthService.logout();
                       setState(() {});
                       if (!context.mounted) return;

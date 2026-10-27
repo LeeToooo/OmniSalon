@@ -533,6 +533,37 @@ class ApiService {
     return nextId;
   }
 
+  // 14. GỬI ĐÁNH GIÁ (BẢNG DanhGia SQL SERVER)
+  static Future<bool> submitReview({
+    String? bookingId,
+    String? orderId,
+    required int rating,
+    required String comment,
+    String? customerId,
+    String? customerName,
+    String? customerPhone,
+  }) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/reviews'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          if (bookingId != null) 'bookingId': bookingId,
+          if (orderId != null) 'orderId': orderId,
+          'rating': rating,
+          'comment': comment,
+          if (customerId != null) 'customerId': customerId,
+          if (customerName != null) 'customerName': customerName,
+          if (customerPhone != null) 'customerPhone': customerPhone,
+        }),
+      ).timeout(const Duration(seconds: 5));
+      return res.statusCode == 200 || res.statusCode == 201;
+    } catch (e) {
+      debugPrint('Error submitting review: $e');
+      return false;
+    }
+  }
+
   // =========================================================================
   // ENTERPRISE ADMIN PORTAL APIS (TỔNG QUAN, ĐIỀU PHỐI, KHO FEFO, POS, AUDIT)
   // =========================================================================

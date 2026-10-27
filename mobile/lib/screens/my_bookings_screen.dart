@@ -275,114 +275,528 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     );
   }
 
-  void _showRescheduleDialog(Booking booking) {
-    DateTime newDate = DateTime.tryParse(booking.date) ?? DateTime.now().add(const Duration(days: 1));
-    String newTime = booking.timeSlot;
+  String _getStarLabel(int rating) {
+    switch (rating) {
+      case 1:
+        return '★ Rất không hài lòng';
+      case 2:
+        return '★★ Chưa hài lòng';
+      case 3:
+        return '★★★ Bình thường';
+      case 4:
+        return '★★★★ Hài lòng';
+      case 5:
+      default:
+        return '★★★★★ Rất xuất sắc & hài lòng!';
+    }
+  }
 
-    final timeSlots = [
-      '08:30', '09:30', '10:30', '11:30',
-      '13:30', '14:30', '15:30', '16:30',
-      '17:30', '18:30', '19:30', '20:30'
-    ];
+  void _showBookingPaymentModal(Booking b) {
+    final vietQrUrl = 'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${b.totalPrice}&addInfo=${Uri.encodeComponent('THANHTOAN ${b.bookingCode}')}&accountName=OMNISALON%20ENTERPRISE';
 
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (dialogCtx, setModalState) {
-          return AlertDialog(
-            backgroundColor: const Color(0xFF1C1917),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-              side: const BorderSide(color: Color(0xFF2E2C29)),
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1917),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Color(0xFFC59B27), width: 1.5),
+        ),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        contentPadding: const EdgeInsets.all(20),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Color(0xFFC59B27),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.qr_code_scanner_rounded, color: Color(0xFF141413), size: 20),
             ),
-            title: Text(
-              'Đổi Lịch Hẹn #${booking.bookingCode}',
-              style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 18),
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Dịch vụ: ${booking.serviceName}', style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFFFAF8F5))),
-                  Text('Thợ: ${booking.stylistName}', style: const TextStyle(color: Color(0xFFA8A29E))),
-                  const Divider(height: 20, color: Color(0xFF2E2C29)),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.calendar_today, color: Color(0xFFC59B27)),
-                    title: Text(
-                      'Ngày mới: ${DateFormat('dd/MM/yyyy').format(newDate)}',
-                      style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFFFAF8F5)),
-                    ),
-                    trailing: TextButton(
-                      onPressed: () async {
-                        final picked = await showDatePicker(
-                          context: dialogCtx,
-                          initialDate: newDate,
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 30)),
-                        );
-                        if (picked != null) {
-                          setModalState(() => newDate = picked);
-                        }
-                      },
-                      child: const Text('Chọn Ngày', style: TextStyle(color: Color(0xFFC59B27), fontWeight: FontWeight.w800)),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Chọn khung giờ mới:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFFA8A29E))),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: timeSlots.map((t) {
-                      final isSel = newTime == t;
-                      return ChoiceChip(
-                        label: Text(
-                          t,
-                          style: TextStyle(
-                            color: isSel ? const Color(0xFF141413) : const Color(0xFFFAF8F5),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        selected: isSel,
-                        selectedColor: const Color(0xFFC59B27),
-                        backgroundColor: const Color(0xFF141413),
-                        side: BorderSide(color: isSel ? const Color(0xFFC59B27) : const Color(0xFF2E2C29)),
-                        onSelected: (val) => setModalState(() => newTime = t),
-                      );
-                    }).toList(),
-                  ),
-                ],
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'THANH TOÁN VIETQR #${b.bookingCode}',
+                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogCtx).pop(),
-                child: const Text('Đóng', style: TextStyle(color: Color(0xFFA8A29E))),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFC59B27),
-                  foregroundColor: const Color(0xFF141413),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 8)],
                 ),
-                onPressed: () async {
-                  final dateStr = DateFormat('yyyy-MM-dd').format(newDate);
-                  await ApiService.rescheduleBooking(booking.id, dateStr, newTime);
-                  if (!dialogCtx.mounted) return;
-                  Navigator.of(dialogCtx).pop();
-                  _loadData();
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Đã cập nhật giờ hẹn thành công: $newTime ngày $dateStr')),
-                  );
-                },
-                child: const Text('Lưu Đổi Lịch', style: TextStyle(fontWeight: FontWeight.w800)),
+                child: Image.network(
+                  vietQrUrl,
+                  width: 180,
+                  height: 180,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Image.network(
+                    'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${Uri.encodeComponent('OMNISALON-BOOKING-${b.bookingCode}')}',
+                    width: 180,
+                    height: 180,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text('VIETQR 24/7 CHUYỂN NHANH NAPAS', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(height: 12),
+              _buildTicketRow('Ngân hàng:', 'MBBank (Quân Đội)'),
+              _buildTicketRow('Số tài khoản:', '0900000000'),
+              _buildTicketRow('Chủ tài khoản:', 'OMNISALON ENTERPRISE'),
+              _buildTicketRow('Nội dung CK:', 'THANHTOAN ${b.bookingCode}'),
+              _buildTicketRow('Số tiền:', currencyFormat.format(b.totalPrice), isPrice: true),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF141413),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF2E2C29)),
+                ),
+                child: const Text(
+                  'Quét mã VietQR bằng ứng dụng ngân hàng bất kỳ để thanh toán tức thì.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 11),
+                ),
               ),
             ],
-          );
-        },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Đóng', style: TextStyle(color: Color(0xFFA8A29E))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFC59B27),
+              foregroundColor: const Color(0xFF141413),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Đã xác nhận thanh toán VietQR cho lịch hẹn #${b.bookingCode}!'),
+                  backgroundColor: const Color(0xFF10B981),
+                ),
+              );
+            },
+            child: const Text('Đã Chuyển Khoản', style: TextStyle(fontWeight: FontWeight.w900)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showOrderPaymentModal(SalonOrder o) {
+    final vietQrUrl = 'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${o.totalAmount}&addInfo=${Uri.encodeComponent('DONHANG ${o.orderCode}')}&accountName=OMNISALON%20ENTERPRISE';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1917),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Color(0xFFC59B27), width: 1.5),
+        ),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        contentPadding: const EdgeInsets.all(20),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Color(0xFFC59B27),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.qr_code_scanner_rounded, color: Color(0xFF141413), size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'THANH TOÁN ĐƠN HÀNG #${o.orderCode}',
+                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 8)],
+                ),
+                child: Image.network(
+                  vietQrUrl,
+                  width: 180,
+                  height: 180,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Image.network(
+                    'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${Uri.encodeComponent('OMNISALON-ORDER-${o.orderCode}')}',
+                    width: 180,
+                    height: 180,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text('VIETQR 24/7 CHUYỂN NHANH NAPAS', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(height: 12),
+              _buildTicketRow('Ngân hàng:', 'MBBank (Quân Đội)'),
+              _buildTicketRow('Số tài khoản:', '0900000000'),
+              _buildTicketRow('Chủ tài khoản:', 'OMNISALON ENTERPRISE'),
+              _buildTicketRow('Nội dung CK:', 'DONHANG ${o.orderCode}'),
+              _buildTicketRow('Tổng tiền:', currencyFormat.format(o.totalAmount), isPrice: true),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF141413),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF2E2C29)),
+                ),
+                child: const Text(
+                  'Quét mã VietQR bằng ứng dụng ngân hàng bất kỳ để thanh toán tức thì.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 11),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Đóng', style: TextStyle(color: Color(0xFFA8A29E))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFC59B27),
+              foregroundColor: const Color(0xFF141413),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Đã ghi nhận thanh toán VietQR cho đơn hàng #${o.orderCode}!'),
+                  backgroundColor: const Color(0xFF10B981),
+                ),
+              );
+            },
+            child: const Text('Đã Chuyển Khoản', style: TextStyle(fontWeight: FontWeight.w900)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBookingRatingDialog(Booking b) {
+    int rating = 5;
+    final commentCtrl = TextEditingController(text: 'Dịch vụ cắt tóc và tạo kiểu rất đẹp, thợ chu đáo!');
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF1C1917),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: Color(0xFF2E2C29)),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 24),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Đánh Giá Lịch Hẹn #${b.bookingCode}',
+                      style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
+                    ),
+                    Text(
+                      '${b.serviceName} • Barber ${b.stylistName}',
+                      style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Mức độ hài lòng của bạn:',
+                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    final star = index + 1;
+                    return IconButton(
+                      icon: Icon(
+                        star <= rating ? Icons.star_rounded : Icons.star_border_rounded,
+                        color: star <= rating ? const Color(0xFFF59E0B) : const Color(0xFF57534E),
+                        size: 32,
+                      ),
+                      onPressed: () => setDialogState(() => rating = star),
+                    );
+                  }),
+                ),
+                Text(
+                  _getStarLabel(rating),
+                  style: const TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: commentCtrl,
+                  maxLines: 3,
+                  style: const TextStyle(color: Color(0xFFFAF8F5), fontSize: 13),
+                  decoration: InputDecoration(
+                    hintText: 'Nhận xét về tay nghề thợ cắt, không gian phục vụ...',
+                    hintStyle: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12),
+                    filled: true,
+                    fillColor: const Color(0xFF141413),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF2E2C29)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF2E2C29)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFC59B27)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: const Text('Hủy Bỏ', style: TextStyle(color: Color(0xFFA8A29E))),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC59B27),
+                foregroundColor: const Color(0xFF141413),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      setDialogState(() => isSubmitting = true);
+                      final user = AuthService.currentUser;
+                      await ApiService.submitReview(
+                        bookingId: b.bookingCode,
+                        rating: rating,
+                        comment: commentCtrl.text.trim().isEmpty ? 'Dịch vụ rất tốt!' : commentCtrl.text.trim(),
+                        customerId: user?.id,
+                        customerName: user?.fullName ?? b.customerName,
+                        customerPhone: user?.phone ?? b.customerPhone,
+                      );
+                      if (!dialogCtx.mounted) return;
+                      Navigator.of(dialogCtx).pop();
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Cảm ơn quý khách đã gửi đánh giá cho lịch hẹn #${b.bookingCode}!'),
+                          backgroundColor: const Color(0xFF10B981),
+                        ),
+                      );
+                    },
+              child: Text(
+                isSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá Ngay',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showOrderRatingDialog(SalonOrder o) {
+    int rating = 5;
+    final commentCtrl = TextEditingController(text: 'Sản phẩm mỹ phẩm chính hãng, đóng gói cẩn thận!');
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF1C1917),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: Color(0xFF2E2C29)),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 24),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Đánh Giá Đơn Hàng #${o.orderCode}',
+                      style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
+                    ),
+                    Text(
+                      'Người nhận: ${o.customerName}',
+                      style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Mức độ hài lòng của bạn:',
+                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    final star = index + 1;
+                    return IconButton(
+                      icon: Icon(
+                        star <= rating ? Icons.star_rounded : Icons.star_border_rounded,
+                        color: star <= rating ? const Color(0xFFF59E0B) : const Color(0xFF57534E),
+                        size: 32,
+                      ),
+                      onPressed: () => setDialogState(() => rating = star),
+                    );
+                  }),
+                ),
+                Text(
+                  _getStarLabel(rating),
+                  style: const TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: commentCtrl,
+                  maxLines: 3,
+                  style: const TextStyle(color: Color(0xFFFAF8F5), fontSize: 13),
+                  decoration: InputDecoration(
+                    hintText: 'Nhận xét về chất lượng sản phẩm mỹ phẩm, bao bì...',
+                    hintStyle: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12),
+                    filled: true,
+                    fillColor: const Color(0xFF141413),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF2E2C29)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF2E2C29)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFC59B27)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: const Text('Hủy Bỏ', style: TextStyle(color: Color(0xFFA8A29E))),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC59B27),
+                foregroundColor: const Color(0xFF141413),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      setDialogState(() => isSubmitting = true);
+                      final user = AuthService.currentUser;
+                      await ApiService.submitReview(
+                        orderId: o.orderCode,
+                        rating: rating,
+                        comment: commentCtrl.text.trim().isEmpty ? 'Sản phẩm rất tốt!' : commentCtrl.text.trim(),
+                        customerId: user?.id,
+                        customerName: user?.fullName ?? o.customerName,
+                        customerPhone: user?.phone ?? o.customerPhone,
+                      );
+                      if (!dialogCtx.mounted) return;
+                      Navigator.of(dialogCtx).pop();
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Cảm ơn quý khách đã gửi đánh giá cho đơn hàng #${o.orderCode}!'),
+                          backgroundColor: const Color(0xFF10B981),
+                        ),
+                      );
+                    },
+              child: Text(
+                isSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá Ngay',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -767,43 +1181,51 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                                   ],
                                 ),
                                 const Divider(height: 20, color: Color(0xFF2E2C29)),
-                                Row(
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
                                   children: [
-                                    Expanded(
-                                      child: ElevatedButton.icon(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFFC59B27),
-                                          foregroundColor: const Color(0xFF141413),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                          padding: const EdgeInsets.symmetric(vertical: 10),
-                                        ),
-                                        icon: const Icon(Icons.qr_code_2, size: 18),
-                                        label: const Text('Xem Vé QR', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5)),
-                                        onPressed: () => _showQrCheckInModal(b),
+                                    OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: Color(0xFFC59B27)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                       ),
+                                      icon: const Icon(Icons.qr_code_2, size: 16, color: Color(0xFFC59B27)),
+                                      label: const Text('Xem Vé QR', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFFC59B27))),
+                                      onPressed: () => _showQrCheckInModal(b),
                                     ),
-                                    if (!isCancelled && !isCompleted) ...[
-                                      const SizedBox(width: 8),
-                                      OutlinedButton(
-                                        style: OutlinedButton.styleFrom(
-                                          side: const BorderSide(color: Color(0xFFC59B27)),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                        ),
-                                        onPressed: () => _showRescheduleDialog(b),
-                                        child: const Text('Đổi Giờ', style: TextStyle(color: Color(0xFFC59B27), fontWeight: FontWeight.w800, fontSize: 12)),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFFC59B27),
+                                        foregroundColor: const Color(0xFF141413),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                       ),
-                                      const SizedBox(width: 8),
+                                      icon: const Icon(Icons.payment_rounded, size: 16),
+                                      label: const Text('Thanh Toán Ngay', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                                      onPressed: () => _showBookingPaymentModal(b),
+                                    ),
+                                    OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: Color(0xFFFAF8F5)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                      ),
+                                      icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
+                                      label: const Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFFFAF8F5))),
+                                      onPressed: () => _showBookingRatingDialog(b),
+                                    ),
+                                    if (!isCancelled && !isCompleted)
                                       OutlinedButton(
                                         style: OutlinedButton.styleFrom(
                                           side: const BorderSide(color: Color(0xFFDC2626)),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                         ),
                                         onPressed: () => _confirmCancelBooking(b),
                                         child: const Text('Hủy', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w800, fontSize: 12)),
                                       ),
-                                    ],
                                   ],
                                 ),
                               ],
@@ -896,6 +1318,34 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   Text(
                     currencyFormat.format(o.totalAmount),
                     style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC59B27), fontSize: 16),
+                  ),
+                ],
+              ),
+              const Divider(height: 18, color: Color(0xFF2E2C29)),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFC59B27),
+                      foregroundColor: const Color(0xFF141413),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    icon: const Icon(Icons.payment_rounded, size: 16),
+                    label: const Text('Thanh Toán Ngay', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                    onPressed: () => _showOrderPaymentModal(o),
+                  ),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFFAF8F5)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
+                    label: const Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFFFAF8F5))),
+                    onPressed: () => _showOrderRatingDialog(o),
                   ),
                 ],
               ),

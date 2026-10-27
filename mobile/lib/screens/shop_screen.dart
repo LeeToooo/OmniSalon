@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
@@ -23,6 +24,7 @@ class ShopScreen extends StatefulWidget {
 class _ShopScreenState extends State<ShopScreen> {
   final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
   final _searchController = TextEditingController();
+  final _categoryScrollController = ScrollController();
 
   List<Product> _products = [];
   bool _isLoading = true;
@@ -49,6 +51,7 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _categoryScrollController.dispose();
     super.dispose();
   }
 
@@ -331,36 +334,85 @@ class _ShopScreenState extends State<ShopScreen> {
               ),
             ),
 
-            // Category Chips
+            // Category Chips (Vuốt / Kéo chuột mượt mà và nút điều hướng danh mục)
             SizedBox(
               height: 42,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                scrollDirection: Axis.horizontal,
-                itemCount: _categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, idx) {
-                  final cat = _categories[idx];
-                  final isSelected = _selectedCategory == cat['id'];
-                  return ChoiceChip(
-                    label: Text(
-                      cat['name']!,
-                      style: AppTheme.bodySmall(
-                        color: isSelected ? AppTheme.charcoal : AppTheme.textPrimary,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              child: Stack(
+                children: [
+                  ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(
+                      dragDevices: {
+                        PointerDeviceKind.touch,
+                        PointerDeviceKind.mouse,
+                        PointerDeviceKind.trackpad,
+                        PointerDeviceKind.stylus,
+                      },
+                    ),
+                    child: ListView.separated(
+                      controller: _categoryScrollController,
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _categories.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (context, idx) {
+                        final cat = _categories[idx];
+                        final isSelected = _selectedCategory == cat['id'];
+                        return ChoiceChip(
+                          label: Text(
+                            cat['name']!,
+                            style: AppTheme.bodySmall(
+                              color: isSelected ? AppTheme.charcoal : AppTheme.textPrimary,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            ),
+                          ),
+                          selected: isSelected,
+                          selectedColor: AppTheme.accentGold,
+                          backgroundColor: AppTheme.surfaceCard,
+                          side: BorderSide(color: isSelected ? AppTheme.accentGold : AppTheme.borderColor),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          onSelected: (_) {
+                            setState(() => _selectedCategory = cat['id']!);
+                            _loadProducts();
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    right: 4,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          if (_categoryScrollController.hasClients) {
+                            _categoryScrollController.animateTo(
+                              _categoryScrollController.offset + 140,
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.charcoal,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.accentGold, width: 1.2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.4),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppTheme.accentGold),
+                        ),
                       ),
                     ),
-                    selected: isSelected,
-                    selectedColor: AppTheme.accentGold,
-                    backgroundColor: AppTheme.surfaceCard,
-                    side: BorderSide(color: isSelected ? AppTheme.accentGold : AppTheme.borderColor),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    onSelected: (_) {
-                      setState(() => _selectedCategory = cat['id']!);
-                      _loadProducts();
-                    },
-                  );
-                },
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 8),

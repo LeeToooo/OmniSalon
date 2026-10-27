@@ -50,7 +50,8 @@ class _StylistsScreenState extends State<StylistsScreen> {
   String get _selectedBranchName {
     if (_selectedBranchId == 'all') return 'Tất Cả Chi Nhánh';
     final found = _branches.where((b) => b.id == _selectedBranchId);
-    return found.isNotEmpty ? found.first.name : 'Chi Nhánh $_selectedBranchId';
+    if (found.isEmpty) return 'CN $_selectedBranchId';
+    return found.first.name.replaceAll(RegExp(r'^Omni Salon (Barber )?', caseSensitive: false), '').trim();
   }
 
   void _showBranchBubbleModal() {
@@ -230,40 +231,44 @@ class _StylistsScreenState extends State<StylistsScreen> {
 
                         // Nút mở Bubble Modal chọn chi nhánh
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            GestureDetector(
-                              onTap: _showBranchBubbleModal,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.surfaceCard,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: AppTheme.borderColor),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text('Chi Nhánh: ', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
-                                    Text(
-                                      _selectedBranchName,
-                                      style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w700),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.surfaceElevated,
-                                        borderRadius: BorderRadius.circular(4),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: _showBranchBubbleModal,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.surfaceCard,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppTheme.borderColor),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text('Chi Nhánh: ', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+                                      Expanded(
+                                        child: Text(
+                                          _selectedBranchName,
+                                          style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w700),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                      child: Text(
-                                        '${filtered.length} Thợ',
-                                        style: AppTheme.bodySmall(fontSize: 10.5, fontWeight: FontWeight.w700),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.surfaceElevated,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          '${filtered.length} Thợ',
+                                          style: AppTheme.bodySmall(fontSize: 10.5, fontWeight: FontWeight.w700),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Icon(Icons.arrow_drop_down_rounded, size: 18, color: AppTheme.accentGold),
-                                  ],
+                                      const SizedBox(width: 2),
+                                      const Icon(Icons.arrow_drop_down_rounded, size: 18, color: AppTheme.accentGold),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),

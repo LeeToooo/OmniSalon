@@ -53,6 +53,9 @@ class _BookingScreenState extends State<BookingScreen> {
   final _stylistSearchController = TextEditingController();
   String _stylistQuery = '';
 
+  String? _lastUserId;
+  String _selectedPaymentMethod = 'VietQR';
+
   List<Map<String, dynamic>> _slotAvailability = [];
   bool _isLoadingSlots = false;
 
@@ -65,8 +68,20 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
+    _lastUserId = AuthService.currentUser?.id;
+    AuthService.userNotifier.addListener(_onAuthUserChanged);
     _initCustomerInfo();
     _loadData();
+  }
+
+  void _onAuthUserChanged() {
+    final user = AuthService.userNotifier.value;
+    final currentId = user?.id;
+    if (_lastUserId != currentId) {
+      _lastUserId = currentId;
+      _initCustomerInfo();
+      if (mounted) setState(() {});
+    }
   }
 
   void _initCustomerInfo() {
@@ -74,11 +89,15 @@ class _BookingScreenState extends State<BookingScreen> {
     if (user != null) {
       _nameController.text = user.fullName;
       _phoneController.text = user.phone;
+    } else {
+      _nameController.clear();
+      _phoneController.clear();
     }
   }
 
   @override
   void dispose() {
+    AuthService.userNotifier.removeListener(_onAuthUserChanged);
     _nameController.dispose();
     _phoneController.dispose();
     _notesController.dispose();
@@ -278,6 +297,7 @@ class _BookingScreenState extends State<BookingScreen> {
       status: 'Confirmed',
       notes: _notesController.text.trim(),
       createdAt: DateTime.now().toIso8601String(),
+      paymentMethod: _selectedPaymentMethod,
     );
 
     final res = await ApiService.createBooking(booking);
@@ -549,7 +569,15 @@ class _BookingScreenState extends State<BookingScreen> {
         ..._branches.map((b) {
           final isSelected = _selectedBranch?.id == b.id;
           return GestureDetector(
-            onTap: () => setState(() => _selectedBranch = b),
+            onTap: () {
+              setState(() {
+                _selectedBranch = b;
+                if (_selectedStylist != null && _selectedStylist!.branchId != b.id) {
+                  _selectedStylist = null;
+                }
+              });
+              _loadAvailableSlots();
+            },
             child: Container(
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
@@ -745,11 +773,18 @@ class _BookingScreenState extends State<BookingScreen> {
   // BƯỚC 3: CHỌN THỢ TẠO MẪU
   Widget _buildStepStylists() {
     final query = _stylistQuery.trim().toLowerCase();
-    final filtered = _stylists.where((st) {
+    final selectedBranchId = _selectedBranch?.id ?? '';
+
+    // Lọc chỉ lấy danh sách nhân viên thuộc chi nhánh đã chọn ở Bước 1
+    final branchStylists = selectedBranchId.isNotEmpty
+        ? _stylists.where((st) => st.branchId.toUpperCase() == selectedBranchId.toUpperCase()).toList()
+        : _stylists;
+    final listToDisplay = branchStylists.isNotEmpty ? branchStylists : _stylists;
+
+    final filtered = listToDisplay.where((st) {
       if (query.isEmpty) return true;
       return st.name.toLowerCase().contains(query) ||
-          st.level.toLowerCase().contains(query) ||
-          st.branchName.toLowerCase().contains(query);
+          st.level.toLowerCase().contains(query);
     }).toList();
 
     return Column(
@@ -757,7 +792,12 @@ class _BookingScreenState extends State<BookingScreen> {
       children: [
         Text('3. Chọn Master Barber', style: AppTheme.headingSmall(fontSize: 20)),
         const SizedBox(height: 4),
-        Text('Chọn thợ barber quen thuộc hoặc để Omni Salon chỉ định thợ tay nghề phù hợp.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+        Text(
+          _selectedBranch != null
+              ? 'Đội ngũ chuyên gia tạo mẫu tại ${_selectedBranch!.name}'
+              : 'Chọn thợ barber quen thuộc hoặc để Omni Salon chỉ định thợ tay nghề phù hợp.',
+          style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+        ),
         const SizedBox(height: 14),
 
         // Thanh tìm kiếm thợ
@@ -1091,6 +1131,13 @@ class _BookingScreenState extends State<BookingScreen> {
   Widget _buildStepConfirm() {
     final dateFormatted = DateFormat('dd/MM/yyyy').format(_selectedDate);
 
+    // Tự động đồng bộ thông tin tài khoản hiện tại vào form đặt lịch
+    final currentUser = AuthService.currentUser;
+    if (currentUser != null && (_lastUserId != currentUser.id || _nameController.text.isEmpty)) {
+      _lastUserId = currentUser.id;
+      _initCustomerInfo();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1116,6 +1163,8 @@ class _BookingScreenState extends State<BookingScreen> {
               _buildConfirmRow('Thợ Barber:', _selectedStylist?.name ?? 'Master Barber (Ngẫu nhiên)'),
               const Divider(color: AppTheme.borderColorSubtle),
               _buildConfirmRow('Dịch vụ:', '${_selectedServiceIds.length} dịch vụ ($_totalDuration phút)'),
+              const Divider(color: AppTheme.borderColorSubtle),
+              _buildConfirmRow('Thanh toán:', _selectedPaymentMethod == 'VietQR' ? 'Chuyển khoản VietQR' : 'Thanh toán tại quầy'),
               const Divider(color: AppTheme.borderColorSubtle),
               _buildConfirmRow('Tổng thanh toán:', currencyFormat.format(_totalPrice), isHighlight: true),
             ],
@@ -1202,6 +1251,121 @@ class _BookingScreenState extends State<BookingScreen> {
             hintText: 'Ví dụ: Tỉa tóc layer bay bổng, da đầu nhạy cảm...',
             prefixIcon: Icon(Icons.edit_note_rounded, size: 20, color: AppTheme.textSecondary),
           ),
+        ),
+        const SizedBox(height: 14),
+
+        // PHƯƠNG THỨC THANH TOÁN (Mục 6: Chọn QR hoặc Tại quầy)
+        Text('PHƯƠNG THỨC THANH TOÁN', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
+        const SizedBox(height: 8),
+
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedPaymentMethod = 'VietQR'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _selectedPaymentMethod == 'VietQR'
+                        ? AppTheme.accentGold.withValues(alpha: 0.12)
+                        : AppTheme.surfaceCard,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _selectedPaymentMethod == 'VietQR'
+                          ? AppTheme.accentGold
+                          : AppTheme.borderColor,
+                      width: _selectedPaymentMethod == 'VietQR' ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.qr_code_2_rounded,
+                        color: _selectedPaymentMethod == 'VietQR'
+                            ? AppTheme.accentGold
+                            : AppTheme.textSecondary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'VietQR',
+                              style: AppTheme.bodyMedium(
+                                fontWeight: FontWeight.w800,
+                                color: _selectedPaymentMethod == 'VietQR'
+                                    ? AppTheme.accentGold
+                                    : AppTheme.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              'Quét mã QR',
+                              style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedPaymentMethod = 'Tại quầy'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _selectedPaymentMethod == 'Tại quầy'
+                        ? AppTheme.accentGold.withValues(alpha: 0.12)
+                        : AppTheme.surfaceCard,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _selectedPaymentMethod == 'Tại quầy'
+                          ? AppTheme.accentGold
+                          : AppTheme.borderColor,
+                      width: _selectedPaymentMethod == 'Tại quầy' ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.storefront_rounded,
+                        color: _selectedPaymentMethod == 'Tại quầy'
+                            ? AppTheme.accentGold
+                            : AppTheme.textSecondary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Tại Quầy',
+                              style: AppTheme.bodyMedium(
+                                fontWeight: FontWeight.w800,
+                                color: _selectedPaymentMethod == 'Tại quầy'
+                                    ? AppTheme.accentGold
+                                    : AppTheme.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              'Thanh toán sau',
+                              style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
       ],

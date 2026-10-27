@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'theme/app_theme.dart';
@@ -24,6 +25,14 @@ class OmniSalonApp extends StatelessWidget {
       title: 'Omni Salon Authentic Barber',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        dragDevices: {
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.touch,
+          PointerDeviceKind.trackpad,
+          PointerDeviceKind.stylus,
+        },
+      ),
       home: const MainScaffold(),
     );
   }

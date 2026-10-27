@@ -6,15 +6,18 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/editorial_image.dart';
 import 'auth/login_screen.dart';
+import 'main_scaffold.dart';
 
 class CartScreen extends StatefulWidget {
   final List<OrderItem> cart;
   final VoidCallback? onUpdateCart;
+  final VoidCallback? onNavigateToShop;
 
   const CartScreen({
     super.key,
     required this.cart,
     this.onUpdateCart,
+    this.onNavigateToShop,
   });
 
   @override
@@ -365,7 +368,14 @@ class _CartScreenState extends State<CartScreen> {
                     Text('Hãy chọn các sản phẩm sáp và dưỡng cao cấp tại Cửa hàng.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        if (widget.onNavigateToShop != null) {
+                          widget.onNavigateToShop!();
+                        } else {
+                          MainScaffold.of(context)?.switchTab(4);
+                        }
+                      },
                       child: const Text('KHÁM PHÁ CỬA HÀNG'),
                     ),
                   ],

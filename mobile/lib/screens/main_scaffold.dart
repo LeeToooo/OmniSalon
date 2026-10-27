@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../models/order.dart';
 import '../models/branch.dart';
@@ -36,18 +38,48 @@ class MainScaffoldState extends State<MainScaffold> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _lastUserId = AuthService.currentUser?.id;
+    _loadCartForUser(_lastUserId);
     AuthService.userNotifier.addListener(_onAuthChanged);
     _loadBranches();
   }
 
-  void _onAuthChanged() {
-    final currentUser = AuthService.userNotifier.value;
-    final currentId = currentUser?.id;
-    // Tự động xóa sạch giỏ hàng khi người dùng đăng xuất hoặc chuyển đổi tài khoản khác
-    if (_lastUserId != null && _lastUserId != currentId) {
+  Future<void> _saveCartForUser(String? userId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'omni_cart_${userId ?? "guest"}';
+      final jsonList = _sharedCart.map((i) => i.toJson()).toList();
+      await prefs.setString(key, jsonEncode(jsonList));
+    } catch (_) {}
+  }
+
+  Future<void> _loadCartForUser(String? userId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'omni_cart_${userId ?? "guest"}';
+      final raw = prefs.getString(key);
+      if (raw != null && raw.isNotEmpty) {
+        final List list = jsonDecode(raw);
+        _sharedCart.clear();
+        for (var item in list) {
+          _sharedCart.add(OrderItem.fromJson(Map<String, dynamic>.from(item)));
+        }
+      } else {
+        _sharedCart.clear();
+      }
+    } catch (_) {
       _sharedCart.clear();
     }
-    _lastUserId = currentId;
+    if (mounted) setState(() {});
+  }
+
+  void _onAuthChanged() async {
+    final currentUser = AuthService.userNotifier.value;
+    final currentId = currentUser?.id;
+    if (_lastUserId != currentId) {
+      await _saveCartForUser(_lastUserId);
+      _lastUserId = currentId;
+      await _loadCartForUser(currentId);
+    }
     if (mounted) setState(() {});
   }
 
@@ -55,6 +87,7 @@ class MainScaffoldState extends State<MainScaffold> {
     setState(() {
       _sharedCart.clear();
     });
+    _saveCartForUser(AuthService.currentUser?.id);
   }
 
   @override
@@ -95,6 +128,7 @@ class MainScaffoldState extends State<MainScaffold> {
         _sharedCart.add(item);
       }
     });
+    _saveCartForUser(AuthService.currentUser?.id);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Đã thêm "${item.name}" vào giỏ hàng!', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
@@ -170,7 +204,11 @@ class MainScaffoldState extends State<MainScaffold> {
                     MaterialPageRoute(
                       builder: (_) => CartScreen(
                         cart: _sharedCart,
-                        onUpdateCart: () => setState(() {}),
+                        onUpdateCart: () {
+                          _saveCartForUser(AuthService.currentUser?.id);
+                          setState(() {});
+                        },
+                        onNavigateToShop: () => switchTab(4),
                       ),
                     ),
                   );

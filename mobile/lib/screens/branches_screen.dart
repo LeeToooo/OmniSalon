@@ -48,6 +48,10 @@ class _BranchesScreenState extends State<BranchesScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF141413),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFFFAF8F5)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text(
           'Hệ Thống 20 Chi Nhánh',
           style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 18),

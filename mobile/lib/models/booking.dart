@@ -23,6 +23,7 @@ class Booking {
   final String createdAt;
   final String? userId;
   final String serviceImage;
+  final String paymentMethod;
 
   Booking({
     required this.id,
@@ -47,6 +48,7 @@ class Booking {
     this.notes = '',
     required this.createdAt,
     this.serviceImage = '',
+    this.paymentMethod = 'Thanh toán tại quầy',
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -91,6 +93,7 @@ class Booking {
       notes: json['notes'] ?? json['GhiChu'] ?? '',
       createdAt: json['createdAt'] ?? '',
       serviceImage: formattedImg,
+      paymentMethod: json['paymentMethod'] ?? json['PhuongThuc'] ?? 'Thanh toán tại quầy',
     );
   }
 
@@ -116,6 +119,7 @@ class Booking {
       'notes': notes,
       'status': status,
       'createdAt': createdAt,
+      'paymentMethod': paymentMethod,
     };
   }
 
