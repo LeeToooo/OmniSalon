@@ -306,34 +306,61 @@
       } catch (_) { }
     }
 
-    async syncStylistToLiveServer(stylist) {
-      if (typeof fetch === 'undefined') return;
+    async syncStylistToLiveServer(stylist, isUpdate = false) {
+      if (typeof fetch === 'undefined') return { success: true };
       try {
-        await fetch(`${this.liveServerUrl}/stylists`, {
-          method: 'POST',
+        const id = stylist.id || stylist.MaNhanVien;
+        const method = isUpdate ? 'PUT' : 'POST';
+        const url = isUpdate ? `${this.liveServerUrl}/stylists/${id}` : `${this.liveServerUrl}/stylists`;
+        const res = await fetch(url, {
+          method,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(stylist)
         });
-      } catch (_) { }
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          const serverId = data?.id || data?.MaNhanVien || data?.stylist?.id;
+          if (serverId && serverId !== stylist.id) {
+            stylist.id = serverId;
+            stylist.MaNhanVien = serverId;
+            this.saveState();
+          }
+          return { success: true, data };
+        }
+        return { success: false };
+      } catch (err) {
+        return { success: false, error: err };
+      }
     }
 
     async syncDeleteStylistToLiveServer(stylistId) {
-      if (typeof fetch === 'undefined') return;
+      if (typeof fetch === 'undefined') return { success: true };
       try {
-        await fetch(`${this.liveServerUrl}/stylists/${stylistId}`, {
+        const res = await fetch(`${this.liveServerUrl}/stylists/${stylistId}`, {
           method: 'DELETE'
         });
-      } catch (_) { }
+        return await res.json().catch(() => ({ success: true }));
+      } catch (err) {
+        return { success: false, error: err };
+      }
     }
 
     async syncServiceToLiveServer(service) {
       if (typeof fetch === 'undefined') return;
       try {
-        await fetch(`${this.liveServerUrl}/services`, {
+        const res = await fetch(`${this.liveServerUrl}/services`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(service)
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.service && data.service.id) {
+            service.id = data.service.id;
+            service.MaDichVu = data.service.id;
+            this.saveState();
+          }
+        }
       } catch (_) { }
     }
 
@@ -347,34 +374,71 @@
     }
 
     async syncProductToLiveServer(product) {
-      if (typeof fetch === 'undefined') return;
+      if (typeof fetch === 'undefined') return { success: true };
       try {
-        await fetch(`${this.liveServerUrl}/products`, {
+        const res = await fetch(`${this.liveServerUrl}/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(product)
         });
-      } catch (_) { }
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data && data.product && data.product.id) {
+            product.id = data.product.id;
+            product.MaSanPham = data.product.id;
+            if (data.product.brand) product.brand = data.product.brand;
+            this.saveState();
+          }
+          return { success: true, data };
+        }
+        return { success: false };
+      } catch (err) {
+        return { success: false, error: err };
+      }
     }
 
     async syncUpdateProductToLiveServer(productId, updates) {
-      if (typeof fetch === 'undefined') return;
+      if (typeof fetch === 'undefined') return { success: true };
       try {
-        await fetch(`${this.liveServerUrl}/products/${productId}`, {
+        const res = await fetch(`${this.liveServerUrl}/products/${productId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updates)
         });
-      } catch (_) { }
+        return await res.json().catch(() => ({ success: true }));
+      } catch (err) {
+        return { success: false, error: err };
+      }
     }
 
     async syncDeleteProductToLiveServer(productId) {
-      if (typeof fetch === 'undefined') return;
+      if (typeof fetch === 'undefined') return { success: true };
       try {
-        await fetch(`${this.liveServerUrl}/products/${productId}`, {
+        const res = await fetch(`${this.liveServerUrl}/products/${productId}`, {
           method: 'DELETE'
         });
-      } catch (_) { }
+        return await res.json().catch(() => ({ success: true }));
+      } catch (err) {
+        return { success: false, error: err };
+      }
+    }
+
+    async syncReceiptToLiveServer(receipt) {
+      if (typeof fetch === 'undefined') return { success: true };
+      try {
+        const res = await fetch(`${this.liveServerUrl}/inventory/receipts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(receipt)
+        });
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          return { success: true, data };
+        }
+        return { success: false };
+      } catch (err) {
+        return { success: false, error: err };
+      }
     }
 
     async syncDeleteBookingToLiveServer(bookingId) {
@@ -598,6 +662,21 @@
           email: `${id3.toLowerCase()}@salontoc.vn`, avatar: avatarPresets[(nvIndex - 1) % avatarPresets.length],
           rating: 4.92, reviewCount: 210, specialty: 'Gội đầu dưỡng sinh massage, Ép side tóc nam, Chăm sóc tóc'
         });
+
+        // 4 Thu ngân (Quầy POS & Hóa đơn, lương giờ, không hoa hồng cắt)
+        const id4 = `NV${String(60 + bIdx + 1).padStart(2, '0')}`;
+        const cashierNames = [
+          'Nguyễn Thảo My', 'Trần Bích Phương', 'Lê Ngọc Hân', 'Phạm Quỳnh Nga', 'Hoàng Thùy Linh',
+          'Đỗ Mỹ Linh', 'Vũ Phương Ly', 'Đặng Thu Hà', 'Bùi Ánh Tuyết', 'Ngô Thanh Vân',
+          'Dương Cẩm Lynh', 'Lý Nhã Kỳ', 'Mai Phương Thúy', 'Trịnh Kim Chi', 'Hà Kiều Anh',
+          'Trần Tiểu Vy', 'Lương Thùy Linh', 'Nguyễn Thúc Thùy Tiên', 'Đoàn Thiên Ân', 'Huỳnh Thị Thanh Thủy'
+        ];
+        stylists.push({
+          id: id4, MaNhanVien: id4, branchId: b.id, MaChiNhanh: b.id, name: cashierNames[bIdx] || 'Nhân viên thu ngân', HoTen: cashierNames[bIdx] || 'Nhân viên thu ngân',
+          role: 'Thu ngân', ChucVu: 'Thu ngân', level: 'Chuyên viên thu ngân', title: 'Chuyên viên thu ngân • POS', phone: `0909888${String(60 + bIdx + 1)}`,
+          email: `${id4.toLowerCase()}@salontoc.vn`, avatar: avatarPresets[(60 + bIdx) % avatarPresets.length],
+          rating: 5.0, reviewCount: 100, specialty: 'Thanh toán POS, in hóa đơn, tư vấn khuyến mãi'
+        });
       });
 
       // 130 Sản phẩm thực tế từ CSDL QL_SALON.sql
@@ -796,7 +875,7 @@
       }
 
       if (!this.state.currentUser) {
-        this.state.currentUser = (this.state.users && this.state.users[0]) || null;
+        this.state.currentUser = null;
       }
 
       this.saveState();
@@ -926,8 +1005,13 @@
     // -----------------------------------------------------------------------
     getCurrentUser() {
       let user = null;
-      if (window.Auth && typeof window.Auth.getCurrentUser === 'function') {
+      if (window.AuthEngine && typeof window.AuthEngine.getCurrentUser === 'function') {
+        user = window.AuthEngine.getCurrentUser();
+      } else if (window.Auth && typeof window.Auth.getCurrentUser === 'function') {
         user = window.Auth.getCurrentUser();
+      }
+      if (window.AuthEngine) {
+        return user;
       }
       if (!user) user = this.state.currentUser || null;
       if (user && !user.name) {
@@ -974,16 +1058,45 @@
       if (!comboData || !comboData.name || !comboData.price) {
         throw new Error('Dữ liệu gói combo không hợp lệ.');
       }
+
+      let maxN = 0;
+      (this.state.combos || []).forEach(c => {
+        const m = String(c.id || c.MaCombo || '').match(/^CB0*(\d+)$/i);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (n > maxN) maxN = n;
+        }
+      });
+      const nextN = maxN + 1;
+      const standardId = 'CB' + (nextN < 10 ? '0' + nextN : nextN);
+
+      let chosenId = comboData.id || comboData.MaCombo;
+      if (!chosenId || !/^CB\d+$/i.test(chosenId)) {
+        chosenId = standardId;
+      } else {
+        const numM = chosenId.match(/^CB0*(\d+)$/i);
+        if (numM) {
+          const num = parseInt(numM[1], 10);
+          chosenId = 'CB' + (num < 10 ? '0' + num : num);
+        }
+      }
+
       const newCombo = {
-        id: comboData.id || `cmb-${Date.now().toString(36)}`,
+        id: chosenId,
+        MaCombo: chosenId,
         name: comboData.name.trim(),
+        TenCombo: comboData.name.trim(),
         category: 'combo',
         type: 'combo',
         price: Number(comboData.price),
+        GiaCombo: Number(comboData.price),
         oldPrice: Number(comboData.oldPrice || comboData.price * 1.25),
         duration: Number(comboData.duration || 75),
+        ThoiLuong: Number(comboData.duration || 75),
         image: comboData.image || 'DichVu_Men/CBDV1.jpg',
+        HinhAnh: comboData.image || 'DichVu_Men/CBDV1.jpg',
         description: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
+        MoTa: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
         services: Array.isArray(comboData.services) ? comboData.services : ['DV01', 'DV02'],
         rating: 5.0,
         reviewsCount: 1
@@ -992,6 +1105,7 @@
       this.state.combos.push(newCombo);
       this.logAudit('CREATE_COMBO', `Gói: ${newCombo.name}`, `Giá: ${newCombo.price}`);
       this.saveState();
+      this.syncComboToLiveServer(newCombo);
       return newCombo;
     }
 
@@ -1006,11 +1120,12 @@
     }
 
     deleteCombo(comboId) {
-      const idx = (this.state.combos || []).findIndex(c => c.id === comboId);
+      const idx = (this.state.combos || []).findIndex(c => c.id === comboId || c.MaCombo === comboId);
       if (idx === -1) return false;
       const removed = this.state.combos.splice(idx, 1)[0];
-      this.logAudit('DELETE_COMBO', `Gói: #${comboId}`, `Xóa combo: ${removed.name}`);
+      this.logAudit('DELETE_COMBO', `Gói: #${comboId}`, `Xóa combo: ${removed.name || removed.TenCombo}`);
       this.saveState();
+      this.syncDeleteComboToLiveServer(comboId);
       return true;
     }
 
@@ -1018,9 +1133,34 @@
       if (!serviceData || !serviceData.name || !serviceData.price) {
         throw new Error('Dữ liệu dịch vụ không hợp lệ.');
       }
+
+      let maxN = 0;
+      (this.state.services || []).forEach(s => {
+        const m = String(s.id || s.MaDichVu || '').match(/^DV0*(\d+)$/i);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (n > maxN) maxN = n;
+        }
+      });
+      const nextN = maxN + 1;
+      const standardId = 'DV' + (nextN < 10 ? '0' + nextN : nextN);
+
+      let chosenId = serviceData.id || serviceData.MaDichVu;
+      if (!chosenId || !/^DV\d+$/i.test(chosenId)) {
+        chosenId = standardId;
+      } else {
+        const numM = chosenId.match(/^DV0*(\d+)$/i);
+        if (numM) {
+          const num = parseInt(numM[1], 10);
+          chosenId = 'DV' + (num < 10 ? '0' + num : num);
+        }
+      }
+
       const newService = {
-        id: serviceData.id || `srv-${Date.now().toString(36)}`,
+        id: chosenId,
+        MaDichVu: chosenId,
         name: serviceData.name.trim(),
+        TenDichVu: serviceData.name.trim(),
         category: serviceData.category || 'haircut',
         price: Number(serviceData.price),
         oldPrice: Number(serviceData.oldPrice || serviceData.price),
@@ -1066,12 +1206,19 @@
     // -----------------------------------------------------------------------
     // 4. THỢ CẮT TÓC & ĐIỀU PHỐI CA (THỢ CHÍNH, THỢ PHỤ, QUẢN LÝ)
     // -----------------------------------------------------------------------
-    getStylists(branchId = null) {
-      const list = (this.state.stylists || []).filter(s => s.role !== 'Thu ngân' && s.ChucVu !== 'Thu ngân' && !s.title?.toLowerCase().includes('thu ngân'));
+    getStylists(branchId = null, includeAllStaff = false) {
+      const list = (this.state.stylists || []).filter(s => {
+        if (includeAllStaff) return true;
+        return s.role !== 'Thu ngân' && s.ChucVu !== 'Thu ngân' && !s.title?.toLowerCase().includes('thu ngân');
+      });
       if (!branchId || branchId === 'all') return list;
       const tb = this.getBranchById(branchId);
       const tid = tb ? tb.id : branchId;
       return list.filter(s => (s.branchId === branchId || s.branchId === tid || s.MaChiNhanh === branchId || s.MaChiNhanh === tid));
+    }
+
+    getAllStaff(branchId = null) {
+      return this.getStylists(branchId, true);
     }
 
     getStylistById(stylistId) {
@@ -1080,13 +1227,13 @@
       return stylists.find(s => s.id === stylistId || s.MaNhanVien === stylistId) || null;
     }
 
-    addStylist(stylistData) {
+    async addStylist(stylistData) {
       if (!stylistData || !stylistData.name) {
         throw new Error('Vui lòng nhập họ và tên của thợ.');
       }
-      let maxNum = 60;
+      let maxNum = 80;
       (this.state.stylists || []).forEach(s => {
-        const numMatch = (s.id || s.MaNhanVien || '').match(/^NV(\d+)$/i);
+        const numMatch = (s.id || s.MaNhanVien || '').match(/^NV0*(\d+)$/i);
         if (numMatch) {
           const n = parseInt(numMatch[1], 10);
           if (n > maxNum) maxNum = n;
@@ -1104,7 +1251,9 @@
         branchId: stylistData.branchId || 'CN01',
         MaChiNhanh: stylistData.branchId || 'CN01',
         role: role,
+        ChucVu: role,
         level: level,
+        CapBac: level,
         title: `${level} • ${role}`,
         phone: stylistData.phone || '0912000000',
         email: stylistData.email || `${nextId.toLowerCase()}@salontoc.vn`,
@@ -1119,30 +1268,35 @@
       this.state.stylists.push(newStylist);
       this.logAudit('CREATE_STYLIST', `Nhân sự: ${newStylist.name}`, `Vai trò: ${role} (#${nextId})`);
       this.saveState();
-      this.syncStylistToLiveServer(newStylist);
+      await this.syncStylistToLiveServer(newStylist);
       return newStylist;
     }
 
-    updateStylist(stylistId, updates) {
+    async updateStylist(stylistId, updates) {
       const st = this.getStylistById(stylistId);
       if (!st) return false;
       Object.assign(st, updates);
+      if (updates.name) st.HoTen = updates.name;
+      if (updates.role) st.ChucVu = updates.role;
+      if (updates.level) st.CapBac = updates.level;
+      if (updates.branchId) st.MaChiNhanh = updates.branchId;
+      if (updates.phone) st.SoDienThoai = updates.phone;
       if (updates.role || updates.level) {
         st.title = `${st.level || 'Master Barber'} • ${st.role || 'Thợ chính'}`;
       }
-      this.logAudit('UPDATE_STYLIST', `Nhân sự: #${stylistId}`, `Cập nhật thông tin nhân sự`);
+      this.logAudit('UPDATE_STYLIST', `Nhân sự: #${stylistId}`, `Cập nhật thông tin nhân sự: ${st.name || st.HoTen}`);
       this.saveState();
-      this.syncStylistToLiveServer(st);
+      await this.syncStylistToLiveServer(st, true);
       return st;
     }
 
-    deleteStylist(stylistId) {
+    async deleteStylist(stylistId) {
       const idx = (this.state.stylists || []).findIndex(s => s.id === stylistId || s.MaNhanVien === stylistId);
       if (idx === -1) return false;
       const removed = this.state.stylists.splice(idx, 1)[0];
       this.logAudit('DELETE_STYLIST', `Nhân sự: #${stylistId}`, `Xóa thợ: ${removed.name || removed.HoTen}`);
       this.saveState();
-      this.syncDeleteStylistToLiveServer(stylistId);
+      await this.syncDeleteStylistToLiveServer(stylistId);
       return true;
     }
 
@@ -1778,12 +1932,19 @@
       return products.find(p => p.id === productId || p.MaSanPham === productId) || null;
     }
 
-    addProduct(productData) {
+    async addProduct(productData) {
       if (!productData || !productData.name || !productData.price) {
         throw new Error('Dữ liệu sản phẩm không hợp lệ.');
       }
-      const nextNum = (this.state.products || []).length + 1;
-      const nextId = `SP${nextNum.toString().padStart(2, '0')}`;
+      let maxSpNum = 0;
+      (this.state.products || []).forEach(p => {
+        const m = (p.id || p.MaSanPham || '').match(/^SP0*(\d+)$/i);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (n > maxSpNum) maxSpNum = n;
+        }
+      });
+      const nextId = productData.id || `SP${String(maxSpNum + 1).padStart(2, '0')}`;
       const price = Number(productData.price);
       const costPrice = Number(productData.costPrice !== undefined ? productData.costPrice : (productData.GiaNhap !== undefined ? productData.GiaNhap : Math.round(price * 0.7)));
       const newProd = {
@@ -1816,11 +1977,11 @@
 
       this.logAudit('CREATE_PRODUCT', `Sản phẩm: ${newProd.name}`, `Giá: ${newProd.price}`);
       this.saveState();
-      this.syncProductToLiveServer(newProd);
+      await this.syncProductToLiveServer(newProd);
       return newProd;
     }
 
-    updateProduct(productId, updates) {
+    async updateProduct(productId, updates) {
       const p = this.getProductById(productId);
       if (!p) return false;
       Object.assign(p, updates);
@@ -1849,11 +2010,11 @@
       }
       this.logAudit('UPDATE_PRODUCT', `Sản phẩm: #${productId}`, 'Cập nhật thông tin sản phẩm');
       this.saveState();
-      this.syncUpdateProductToLiveServer(productId, updates);
+      await this.syncUpdateProductToLiveServer(productId, updates);
       return p;
     }
 
-    deleteProduct(productId) {
+    async deleteProduct(productId) {
       const idx = (this.state.products || []).findIndex(p => p.id === productId || p.MaSanPham === productId);
       if (idx === -1) return false;
       const removed = this.state.products.splice(idx, 1)[0];
@@ -1862,8 +2023,46 @@
       }
       this.logAudit('DELETE_PRODUCT', `Sản phẩm: #${productId}`, `Xóa sản phẩm: ${removed.name || removed.TenSanPham}`);
       this.saveState();
-      this.syncDeleteProductToLiveServer(productId);
+      await this.syncDeleteProductToLiveServer(productId);
       return true;
+    }
+
+    async addReceipt(receiptData) {
+      if (!receiptData) throw new Error('Dữ liệu phiếu nhập kho không hợp lệ.');
+      let maxPnNum = 0;
+      (this.state.receipts || []).forEach(r => {
+        const m = (r.id || r.MaPhieuNhap || '').match(/^PN0*(\d+)$/i);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (n > maxPnNum) maxPnNum = n;
+        }
+      });
+      const nextId = receiptData.id || `PN${String(maxPnNum + 1).padStart(2, '0')}`;
+      const newReceipt = {
+        id: nextId,
+        MaPhieuNhap: nextId,
+        branchId: receiptData.branchId || 'CN01',
+        MaChiNhanh: receiptData.branchId || 'CN01',
+        supplierId: receiptData.supplierId || 'NCC01',
+        MaNhaCungCap: receiptData.supplierId || 'NCC01',
+        supplierName: receiptData.supplierName || 'Nhà Cung Cấp',
+        staffId: receiptData.staffId || 'NV01',
+        MaNhanVien: receiptData.staffId || 'NV01',
+        staffName: receiptData.staffName || 'Quản lý chi nhánh',
+        createdDate: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        NgayLap: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        total: parseFloat(receiptData.total || 0),
+        TongTien: parseFloat(receiptData.total || 0),
+        status: receiptData.status || 'Đã duyệt',
+        TrangThai: receiptData.status || 'Đã duyệt',
+        itemCount: (receiptData.items || []).length || 1,
+        items: receiptData.items || []
+      };
+      if (!this.state.receipts) this.state.receipts = [];
+      this.state.receipts.unshift(newReceipt);
+      this.saveState();
+      await this.syncReceiptToLiveServer(newReceipt);
+      return newReceipt;
     }
 
     getCartUserId() {
@@ -2905,6 +3104,34 @@
           body: JSON.stringify(updates)
         });
       } catch (_) {}
+    }
+
+    async syncComboToLiveServer(combo) {
+      if (typeof fetch === 'undefined') return;
+      try {
+        const res = await fetch(`${this.liveServerUrl}/combos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(combo)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.combo && data.combo.id) {
+            combo.id = data.combo.id;
+            combo.MaCombo = data.combo.id;
+            this.saveState();
+          }
+        }
+      } catch (_) { }
+    }
+
+    async syncDeleteComboToLiveServer(comboId) {
+      if (typeof fetch === 'undefined') return;
+      try {
+        await fetch(`${this.liveServerUrl}/combos/${comboId}`, {
+          method: 'DELETE'
+        });
+      } catch (_) { }
     }
 
     async syncUpdateComboToLiveServer(comboId, updates) {

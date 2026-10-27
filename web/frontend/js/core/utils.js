@@ -59,7 +59,7 @@
     },
 
     getInitials(fullName) {
-      if (!fullName || typeof fullName !== 'string') return '4R';
+      if (!fullName || typeof fullName !== 'string') return 'OS';
       const words = fullName.trim().split(/\s+/);
       if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
       return (words[words.length - 2][0] + words[words.length - 1][0]).toUpperCase();

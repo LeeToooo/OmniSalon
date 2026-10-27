@@ -196,11 +196,13 @@
     },
 
     getCurrentUser() {
-      if (window.AuthEngine && typeof window.AuthEngine.getCurrentUser === 'function') {
-        return window.AuthEngine.getCurrentUser();
+      if (window.AuthEngine) {
+        const u = typeof window.AuthEngine.getCurrentUser === 'function' ? window.AuthEngine.getCurrentUser() : window.AuthEngine.currentUser;
+        if (u) return u;
       }
       if (window.store && typeof window.store.getCurrentUser === 'function') {
-        return window.store.getCurrentUser();
+        const u = window.store.getCurrentUser();
+        if (u) return u;
       }
       return null;
     },
@@ -812,11 +814,14 @@
       const modalBody = document.getElementById('globalModalBody');
       if (!modal || !modalBody) return;
 
+      this._modalSource = 'lookup';
+      this._subModalSource = null;
       this.lookupTab = initialTab || 'bookings';
       const user = this.getCurrentUser();
       const isAdmin = this.isAdminUser(user);
       const isCustomer = user && !isAdmin;
       const defaultQuery = isCustomer ? (user.phone || '') : (prefillValue || (user && user.phone ? user.phone : ''));
+      if (defaultQuery) this._lookupLastQuery = defaultQuery;
 
       modal.classList.remove('modal-wide');
       modal.classList.add('active', 'modal-lookup');
@@ -1492,6 +1497,15 @@
     },
 
     showTicketQr(bookingId) {
+      if (!bookingId) return;
+      if (document.querySelector('.customer-portal-shell') || this._modalSource === 'portal') {
+        this._subModalSource = 'portal';
+      } else {
+        this._subModalSource = 'lookup';
+        const lookupInput = document.getElementById('lookupSearchInput');
+        if (lookupInput && lookupInput.value) this._lookupLastQuery = lookupInput.value;
+      }
+
       const booking = this._findBookingById(bookingId);
       if (!booking) return;
 
@@ -1547,7 +1561,7 @@
           </div>
 
           <div style="display: flex; gap: 10px;">
-            <button class="btn-cancel" style="flex: 1;" onclick="CustomerWeb.openLookupModal('${booking.customerPhone || ''}')">
+            <button class="btn-cancel" style="flex: 1;" onclick="CustomerWeb.closeTicketQrModal('${booking.customerPhone || ''}')">
               Quay Lại Danh Sách
             </button>
             <button class="btn-submit-terracotta" style="flex: 1;" onclick="UICommon.closeGlobalModal()">
@@ -1557,6 +1571,14 @@
         </div>
       `;
       modal.classList.add('active');
+    },
+
+    closeTicketQrModal(phone = '') {
+      if (this._subModalSource === 'portal' || this._modalSource === 'portal') {
+        this.openCustomerPortalModal('bookings');
+      } else {
+        this.openLookupModal(phone || this._lookupLastQuery || '', 'bookings');
+      }
     },
 
     // -----------------------------------------------------------------------
@@ -2798,12 +2820,39 @@
         return;
       }
 
+      this._modalSource = 'portal';
+      this._subModalSource = null;
       this.portalActiveTab = initialTab || 'bookings';
       this.renderCustomerPortalModalBody();
     },
 
     switchPortalTab(tabName) {
       this.portalActiveTab = tabName;
+      const contentBody = document.querySelector('.portal-tab-content-body');
+      const tabsContainer = document.querySelector('.portal-nav-tabs');
+      if (contentBody && tabsContainer) {
+        const tabBtns = tabsContainer.querySelectorAll('.portal-tab-btn');
+        tabBtns.forEach(btn => {
+          const onclickAttr = btn.getAttribute('onclick') || '';
+          const dataTab = btn.getAttribute('data-tab') || '';
+          if (dataTab === tabName || onclickAttr.includes(`'${tabName}'`)) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        const user = this.getCurrentUser();
+        if (user) {
+          const userBookings = this._getUserBookings(user);
+          const userOrders = this._getUserOrders(user);
+          const galleryItems = this.getAiGallery();
+          const points = user.rewardPoints || (userBookings.length * 50 + 100);
+          const tierName = user.tier || (points >= 500 ? 'VIP Chủ Tịch' : points >= 300 ? 'Omni Vàng VIP' : points >= 150 ? 'Omni Bạc' : 'Thành Viên Tiêu Chuẩn');
+          contentBody.innerHTML = this.renderPortalTabContent(user, userBookings, userOrders, galleryItems, points, tierName);
+          return;
+        }
+      }
       this.renderCustomerPortalModalBody();
     },
 
@@ -2897,20 +2946,20 @@
           ` : ''}
 
           <!-- 2. Portal Navigation Tabs -->
-          <div class="portal-nav-tabs" style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color, #cbd5e1); margin-bottom: 18px; overflow-x: auto; padding-bottom: 4px;">
-            <button class="portal-tab-btn ${this.portalActiveTab === 'bookings' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('bookings')">
+          <div class="portal-nav-tabs" style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color, #cbd5e1); margin-bottom: 18px; overflow-x: auto; padding-bottom: 4px; scroll-behavior: smooth;">
+            <button class="portal-tab-btn ${this.portalActiveTab === 'bookings' ? 'active' : ''}" data-tab="bookings" style="font-size: 14px; font-weight: 600; padding: 10px 16px; flex-shrink: 0; white-space: nowrap;" onclick="CustomerWeb.switchPortalTab('bookings')">
               Lịch Cắt Tóc (${userBookings.length})
             </button>
-            <button class="portal-tab-btn ${this.portalActiveTab === 'orders' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('orders')">
+            <button class="portal-tab-btn ${this.portalActiveTab === 'orders' ? 'active' : ''}" data-tab="orders" style="font-size: 14px; font-weight: 600; padding: 10px 16px; flex-shrink: 0; white-space: nowrap;" onclick="CustomerWeb.switchPortalTab('orders')">
               Đơn Hàng (${userOrders.length})
             </button>
-            <button class="portal-tab-btn ${this.portalActiveTab === 'gallery' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('gallery')">
+            <button class="portal-tab-btn ${this.portalActiveTab === 'gallery' ? 'active' : ''}" data-tab="gallery" style="font-size: 14px; font-weight: 600; padding: 10px 16px; flex-shrink: 0; white-space: nowrap;" onclick="CustomerWeb.switchPortalTab('gallery')">
               Thư Viện Tóc AI (${galleryItems.length})
             </button>
-            <button class="portal-tab-btn ${this.portalActiveTab === 'rewards' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('rewards')">
+            <button class="portal-tab-btn ${this.portalActiveTab === 'rewards' ? 'active' : ''}" data-tab="rewards" style="font-size: 14px; font-weight: 600; padding: 10px 16px; flex-shrink: 0; white-space: nowrap;" onclick="CustomerWeb.switchPortalTab('rewards')">
               Điểm &amp; Hạng
             </button>
-            <button class="portal-tab-btn ${this.portalActiveTab === 'profile' ? 'active' : ''}" style="font-size: 14px; font-weight: 600; padding: 10px 16px;" onclick="CustomerWeb.switchPortalTab('profile')">
+            <button class="portal-tab-btn ${this.portalActiveTab === 'profile' ? 'active' : ''}" data-tab="profile" style="font-size: 14px; font-weight: 600; padding: 10px 16px; flex-shrink: 0; white-space: nowrap;" onclick="CustomerWeb.switchPortalTab('profile')">
               Hồ Sơ
             </button>
           </div>
@@ -3409,6 +3458,13 @@
 
     openOrderReviewModal(orderId) {
       if (!orderId) return;
+      if (document.querySelector('.customer-portal-shell') || this._modalSource === 'portal') {
+        this._subModalSource = 'portal';
+      } else {
+        this._subModalSource = 'lookup';
+        const lookupInput = document.getElementById('lookupSearchInput');
+        if (lookupInput && lookupInput.value) this._lookupLastQuery = lookupInput.value;
+      }
       const user = this.getCurrentUser();
       const existingReview = (window.store && typeof window.store.getReviewByOrderId === 'function')
         ? window.store.getReviewByOrderId(orderId)
@@ -3537,12 +3593,22 @@
     },
 
     closeOrderReviewModal() {
-      // Khi ấn Hủy Bỏ từ modal đánh giá, quay trở lại đúng Trang Cá Nhân & Điểm Thưởng tab Đơn Hàng
-      this.openCustomerPortalModal('orders');
+      if (this._subModalSource === 'portal' || this._modalSource === 'portal') {
+        this.openCustomerPortalModal('orders');
+      } else {
+        this.openLookupModal(this._lookupLastQuery || '', 'orders');
+      }
     },
 
     openOrderPaymentModal(orderId) {
       if (!orderId) return;
+      if (document.querySelector('.customer-portal-shell') || this._modalSource === 'portal') {
+        this._subModalSource = 'portal';
+      } else {
+        this._subModalSource = 'lookup';
+        const lookupInput = document.getElementById('lookupSearchInput');
+        if (lookupInput && lookupInput.value) this._lookupLastQuery = lookupInput.value;
+      }
       const orders = (window.store && typeof window.store.getOrders === 'function') ? window.store.getOrders() : [];
       const order = orders.find(o => (o.id || o.orderCode || o.MaDonHang) === orderId) || {};
       const amount = order.totalAmount || 0;
@@ -3609,7 +3675,7 @@
           <div style="display: flex; justify-content: center;">
             <button type="button" class="btn-cancel" 
                     style="min-height: 42px; min-width: 140px; padding: 0 24px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
-                    onclick="CustomerWeb.openCustomerPortalModal('orders')">
+                    onclick="CustomerWeb.closeOrderPaymentModal()">
               Đóng Cửa Sổ
             </button>
           </div>
@@ -3618,6 +3684,14 @@
 
       if (window.UICommon && typeof window.UICommon.openModal === 'function') {
         window.UICommon.openModal(modalHtml, 'payment');
+      }
+    },
+
+    closeOrderPaymentModal() {
+      if (this._subModalSource === 'portal' || this._modalSource === 'portal') {
+        this.openCustomerPortalModal('orders');
+      } else {
+        this.openLookupModal(this._lookupLastQuery || '', 'orders');
       }
     },
 
@@ -3655,8 +3729,8 @@
           if (window.UICommon && typeof window.UICommon.showToast === 'function') {
             window.UICommon.showToast(res.message || 'Cảm ơn quý khách đã đánh giá đơn hàng!', 'success');
           }
-          // Quay trở lại trang cá nhân & điểm thưởng tab Đơn Hàng
-          this.openCustomerPortalModal('orders');
+          // Quay trở lại trang cá nhân hoặc tra cứu tùy theo ngữ cảnh nguồn
+          this.closeOrderReviewModal();
 
           const lookupContainer = document.getElementById('lookupResultsContainer');
           if (lookupContainer) {
@@ -3675,6 +3749,15 @@
     // -----------------------------------------------------------------------
     openBookingPaymentModal(bookingId) {
       if (!bookingId) return;
+
+      if (document.querySelector('.customer-portal-shell') || this._modalSource === 'portal') {
+        this._subModalSource = 'portal';
+      } else {
+        this._subModalSource = 'lookup';
+        const lookupInput = document.getElementById('lookupSearchInput');
+        if (lookupInput && lookupInput.value) this._lookupLastQuery = lookupInput.value;
+      }
+
       const bookings = (window.store && typeof window.store.getBookings === 'function') ? window.store.getBookings() : (window.store?.state?.bookings || []);
       const booking = bookings.find(b => (b.id || b.bookingCode || b.MaLichHen) === bookingId) || {};
       const amount = booking.totalPrice || 0;
@@ -3734,16 +3817,11 @@
           </div>
 
           <!-- Nút hành động -->
-          <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; justify-content: center;">
             <button type="button" class="btn-cancel" 
-                    style="min-height: 42px; min-width: 130px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
+                    style="min-height: 42px; min-width: 140px; padding: 0 24px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
                     onclick="CustomerWeb.closeBookingPaymentModal()">
               Đóng Cửa Sổ
-            </button>
-            <button type="button" class="btn-submit-terracotta" 
-                    style="min-height: 42px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: #16a34a; color: #fff; border: none; cursor: pointer;"
-                    onclick="CustomerWeb.confirmBookingPaid('${this.escapeHtml(bCode)}')">
-              ✓ Tôi Đã Chuyển Khoản
             </button>
           </div>
         </div>
@@ -3755,11 +3833,16 @@
     },
 
     closeBookingPaymentModal() {
-      const portalActive = document.querySelector('.customer-portal-shell');
-      if (portalActive || this.currentPortalTab) {
+      if (this._subModalSource === 'portal' || this._modalSource === 'portal') {
         this.openCustomerPortalModal('bookings');
+      } else if (this._subModalSource === 'lookup' || this._modalSource === 'lookup') {
+        this.openLookupModal(this._lookupLastQuery || '', 'bookings');
       } else {
-        this.openLookupModal();
+        if (window.UICommon && typeof window.UICommon.closeGlobalModal === 'function') {
+          window.UICommon.closeGlobalModal();
+        } else {
+          this.openLookupModal();
+        }
       }
     },
 
@@ -3780,6 +3863,15 @@
 
     openBookingReviewModal(bookingId) {
       if (!bookingId) return;
+
+      if (document.querySelector('.customer-portal-shell') || this._modalSource === 'portal') {
+        this._subModalSource = 'portal';
+      } else {
+        this._subModalSource = 'lookup';
+        const lookupInput = document.getElementById('lookupSearchInput');
+        if (lookupInput && lookupInput.value) this._lookupLastQuery = lookupInput.value;
+      }
+
       const user = this.getCurrentUser();
       const existingReview = (window.store && typeof window.store.getReviewByBookingId === 'function')
         ? window.store.getReviewByBookingId(bookingId)
@@ -3896,11 +3988,10 @@
     },
 
     closeBookingReviewModal() {
-      const portalActive = document.querySelector('.customer-portal-shell');
-      if (portalActive || this.currentPortalTab) {
+      if (this._subModalSource === 'portal' || this._modalSource === 'portal') {
         this.openCustomerPortalModal('bookings');
       } else {
-        this.openLookupModal();
+        this.openLookupModal(this._lookupLastQuery || '', 'bookings');
       }
     },
 

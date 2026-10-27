@@ -197,7 +197,7 @@ const catIcons = {
 };
 
 const brandPrefixes = [
-  'Hanz de Fuko', 'Apestomen', 'Blumaan', 'Kevin Murphy', 'Reuzel',
+  'DoMedia', 'Hanz de Fuko', 'Apestomen', 'Blumaan', 'Kevin Murphy', 'Reuzel',
   'Olaplex', 'Davines', 'By Vilain', 'Uppercut Deluxe',
   'L’Oréal Professionnel', 'Schwarzkopf Professional', 'Morris Motley',
   'Slick Gorilla', 'Dapper Dan', 'Suavecito', 'Proraso', 'Kerasys Homme'
@@ -374,7 +374,7 @@ async function getFullSqlDatabase() {
                      nv.CapBac, nv.ChucVu, nv.TrangThai, cn.TenChiNhanh 
               FROM NhanVien nv 
               LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh 
-              WHERE nv.TrangThai = N'Đang làm việc' AND nv.ChucVu <> N'Thu ngân'`),
+              WHERE nv.TrangThai = N'Đang làm việc'`),
     querySql(`SELECT MaDanhMuc, TenDanhMuc, MoTa, TrangThai FROM DanhMucSanPham`),
     querySql(`SELECT MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi, TrangThai FROM NhaCungCap`),
     querySql(`SELECT sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
@@ -721,14 +721,15 @@ async function getFullSqlDatabase() {
       HoTen: r.HoTen,
       phone: r.SoDienThoai,
       email: r.Email,
-      level: r.CapBac || 'Master Barber',
-      title: `${r.CapBac || 'Master Barber'} • ${r.ChucVu || 'Thợ chính'}`,
+      level: (r.ChucVu || '').includes('Thu ngân') ? 'Chuyên viên thu ngân' : (r.CapBac || 'Master Barber'),
+      title: (r.ChucVu || '').includes('Thu ngân') ? 'Chuyên viên thu ngân • POS' : `${r.CapBac || 'Master Barber'} • ${r.ChucVu || 'Thợ chính'}`,
       role: r.ChucVu || 'Thợ chính',
+      ChucVu: r.ChucVu || 'Thợ chính',
       avatar: assignedAvatar,
       HinhAnh: assignedAvatar,
       rating: avgRating,
       reviewCount: stRev.length,
-      specialty: r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn',
+      specialty: (r.ChucVu || '').includes('Thu ngân') ? 'Thanh toán POS, in hóa đơn, tư vấn khuyến mãi' : (r.ChucVu?.includes('phụ') ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn'),
       isAvailable: r.TrangThai === 'Đang làm việc'
     };
   });
@@ -754,13 +755,20 @@ async function getFullSqlDatabase() {
 
   const refDate = new Date();
   const products = prodRows.map(r => {
-    let brand = 'Khác';
-    for (const b of brandPrefixes) {
-      if (r.TenSanPham.toLowerCase().startsWith(b.toLowerCase())) {
-        brand = b;
-        break;
+    let brand = '';
+    const brandMatch = (r.MoTa || '').match(/\[Thương hiệu:\s*([^\]]+)\]/i);
+    if (brandMatch) {
+      brand = brandMatch[1].trim();
+    } else {
+      for (const b of brandPrefixes) {
+        if (r.TenSanPham && r.TenSanPham.toLowerCase().startsWith(b.toLowerCase())) {
+          brand = b;
+          break;
+        }
       }
     }
+    if (!brand) brand = 'Khác';
+    const cleanDesc = (r.MoTa || '').replace(/\[Thương hiệu:\s*[^\]]+\]\s*/gi, '').trim();
 
     const price = parseFloat(r.GiaBan || 0);
     let discountPercent = 0;
@@ -842,8 +850,8 @@ async function getFullSqlDatabase() {
       GiaNhap: parseFloat(r.GiaNhap || 0),
       image: r.HinhAnh,
       HinhAnh: r.HinhAnh,
-      description: r.MoTa,
-      MoTa: r.MoTa,
+      description: cleanDesc,
+      MoTa: cleanDesc,
       rating: avgRating,
       reviewCount: pRev.length,
       stock: actualStock,
@@ -1684,35 +1692,70 @@ const server = http.createServer(async (req, res) => {
 
       if (pathname === '/api/stylists' && method === 'POST') {
         const st = parsedBody || {};
-        const maxNv = await querySql(`SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaNhanVien LIKE 'NV%' ORDER BY LEN(MaNhanVien) DESC, MaNhanVien DESC`);
-        let nextN = 81;
-        if (maxNv && maxNv[0]) {
-          const nm = maxNv[0].MaNhanVien.match(/NV(\d+)/i);
-          if (nm) nextN = parseInt(nm[1], 10) + 1;
+        const isEdit = Boolean(st.isEdit || st.isUpdate);
+
+        // 1. Quét toàn bộ mã NV hiện có trong CSDL để lấy max integer chính xác (NV80 -> NV81 -> NV82...)
+        const allNvs = await querySql(`SELECT MaNhanVien FROM NhanVien WHERE MaNhanVien LIKE 'NV%'`);
+        let maxNum = 80;
+        (allNvs || []).forEach(r => {
+          const nm = String(r.MaNhanVien || '').match(/^NV0*(\d+)$/i);
+          if (nm) {
+            const n = parseInt(nm[1], 10);
+            if (n > maxNum) maxNum = n;
+          }
+        });
+        const nextId = 'NV' + (maxNum + 1 < 10 ? '0' + (maxNum + 1) : (maxNum + 1));
+
+        let nvId = st.id || st.MaNhanVien;
+        const existing = nvId ? await querySql('SELECT MaNhanVien FROM NhanVien WHERE MaNhanVien = ?', [nvId]) : [];
+        const isDuplicate = existing && existing.length > 0;
+
+        // Nếu tạo mới, hoặc nvId bị trùng với nhân sự đã có trong SQL Server -> Bắt buộc dùng nextId chuẩn
+        if (!nvId || (isDuplicate && !isEdit)) {
+          nvId = nextId;
         }
-        const nvId = st.id || st.MaNhanVien || ('NV' + (nextN < 10 ? '0' + nextN : nextN));
+
         const branchId = st.branchId || st.MaChiNhanh || 'CN01';
-        const name = st.name || st.HoTen || 'Thợ Mới';
-        const phone = st.phone || st.SoDienThoai || '0912000000';
-        const email = st.email || `${nvId.toLowerCase()}@salontoc.vn`;
+        const name = (st.name || st.HoTen || 'Thợ Mới').trim();
+        const phone = (st.phone || st.SoDienThoai || '0912000000').trim();
+        const email = (st.email || `${nvId.toLowerCase()}@salontoc.vn`).trim();
         const role = st.role || st.ChucVu || 'Thợ chính';
         const level = st.level || st.CapBac || (role === 'Thợ phụ' ? 'Junior Barber' : 'Master Barber');
 
-        await querySql(
-          `INSERT INTO NhanVien (MaNhanVien, MaChiNhanh, HoTen, SoDienThoai, Email, CapBac, ChucVu, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?, N'Đang làm việc')`,
-          [nvId, branchId, name, phone, email, level, role]
-        );
+        if (isDuplicate && isEdit) {
+          await querySql(
+            `UPDATE NhanVien 
+             SET HoTen = ?, MaChiNhanh = ?, SoDienThoai = ?, Email = ?, CapBac = ?, ChucVu = ?, TrangThai = N'Đang làm việc'
+             WHERE MaNhanVien = ?`,
+            [name, branchId, phone, email, level, role, nvId]
+          );
+        } else {
+          await querySql(
+            `INSERT INTO NhanVien (MaNhanVien, MaChiNhanh, HoTen, SoDienThoai, Email, CapBac, ChucVu, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?, N'Đang làm việc')`,
+            [nvId, branchId, name, phone, email, level, role]
+          );
+        }
 
-        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.writeHead(isDuplicate && isEdit ? 200 : 201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
           success: true,
-          stylist: { id: nvId, MaNhanVien: nvId, branchId, name, level, role, phone, email }
+          id: nvId,
+          MaNhanVien: nvId,
+          stylist: { id: nvId, MaNhanVien: nvId, branchId, name, HoTen: name, level, role, phone, email }
         }));
       }
 
       if ((pathname.startsWith('/api/stylists/') || pathname.startsWith('/api/admin/staff/')) && method === 'PUT') {
         const id = pathname.replace('/api/stylists/', '').replace('/api/admin/staff/', '').trim();
         const st = parsedBody || {};
+        const name = (st.name || st.HoTen || '').trim() || null;
+        const branchId = st.branchId || st.MaChiNhanh || null;
+        const phone = (st.phone || st.SoDienThoai || '').trim() || null;
+        const email = (st.email || '').trim() || null;
+        const level = (st.level || st.CapBac || '').trim() || null;
+        const role = (st.role || st.ChucVu || '').trim() || null;
+        const status = (st.status || st.TrangThai || '').trim() || null;
+
         await querySql(
           `UPDATE NhanVien 
            SET HoTen = COALESCE(?, HoTen), 
@@ -1723,26 +1766,45 @@ const server = http.createServer(async (req, res) => {
                ChucVu = COALESCE(?, ChucVu),
                TrangThai = COALESCE(?, TrangThai) 
            WHERE MaNhanVien = ?`,
-          [
-            st.name || st.HoTen || null,
-            st.branchId || st.MaChiNhanh || null,
-            st.phone || st.SoDienThoai || null,
-            st.email || null,
-            st.level || st.CapBac || null,
-            st.role || st.ChucVu || null,
-            st.status || st.TrangThai || null,
-            id
-          ]
+          [name, branchId, phone, email, level, role, status, id]
         );
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, id }));
+        return res.end(JSON.stringify({ success: true, id, name }));
       }
 
       if (pathname.startsWith('/api/stylists/') && method === 'DELETE') {
         const id = pathname.replace('/api/stylists/', '').trim();
+
+        // 1. Tìm nhân viên thay thế trong cùng chi nhánh hoặc hệ thống để chuyển giao lịch hẹn & chứng từ
+        const sameBranchStaff = await querySql(
+          `SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaChiNhanh = (SELECT MaChiNhanh FROM NhanVien WHERE MaNhanVien = ?) AND MaNhanVien <> ? AND TrangThai = N'Đang làm việc'`,
+          [id, id]
+        );
+        let fallbackId = (sameBranchStaff && sameBranchStaff[0]) ? sameBranchStaff[0].MaNhanVien : null;
+        if (!fallbackId) {
+          const anyStaff = await querySql(`SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaNhanVien <> ? AND TrangThai = N'Đang làm việc'`, [id]);
+          fallbackId = (anyStaff && anyStaff[0]) ? anyStaff[0].MaNhanVien : null;
+        }
+
+        if (fallbackId) {
+          await querySql(`UPDATE LichHen SET MaNhanVien = ? WHERE MaNhanVien = ?`, [fallbackId, id]).catch(() => {});
+          await querySql(`UPDATE ThanhToan SET MaNhanVien = ? WHERE MaNhanVien = ?`, [fallbackId, id]).catch(() => {});
+          await querySql(`UPDATE PhieuNhapKho SET MaNhanVien = ? WHERE MaNhanVien = ?`, [fallbackId, id]).catch(() => {});
+          await querySql(`UPDATE PhieuNhapKho SET MaNguoiDuyet = ? WHERE MaNguoiDuyet = ?`, [fallbackId, id]).catch(() => {});
+        } else {
+          await querySql(`DELETE FROM ChiTietLichHen WHERE MaLichHen IN (SELECT MaLichHen FROM LichHen WHERE MaNhanVien = ?)`, [id]).catch(() => {});
+          await querySql(`DELETE FROM LichHen WHERE MaNhanVien = ?`, [id]).catch(() => {});
+        }
+
+        // 2. Xóa CaLamViec & TaiKhoan liên kết của nhân viên
+        await querySql(`DELETE FROM CaLamViec WHERE MaNhanVien = ?`, [id]).catch(() => {});
+        await querySql(`DELETE FROM TaiKhoan WHERE MaNhanVien = ?`, [id]).catch(() => {});
+
+        // 3. Xóa vĩnh viễn khỏi bảng NhanVien
         await querySql(`DELETE FROM NhanVien WHERE MaNhanVien = ?`, [id]);
+
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, message: 'Đã xóa nhân viên khỏi SQL Server', id }));
+        return res.end(JSON.stringify({ success: true, message: 'Đã xóa nhân viên và gỡ bỏ liên kết khỏi SQL Server', id }));
       }
 
       // --- 10. SERVICES / DỊCH VỤ ---
@@ -1826,13 +1888,30 @@ const server = http.createServer(async (req, res) => {
 
       if (pathname === '/api/services' && method === 'POST') {
         const srv = parsedBody || {};
-        const maxDv = await querySql(`SELECT TOP 1 MaDichVu FROM DichVu WHERE MaDichVu LIKE 'DV%' ORDER BY LEN(MaDichVu) DESC, MaDichVu DESC`);
-        let nextN = 11;
-        if (maxDv && maxDv[0]) {
-          const nm = maxDv[0].MaDichVu.match(/DV(\d+)/i);
-          if (nm) nextN = parseInt(nm[1], 10) + 1;
+        const allDvs = await querySql(`SELECT MaDichVu FROM DichVu WHERE MaDichVu LIKE 'DV%'`);
+        let maxN = 0;
+        (allDvs || []).forEach(r => {
+          const nm = String(r.MaDichVu || '').match(/^DV0*(\d+)$/i);
+          if (nm) {
+            const n = parseInt(nm[1], 10);
+            if (n > maxN) maxN = n;
+          }
+        });
+        const nextN = maxN + 1;
+        const generatedDvId = 'DV' + (nextN < 10 ? '0' + nextN : nextN);
+
+        let dvId = srv.id || srv.MaDichVu;
+        // Bắt buộc mã dịch vụ phải tuân thủ chuẩn DVxx
+        if (!dvId || !/^DV\d+$/i.test(dvId)) {
+          dvId = generatedDvId;
+        } else {
+          const numM = dvId.match(/^DV0*(\d+)$/i);
+          if (numM) {
+            const num = parseInt(numM[1], 10);
+            dvId = 'DV' + (num < 10 ? '0' + num : num);
+          }
         }
-        const dvId = srv.id || srv.MaDichVu || ('DV' + (nextN < 10 ? '0' + nextN : nextN));
+
         const name = srv.name || srv.TenDichVu || 'Dịch vụ mới';
         const desc = srv.description || srv.MoTa || 'Dịch vụ chuẩn Omni';
         const duration = parseInt(srv.duration || srv.ThoiLuong || 45, 10);
@@ -1887,10 +1966,28 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname.startsWith('/api/services/') && method === 'DELETE') {
-        const id = pathname.replace('/api/services/', '').trim();
-        await querySql(`DELETE FROM DichVu WHERE MaDichVu = ?`, [id]);
+        const rawId = pathname.replace('/api/services/', '').trim();
+        const idFormats = [rawId];
+        const numMatch = rawId.match(/^DV0*(\d+)$/i);
+        if (numMatch) {
+          const n = parseInt(numMatch[1], 10);
+          idFormats.push('DV' + n);
+          idFormats.push('DV' + (n < 10 ? '0' + n : n));
+        }
+        const uniqueIds = [...new Set(idFormats)];
+        for (const targetId of uniqueIds) {
+          try {
+            await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaDichVu = ?`, [targetId]);
+            await querySql(`DELETE FROM KhuyenMai_DichVu WHERE MaDichVu = ?`, [targetId]);
+            await querySql(`DELETE FROM ChiTietHoaDon_DichVu WHERE MaDichVu = ?`, [targetId]);
+            await querySql(`DELETE FROM ChiTietLichHen WHERE MaDichVu = ?`, [targetId]);
+            await querySql(`DELETE FROM DichVu WHERE MaDichVu = ?`, [targetId]);
+          } catch (delErr) {
+            console.error(`[SQL DELETE SERVICE WARNING]`, delErr.message);
+          }
+        }
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, message: 'Đã xóa dịch vụ khỏi SQL Server', id }));
+        return res.end(JSON.stringify({ success: true, message: 'Đã xóa dịch vụ và toàn bộ liên kết khỏi SQL Server', id: rawId }));
       }
 
       // --- 11. COMBOS / GÓI COMBO VIP & CHI TIẾT COMBO (ChiTietComboDichVu) ---
@@ -1942,14 +2039,35 @@ const server = http.createServer(async (req, res) => {
 
       if (pathname === '/api/combos' && method === 'POST') {
         const cb = parsedBody || {};
-        const maxCb = await querySql(`SELECT TOP 1 MaCombo FROM ComboDichVu WHERE MaCombo LIKE 'CB%' ORDER BY LEN(MaCombo) DESC, MaCombo DESC`);
-        let nextN = 5;
-        if (maxCb && maxCb[0]) {
-          const nm = maxCb[0].MaCombo.match(/CB(\d+)/i);
-          if (nm) nextN = parseInt(nm[1], 10) + 1;
+        const name = (cb.name || cb.TenCombo || '').trim();
+        if (!name) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ error: 'Tên gói combo không được để trống.' }));
         }
-        const cbId = cb.id || cb.MaCombo || ('CB' + (nextN < 10 ? '0' + nextN : nextN));
-        const name = cb.name || cb.TenCombo || 'Combo mới';
+
+        const allCbs = await querySql(`SELECT MaCombo FROM ComboDichVu WHERE MaCombo LIKE 'CB%'`);
+        let maxN = 0;
+        (allCbs || []).forEach(r => {
+          const nm = String(r.MaCombo || '').match(/^CB0*(\d+)$/i);
+          if (nm) {
+            const n = parseInt(nm[1], 10);
+            if (n > maxN) maxN = n;
+          }
+        });
+        const nextN = maxN + 1;
+        const generatedCbId = 'CB' + (nextN < 10 ? '0' + nextN : nextN);
+
+        let cbId = cb.id || cb.MaCombo;
+        if (!cbId || !/^CB\d+$/i.test(cbId)) {
+          cbId = generatedCbId;
+        } else {
+          const numM = cbId.match(/^CB0*(\d+)$/i);
+          if (numM) {
+            const num = parseInt(numM[1], 10);
+            cbId = 'CB' + (num < 10 ? '0' + num : num);
+          }
+        }
+
         const desc = cb.description || cb.MoTa || 'Combo dịch vụ cao cấp';
         const price = parseFloat(cb.price || cb.GiaCombo || 300000);
         const duration = parseInt(cb.duration || cb.ThoiLuong || 90, 10);
@@ -1974,7 +2092,7 @@ const server = http.createServer(async (req, res) => {
         }
 
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, combo: { id: cbId, name, price, duration, description: desc, image: img, HinhAnh: img } }));
+        return res.end(JSON.stringify({ success: true, id: cbId, MaCombo: cbId, combo: { id: cbId, MaCombo: cbId, name, TenCombo: name, price, GiaCombo: price, duration, ThoiLuong: duration, description: desc, MoTa: desc, image: img, HinhAnh: img } }));
       }
 
       if (pathname.startsWith('/api/combos/') && method === 'PUT') {
@@ -2007,12 +2125,26 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname.startsWith('/api/combos/') && method === 'DELETE') {
-        const id = pathname.replace('/api/combos/', '').trim();
-        // Xóa chi tiết combo trước để đảm bảo toàn vẹn khóa ngoại
-        await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?`, [id]);
-        await querySql(`DELETE FROM ComboDichVu WHERE MaCombo = ?`, [id]);
+        const rawId = pathname.replace('/api/combos/', '').trim();
+        const idFormats = [rawId];
+        const numMatch = rawId.match(/^CB0*(\d+)$/i);
+        if (numMatch) {
+          const n = parseInt(numMatch[1], 10);
+          idFormats.push('CB' + n, 'CB' + (n < 10 ? '0' + n : n));
+        }
+        const uniqueIds = [...new Set(idFormats)];
+        for (const targetId of uniqueIds) {
+          try {
+            await querySql(`DELETE FROM ChiTietHoaDon_DichVu WHERE MaCombo = ?`, [targetId]);
+            await querySql(`DELETE FROM ChiTietLichHen WHERE MaCombo = ?`, [targetId]);
+            await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?`, [targetId]);
+            await querySql(`DELETE FROM ComboDichVu WHERE MaCombo = ?`, [targetId]);
+          } catch (delErr) {
+            console.error(`[SQL DELETE COMBO WARNING]`, delErr.message);
+          }
+        }
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, message: 'Đã xóa combo và toàn bộ chi tiết dịch vụ khỏi SQL Server', id }));
+        return res.end(JSON.stringify({ success: true, message: 'Đã xóa combo và toàn bộ chi tiết liên kết khỏi SQL Server', id: rawId }));
       }
 
       // --- 11.1 SHIFTS / CA LÀM VIỆC ---
@@ -2140,13 +2272,20 @@ const server = http.createServer(async (req, res) => {
         ]);
         const refDate = new Date();
         const products = rows.map(r => {
-          let brand = 'Khác';
-          for (const b of brandPrefixes) {
-            if (r.TenSanPham.toLowerCase().startsWith(b.toLowerCase())) {
-              brand = b;
-              break;
+          let brand = '';
+          const brandMatch = (r.MoTa || '').match(/\[Thương hiệu:\s*([^\]]+)\]/i);
+          if (brandMatch) {
+            brand = brandMatch[1].trim();
+          } else {
+            for (const b of brandPrefixes) {
+              if (r.TenSanPham && r.TenSanPham.toLowerCase().startsWith(b.toLowerCase())) {
+                brand = b;
+                break;
+              }
             }
           }
+          if (!brand) brand = 'Khác';
+          const cleanDesc = (r.MoTa || '').replace(/\[Thương hiệu:\s*[^\]]+\]\s*/gi, '').trim();
           const price = parseFloat(r.GiaBan || 0);
           let discountPercent = 0;
           let isFlashSale = false;
@@ -2221,7 +2360,8 @@ const server = http.createServer(async (req, res) => {
             GiaNhap: parseFloat(r.GiaNhap || 0),
             image: r.HinhAnh || '',
             HinhAnh: r.HinhAnh || '',
-            description: r.MoTa,
+            description: cleanDesc,
+            MoTa: cleanDesc,
             stock: actualStock,
             SoLuongTon: actualStock,
             isFlashSale,
@@ -2248,7 +2388,12 @@ const server = http.createServer(async (req, res) => {
         const catId = prod.categoryId || prod.MaDanhMuc || 'DM01';
         const nccId = prod.supplierId || prod.MaNhaCungCap || 'NCC01';
         const name = prod.name || prod.TenSanPham || 'Sản phẩm mới';
-        const desc = prod.description || prod.MoTa || 'Sản phẩm chăm sóc tóc';
+        const brand = (prod.brand || '').trim();
+        let rawDesc = prod.description || prod.MoTa || 'Sản phẩm chăm sóc tóc';
+        let desc = rawDesc;
+        if (brand && !desc.includes('[Thương hiệu:')) {
+          desc = `[Thương hiệu: ${brand}] ${desc}`;
+        }
         const img = prod.image || prod.HinhAnh || '';
         const price = parseFloat(prod.price || prod.GiaBan || 250000);
         const cost = parseFloat(prod.costPrice || prod.GiaNhap || Math.round(price * 0.7));
@@ -2258,10 +2403,20 @@ const server = http.createServer(async (req, res) => {
           [spId, catId, nccId, name, desc, img, cost, price]
         );
 
+        const stock = parseInt(prod.stock !== undefined ? prod.stock : 25, 10);
+        const targetBranch = prod.branchId || prod.MaChiNhanh || 'CN01';
+        await querySql(
+          `IF EXISTS (SELECT 1 FROM TonKho WHERE MaSanPham = ? AND MaChiNhanh = ?)
+             UPDATE TonKho SET SoLuongTon = ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?
+           ELSE
+             INSERT INTO TonKho (MaSanPham, MaChiNhanh, SoLuongTon, MucCanhBao, NgayCapNhat) VALUES (?, ?, ?, 5, GETDATE())`,
+          [spId, targetBranch, stock, spId, targetBranch, spId, targetBranch, stock]
+        ).catch(() => {});
+
         res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({
           success: true,
-          product: { id: spId, MaSanPham: spId, name, TenSanPham: name, price, originalPrice: price, costPrice: cost, GiaNhap: cost, image: img, HinhAnh: img, description: desc }
+          product: { id: spId, MaSanPham: spId, name, TenSanPham: name, brand: brand || 'CHÍNH HÃNG', price, originalPrice: price, costPrice: cost, GiaNhap: cost, image: img, HinhAnh: img, description: rawDesc, stock }
         }));
       }
 
@@ -2269,14 +2424,19 @@ const server = http.createServer(async (req, res) => {
         const id = pathname.replace('/api/products/', '').trim();
         const prod = parsedBody || {};
         const name = prod.name || prod.TenSanPham;
+        const brand = (prod.brand || '').trim();
         const price = parseFloat(prod.price || prod.GiaBan || 0);
         const costPrice = parseFloat(prod.costPrice || prod.GiaNhap || (price > 0 ? Math.round(price * 0.7) : 0));
-        const desc = prod.description || prod.MoTa || '';
+        let rawDesc = prod.description !== undefined ? prod.description : prod.MoTa;
+        let desc = rawDesc;
+        if (brand && desc !== undefined && !desc.includes('[Thương hiệu:')) {
+          desc = `[Thương hiệu: ${brand}] ${desc}`;
+        }
         const img = prod.image !== undefined ? prod.image : prod.HinhAnh;
 
         await querySql(
           `UPDATE SanPham SET TenSanPham = COALESCE(?, TenSanPham), GiaBan = CASE WHEN ? > 0 THEN ? ELSE GiaBan END, GiaNhap = CASE WHEN ? > 0 THEN ? ELSE GiaNhap END, MoTa = COALESCE(?, MoTa), HinhAnh = COALESCE(?, HinhAnh) WHERE MaSanPham = ?`,
-          [name || null, price, price, costPrice, costPrice, desc || null, img !== undefined ? img : null, id]
+          [name || null, price, price, costPrice, costPrice, desc !== undefined ? desc : null, img !== undefined ? img : null, id]
         );
 
         if (prod.stock !== undefined || prod.SoLuongTon !== undefined) {
@@ -2292,11 +2452,18 @@ const server = http.createServer(async (req, res) => {
         }
 
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ success: true, message: 'Đã cập nhật sản phẩm thành công', id, costPrice, price }));
+        return res.end(JSON.stringify({ success: true, message: 'Đã cập nhật sản phẩm thành công', id, costPrice, price, brand }));
       }
 
       if (pathname.startsWith('/api/products/') && method === 'DELETE') {
         const id = pathname.replace('/api/products/', '').trim();
+        // 1. Giải phóng ràng buộc khóa ngoại trên 5 bảng liên kết
+        await querySql(`DELETE FROM KhuyenMai_SanPham WHERE MaSanPham = ?`, [id]).catch(() => {});
+        await querySql(`DELETE FROM TonKho WHERE MaSanPham = ?`, [id]).catch(() => {});
+        await querySql(`DELETE FROM ChiTietHoaDon_SanPham WHERE MaSanPham = ?`, [id]).catch(() => {});
+        await querySql(`DELETE FROM ChiTietDonHang WHERE MaSanPham = ?`, [id]).catch(() => {});
+        await querySql(`DELETE FROM ChiTietPhieuNhap WHERE MaSanPham = ?`, [id]).catch(() => {});
+        // 2. Xóa vĩnh viễn sản phẩm khỏi CSDL SQL Server
         await querySql(`DELETE FROM SanPham WHERE MaSanPham = ?`, [id]);
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, message: 'Đã xóa sản phẩm khỏi SQL Server', id }));
@@ -2332,6 +2499,181 @@ const server = http.createServer(async (req, res) => {
         );
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ success: true, productId: prodId, newStock: stock }));
+      }
+
+      // --- 13.1 RECEIPTS / PHIẾU NHẬP KHO (QL_SALONTOC) ---
+      if (pathname === '/api/inventory/receipts' && method === 'GET') {
+        const branchParam = parsedUrl.searchParams.get('branch_id');
+        let q = `SELECT pnk.MaPhieuNhap, pnk.MaChiNhanh, pnk.MaNhanVien, pnk.MaNguoiDuyet, pnk.MaNhaCungCap, 
+                        CONVERT(VARCHAR(19), pnk.NgayLap, 120) AS NgayLap, 
+                        CONVERT(VARCHAR(19), pnk.NgayDuyet, 120) AS NgayDuyet, 
+                        pnk.TongTien, pnk.TrangThai, pnk.LyDoTuChoi, 
+                        cn.TenChiNhanh, ncc.TenNhaCungCap, 
+                        nv1.HoTen AS TenNguoiLap, nv2.HoTen AS TenNguoiDuyet,
+                        (SELECT COUNT(*) FROM ChiTietPhieuNhap WHERE MaPhieuNhap = pnk.MaPhieuNhap) AS SoLuongMatHang 
+                 FROM PhieuNhapKho pnk 
+                 LEFT JOIN ChiNhanh cn ON pnk.MaChiNhanh = cn.MaChiNhanh 
+                 LEFT JOIN NhaCungCap ncc ON pnk.MaNhaCungCap = ncc.MaNhaCungCap 
+                 LEFT JOIN NhanVien nv1 ON pnk.MaNhanVien = nv1.MaNhanVien 
+                 LEFT JOIN NhanVien nv2 ON pnk.MaNguoiDuyet = nv2.MaNhanVien`;
+        const params = [];
+        if (branchParam && branchParam !== 'all') {
+          q += ` WHERE pnk.MaChiNhanh = ?`;
+          params.push(branchParam);
+        }
+        q += ` ORDER BY pnk.NgayLap DESC`;
+        const rows = await querySql(q, params);
+        const receipts = rows.map(r => ({
+          id: r.MaPhieuNhap,
+          MaPhieuNhap: r.MaPhieuNhap,
+          branchId: r.MaChiNhanh,
+          MaChiNhanh: r.MaChiNhanh,
+          branchName: r.TenChiNhanh || `Chi Nhánh ${r.MaChiNhanh}`,
+          supplierId: r.MaNhaCungCap,
+          MaNhaCungCap: r.MaNhaCungCap,
+          supplierName: r.TenNhaCungCap || 'Nhà Cung Cấp',
+          staffId: r.MaNhanVien,
+          MaNhanVien: r.MaNhanVien,
+          staffName: r.TenNguoiLap || 'Quản lý kho',
+          approverId: r.MaNguoiDuyet,
+          MaNguoiDuyet: r.MaNguoiDuyet,
+          approverName: r.TenNguoiDuyet || null,
+          createdDate: r.NgayLap,
+          NgayLap: r.NgayLap,
+          approvedDate: r.NgayDuyet,
+          NgayDuyet: r.NgayDuyet,
+          total: parseFloat(r.TongTien || 0),
+          TongTien: parseFloat(r.TongTien || 0),
+          status: r.TrangThai || 'Đã duyệt',
+          TrangThai: r.TrangThai || 'Đã duyệt',
+          rejectReason: r.LyDoTuChoi || null,
+          LyDoTuChoi: r.LyDoTuChoi || null,
+          itemCount: r.SoLuongMatHang || 0
+        }));
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(receipts));
+      }
+
+      if (pathname.startsWith('/api/inventory/receipts/') && method === 'GET') {
+        const receiptId = pathname.replace('/api/inventory/receipts/', '').trim();
+        const pnkRows = await querySql(
+          `SELECT pnk.*, cn.TenChiNhanh, ncc.TenNhaCungCap, nv1.HoTen AS TenNguoiLap, nv2.HoTen AS TenNguoiDuyet
+           FROM PhieuNhapKho pnk
+           LEFT JOIN ChiNhanh cn ON pnk.MaChiNhanh = cn.MaChiNhanh
+           LEFT JOIN NhaCungCap ncc ON pnk.MaNhaCungCap = ncc.MaNhaCungCap
+           LEFT JOIN NhanVien nv1 ON pnk.MaNhanVien = nv1.MaNhanVien
+           LEFT JOIN NhanVien nv2 ON pnk.MaNguoiDuyet = nv2.MaNhanVien
+           WHERE pnk.MaPhieuNhap = ?`,
+          [receiptId]
+        );
+        if (pnkRows.length === 0) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ error: 'Không tìm thấy phiếu nhập' }));
+        }
+        const r = pnkRows[0];
+        const itemRows = await querySql(
+          `SELECT ct.*, sp.TenSanPham, sp.HinhAnh, sp.GiaBan
+           FROM ChiTietPhieuNhap ct
+           JOIN SanPham sp ON ct.MaSanPham = sp.MaSanPham
+           WHERE ct.MaPhieuNhap = ?`,
+          [receiptId]
+        );
+        const receiptDetail = {
+          id: r.MaPhieuNhap,
+          MaPhieuNhap: r.MaPhieuNhap,
+          branchId: r.MaChiNhanh,
+          branchName: r.TenChiNhanh,
+          supplierId: r.MaNhaCungCap,
+          supplierName: r.TenNhaCungCap,
+          staffId: r.MaNhanVien,
+          staffName: r.TenNguoiLap,
+          approverName: r.TenNguoiDuyet,
+          createdDate: r.NgayLap,
+          approvedDate: r.NgayDuyet,
+          total: parseFloat(r.TongTien || 0),
+          status: r.TrangThai,
+          items: itemRows.map(it => ({
+            id: it.MaChiTietPhieuNhap,
+            productId: it.MaSanPham,
+            productName: it.TenSanPham,
+            lotNumber: it.SoLo,
+            expiryDate: it.HanSuDung ? new Date(it.HanSuDung).toISOString().split('T')[0] : null,
+            quantity: it.SoLuong,
+            remainingQuantity: it.SoLuongConLai,
+            costPrice: parseFloat(it.DonGiaNhap || 0),
+            total: parseFloat(it.ThanhTien || 0),
+            image: it.HinhAnh
+          }))
+        };
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify(receiptDetail));
+      }
+
+      if (pathname === '/api/inventory/receipts' && method === 'POST') {
+        const { branchId, supplierId, staffId, items, total, status } = parsedBody || {};
+        const bId = branchId || 'CN01';
+        const sId = supplierId || 'NCC01';
+        const stId = staffId || 'NV01';
+        const stt = status || 'Đã duyệt';
+        const tot = parseFloat(total || 0);
+
+        const countRows = await querySql(`SELECT MaPhieuNhap FROM PhieuNhapKho`);
+        let maxNum = 0;
+        countRows.forEach(row => {
+          const m = (row.MaPhieuNhap || '').match(/^PN0*(\d+)$/i);
+          if (m) {
+            const n = parseInt(m[1], 10);
+            if (n > maxNum) maxNum = n;
+          }
+        });
+        const nextPnId = `PN${String(maxNum + 1).padStart(2, '0')}`;
+
+        await querySql(
+          `INSERT INTO PhieuNhapKho (MaPhieuNhap, MaChiNhanh, MaNhanVien, MaNguoiDuyet, MaNhaCungCap, NgayLap, NgayDuyet, TongTien, TrangThai)
+           VALUES (?, ?, ?, ?, ?, GETDATE(), GETDATE(), ?, ?)`,
+          [nextPnId, bId, stId, stId, sId, tot, stt]
+        );
+
+        if (Array.isArray(items) && items.length > 0) {
+          const detailCountRows = await querySql(`SELECT MaChiTietPhieuNhap FROM ChiTietPhieuNhap`);
+          let maxCtNum = 0;
+          detailCountRows.forEach(row => {
+            const m = (row.MaChiTietPhieuNhap || '').match(/^CTPN0*(\d+)$/i);
+            if (m) {
+              const n = parseInt(m[1], 10);
+              if (n > maxCtNum) maxCtNum = n;
+            }
+          });
+
+          for (let i = 0; i < items.length; i++) {
+            const it = items[i];
+            maxCtNum++;
+            const ctpnId = `CTPN${String(maxCtNum).padStart(2, '0')}`;
+            const pId = it.productId || it.id || 'SP01';
+            const qty = parseInt(it.quantity || it.qty || 10, 10);
+            const cost = parseFloat(it.costPrice || it.price || 100000);
+            const lineTotal = cost * qty;
+            const lotNum = it.lotNumber || `LOT-${nextPnId}-${i + 1}`;
+            const expDate = it.expiryDate || new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().split('T')[0];
+
+            await querySql(
+              `INSERT INTO ChiTietPhieuNhap (MaChiTietPhieuNhap, MaPhieuNhap, MaSanPham, SoLo, HanSuDung, SoLuong, SoLuongConLai, DonGiaNhap, ThanhTien)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [ctpnId, nextPnId, pId, lotNum, expDate, qty, qty, cost, lineTotal]
+            );
+
+            await querySql(
+              `IF EXISTS (SELECT 1 FROM TonKho WHERE MaSanPham = ? AND MaChiNhanh = ?)
+                 UPDATE TonKho SET SoLuongTon = SoLuongTon + ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?
+               ELSE
+                 INSERT INTO TonKho (MaSanPham, MaChiNhanh, SoLuongTon, MucCanhBao, NgayCapNhat) VALUES (?, ?, ?, 5, GETDATE())`,
+              [pId, bId, qty, pId, bId, pId, bId, qty]
+            );
+          }
+        }
+
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: true, id: nextPnId, MaPhieuNhap: nextPnId, total: tot }));
       }
 
       // --- 14. CATEGORIES ---

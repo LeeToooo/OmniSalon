@@ -446,7 +446,9 @@
       const bookings = (window.store && typeof window.store.getBookings === 'function') ? window.store.getBookings() : [];
       const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
       const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
-      const stylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
+      const stylists = (window.store && typeof window.store.getAllStaff === 'function')
+        ? window.store.getAllStaff()
+        : ((window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists(null, true) : []);
       const auditLogs = (window.store && typeof window.store.getAuditLogs === 'function') ? window.store.getAuditLogs() : [];
       const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
       const combos = (window.store && typeof window.store.getCombos === 'function') ? window.store.getCombos() : [];
@@ -468,6 +470,7 @@
         stylists: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
         catalog: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
         inventory: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+        receipts: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
         audit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`
       };
 
@@ -496,6 +499,7 @@
           { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu Chi Nhánh' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
+          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           // 2. Quyền của Thu Ngân (kèm theo cho Quản Lý):
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
@@ -505,14 +509,14 @@
         tabGroups = [
           {
             groupLabel: 'CHỨC NĂNG QUẢN LÝ CHI NHÁNH',
-            ids: ['overview', 'stylists', 'inventory', 'catalog']
+            ids: ['overview', 'stylists', 'inventory', 'receipts', 'catalog']
           },
           {
             groupLabel: 'QUYỀN THU NGÂN',
             ids: ['pos', 'bookings', 'audit']
           }
         ];
-        if (!['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
+        if (!['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
           this.adminSubTab = 'overview';
         }
       } else {
@@ -524,6 +528,7 @@
           // 2. Quyền Quản lý vận hành dịch vụ & kho:
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
+          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           // 3. Quyền Thu ngân & Tiếp nhận:
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
@@ -537,7 +542,7 @@
           },
           {
             groupLabel: 'QUẢN LÝ VẬN HÀNH & KHO',
-            ids: ['stylists', 'inventory', 'catalog']
+            ids: ['stylists', 'inventory', 'receipts', 'catalog']
           },
           {
             groupLabel: 'QUYỀN THU NGÂN & TIẾP NHẬN',
@@ -736,6 +741,20 @@
       `;
     },
 
+    goToReceptionCheckin(stylistId = null) {
+      this.switchSubTab('bookings');
+      if (stylistId) {
+        setTimeout(() => {
+          const el = document.getElementById(`workstation-card-${stylistId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.style.boxShadow = '0 0 0 3px #C59B27';
+            setTimeout(() => { el.style.boxShadow = ''; }, 2000);
+          }
+        }, 150);
+      }
+    },
+
     switchSubTab(tabName) {
       this.closeSidebar();
       const user = this.getCurrentUser();
@@ -744,11 +763,14 @@
         if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Tiếp nhận lịch hẹn và Lịch sử đơn!', 'warning');
         return;
       }
-      if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(tabName)) {
-        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Báo cáo, Thợ, Kho, Giá dịch vụ và toàn quyền Thu ngân!', 'warning');
+      if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'audit'].includes(tabName)) {
+        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Báo cáo, Thợ, Kho, Phiếu nhập, Giá dịch vụ và toàn quyền Thu ngân!', 'warning');
         return;
       }
       this.adminSubTab = tabName;
+      if (tabName === 'receipts') {
+        this.inventorySubTab = 'receipts';
+      }
       const container = document.getElementById('webMainContainer');
       if (container) this.render(container);
     },
@@ -759,7 +781,7 @@
 
       if (activeRole === 'CASHIER' && !['pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
         this.adminSubTab = 'pos';
-      } else if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
+      } else if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
         this.adminSubTab = 'overview';
       }
 
@@ -775,6 +797,9 @@
         case 'catalog':
           return this.renderCatalogTab(services, combos, products);
         case 'inventory':
+          return this.renderInventoryTab(user, branches, bMap);
+        case 'receipts':
+          this.inventorySubTab = 'receipts';
           return this.renderInventoryTab(user, branches, bMap);
         case 'pos':
           return this.renderPosTab(user, services, combos, products, branches, stylists, bMap);
@@ -842,8 +867,9 @@
         `;
       }).join('');
 
-      // Khử N+1: Eager loading map cho Barber Rankings
-      let scopedStylists = branchId ? stylists.filter(s => s.branchId === branchId || s.MaChiNhanh === branchId) : stylists;
+      // Khử N+1: Eager loading map cho Barber Rankings (chỉ xếp hạng thợ cắt tóc)
+      let scopedStylists = (branchId ? stylists.filter(s => s.branchId === branchId || s.MaChiNhanh === branchId) : stylists)
+        .filter(s => !(s.role || s.ChucVu || '').toLowerCase().includes('thu ngân'));
       if (scopedStylists.length === 0) {
         scopedStylists = stylists.slice(0, 5);
       }
@@ -864,10 +890,14 @@
       const inProgressCount = analytics.inProgressCount;
       const productSalesTotal = analytics.productRevenue;
 
-      // Thống kê kho hàng thực tế phục vụ báo cáo Doanh Thu & Kho
+      // Thống kê kho hàng & phiếu nhập thực tế phục vụ báo cáo Doanh Thu & Kho
       const inventoryList = (window.store && typeof window.store.getBranchInventory === 'function') 
         ? window.store.getBranchInventory(branchId || 'all') 
         : [];
+      const branchReceipts = (window.store && typeof window.store.getReceipts === 'function')
+        ? window.store.getReceipts(branchId)
+        : [];
+      const branchReceiptsTotal = branchReceipts.reduce((sum, r) => sum + Number(r.total || r.TongTien || 0), 0);
       const lowStockCount = inventoryList.filter(p => (Number(p.stock || p.SoLuongTon || 0) <= 5)).length;
       const totalStockUnits = inventoryList.reduce((acc, p) => acc + Number(p.stock || p.SoLuongTon || 0), 0);
       const totalInventoryCost = inventoryList.reduce((acc, p) => acc + (Number(p.stock || p.SoLuongTon || 0) * Number(p.costPrice || p.GiaNhap || p.price || 0)), 0);
@@ -930,14 +960,14 @@
             </div>
           </div>
 
-          <div class="admin-kpi-card-rich" style="border-top: 4px solid #ec4899; background: linear-gradient(145deg, rgba(236, 72, 153, 0.12) 0%, var(--surface-card, #14171F) 100%); border-radius: 14px;">
+          <div class="admin-kpi-card-rich" style="border-top: 4px solid #ec4899; background: linear-gradient(145deg, rgba(236, 72, 153, 0.12) 0%, var(--surface-card, #14171F) 100%); border-radius: 14px; cursor: pointer;" onclick="AdminWeb.switchSubTab('receipts');" title="Nhấn để xem danh sách Phiếu Nhập Kho">
             <div class="kpi-top-row">
-              <span class="kpi-label-text" style="color: #ec4899; font-weight: 800;">Doanh Số Sản Phẩm</span>
-              <span class="kpi-growth-tag kpi-growth-positive" style="background: rgba(236, 72, 153, 0.18); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.35);">✓ Bán Lẻ & POS</span>
+              <span class="kpi-label-text" style="color: #ec4899; font-weight: 800;">Doanh Số & Phiếu Nhập</span>
+              <span class="kpi-growth-tag kpi-growth-positive" style="background: rgba(236, 72, 153, 0.18); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.35);">✓ ${branchReceipts.length} Phiếu Nhập →</span>
             </div>
-            <div class="kpi-big-value" style="color: #f472b6;">${SalonUtils.formatCurrency(productSalesTotal)}</div>
+            <div class="kpi-big-value" style="color: #f472b6;">${SalonUtils.formatCurrency(branchReceiptsTotal > 0 ? branchReceiptsTotal : productSalesTotal)}</div>
             <div class="kpi-sub-detail">
-              <span>${analytics.totalOrders || 0} đơn hàng bán lẻ & quầy</span>
+              <span>${branchReceiptsTotal > 0 ? `Nhập kho: ${SalonUtils.formatCurrency(branchReceiptsTotal)}` : `Bán lẻ: ${SalonUtils.formatCurrency(productSalesTotal)}`} • Quản lý phiếu nhập →</span>
             </div>
           </div>
         </div>
@@ -947,8 +977,11 @@
           <div class="admin-inventory-status-info">
             <span class="inv-status-label">Tình Trạng Kho Hàng:</span>
             <span class="inv-status-stat">Mặt hàng: <strong>${inventoryList.length}</strong></span>
-            <span class="inv-status-stat">Tổng tồn kho: <strong>${totalStockUnits}</strong> món</span>
-            <span class="inv-status-stat">Vốn tồn kho (giá nhập): <strong>${SalonUtils.formatCurrency(totalInventoryCost)}</strong></span>
+            <span class="inv-status-stat">Phiếu nhập kho: <strong>${branchReceipts.length}</strong> (<a href="javascript:void(0)" onclick="AdminWeb.switchSubTab('receipts')" style="color: #f59e0b; text-decoration: underline; font-weight: 700;">Xem chi tiết</a>)</span>
+            ${this.isSuperAdmin(user) ? `
+              <span class="inv-status-stat">Tổng tồn kho: <strong>${totalStockUnits}</strong> món</span>
+              <span class="inv-status-stat">Vốn tồn kho (giá nhập): <strong>${SalonUtils.formatCurrency(totalInventoryCost)}</strong></span>
+            ` : ''}
             ${lowStockCount > 0 
               ? `<span class="inv-status-badge inv-status-warning">${lowStockCount} mặt hàng sắp hết</span>` 
               : '<span class="inv-status-badge inv-status-ok">Kho hàng ổn định</span>'}
@@ -1414,8 +1447,9 @@
         : (this.dispatchBranchFilter !== 'all'
             ? stylists.filter(s => s.branchId === this.dispatchBranchFilter || s.MaChiNhanh === this.dispatchBranchFilter)
             : (this.filterBranch !== 'all' ? stylists.filter(s => s.branchId === this.filterBranch || s.MaChiNhanh === this.filterBranch) : stylists));
+      scopedStylists = scopedStylists.filter(s => !(s.role || s.ChucVu || '').toLowerCase().includes('thu ngân'));
       if (scopedStylists.length === 0) {
-        scopedStylists = stylists.slice(0, 6);
+        scopedStylists = stylists.filter(s => !(s.role || s.ChucVu || '').toLowerCase().includes('thu ngân')).slice(0, 6);
       }
 
       this.dispatchPage = this.dispatchPage || 1;
@@ -2240,6 +2274,7 @@
           if (this.filterStylistRole === 'Thợ chính') return r.includes('chính');
           if (this.filterStylistRole === 'Thợ phụ') return r.includes('phụ');
           if (this.filterStylistRole === 'Quản lý chi nhánh') return r.includes('quản lý');
+          if (this.filterStylistRole === 'Thu ngân') return r.includes('thu ngân') || r === 'cashier';
           return true;
         });
       }
@@ -2269,22 +2304,23 @@
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
-              <label style="font-size: 13px; font-weight: 700; color: var(--text-primary);">Phân loại thợ:</label>
+              <label style="font-size: 13px; font-weight: 700; color: var(--text-primary);">Phân loại nhân viên:</label>
               <select class="admin-select-filter" onchange="AdminWeb.filterStylistRole = this.value; AdminWeb.stylistsPage = 1; AdminWeb.refreshSubTab();">
                 <option value="all" ${(!this.filterStylistRole || this.filterStylistRole === 'all') ? 'selected' : ''}>Tất cả vai trò</option>
                 <option value="Thợ chính" ${this.filterStylistRole === 'Thợ chính' ? 'selected' : ''}>Thợ chính</option>
                 <option value="Thợ phụ" ${this.filterStylistRole === 'Thợ phụ' ? 'selected' : ''}>Thợ phụ</option>
                 <option value="Quản lý chi nhánh" ${this.filterStylistRole === 'Quản lý chi nhánh' ? 'selected' : ''}>Quản lý</option>
+                <option value="Thu ngân" ${this.filterStylistRole === 'Thu ngân' ? 'selected' : ''}>Thu ngân</option>
               </select>
             </div>
           </div>
 
           <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
             <div style="font-size: 12px; color: var(--text-secondary);">
-              Chính sách hoa hồng: <strong style="color: var(--brand-accent);">15% Doanh thu ca cắt hoàn tất</strong>
+              Chính sách hoa hồng thợ: <strong style="color: var(--brand-accent);">15% Doanh thu ca cắt hoàn tất</strong>
             </div>
             <button class="btn-submit-terracotta" style="padding: 9px 18px; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);" onclick="AdminWeb.openAddStylistModal()">
-              <span>+ Thêm Thợ Mới</span>
+              <span>+ Thêm Nhân Viên Mới</span>
             </button>
           </div>
         </div>
@@ -2295,65 +2331,93 @@
             const comm = stylistStatsMap.get(st.id) || { completedCutsCount: 0, totalCutValue: 0, commissionAmount: 0, todayQueue: [] };
             const isAssis = (st.role || '').toLowerCase().includes('phụ');
             const isLead = (st.role || '').toLowerCase().includes('chính');
+            const isCashier = (st.role || st.ChucVu || '').toLowerCase().includes('thu ngân') || (st.role || '').toUpperCase() === 'CASHIER';
 
             return `
               <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                   <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 14px;">
                     <img src="${st.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80'}" 
-                         style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid ${isAssis ? '#0ea5e9' : '#c85a44'};" alt="${this.escapeHtml(st.name)}">
+                         style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid ${isCashier ? '#10b981' : isAssis ? '#0ea5e9' : '#c85a44'};" alt="${this.escapeHtml(st.name)}">
                     <div style="flex: 1; min-width: 0;">
                       <div style="display: flex; justify-content: space-between; align-items: baseline;">
                         <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${this.escapeHtml(st.name)}">${this.escapeHtml(st.name)}</h4>
                         <span style="font-size: 12px; font-weight: 800; color: #f59e0b; flex-shrink: 0; margin-left: 6px;">${st.rating ? Number(st.rating).toFixed(1) : '5.0'}</span>
                       </div>
                       <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                        ${isAssis ? `
+                        ${isCashier ? `
+                          <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 800;">Thu ngân</span>
+                        ` : isAssis ? `
                           <span style="background: rgba(14, 165, 233, 0.15); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.35); padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 800;">Thợ phụ</span>
                         ` : isLead ? `
                           <span style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 800;">Thợ chính</span>
                         ` : `
                           <span style="background: rgba(168, 85, 247, 0.15); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 800;">Quản lý</span>
                         `}
-                        <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${this.escapeHtml(st.level || 'Master Barber')}</span>
+                        <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${this.escapeHtml(isCashier ? 'Chuyên viên thu ngân • POS' : (st.level || 'Master Barber'))}</span>
                       </div>
                       <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Cơ sở: ${this.escapeHtml(brName)}</div>
                     </div>
                   </div>
 
-                  <!-- Thống kê hoa hồng 15% & Ca hoàn thành (O(1) Map Lookup) -->
-                  <div style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                      <span style="color: var(--text-secondary);">Ca đã hoàn tất:</span>
-                      <strong style="color: var(--text-primary);">${comm.completedCutsCount} lượt</strong>
+                  <!-- Thống kê hoa hồng 15% & Ca hoàn thành (Hoặc chế độ Thu ngân làm theo giờ) -->
+                  ${isCashier ? `
+                    <div style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
+                      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                        <span style="color: var(--text-secondary);">Hình thức làm việc:</span>
+                        <strong style="color: var(--text-primary);">Làm theo giờ hành chính / ca</strong>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                        <span style="color: var(--text-secondary);">Chính sách hoa hồng cắt:</span>
+                        <span style="color: var(--text-secondary); font-style: italic;">Không áp dụng (Lương theo giờ)</span>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 6px; margin-top: 6px;">
+                        <span style="font-weight: 700; color: #10b981;">Vị trí phân công:</span>
+                        <strong style="color: #10b981; font-size: 13px;">Quầy Thu Ngân & Máy POS</strong>
+                      </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                      <span style="color: var(--text-secondary);">Doanh thu cắt tạo ra:</span>
-                      <strong style="color: var(--text-primary);">${SalonUtils.formatCurrency(comm.totalCutValue)}</strong>
+                  ` : `
+                    <div style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
+                      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                        <span style="color: var(--text-secondary);">Ca đã hoàn tất:</span>
+                        <strong style="color: var(--text-primary);">${comm.completedCutsCount} lượt</strong>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                        <span style="color: var(--text-secondary);">Doanh thu cắt tạo ra:</span>
+                        <strong style="color: var(--text-primary);">${SalonUtils.formatCurrency(comm.totalCutValue)}</strong>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 6px; margin-top: 6px;">
+                        <span style="font-weight: 700; color: #059669;">Hoa hồng tạm tính (15%):</span>
+                        <strong style="color: #059669; font-size: 14px;">${SalonUtils.formatCurrency(comm.commissionAmount)}</strong>
+                      </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 6px; margin-top: 6px;">
-                      <span style="font-weight: 700; color: #059669;">Hoa hồng tạm tính (15%):</span>
-                      <strong style="color: #059669; font-size: 14px;">${SalonUtils.formatCurrency(comm.commissionAmount)}</strong>
-                    </div>
-                  </div>
+                  `}
                 </div>
 
                 <div>
-                  <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <button class="pill-btn-outline" style="flex: 1; padding: 7px; font-size: 12px; font-weight: 700;" onclick="AdminWeb.viewStylistQueueModal('${st.id}')">
-                      Ca Hôm Nay (${comm.todayQueue.length})
-                    </button>
-                    <button class="btn-submit-terracotta" style="padding: 7px 12px; font-size: 12px; font-weight: 800;" 
-                            onclick="if(window.UICommon) window.UICommon.openBookingModal(null, '${st.id}');">
-                      + Xếp Khách
-                    </button>
-                  </div>
+                  ${isCashier ? `
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                      <button type="button" class="pill-btn-outline" style="flex: 1; padding: 7px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="AdminWeb.switchSubTab('pos');">
+                        <span>Quầy Thu Ngân & POS →</span>
+                      </button>
+                    </div>
+                  ` : `
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                      <button class="pill-btn-outline" style="flex: 1; padding: 7px; font-size: 12px; font-weight: 700;" onclick="AdminWeb.viewStylistQueueModal('${st.id}')">
+                        Ca Hôm Nay (${comm.todayQueue.length})
+                      </button>
+                      <button class="btn-submit-terracotta" style="padding: 7px 12px; font-size: 12px; font-weight: 800;" 
+                              onclick="AdminWeb.goToReceptionCheckin('${st.id}');">
+                        + Xếp Khách
+                      </button>
+                    </div>
+                  `}
                   <div style="display: flex; gap: 8px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
                     <button class="pill-btn-outline" style="flex: 1; padding: 6px; font-size: 12px; font-weight: 700;" onclick="AdminWeb.openAddStylistModal('${st.id}')">
                       Sửa Thông Tin
                     </button>
                     <button class="pill-btn-outline" style="flex: 1; padding: 6px; font-size: 12px; font-weight: 700; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="AdminWeb.openUniversalDeleteModal('stylists', '${st.id}')">
-                      Xóa Thợ
+                      Xóa Nhân Viên
                     </button>
                   </div>
                 </div>
@@ -2850,6 +2914,11 @@
                   + Thêm Sản Phẩm Mới
                 </button>
               ` : ''}
+              ${subType === 'receipts' ? `
+                <button type="button" class="btn-submit-terracotta" style="padding: 7px 16px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;" onclick="AdminWeb.openAddReceiptModal()">
+                  + Lập Phiếu Nhập Kho Mới
+                </button>
+              ` : ''}
             </div>
           </div>
 
@@ -3059,6 +3128,7 @@
                   <th>Tổng Tiền</th>
                   <th>Mặt Hàng</th>
                   <th>Trạng Thái</th>
+                  <th style="text-align: center; white-space: nowrap;">Hành Động</th>
                 </tr>
               </thead>
               <tbody>
@@ -3077,9 +3147,12 @@
                         ${this.escapeHtml(r.status || r.TrangThai || 'Đã duyệt')}
                       </span>
                     </td>
+                    <td style="text-align: center; white-space: nowrap;">
+                      <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="AdminWeb.viewReceiptDetailModal('${r.id || r.MaPhieuNhap}')">Chi Tiết</button>
+                    </td>
                   </tr>
                 `).join('') : `
-                  <tr><td colspan="9" style="text-align: center; padding: 30px; color: #888;">Không tìm thấy phiếu nhập kho nào.</td></tr>
+                  <tr><td colspan="10" style="text-align: center; padding: 30px; color: #888;">Không tìm thấy phiếu nhập kho nào.</td></tr>
                 `}
               </tbody>
             </table>
@@ -3302,7 +3375,7 @@
       `, true);
     },
 
-    submitProductForm(productId) {
+    async submitProductForm(productId) {
       const name = (document.getElementById('prodName')?.value || '').trim();
       const brand = (document.getElementById('prodBrand')?.value || '').trim();
       const price = Number(document.getElementById('prodPrice')?.value) || 0;
@@ -3319,10 +3392,10 @@
       }
 
       if (productId) {
-        window.store.updateProduct(productId, { name, brand, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        await window.store.updateProduct(productId, { name, brand, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
         if (window.UICommon) window.UICommon.showToast(`Đã cập nhật sản phẩm [${name}]!`);
       } else {
-        window.store.addProduct({ name, brand, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        await window.store.addProduct({ name, brand, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
         if (window.UICommon) window.UICommon.showToast(`Đã thêm mới sản phẩm [${name}] vào kho hàng!`);
       }
 
@@ -3340,6 +3413,234 @@
 
     executeDeleteProduct(productId) {
       this.executeUniversalDelete('products', productId);
+    },
+
+    // -----------------------------------------------------------------------
+    // QUẢN LÝ PHIẾU NHẬP KHO (INVENTORY RECEIPTS - SQL PHIEUNHAPKHO & CHITIETPHIEUNHAP)
+    // -----------------------------------------------------------------------
+    openAddReceiptModal() {
+      const user = this.getCurrentUser();
+      const branches = window.store.getBranches() || [];
+      const suppliers = window.store.getSuppliers() || [];
+      const products = window.store.getProducts() || [];
+      const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : 'CN01');
+
+      this._openModal(`
+        <div style="max-width: 650px; margin: 0 auto;">
+          <div class="badge-terracotta">QUẢN LÝ KHO & NHẬP HÀNG</div>
+          <h2 style="font-size: 20px; font-weight: 800; margin: 8px 0 16px;">LẬP PHIẾU NHẬP KHO MỚI</h2>
+          <form onsubmit="event.preventDefault(); AdminWeb.submitReceiptForm();">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <label class="sub-label">Chi Nhánh Nhập Hàng:</label>
+                ${this.isBranchManager(user) ? `
+                  <input type="hidden" id="receiptBranchId" value="${branchId}">
+                  <input type="text" class="form-control-custom" value="${this.escapeHtml(this._getBranchShortName(branchId))}" disabled>
+                ` : `
+                  <select id="receiptBranchId" class="form-control-custom">
+                    ${branches.map(b => `<option value="${b.id}" ${b.id === branchId ? 'selected' : ''}>${this.escapeHtml(this._getBranchShortName(b))}</option>`).join('')}
+                  </select>
+                `}
+              </div>
+              <div>
+                <label class="sub-label">Nhà Cung Cấp:</label>
+                <select id="receiptSupplierId" class="form-control-custom" required>
+                  ${suppliers.map(s => `<option value="${s.id || s.MaNhaCungCap}">${this.escapeHtml(s.name || s.TenNhaCungCap)}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+              <h4 style="font-size: 13px; font-weight: 700; margin: 0 0 10px 0; color: #f59e0b;">Thông Tin Mặt Hàng Nhập Kho</h4>
+              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                  <label class="sub-label">Chọn Sản Phẩm:</label>
+                  <select id="receiptProductId" class="form-control-custom" onchange="AdminWeb._onReceiptProductChange(this.value);">
+                    ${products.map(p => `<option value="${p.id || p.MaSanPham}">${this.escapeHtml(p.name || p.TenSanPham)} (${p.id || p.MaSanPham})</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label class="sub-label">Số Lượng:</label>
+                  <input type="number" id="receiptQuantity" class="form-control-custom" value="10" min="1" required oninput="AdminWeb._calcReceiptTotal();">
+                </div>
+                <div>
+                  <label class="sub-label">Đơn Giá Nhập (VNĐ):</label>
+                  <input type="number" id="receiptCostPrice" class="form-control-custom" value="${products[0]?.costPrice || products[0]?.GiaNhap || 150000}" min="1000" required oninput="AdminWeb._calcReceiptTotal();">
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label class="sub-label">Số Lô Hàng (FEFO):</label>
+                  <input type="text" id="receiptLotNumber" class="form-control-custom" value="LOT-${Date.now().toString().slice(-6)}" required>
+                </div>
+                <div>
+                  <label class="sub-label">Hạn Sử Dụng (EXP):</label>
+                  <input type="date" id="receiptExpiryDate" class="form-control-custom" value="${new Date(Date.now() + 365*24*3600*1000).toISOString().split('T')[0]}" required>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 12px; background: rgba(16, 185, 129, 0.08); border-radius: 8px;">
+              <span style="font-weight: 700; font-size: 14px;">Tổng Tiền Nhập Kho:</span>
+              <strong id="receiptTotalDisplay" style="font-size: 18px; color: #10b981;">1.500.000 đ</strong>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+              <button type="button" class="btn-cancel" onclick="AdminWeb._closeModal()">Hủy Bỏ</button>
+              <button type="submit" class="btn-submit-terracotta" style="font-weight: 700;">+ Lưu &amp; Nhập Kho SQL</button>
+            </div>
+          </form>
+        </div>
+      `);
+      this._calcReceiptTotal();
+    },
+
+    _onReceiptProductChange(prodId) {
+      const p = window.store.getProductById(prodId);
+      if (p) {
+        const costInput = document.getElementById('receiptCostPrice');
+        if (costInput) {
+          costInput.value = p.costPrice || p.GiaNhap || Math.round((p.price || 200000) * 0.7);
+        }
+      }
+      this._calcReceiptTotal();
+    },
+
+    _calcReceiptTotal() {
+      const qInput = document.getElementById('receiptQuantity');
+      const cInput = document.getElementById('receiptCostPrice');
+      const totalDisplay = document.getElementById('receiptTotalDisplay');
+      if (qInput && cInput && totalDisplay) {
+        const qty = parseInt(qInput.value, 10) || 0;
+        const cost = parseFloat(cInput.value) || 0;
+        totalDisplay.textContent = SalonUtils.formatCurrency(qty * cost);
+      }
+    },
+
+    async submitReceiptForm() {
+      const branchId = document.getElementById('receiptBranchId')?.value || 'CN01';
+      const supplierId = document.getElementById('receiptSupplierId')?.value || 'NCC01';
+      const productId = document.getElementById('receiptProductId')?.value || 'SP01';
+      const quantity = parseInt(document.getElementById('receiptQuantity')?.value, 10) || 10;
+      const costPrice = parseFloat(document.getElementById('receiptCostPrice')?.value) || 150000;
+      const lotNumber = document.getElementById('receiptLotNumber')?.value || `LOT-${Date.now().toString().slice(-6)}`;
+      const expiryDate = document.getElementById('receiptExpiryDate')?.value || new Date(Date.now() + 365*24*3600*1000).toISOString().split('T')[0];
+
+      const user = this.getCurrentUser();
+      const staffId = user?.staffId || user?.MaNhanVien || 'NV01';
+      const total = quantity * costPrice;
+
+      const items = [{
+        productId,
+        quantity,
+        costPrice,
+        lotNumber,
+        expiryDate
+      }];
+
+      try {
+        await window.store.addReceipt({
+          branchId,
+          supplierId,
+          staffId,
+          items,
+          total,
+          status: 'Đã duyệt'
+        });
+        this._closeModal();
+        if (window.UICommon) window.UICommon.showToast(`Đã lập và lưu phiếu nhập kho thành công vào SQL Server!`);
+        this.refreshInventoryView();
+      } catch (err) {
+        if (window.UICommon) window.UICommon.showToast(`Lỗi khi lập phiếu nhập kho: ${err.message}`, 'error');
+      }
+    },
+
+    async viewReceiptDetailModal(receiptId) {
+      let receipt = null;
+      try {
+        const res = await fetch(`${window.store.liveServerUrl}/inventory/receipts/${receiptId}`);
+        if (res.ok) {
+          receipt = await res.json();
+        }
+      } catch (_) {}
+      if (!receipt) {
+        receipt = window.store.getReceiptById(receiptId);
+      }
+      if (!receipt) {
+        if (window.UICommon) window.UICommon.showToast('Không tìm thấy thông tin phiếu nhập kho!', 'warning');
+        return;
+      }
+
+      const items = receipt.items || [];
+      this._openModal(`
+        <div style="max-width: 700px; margin: 0 auto;">
+          <div class="badge-terracotta">CHI TIẾT PHIẾU NHẬP KHO</div>
+          <h2 style="font-size: 20px; font-weight: 800; margin: 8px 0 14px;">MÃ PHIẾU: #${this.escapeHtml(receipt.id || receipt.MaPhieuNhap)}</h2>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div>
+              <div style="font-size: 12px; color: #888;">Chi Nhánh:</div>
+              <strong style="font-size: 14px;">${this.escapeHtml(receipt.branchName || `Chi Nhánh ${receipt.branchId}`)}</strong>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #888;">Nhà Cung Cấp:</div>
+              <strong style="font-size: 14px; color: #f59e0b;">${this.escapeHtml(receipt.supplierName || 'NCC Chính Hãng')}</strong>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #888;">Người Lập Phiếu:</div>
+              <div>${this.escapeHtml(receipt.staffName || 'Quản lý kho')}</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #888;">Ngày Lập:</div>
+              <div>${this.escapeHtml(receipt.createdDate || receipt.NgayLap || '—')}</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #888;">Trạng Thái:</div>
+              <span class="stock-badge-safe">${this.escapeHtml(receipt.status || receipt.TrangThai || 'Đã duyệt')}</span>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #888;">Tổng Tiền:</div>
+              <strong style="font-size: 16px; color: #10b981;">${SalonUtils.formatCurrency(receipt.total || receipt.TongTien)}</strong>
+            </div>
+          </div>
+
+          <h4 style="font-size: 14px; font-weight: 700; margin: 0 0 10px 0;">Danh Sách Mặt Hàng Trong Phiếu (${items.length}):</h4>
+          <div style="overflow-x: auto; margin-bottom: 16px;">
+            <table class="admin-enterprise-table">
+              <thead>
+                <tr>
+                  <th>Mã SP</th>
+                  <th>Tên Sản Phẩm</th>
+                  <th>Số Lô</th>
+                  <th>Hạn Sử Dụng</th>
+                  <th style="text-align: center;">Số Lượng</th>
+                  <th style="text-align: right;">Đơn Giá Nhập</th>
+                  <th style="text-align: right;">Thành Tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.length > 0 ? items.map(it => `
+                  <tr>
+                    <td><strong>${this.escapeHtml(it.productId || it.id)}</strong></td>
+                    <td style="font-weight: 700;">${this.escapeHtml(it.productName || it.name || 'Sản phẩm')}</td>
+                    <td>${this.escapeHtml(it.lotNumber || '—')}</td>
+                    <td style="white-space: nowrap;">${this.escapeHtml(it.expiryDate || '—')}</td>
+                    <td style="text-align: center; font-weight: 800;">${it.quantity || it.qty || 0}</td>
+                    <td style="text-align: right; color: #10b981;">${SalonUtils.formatCurrency(it.costPrice || it.price)}</td>
+                    <td style="text-align: right; font-weight: 800; color: #f59e0b;">${SalonUtils.formatCurrency(it.total || (it.quantity * it.costPrice))}</td>
+                  </tr>
+                `).join('') : `
+                  <tr><td colspan="7" style="text-align: center; padding: 20px; color: #888;">Chi tiết mặt hàng lô theo phiếu nhập kho.</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end;">
+            <button type="button" class="btn-cancel" onclick="AdminWeb._closeModal()">Đóng Cửa Sổ</button>
+          </div>
+        </div>
+      `);
     },
 
     // -----------------------------------------------------------------------
@@ -3490,40 +3791,40 @@
       `, false);
     },
 
-    executeUniversalDelete(type, id) {
+    async executeUniversalDelete(type, id) {
       if (type === 'products') {
         const p = window.store.getProductById(id);
         const name = p ? (p.name || p.TenSanPham) : id;
-        window.store.deleteProduct(id);
+        await window.store.deleteProduct(id);
         this._closeModal();
         if (window.UICommon) window.UICommon.showToast(`Đã xóa sản phẩm #${id} (${name}) khỏi kho và database SQL!`);
         this.refreshInventoryView();
       } else if (type === 'services') {
         const s = window.store.getServiceById(id);
         const name = s ? (s.name || s.TenDichVu) : id;
-        window.store.deleteService(id);
+        await window.store.deleteService(id);
         this._closeModal();
         if (window.UICommon) window.UICommon.showToast(`Đã xóa dịch vụ #${id} (${name}) khỏi database SQL!`);
         this.refreshCatalogView();
       } else if (type === 'combos') {
-        window.store.deleteCombo(id);
+        await window.store.deleteCombo(id);
         this._closeModal();
         if (window.UICommon) window.UICommon.showToast(`Đã xóa combo #${id}!`);
         this.refreshCatalogView();
       } else if (type === 'stylists') {
         const st = window.store.getStylistById(id);
         const name = st ? (st.name || st.HoTen) : id;
-        window.store.deleteStylist(id);
+        await window.store.deleteStylist(id);
         this._closeModal();
         if (window.UICommon) window.UICommon.showToast(`Đã xóa thợ [${name}] (#${id}) khỏi hệ thống và database SQL!`);
         this.refreshSubTab();
       } else if (type === 'bookings') {
-        window.store.deleteBooking(id);
+        await window.store.deleteBooking(id);
         this._closeModal();
       } else if (type === 'branches') {
         const br = (window.store.getBranches() || []).find(b => b.id === id || b.MaChiNhanh === id);
         const name = br ? (br.name || br.TenChiNhanh) : id;
-        window.store.deleteBranch(id);
+        await window.store.deleteBranch(id);
         this._closeModal();
         if (window.UICommon) window.UICommon.showToast(`Đã xóa chi nhánh #${id} (${name}) khỏi hệ thống và database SQL!`);
         this.refreshSubTab();
@@ -3539,7 +3840,10 @@
       const isEdit = !!st;
       const role = st?.role || 'Thợ chính';
       const level = st?.level || (role === 'Thợ phụ' ? 'Junior Barber' : 'Master Barber');
-      const branchId = st?.branchId || (this.filterBranch !== 'all' ? this.filterBranch : 'CN01');
+      const user = this.getCurrentUser();
+      const isSuper = this.isSuperAdmin(user);
+      const isManager = this.isBranchManager(user);
+      const branchId = st?.branchId || ((!isSuper && isManager && user?.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : 'CN01'));
 
       const avatarPresets = [
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
@@ -3562,7 +3866,7 @@
                 <select id="stRole" class="form-control-custom" required onchange="AdminWeb.onStylistRoleChange(this.value)">
                   <option value="Thợ chính" ${role === 'Thợ chính' ? 'selected' : ''}>Thợ chính (Lead Barber)</option>
                   <option value="Thợ phụ" ${role === 'Thợ phụ' ? 'selected' : ''}>Thợ phụ (Assistant Barber)</option>
-                  <option value="Quản lý chi nhánh" ${role === 'Quản lý chi nhánh' ? 'selected' : ''}>Quản lý chi nhánh</option>
+                  ${isSuper ? `<option value="Quản lý chi nhánh" ${role === 'Quản lý chi nhánh' ? 'selected' : ''}>Quản lý chi nhánh</option>` : ''}
                 </select>
               </div>
 
@@ -3572,8 +3876,6 @@
                   <option value="Master Barber" ${level === 'Master Barber' ? 'selected' : ''}>Master Barber</option>
                   <option value="Senior Barber" ${level === 'Senior Barber' ? 'selected' : ''}>Senior Barber</option>
                   <option value="Junior Barber" ${level === 'Junior Barber' ? 'selected' : ''}>Junior Barber</option>
-                  <option value="Stylist Chuyên Nghiệp" ${level === 'Stylist Chuyên Nghiệp' ? 'selected' : ''}>Stylist Chuyên Nghiệp</option>
-                  <option value="Kỹ Thuật Viên Gội Dưỡng Sinh" ${level === 'Kỹ Thuật Viên Gội Dưỡng Sinh' ? 'selected' : ''}>Kỹ Thuật Viên Gội Dưỡng Sinh</option>
                 </select>
               </div>
             </div>
@@ -3586,7 +3888,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
               <div>
                 <label class="sub-label">Chi Nhánh / Cơ Sở: <span style="color:#ef4444;">*</span></label>
-                <select id="stBranch" class="form-control-custom" required>
+                <select id="stBranch" class="form-control-custom" required ${!isSuper && isManager ? 'disabled style="opacity: 0.75; cursor: not-allowed;"' : ''}>
                   ${branches.map(b => `<option value="${b.id}" ${branchId === b.id ? 'selected' : ''}>${this.escapeHtml(this._getBranchShortName(b))}</option>`).join('')}
                 </select>
               </div>
@@ -3640,11 +3942,18 @@
       }
     },
 
-    submitStylistForm(stylistId) {
+    async submitStylistForm(stylistId) {
+      const user = this.getCurrentUser();
+      const isSuper = this.isSuperAdmin(user);
+      const isManager = this.isBranchManager(user);
+
       const name = (document.getElementById('stName')?.value || '').trim();
       const role = document.getElementById('stRole')?.value || 'Thợ chính';
       const level = document.getElementById('stLevel')?.value || 'Master Barber';
-      const branchId = document.getElementById('stBranch')?.value || 'CN01';
+      let branchId = document.getElementById('stBranch')?.value || 'CN01';
+      if (!isSuper && isManager && user?.branchId && user.branchId !== 'ALL') {
+        branchId = user.branchId;
+      }
       const phone = (document.getElementById('stPhone')?.value || '').trim();
       const email = (document.getElementById('stEmail')?.value || '').trim();
       const specialty = (document.getElementById('stSpecialty')?.value || '').trim();
@@ -3655,12 +3964,17 @@
         return;
       }
 
+      if (role === 'Quản lý chi nhánh' && !isSuper) {
+        if (window.UICommon) window.UICommon.showToast('Chỉ Quản lý tối cao (Super Admin) mới có quyền phân quyền Quản lý chi nhánh!', 'error');
+        return;
+      }
+
       if (stylistId) {
-        window.store.updateStylist(stylistId, { name, role, level, branchId, phone, email, specialty, avatar });
+        await window.store.updateStylist(stylistId, { name, role, level, branchId, phone, email, specialty, avatar });
         if (window.UICommon) window.UICommon.showToast(`Đã cập nhật ${role} [${name}] vào database SQL!`);
       } else {
-        const created = window.store.addStylist({ name, role, level, branchId, phone, email, specialty, avatar });
-        if (window.UICommon) window.UICommon.showToast(`Đã thêm mới ${role} [${name}] vào database SQL (#${created.id})!`);
+        const created = await window.store.addStylist({ name, role, level, branchId, phone, email, specialty, avatar });
+        if (window.UICommon) window.UICommon.showToast(`Đã thêm mới ${role} [${name}] vào database SQL (#${created?.id || ''})!`);
       }
 
       this._closeModal();

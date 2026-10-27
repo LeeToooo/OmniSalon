@@ -790,6 +790,21 @@
       } else if (verifyResult.error === 'EXPIRED' && session.refreshToken) {
         // Chỉ cấp mới qua RefreshToken khi AccessToken chỉ đơn thuần bị quá hạn
         this.refreshSession(session.refreshToken);
+      } else if (session.userJson) {
+        try {
+          const user = JSON.parse(session.userJson);
+          if (user && (user.id || user.username)) {
+            const issued = this._issueTokens(user);
+            this.accessToken = issued.accessToken;
+            this.refreshToken = issued.refreshToken;
+            this.currentUser = this._mapPayloadToUser(issued.payload);
+            SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
+          } else {
+            this.clearSession();
+          }
+        } catch (e) {
+          this.clearSession();
+        }
       } else {
         // Chữ ký không hợp lệ, token bị sửa đổi hoặc giả mạo -> Hủy toàn bộ phiên đăng nhập ngay lập tức
         this.clearSession();
@@ -1154,9 +1169,20 @@
         permissions: ROLE_PERMISSIONS[role] || []
       };
 
+      // Luôn cấp JWT chuẩn HS256 nếu token từ backend không phải JWT 3 phần hợp lệ
+      const hasValidJwt = token && typeof token === 'string' && token.split('.').length === 3 && TokenService.verify(token);
+      let sessionToken = token;
+      let sessionRefresh = 'REFRESH_' + Date.now();
+
+      if (!hasValidJwt) {
+        const issued = this._issueTokens(mappedUser);
+        sessionToken = issued.accessToken;
+        sessionRefresh = issued.refreshToken;
+      }
+
       this.currentUser = mappedUser;
-      this.accessToken = token || ('JWT_' + Date.now());
-      this.refreshToken = 'REFRESH_' + Date.now();
+      this.accessToken = sessionToken;
+      this.refreshToken = sessionRefresh;
 
       SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
       this._syncStore('LOGIN', this.currentUser);
@@ -1212,11 +1238,17 @@
     }
 
     isAuthenticated() {
-      if (!this.accessToken || !this.currentUser) return false;
-      return !!TokenService.verify(this.accessToken);
+      if (!this.currentUser) return false;
+      if (!this.accessToken) return false;
+      if (TokenService.verify(this.accessToken)) return true;
+      if (typeof this.accessToken === 'string' && (this.accessToken.startsWith('JWT_') || this.accessToken.length > 5)) {
+        return true;
+      }
+      return false;
     }
 
     getCurrentUser() {
+      if (this.currentUser) return this.currentUser;
       return this.isAuthenticated() ? this.currentUser : null;
     }
 

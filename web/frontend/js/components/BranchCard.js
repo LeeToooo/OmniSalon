@@ -157,7 +157,6 @@
             <div>
               <div class="branch-eyebrow-row">
                 <span class="branch-sub-label">${data.subtitle}</span>
-                <span class="branch-chair-count">${data.totalChairs} Ghế cắt</span>
               </div>
 
               <h3 class="branch-name-title font-serif tracking-tight leading-tight" title="${data.shortName}">
