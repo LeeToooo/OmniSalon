@@ -16,6 +16,23 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
+REM Kiem tra va tu dong cai dat thu vien Node.js neu chua co
+if not exist "%~dp0node_modules\msnodesqlv8" (
+    echo [*] Phat hien may tinh chua co thu muc node_modules.
+    echo [*] Dang tu dong chay "npm install" de tai cac thu vien (msnodesqlv8, mssql...), vui long doi giay lat...
+    cd /d "%~dp0"
+    call npm install
+    if errorlevel 1 (
+        echo.
+        echo [LOI] Khong the tu dong cai dat thu vien qua npm!
+        echo Vui long kiem tra ket noi mang va thu chay lenh: npm install
+        pause
+        exit /b 1
+    )
+    echo [*] Cai dat thu vien Node.js thanh cong!
+    echo.
+)
+
 REM Bat dich vu SQL Server neu chua chay
 net start MSSQL$SQLEXPRESS >nul 2>&1
 net start MSSQLSERVER >nul 2>&1

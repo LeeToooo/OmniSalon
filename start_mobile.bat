@@ -19,6 +19,20 @@ if %errorlevel% neq 0 (
     )
 )
 
+REM Kiem tra va tu dong cai dat thu vien Node.js neu chua co
+if not exist "%~dp0node_modules\msnodesqlv8" (
+    echo [*] Dang tu dong chay "npm install" de cai thu vien Backend...
+    cd /d "%~dp0"
+    call npm install
+)
+
+REM Kiem tra thu vien Flutter pub get
+if not exist "%~dp0mobile\.dart_tool" (
+    echo [*] Dang tai thu vien Flutter (flutter pub get)...
+    cd /d "%~dp0mobile"
+    call flutter pub get
+)
+
 REM Kiem tra may chu backend tren cong 3000
 netstat -aon | findstr :3000 | findstr LISTENING >nul 2>&1
 if errorlevel 1 (
