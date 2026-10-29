@@ -1680,7 +1680,7 @@ const UICommon = {
           if (typeof window.store.saveState === 'function') window.store.saveState();
           if (typeof window.store.notify === 'function') window.store.notify('AUTH_CHANGED', data.user);
         }
-      } else if (apiRes.status === 401 && data && data.success === false) {
+      } else if (!apiRes.ok && data && data.success === false) {
         // Backend SQL Server đã từ chối xác thực vì sai thông tin hoặc sai mật khẩu
         this.showToast(data.message || 'Mật khẩu không chính xác. Vui lòng kiểm tra lại.', 'error');
         return;

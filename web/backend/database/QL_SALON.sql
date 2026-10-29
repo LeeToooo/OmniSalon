@@ -1203,6 +1203,7 @@ INSERT INTO SanPham (MaSanPham, MaDanhMuc, MaNhaCungCap, TenSanPham, MoTa, HinhA
 
 -- 80 Nhân sự (20 Quản lý, 20 Thợ chính, 20 Thợ phụ, 20 Thu ngân)
 INSERT INTO NhanVien (MaNhanVien, MaChiNhanh, HoTen, SoDienThoai, Email, CapBac, ChucVu, TrangThai) VALUES
+('NV00', 'CN01', N'Lê Minh Hoàng',     '19008899',   'admin@omnisalon.vn',   N'Chủ Tịch HĐQT',  N'Quản trị viên',     N'Đang làm việc'),
 -- CN01
 ('NV01', 'CN01', N'Lê Hoàng Hải',     '0912001001', 'hai.lh@salontoc.vn',    N'Quản lý',        N'Quản lý chi nhánh', N'Đang làm việc'),
 ('NV02', 'CN01', N'Đỗ Đình Độ',       '0912001002', 'do.dd@salontoc.vn',     N'Master Barber',  N'Thợ chính',         N'Đang làm việc'),
@@ -1334,6 +1335,8 @@ INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh) VALUES
 
 -- 1. TÀI KHOẢN 80 NHÂN SỰ (20 Quản lý, 40 Thợ cắt/Barber, 20 Thu ngân)
 INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) VALUES
+('TK_ADMIN', 'NV00', NULL, 'admin', 'admin123',     N'Quản trị viên', N'Hoạt động', '2026-01-01 08:00:00'),
+
 -- CN01
 ('TK_NV01', 'NV01', NULL, 'user_nv01', 'LeHoangHai',     N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
 ('TK_NV02', 'NV02', NULL, 'user_nv02', 'DoDinhDo',       N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),

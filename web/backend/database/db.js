@@ -100,6 +100,20 @@ async function applyPerformanceOptimizations() {
       END
     `);
 
+    // Đảm bảo có tài khoản Quản trị viên tối cao (Super Admin) trong CSDL SQL
+    await querySql(`
+      IF NOT EXISTS (SELECT 1 FROM NhanVien WHERE MaNhanVien = 'NV00')
+      BEGIN
+        INSERT INTO NhanVien (MaNhanVien, MaChiNhanh, HoTen, SoDienThoai, Email, CapBac, ChucVu, TrangThai)
+        VALUES ('NV00', 'CN01', N'Lê Minh Hoàng', '19008899', 'admin@omnisalon.vn', N'Chủ Tịch HĐQT', N'Quản trị viên', N'Đang làm việc');
+      END;
+      IF NOT EXISTS (SELECT 1 FROM TaiKhoan WHERE TenDangNhap = 'admin')
+      BEGIN
+        INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao)
+        VALUES ('TK_ADMIN', 'NV00', NULL, 'admin', 'admin123', N'Quản trị viên', N'Hoạt động', GETDATE());
+      END;
+    `);
+
     // Views tối ưu truy vấn Lịch hẹn hôm nay và Doanh thu
     await querySql(`
       CREATE OR ALTER VIEW vw_LichHenHomNay AS
