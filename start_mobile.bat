@@ -1,96 +1,60 @@
 @echo off
-setlocal EnableDelayedExpansion
 chcp 65001 >nul
-title OmniSalon Mobile App Launcher
+title OmniSalon Mobile App
 
-echo =========================================================================
-echo    OMNISALON MOBILE APP - FLUTTER MULTI-PLATFORM
-echo    Dong bo 100%% CSDL SQL Server QL_SALONTOC va Kho Hinh Anh
-echo =========================================================================
-echo.
-echo Chon thiet bi khoi chay:
-echo   [1] Google Chrome - Che do Mobile F12 (Khuyen Dung - Chay Ngay)
-echo   [2] Windows Desktop (Ung dung may tinh Windows)
-echo   [3] Android (Tu dong bat may ao va chay App)
-echo   [4] Kiem tra danh sach may ao va thiet bi ket noi
+echo ==================================================
+echo   Khoi dong ung dung OmniSalon Mobile
+echo ==================================================
 echo.
 
-set choice=1
-set /p choice="Nhap lua chon [1, 2, 3, 4] (Mac dinh 1): "
+REM Kiem tra thu vien Flutter SDK
+where flutter >nul 2>nul
+if %errorlevel% neq 0 (
+    if exist "C:\src\flutter\bin\flutter.bat" (
+        set "PATH=%PATH%;C:\src\flutter\bin"
+    ) else (
+        echo [LOI] Khong tim thay Flutter SDK tren may tinh!
+        pause
+        exit /b 1
+    )
+)
 
-REM Tu dong kiem tra va khoi dong Backend Server neu chua chay
+REM Kiem tra may chu backend tren cong 3000
 netstat -aon | findstr :3000 | findstr LISTENING >nul 2>&1
 if errorlevel 1 (
-    echo [*] Phat hien Backend Server chua chay. Dang tu dong bat Node.js tren port 3000...
-    start "OmniSalon Backend Server" cmd /c "cd /d "%~dp0" && start_server.bat"
-    echo [*] Dang doi 4 giay de Backend ket noi SQL Server va nap CSDL...
-    timeout /t 4 /nobreak >nul
+    echo [*] Dang khoi dong may chu API chay ngam...
+    net start MSSQL$SQLEXPRESS >nul 2>&1
+    net start MSSQLSERVER >nul 2>&1
+    start "OmniSalon API" /min cmd /c "node "%~dp0web\backend\server.js""
+    timeout /t 2 /nobreak >nul
 )
 
-if "%choice%"=="2" goto RUN_WINDOWS
-if "%choice%"=="3" goto RUN_ANDROID
-if "%choice%"=="4" goto CHECK_DEVICES
-goto RUN_CHROME
-
-:RUN_WINDOWS
+echo Chon thiet bi chay ung dung:
+echo   [1] Windows Desktop (Ung dung may tinh - Khuyen dung)
+echo   [2] Android (Dien thoai cam cap hoac may ao)
+echo   [3] Google Chrome (Trinh duyet)
 echo.
-echo [*] Dang kiem tra va khoi chay tren Windows Desktop...
+
+set "choice=1"
+set /p choice="Nhap lua chon [1, 2, 3] (Mac dinh 1): "
+if "%choice%"=="" set "choice=1"
+
 cd /d "%~dp0mobile"
+
+if "%choice%"=="2" (
+    echo [*] Dang chay tren Android...
+    flutter run -d android
+    goto DONE
+)
+
+if "%choice%"=="3" (
+    echo [*] Dang chay tren Google Chrome...
+    flutter run -d chrome
+    goto DONE
+)
+
+echo [*] Dang chay tren Windows Desktop...
 flutter run -d windows
-if errorlevel 1 (
-    echo.
-    echo [!] Chu y: Neu gap loi Symlink hoac Developer Mode, vui long bat Developer Mode trong Windows Settings.
-    echo [*] Dang mo Developer Settings...
-    start ms-settings:developers
-)
-goto END
 
-:RUN_ANDROID
-echo.
-echo [*] Dang kiem tra may ao Android tren he thong...
-flutter emulators > "%temp%\flt_emulators.txt" 2>&1
-findstr /i /c:"Unable to find any emulator" "%temp%\flt_emulators.txt" >nul
-if not errorlevel 1 (
-    echo =========================================================================
-    echo [!] CHUA CO MAY AO ANDROID:
-    echo     May tinh chua cai Android Studio hoac chua tao may ao AVD.
-    echo [*] GIAI PHAP:
-    echo     - Chon [1] de mo ngay tren Google Chrome Mobile (Khong can cai gi them)
-    echo     - Hoac cai Android Studio tu: https://developer.android.com/studio
-    echo =========================================================================
-    echo.
-    set runChrome=Y
-    set /p runChrome="Ban co muon mo ngay tren Google Chrome khong? [Y/N] (Mac dinh Y): "
-    if /i "!runChrome!"=="N" goto END
-    goto RUN_CHROME
-)
-echo [*] Dang khoi dong may ao Android Emulator...
-start "" flutter emulators --launch Medium_Phone
-echo [*] Cho may ao khoi dong trong 10 giay...
-timeout /t 10 /nobreak >nul
-echo [*] Dang build va chay OmniSalon Mobile tren Android...
-cd /d "%~dp0mobile"
-flutter run -d android
-goto END
-
-:CHECK_DEVICES
-echo.
-echo [*] Danh sach may ao Android tren he thong:
-flutter emulators
-echo.
-echo [*] Danh sach thiet bi dang ket noi:
-flutter devices
-goto END
-
-:RUN_CHROME
-echo.
-echo [*] Dang khoi chay OmniSalon Mobile tren Google Chrome...
-echo [*] MEO: Khi Chrome mo len, hay bam F12 -> Ctrl + Shift + M de xem dung ti le iPhone/Android!
-echo.
-cd /d "%~dp0mobile"
-flutter run -d chrome
-goto END
-
-:END
-echo.
+:DONE
 pause

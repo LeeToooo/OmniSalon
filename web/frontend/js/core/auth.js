@@ -1,15 +1,15 @@
-// ============================================================================
+﻿// ============================================================================
 // OmniSalon & Omni Salon Enterprise Suite
-// TẦNG XÁC THỰC BẢO MẬT & PHÂN QUYỀN RBAC (JWT AUTH & ROLE GUARD ENGINE)
+// TẦNG XÁC THỰC BẢO MẬT & PHÂN QUYỀN RBAC
 // Phiên bản: 2.2.0 Clean Architecture & Performance Optimized
-// Tuân thủ: .antigravity/rules/04_refactor.md & docs/file_plan.json (TASK-02-CORE-AUTH)
+// Module chức năng độc lập
 // ============================================================================
 
 (function (window) {
   'use strict';
 
   // --------------------------------------------------------------------------
-  // 1. DOMAIN CONSTANTS & RBAC DEFINITIONS
+  // DOMAIN CONSTANTS & RBAC DEFINITIONS
   // --------------------------------------------------------------------------
 
   const ROLES = Object.freeze({
@@ -115,11 +115,11 @@
   const REFRESH_TOKEN_EXP_SECONDS = 604800; // 7 ngày
 
   // --------------------------------------------------------------------------
-  // 2. TÀI KHOẢN MẪU ĐÃ XÁC THỰC (SEED REPOSITORY DATA)
+  // TÀI KHOẢN MẪU ĐÃ XÁC THỰC
   // --------------------------------------------------------------------------
 
   // --------------------------------------------------------------------------
-  // 2. 101 TÀI KHOẢN & PHÂN QUYỀN RBAC TRÍCH XUẤT 100% TỪ QL_SALON.sql
+  // 101 TÀI KHOẢN & PHÂN QUYỀN RBAC TRÍCH XUẤT 100% TỪ QL_SALON.sql
   // --------------------------------------------------------------------------
 
   const RAW_STAFF_SQL = [
@@ -230,7 +230,7 @@
   ];
 
   const SEED_USERS = [
-    // Super Admin Hệ Thống (Khớp 100% với NV00 và TK_ADMIN trong QL_SALON.sql)
+    // Super Admin Hệ Thống
     {
       id: 'TK_ADMIN',
       MaTaiKhoan: 'TK_ADMIN',
@@ -255,7 +255,7 @@
       tier: 'Chủ Tịch HĐQT',
       isActive: true
     },
-    // 80 Nhân Sự chuẩn xác thực SQL (Quản lý CN: nv123 | Barber: nv123 | Thu ngân: tn123)
+    // 80 Nhân Sự chuẩn xác thực SQL
     ...RAW_STAFF_SQL.filter(item => item[0] !== 'NV00').map(item => {
       const isManager = item[6] === 'Quản lý chi nhánh';
       const isCashier = item[6] === 'Thu ngân';
@@ -288,7 +288,7 @@
         isActive: true
       };
     }),
-    // 20 Khách Hàng chuẩn xác thực SQL (Mật khẩu: kh123)
+    // 20 Khách Hàng chuẩn xác thực SQL
     ...RAW_CUSTOMERS_SQL.map(item => ({
       id: `TK_${item[0]}`,
       MaTaiKhoan: `TK_${item[0]}`,
@@ -314,7 +314,7 @@
   ];
 
   // --------------------------------------------------------------------------
-  // 3. LAYER: VALIDATOR SERVICE (CLEAN INPUT VALIDATION)
+  // LAYER: VALIDATOR SERVICE (CLEAN INPUT VALIDATION)
   // --------------------------------------------------------------------------
 
   class ValidatorService {
@@ -364,7 +364,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // 4. LAYER: TOKEN SERVICE (JWT ENCODING, SIGNING & VERIFICATION WITH CACHE)
+  // LAYER: TOKEN SERVICE (JWT ENCODING, SIGNING & VERIFICATION WITH CACHE)
   // --------------------------------------------------------------------------
 
   class TokenService {
@@ -480,7 +480,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // 5. LAYER: USER REPOSITORY (PERSISTENCE ABSTRACTION)
+  // LAYER: USER REPOSITORY (PERSISTENCE ABSTRACTION)
   // --------------------------------------------------------------------------
 
   class UserRepository {
@@ -685,7 +685,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // 6. LAYER: PERMISSION POLICY SERVICE (RBAC EVALUATION)
+  // LAYER: PERMISSION POLICY SERVICE (RBAC EVALUATION)
   // --------------------------------------------------------------------------
 
   class PermissionPolicyService {
@@ -726,7 +726,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // 7. LAYER: SESSION STORAGE SERVICE (STORAGE FACADE)
+  // LAYER: SESSION STORAGE SERVICE (STORAGE FACADE)
   // --------------------------------------------------------------------------
 
   class SessionStorageService {
@@ -761,7 +761,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // 8. LAYER: AUTH ENGINE (FACADE PATTERN — PUBLIC API)
+  // LAYER: AUTH ENGINE (FACADE PATTERN — PUBLIC API)
   // --------------------------------------------------------------------------
 
   class AuthEngine {
@@ -1103,7 +1103,7 @@
         }
       }
 
-      // 1. Cập nhật mật khẩu ngay vào UserRepository local
+      // Cập nhật mật khẩu ngay vào UserRepository local
       UserRepository.updatePassword(identifier, newPassword);
       if (email && email !== identifier) {
         UserRepository.updatePassword(email, newPassword);
@@ -1120,7 +1120,7 @@
         this._syncStore('PASSWORD_RESET', user);
       }
 
-      // 2. Đồng bộ mật khẩu mới trực tiếp vào CSDL SQL Server
+      // Đồng bộ mật khẩu mới trực tiếp vào CSDL SQL Server
       if (typeof fetch !== 'undefined') {
         const apiUrl = (typeof window !== 'undefined' && window.location.origin)
           ? `${window.location.origin}/api/auth/reset-password`
@@ -1431,7 +1431,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // 9. EXPOSURE
+  // EXPOSURE
   // --------------------------------------------------------------------------
 
   const authInstance = new AuthEngine();

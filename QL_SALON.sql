@@ -1,4 +1,4 @@
-USE master;
+﻿USE master;
 GO
 
 IF DB_ID(N'QL_SALONTOC') IS NOT NULL
@@ -442,6 +442,17 @@ CREATE TABLE DanhGia
 GO
 
 -- =========================================================================
+CREATE TABLE XacThucOTP
+(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Identifier NVARCHAR(255) NOT NULL,
+    MaOTP VARCHAR(10) NOT NULL,
+    HetHanLuc DATETIME2 NOT NULL,
+    TrangThai NVARCHAR(50) DEFAULT N'Chờ xác thực',
+    NgayTao DATETIME2 DEFAULT GETDATE()
+);
+GO
+
 -- 2. INDEX & SEQUENCES
 -- =========================================================================
 
@@ -457,6 +468,35 @@ CREATE SEQUENCE seq_ChiTietHoaDonSanPham AS INT START WITH 1 INCREMENT BY 1;
 GO
 
 -- =========================================================================
+CREATE INDEX IX_LichHen_NgayHen_NhanVien 
+ON LichHen(NgayHen, MaNhanVien, MaChiNhanh) 
+INCLUDE (GioBatDau, GioKetThuc, TrangThai);
+GO
+
+CREATE INDEX IX_DonHang_KhachHang_NgayDat 
+ON DonHang(MaKhachHang, NgayDat DESC) 
+INCLUDE (TongTien, TrangThai);
+GO
+
+CREATE INDEX IX_HoaDon_NgayLap_ChiNhanh 
+ON HoaDon(NgayLap, MaChiNhanh, TrangThai) 
+INCLUDE (TongTien);
+GO
+
+CREATE INDEX IX_TaiKhoan_TenDangNhap 
+ON TaiKhoan(TenDangNhap) 
+INCLUDE (MatKhau, VaiTro, TrangThai);
+GO
+
+CREATE INDEX IX_TonKho_ChiNhanh_SanPham 
+ON TonKho(MaChiNhanh, MaSanPham) 
+INCLUDE (SoLuongTon, MucCanhBao);
+GO
+
+CREATE INDEX IX_XacThucOTP_Target 
+ON XacThucOTP(Identifier, MaOTP, HetHanLuc);
+GO
+
 -- 3. VIEWS
 -- =========================================================================
 

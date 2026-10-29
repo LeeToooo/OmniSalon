@@ -1,7 +1,7 @@
-// ============================================================================
+﻿// ============================================================================
 // OmniSalon & Omni Salon Enterprise Suite
-// CORE PRICING & PROMOTION SERVICE (CLEAN ARCHITECTURE — DRY REFACTOR)
-// Tuân thủ: .antigravity/rules/04_refactor.md (Tách logic tính giá/voucher thành service riêng)
+// CORE PRICING & PROMOTION SERVICE
+// Module chức năng độc lập
 // ============================================================================
 
 (function (window) {
@@ -93,14 +93,14 @@
         };
       }
 
-      // Tính số tiền được giảm theo loại (fixed hoặc percent)
+      // Tính số tiền được giảm theo loại
       const discountType = (voucher.discountType || voucher.discount_type || 'fixed').toLowerCase();
       const rawValue = Number(voucher.discountValue || voucher.discount_value) || 0;
       let calculatedDiscount = 0;
 
       if (discountType === 'percent' || discountType === 'percentage') {
         calculatedDiscount = Math.round((subtotal * rawValue) / 100);
-        // Áp mức trần giảm tối đa (nếu có cấu hình max_discount)
+        // Áp mức trần giảm tối đa
         const maxCap = Number(voucher.maxDiscount || voucher.max_discount);
         if (maxCap && maxCap > 0 && calculatedDiscount > maxCap) {
           calculatedDiscount = maxCap;
@@ -206,7 +206,7 @@
       const finalShipping = Math.max(0, Number(shippingFee) || 0);
       const grandTotal = voucherResult.finalTotal + finalShipping;
 
-      // Điểm thưởng tích lũy (10.000 đ = 1 điểm)
+      // Điểm thưởng tích lũy
       const earnedPoints = Math.floor(grandTotal / 10000);
 
       return {
@@ -240,7 +240,7 @@
      * - Cận hạn vừa (31 - 90 ngày): Giảm 40%
      * - Xả kho nhẹ (91 - 180 ngày): Giảm 20%
      * - Hạn an toàn (> 180 ngày): Giảm 0%
-     * - Hết hạn (<= 0 ngày): Giảm 100% / Thu hồi
+     * - Hết hạn: Giảm 100% / Thu hồi
      * @param {number} originalPrice - Giá niêm yết gốc (GiaNiemYetGoc)
      * @param {number} daysRemaining - Số ngày còn lại đến hạn sử dụng
      * @returns {{ discountPercent: number, actualPrice: number, badge: string, isNearExpiry: boolean, tier: string }}
@@ -307,7 +307,7 @@
     }
   }
 
-  // Xuất module global (Window Exposure)
+  // Xuất module global
   window.PricingService = PricingService;
   window.Pricing = PricingService;
 

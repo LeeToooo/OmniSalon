@@ -1,4 +1,4 @@
-import '../services/api_service.dart';
+import 'package:omni_salon_mobile/core/api/api_service.dart';
 
 class Product {
   final String id;

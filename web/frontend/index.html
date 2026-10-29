@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- SEO & Social Meta Tags -->
+  <!-- Thẻ meta và tiêu đề trang -->
   <title>Omni Salon | Chuẩn Mực Barbershop Đương Đại &amp; Đặt Lịch Hẹn</title>
   <meta name="description"
     content="Omni Salon. Chuỗi cắt tóc nam phong cách Barber đương đại. Đặt lịch hẹn chính xác, thợ cắt kéo tỉ mỉ, sáp pomade chính hãng và không gian thư giãn dành cho phái mạnh.">
@@ -14,49 +14,51 @@
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23C59B27'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' fill='%23141413' font-family='serif' font-weight='900' font-size='32'>OS</text></svg>">
 
-  <!-- Typography: Open Sans (Toàn bộ giao diện & Tiêu đề) -->
+  <!-- Phông chữ Open Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css?v=20261024_light_footer_fix">
+  <link rel="stylesheet" href="styles.css?v=20261029_pos_dark_bg">
   <link rel="stylesheet" href="js/components/components.css?v=20261017_form_v5">
 
-  <!-- Centralized Theme Engine Zero FOUC -->
+  <!-- Xử lý giao diện sáng tối -->
   <script src="js/core/theme.js?v=20261016_02"></script>
 </head>
 
 <body>
 
-
-  <!-- ========================================================
-       2. NỀN TẢNG BẢN WEB (DESKTOP & RESPONSIVE PORTAL)
-       ======================================================== -->
-  <div id="webPlatformSection" style="min-height: 100vh;">
+  <!-- Vùng hiển thị giao diện chính -->
+  <div id="webPlatformSection" style="min-height: 100dvh;">
     <div id="webHeaderContainer"></div>
     <main id="webMainContainer" style="min-height: calc(100vh - 120px);"></main>
   </div>
 
-  <!-- ========================================================
-       3. GLOBAL MODAL DIALOG (BOOKING WIZARD, AI PHOTO RESTYLE, AUTH)
-       ======================================================== -->
+  <!-- Popup chung dùng cho đặt lịch và đăng nhập -->
   <div class="modal-overlay" id="globalModal">
     <div class="modal-content-shell">
-      <button class="modal-close-icon-btn" onclick="UICommon.closeGlobalModal()" title="Đóng">✕</button>
+      <button class="modal-close-icon-btn" onclick="UICommon.closeGlobalModal()" title="Đóng" aria-label="Đóng">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
       <div id="globalModalBody"></div>
     </div>
   </div>
 
-  <!-- Toan bo quy trinh gio hang va thanh toan da duoc chuyen sang trang rieng cart -->
-
-  <!-- Modal thong bao da them san pham vao gio hang chuan 4RAU -->
+  <!-- Popup thông báo đã thêm sản phẩm vào giỏ -->
   <div class="add-cart-modal-overlay" id="addToCartModal">
     <div class="add-cart-modal-card">
       <div class="add-cart-modal-header">
         <span class="add-cart-modal-title">Thông báo</span>
-        <button type="button" class="add-cart-modal-close" onclick="UICommon.closeAddToCartModal()"
-          aria-label="Đóng">✕</button>
+        <button type="button" class="add-cart-modal-close" onclick="UICommon.closeAddToCartModal()" aria-label="Đóng">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div class="add-cart-modal-body">
         <div class="add-cart-modal-icon-circle">
@@ -75,59 +77,55 @@
     </div>
   </div>
 
-  <!-- ========================================================
-       5. HỆ THỐNG TOAST NOTIFICATIONS
-       ======================================================== -->
+  <!-- Khung thông báo nhanh -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- ========================================================
-       6. THANH ĐIỀU HƯỚNG DƯỚI ĐÁY CHO DI ĐỘNG (MOBILE BOTTOM NAV)
-       Tích hợp Web PC và Web Mobile làm 1 bản Responsive duy nhất
-       ======================================================== -->
+  <!-- Menu điều hướng trên điện thoại -->
   <nav class="mobile-bottom-nav" aria-label="Thanh điều hướng Web Mobile">
     <a href="/" data-route="/" onclick="event.preventDefault(); CustomerWeb.switchTab('home')" class="active"
       id="mNavHome">
-      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">01</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </span>
       <span>Trang Chủ</span>
     </a>
     <a href="/services" data-route="/services" onclick="event.preventDefault(); CustomerWeb.switchTab('services')"
       id="mNavServices">
-      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">02</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
+      </span>
       <span>Dịch Vụ</span>
     </a>
     <a href="/stylists" data-route="/stylists" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists')"
       id="mNavStylists">
-      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">03</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </span>
       <span>Thợ Mẫu</span>
     </a>
     <a href="/booking" data-route="/booking" onclick="event.preventDefault(); CustomerWeb.switchTab('booking')"
       style="color: #b48312; font-weight: 800;" id="mNavBooking">
-      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">04</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      </span>
       <span>Đặt Lịch</span>
     </a>
     <a href="/shop" data-route="/shop" onclick="event.preventDefault(); CustomerWeb.switchTab('shop')" id="mNavShop">
-      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">05</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+      </span>
       <span>Cửa Hàng</span>
     </a>
     <a href="/branches" data-route="/branches" onclick="event.preventDefault(); CustomerWeb.switchTab('branches')"
       id="mNavBranches">
-      <span class="nav-icon" style="font-size: 11px; font-weight: 900;">06</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+      </span>
       <span>Chi Nhánh</span>
     </a>
   </nav>
 
-
-  <!-- ========================================================
-       CẤU TRÚC MODULES KIẾN TRÚC PHÂN LỚP (LAYERED ARCHITECTURE):
-       2. js/core/utils.js        -> Tiện ích định dạng, Platform Manager
-       3. js/core/pricing.js      -> Công cụ tính giá & phụ phí
-       4. js/core/auth.js         -> Tầng xác thực & Phân quyền bảo mật JWT RBAC
-       5. js/core/store.js        -> Reactive State Engine, Đặt lịch, Giỏ hàng, POS
-       6. js/core/api.js          -> Tầng API REST & AI Vision Service
-       7. js/components/ui-common.js -> UI chung (Product cards, Booking wizard, Cart)
-       8. js/modules/customer/web/customer-web.js -> Phân hệ Khách hàng trên Web Portal
-       9. js/web/ui-web.js        -> Giao diện Web Portal & Trung tâm Quản trị Admin
-       ======================================================== -->
+  <!-- Các file thư viện và xử lý logic -->
   <script src="js/core/constants.js?v=20261026_ghfix1"></script>
   <script src="js/core/utils.js?v=20261026_ghfix1"></script>
   <script src="js/core/validation.js?v=20261026_ghfix1"></script>
@@ -140,27 +138,28 @@
   <script src="js/components/ui-common.js?v=20261026_ghfix1"></script>
   <script src="js/components/ProductCard.js?v=20261026_ghfix1"></script>
   <script src="js/components/BranchCard.js?v=20261026_ghfix1"></script>
-  <script src="js/modules/customer/web/customer-web.js?v=20261026_ghfix1"></script>
-  <script src="js/modules/admin/web/admin-web.js?v=20261026_ghfix1"></script>
-  <script src="js/web/ui-web.js?v=20261026_ghfix1"></script>
+  <script src="js/modules/customer-web.js?v=20261026_ghfix1"></script>
+  <script src="js/modules/admin-web.js?v=20261026_ghfix1"></script>
+  <script src="js/modules/ui-web.js?v=20261026_ghfix1"></script>
 
-  <!-- Modular Page Components Multi-Page Architecture -->
-  <script src="pages/home-page.js?v=20261026_ghfix1"></script>
-  <script src="pages/services-page.js?v=20261026_ghfix1"></script>
-  <script src="pages/stylists-page.js?v=20261026_ghfix1"></script>
-  <script src="pages/booking-page.js?v=20261026_ghfix1"></script>
-  <script src="pages/shop-page.js?v=20261026_ghfix1"></script>
-  <script src="pages/cart-page.js?v=20261026_ghfix1"></script>
-  <script src="pages/branches-page.js?v=20261026_ghfix1"></script>
-  <script src="pages/ai-studio-page.js?v=20261026_ghfix1"></script>
-  <script src="pages/admin-portal.js?v=20261026_ghfix1"></script>
+  <!-- Các trang giao diện người dùng -->
+  <script src="pages/user/home-page.js?v=20261026_ghfix1"></script>
+  <script src="pages/user/services-page.js?v=20261026_ghfix1"></script>
+  <script src="pages/user/stylists-page.js?v=20261026_ghfix1"></script>
+  <script src="pages/user/booking-page.js?v=20261026_ghfix1"></script>
+  <script src="pages/user/shop-page.js?v=20261026_ghfix1"></script>
+  <script src="pages/user/cart-page.js?v=20261026_ghfix1"></script>
+  <script src="pages/user/branches-page.js?v=20261026_ghfix1"></script>
+  <script src="pages/user/ai-studio-page.js?v=20261026_ghfix1"></script>
 
-  <!-- 3D Perspective Client Router -->
+  <!-- Trang quản trị -->
+  <script src="pages/admin/admin-portal.js?v=20261026_ghfix1"></script>
+
+  <!-- Điều hướng trang router -->
   <script src="js/core/router.js?v=20261026_ghfix1"></script>
 
-  <!-- Khoi dong giao dien Web Portal va 3D Multi-Page Router -->
+  <!-- Khởi tạo giao diện và xử lý tham số url -->
   <script>
-    // Ho tro tham so URL truc quan
     const _searchParams = new URLSearchParams(window.location.search);
     if (_searchParams.get('theme') && typeof ThemeEngine !== 'undefined') {
       ThemeEngine.setTheme(_searchParams.get('theme'));

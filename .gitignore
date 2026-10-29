@@ -19,6 +19,8 @@ web/backend/ai_config.json
 # Internal agent configurations & metadata
 .agents/
 .antigravity/
+.taste-skill/
+AGENTS.md
 
 # Documentation & internal project docs
 docs/

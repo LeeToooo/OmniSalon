@@ -1,7 +1,7 @@
-// =========================================================================
+﻿// =========================================================================
 // Omni Salon — 3D PERSPECTIVE CLIENT-SIDE APP ROUTER
-// Tuân thủ: .antigravity/rules/03_coder.md, 04_refactor.md
-// Routes: / (Home), /services, /stylists, /booking, /shop, /admin
+// Module chức năng độc lập
+// Routes: /, /services, /stylists, /booking, /shop, /admin
 // 3D Scene Transitions: 1200px perspective, 3D Depth Flip/Glide
 // Spotlight Border Effect • Magnetic Buttons • Interactive Slot Ripple
 // =========================================================================
@@ -60,7 +60,7 @@
         }
       });
 
-      // Kích hoạt route hiện tại từ URL (kèm query parameters như ?id=SP01)
+      // Kích hoạt route hiện tại từ URL
       const initialPath = this.getCurrentPath();
       const search = (typeof window !== 'undefined' && window.location && window.location.search) ? window.location.search : '';
       if (search && !initialPath.includes('?')) {
@@ -325,7 +325,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // 1. GIAO DIỆN ỔN ĐỊNH & VỮNG CHÃI (TRIỆT TIÊU CHAO ĐẢO 3D KHI DI CHUỘT)
+    // GIAO DIỆN ỔN ĐỊNH & VỮNG CHÃI (TRIỆT TIÊU CHAO ĐẢO 3D KHI DI CHUỘT)
     // -----------------------------------------------------------------------
     initTiltEffects(scope = document) {
       const cards = scope.querySelectorAll('.card-3d-tilt, .service-bento-card, .stylist-nordic-card, .product-nordic-card, .md3-service-card, .md3-stylist-card');
@@ -336,7 +336,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // 2. CỐ ĐỊNH NÚT BẤM (TRIỆT TIÊU HIỆU ỨNG HÚT NAM CHÂM CHẠY THEO CHUỘT)
+    // CỐ ĐỊNH NÚT BẤM (TRIỆT TIÊU HIỆU ỨNG HÚT NAM CHÂM CHẠY THEO CHUỘT)
     // -----------------------------------------------------------------------
     initMagneticButtons(scope = document) {
       const buttons = scope.querySelectorAll('.nordic-btn-primary, .nordic-btn-secondary, .stylist-book-btn, .service-bento-btn, .btn-magnetic');
@@ -346,7 +346,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // 3. INTERACTIVE TIME SLOT RIPPLE (HIỆU ỨNG CHẠM NHẸ KHI CHỌN GIỜ)
+    // INTERACTIVE TIME SLOT RIPPLE (HIỆU ỨNG CHẠM NHẸ KHI CHỌN GIỜ)
     // -----------------------------------------------------------------------
     initSlotRippleDelegation() {
       document.addEventListener('click', (e) => {

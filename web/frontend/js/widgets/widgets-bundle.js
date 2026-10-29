@@ -1,17 +1,17 @@
-// =========================================================================
-// OmniSalon & Spa — UNIFIED WIDGETS BUNDLE (MODERN HIGH-END DESIGN SYSTEM)
+﻿// =========================================================================
+// OmniSalon & Spa — UNIFIED WIDGETS BUNDLE
 // Tích hợp toàn bộ 6 Widgets giao diện dùng chung trong 1 tệp duy nhất:
-// 1. ServiceCardWidget       4. BookingSlotPicker
-// 2. StylistCardWidget       5. StatCardWidget
-// 3. TimeSlotChipsWidget     6. ShimmerLoadingWidget
-// Tuân thủ: .antigravity/rules/04_refactor.md, 07_ponytail.md (Loại bỏ phân mảnh tệp)
+// ServiceCardWidget       4. BookingSlotPicker
+// StylistCardWidget       5. StatCardWidget
+// TimeSlotChipsWidget     6. ShimmerLoadingWidget
+// Module chức năng độc lập
 // =========================================================================
 
 (function (window) {
   'use strict';
 
   // -----------------------------------------------------------------------
-  // 1. SERVICE CARD WIDGET (MATERIAL 3)
+  // SERVICE CARD WIDGET
   // -----------------------------------------------------------------------
   const ServiceCardWidget = {
     render(service, options = {}) {
@@ -74,7 +74,7 @@
   };
 
   // -----------------------------------------------------------------------
-  // 2. STYLIST CARD WIDGET
+  // STYLIST CARD WIDGET
   // -----------------------------------------------------------------------
   const StylistCardWidget = {
     render(stylist, options = {}) {
@@ -150,7 +150,7 @@
   };
 
   // -----------------------------------------------------------------------
-  // 3. TIME SLOT CHIPS WIDGET
+  // TIME SLOT CHIPS WIDGET
   // -----------------------------------------------------------------------
   const TimeSlotChipsWidget = {
     render(slots = [], selectedSlot = '', onSelectFnName = 'UICommon.selectBookingSlot') {
@@ -198,7 +198,7 @@
   };
 
   // -----------------------------------------------------------------------
-  // 4. BOOKING SLOT PICKER
+  // BOOKING SLOT PICKER
   // -----------------------------------------------------------------------
   const BookingSlotPicker = {
     categorizeSlots(slots = []) {
@@ -279,7 +279,7 @@
   };
 
   // -----------------------------------------------------------------------
-  // 5. STAT CARD WIDGET
+  // STAT CARD WIDGET
   // -----------------------------------------------------------------------
   const StatCardWidget = {
     render(stat = {}, options = {}) {
@@ -327,7 +327,7 @@
   };
 
   // -----------------------------------------------------------------------
-  // 6. SHIMMER LOADING WIDGET
+  // SHIMMER LOADING WIDGET
   // -----------------------------------------------------------------------
   const ShimmerLoadingWidget = {
     renderServiceListSkeleton(count = 3) {

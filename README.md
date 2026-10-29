@@ -26,7 +26,7 @@
 3. [Tính Năng Nổi Bật](#-tính-năng-nổi-bật)
 4. [Cấu Trúc Thư Mục Dự Án](#-cấu-trúc-thư-mục-dự-án)
 5. [Hướng Dẫn Cài Đặt & Khởi Chạy Chi Tiết](#-hướng-dẫn-cài-đặt--khởi-chạy-chi-tiết)
-   - [Cách 1: Khởi chạy 1-Click nhanh nhất (`start_server.bat`)](#cách-1-khởi-chạy-1-click-nhanh-nhất-start_serverbat---khuyến-nghị)
+   - [Cách 1: Khởi chạy 1-Click nhanh nhất (`start_web.bat`)](#cách-1-khởi-chạy-1-click-nhanh-nhất-start_serverbat---khuyến-nghị)
    - [Cách 2: Khởi chạy thủ công qua Node.js (`server.js`)](#cách-2-khởi-chạy-thủ-công-qua-nodejs-serverjs)
    - [Cách 3: Khởi chạy Mobile App Flutter (`mobile/`)](#cách-3-khởi-chạy-ứng-dụng-mobile-flutter-mobile)
 6. [Tài Liệu REST API](#-tài-liệu-rest-api)
@@ -167,7 +167,7 @@ OmniSalon/
 ├── mobile/                  # Native Mobile App (Dự án Flutter phát triển riêng)
 ├── Men_Grooming_Products/   # Kho tài nguyên ảnh sản phẩm & dịch vụ tóc
 ├── AGENTS.md                # Quy định vai trò các Agent trong hệ thống
-├── start_server.bat         # File thực thi 1-Click khởi chạy tự động toàn hệ thống
+├── start_web.bat         # File thực thi 1-Click khởi chạy tự động toàn hệ thống
 └── README.md                # Tài liệu hướng dẫn sử dụng chi tiết (tệp này)
 ```
 
@@ -182,8 +182,8 @@ OmniSalon/
 
 ---
 
-### Cách 1: Khởi chạy 1-Click nhanh nhất (`start_server.bat`) — *Khuyến nghị*
-1. Nhấp đúp chuột trái vào tệp: **`start_server.bat`**.
+### Cách 1: Khởi chạy 1-Click nhanh nhất (`start_web.bat`) — *Khuyến nghị*
+1. Nhấp đúp chuột trái vào tệp: **`start_web.bat`**.
 2. Kịch bản sẽ tự động chạy **`node server.js`** kết nối trực tiếp với `QL_SALON.sql`.
 3. Mở trình duyệt web và truy cập địa chỉ:
    👉 **`http://localhost:3000`**

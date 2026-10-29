@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'theme/app_theme.dart';
-import 'services/auth_service.dart';
-import 'screens/main_scaffold.dart';
+import 'package:omni_salon_mobile/core/theme/app_theme.dart';
+import 'package:omni_salon_mobile/core/auth/auth_service.dart';
+import 'package:omni_salon_mobile/components/main_scaffold.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

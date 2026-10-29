@@ -1,12 +1,7 @@
-// =========================================================================
-// OmniSalon / Omni Salon: FILE 2: GIAO DIỆN CHUNG: COMMON UI COMPONENTS
-// Chứa toàn bộ: Product Cards, News Cards, Branch Pills, Booking Wizard,
-// Tái sử dụng 100% cho cả Web Desktop và Web Mobile Responsive.
-// =========================================================================
-
+// Các hàm tiện ích giao diện dùng chung
 const UICommon = {
   // -----------------------------------------------------------------------
-  // 1. RENDER THẺ SẢN PHẨM  CHUẨN 100% ẢNH NGON.PNG 
+  // RENDER THẺ SẢN PHẨM  CHUẨN 100% ẢNH NGON.PNG 
   // -----------------------------------------------------------------------
   renderProductCard(prod, isMobile = false) {
     if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.render === 'function') {
@@ -27,7 +22,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 2. RENDER BÀI VIẾT TIN TÓC UNDERGROUND  CHUẨN ẢNH NGON.PNG 
+  // RENDER BÀI VIẾT TIN TÓC UNDERGROUND  CHUẨN ẢNH NGON.PNG 
   // -----------------------------------------------------------------------
   renderFeatureArticle(article) {
     return `
@@ -60,7 +55,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 3. RENDER NÚT CHI NHÁNH DẠNG THẺ HIỆN ĐẠI
+  // RENDER NÚT CHI NHÁNH DẠNG THẺ HIỆN ĐẠI
   // -----------------------------------------------------------------------
   renderBranchPill(branch) {
     const rawParts = (branch.name || '').replace(/—/g, ' - ').split(' - ');
@@ -81,7 +76,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 4. RENDER TICKER DỊCH VỤ: OUR SERVICES
+  // RENDER TICKER DỊCH VỤ: OUR SERVICES
   // -----------------------------------------------------------------------
   renderServicesTickerHTML() {
     return `
@@ -146,7 +141,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 5. RENDER HỢP TÁC THƯƠNG HIỆU: BRAND COLLABS
+  // RENDER HỢP TÁC THƯƠNG HIỆU: BRAND COLLABS
   // -----------------------------------------------------------------------
   renderBrandCollabCard(collab) {
     return `
@@ -158,7 +153,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 6. BOOKING WIZARD ĐẶT LỊCH CHỐNG TRÙNG LỊCH  QUY TRÌNH 4 BƯỚC ĐỘC LẬP 
+  // BOOKING WIZARD ĐẶT LỊCH CHỐNG TRÙNG LỊCH  QUY TRÌNH 4 BƯỚC ĐỘC LẬP 
   // -----------------------------------------------------------------------
   bookingStep: 1, // 1: Dịch vụ & Combo | 2: Stylist | 3: Ngày & Giờ | 4: Hóa đơn & Xác nhận
 
@@ -754,10 +749,10 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 7. GIỎ HÀNG  DRAWER WEB & BOTTOM SHEET MOBILE 
+  // GIỎ HÀNG  DRAWER WEB & BOTTOM SHEET MOBILE 
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
-  // 7. GIỎ HÀNG  DRAWER WEB & BOTTOM SHEET MOBILE  VỚI GIAO HÀNG & VOUCHER
+  // GIỎ HÀNG  DRAWER WEB & BOTTOM SHEET MOBILE  VỚI GIAO HÀNG & VOUCHER
   // -----------------------------------------------------------------------
   cartState: {
     deliveryType: 'PICKUP_BRANCH', // 'PICKUP_BRANCH' | 'DELIVERY'
@@ -1422,7 +1417,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 8. CHI TIẾT SẢN PHẨM & TIN TỨC MODAL
+  // CHI TIẾT SẢN PHẨM & TIN TỨC MODAL
   // -----------------------------------------------------------------------
   openProductDetailModal(productId) {
     if (typeof this.closeGlobalModal === 'function') {
@@ -1495,7 +1490,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 9. MODAL ĐĂNG NHẬP / TÀI KHOẢN  ROLE SWITCHER 5 VAI TRÒ & TAB ĐĂNG KÝ 
+  // MODAL ĐĂNG NHẬP / TÀI KHOẢN  ROLE SWITCHER 5 VAI TRÒ & TAB ĐĂNG KÝ 
   // -----------------------------------------------------------------------
   authTab: 'login',
 
@@ -1655,7 +1650,7 @@ const UICommon = {
     let res = null;
     let liveAttempted = false;
 
-    // 1. Ưu tiên xác thực trực tiếp qua Backend API / SQL Server (Nguồn chân lý)
+    // Ưu tiên xác thực trực tiếp qua Backend API / SQL Server (Nguồn chân lý)
     try {
       const apiRes = await fetch('/api/auth/login', {
         method: 'POST',
@@ -1694,7 +1689,7 @@ const UICommon = {
       console.warn('[handleLogin] Không thể kết nối live API, fallback chế độ offline:', e.message);
     }
 
-    // 2. Chỉ fallback qua AuthEngine / store local nếu server backend hoàn toàn không kết nối được
+    // Chỉ fallback qua AuthEngine / store local nếu server backend hoàn toàn không kết nối được
     if (!res || !res.success) {
       if (!liveAttempted) {
         if (window.AuthEngine && typeof window.AuthEngine.login === 'function') {
@@ -2175,7 +2170,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 10. AI PHOTO RESTYLE VISION STUDIO  KẾT NỐI API THẬT & ĐỔI ẢNH TÓC KHÁCH 
+  // AI PHOTO RESTYLE VISION STUDIO  KẾT NỐI API THẬT & ĐỔI ẢNH TÓC KHÁCH 
   // -----------------------------------------------------------------------
   aiState: {
     originalImage: null,
@@ -2625,7 +2620,7 @@ const UICommon = {
   },
 
   // -----------------------------------------------------------------------
-  // 11. TOAST NOTIFICATION VÀ TIỆN ÍCH MODAL
+  // TOAST NOTIFICATION VÀ TIỆN ÍCH MODAL
   // -----------------------------------------------------------------------
   openModal(html, type = '') {
     const modal = document.getElementById('globalModal');

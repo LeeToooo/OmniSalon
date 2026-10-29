@@ -8,7 +8,7 @@
 (function (window) {
   'use strict';
 
-  // 1. Anti-Glare & Anti-AI Palette Tokens
+  // Anti-Glare & Anti-AI Palette Tokens
   const THEME_TOKENS = Object.freeze({
     bg: '#0A0A0B',              // bg-zinc-950 (Không chói, đen tuyền dịu mắt)
     card: '#121214',            // bg-zinc-900/90
@@ -22,7 +22,7 @@
     textSecondary: '#A1A1AA',   // text-zinc-400
     textMuted: '#71717A',       // text-zinc-500
     
-    // Accent Colors (Quy tắc 80/15/5 — Chỉ nổi bật Primary CTA)
+    // Accent Colors
     primaryCta: '#D97706',      // bg-amber-600
     primaryCtaHover: '#F59E0B', // bg-amber-500
     primaryCtaText: '#09090B',  // text-zinc-950 font-medium
@@ -42,7 +42,7 @@
     statusClosed: '#71717A'
   });
 
-  // 2. Danh mục quận / huyện chính thức để phân nhóm layout chi nhánh
+  // Danh mục quận / huyện chính thức để phân nhóm layout chi nhánh
   const BRANCH_DISTRICTS = Object.freeze([
     'Tất Cả',
     'Quận 1',
@@ -55,7 +55,7 @@
     'TP. Thủ Đức'
   ]);
 
-  // 3. Hệ thống Lucide SVG Icons chuẩn nét mảnh (strokeWidth=1.5, size 16-18px)
+  // Hệ thống Lucide SVG Icons chuẩn nét mảnh
   const LUCIDE_ICONS = Object.freeze({
     mapPin: (size = 16, cls = '') => `
       <svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

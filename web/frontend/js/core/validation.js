@@ -9,7 +9,7 @@
 (function (window) {
   'use strict';
 
-  // ── 1. TIỆN ÍCH VALIDATION CƠ BẢN ──
+  // 1. TIỆN ÍCH VALIDATION CƠ BẢN
   const ValidationUtils = {
     isNonEmptyString(val) {
       return typeof val === 'string' && val.trim().length > 0;
@@ -53,7 +53,7 @@
     }
   };
 
-  // ── 2. SCHEMA DEFINITIONS (ZOD-EQUIVALENT RUNTIME VALIDATORS) ──
+  // 2. SCHEMA DEFINITIONS
   const SalonSchemas = {
     /**
      * Validate dữ liệu đặt lịch hẹn (Booking Input & Payload)
@@ -85,7 +85,7 @@
         errors.push('Khung giờ hẹn không đúng định dạng HH:mm.');
       }
 
-      // KIỂM TRA THỜI GIAN THỰC (REAL-TIME PAST CHECK)
+      // KIỂM TRA THỜI GIAN THỰC
       const todayIso = ValidationUtils.getTodayIso();
       const currentMin = ValidationUtils.getCurrentMinutes();
       const slotMin = ValidationUtils.timeToMinutes(input.timeSlot);
@@ -165,7 +165,7 @@
     }
   };
 
-  // ── 3. SKELETON UI LOADERS (LOẠI BỎ SPINNER TRÒN GENERIC AI) ──
+  // 3. SKELETON UI LOADERS
   const SkeletonUI = {
     renderCardSkeleton(count = 4) {
       return Array.from({ length: count }, () => `

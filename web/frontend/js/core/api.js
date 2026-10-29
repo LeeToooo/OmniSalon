@@ -1,8 +1,8 @@
-// =========================================================================
+﻿// =========================================================================
 // OmniSalon / Omni Salon — CORE RESTFUL API LAYER
-// Phiên bản: 2.2.0 Clean Architecture & Ponytail Optimized
-// (7 Nhóm API Contracts: Auth, Branches, Services, Bookings, Products, AI, Reports)
-// Tuân thủ: docs/analysis.md (Mục 4) & docs/file_plan.json (TASK-04-CORE-API)
+// Phiên bản: 2.2.0 Clean Architecture 
+//
+// Hỗ trợ kết nối API trực tiếp
 // =========================================================================
 
 (function (window) {
@@ -22,7 +22,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // HTTP CLIENT HELPER (TỰ ĐỘNG GẮN JWT BEARER TOKEN & XỬ LÝ LỖI)
+    // HTTP CLIENT HELPER
     // -----------------------------------------------------------------------
     _getHeaders(customHeaders = {}) {
       const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function')
@@ -599,7 +599,7 @@
       const storedKey = (typeof localStorage !== 'undefined' && localStorage.getItem('omni_gemini_api_key')) || '';
       const effectiveKey = (geminiApiKey || storedKey || '').trim();
 
-      // 1. Gọi Backend Real AI Vision Engine (MediaPipe 3D Landmark Warping + Poisson Seamless Blend)
+      // Gọi Backend Real AI Vision Engine (MediaPipe 3D Landmark Warping + Poisson Seamless Blend)
       let backendRes = null;
       try {
         backendRes = await this._fetch('/ai/restyle-hair', {
@@ -619,7 +619,7 @@
         console.warn('[SalonApi] Backend /api/ai/restyle-hair note:', backendErr.message);
       }
 
-      // 2. Nhận kết quả ảnh thật 100% từ backend AI Vision
+      // Nhận kết quả ảnh thật 100% từ backend AI Vision
       const finalImage = (backendRes && backendRes.resultImageUrl) ? backendRes.resultImageUrl : null;
 
       if (!finalImage) {
@@ -816,7 +816,7 @@
     // MODULE 8: WAREHOUSE, SUPPLIERS, RULES, INVOICES & NOTIFICATIONS
     // (Đồng bộ 100% CSDL QL_SALON.sql)
     // -----------------------------------------------------------------------
-    // 8.1. Nhà Cung Cấp (NhaCungCap)
+    // Nhà Cung Cấp (NhaCungCap)
     async getSuppliers() {
       const live = await this._request('/suppliers');
       if (live) return live;
@@ -838,7 +838,7 @@
       return await this._request(`/suppliers/${supplierId}`, { method: 'DELETE' });
     },
 
-    // 8.2. Quy Tắc Giảm Giá Cận Hạn (QuyTacGiamGiaTheoHan)
+    // Quy Tắc Giảm Giá Cận Hạn (QuyTacGiamGiaTheoHan)
     async getDiscountRules() {
       const live = await this._request('/inventory/discount-rules');
       if (live) return live;
@@ -855,7 +855,7 @@
       return await this._request(`/inventory/discount-rules/${ruleId}`, { method: 'DELETE' });
     },
 
-    // 8.3. Phiếu Nhập Kho (PhieuNhapKho & ChiTietPhieuNhap)
+    // Phiếu Nhập Kho (PhieuNhapKho & ChiTietPhieuNhap)
     async getReceipts(branchId = null) {
       const endpoint = branchId ? `/inventory/receipts?branch_id=${branchId}` : '/inventory/receipts';
       const live = await this._request(endpoint);
@@ -880,7 +880,7 @@
       });
     },
 
-    // 8.4. Hóa Đơn & Lịch Sử Giao Dịch (HoaDon, ChiTietHoaDon_DichVu, ChiTietHoaDon_SanPham, ThanhToan)
+    // Hóa Đơn & Lịch Sử Giao Dịch (HoaDon, ChiTietHoaDon_DichVu, ChiTietHoaDon_SanPham, ThanhToan)
     async getInvoices(branchId = null) {
       const endpoint = branchId ? `/invoices?branch_id=${branchId}` : '/invoices';
       const live = await this._request(endpoint);
@@ -898,7 +898,7 @@
       return window.SalonStore ? window.SalonStore.getPayments() : [];
     },
 
-    // 8.5. Views FEFO & Cảnh Báo Tồn Thấp (vw_GiaBanTheoLoHienTai, vw_SanPhamCanhBaoTonThap)
+    // Views FEFO & Cảnh Báo Tồn Thấp (vw_GiaBanTheoLoHienTai, vw_SanPhamCanhBaoTonThap)
     async getFefoLots(branchId = null) {
       const endpoint = branchId ? `/inventory/lots?branch_id=${branchId}` : '/inventory/lots';
       const live = await this._request(endpoint);
@@ -912,7 +912,7 @@
       return window.SalonStore ? window.SalonStore.getLowStockWarnings() : [];
     },
 
-    // 8.6. Danh Mục Sản Phẩm (DanhMucSanPham)
+    // Danh Mục Sản Phẩm (DanhMucSanPham)
     async getCategories() {
       const live = await this._request('/categories');
       if (live) return live;
@@ -934,7 +934,7 @@
       return await this._request(`/categories/${categoryId}`, { method: 'DELETE' });
     },
 
-    // 8.7. Khuyến Mãi (KhuyenMai, KhuyenMai_DichVu, KhuyenMai_SanPham)
+    // Khuyến Mãi (KhuyenMai, KhuyenMai_DichVu, KhuyenMai_SanPham)
     async getPromotions() {
       const live = await this._request('/promotions');
       if (live) return live;
@@ -951,7 +951,7 @@
       return await this._request(`/promotions/${promoId}`, { method: 'DELETE' });
     },
 
-    // 8.8. Thông Báo Hệ Thống (ThongBao)
+    // Thông Báo Hệ Thống (ThongBao)
     async getNotifications(userId = null) {
       const live = await this._request('/notifications');
       if (live) return live;

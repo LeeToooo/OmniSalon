@@ -1,6 +1,6 @@
-// =========================================================================
+﻿// =========================================================================
 // OmniSalon / Omni Salon — CORE REACTIVE STORE MODULE
-// Phiên bản: 2.2.0 Clean Architecture & Ponytail Optimized
+// Phiên bản: 2.2.0 Clean Architecture 
 // (State Engine, Quản lý Combos, Tồn kho Chi Nhánh, Anti-Double Booking, POS)
 // =========================================================================
 
@@ -19,7 +19,7 @@
     }
 
     initLiveSync() {
-      // 1. Kênh BroadcastChannel đồng bộ tức thì giữa các tab Web PC và Web Mobile
+      // Kênh BroadcastChannel đồng bộ tức thì giữa các tab Web PC và Web Mobile
       if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
         try {
           this.syncChannel = new BroadcastChannel('omni_salon_live_sync');
@@ -35,7 +35,7 @@
         } catch (_) { }
       }
 
-      // 2. Tự động đồng bộ Live Server SQL định kỳ 2 giây 1 lần
+      // Tự động đồng bộ Live Server SQL định kỳ 2 giây 1 lần
       if (typeof window !== 'undefined') {
         this.syncWithLiveServer();
         setInterval(() => this.syncWithLiveServer(), 2000);
@@ -50,7 +50,7 @@
         const db = await res.json();
         let changed = false;
 
-        // 1. Đồng bộ Chi Nhánh từ SQL
+        // Đồng bộ Chi Nhánh từ SQL
         if (Array.isArray(db.branches) && db.branches.length > 0) {
           if (!this.state.branches || JSON.stringify(this.state.branches) !== JSON.stringify(db.branches)) {
             this.state.branches = db.branches;
@@ -58,7 +58,7 @@
           }
         }
 
-        // 2. Đồng bộ Sản Phẩm từ SQL
+        // Đồng bộ Sản Phẩm từ SQL
         if (Array.isArray(db.products) && db.products.length > 0) {
           if (!this.state.products || JSON.stringify(this.state.products) !== JSON.stringify(db.products)) {
             this.state.products = db.products;
@@ -66,7 +66,7 @@
           }
         }
 
-        // 3. Đồng bộ Danh Mục Sản Phẩm từ SQL
+        // Đồng bộ Danh Mục Sản Phẩm từ SQL
         if (Array.isArray(db.categories) && db.categories.length > 0) {
           if (!this.state.categories || JSON.stringify(this.state.categories) !== JSON.stringify(db.categories)) {
             this.state.categories = db.categories;
@@ -74,7 +74,7 @@
           }
         }
 
-        // 4. Đồng bộ Dịch Vụ từ SQL
+        // Đồng bộ Dịch Vụ từ SQL
         if (Array.isArray(db.services) && db.services.length > 0) {
           if (!this.state.services || JSON.stringify(this.state.services) !== JSON.stringify(db.services)) {
             this.state.services = db.services;
@@ -82,7 +82,7 @@
           }
         }
 
-        // 5. Đồng bộ Nhân Viên / Stylists từ SQL
+        // Đồng bộ Nhân Viên / Stylists từ SQL
         if (Array.isArray(db.stylists) && db.stylists.length > 0) {
           if (!this.state.stylists || JSON.stringify(this.state.stylists) !== JSON.stringify(db.stylists)) {
             this.state.stylists = db.stylists;
@@ -90,7 +90,7 @@
           }
         }
 
-        // 6. Đồng bộ danh sách đặt lịch từ SQL
+        // Đồng bộ danh sách đặt lịch từ SQL
         if (Array.isArray(db.bookings) && db.bookings.length > 0) {
           const currentMap = new Map((this.state.bookings || []).map(b => [
             (b.id || b.MaLichHen || b.bookingCode || '').toString().toLowerCase(),
@@ -113,7 +113,7 @@
           }
         }
 
-        // 7. Đồng bộ danh sách đơn hàng từ SQL
+        // Đồng bộ danh sách đơn hàng từ SQL
         if (Array.isArray(db.orders) && db.orders.length > 0) {
           const currentOrderMap = new Map((this.state.orders || []).map(o => [o.id || o.orderCode, o]));
           for (const serverOrder of db.orders) {
@@ -126,7 +126,7 @@
           }
         }
 
-        // 8. Đồng bộ Combos từ SQL
+        // Đồng bộ Combos từ SQL
         if (Array.isArray(db.combos) && db.combos.length > 0) {
           if (!this.state.combos || JSON.stringify(this.state.combos) !== JSON.stringify(db.combos)) {
             this.state.combos = db.combos;
@@ -134,7 +134,7 @@
           }
         }
 
-        // 9. Đồng bộ Tài khoản Người dùng từ SQL
+        // Đồng bộ Tài khoản Người dùng từ SQL
         if (Array.isArray(db.users) && db.users.length > 0) {
           if (!this.state.users || JSON.stringify(this.state.users) !== JSON.stringify(db.users)) {
             this.state.users = db.users;
@@ -142,7 +142,7 @@
           }
         }
 
-        // 10. Đồng bộ Khuyến mãi & Đánh giá từ SQL
+        // Đồng bộ Khuyến mãi & Đánh giá từ SQL
         if (Array.isArray(db.promotions) && db.promotions.length > 0) {
           if (!this.state.promotions || JSON.stringify(this.state.promotions) !== JSON.stringify(db.promotions)) {
             this.state.promotions = db.promotions;
@@ -156,7 +156,7 @@
           }
         }
 
-        // 11. Đồng bộ Nhà Cung Cấp từ SQL (NhaCungCap)
+        // Đồng bộ Nhà Cung Cấp từ SQL (NhaCungCap)
         if (Array.isArray(db.suppliers) && db.suppliers.length > 0) {
           if (!this.state.suppliers || JSON.stringify(this.state.suppliers) !== JSON.stringify(db.suppliers)) {
             this.state.suppliers = db.suppliers;
@@ -164,7 +164,7 @@
           }
         }
 
-        // 12. Đồng bộ Quy Tắc Giảm Giá Cận Hạn từ SQL (QuyTacGiamGiaTheoHan)
+        // Đồng bộ Quy Tắc Giảm Giá Cận Hạn từ SQL (QuyTacGiamGiaTheoHan)
         if (Array.isArray(db.discountRules) && db.discountRules.length > 0) {
           if (!this.state.discountRules || JSON.stringify(this.state.discountRules) !== JSON.stringify(db.discountRules)) {
             this.state.discountRules = db.discountRules;
@@ -172,7 +172,7 @@
           }
         }
 
-        // 13. Đồng bộ Phiếu Nhập Kho từ SQL (PhieuNhapKho & ChiTietPhieuNhap)
+        // Đồng bộ Phiếu Nhập Kho từ SQL (PhieuNhapKho & ChiTietPhieuNhap)
         if (Array.isArray(db.receipts)) {
           if (!this.state.receipts || JSON.stringify(this.state.receipts) !== JSON.stringify(db.receipts)) {
             this.state.receipts = db.receipts;
@@ -180,7 +180,7 @@
           }
         }
 
-        // 14. Đồng bộ Hóa Đơn & Thanh Toán từ SQL (HoaDon, ThanhToan)
+        // Đồng bộ Hóa Đơn & Thanh Toán từ SQL (HoaDon, ThanhToan)
         if (Array.isArray(db.invoices)) {
           if (!this.state.invoices || JSON.stringify(this.state.invoices) !== JSON.stringify(db.invoices)) {
             this.state.invoices = db.invoices;
@@ -194,7 +194,7 @@
           }
         }
 
-        // 15. Đồng bộ Lô Hàng FEFO (vw_GiaBanTheoLoHienTai) & Cảnh Báo Tồn Thấp (vw_SanPhamCanhBaoTonThap)
+        // Đồng bộ Lô Hàng FEFO (vw_GiaBanTheoLoHienTai) & Cảnh Báo Tồn Thấp (vw_SanPhamCanhBaoTonThap)
         if (Array.isArray(db.fefoLots)) {
           if (!this.state.fefoLots || JSON.stringify(this.state.fefoLots) !== JSON.stringify(db.fefoLots)) {
             this.state.fefoLots = db.fefoLots;
@@ -208,7 +208,7 @@
           }
         }
 
-        // 16. Đồng bộ Thông Báo & Ca Làm Việc từ SQL (ThongBao, CaLamViec, TonKho)
+        // Đồng bộ Thông Báo & Ca Làm Việc từ SQL (ThongBao, CaLamViec, TonKho)
         if (Array.isArray(db.notifications)) {
           if (!this.state.notifications || JSON.stringify(this.state.notifications) !== JSON.stringify(db.notifications)) {
             this.state.notifications = db.notifications;
@@ -909,7 +909,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 1. CHI NHÁNH & ĐỊA ĐIỂM
+    // CHI NHÁNH & ĐỊA ĐIỂM
     // -----------------------------------------------------------------------
     getBranches() {
       return this.state.branches || [];
@@ -1001,7 +1001,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 2. NGƯỜI DÙNG & PHIÊN ĐĂNG NHẬP (ĐỒNG BỘ AUTHENGINE)
+    // NGƯỜI DÙNG & PHIÊN ĐĂNG NHẬP (ĐỒNG BỘ AUTHENGINE)
     // -----------------------------------------------------------------------
     getCurrentUser() {
       let user = null;
@@ -1025,7 +1025,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 3. DỊCH VỤ & GÓI COMBO VIP (CRUD COMBOS)
+    // DỊCH VỤ & GÓI COMBO VIP (CRUD COMBOS)
     // -----------------------------------------------------------------------
     getServices(category = null) {
       const list = this.state.services || [];
@@ -1204,7 +1204,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 4. THỢ CẮT TÓC & ĐIỀU PHỐI CA (THỢ CHÍNH, THỢ PHỤ, QUẢN LÝ)
+    // THỢ CẮT TÓC & ĐIỀU PHỐI CA (THỢ CHÍNH, THỢ PHỤ, QUẢN LÝ)
     // -----------------------------------------------------------------------
     getStylists(branchId = null, includeAllStaff = false) {
       const list = (this.state.stylists || []).filter(s => {
@@ -1310,7 +1310,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 5. ĐẶT LỊCH & CHỐNG TRÙNG LỊCH (ANTI-DOUBLE BOOKING WITH FLEXIBLE DURATION)
+    // ĐẶT LỊCH & CHỐNG TRÙNG LỊCH (ANTI-DOUBLE BOOKING WITH FLEXIBLE DURATION)
     // -----------------------------------------------------------------------
     _timeToMinutes(timeStr) {
       if (!timeStr || !timeStr.includes(':')) return 0;
@@ -1336,7 +1336,7 @@
       const currentMinutes = this._getCurrentMinutes();
       const startMin = this._timeToMinutes(timeSlot);
 
-      // 1. Kiểm tra thời gian thực (Real-time Past Check):
+      // Kiểm tra thời gian thực (Real-time Past Check):
       // Tuyệt đối không cho chọn giờ đã trôi qua trong ngày hôm nay hoặc các ngày trong quá khứ!
       if (date < todayIso) {
         return false;
@@ -1631,7 +1631,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 6. QUẢN LÝ TỒN KHO CHI NHÁNH & TRỪ KHO NGUYÊN TỬ (ATOMIC STOCK)
+    // QUẢN LÝ TỒN KHO CHI NHÁNH & TRỪ KHO NGUYÊN TỬ (ATOMIC STOCK)
     // -----------------------------------------------------------------------
     getBranchInventory(branchId = null) {
       const bId = (!branchId || branchId === 'all') ? null : branchId;
@@ -1912,7 +1912,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 7. GIỎ HÀNG & ĐƠN HÀNG ONLINE / QUẦY POS (ATOMIC CHECKOUT)
+    // GIỎ HÀNG & ĐƠN HÀNG ONLINE / QUẦY POS (ATOMIC CHECKOUT)
     // -----------------------------------------------------------------------
     getCategories() {
       return this.state.categories || [];
@@ -2733,7 +2733,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 8. BÁO CÁO THỐNG KÊ DOANH THU & HOA HỒNG THỢ
+    // BÁO CÁO THỐNG KÊ DOANH THU & HOA HỒNG THỢ
     // -----------------------------------------------------------------------
     getRevenueAnalytics(branchId = null) {
       const bId = (branchId && branchId !== 'all') ? branchId : null;
@@ -2935,7 +2935,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 9. THÔNG BÁO & AUDIT TRAIL
+    // THÔNG BÁO & AUDIT TRAIL
     // -----------------------------------------------------------------------
     getNotifications(userId = null) {
       const list = this.state.notifications || [];
@@ -2976,7 +2976,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // 10. CONTENT & MEDIA QUERIES (ARTICLES, MOMENTS, COLLABS, HAIRSTYLES)
+    // CONTENT & MEDIA QUERIES (ARTICLES, MOMENTS, COLLABS, HAIRSTYLES)
     // -----------------------------------------------------------------------
     getNewsArticles() {
       return this.state.newsArticles || [];

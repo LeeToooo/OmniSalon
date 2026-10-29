@@ -1,15 +1,10 @@
-// =========================================================================
-// Omni Salon — BRANCH CARD ATOMIC COMPONENT (Product Design Standard)
-// Kiến trúc Clean Architecture: Tách rời UI, Micro-interactions & State
-// Bố cục Thực Tế: Giờ mở cửa cụ thể, Nút chỉ đường Google Maps, CTA phẳng
-// =========================================================================
-
+// Thẻ hiển thị thông tin từng chi nhánh
 (function (window) {
   'use strict';
 
   const BranchCard = {
     // ---------------------------------------------------------------------
-    // 1. CHUẨN HOÁ TRẠNG THÁI MỞ CỬA THEO THỜI GIAN THỰC (Real-time Hours)
+    // CHUẨN HOÁ TRẠNG THÁI MỞ CỬA THEO THỜI GIAN THỰC
     // ---------------------------------------------------------------------
     getOperatingStatus(hoursString) {
       // Mặc định: 08:30 - 21:30
@@ -57,7 +52,7 @@
     },
 
     // ---------------------------------------------------------------------
-    // 2. CHUẨN HOÁ DỮ LIỆU ĐẦU VÀO (Data Normalizer & Schema Safety)
+    // CHUẨN HOÁ DỮ LIỆU ĐẦU VÀO
     // ---------------------------------------------------------------------
     normalize(b) {
       if (!b) return null;
@@ -119,7 +114,7 @@
     },
 
     // ---------------------------------------------------------------------
-    // 3. RENDER BRANCH CARD (Clean Store Card — Flat CTA, No Glow)
+    // RENDER BRANCH CARD
     // ---------------------------------------------------------------------
     render(rawBranch, options = {}) {
       const data = this.normalize(rawBranch);
@@ -155,9 +150,7 @@
           <!-- NỘI DUNG CHI TIẾT CHI NHÁNH -->
           <div class="branch-content-body">
             <div>
-              <div class="branch-eyebrow-row">
-                <span class="branch-sub-label">${data.subtitle}</span>
-              </div>
+              
 
               <h3 class="branch-name-title font-serif tracking-tight leading-tight" title="${data.shortName}">
                 ${data.shortName}
@@ -211,7 +204,6 @@
 
               <button type="button"
                       class="branch-book-btn"
-                      style="display: inline-flex; align-items: center; gap: 6px; background: #C59B27; color: #141413; font-weight: 700; border-radius: 6px; border: none; padding: 8px 14px; cursor: pointer;"
                       onclick="${onBookClick}">
                 <span>Đặt Lịch</span>
                 <span>→</span>
@@ -225,18 +217,14 @@
     },
 
     // ---------------------------------------------------------------------
-    // 4. SKELETON LOADING STATE (Khớp 100% kích thước của Card Chi Nhánh)
+    // SKELETON LOADING STATE (Khớp 100% kích thước của Card Chi Nhánh)
     // ---------------------------------------------------------------------
     renderSkeleton(count = 3) {
       const items = Array.from({ length: count });
       return items.map(() => `
         <div class="branch-clean-card skeleton-card" aria-hidden="true">
-          <div class="branch-media-box skeleton-box" style="height: 190px;"></div>
+          <div class="branch-media-box skeleton-box" style="aspect-ratio: 16 / 10; height: auto;"></div>
           <div class="branch-content-body" style="gap: 12px;">
-            <div style="display: flex; justify-content: space-between;">
-              <div class="skeleton-box" style="width: 80px; height: 14px; border-radius: 4px;"></div>
-              <div class="skeleton-box" style="width: 70px; height: 14px; border-radius: 4px;"></div>
-            </div>
             <div class="skeleton-box" style="width: 80%; height: 22px; border-radius: 4px;"></div>
             <div style="display: flex; flex-direction: column; gap: 8px; margin: 8px 0 16px;">
               <div class="skeleton-box" style="width: 95%; height: 14px; border-radius: 4px;"></div>
@@ -244,8 +232,8 @@
               <div class="skeleton-box" style="width: 50%; height: 14px; border-radius: 4px;"></div>
             </div>
             <div class="branch-actions-row">
-              <div class="skeleton-box" style="width: 105px; height: 42px; border-radius: 8px;"></div>
-              <div class="skeleton-box" style="flex: 1; height: 42px; border-radius: 8px;"></div>
+              <div class="skeleton-box" style="height: 42px; border-radius: 8px;"></div>
+              <div class="skeleton-box" style="height: 42px; border-radius: 8px;"></div>
             </div>
           </div>
         </div>
@@ -253,7 +241,7 @@
     },
 
     // ---------------------------------------------------------------------
-    // 5. EMPTY STATE
+    // EMPTY STATE
     // ---------------------------------------------------------------------
     renderEmptyState(options = {}) {
       const {

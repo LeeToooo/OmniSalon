@@ -1,4 +1,4 @@
-import '../services/api_service.dart';
+import 'package:omni_salon_mobile/core/api/api_service.dart';
 
 class OrderItem {
   final String productId;
@@ -49,6 +49,8 @@ class SalonOrder {
   final String id;
   final String orderCode;
   final String? userId;
+  final String? branchId;
+  final String? branchName;
   final String customerName;
   final String customerPhone;
   final String shippingAddress;
@@ -65,6 +67,8 @@ class SalonOrder {
     required this.id,
     required this.orderCode,
     this.userId,
+    this.branchId,
+    this.branchName,
     required this.customerName,
     required this.customerPhone,
     required this.shippingAddress,
@@ -95,6 +99,8 @@ class SalonOrder {
       id: json['id'] ?? json['MaDonHang'] ?? '',
       orderCode: json['orderCode'] ?? json['MaDonHang'] ?? json['id'] ?? 'DH01',
       userId: json['userId']?.toString() ?? json['MaKhachHang']?.toString(),
+      branchId: json['branchId'] ?? json['MaChiNhanh'] ?? 'CN01',
+      branchName: json['branchName'] ?? json['TenChiNhanh'] ?? 'Omni Salon Chi Nhánh',
       customerName: json['customerName'] ?? json['TenKhachHang'] ?? 'Khách Hàng',
       customerPhone: json['customerPhone'] ?? json['SdtKhachHang'] ?? json['SoDienThoai'] ?? '',
       shippingAddress: json['shippingAddress'] ?? json['DiaChiGiaoHang'] ?? json['DiaChiGiao'] ?? 'Nhận tại quầy',
@@ -114,6 +120,8 @@ class SalonOrder {
       'id': id,
       'orderCode': orderCode,
       'userId': userId,
+      'branchId': branchId ?? 'CN01',
+      'branchName': branchName ?? 'Omni Salon Chi Nhánh',
       'customerName': customerName,
       'customerPhone': customerPhone,
       'shippingAddress': shippingAddress,

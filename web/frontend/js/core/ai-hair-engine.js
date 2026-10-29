@@ -118,7 +118,7 @@
       }
     },
 
-    // 1. LẤY / LƯU CẤU HÌNH CLOUD AI
+    // LẤY / LƯU CẤU HÌNH CLOUD AI
     getCloudConfig() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY_CLOUD_CONFIG);
@@ -142,7 +142,7 @@
       }
     },
 
-    // 2. PHÂN TÍCH KHUÔN MẶT TRỰC TIẾP TRÊN ẢNH NGƯỜI DÙNG (Native Computer Vision)
+    // PHÂN TÍCH KHUÔN MẶT TRỰC TIẾP TRÊN ẢNH NGƯỜI DÙNG
     detectFaceGeometry(ctx, width, height) {
       let data;
       try {
@@ -166,7 +166,7 @@
       let minY = height, maxY = 0;
       let totalSkinPixels = 0;
 
-      // Quét trong vùng trọng tâm khuôn mặt (loại bỏ viền ngoài bức ảnh)
+      // Quét trong vùng trọng tâm khuôn mặt
       const startY = Math.floor(height * 0.1);
       const endY = Math.floor(height * 0.85);
       const startX = Math.floor(width * 0.15);
@@ -179,7 +179,7 @@
           const g = data[idx + 1];
           const b = data[idx + 2];
 
-          // Điều kiện nhận diện màu da người Á Đông (RGB & YCbCr)
+          // Điều kiện nhận diện màu da người Á Đông
           const isSkin = (r > 60 && g > 40 && b > 20 &&
             (r - g) > 10 && (r - b) > 10 &&
             r > g && g >= b &&
@@ -195,7 +195,7 @@
         }
       }
 
-      // Nếu không tìm thấy đủ điểm ảnh da (ảnh tối hoặc quá khác biệt), sử dụng tỷ lệ vàng mặc định
+      // Nếu không tìm thấy đủ điểm ảnh da, sử dụng tỷ lệ vàng mặc định
       if (totalSkinPixels < 400 || maxX <= minX || maxY <= minY) {
         return {
           faceX: width * 0.22,
@@ -225,7 +225,7 @@
       };
     },
 
-    // 2.5. PHÂN TÍCH NGŨ QUAN THẬT (AI FACE & UNDERTONE DIAGNOSTIC)
+    // PHÂN TÍCH NGŨ QUAN THẬT
     async analyzeFace(sourceImageOrUrl) {
       try {
         const srcStr = typeof sourceImageOrUrl === 'string' ? sourceImageOrUrl : (sourceImageOrUrl?.src || '');
@@ -247,7 +247,7 @@
       return null;
     },
 
-    // 2.8. CÂN BẰNG KHUÔN MẶT CHUẨN GEMINI AI (FACIAL FEATURE BALANCING)
+    // CÂN BẰNG KHUÔN MẶT CHUẨN GEMINI AI (FACIAL FEATURE BALANCING)
     // - Tự động cân bằng ánh sáng 2 bên mặt (triệt tiêu bóng đổ lệch)
     // - Làm mịn da tự nhiên chuẩn studio portrait, giữ mắt, mũi, môi sắc nét 100%
     // - Nâng sáng vùng chữ T và gò má (Radiant Facial Symmetry)
@@ -257,7 +257,7 @@
 
       ctx.save();
 
-      // 1. Cân bằng ánh sáng 2 bên gương mặt (Auto Lighting Balance)
+      // Cân bằng ánh sáng 2 bên gương mặt (Auto Lighting Balance)
       if (balanceLighting) {
         ctx.save();
         ctx.globalCompositeOperation = 'soft-light';
@@ -277,7 +277,7 @@
         ctx.restore();
       }
 
-      // 2. Làm mịn da & xóa khuyết điểm (Bilateral Skin Polish)
+      // Làm mịn da & xóa khuyết điểm (Bilateral Skin Polish)
       if (smoothSkin) {
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
@@ -311,7 +311,7 @@
       ctx.restore();
     },
 
-    // 3. TẠO PHOM TÓC THẬT TRÊN CANVAS CHO CHÍNH ẢNH CỦA KHÁCH
+    // TẠO PHOM TÓC THẬT TRÊN CANVAS CHO CHÍNH ẢNH CỦA KHÁCH
     async generateRestyledPortrait(sourceImageOrUrl, styleId = 'layer-korean', colorId = 'natural-black', options = {}) {
       const style = this.hairstyles[styleId] || this.hairstyles['layer-korean'];
       const color = this.hairColors[colorId] || this.hairColors['natural-black'];
@@ -339,7 +339,7 @@
         throw new Error('Dữ liệu ảnh không hợp lệ');
       }
 
-      // 0. Gọi Real AI Vision Backend (MediaPipe 3D Landmark Warping + Multiclass Hair Inpainting)
+      // Gọi Real AI Vision Backend (MediaPipe 3D Landmark Warping + Multiclass Hair Inpainting)
       try {
         let srcData = (typeof sourceImageOrUrl === 'string') ? sourceImageOrUrl : (imgElement.src || '');
         if (imgElement && imgElement.naturalWidth > 0 && (!srcData || !srcData.startsWith('data:image'))) {
@@ -377,7 +377,7 @@
       return (typeof sourceImageOrUrl === 'string') ? sourceImageOrUrl : (imgElement.src || '');
     },
 
-    // 3.5. DỰNG TÓC THẬT PHOTOREALISTIC TRÊN KHUÔN MẶT THẬT CỦA KHÁCH HÀNG
+    // DỰNG TÓC THẬT PHOTOREALISTIC TRÊN KHUÔN MẶT THẬT CỦA KHÁCH HÀNG
     async _drawPhotorealisticHairOverlay(ctx, geo, style, color, width, height) {
       const { centerX, foreheadY, crownY, faceWidth, faceHeight } = geo;
       const overlaySrc = style.overlayImg;
@@ -449,7 +449,7 @@
       ctx.restore();
     },
 
-    // 4. VẼ HÌNH HỌC PHOM TÓC THEO TỪNG KIỂU
+    // VẼ HÌNH HỌC PHOM TÓC THEO TỪNG KIỂU
     _drawHairstyleGeometry(ctx, geo, style, color, width, height) {
       const { centerX, foreheadY, crownY, faceWidth, faceHeight } = geo;
       const [r, g, b] = color.baseRgb;
@@ -544,7 +544,7 @@
       ctx.fill();
     },
 
-    // 5. VẼ CÁC SỢI TÓC CHI TIẾT & ÁNH SÁNG SPECULAR SHEEN
+    // VẼ CÁC SỢI TÓC CHI TIẾT & ÁNH SÁNG SPECULAR SHEEN
     _drawHairTextureStrands(ctx, geo, style, color) {
       const { centerX, foreheadY, crownY, faceWidth, faceHeight } = geo;
       const [hr, hg, hb] = color.highlightRgb;
@@ -594,7 +594,7 @@
       ctx.restore();
     },
 
-    // 6. GỌI CLOUD GENERATIVE AI KHI CÓ API KEY
+    // GỌI CLOUD GENERATIVE AI KHI CÓ API KEY
     async callCloudAiRestyle(sourceImageElement, style, color, config) {
       if (!config.apiKey) throw new Error('Chưa cung cấp API Key');
 
