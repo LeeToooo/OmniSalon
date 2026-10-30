@@ -153,25 +153,34 @@ async function main() {
 
   console.log(`[OK] Kết nối thành công tới SQL Server: ${masterConn.server} (Driver: ${masterConn.driver})`);
 
-  console.log(`[2/4] Đang kiểm tra cơ sở dữ liệu [${DB_NAME}]...`);
-  const checkDbQuery = `SELECT DB_ID('${DB_NAME}') AS db_id;`;
-  const dbRows = await queryPromise(masterConn.connStr, checkDbQuery);
-  const dbExists = dbRows && dbRows[0] && dbRows[0].db_id !== null;
+  console.log(`[2/4] Đang kiểm tra cơ sở dữ liệu [${DB_NAME}] hoặc [QL_SALON]...`);
+  const candidateDbs = [DB_NAME, 'QL_SALON', 'QL_SALONTOC'];
+  let existingDbName = null;
+  let existingTableCount = 0;
+
+  for (const cDb of candidateDbs) {
+    const checkDbQuery = `SELECT DB_ID('${cDb}') AS db_id;`;
+    const dbRows = await queryPromise(masterConn.connStr, checkDbQuery).catch(() => null);
+    if (dbRows && dbRows[0] && dbRows[0].db_id !== null) {
+      const testDbConn = await detectWorkingConnection(cDb);
+      if (testDbConn) {
+        const tblRows = await queryPromise(testDbConn.connStr, "SELECT COUNT(*) AS total FROM sys.tables WHERE is_ms_shipped = 0;").catch(() => null);
+        const count = tblRows && tblRows[0] ? tblRows[0].total : 0;
+        if (count >= 10) {
+          existingDbName = cDb;
+          existingTableCount = count;
+          break;
+        }
+      }
+    }
+  }
 
   const forceReset = process.argv.includes('--force') || process.argv.includes('--reset');
 
-  if (dbExists && !forceReset) {
-    // Check if tables already exist
-    const testDbConn = await detectWorkingConnection(DB_NAME);
-    if (testDbConn) {
-      const tblRows = await queryPromise(testDbConn.connStr, "SELECT COUNT(*) AS total FROM sys.tables WHERE is_ms_shipped = 0;");
-      const tableCount = tblRows && tblRows[0] ? tblRows[0].total : 0;
-      if (tableCount >= 10) {
-        console.log(`[OK] Cơ sở dữ liệu [${DB_NAME}] đã sẵn sàng với ${tableCount} bảng! Bỏ qua khởi tạo lại.`);
-        console.log('=========================================================================\n');
-        process.exit(0);
-      }
-    }
+  if (existingDbName && !forceReset) {
+    console.log(`[OK] Cơ sở dữ liệu [${existingDbName}] đã sẵn sàng với ${existingTableCount} bảng! Bỏ qua khởi tạo lại.`);
+    console.log('=========================================================================\n');
+    process.exit(0);
   }
 
   console.log(`[3/4] CSDL [${DB_NAME}] chưa khởi tạo hoặc được yêu cầu nạp lại. Bắt đầu import từ QL_SALON.sql...`);

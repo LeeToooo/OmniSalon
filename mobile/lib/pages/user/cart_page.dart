@@ -1,3 +1,5 @@
+import 'package:omni_salon_mobile/models/product.dart';
+import 'package:omni_salon_mobile/pages/user/shop_page.dart';
 import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:omni_salon_mobile/core/api/api_service.dart';
 import 'package:flutter/material.dart';
@@ -248,6 +250,7 @@ class _CartScreenState extends State<CartScreen> {
 
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
+    final address = _addressController.text.trim();
     if (name.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -258,10 +261,20 @@ class _CartScreenState extends State<CartScreen> {
       );
       return;
     }
+    if (address.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Vui lòng nhập địa chỉ nhận hàng!', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          backgroundColor: AppTheme.statusDanger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isCheckingOut = true);
 
-    // Không dùng timestamp random (DH057533...) mà để server/database sinh mã chuẩn DH01, DH02...
+    // Không dùng timestamp random, DH057533... mà để server/database sinh mã chuẩn DH01, DH02...
     final newOrder = SalonOrder(
       id: '',
       orderCode: '',
@@ -270,7 +283,7 @@ class _CartScreenState extends State<CartScreen> {
       branchName: MainScaffold.of(context)?.selectedBranch?.name ?? 'Omni Salon Flagship',
       customerName: name,
       customerPhone: phone,
-      shippingAddress: _addressController.text.trim().isEmpty ? 'Nhận tại quầy chi nhánh' : _addressController.text.trim(),
+      shippingAddress: address,
       items: List.from(widget.cart),
       totalAmount: _finalTotal,
       discountAmount: _discountAmount,
@@ -325,6 +338,42 @@ class _CartScreenState extends State<CartScreen> {
               style: AppTheme.bodySmall(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
+            if (_selectedPayment.contains('VietQR')) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceElevated,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
+                ),
+                child: Column(
+                  children: [
+                    Text('THANH TOÁN VIETQR 24/7', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=' + _finalTotal.toString() + '&addInfo=' + Uri.encodeComponent('DONHANG ' + orderCode) + '&accountName=OMNISALON%20ENTERPRISE',
+                        height: 170,
+                        width: 170,
+                        fit: BoxFit.contain,
+                        errorBuilder: (c, e, s) => Container(
+                          height: 100,
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.qr_code_2_rounded, size: 54, color: AppTheme.accentGold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('MB Bank: 0900000000', style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                    Text('Chủ TK: OMNISALON ENTERPRISE', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary)),
+                    Text('Nội dung: DONHANG ' + orderCode, style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
         actions: [
@@ -404,12 +453,30 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         child: Row(
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: SizedBox(
-                                width: 68,
-                                height: 68,
-                                child: EditorialImage(imageUrl: item.image, fit: BoxFit.cover),
+                            GestureDetector(
+                              onTap: () {
+                                ShopScreen.showProductDetailModal(
+                                  context,
+                                                                          product: Product(
+                                          id: item.productId,
+                                          name: item.name,
+                                          brand: 'OMNI SALON',
+                                          originalPrice: item.price,
+                                          actualPrice: item.price,
+                                          discountPercent: 0,
+                                          description: 'Sản phẩm chăm sóc và tạo kiểu tóc chuyên nghiệp chính hãng Omni Salon.',
+                                          image: item.image,
+                                          categoryId: 'DM01',
+                                        ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: SizedBox(
+                                  width: 68,
+                                  height: 68,
+                                  child: EditorialImage(imageUrl: item.image, fit: BoxFit.cover),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 14),
@@ -417,9 +484,66 @@ class _CartScreenState extends State<CartScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(item.name, style: AppTheme.bodyMedium(fontWeight: FontWeight.w700), maxLines: 1),
+                                  GestureDetector(
+                                    onTap: () {
+                                      ShopScreen.showProductDetailModal(
+                                        context,
+                                        product: Product(
+                                          id: item.productId,
+                                          name: item.name,
+                                          brand: 'OMNI SALON',
+                                          originalPrice: item.price,
+                                          actualPrice: item.price,
+                                          discountPercent: 0,
+                                          description: 'Sản phẩm chăm sóc và tạo kiểu tóc chuyên nghiệp chính hãng Omni Salon.',
+                                          image: item.image,
+                                          categoryId: 'DM01',
+                                        ),
+                                      );
+                                    },
+                                    child: Text(item.name, style: AppTheme.bodyMedium(fontWeight: FontWeight.w700), maxLines: 1),
+                                  ),
                                   const SizedBox(height: 3),
-                                  Text(currencyFormat.format(item.price), style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.accentGold)),
+                                  Row(
+                                    children: [
+                                      Text(currencyFormat.format(item.price), style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.accentGold)),
+                                      const SizedBox(width: 8),
+                                      GestureDetector(
+                                        onTap: () {
+                                          ShopScreen.showProductDetailModal(
+                                            context,
+                                                                                    product: Product(
+                                          id: item.productId,
+                                          name: item.name,
+                                          brand: 'OMNI SALON',
+                                          originalPrice: item.price,
+                                          actualPrice: item.price,
+                                          discountPercent: 0,
+                                          description: 'Sản phẩm chăm sóc và tạo kiểu tóc chuyên nghiệp chính hãng Omni Salon.',
+                                          image: item.image,
+                                          categoryId: 'DM01',
+                                        ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.accentGold.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(4),
+                                            border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.3)),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.camera_alt_outlined, size: 10, color: AppTheme.accentGold),
+                                              const SizedBox(width: 3),
+                                              Text('4 góc nhìn', style: AppTheme.labelUppercase(fontSize: 9, color: AppTheme.accentGold)),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                   const SizedBox(height: 6),
                                   Row(
                                     children: [
@@ -528,7 +652,7 @@ class _CartScreenState extends State<CartScreen> {
                       controller: _addressController,
                       style: AppTheme.bodyMedium(),
                       decoration: const InputDecoration(
-                        labelText: 'Địa chỉ nhận hàng (hoặc để trống nhận tại quầy)',
+                        labelText: 'Địa chỉ nhận hàng *',
                         prefixIcon: Icon(Icons.location_on_outlined, size: 20),
                       ),
                     ),

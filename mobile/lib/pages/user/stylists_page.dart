@@ -297,7 +297,7 @@ class _StylistsScreenState extends State<StylistsScreen> {
                   ),
                 ),
 
-                // Lưới thẻ Master Stylist (Chuẩn 100% web stylists-page.js)
+                // Lưới thẻ Master Stylist, Chuẩn 100% web stylists-page.js
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
                   sliver: SliverList(

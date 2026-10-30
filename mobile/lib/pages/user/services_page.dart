@@ -154,6 +154,70 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                   child: Text('ĐẶT LỊCH DỊCH VỤ NÀY NGAY (${currencyFormat.format(s.price)})'),
                 ),
               ),
+              const SizedBox(height: 18),
+              const Divider(color: AppTheme.borderColorSubtle),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('ĐÁNH GIÁ DỊCH VỤ', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
+                      const SizedBox(height: 2),
+                      const Row(
+                        children: [
+                          Icon(Icons.star_rounded, size: 15, color: Color(0xFFF59E0B)),
+                          SizedBox(width: 4),
+                          Text('5.0 / 5.0 (24 đánh giá)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppTheme.accentGold),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    ),
+                    icon: const Icon(Icons.rate_review_outlined, size: 15, color: AppTheme.accentGold),
+                    label: Text('Viết Đánh Giá', style: AppTheme.bodySmall(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.accentGold)),
+                    onPressed: () => _showWriteServiceReviewDialog(s),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceElevated,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.borderColorSubtle),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Lê Hoàng Nam', style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                        Text('Hôm qua', style: AppTheme.bodySmall(fontSize: 10.5, color: AppTheme.textMuted)),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    const Row(
+                      children: [
+                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text('Tay nghề thợ barber rất khéo, cắt fade mượt mà và massage da đầu thư giãn tuyệt vời!', style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textSecondary)),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -161,6 +225,79 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
     ),
   );
 }
+
+  void _showWriteServiceReviewDialog(SalonService s) {
+    final commentCtrl = TextEditingController();
+    int rating = 5;
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) => AlertDialog(
+          backgroundColor: AppTheme.surfaceCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          title: Text('Đánh Giá ' + s.name, style: AppTheme.headingSmall(fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Chọn số sao:', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) => GestureDetector(
+                  onTap: () => setDlgState(() => rating = index + 1),
+                  child: Icon(
+                    index < rating ? Icons.star_rounded : Icons.star_border_rounded,
+                    color: const Color(0xFFF59E0B),
+                    size: 32,
+                  ),
+                )),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: commentCtrl,
+                style: AppTheme.bodyMedium(),
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'Nhận xét về tay nghề thợ, thái độ phục vụ...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('HỦY BỎ'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final txt = commentCtrl.text.trim();
+                if (txt.isEmpty) return;
+                await ApiService.createReview({
+                  'serviceId': s.id,
+                  'rating': rating,
+                  'comment': txt,
+                  'customerName': 'Khách Hàng',
+                });
+                Navigator.of(ctx).pop();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Cảm ơn bạn! Đánh giá dịch vụ đã được ghi nhận.'),
+                      backgroundColor: AppTheme.statusSuccess,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              child: const Text('GỬI ĐÁNH GIÁ'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildStepItem(String num, String desc) {
     return Padding(

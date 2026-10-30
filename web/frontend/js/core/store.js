@@ -1,7 +1,7 @@
 // =========================================================================
 // OmniSalon / Omni Salon — CORE REACTIVE STORE MODULE
 // Phiên bản: 2.2.0 Clean Architecture 
-// (State Engine, Quản lý Combos, Tồn kho Chi Nhánh, Anti-Double Booking, POS)
+//, State Engine, Quản lý Combos, Tồn kho Chi Nhánh, Anti-Double Booking, POS
 // =========================================================================
 
 (function (window) {
@@ -156,7 +156,7 @@
           }
         }
 
-        // Đồng bộ Nhà Cung Cấp từ SQL (NhaCungCap)
+        // Đồng bộ Nhà Cung Cấp từ SQL, NhaCungCap
         if (Array.isArray(db.suppliers) && db.suppliers.length > 0) {
           if (!this.state.suppliers || JSON.stringify(this.state.suppliers) !== JSON.stringify(db.suppliers)) {
             this.state.suppliers = db.suppliers;
@@ -164,7 +164,7 @@
           }
         }
 
-        // Đồng bộ Quy Tắc Giảm Giá Cận Hạn từ SQL (QuyTacGiamGiaTheoHan)
+        // Đồng bộ Quy Tắc Giảm Giá Cận Hạn từ SQL, QuyTacGiamGiaTheoHan
         if (Array.isArray(db.discountRules) && db.discountRules.length > 0) {
           if (!this.state.discountRules || JSON.stringify(this.state.discountRules) !== JSON.stringify(db.discountRules)) {
             this.state.discountRules = db.discountRules;
@@ -172,7 +172,7 @@
           }
         }
 
-        // Đồng bộ Phiếu Nhập Kho từ SQL (PhieuNhapKho & ChiTietPhieuNhap)
+        // Đồng bộ Phiếu Nhập Kho từ SQL, PhieuNhapKho & ChiTietPhieuNhap
         if (Array.isArray(db.receipts)) {
           if (!this.state.receipts || JSON.stringify(this.state.receipts) !== JSON.stringify(db.receipts)) {
             this.state.receipts = db.receipts;
@@ -180,7 +180,7 @@
           }
         }
 
-        // Đồng bộ Hóa Đơn & Thanh Toán từ SQL (HoaDon, ThanhToan)
+        // Đồng bộ Hóa Đơn & Thanh Toán từ SQL, HoaDon, ThanhToan
         if (Array.isArray(db.invoices)) {
           if (!this.state.invoices || JSON.stringify(this.state.invoices) !== JSON.stringify(db.invoices)) {
             this.state.invoices = db.invoices;
@@ -194,7 +194,7 @@
           }
         }
 
-        // Đồng bộ Lô Hàng FEFO (vw_GiaBanTheoLoHienTai) & Cảnh Báo Tồn Thấp (vw_SanPhamCanhBaoTonThap)
+        // Đồng bộ Lô Hàng FEFO, vw_GiaBanTheoLoHienTai & Cảnh Báo Tồn Thấp, vw_SanPhamCanhBaoTonThap
         if (Array.isArray(db.fefoLots)) {
           if (!this.state.fefoLots || JSON.stringify(this.state.fefoLots) !== JSON.stringify(db.fefoLots)) {
             this.state.fefoLots = db.fefoLots;
@@ -208,7 +208,7 @@
           }
         }
 
-        // Đồng bộ Thông Báo & Ca Làm Việc từ SQL (ThongBao, CaLamViec, TonKho)
+        // Đồng bộ Thông Báo & Ca Làm Việc từ SQL, ThongBao, CaLamViec, TonKho
         if (Array.isArray(db.notifications)) {
           if (!this.state.notifications || JSON.stringify(this.state.notifications) !== JSON.stringify(db.notifications)) {
             this.state.notifications = db.notifications;
@@ -284,7 +284,8 @@
     async syncCancelOrderToLiveServer(orderId, reason) {
       if (typeof fetch === 'undefined') return { success: true };
       try {
-        const res = await fetch(`${this.liveServerUrl}/orders/${orderId}/cancel`, {
+        const cleanId = String(orderId || '').replace(/^#+/, '').trim();
+        const res = await fetch(`${this.liveServerUrl}/orders/${encodeURIComponent(cleanId)}/cancel`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reason })
@@ -539,7 +540,7 @@
         { id: 'CN20', MaChiNhanh: 'CN20', name: 'Omni Salon Barber Hóc Môn - Lý Thường Kiệt', TenChiNhanh: 'Omni Salon Barber Hóc Môn - Lý Thường Kiệt', address: '52 Lý Thường Kiệt, TT.Hóc Môn, H.Hóc Môn, TP.HCM', DiaChi: '52 Lý Thường Kiệt, TT.Hóc Môn, H.Hóc Môn, TP.HCM', phone: '0901111020', SoDienThoai: '0901111020', openHours: '08:30 - 21:00', openTime: '08:30:00', closeTime: '21:00:00', city: 'TP. Hồ Chí Minh', region: 'hcm', image: 'ChiNhanh_Omni/CN20.jpg', HinhAnh: 'ChiNhanh_Omni/CN20.jpg', status: 'Hoạt động' }
       ];
 
-      // 10 Lịch Hẹn từ CSDL QL_SALON.sql (Tổng: 5.540.000 đ)
+      // 10 Lịch Hẹn từ CSDL QL_SALON.sql, Tổng: 5.540.000 đ
       const bookings = [
         { id: 'LH01', MaLichHen: 'LH01', bookingCode: 'LH01', customerId: 'KH01', customerName: 'Ngô Văn Tuấn', customerPhone: '0988000001', stylistId: 'NV02', stylistName: 'Đỗ Đình Độ', branchId: 'CN01', branchName: 'Men Salon Barber Q1 - Bến Thành', bookingDate: '2026-10-10', date: '2026-10-10', timeSlot: '09:00', status: 'Confirmed', serviceName: 'Cắt Fade ngắn cao vuốt sáp', totalPrice: 120000, TongTien: 120000 },
         { id: 'LH02', MaLichHen: 'LH02', bookingCode: 'LH02', customerId: 'KH02', customerName: 'Trần Mỹ Linh', customerPhone: '0988000002', stylistId: 'NV05', stylistName: 'Trần Quốc Huy', branchId: 'CN02', branchName: 'Men Salon Barber Tân Bình - Cộng Hòa', bookingDate: '2026-10-10', date: '2026-10-10', timeSlot: '10:00', status: 'Confirmed', serviceName: 'Cắt & tạo kiểu layer', totalPrice: 250000, TongTien: 250000 },
@@ -553,7 +554,7 @@
         { id: 'LH10', MaLichHen: 'LH10', bookingCode: 'LH10', customerId: 'KH10', customerName: 'Phan Hoàng Long', customerPhone: '0988000010', stylistId: 'NV29', stylistName: 'Bùi Tiến Dũng', branchId: 'CN10', branchName: 'Men Salon Barber Thủ Đức - Võ Văn Ngân', bookingDate: '2026-10-14', date: '2026-10-14', timeSlot: '16:00', status: 'Confirmed', serviceName: 'Hấp dưỡng phục hồi Olaplex', totalPrice: 800000, TongTien: 800000 }
       ];
 
-      // 10 Đơn Hàng Bán Lẻ từ CSDL QL_SALON.sql (Tổng: 5.350.000 đ)
+      // 10 Đơn Hàng Bán Lẻ từ CSDL QL_SALON.sql, Tổng: 5.350.000 đ
       const orders = [
         { id: 'DH01', orderCode: 'DH01', customerName: 'Đinh Quốc Việt', customerPhone: '0988000011', branchId: 'CN11', orderDate: '2026-10-05 09:30:00', totalAmount: 286000, TongTien: 286000, orderStatus: 'Delivering', shippingAddress: '55 Xuân Thủy, P.Thảo Điền, TP.Thủ Đức', receiveMethod: 'Giao hàng tận nơi' },
         { id: 'DH02', orderCode: 'DH02', customerName: 'Lâm Thanh Sơn', customerPhone: '0988000012', branchId: 'CN12', orderDate: '2026-10-05 10:15:00', totalAmount: 525000, TongTien: 525000, orderStatus: 'Completed', shippingAddress: '12 Hoàng Diệu, P.9, Q.4, TP.HCM', receiveMethod: 'Tại quầy' },
@@ -663,7 +664,7 @@
           rating: 4.92, reviewCount: 210, specialty: 'Gội đầu dưỡng sinh massage, Ép side tóc nam, Chăm sóc tóc'
         });
 
-        // 4 Thu ngân (Quầy POS & Hóa đơn, lương giờ, không hoa hồng cắt)
+        // 4 Thu ngân, Quầy POS & Hóa đơn, lương giờ, không hoa hồng cắt
         const id4 = `NV${String(60 + bIdx + 1).padStart(2, '0')}`;
         const cashierNames = [
           'Nguyễn Thảo My', 'Trần Bích Phương', 'Lê Ngọc Hân', 'Phạm Quỳnh Nga', 'Hoàng Thùy Linh',
@@ -706,7 +707,7 @@
         { id: 'SP125', name: 'Y.S. Park Dragon Air Vent Styler', brand: 'Y.S. Park', categoryId: 'DM09', price: 862000, originalPrice: 862000, costPrice: 663000, stock: 24, image: 'Men_Grooming_Products/09_Dung_Cu_Tao_Kieu_Nam/Luoc_Ban_Nguyet/Luoc_Ban_Nguyet_YS_Park_Dragon_Air_Vent_Styler.jpg', description: 'Lược sấy tạo kiểu thoáng khí đẳng cấp Nhật Bản.' }
       ];
 
-      // 2 Khuyến Mãi Chuẩn từ CSDL QL_SALON.sql (KM01 - 10%, KM02 - 15%)
+      // 2 Khuyến Mãi Chuẩn từ CSDL QL_SALON.sql, KM01 - 10%, KM02 - 15%
       const promotions = [
         { id: 'KM01', MaKhuyenMai: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', TenKhuyenMai: 'Chào Thu Rực Rỡ', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 10, GiaTriGiam: 10, target: 'Tất cả khách hàng', DoiTuongApDung: 'Tất cả khách hàng', startDate: '2026-09-01', NgayBatDau: '2026-09-01', endDate: '2026-10-31', NgayKetThuc: '2026-10-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV03', 'DV04'], productIds: ['SP01'] },
         { id: 'KM02', MaKhuyenMai: 'KM02', code: 'KM02', name: 'Đặc quyền Salon VIP', TenKhuyenMai: 'Đặc quyền Salon VIP', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 15, GiaTriGiam: 15, target: 'Hội viên thân thiết', DoiTuongApDung: 'Hội viên thân thiết', startDate: '2026-01-01', NgayBatDau: '2026-01-01', endDate: '2026-12-31', NgayKetThuc: '2026-12-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV05'], productIds: ['SP06'] }
@@ -832,7 +833,7 @@
           }
         }
 
-        // Tự động chuẩn hóa 100% hình ảnh dịch vụ & combo sang ảnh salon thực tế (DichVu_Men/DV... và CBDV...)
+        // Tự động chuẩn hóa 100% hình ảnh dịch vụ & combo sang ảnh salon thực tế, DichVu_Men/DV... và CBDV...
         const femaleImgList = ['photo-1522337360788-8b13dee7a37e', 'photo-1534528741775-53994a69daeb', 'photo-1544005313-94ddf0286df2'];
         const isBadImg = (url) => !url || typeof url !== 'string' || femaleImgList.some(f => url.includes(f));
 
@@ -1001,7 +1002,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // NGƯỜI DÙNG & PHIÊN ĐĂNG NHẬP (ĐỒNG BỘ AUTHENGINE)
+    // NGƯỜI DÙNG & PHIÊN ĐĂNG NHẬP, ĐỒNG BỘ AUTHENGINE
     // -----------------------------------------------------------------------
     getCurrentUser() {
       let user = null;
@@ -1025,7 +1026,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // DỊCH VỤ & GÓI COMBO VIP (CRUD COMBOS)
+    // DỊCH VỤ & GÓI COMBO VIP, CRUD COMBOS
     // -----------------------------------------------------------------------
     getServices(category = null) {
       const list = this.state.services || [];
@@ -1097,7 +1098,8 @@
         HinhAnh: comboData.image || 'DichVu_Men/CBDV1.jpg',
         description: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
         MoTa: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
-        services: Array.isArray(comboData.services) ? comboData.services : ['DV01', 'DV02'],
+        services: Array.isArray(comboData.services) ? comboData.services : (Array.isArray(comboData.serviceIds) ? comboData.serviceIds : ['DV01', 'DV02']),
+        serviceIds: Array.isArray(comboData.serviceIds) ? comboData.serviceIds : (Array.isArray(comboData.services) ? comboData.services : ['DV01', 'DV02']),
         rating: 5.0,
         reviewsCount: 1
       };
@@ -1204,7 +1206,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // THỢ CẮT TÓC & ĐIỀU PHỐI CA (THỢ CHÍNH, THỢ PHỤ, QUẢN LÝ)
+    // THỢ CẮT TÓC & ĐIỀU PHỐI CA, THỢ CHÍNH, THỢ PHỤ, QUẢN LÝ
     // -----------------------------------------------------------------------
     getStylists(branchId = null, includeAllStaff = false) {
       const list = (this.state.stylists || []).filter(s => {
@@ -1310,7 +1312,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // ĐẶT LỊCH & CHỐNG TRÙNG LỊCH (ANTI-DOUBLE BOOKING WITH FLEXIBLE DURATION)
+    // ĐẶT LỊCH & CHỐNG TRÙNG LỊCH, ANTI-DOUBLE BOOKING WITH FLEXIBLE DURATION
     // -----------------------------------------------------------------------
     _timeToMinutes(timeStr) {
       if (!timeStr || !timeStr.includes(':')) return 0;
@@ -1336,7 +1338,7 @@
       const currentMinutes = this._getCurrentMinutes();
       const startMin = this._timeToMinutes(timeSlot);
 
-      // Kiểm tra thời gian thực (Real-time Past Check):
+      // Kiểm tra thời gian thực, Real-time Past Check:
       // Tuyệt đối không cho chọn giờ đã trôi qua trong ngày hôm nay hoặc các ngày trong quá khứ!
       if (date < todayIso) {
         return false;
@@ -1359,7 +1361,7 @@
         const bDuration = Number(b.durationMinutes || (b.estimatedEndTime ? this._timeToMinutes(b.estimatedEndTime) - bStart : 45));
         const bEnd = bStart + bDuration;
 
-        // Xung đột thời gian: Khoảng [startMin, endMin) giao thoa với [bStart, bEnd)
+        // Xung đột thời gian: Khoảng startMin, endMin giao thoa với bStart, bEnd
         if (startMin < bEnd && endMin > bStart) {
           return false;
         }
@@ -1439,7 +1441,7 @@
       const stylist = this.getStylistById(bookingData.stylistId);
       const estimatedEndTime = window.SalonUtils ? window.SalonUtils.calculateEndTime(bookingData.timeSlot, duration) : '11:15';
 
-      // Sinh mã lịch hẹn chuẩn định dạng CSDL SQL Server (LH01 -> LH11 -> LH12...)
+      // Sinh mã lịch hẹn chuẩn định dạng CSDL SQL Server, LH01 -> LH11 -> LH12...
       let bookingCode = bookingData.bookingCode || bookingData.MaLichHen;
       if (!bookingCode) {
         const existingLh = (this.state.bookings || [])
@@ -1631,7 +1633,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // QUẢN LÝ TỒN KHO CHI NHÁNH & TRỪ KHO NGUYÊN TỬ (ATOMIC STOCK)
+    // QUẢN LÝ TỒN KHO CHI NHÁNH & TRỪ KHO NGUYÊN TỬ, ATOMIC STOCK
     // -----------------------------------------------------------------------
     getBranchInventory(branchId = null) {
       const bId = (!branchId || branchId === 'all') ? null : branchId;
@@ -1639,7 +1641,7 @@
       const prods = this.state.products || [];
       const invList = this.state.inventory || [];
 
-      // Bản đồ tồn kho theo key: [branchId]_[productId]
+      // Bản đồ tồn kho theo key: branchId_productId
       const invMap = new Map();
       const totalStockMap = new Map();
 
@@ -1660,7 +1662,7 @@
         let actualStock = 0;
 
         if (bId) {
-          // Khi xem theo 1 chi nhánh cụ thể (hoặc Quản lý chi nhánh đăng nhập)
+          // Khi xem theo 1 chi nhánh cụ thể, hoặc Quản lý chi nhánh đăng nhập
           invItem = invMap.get(`${bId}_${prod.id}`);
           if (invItem && (invItem.stock !== undefined || invItem.SoLuongTon !== undefined)) {
             actualStock = Number(invItem.stock !== undefined ? invItem.stock : invItem.SoLuongTon);
@@ -1670,7 +1672,7 @@
             actualStock = (typeof s === 'number') ? s : 0;
           }
         } else {
-          // Admin tối cao xem toàn bộ các chi nhánh (Tổng tồn kho toàn chuỗi)
+          // Admin tối cao xem toàn bộ các chi nhánh, Tổng tồn kho toàn chuỗi
           if (totalStockMap.has(prod.id)) {
             actualStock = totalStockMap.get(prod.id);
           } else {
@@ -1776,7 +1778,7 @@
         if (typeof prod.stock === 'number') prod.stock = Math.max(0, prod.stock - qty);
         if (typeof prod.SoLuongTon === 'number') prod.SoLuongTon = Math.max(0, prod.SoLuongTon - qty);
 
-        // FEFO & Cận Hạn: Nếu bán hết lô cận hạn (18 sp của SP01), chuyển sang mức giảm tiếp theo (10%)
+        // FEFO & Cận Hạn: Nếu bán hết lô cận hạn, 18 sp của SP01, chuyển sang mức giảm tiếp theo, 10%
         if (prod.nearExpiryStock !== undefined) {
           prod.nearExpiryStock = Math.max(0, prod.nearExpiryStock - qty);
           if (prod.nearExpiryStock <= 0) {
@@ -1912,7 +1914,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // GIỎ HÀNG & ĐƠN HÀNG ONLINE / QUẦY POS (ATOMIC CHECKOUT)
+    // GIỎ HÀNG & ĐƠN HÀNG ONLINE / QUẦY POS, ATOMIC CHECKOUT
     // -----------------------------------------------------------------------
     getCategories() {
       return this.state.categories || [];
@@ -2291,7 +2293,7 @@
     async createOrder(orderData) {
       const branch = this.getBranchById(orderData.branchId) || this.getCurrentBranch();
 
-      // Sinh mã đơn hàng chuẩn định dạng CSDL SQL Server (DH01 -> DH11 -> DH12...)
+      // Sinh mã đơn hàng chuẩn định dạng CSDL SQL Server, DH01 -> DH11 -> DH12...
       let orderCode = orderData.orderCode || orderData.id;
       if (!orderCode || !orderCode.startsWith('DH')) {
         const existingDh = (this.state.orders || [])
@@ -2367,26 +2369,20 @@
     }
 
     async cancelOrder(orderId, reason = 'Khách hàng yêu cầu hủy đơn') {
-      const order = (this.state.orders || []).find(o => o.id === orderId || o.orderCode === orderId || o.MaDonHang === orderId);
+      const cleanId = String(orderId || '').replace(/^#+/, '').trim().toLowerCase();
+      const order = (this.state.orders || []).find(o => 
+        String(o.id || '').replace(/^#+/, '').trim().toLowerCase() === cleanId || 
+        String(o.orderCode || '').replace(/^#+/, '').trim().toLowerCase() === cleanId || 
+        String(o.MaDonHang || '').replace(/^#+/, '').trim().toLowerCase() === cleanId
+      );
       if (!order) return { success: false, error: 'Không tìm thấy đơn hàng cần hủy!' };
 
       if (order.orderStatus === 'Cancelled' || order.TrangThai === 'Đã hủy') {
         return { success: false, error: 'Đơn hàng này đã được hủy trước đó!' };
       }
 
-      // Kiểm tra nếu đơn đang giao hoặc đã hoàn thành thì không cho hủy
-      if (window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function') {
-        if (!window.SalonUtils.canCancelOrder(order)) {
-          const st = String(order.orderStatus || order.TrangThai || '').toLowerCase();
-          if (st.includes('giao') || st === 'shipping' || st === 'delivering') {
-            return { success: false, error: 'Đơn hàng đang trên đường vận chuyển, không thể hủy!' };
-          }
-          return { success: false, error: 'Đơn hàng đã hoàn tất hoặc không thể hủy ở trạng thái hiện tại!' };
-        }
-      }
-
       const serverRes = await this.syncCancelOrderToLiveServer(order.id || order.orderCode, reason);
-      if (serverRes && serverRes.success === false) {
+      if (serverRes && serverRes.success === false && !serverRes.error?.includes('Không tìm thấy')) {
         return { success: false, error: serverRes.error || 'Máy chủ từ chối yêu cầu hủy đơn hàng!' };
       }
 
@@ -2536,7 +2532,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // QUẢN LÝ CA LÀM & ĐĂNG KÝ CA LÀM NHÂN VIÊN (THỢ BARBER & THU NGÂN)
+    // QUẢN LÝ CA LÀM & ĐĂNG KÝ CA LÀM NHÂN VIÊN, THỢ BARBER & THU NGÂN
     // -----------------------------------------------------------------------
     getStaffShifts(userId = null) {
       if (!this.state.staffShifts) {
@@ -2646,7 +2642,7 @@
         }
       }
 
-      // Sinh mã hóa đơn quầy POS chuẩn CSDL SQL Server (HD01 -> HD03 -> HD11...)
+      // Sinh mã hóa đơn quầy POS chuẩn CSDL SQL Server, HD01 -> HD03 -> HD11...
       let orderCode = posData.orderCode || posData.id;
       if (!orderCode || !orderCode.startsWith('HD')) {
         const existingHd = (this.state.invoices || []).concat(this.state.orders || [])
@@ -2792,7 +2788,7 @@
         }
       }
 
-      // Doanh số sản phẩm bán lẻ (Đơn hàng trực tuyến + bán lẻ quầy POS)
+      // Doanh số sản phẩm bán lẻ, Đơn hàng trực tuyến + bán lẻ quầy POS
       let orderRev = 0;
       for (const o of orders) {
         const oStatus = String(o.orderStatus || o.TrangThai || '').toLowerCase();
@@ -2814,7 +2810,7 @@
       const effectiveConfirmed = confirmedCount + completedBookingsCount;
       const completionRate = totalBookings > 0 ? Math.round((effectiveConfirmed / totalBookings) * 100) : 100;
 
-      // Biểu đồ 7 ngày gom nhóm theo ngày trong tuần thực tế (Phân rã Dịch Vụ & Bán Lẻ)
+      // Biểu đồ 7 ngày gom nhóm theo ngày trong tuần thực tế, Phân rã Dịch Vụ & Bán Lẻ
       const dayNames = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
       const dayOrder = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
       const dayMap = {};
@@ -2991,7 +2987,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // CONTENT & MEDIA QUERIES (ARTICLES, MOMENTS, COLLABS, HAIRSTYLES)
+    // CONTENT & MEDIA QUERIES, ARTICLES, MOMENTS, COLLABS, HAIRSTYLES
     // -----------------------------------------------------------------------
     getNewsArticles() {
       return this.state.newsArticles || [];

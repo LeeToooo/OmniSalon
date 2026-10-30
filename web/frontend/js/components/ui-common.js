@@ -1650,7 +1650,7 @@ const UICommon = {
     let res = null;
     let liveAttempted = false;
 
-    // Ưu tiên xác thực trực tiếp qua Backend API / SQL Server (Nguồn chân lý)
+    // Ưu tiên xác thực trực tiếp qua Backend API / SQL Server, Nguồn chân lý
     try {
       const apiRes = await fetch('/api/auth/login', {
         method: 'POST',

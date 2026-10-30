@@ -20,7 +20,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
 
   final districts = [
     {'id': 'all', 'label': 'Toàn Hệ Thống'},
-    {'id': 'Quận 1', 'label': 'Quận 1 (Flagship)'},
+    {'id': 'Quận 1', 'label': 'Quận 1'},
     {'id': 'Quận 3', 'label': 'Quận 3'},
     {'id': 'Quận 4', 'label': 'Quận 4'},
     {'id': 'Quận 5', 'label': 'Quận 5'},
@@ -60,12 +60,31 @@ class _BranchesScreenState extends State<BranchesScreen> {
     final query = _searchController.text.trim().toLowerCase();
 
     final filtered = allBranches.where((b) {
-      // 1. Lọc theo quận
+      // 1. Lọc theo quận với khả năng nhận diện linh hoạt các biến thể Quận X, Q.X, QX
       if (selectedDistrict != 'all') {
         final text = '${b.name} ${b.address}'.toLowerCase();
-        if (!text.contains(selectedDistrict.toLowerCase())) {
-          return false;
+        final dist = selectedDistrict.toLowerCase();
+        bool match = text.contains(dist);
+        if (!match) {
+          final matchNum = RegExp(r'quận\s*(\d+)').firstMatch(dist);
+          if (matchNum != null) {
+            final num = matchNum.group(1);
+            if (num != null && (text.contains('q.$num') || text.contains('q$num') || text.contains('quận $num'))) {
+              match = true;
+            }
+          } else if (dist.contains('thủ đức') && text.contains('thủ đức')) {
+            match = true;
+          } else if (dist.contains('bình thạnh') && text.contains('bình thạnh')) {
+            match = true;
+          } else if (dist.contains('tân bình') && text.contains('tân bình')) {
+            match = true;
+          } else if (dist.contains('gò vấp') && text.contains('gò vấp')) {
+            match = true;
+          } else if (dist.contains('phú nhuận') && text.contains('phú nhuận')) {
+            match = true;
+          }
         }
+        if (!match) return false;
       }
 
       // 2. Lọc theo ô tìm kiếm
@@ -183,7 +202,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
             ),
           ),
 
-          // 3. Danh sách thẻ chi nhánh Lookbook (Chuẩn Ảnh 2)
+          // 3. Danh sách thẻ chi nhánh Lookbook, Chuẩn Ảnh 2
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator(color: AppTheme.accentGold))

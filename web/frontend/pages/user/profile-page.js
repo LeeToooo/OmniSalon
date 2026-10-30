@@ -1,4 +1,4 @@
-// Trang thông tin cá nhân khách hàng /profile (5 tab: lịch hẹn, đơn hàng, tóc AI, điểm thưởng, cài đặt)
+// Trang thông tin cá nhân khách hàng /profile, 5 tab: lịch hẹn, đơn hàng, tóc AI, điểm thưởng, cài đặt
 
 (function (window) {
   'use strict';
@@ -304,7 +304,7 @@
                       Xem Vé QR
                     </button>
                     ${(!isPaid && !isCancelled) ? `
-                      <button type="button" class="btn-submit-terracotta" style="font-size: 12px; padding: 5px 14px; background: #10B981;" onclick="CustomerWeb.openBookingPaymentModal('${bCode}')">
+                      <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #10B981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openBookingPaymentModal('${bCode}')">
                         💳 Thanh Toán VietQR
                       </button>
                     ` : ''}
@@ -313,7 +313,7 @@
                         Sửa Đánh Giá
                       </button>
                     ` : `
-                      <button type="button" class="btn-submit-terracotta" style="font-size: 12px; padding: 5px 12px; background: #d97706;" onclick="CustomerWeb.openBookingReviewModal('${bCode}')">
+                      <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openBookingReviewModal('${bCode}')">
                         ⭐ Đánh Giá
                       </button>
                     `) : ''}
@@ -381,10 +381,10 @@
                 step = 1;
               }
 
-              // Kiểm tra điều kiện: chỉ cho hủy khi đơn chưa giao
+              // Kiểm tra điều kiện: chỉ cấm hủy khi đơn đã hủy rồi
               const isCancellable = (window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function')
                 ? window.SalonUtils.canCancelOrder(o)
-                : (step === 1 || step === 2);
+                : (step !== 0);
               const isDelivering = (step === 3);
               const isCompleted = (step === 4);
               const isCancelled = (step === 0);
@@ -479,27 +479,30 @@
 
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                       ${(!isPaid && !isCancelled) ? `
-                        <button type="button" class="btn-submit-terracotta" style="font-size: 12px; padding: 6px 14px; background: #10B981;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
+                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #10B981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
                           💳 Thanh Toán VietQR
                         </button>
                       ` : ''}
 
                       ${(!isCancelled) ? (oReview ? `
-                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
-                          Sửa Đánh Giá
+                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
+                          ⭐ Sửa Đánh Giá
                         </button>
                       ` : `
-                        <button type="button" class="btn-submit-terracotta" style="font-size: 12px; padding: 6px 14px; background: #d97706;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
+                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
                           ⭐ Đánh Giá Đơn Hàng
                         </button>
                       `) : ''}
 
-                      <!-- NÚT HỦY ĐƠN HÀNG THEO RÀNG BUỘC NGHIỆP VỤ -->
                       ${isCancellable ? `
-                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); font-weight: 700;" onclick="ProfilePage.cancelOrder('${oCode}')">
-                          Hủy Đơn Hàng
+                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="ProfilePage.cancelOrder('${oCode}')">
+                          ✕ Hủy Đơn Hàng
                         </button>
-                      ` : ''}
+                      ` : `
+                        <span style="font-size: 12px; color: #94a3b8; background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); padding: 5px 12px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                          ✕ Đã hủy đơn
+                        </span>
+                      `}
                     </div>
                   </div>
 
@@ -675,24 +678,8 @@
 
     cancelOrder(orderId) {
       if (!orderId) return;
-      const reason = prompt(`Vui lòng nhập lý do hủy đơn hàng #${orderId}:`, 'Tôi muốn thay đổi địa chỉ hoặc sản phẩm');
-      if (reason === null) return;
-      const cleanReason = reason.trim();
-      if (!cleanReason || cleanReason.length < 3) {
-        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do hủy cụ thể (tối thiểu 3 ký tự)', 'warning');
-        return;
-      }
-
-      if (window.store && typeof window.store.cancelOrder === 'function') {
-        window.store.cancelOrder(orderId, cleanReason).then(res => {
-          if (res && res.success) {
-            if (window.UICommon) window.UICommon.showToast(res.message || `Đã hủy đơn hàng #${orderId} thành công!`);
-            const container = document.getElementById('webMainContainer');
-            if (container) this.render(container);
-          } else {
-            if (window.UICommon) window.UICommon.showToast(res?.error || 'Lỗi khi hủy đơn hàng!', 'error');
-          }
-        });
+      if (window.CustomerWeb && typeof window.CustomerWeb.openOrderCancelModal === 'function') {
+        window.CustomerWeb.openOrderCancelModal(orderId, 'profile');
       }
     },
 

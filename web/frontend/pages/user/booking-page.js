@@ -334,6 +334,16 @@
     },
 
     onSelectStylist(stylistId) {
+      if (!this.bookingState.serviceIds || this.bookingState.serviceIds.length === 0) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc combo trước khi chọn thợ cắt tóc!', 'warning');
+        this.expandedSteps.step1 = true;
+        this.expandedSteps.step2 = false;
+        this.expandedSteps.step3 = false;
+        this.expandedSteps.step4 = false;
+        this.render(document.getElementById('webMainContainer'));
+        this.scrollToStepSafely('cascadeStep1');
+        return;
+      }
       this.hasChosenStylist = true;
       this.bookingState.stylistId = stylistId;
       this.expandedSteps.step1 = false;
@@ -345,6 +355,16 @@
     },
 
     onSelectDate(dateIso) {
+      if (!this.bookingState.serviceIds || this.bookingState.serviceIds.length === 0) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc combo trước khi chọn ngày giờ!', 'warning');
+        this.expandedSteps.step1 = true;
+        this.expandedSteps.step2 = false;
+        this.expandedSteps.step3 = false;
+        this.expandedSteps.step4 = false;
+        this.render(document.getElementById('webMainContainer'));
+        this.scrollToStepSafely('cascadeStep1');
+        return;
+      }
       this.bookingState.date = dateIso;
       // Kiểm tra ngay: Nếu timeSlot đã chọn đã quá giờ ở ngày mới thì reset
       if (this.bookingState.timeSlot) {
@@ -361,6 +381,16 @@
     },
 
     onSelectTimeSlot(time) {
+      if (!this.bookingState.serviceIds || this.bookingState.serviceIds.length === 0) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc combo trước khi chọn khung giờ!', 'warning');
+        this.expandedSteps.step1 = true;
+        this.expandedSteps.step2 = false;
+        this.expandedSteps.step3 = false;
+        this.expandedSteps.step4 = false;
+        this.render(document.getElementById('webMainContainer'));
+        this.scrollToStepSafely('cascadeStep1');
+        return;
+      }
       const dur = this.getTotalCalculations().totalDuration || 45;
       const slots = (window.store && typeof window.store.getAvailableSlots === 'function')
         ? window.store.getAvailableSlots(this.bookingState.date, this.bookingState.stylistId, this.bookingState.branchId, dur)
@@ -452,9 +482,10 @@
 
     // THẺ DỊCH VỤ TRỰC QUAN
     renderServiceVisualCard(item, isCombo = false) {
-      const isSelected = this.bookingState.serviceIds.includes(item.id);
-      const meta = this.serviceVisualMeta[item.id] || {};
-      const shortName = meta.shortName || item.name || item.TenDichVu || item.TenCombo || item.id;
+      const sId = item.id || item.MaCombo || item.MaDichVu;
+      const isSelected = this.bookingState.serviceIds.includes(sId);
+      const meta = this.serviceVisualMeta[sId] || this.serviceVisualMeta[item.id] || {};
+      const shortName = meta.shortName || item.name || item.TenDichVu || item.TenCombo || sId;
       const highlight = meta.highlight || (isCombo ? 'Gói chăm sóc toàn diện chuẩn Barbershop' : 'Tạo kiểu chuẩn form, chăm sóc chu đáo');
       const imgPath = meta.img || item.image || item.HinhAnh || (isCombo ? 'Men_Grooming_Products/DichVu_Men/CBDV1.jpg' : 'Men_Grooming_Products/DichVu_Men/DV1.jpg');
       const imgUrl = SalonUtils.formatImageUrl(imgPath);
@@ -463,7 +494,7 @@
 
       return `
         <div class="booking-service-visual-card ${isSelected ? 'selected' : ''}" 
-             onclick="BookingPage.toggleSelectService('${item.id}')"
+             onclick="BookingPage.toggleSelectService('${sId}')"
              role="button"
              tabindex="0"
              aria-pressed="${isSelected}">
@@ -503,7 +534,7 @@
                 `}
               </div>
               <button type="button" class="svc-select-btn ${isSelected ? 'selected' : ''}" 
-                      onclick="event.stopPropagation(); BookingPage.toggleSelectService('${item.id}')">
+                      onclick="event.stopPropagation(); BookingPage.toggleSelectService('${sId}')">
                 ${isSelected ? '✓ Đã chọn' : '+ Chọn'}
               </button>
             </div>
@@ -637,7 +668,7 @@
       const rawStylists = (window.store && typeof window.store.getStylists === 'function')
         ? window.store.getStylists(this.bookingState.branchId)
         : [];
-      const stylists = rawStylists.filter(s => s.role !== 'Thu ngân' && s.ChucVu !== 'Thu ngân' && !s.title?.toLowerCase().includes('thu ngân'));
+      const stylists = rawStylists.filter(s => (s.id || s.MaNhanVien) !== 'NV00' && s.role !== 'Thu ngân' && s.ChucVu !== 'Thu ngân' && !s.title?.toLowerCase().includes('thu ngân'));
 
       return `
         <div>

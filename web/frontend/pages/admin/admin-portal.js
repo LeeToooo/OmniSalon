@@ -13,7 +13,7 @@
 
       // Kiểm tra sự tồn tại của AdminWeb
       if (window.AdminWeb && typeof window.AdminWeb.render === 'function') {
-        // Nếu có subtab từ params (/admin?tab=stylists hoặc /admin/bookings)
+        // Nếu có subtab từ params, /admin?tab=stylists hoặc /admin/bookings
         if (params.tab && typeof window.AdminWeb.switchSubTab === 'function') {
           window.AdminWeb.adminSubTab = params.tab;
         }

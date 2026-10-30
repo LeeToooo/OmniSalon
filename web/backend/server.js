@@ -47,7 +47,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
   res.setHeader('Vary', 'Origin');
 
-  // Phản hồi yêu cầu OPTIONS (CORS preflight)
+  // Phản hồi yêu cầu OPTIONS, CORS preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     return res.end();
@@ -57,7 +57,7 @@ const server = http.createServer(async (req, res) => {
   const pathname = parsedUrl.pathname;
   const method = req.method;
 
-  // Thu thập nội dung request body (JSON)
+  // Thu thập nội dung request body, JSON
   let body = '';
   req.on('data', chunk => { body += chunk.toString('utf8'); });
   req.on('end', async () => {

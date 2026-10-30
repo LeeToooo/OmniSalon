@@ -232,8 +232,8 @@
       const role = String(user.role || user.vaiTroSql || user.VaiTro || '').toUpperCase();
       const chucVu = String(user.ChucVu || user.chucVuSql || '').toUpperCase();
       const username = String(user.username || '').toLowerCase();
-      const staffRoles = ['SUPER_ADMIN', 'ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'QUẢN TRỊ VIÊN', 'QUẢN LÝ', 'QUẢN LÝ CHI NHÁNH', 'THU NGÂN'];
-      return staffRoles.includes(role) || chucVu.includes('QUẢN LÝ') || chucVu.includes('THU NGÂN') || chucVu.includes('QUẢN TRỊ') || username === 'admin';
+      const staffRoles = ['SUPER_ADMIN', 'ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'QUẢN TRỊ VIÊN', 'QUẢN LÝ', 'QUẢN LÝ CHI NHÁNH', 'THU NGÂN', 'THỢ', 'THỢ CHÍNH', 'THỢ PHỤ', 'BARBER', 'STAFF', 'NHÂN VIÊN'];
+      return staffRoles.includes(role) || role.includes('THỢ') || chucVu.includes('THỢ') || chucVu.includes('QUẢN LÝ') || chucVu.includes('THU NGÂN') || chucVu.includes('QUẢN TRỊ') || chucVu.includes('NHÂN VIÊN') || username === 'admin';
     },
 
     // -----------------------------------------------------------------------
@@ -387,13 +387,14 @@
                     <span>Tra Cứu Lịch Hẹn</span>
                   </button>
 
-                  <!-- 2. Chọn chi nhánh  - Phân quyền: Quản lý mới được đổi, Nhân viên chỉ xem, Khách hàng ẩn -  -->
+                  <!-- 2. Chọn chi nhánh - Quản trị tối cao đổi chi nhánh, Quản lý chi nhánh & Thợ cố định chi nhánh -->
                   ${(() => {
           const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
-          const isMgr = user && (roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER') || user.username === 'admin');
-          const isStf = user && !isMgr && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
+          const isSuper = user && (roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN TRỊ') || user.username === 'admin');
+          const isBranchMgr = user && !isSuper && (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER'));
+          const isStf = user && !isSuper && !isBranchMgr && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
 
-          if (isMgr) {
+          if (isSuper) {
             return `
                         <div class="dropdown-branch-pill">
                           <div class="branch-pill-header">
@@ -402,6 +403,19 @@
                           <select class="header-branch-select" onchange="window.store && window.store.setSelectedBranch(this.value)">
                             ${branches.map(b => `<option value="${b.id}" ${b.id === currentBranch?.id ? 'selected' : ''}>${(b.TenChiNhanh || b.name).trim()}</option>`).join('')}
                           </select>
+                        </div>
+                      `;
+          }
+          if (isBranchMgr) {
+            const userBranchName = user?.branchName || (user?.branchId ? branches.find(b => b.id === user.branchId)?.name : null) || currentBranch?.name || 'Chi Nhánh Quản Trị';
+            return `
+                        <div class="dropdown-branch-pill">
+                          <div class="branch-pill-header">
+                            <span>Chi nhánh quản trị:</span>
+                          </div>
+                          <div style="font-size: 12.5px; font-weight: 800; color: #f59e0b; padding: 4px 0;">
+                            ${this.escapeHtml(userBranchName.split('—')[0].trim())}
+                          </div>
                         </div>
                       `;
           }
@@ -416,6 +430,9 @@
                             ${this.escapeHtml(userBranchName.split('—')[0].trim())}
                           </div>
                         </div>
+                        <button class="dropdown-item-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #14171F; font-weight: 800; margin: 4px 0; border: none; border-radius: 8px; justify-content: center; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);" onclick="CustomerWeb.closeUserMenu(); if(window.AdminWeb) { AdminWeb.adminSubTab = 'receipts'; AdminWeb.inventorySubTab = 'receipts'; CustomerWeb.switchTab('admin'); setTimeout(() => { AdminWeb.switchSubTab('receipts'); AdminWeb.openAddReceiptModal(); }, 200); }">
+                          <span>📥 Lập Phiếu Nhập Kho</span>
+                        </button>
                       `;
           }
           // Khách hàng hoặc chưa đăng nhập: Ẩn hoàn toàn khối chi nhánh phục vụ
@@ -464,7 +481,7 @@
 
     
     // -----------------------------------------------------------------------
-    // MEGA MENU SYSTEM CHUẨN ẢNH 2 (4RAU BARBERSHOP STYLE)
+    // MEGA MENU SYSTEM CHUẨN ẢNH 2, 4RAU BARBERSHOP STYLE
     // -----------------------------------------------------------------------
     _megaTimers: {},
 
@@ -629,14 +646,12 @@
           <div class="mega-column">
             <div class="mega-col-title">DANH MỤC KHÁC</div>
             <ul class="mega-col-list">
-              <li><a href="/shop" onclick="CustomerWeb.selectShopSpecial('new', event)">Sản Phẩm Mới Về</a></li>
               <li><a href="/shop" onclick="CustomerWeb.selectShopSpecial('bestseller', event)">Sản Phẩm Bán Chạy</a></li>
               <li>
                 <a href="/shop?category=fefo_expiry" onclick="CustomerWeb.selectShopCategory('fefo_expiry', event)" style="font-weight: 700; color: #DC2626;">
                   END OF SEASON SALE <span class="mega-badge-sale">SALE</span>
                 </a>
               </li>
-              <li><a href="/shop?category=fefo_expiry" onclick="CustomerWeb.selectShopCategory('fefo_expiry', event)">Combo Tiết Kiệm Cận Hạn</a></li>
             </ul>
           </div>
         </div>
@@ -686,9 +701,7 @@
           <div class="mega-column">
             <div class="mega-col-title">ĐẶC QUYỀN &amp; TIỆN ÍCH</div>
             <ul class="mega-col-list">
-              <li><a href="/branches?district=flagship" onclick="CustomerWeb.selectBranchDistrict('flagship', event)">Omni Flagship Q.1 VIP Lounge</a></li>
               <li><a href="/booking" onclick="CustomerWeb.switchTab('booking'); CustomerWeb.closeAllMegaMenus();">Đặt Lịch Giữ Chỗ Barber</a></li>
-              <li><a href="https://maps.google.com/?q=Omni+Salon+Ben+Thanh" target="_blank" rel="noopener noreferrer">Bản Đồ Chỉ Đường Trực Tiếp &#8599;</a></li>
               <li><span style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; display: block; margin-top: 4px;">Giờ Mở Cửa: 08:30 - 21:30 Mỗi Ngày</span></li>
             </ul>
           </div>
@@ -733,6 +746,11 @@
                 <div class="mini-cart-item-name" title="${item.name}" onclick="CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;">${item.name}</div>
                 <div class="mini-cart-item-meta">${(item.brand || 'OMNI SALON').toUpperCase()}</div>
                 <div class="mini-cart-item-price">${SalonUtils.formatCurrency(item.price)}</div>
+                <div style="margin-top: 4px;">
+                  <a href="/product?id=${item.productId}" onclick="event.preventDefault(); CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="font-size: 11px; color: #C59B27; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;" title="Xem các góc chụp thực tế">
+                    📷 Xem 4 góc nhìn →
+                  </a>
+                </div>
               </div>
               <button type="button" class="mini-cart-trash-btn" onclick="CustomerWeb.removeMiniCartItem('${item.productId}', event)" title="Xóa khỏi giỏ hàng" aria-label="Xóa">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -888,8 +906,14 @@
 
     renderAdminButtonHTML(user, isAdmin) {
       if (isAdmin || this.isAdminUser(user)) {
-        const isCashier = user && (String(user.role).toUpperCase().includes('CASHIER') || String(user.vaiTroSql || '').toUpperCase().includes('THU NGÂN') || String(user.ChucVu || '').toUpperCase().includes('THU NGÂN'));
-        const isManager = user && (String(user.role).toUpperCase().includes('BRANCH') || String(user.vaiTroSql || '').toUpperCase().includes('QUẢN LÝ') || String(user.ChucVu || '').toUpperCase().includes('QUẢN LÝ'));
+        const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
+        const isBarber = (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('BARBER')) && !roleUpper.includes('QUẢN LÝ') && !roleUpper.includes('ADMIN');
+        if (isBarber) {
+          // Thợ đã có nút cam "Lập Phiếu Nhập Kho" riêng trong avatar dropdown
+          return '';
+        }
+        const isCashier = user && (roleUpper.includes('CASHIER') || roleUpper.includes('THU NGÂN'));
+        const isManager = user && (roleUpper.includes('BRANCH') || roleUpper.includes('QUẢN LÝ'));
         const label = isCashier ? 'Quầy Thu Ngân POS' : (isManager ? 'Bàn Làm Việc Quản Lý' : 'Bảng Quản Trị Tối Cao');
         return `
           <button class="dropdown-admin-btn ${this.currentTab === 'admin' ? 'active' : ''}" 
@@ -1236,6 +1260,7 @@
         </div>
         <div style="display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto;">
           ${matches.map(o => {
+            const isUserLoggedIn = !!(user && (user.id || user.phone));
             const oCode = o.orderCode || o.id || o.MaDonHang || 'DH';
             const rawStatus = o.orderStatus || o.TrangThai || o.status || 'Processing';
             const statusInfo = (window.SalonUtils && typeof window.SalonUtils.formatOrderStatus === 'function')
@@ -1245,10 +1270,10 @@
             const isCompleted = statusInfo.key === 'completed';
             const isDelivering = statusInfo.key === 'delivering';
             const isPaid = (o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán' || o.TrangThaiThanhToan === 'Đã thanh toán');
-            // Kiểm tra trạng thái đơn: chỉ hiện nút hủy khi chưa giao
+            // Kiểm tra trạng thái đơn: cho phép hủy ở mọi trạng thái trừ khi đã hủy
             const isCancellable = (window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function')
               ? window.SalonUtils.canCancelOrder(o)
-              : (!isCancelled && !isCompleted && !isDelivering);
+              : (!isCancelled);
             const items = Array.isArray(o.items) ? o.items : [];
             const rawDate = o.createdAt || o.orderDate || o.NgayDat;
             const formattedDate = rawDate ? (window.SalonUtils ? window.SalonUtils.formatDateTime(rawDate) : String(rawDate).split('T')[0]) : 'Hôm nay';
@@ -1285,50 +1310,12 @@
                   </div>
                 </div>
 
-                <!-- Đánh Giá Đơn Hàng & Thao Tác -->
-                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                  <div>
-                    ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(oCode)) ? `
-                      <span style="color: #f59e0b; font-size: 13px;">${'★'.repeat(window.store.getReviewByOrderId(oCode).rating || 5)}${'☆'.repeat(5 - (window.store.getReviewByOrderId(oCode).rating || 5))}</span>
-                      <span style="color: var(--text-secondary); font-size: 12px; margin-left: 6px; font-style: italic;">"${this.escapeHtml(window.store.getReviewByOrderId(oCode).comment || 'Rất hài lòng')}"</span>
-                    ` : `
-                      <span style="font-size: 12px; color: var(--text-secondary);">Bạn đã nhận hàng? Đánh giá để nhận điểm thưởng.</span>
-                    `}
+                ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(oCode)) ? `
+                  <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 12.5px; display: flex; align-items: center; gap: 6px;">
+                    <span style="color: #f59e0b; font-size: 13px;">${'★'.repeat(window.store.getReviewByOrderId(oCode).rating || 5)}${'☆'.repeat(5 - (window.store.getReviewByOrderId(oCode).rating || 5))}</span>
+                    <span style="color: var(--text-secondary); font-size: 12px; font-style: italic;">"${this.escapeHtml(window.store.getReviewByOrderId(oCode).comment || 'Rất hài lòng')}"</span>
                   </div>
-                  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    ${(!isPaid && !isCancelled) ? `
-                      <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;" 
-                              onclick="CustomerWeb.openOrderPaymentModal('${this.escapeHtml(oCode)}')">
-                        💳 Thanh Toán Ngay (VietQR)
-                      </button>
-                    ` : ''}
-                    ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(oCode)) ? `
-                      <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
-                              onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(oCode)}')">
-                        Sửa Đánh Giá
-                      </button>
-                    ` : `
-                      <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #d97706; display: inline-flex; align-items: center; gap: 4px;" 
-                              onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(oCode)}')">
-                        ⭐ Đánh Giá Đơn Hàng
-                      </button>
-                    `}
-                    ${isCancellable ? `
-                      <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); font-weight: 700;" 
-                              onclick="CustomerWeb.cancelOrderByCustomer('${o.id || o.orderCode}')">
-                        Hủy Đơn Hàng
-                      </button>
-                    ` : (isDelivering ? `
-                      <span style="font-size: 11px; color: #0284c7; background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600;">
-                        🚚 Đang giao hàng - Không thể hủy
-                      </span>
-                    ` : (isCompleted ? `
-                      <span style="font-size: 11px; color: #16a34a; background: rgba(22, 163, 74, 0.1); border: 1px solid rgba(22, 163, 74, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600;">
-                        ✓ Đã giao hàng
-                      </span>
-                    ` : ''))}
-                  </div>
-                </div>
+                ` : ''}
               </div>
             `;
           }).join('')}
@@ -1337,24 +1324,15 @@
     },
 
     cancelOrderByCustomer(orderId) {
-      if (!orderId) return;
-      const reason = prompt(`Vui lòng nhập lý do hủy đơn hàng #${orderId}:`, 'Tôi muốn thay đổi địa chỉ hoặc sản phẩm');
-      if (reason === null) return;
-      const cleanReason = reason.trim();
-      if (!cleanReason || cleanReason.length < 3) {
-        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do hủy cụ thể (tối thiểu 3 ký tự)', 'warning');
-        return;
-      }
+      this.openOrderCancelModal(orderId);
+    },
 
-      if (window.store && typeof window.store.cancelOrder === 'function') {
-        window.store.cancelOrder(orderId, cleanReason).then(res => {
-          if (res && res.success) {
-            if (window.UICommon) window.UICommon.showToast(res.message || `Đã hủy đơn hàng #${orderId} thành công!`);
-            this.searchOrderLookup();
-          } else {
-            if (window.UICommon) window.UICommon.showToast(res?.error || 'Lỗi khi hủy đơn hàng!', 'error');
-          }
-        });
+    promptLoginToCancelOrder(orderId) {
+      if (window.UICommon) {
+        window.UICommon.showToast('Vui lòng đăng nhập tài khoản để thực hiện hủy đơn hàng', 'warning');
+        if (typeof window.UICommon.openAuthModal === 'function') {
+          window.UICommon.openAuthModal('login');
+        }
       }
     },
 
@@ -1413,7 +1391,7 @@
         return;
       }
 
-      // Eager loading map lookups O(1)
+      // Eager loading map lookups O, 1
       const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
       const branchMap = new Map(branches.map(b => [String(b.id), b]));
       const stylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
@@ -1427,6 +1405,7 @@
         </div>
         <div style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;">
           ${matches.map(b => {
+        const isUserLoggedIn = !!(user && (user.id || user.phone));
         const statusInfo = SalonUtils.formatBookingStatus(b.status);
         const isCompleted = statusInfo.key === 'completed';
         const isCancelled = statusInfo.key === 'cancelled';
@@ -1474,23 +1453,23 @@
                   Xem Vé QR
                 </button>
                 ${(!isPaid) ? `
-                  <button class="btn-submit-terracotta" style="font-size: 11px; padding: 4px 12px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;" 
+                  <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #10b981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingPaymentModal('${this.escapeHtml(bCode)}')">
-                    💳 Thanh Toán Ngay (VietQR)
+                    💳 Thanh Toán VietQR
                   </button>
                 ` : ''}
                 ${bReview ? `
-                  <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
+                  <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
-                    Sửa Đánh Giá
+                    ⭐ Sửa Đánh Giá
                   </button>
                 ` : `
-                  <button class="btn-submit-terracotta" style="font-size: 11px; padding: 4px 12px; background: #d97706; display: inline-flex; align-items: center; gap: 4px;" 
+                  <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
                     ⭐ Đánh Giá Lịch Hẹn
                   </button>
                 `}
-                <button class="btn-submit-terracotta" style="font-size: 11px; padding: 4px 12px;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
+                <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: var(--brand-accent); border-color: rgba(217, 119, 6, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
                   + Đặt Lại Lịch
                 </button>
               </div>
@@ -1533,28 +1512,35 @@
                     Xem Vé QR
                   </button>
                   ${(!isPaid && !isCancelled) ? `
-                    <button class="btn-submit-terracotta" style="font-size: 11px; padding: 6px 14px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;" 
+                    <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #10b981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                             onclick="CustomerWeb.openBookingPaymentModal('${this.escapeHtml(bCode)}')">
-                      💳 Thanh Toán Ngay (VietQR)
+                      💳 Thanh Toán VietQR
                     </button>
                   ` : ''}
                   ${(!isCancelled) ? (bReview ? `
-                    <button class="pill-btn-outline" style="font-size: 11px; padding: 6px 14px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
+                    <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                             onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
-                      Sửa Đánh Giá
+                      ⭐ Sửa Đánh Giá
                     </button>
                   ` : `
-                    <button class="btn-submit-terracotta" style="font-size: 11px; padding: 6px 14px; background: #d97706; display: inline-flex; align-items: center; gap: 4px;" 
+                    <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                             onclick="CustomerWeb.openBookingReviewModal('${this.escapeHtml(bCode)}')">
                       ⭐ Đánh Giá Lịch Hẹn
                     </button>
                   `) : ''}
-                  ${isCancellable ? `
-                    <button class="pill-btn-outline" style="font-size: 11px; padding: 6px 14px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
-                            onclick="CustomerWeb.cancelBookingByCustomer('${b.id}')">
-                      Hủy Lịch Hẹn
-                    </button>
-                  ` : ''}
+                  ${isCancellable ? (
+                    isUserLoggedIn ? `
+                      <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                              onclick="CustomerWeb.openBookingCancelModal('${b.id}')">
+                        ✕ Hủy Lịch Hẹn
+                      </button>
+                    ` : `
+                      <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #94a3b8; border-color: rgba(148, 163, 184, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 600; cursor: pointer;" 
+                              onclick="CustomerWeb.promptLoginToCancelOrder('${b.id}')">
+                        🔒 Đăng nhập để hủy lịch
+                      </button>
+                    `
+                  ) : ''}
                 </div>
               </div>
             `;
@@ -1743,38 +1729,7 @@
     },
 
     cancelBookingByCustomer(bookingId) {
-      if (!bookingId) return;
-
-      const user = this.getCurrentUser();
-      const booking = this._findBookingById(bookingId);
-      if (!booking) {
-        if (window.UICommon) window.UICommon.showToast(`Không tìm thấy lịch hẹn #${bookingId}!`, 'warning');
-        return;
-      }
-
-      // Cho phép hủy lịch hẹn
-
-      const reason = prompt(`Vui lòng nhập lý do bạn muốn hủy lịch hẹn #${bookingId}:`, 'Tôi có việc đột xuất bận');
-      if (reason === null) return; // Người dùng ấn Cancel
-
-      const cleanReason = reason.trim();
-      if (!cleanReason || cleanReason.length < 3) {
-        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do hủy cụ thể (tối thiểu 3 ký tự)', 'warning');
-        return;
-      }
-
-      if (window.SalonApi && typeof window.SalonApi.cancelBooking === 'function') {
-        window.SalonApi.cancelBooking(bookingId, cleanReason).then(res => {
-          if (window.UICommon) window.UICommon.showToast(`Đã hủy lịch hẹn #${bookingId} thành công!`);
-          this.searchBookingLookup();
-        }).catch(err => {
-          if (window.UICommon) window.UICommon.showToast(`Lỗi hủy lịch: ${err.message}`, 'error');
-        });
-      } else if (window.store && typeof window.store.updateBookingStatus === 'function') {
-        window.store.updateBookingStatus(bookingId, 'cancelled');
-        if (window.UICommon) window.UICommon.showToast(`Đã hủy lịch hẹn #${bookingId}!`);
-        this.searchBookingLookup();
-      }
+      this.openBookingCancelModal(bookingId);
     },
 
     showTicketQr(bookingId) {
@@ -2618,7 +2573,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // AI BARBER STUDIO INLINE LOGIC (CANVAS NEURAL + GALLERY PERSISTENCE)
+    // AI BARBER STUDIO INLINE LOGIC, CANVAS NEURAL + GALLERY PERSISTENCE
     // -----------------------------------------------------------------------
     renderAiStudioContent() {
       const { originalImage, resultImage, selectedStyle, selectedColorName, selectedColorHex, isProcessing, showApiSettings } = this.aiState;
@@ -3487,33 +3442,33 @@
                       `}
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                      ${(o.paymentStatus !== 'Paid' && o.TrangThai !== 'Đã thanh toán') ? `
-                        <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;" 
+                      ${(o.paymentStatus !== 'Paid' && o.TrangThai !== 'Đã thanh toán' && !isCancelled) ? `
+                        <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #10b981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                                 onclick="CustomerWeb.openOrderPaymentModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
-                          💳 Thanh Toán Ngay (VietQR)
+                          💳 Thanh Toán VietQR
                         </button>
                       ` : ''}
                       ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang)) ? `
-                        <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
+                        <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                                 onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
-                          Sửa Đánh Giá
+                          ⭐ Sửa Đánh Giá
                         </button>
                       ` : `
-                        <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #d97706; display: inline-flex; align-items: center; gap: 4px;" 
+                        <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                                 onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
                           ⭐ Đánh Giá Đơn Hàng
                         </button>
                       `}
-                      ${(window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function' ? window.SalonUtils.canCancelOrder(o) : (step === 1 || step === 2)) ? `
-                        <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); font-weight: 700;" 
-                                onclick="CustomerWeb.cancelOrderByCustomer('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
-                          Hủy Đơn Hàng
+                      ${(window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function' ? window.SalonUtils.canCancelOrder(o) : (!isCancelled)) ? `
+                        <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                                onclick="CustomerWeb.openOrderCancelModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
+                          ✕ Hủy Đơn Hàng
                         </button>
-                      ` : (step === 3 ? `
-                        <span style="font-size: 11px; color: #0284c7; background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600;">
-                          🚚 Đang giao hàng - Không thể hủy
+                      ` : `
+                        <span style="font-size: 11px; color: #94a3b8; background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); padding: 5px 12px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                          ✕ Đã hủy đơn
                         </span>
-                      ` : '')}
+                      `}
                     </div>
                   </div>
                 </div>
@@ -3733,7 +3688,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // ĐÁNH GIÁ ĐƠN HÀNG MỸ PHẨM (KẾT NỐI TRỰC TIẾP SQL SERVER BẢNG DanhGia)
+    // ĐÁNH GIÁ ĐƠN HÀNG MỸ PHẨM, KẾT NỐI TRỰC TIẾP SQL SERVER BẢNG DanhGia
     // -----------------------------------------------------------------------
     _selectedReviewRating: 5,
 
@@ -3741,6 +3696,8 @@
       if (!orderId) return;
       if (document.querySelector('.customer-portal-shell') || this._modalSource === 'portal') {
         this._subModalSource = 'portal';
+      } else if (window.ProfilePage && document.getElementById('profileOrdersContainer')) {
+        this._subModalSource = 'profile';
       } else {
         this._subModalSource = 'lookup';
         const lookupInput = document.getElementById('lookupSearchInput');
@@ -3755,32 +3712,31 @@
       const currentComment = existingReview ? (existingReview.comment || '') : '';
       this._selectedReviewRating = currentRating;
 
-      // Tìm thông tin đơn hàng để hiển thị
       const orders = (window.store && typeof window.store.getOrders === 'function') ? window.store.getOrders() : [];
       const order = orders.find(o => (o.id || o.orderCode || o.MaDonHang) === orderId) || {};
       const items = order.items || [];
       const itemsSummary = items.map(it => it.name || it.TenSanPham || 'Sản phẩm').join(', ');
 
       const modalHtml = `
-        <div class="review-modal-content" style="max-width: 480px; margin: 0 auto; padding: 6px 4px;">
-          <div style="text-align: center; margin-bottom: 18px;">
-            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 10px;">
+        <div class="review-modal-content" style="max-width: 680px; width: 100%; margin: 0 auto; padding: 10px 4px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);">
               ⭐
             </div>
             <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
               Đánh Giá Đơn Hàng #${this.escapeHtml(orderId)}
             </h3>
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
-              ${itemsSummary ? `Sản phẩm: <strong>${this.escapeHtml(itemsSummary)}</strong>` : 'Chia sẻ trải nghiệm sử dụng sản phẩm từ Omni Salon'}
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+              ${itemsSummary ? `Sản phẩm: <strong style="color: var(--brand-accent);">${this.escapeHtml(itemsSummary)}</strong>` : 'Chia sẻ trải nghiệm sử dụng mỹ phẩm chính hãng từ Omni Salon'}
             </p>
           </div>
 
-          <!-- Bộ chọn sao tương tác 1 - 5 sao -->
-          <div style="margin-bottom: 18px; text-align: center;">
+          <!-- Bo chon sao danh gia -->
+          <div style="margin-bottom: 20px; text-align: center; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px;">
             <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px;">
               Mức độ hài lòng của bạn:
             </div>
-            <div id="reviewRatingStarsContainer" style="display: inline-flex; gap: 8px; font-size: 32px; cursor: pointer; user-select: none;">
+            <div id="reviewRatingStarsContainer" style="display: inline-flex; gap: 10px; font-size: 34px; cursor: pointer; user-select: none;">
               ${[1, 2, 3, 4, 5].map(star => `
                 <span class="star-rating-item" data-star="${star}" 
                       style="color: ${star <= currentRating ? '#f59e0b' : '#4a4a44'}; transition: transform 0.15s, color 0.15s;"
@@ -3791,35 +3747,66 @@
                 </span>
               `).join('')}
             </div>
-            <div id="reviewStarTextLabel" style="font-size: 13px; font-weight: 700; color: #f59e0b; margin-top: 4px;">
-              ${this._getStarLabel(currentRating)}
+            <div style="margin-top: 8px;">
+              <span id="reviewStarTextLabel" style="font-size: 13.5px; font-weight: 700; color: #f59e0b; display: inline-block; padding: 4px 14px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 999px;">
+                ${this._getStarLabel(currentRating)}
+              </span>
             </div>
             <input type="hidden" id="orderReviewSelectedRating" value="${currentRating}">
+
+            <!-- Goi y nhanh nhan xet -->
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                Gợi ý nhanh, nhấn để thêm vào nhận xét:
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
+                ${[
+                  'Sản phẩm chính hãng xịn',
+                  'Giữ nếp rất tốt',
+                  'Mùi hương thơm lâu',
+                  'Đóng gói cẩn thận',
+                  'Giao hàng nhanh chóng'
+                ].map(tag => `
+                  <button type="button" class="pill-btn-outline" 
+                          style="font-size: 11.5px; padding: 4px 10px; border-radius: 999px; cursor: pointer; border-color: rgba(255,255,255,0.12); color: var(--text-secondary); background: rgba(255,255,255,0.03);"
+                          onclick="CustomerWeb.appendReviewTag('${tag}', 'order')">
+                    + ${tag}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
           </div>
 
-          <!-- Khung nhập nội dung đánh giá -->
-          <div style="margin-bottom: 18px;">
-            <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
-              Nhận xét chi tiết:
-            </label>
+          <!-- Khung nhap noi dung danh gia phong to -->
+          <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">
+                Nhận xét chi tiết:
+              </label>
+              <span style="font-size: 12px; color: var(--text-secondary);">Tối thiểu 4 ký tự</span>
+            </div>
             <textarea id="orderReviewCommentInput" 
-                      rows="4" 
-                      style="width: 100%; box-sizing: border-box; background: var(--surface-card, #242422); color: var(--text-primary, #FAF8F5); border: 1.5px solid var(--border-color, #4A4A44); border-radius: 10px; padding: 12px; font-size: 13.5px; font-family: inherit; resize: vertical; outline: none;"
-                      placeholder="Chất lượng sản phẩm, độ giữ nếp/mùi hương, thời gian giao hàng và quy cách đóng hộp...">${this.escapeHtml(currentComment)}</textarea>
+                      class="review-textarea-large"
+                      rows="7" 
+                      style="width: 100%; min-height: 180px !important; height: 180px; box-sizing: border-box; background: var(--surface-card, #1c1c1a) !important; color: var(--text-primary, #FAF8F5) !important; border: 1.5px solid var(--border-color, #4A4A44) !important; border-radius: 12px !important; padding: 14px 16px !important; font-size: 15px !important; line-height: 1.6 !important; font-family: inherit; resize: vertical !important; outline: none;"
+                      placeholder="Chất lượng sản phẩm, độ giữ nếp hoặc mùi hương, thời gian giao hàng và quy cách đóng hộp...">${this.escapeHtml(currentComment)}</textarea>
+            <div style="margin-top: 6px; font-size: 12px; color: var(--text-secondary); text-align: right;">
+              💡 Nhận xét chân thực của bạn giúp Omni Salon không ngừng nâng cao chất lượng.
+            </div>
           </div>
 
-          <!-- Nút hành động -->
+          <!-- Nut hanh dong -->
           <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button type="button" class="btn-cancel" 
-                    style="min-height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 600; background: var(--surface-elevated, #2a2a26); color: var(--text-secondary); border: 1px solid var(--border-color, #444);"
+            <button type="button" class="pill-btn-outline" 
+                    style="min-height: 42px; padding: 0 20px; font-size: 13.5px; font-weight: 700; color: var(--text-secondary); border-color: var(--border-color); cursor: pointer;"
                     onclick="CustomerWeb.closeOrderReviewModal()">
               Hủy Bỏ
             </button>
             <button type="button" class="btn-submit-terracotta" 
                     id="submitOrderReviewBtn"
-                    style="min-height: 42px; padding: 0 22px; border-radius: 10px; font-size: 13.5px; font-weight: 800; background: #d97706;"
+                    style="min-height: 42px; padding: 0 24px; border-radius: 999px; font-size: 13.5px; font-weight: 800; background: #d97706; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
                     onclick="CustomerWeb.handleOrderReviewSubmit('${this.escapeHtml(orderId)}')">
-              ${existingReview ? 'Cập Nhật Đánh Giá' : 'Gửi Đánh Giá Ngay'}
+              ✓ ${existingReview ? 'Cập Nhật Đánh Giá' : 'Gửi Đánh Giá Ngay'}
             </button>
           </div>
         </div>
@@ -3827,7 +3814,28 @@
 
       if (window.UICommon && typeof window.UICommon.openModal === 'function') {
         window.UICommon.openModal(modalHtml, 'review');
+        const modal = document.getElementById('globalModal');
+        if (modal) {
+          const shell = modal.querySelector('.modal-content-shell');
+          if (shell) {
+            shell.style.maxWidth = '680px';
+            shell.style.width = '94vw';
+          }
+        }
       }
+    },
+
+    appendReviewTag(tag, type = 'order') {
+      const inputId = type === 'booking' ? 'bookingReviewCommentInput' : 'orderReviewCommentInput';
+      const textarea = document.getElementById(inputId);
+      if (!textarea) return;
+      const currentVal = textarea.value.trim();
+      if (!currentVal) {
+        textarea.value = tag;
+      } else if (!currentVal.toLowerCase().includes(tag.toLowerCase())) {
+        textarea.value = currentVal + ', ' + tag.toLowerCase();
+      }
+      textarea.focus();
     },
 
     setOrderReviewStars(star) {
@@ -4043,8 +4051,352 @@
       }
     },
 
+    // Modal huy don hang
+    openOrderCancelModal(orderId, source = '') {
+      if (!orderId) return;
+
+      const user = this.getCurrentUser();
+      if (!user || (!user.id && !user.phone)) {
+        if (window.UICommon) {
+          window.UICommon.showToast('Vui lòng đăng nhập tài khoản để thực hiện hủy đơn hàng', 'warning');
+          if (typeof window.UICommon.openAuthModal === 'function') {
+            window.UICommon.openAuthModal('login');
+          }
+        }
+        return;
+      }
+
+      if (source === 'profile' || (!source && window.ProfilePage && document.getElementById('profileOrdersContainer'))) {
+        this._subModalSource = 'profile';
+      } else if (document.querySelector('.customer-portal-shell') || this._modalSource === 'portal') {
+        this._subModalSource = 'portal';
+      } else {
+        this._subModalSource = 'lookup';
+        const lookupInput = document.getElementById('lookupSearchInput');
+        if (lookupInput && lookupInput.value) this._lookupLastQuery = lookupInput.value;
+      }
+
+      const orders = (window.store && typeof window.store.getOrders === 'function') ? window.store.getOrders() : [];
+      const cleanId = String(orderId).replace(/^#+/, '').trim().toLowerCase();
+      const order = orders.find(o => 
+        String(o.id || '').replace(/^#+/, '').trim().toLowerCase() === cleanId || 
+        String(o.orderCode || '').replace(/^#+/, '').trim().toLowerCase() === cleanId || 
+        String(o.MaDonHang || '').replace(/^#+/, '').trim().toLowerCase() === cleanId
+      ) || {};
+      const oCode = order.id || order.orderCode || order.MaDonHang || orderId;
+      const amount = order.totalAmount || order.TongTien || 0;
+      const items = Array.isArray(order.items) ? order.items : [];
+      const itemsSummary = items.map(it => `${it.name || it.TenSanPham || 'Sản phẩm'} × ${it.qty || it.quantity || 1}`).join(', ');
+
+      const modalHtml = `
+        <div class="order-cancel-modal-box" style="max-width: 480px; margin: 0 auto; padding: 4px;">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 10px; font-weight: bold; border: 1px solid rgba(239, 68, 68, 0.25);">
+              ✕
+            </div>
+            <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
+              Xác Nhận Hủy Đơn Hàng #${this.escapeHtml(oCode)}
+            </h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+              Quý khách có chắc chắn muốn hủy đơn hàng này không?
+            </p>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: var(--text-secondary);">Mã đơn hàng:</span>
+              <strong style="color: var(--text-primary);">#${this.escapeHtml(oCode)}</strong>
+            </div>
+            ${itemsSummary ? `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="color: var(--text-secondary);">Sản phẩm:</span>
+                <span style="color: var(--text-primary); max-width: 65%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.escapeHtml(itemsSummary)}</span>
+              </div>
+            ` : ''}
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Tổng thanh toán:</span>
+              <strong style="color: var(--brand-accent); font-size: 14px;">${SalonUtils.formatCurrency(amount)}</strong>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+              Lý do hủy đơn hàng:
+            </label>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+              ${[
+                'Tôi muốn thay đổi địa chỉ hoặc sản phẩm',
+                'Tôi đặt nhầm đơn hàng hoặc không còn nhu cầu',
+                'Thời gian giao hàng quá lâu',
+                'Tôi tìm thấy sản phẩm khác phù hợp hơn',
+                'Lý do khác'
+              ].map((rText, idx) => `
+                <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-primary); cursor: pointer; padding: 8px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); transition: all 0.15s;">
+                  <input type="radio" name="orderCancelReasonOption" value="${rText}" ${idx === 0 ? 'checked' : ''} onchange="CustomerWeb.onSelectCancelOrderReason(this.value)" style="accent-color: #ef4444; cursor: pointer;">
+                  <span>${rText}</span>
+                </label>
+              `).join('')}
+            </div>
+
+            <textarea id="orderCancelCustomReason" rows="3" 
+                      style="width: 100%; box-sizing: border-box; background: var(--surface-card, #1e1e1c); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; color: var(--text-primary); font-size: 13px; resize: vertical; outline: none; line-height: 1.4;"
+                      placeholder="Chi tiết lý do hủy đơn hàng...">Tôi muốn thay đổi địa chỉ hoặc sản phẩm</textarea>
+          </div>
+
+          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; font-size: 12px; color: #ef4444; line-height: 1.5; text-align: left;">
+            ⚠️ <strong>Lưu ý:</strong> Đơn hàng sau khi hủy sẽ không thể phục hồi. Sản phẩm sẽ được hoàn lại kho.
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="pill-btn-outline" 
+                    style="min-height: 40px; padding: 0 18px; font-size: 13px; font-weight: 700; color: var(--text-secondary); border-color: var(--border-color); cursor: pointer;"
+                    onclick="CustomerWeb.closeOrderCancelModal()">
+              Không, Giữ Lại Đơn
+            </button>
+            <button type="button" class="btn-submit-terracotta" id="btnConfirmCancelOrder"
+                    style="min-height: 40px; padding: 0 20px; border-radius: 999px; font-size: 13px; font-weight: 800; background: #ef4444; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
+                    onclick="CustomerWeb.submitOrderCancellation('${this.escapeHtml(oCode)}')">
+              ✕ Xác Nhận Hủy Đơn
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (window.UICommon && typeof window.UICommon.openModal === 'function') {
+        window.UICommon.openModal(modalHtml, 'cancel-order');
+      }
+    },
+
+    onSelectCancelOrderReason(val) {
+      const textarea = document.getElementById('orderCancelCustomReason');
+      if (!textarea) return;
+      if (val === 'Lý do khác') {
+        textarea.value = '';
+        textarea.placeholder = 'Vui lòng nhập lý do cụ thể...';
+        textarea.focus();
+      } else {
+        textarea.value = val;
+      }
+    },
+
+    closeOrderCancelModal() {
+      if (this._subModalSource === 'portal' || this._modalSource === 'portal') {
+        this.openCustomerPortalModal('orders');
+      } else if (this._subModalSource === 'profile') {
+        if (window.UICommon) window.UICommon.closeGlobalModal();
+      } else {
+        this.openLookupModal(this._lookupLastQuery || '', 'orders');
+      }
+    },
+
+    async submitOrderCancellation(orderId) {
+      if (!orderId) return;
+      const textarea = document.getElementById('orderCancelCustomReason');
+      const cleanReason = textarea ? textarea.value.trim() : 'Tôi muốn thay đổi địa chỉ hoặc sản phẩm';
+      if (!cleanReason || cleanReason.length < 3) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do hủy cụ thể tối thiểu 3 ký tự', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btnConfirmCancelOrder');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Đang xử lý hủy đơn...';
+      }
+
+      if (window.store && typeof window.store.cancelOrder === 'function') {
+        const res = await window.store.cancelOrder(orderId, cleanReason);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '✕ Xác Nhận Hủy Đơn';
+        }
+        if (res && res.success) {
+          if (window.UICommon) window.UICommon.showToast(res.message || `Đã hủy đơn hàng #${orderId} thành công!`, 'success');
+          if (this._subModalSource === 'portal' || this._modalSource === 'portal') {
+            this.openCustomerPortalModal('orders');
+          } else if (this._subModalSource === 'profile') {
+            if (window.UICommon) window.UICommon.closeGlobalModal();
+            const profileContainer = document.getElementById('webMainContainer');
+            if (window.ProfilePage && profileContainer) window.ProfilePage.render(profileContainer);
+          } else {
+            this.openLookupModal(this._lookupLastQuery || '', 'orders');
+          }
+        } else {
+          if (window.UICommon) window.UICommon.showToast(res?.error || 'Lỗi khi hủy đơn hàng!', 'error');
+        }
+      }
+    },
+
+    // Modal huy lich hen
+    openBookingCancelModal(bookingId) {
+      if (!bookingId) return;
+
+      const user = this.getCurrentUser();
+      if (!user || (!user.id && !user.phone)) {
+        if (window.UICommon) {
+          window.UICommon.showToast('Vui lòng đăng nhập tài khoản để thực hiện hủy lịch hẹn', 'warning');
+          if (typeof window.UICommon.openAuthModal === 'function') {
+            window.UICommon.openAuthModal('login');
+          }
+        }
+        return;
+      }
+
+      if (document.querySelector('.customer-portal-shell') || this._modalSource === 'portal') {
+        this._subModalSource = 'portal';
+      } else if (window.ProfilePage && document.getElementById('profileBookingsContainer')) {
+        this._subModalSource = 'profile';
+      } else {
+        this._subModalSource = 'lookup';
+        const lookupInput = document.getElementById('lookupSearchInput');
+        if (lookupInput && lookupInput.value) this._lookupLastQuery = lookupInput.value;
+      }
+
+      const booking = this._findBookingById(bookingId) || {};
+      const bCode = booking.id || booking.bookingCode || booking.MaLichHen || bookingId;
+      const serviceName = booking.serviceName || 'Dịch vụ làm tóc';
+      const timeSlot = booking.timeSlot || 'Giờ hẹn';
+      const dateStr = booking.date || booking.bookingDate || 'Hôm nay';
+
+      const modalHtml = `
+        <div class="booking-cancel-modal-box" style="max-width: 480px; margin: 0 auto; padding: 4px;">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 10px; font-weight: bold; border: 1px solid rgba(239, 68, 68, 0.25);">
+              ✕
+            </div>
+            <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
+              Hủy Lịch Hẹn #${this.escapeHtml(bCode)}
+            </h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+              Quý khách có chắc chắn muốn hủy lịch hẹn này không?
+            </p>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: var(--text-secondary);">Mã lịch hẹn:</span>
+              <strong style="color: var(--text-primary);">#${this.escapeHtml(bCode)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: var(--text-secondary);">Dịch vụ:</span>
+              <strong style="color: var(--brand-accent);">${this.escapeHtml(serviceName)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Thời gian:</span>
+              <span style="color: var(--text-primary);">${this.escapeHtml(timeSlot)} | ${SalonUtils.formatDate(dateStr)}</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+              Lý do hủy lịch:
+            </label>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+              ${[
+                'Tôi có việc đột xuất bận',
+                'Tôi muốn đổi sang ngày giờ khác',
+                'Tôi đã tìm được salon khác gần hơn',
+                'Lý do khác'
+              ].map((rText, idx) => `
+                <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-primary); cursor: pointer; padding: 8px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); transition: all 0.15s;">
+                  <input type="radio" name="bookingCancelReasonOption" value="${rText}" ${idx === 0 ? 'checked' : ''} onchange="CustomerWeb.onSelectCancelBookingReason(this.value)" style="accent-color: #ef4444; cursor: pointer;">
+                  <span>${rText}</span>
+                </label>
+              `).join('')}
+            </div>
+
+            <textarea id="bookingCancelCustomReason" rows="3" 
+                      style="width: 100%; box-sizing: border-box; background: var(--surface-card, #1e1e1c); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; color: var(--text-primary); font-size: 13px; resize: vertical; outline: none; line-height: 1.4;"
+                      placeholder="Chi tiết lý do hủy lịch...">Tôi có việc đột xuất bận</textarea>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="pill-btn-outline" 
+                    style="min-height: 40px; padding: 0 18px; font-size: 13px; font-weight: 700; color: var(--text-secondary); border-color: var(--border-color); cursor: pointer;"
+                    onclick="CustomerWeb.closeBookingCancelModal()">
+              Không, Giữ Lại Lịch
+            </button>
+            <button type="button" class="btn-submit-terracotta" id="btnConfirmCancelBooking"
+                    style="min-height: 40px; padding: 0 20px; border-radius: 999px; font-size: 13px; font-weight: 800; background: #ef4444; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
+                    onclick="CustomerWeb.submitBookingCancellation('${this.escapeHtml(bCode)}')">
+              ✕ Xác Nhận Hủy Lịch
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (window.UICommon && typeof window.UICommon.openModal === 'function') {
+        window.UICommon.openModal(modalHtml, 'cancel-booking');
+      }
+    },
+
+    onSelectCancelBookingReason(val) {
+      const textarea = document.getElementById('bookingCancelCustomReason');
+      if (!textarea) return;
+      if (val === 'Lý do khác') {
+        textarea.value = '';
+        textarea.placeholder = 'Vui lòng nhập lý do cụ thể...';
+        textarea.focus();
+      } else {
+        textarea.value = val;
+      }
+    },
+
+    closeBookingCancelModal() {
+      if (this._subModalSource === 'portal' || this._modalSource === 'portal') {
+        this.openCustomerPortalModal('bookings');
+      } else if (this._subModalSource === 'profile') {
+        if (window.UICommon) window.UICommon.closeGlobalModal();
+      } else {
+        this.openLookupModal(this._lookupLastQuery || '', 'bookings');
+      }
+    },
+
+    async submitBookingCancellation(bookingId) {
+      if (!bookingId) return;
+      const textarea = document.getElementById('bookingCancelCustomReason');
+      const cleanReason = textarea ? textarea.value.trim() : 'Tôi có việc đột xuất bận';
+      if (!cleanReason || cleanReason.length < 3) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do hủy cụ thể tối thiểu 3 ký tự', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btnConfirmCancelBooking');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Đang xử lý hủy lịch...';
+      }
+
+      if (window.SalonApi && typeof window.SalonApi.cancelBooking === 'function') {
+        try {
+          await window.SalonApi.cancelBooking(bookingId, cleanReason);
+          if (window.UICommon) window.UICommon.showToast(`Đã hủy lịch hẹn #${bookingId} thành công!`, 'success');
+        } catch (err) {
+          if (window.UICommon) window.UICommon.showToast(`Lỗi hủy lịch: ${err.message}`, 'error');
+        }
+      } else if (window.store && typeof window.store.updateBookingStatus === 'function') {
+        window.store.updateBookingStatus(bookingId, 'cancelled');
+        if (window.UICommon) window.UICommon.showToast(`Đã hủy lịch hẹn #${bookingId}!`, 'success');
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '✕ Xác Nhận Hủy Lịch';
+      }
+
+      if (this._subModalSource === 'portal' || this._modalSource === 'portal') {
+        this.openCustomerPortalModal('bookings');
+      } else if (this._subModalSource === 'profile') {
+        if (window.UICommon) window.UICommon.closeGlobalModal();
+        const profileContainer = document.getElementById('webMainContainer');
+        if (window.ProfilePage && profileContainer) window.ProfilePage.render(profileContainer);
+      } else {
+        this.openLookupModal(this._lookupLastQuery || '', 'bookings');
+      }
+    },
+
     // -----------------------------------------------------------------------
-    // THANH TOÁN LỊCH HẸN BẰNG VIETQR (ĐỒNG BỘ 100% VỚI ĐƠN HÀNG)
+    // THANH TOÁN LỊCH HẸN BẰNG VIETQR, ĐỒNG BỘ 100% VỚI ĐƠN HÀNG
     // -----------------------------------------------------------------------
     openBookingPaymentModal(bookingId) {
       if (!bookingId) return;
@@ -4156,7 +4508,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // ĐÁNH GIÁ LỊCH HẸN CẮT TÓC (KẾT NỐI TRỰC TIẾP SQL SERVER BẢNG DanhGia)
+    // ĐÁNH GIÁ LỊCH HẸN CẮT TÓC, KẾT NỐI TRỰC TIẾP SQL SERVER BẢNG DanhGia
     // -----------------------------------------------------------------------
     _selectedBookingReviewRating: 5,
 
@@ -4165,6 +4517,8 @@
 
       if (document.querySelector('.customer-portal-shell') || this._modalSource === 'portal') {
         this._subModalSource = 'portal';
+      } else if (window.ProfilePage && document.getElementById('profileBookingsContainer')) {
+        this._subModalSource = 'profile';
       } else {
         this._subModalSource = 'lookup';
         const lookupInput = document.getElementById('lookupSearchInput');
@@ -4186,25 +4540,25 @@
       const stylName = booking.stylistName || 'Master Barber';
 
       const modalHtml = `
-        <div class="review-modal-content" style="max-width: 480px; margin: 0 auto; padding: 6px 4px;">
-          <div style="text-align: center; margin-bottom: 18px;">
-            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 10px;">
+        <div class="review-modal-content" style="max-width: 520px; margin: 0 auto; padding: 6px 4px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);">
               ⭐
             </div>
             <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
               Đánh Giá Lịch Hẹn #${this.escapeHtml(bookingId)}
             </h3>
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
-              Dịch vụ: <strong>${this.escapeHtml(svcName)}</strong> • Barber: <strong>${this.escapeHtml(stylName)}</strong>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+              Dịch vụ: <strong style="color: var(--brand-accent);">${this.escapeHtml(svcName)}</strong> • Stylist: <strong>${this.escapeHtml(stylName)}</strong>
             </p>
           </div>
 
-          <!-- Bộ chọn sao tương tác 1 - 5 sao -->
-          <div style="margin-bottom: 18px; text-align: center;">
+          <!-- Bo chon sao tuong tac -->
+          <div style="margin-bottom: 20px; text-align: center; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px;">
             <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px;">
               Mức độ hài lòng của bạn:
             </div>
-            <div id="bookingReviewRatingStarsContainer" style="display: inline-flex; gap: 8px; font-size: 32px; cursor: pointer; user-select: none;">
+            <div id="bookingReviewRatingStarsContainer" style="display: inline-flex; gap: 10px; font-size: 34px; cursor: pointer; user-select: none;">
               ${[1, 2, 3, 4, 5].map(star => `
                 <span class="star-rating-item" data-star="${star}" 
                       style="color: ${star <= currentRating ? '#f59e0b' : '#4a4a44'}; transition: transform 0.15s, color 0.15s;"
@@ -4215,35 +4569,66 @@
                 </span>
               `).join('')}
             </div>
-            <div id="bookingReviewStarTextLabel" style="font-size: 13px; font-weight: 700; color: #f59e0b; margin-top: 4px;">
-              ${this._getStarLabel(currentRating)}
+            <div style="margin-top: 8px;">
+              <span id="bookingReviewStarTextLabel" style="font-size: 13.5px; font-weight: 700; color: #f59e0b; display: inline-block; padding: 4px 14px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 999px;">
+                ${this._getStarLabel(currentRating)}
+              </span>
             </div>
             <input type="hidden" id="bookingReviewSelectedRating" value="${currentRating}">
+
+            <!-- Goi y nhanh nhan xet -->
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                Gợi ý nhanh, nhấn để thêm vào nhận xét:
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
+                ${[
+                  'Cắt tóc rất ưng ý',
+                  'Stylist tư vấn nhiệt tình',
+                  'Gội đầu massage cực phê',
+                  'Không gian salon sạch đẹp',
+                  'Đúng giờ hẹn chu đáo'
+                ].map(tag => `
+                  <button type="button" class="pill-btn-outline" 
+                          style="font-size: 11.5px; padding: 4px 10px; border-radius: 999px; cursor: pointer; border-color: rgba(255,255,255,0.12); color: var(--text-secondary); background: rgba(255,255,255,0.03);"
+                          onclick="CustomerWeb.appendReviewTag('${tag}', 'booking')">
+                    + ${tag}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
           </div>
 
-          <!-- Khung nhập nội dung đánh giá -->
-          <div style="margin-bottom: 18px;">
-            <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
-              Nhận xét chi tiết:
-            </label>
+          <!-- Khung nhap noi dung danh gia phong to -->
+          <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">
+                Nhận xét chi tiết:
+              </label>
+              <span style="font-size: 12px; color: var(--text-secondary);">Tối thiểu 4 ký tự</span>
+            </div>
             <textarea id="bookingReviewCommentInput" 
-                      rows="4" 
-                      style="width: 100%; box-sizing: border-box; background: var(--surface-card, #242422); color: var(--text-primary, #FAF8F5); border: 1.5px solid var(--border-color, #4A4A44); border-radius: 10px; padding: 12px; font-size: 13.5px; font-family: inherit; resize: vertical; outline: none;"
-                      placeholder="Chất lượng đường kéo, cạo mặt khăn nóng, gội đầu thư giãn, độ chu đáo của Barber và không gian Salon...">${this.escapeHtml(currentComment)}</textarea>
+                      class="review-textarea-large"
+                      rows="7" 
+                      style="width: 100%; min-height: 180px !important; height: 180px; box-sizing: border-box; background: var(--surface-card, #1c1c1a) !important; color: var(--text-primary, #FAF8F5) !important; border: 1.5px solid var(--border-color, #4A4A44) !important; border-radius: 12px !important; padding: 14px 16px !important; font-size: 15px !important; line-height: 1.6 !important; font-family: inherit; resize: vertical !important; outline: none;"
+                      placeholder="Cảm nhận về tay nghề stylist, độ hài lòng kiểu tóc, không gian salon...">${this.escapeHtml(currentComment)}</textarea>
+            <div style="margin-top: 6px; font-size: 12px; color: var(--text-secondary); text-align: right;">
+              💡 Nhận xét chân thực của bạn giúp Omni Salon nâng cao tay nghề và chất lượng phục vụ.
+            </div>
           </div>
 
-          <!-- Nút hành động -->
+          <!-- Nut hanh dong -->
           <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button type="button" class="btn-cancel" 
-                    style="min-height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 600; background: var(--surface-elevated, #2a2a26); color: var(--text-secondary); border: 1px solid var(--border-color, #444);"
+            <button type="button" class="pill-btn-outline" 
+                    style="min-height: 42px; padding: 0 20px; font-size: 13.5px; font-weight: 700; color: var(--text-secondary); border-color: var(--border-color); cursor: pointer;"
                     onclick="CustomerWeb.closeBookingReviewModal()">
               Hủy Bỏ
             </button>
             <button type="button" class="btn-submit-terracotta" 
                     id="submitBookingReviewBtn"
-                    style="min-height: 42px; padding: 0 22px; border-radius: 10px; font-size: 13.5px; font-weight: 800; background: #d97706;"
+                    style="min-height: 42px; padding: 0 24px; border-radius: 999px; font-size: 13.5px; font-weight: 800; background: #d97706; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
                     onclick="CustomerWeb.handleBookingReviewSubmit('${this.escapeHtml(bookingId)}')">
-              ${existingReview ? 'Cập Nhật Đánh Giá' : 'Gửi Đánh Giá Ngay'}
+              ✓ ${existingReview ? 'Cập Nhật Đánh Giá' : 'Gửi Đánh Giá Ngay'}
             </button>
           </div>
         </div>

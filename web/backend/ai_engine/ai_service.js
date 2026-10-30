@@ -831,7 +831,7 @@ async function generateAiHairRestyle(options) {
     };
   }
 
-  // Nếu không nhận diện được khuôn mặt, trả về thông báo lỗi rõ ràng (không bao giờ trả ảnh hoạt hình vector)
+  // Nếu không nhận diện được khuôn mặt, trả về thông báo lỗi rõ ràng, không bao giờ trả ảnh hoạt hình vector
   const errMsg = (pyRestyle && pyRestyle.error) ? pyRestyle.error : 'Không thể phát hiện khuôn mặt rõ nét trong ảnh chân dung của khách hàng. Vui lòng chụp góc thẳng sáng rõ.';
   let faceAnalysis = null;
   try {

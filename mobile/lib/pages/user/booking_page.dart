@@ -186,7 +186,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _submitBooking() async {
-    // BẮT BUỘC ĐĂNG NHẬP MỚI CHO ĐẶT LỊCH (Requirement 3)
+    // BẮT BUỘC ĐĂNG NHẬP MỚI CHO ĐẶT LỊCH, Requirement 3
     if (AuthService.currentUser == null) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -309,7 +309,7 @@ class _BookingScreenState extends State<BookingScreen> {
       // Làm mới trạng thái ca giờ ngay sau khi đặt
       _loadAvailableSlots();
 
-      // Lấy mã chuẩn CSDL từ backend trả về nếu có (LH...)
+      // Lấy mã chuẩn CSDL từ backend trả về nếu có, LH...
       String finalCode = bookingCode;
       if (res['booking'] is Map) {
         final bMap = res['booking'] as Map;
@@ -403,6 +403,42 @@ class _BookingScreenState extends State<BookingScreen> {
               style: AppTheme.bodySmall(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
+            if (booking.paymentMethod == 'VietQR' || _selectedPaymentMethod == 'VietQR') ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceElevated,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
+                ),
+                child: Column(
+                  children: [
+                    Text('THANH TOÁN VIETQR 24/7', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=' + booking.totalPrice.toString() + '&addInfo=' + Uri.encodeComponent('LICHHEN ' + booking.bookingCode) + '&accountName=OMNISALON%20ENTERPRISE',
+                        height: 170,
+                        width: 170,
+                        fit: BoxFit.contain,
+                        errorBuilder: (c, e, s) => Container(
+                          height: 100,
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.qr_code_2_rounded, size: 54, color: AppTheme.accentGold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('MB Bank: 0900000000', style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                    Text('Chủ TK: OMNISALON ENTERPRISE', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary)),
+                    Text('Nội dung: LICHHEN ' + booking.bookingCode, style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
         actions: [
@@ -781,7 +817,20 @@ class _BookingScreenState extends State<BookingScreen> {
         : _stylists;
     final listToDisplay = branchStylists.isNotEmpty ? branchStylists : _stylists;
 
-    final filtered = listToDisplay.where((st) {
+    // Lọc chỉ giữ lại Thợ Barber, Master Stylist, Lead Barber, Assistant Barber, Branch Manager, loại bỏ nhân viên thu ngân/tạp vụ
+    final barbersOnly = listToDisplay.where((st) {
+      final lvl = st.level.toLowerCase();
+      final name = st.name.toLowerCase();
+      if (lvl.contains('nhân viên') || lvl.contains('thu ngân') || lvl.contains('cashier') || lvl.contains('kế toán') || st.id == 'NV00') {
+        return false;
+      }
+      if (name.contains('nhân viên') || name.contains('thu ngân')) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    final filtered = barbersOnly.where((st) {
       if (query.isEmpty) return true;
       return st.name.toLowerCase().contains(query) ||
           st.level.toLowerCase().contains(query);
@@ -832,7 +881,7 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
         ),
 
-        // Tùy chọn bất kỳ (chỉ hiển thị khi không tìm kiếm hoặc tìm kiếm rỗng)
+        // Tùy chọn bất kỳ, chỉ hiển thị khi không tìm kiếm hoặc tìm kiếm rỗng
         if (query.isEmpty)
           GestureDetector(
             onTap: () {
@@ -1254,7 +1303,7 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
         const SizedBox(height: 14),
 
-        // PHƯƠNG THỨC THANH TOÁN (Mục 6: Chọn QR hoặc Tại quầy)
+        // PHƯƠNG THỨC THANH TOÁN, Mục 6: Chọn QR hoặc Tại quầy
         Text('PHƯƠNG THỨC THANH TOÁN', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
         const SizedBox(height: 8),
 

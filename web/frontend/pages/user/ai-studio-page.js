@@ -565,7 +565,7 @@
         if (analysis.transparentPngUrl) this.state.transparentImage = analysis.transparentPngUrl;
         this.state.isPreprocessed = !!(analysis.cleanBaseImageUrl || analysis.croppedImageUrl);
 
-        // Mặc định hiển thị ảnh cắt 3:4 hoặc ảnh gốc CÓ TÓC THẬT (KHÔNG hiển thị đầu trọc khi chưa mô phỏng)
+        // Mặc định hiển thị ảnh cắt 3:4 hoặc ảnh gốc CÓ TÓC THẬT, KHÔNG hiển thị đầu trọc khi chưa mô phỏng
         const displayImg = (this.state.activeBaseMode === 'raw') 
           ? this.state.originalRawImage 
           : (this.state.croppedImage || this.state.originalRawImage);
@@ -622,7 +622,7 @@
       }
     },
 
-    // Chuyển đổi giữa 2 chế độ xem: Ảnh cắt tỉ lệ 3:4 (giữ tóc thật) hoặc Ảnh gốc ban đầu
+    // Chuyển đổi giữa 2 chế độ xem: Ảnh cắt tỉ lệ 3:4, giữ tóc thật hoặc Ảnh gốc ban đầu
     switchBaseMode(mode) {
       this.state.activeBaseMode = mode;
       let targetImg = this.state.croppedImage || this.state.originalRawImage;

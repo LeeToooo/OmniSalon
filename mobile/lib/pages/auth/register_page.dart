@@ -86,12 +86,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (res['success'] == true) {
-      // Chuẩn bị gửi OTP Gmail (ở chế độ chờ / mock)
+      // Chuẩn bị gửi OTP Gmail, ở chế độ chờ / mock
       await AuthService.sendGmailOtp(_emailController.text.trim());
 
       if (!mounted) return;
 
-      // Điều hướng tới màn hình OTP Verification (có nút Bỏ qua test nhanh)
+      // Điều hướng tới màn hình OTP Verification, có nút Bỏ qua test nhanh
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => OtpVerificationScreen(

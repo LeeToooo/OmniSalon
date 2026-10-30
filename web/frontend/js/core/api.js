@@ -79,7 +79,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // MODULE 1: XÁC THỰC & NGƯỜI DÙNG (AUTH & USERS CONTRACTS)
+    // MODULE 1: XÁC THỰC & NGƯỜI DÙNG, AUTH & USERS CONTRACTS
     // -----------------------------------------------------------------------
     async sendOtp(email) {
       if (this.config.useLiveApi) {
@@ -200,7 +200,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // MODULE 2: CHI NHÁNH & ĐỘI NGŨ THỢ (BRANCHES & STYLISTS CONTRACTS)
+    // MODULE 2: CHI NHÁNH & ĐỘI NGŨ THỢ, BRANCHES & STYLISTS CONTRACTS
     // -----------------------------------------------------------------------
     async getBranches() {
       const live = await this._request('/branches');
@@ -282,7 +282,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // MODULE 3: DỊCH VỤ & GÓI COMBO VIP (SERVICES & COMBOS CONTRACTS)
+    // MODULE 3: DỊCH VỤ & GÓI COMBO VIP, SERVICES & COMBOS CONTRACTS
     // -----------------------------------------------------------------------
     async getServices(category = null) {
       const endpoint = category ? `/services?category=${category}` : '/services';
@@ -352,7 +352,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // MODULE 4: ĐẶT LỊCH & ĐIỀU PHỐI CA (BOOKINGS CONTRACTS)
+    // MODULE 4: ĐẶT LỊCH & ĐIỀU PHỐI CA, BOOKINGS CONTRACTS
     // -----------------------------------------------------------------------
     async getAvailableSlots(date, stylistId, branchId = null, durationMinutes = 45) {
       const live = await this._request(`/bookings/available-slots?date=${date}&stylistId=${stylistId}&branchId=${branchId}&duration=${durationMinutes}`);
@@ -415,7 +415,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // MODULE 5: SẢN PHẨM, KHO HÀNG & POS BÁN LẺ (CATALOG, INVENTORY & POS)
+    // MODULE 5: SẢN PHẨM, KHO HÀNG & POS BÁN LẺ, CATALOG, INVENTORY & POS
     // -----------------------------------------------------------------------
     async getProducts(section = null) {
       const endpoint = section ? `/products?section=${section}` : '/products';
@@ -486,7 +486,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // MODULE 6: AI RESTYLE STUDIO ENGINE (CANVAS + NEURAL CONNECTORS)
+    // MODULE 6: AI RESTYLE STUDIO ENGINE, CANVAS + NEURAL CONNECTORS
     // -----------------------------------------------------------------------
     saveAiConfig(provider, apiKey, endpoint, model) {
       this.config.ai.provider = provider || this.config.ai.provider;
@@ -560,7 +560,7 @@
       const storedKey = (typeof localStorage !== 'undefined' && localStorage.getItem('omni_gemini_api_key')) || '';
       const effectiveKey = (geminiApiKey || storedKey || '').trim();
 
-      // Gọi Backend Real AI Vision Engine (MediaPipe 3D Landmark Warping + Poisson Seamless Blend)
+      // Gọi Backend Real AI Vision Engine, MediaPipe 3D Landmark Warping + Poisson Seamless Blend
       let backendRes = null;
       try {
         backendRes = await this._fetch('/ai/restyle-hair', {
@@ -653,7 +653,7 @@
         }
       }
 
-      // Smart Canvas High-Resolution Neural Restyle (100% Reliable Native Fallback)
+      // Smart Canvas High-Resolution Neural Restyle, 100% Reliable Native Fallback
       return this._generateSmartRealisticRestyle(originalImageBase64, hairstyleName, hairColorName, hairColorHex);
     },
 
@@ -749,7 +749,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // MODULE 7: BÁO CÁO THỐNG KÊ & AUDIT (ANALYTICS & AUDIT CONTRACTS)
+    // MODULE 7: BÁO CÁO THỐNG KÊ & AUDIT, ANALYTICS & AUDIT CONTRACTS
     // -----------------------------------------------------------------------
     async getRevenueOverview(branchId = null) {
       this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'xem báo cáo doanh thu');
@@ -775,9 +775,9 @@
 
     // -----------------------------------------------------------------------
     // MODULE 8: WAREHOUSE, SUPPLIERS, RULES, INVOICES & NOTIFICATIONS
-    // (Đồng bộ 100% CSDL QL_SALON.sql)
+    //, Đồng bộ 100% CSDL QL_SALON.sql
     // -----------------------------------------------------------------------
-    // Nhà Cung Cấp (NhaCungCap)
+    // Nhà Cung Cấp, NhaCungCap
     async getSuppliers() {
       const live = await this._request('/suppliers');
       if (live) return live;
@@ -799,7 +799,7 @@
       return await this._request(`/suppliers/${supplierId}`, { method: 'DELETE' });
     },
 
-    // Quy Tắc Giảm Giá Cận Hạn (QuyTacGiamGiaTheoHan)
+    // Quy Tắc Giảm Giá Cận Hạn, QuyTacGiamGiaTheoHan
     async getDiscountRules() {
       const live = await this._request('/inventory/discount-rules');
       if (live) return live;
@@ -816,7 +816,7 @@
       return await this._request(`/inventory/discount-rules/${ruleId}`, { method: 'DELETE' });
     },
 
-    // Phiếu Nhập Kho (PhieuNhapKho & ChiTietPhieuNhap)
+    // Phiếu Nhập Kho, PhieuNhapKho & ChiTietPhieuNhap
     async getReceipts(branchId = null) {
       const endpoint = branchId ? `/inventory/receipts?branch_id=${branchId}` : '/inventory/receipts';
       const live = await this._request(endpoint);
@@ -841,7 +841,7 @@
       });
     },
 
-    // Hóa Đơn & Lịch Sử Giao Dịch (HoaDon, ChiTietHoaDon_DichVu, ChiTietHoaDon_SanPham, ThanhToan)
+    // Hóa Đơn & Lịch Sử Giao Dịch, HoaDon, ChiTietHoaDon_DichVu, ChiTietHoaDon_SanPham, ThanhToan
     async getInvoices(branchId = null) {
       const endpoint = branchId ? `/invoices?branch_id=${branchId}` : '/invoices';
       const live = await this._request(endpoint);
@@ -859,7 +859,7 @@
       return window.SalonStore ? window.SalonStore.getPayments() : [];
     },
 
-    // Views FEFO & Cảnh Báo Tồn Thấp (vw_GiaBanTheoLoHienTai, vw_SanPhamCanhBaoTonThap)
+    // Views FEFO & Cảnh Báo Tồn Thấp, vw_GiaBanTheoLoHienTai, vw_SanPhamCanhBaoTonThap
     async getFefoLots(branchId = null) {
       const endpoint = branchId ? `/inventory/lots?branch_id=${branchId}` : '/inventory/lots';
       const live = await this._request(endpoint);
@@ -873,7 +873,7 @@
       return window.SalonStore ? window.SalonStore.getLowStockWarnings() : [];
     },
 
-    // Danh Mục Sản Phẩm (DanhMucSanPham)
+    // Danh Mục Sản Phẩm, DanhMucSanPham
     async getCategories() {
       const live = await this._request('/categories');
       if (live) return live;
@@ -895,7 +895,7 @@
       return await this._request(`/categories/${categoryId}`, { method: 'DELETE' });
     },
 
-    // Khuyến Mãi (KhuyenMai, KhuyenMai_DichVu, KhuyenMai_SanPham)
+    // Khuyến Mãi, KhuyenMai, KhuyenMai_DichVu, KhuyenMai_SanPham
     async getPromotions() {
       const live = await this._request('/promotions');
       if (live) return live;
@@ -912,7 +912,7 @@
       return await this._request(`/promotions/${promoId}`, { method: 'DELETE' });
     },
 
-    // Thông Báo Hệ Thống (ThongBao)
+    // Thông Báo Hệ Thống, ThongBao
     async getNotifications(userId = null) {
       const live = await this._request('/notifications');
       if (live) return live;

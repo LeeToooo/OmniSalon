@@ -10,7 +10,7 @@ import 'package:omni_salon_mobile/models/admin_models.dart';
 import 'package:omni_salon_mobile/models/service.dart';
 
 class ApiService {
-  // Tự động phân giải cổng mặc định của server Node.js (cổng 3000)
+  // Tự động phân giải cổng mặc định của server Node.js, cổng 3000
   // Android Emulator: 10.0.2.2:3000/api
   // Web / Desktop Windows: localhost:3000/api
   static String get defaultBaseUrl {
@@ -71,7 +71,7 @@ class ApiService {
     return {'status': 'disconnected', 'sqlConnected': false};
   }
 
-  // 1. LẤY DANH SÁCH CHI NHÁNH TỪ BẢNG ChiNhanh (KÈM ẢNH THẬT)
+  // 1. LẤY DANH SÁCH CHI NHÁNH TỪ BẢNG ChiNhanh, KÈM ẢNH THẬT
   static Future<List<Branch>> fetchBranches() async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/branches')).timeout(const Duration(seconds: 4));
@@ -83,7 +83,7 @@ class ApiService {
     return _seedBranches;
   }
 
-  // 2. LẤY DANH SÁCH DỊCH VỤ & COMBO TỪ BẢNG DichVu & ComboDichVu (KÈM ẢNH THẬT)
+  // 2. LẤY DANH SÁCH DỊCH VỤ & COMBO TỪ BẢNG DichVu & ComboDichVu, KÈM ẢNH THẬT
   static Future<List<SalonService>> fetchServices() async {
     List<SalonService> allServices = [];
     try {
@@ -112,7 +112,7 @@ class ApiService {
     return _seedServices;
   }
 
-  // 3. LẤY DANH SÁCH THỢ TẠO MẪU (MASTER STYLIST & ART DIRECTOR)
+  // 3. LẤY DANH SÁCH THỢ TẠO MẪU, MASTER STYLIST & ART DIRECTOR
   static Future<List<Stylist>> fetchStylists({String? branchId}) async {
     try {
       final url = branchId != null && branchId.isNotEmpty && branchId != 'all'
@@ -215,7 +215,7 @@ class ApiService {
     }).toList();
   }
 
-  // 6. LẤY DANH SÁCH ĐẶT LỊCH (LichHen)
+  // 6. LẤY DANH SÁCH ĐẶT LỊCH, LichHen
   static Future<List<Booking>> fetchBookings() async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/bookings')).timeout(const Duration(seconds: 4));
@@ -249,7 +249,7 @@ class ApiService {
     ).toList();
   }
 
-  // 7b. SINH MÃ LỊCH HẸN TUẦN TỰ CHUẨN CSDL (LH01, LH02... LH11, LH12...)
+  // 7b. SINH MÃ LỊCH HẸN TUẦN TỰ CHUẨN CSDL, LH01, LH02... LH11, LH12...
   static String generateNextBookingCode() {
     int maxSeq = 10;
     for (final b in _localBookings) {
@@ -262,7 +262,7 @@ class ApiService {
     return 'LH${(maxSeq + 1).toString().padLeft(2, '0')}';
   }
 
-  // 7c. SINH MÃ ĐƠN HÀNG TUẦN TỰ CHUẨN CSDL (DH01, DH02... DH11, DH12...)
+  // 7c. SINH MÃ ĐƠN HÀNG TUẦN TỰ CHUẨN CSDL, DH01, DH02... DH11, DH12...
   static String generateNextOrderCode() {
     int maxSeq = 10;
     for (final o in _localOrders) {
@@ -365,7 +365,7 @@ class ApiService {
     return {'success': false, 'message': 'Không thể kết nối máy chủ'};
   }
 
-  // 9. CẬP NHẬT TRẠNG THÁI LỊCH HẸN (ĐỔI THỢ, VÀO GHẾ, HOÀN THÀNH, HỦY)
+  // 9. CẬP NHẬT TRẠNG THÁI LỊCH HẸN, ĐỔI THỢ, VÀO GHẾ, HOÀN THÀNH, HỦY
   static Future<bool> updateBookingStatus(String bookingId, String newStatus, {String? stylistId, String? stylistName}) async {
     final idx = _localBookings.indexWhere((b) => b.id == bookingId || b.bookingCode == bookingId);
     if (idx != -1) {
@@ -414,7 +414,7 @@ class ApiService {
     return updateBookingStatus(bookingId, 'Cancelled');
   }
 
-  // 11. ĐỔI LỊCH HẸN (RESCHEDULE)
+  // 11. ĐỔI LỊCH HẸN, RESCHEDULE
   static Future<bool> rescheduleBooking(String bookingId, String newDate, String newTime) async {
     final idx = _localBookings.indexWhere((b) => b.id == bookingId || b.bookingCode == bookingId);
     if (idx != -1) {
@@ -450,7 +450,7 @@ class ApiService {
     }
   }
 
-  // 12. LẤY DANH SÁCH ĐƠN HÀNG (DonHang)
+  // 12. LẤY DANH SÁCH ĐƠN HÀNG, DonHang
   static Future<List<SalonOrder>> fetchOrders() async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/orders')).timeout(const Duration(seconds: 4));
@@ -463,7 +463,7 @@ class ApiService {
     return _localOrders;
   }
 
-  // 13. TẠO ĐƠN HÀNG MỚI (TRẢ VỀ MÃ ĐƠN HÀNG CHUẨN CSDL DH01, DH02...)
+  // 13. TẠO ĐƠN HÀNG MỚI, TRẢ VỀ MÃ ĐƠN HÀNG CHUẨN CSDL DH01, DH02...
   static Future<String?> createOrder(SalonOrder order) async {
     try {
       final res = await http.post(
@@ -507,7 +507,7 @@ class ApiService {
       }
     } catch (_) {}
 
-    // Fallback offline: Sinh mã tuần tự chuẩn CSDL (DH01, DH02... DH11, DH12...)
+    // Fallback offline: Sinh mã tuần tự chuẩn CSDL, DH01, DH02... DH11, DH12...
     int maxSeq = 10;
     for (final o in _localOrders) {
       final m = RegExp(r'DH(\d+)', caseSensitive: false).firstMatch(o.id);
@@ -539,7 +539,7 @@ class ApiService {
     return nextId;
   }
 
-  // 13b. HỦY ĐƠN HÀNG ONLINE & HOÀN KHO THEO LÔ HẠN DÙNG (FEFO)
+  // 13b. HỦY ĐƠN HÀNG ONLINE & HOÀN KHO THEO LÔ HẠN DÙNG, FEFO
   static Future<bool> cancelOrder(String orderId, {String reason = 'Khách hủy trên app'}) async {
     final idx = _localOrders.indexWhere((o) => o.id == orderId || o.orderCode == orderId);
     if (idx != -1) {
@@ -575,7 +575,7 @@ class ApiService {
     }
   }
 
-  // 14. GỬI ĐÁNH GIÁ (BẢNG DanhGia SQL SERVER)
+  // 14. GỬI ĐÁNH GIÁ, BẢNG DanhGia SQL SERVER
   static Future<bool> submitReview({
     String? bookingId,
     String? orderId,
@@ -608,7 +608,7 @@ class ApiService {
 
   // Các api quản trị hệ thống
 
-  // 14. ADMIN OVERVIEW METRICS (KẾT NỐI TRỰC TIẾP ANALYTICS & BOOKINGS TỪ SQL SERVER)
+  // 14. ADMIN OVERVIEW METRICS, KẾT NỐI TRỰC TIẾP ANALYTICS & BOOKINGS TỪ SQL SERVER
   static Future<Map<String, dynamic>> fetchAdminMetrics() async {
     try {
       final revFuture = http.get(Uri.parse('$baseUrl/analytics/revenue')).timeout(const Duration(seconds: 4));
@@ -672,7 +672,7 @@ class ApiService {
     };
   }
 
-  // 15. ADMIN INVENTORY ITEMS (GET /api/inventory)
+  // 15. ADMIN INVENTORY ITEMS, GET /api/inventory
   static Future<List<InventoryItem>> fetchInventory({String branchId = 'all'}) async {
     try {
       final url = branchId != 'all' && branchId.isNotEmpty
@@ -688,7 +688,7 @@ class ApiService {
     return _seedInventory;
   }
 
-  // 16. ADMIN FEFO EXPIRY BATCHES (GET /api/inventory/lots)
+  // 16. ADMIN FEFO EXPIRY BATCHES, GET /api/inventory/lots
   static Future<List<FefoLot>> fetchFefoLots({String? branchId}) async {
     try {
       final url = branchId != null && branchId.isNotEmpty && branchId != 'all'
@@ -704,7 +704,7 @@ class ApiService {
     return _seedFefoLots;
   }
 
-  // 17. ADMIN INVOICES & AUDIT LOGS (GET /api/invoices)
+  // 17. ADMIN INVOICES & AUDIT LOGS, GET /api/invoices
   static Future<List<Invoice>> fetchInvoices({String? branchId}) async {
     try {
       final url = branchId != null && branchId.isNotEmpty && branchId != 'all'
@@ -720,7 +720,7 @@ class ApiService {
     return _seedInvoices;
   }
 
-  // 18. ADMIN STAFF & SHIFTS (GET /api/stylists)
+  // 18. ADMIN STAFF & SHIFTS, GET /api/stylists
   static Future<List<StaffMember>> fetchStaffMembers({String? branchId}) async {
     try {
       final url = branchId != null && branchId.isNotEmpty && branchId != 'all'
@@ -736,7 +736,7 @@ class ApiService {
     return _seedStaff;
   }
 
-  // 19. CẬP NHẬT TRẠNG THÁI CA TRỰC NHÂN VIÊN (PUT /api/stylists/:id)
+  // 19. CẬP NHẬT TRẠNG THÁI CA TRỰC NHÂN VIÊN, PUT /api/stylists/:id
   static Future<bool> updateStaffStatus(String staffId, String newStatus) async {
     final idx = _seedStaff.indexWhere((s) => s.id == staffId);
     if (idx != -1) {
@@ -754,7 +754,7 @@ class ApiService {
     }
   }
 
-  // 20. TẠO HÓA ĐƠN POS THU NGÂN TẠI QUẦY (POST /api/pos/checkout)
+  // 20. TẠO HÓA ĐƠN POS THU NGÂN TẠI QUẦY, POST /api/pos/checkout
   static Future<Invoice> createPosInvoice(Map<String, dynamic> billData) async {
     int maxInv = 10;
     for (final inv in _seedInvoices) {
@@ -841,7 +841,7 @@ class ApiService {
     }
   }
 
-  // 22. LẤY DANH SÁCH MÃ KHUYẾN MÃI & VOUCHERS (GET /api/promotions)
+  // 22. LẤY DANH SÁCH MÃ KHUYẾN MÃI & VOUCHERS, GET /api/promotions
   static Future<List<Map<String, dynamic>>> fetchPromotions() async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/promotions')).timeout(const Duration(seconds: 4));
@@ -856,7 +856,7 @@ class ApiService {
     ];
   }
 
-  // 23. LẤY ĐÁNH GIÁ 5 SAO & PHẢN HỒI (GET /api/reviews)
+  // 23. LẤY ĐÁNH GIÁ 5 SAO & PHẢN HỒI, GET /api/reviews
   static Future<List<Map<String, dynamic>>> fetchReviews({String? orderId, String? customerId}) async {
     try {
       String url = '$baseUrl/reviews';
@@ -889,7 +889,7 @@ class ApiService {
     ];
   }
 
-  // 24. GỬI ĐÁNH GIÁ MỚI CHO LỊCH HẸN HOẶC ĐƠN HÀNG (POST /api/reviews)
+  // 24. GỬI ĐÁNH GIÁ MỚI CHO LỊCH HẸN HOẶC ĐƠN HÀNG, POST /api/reviews
   static Future<bool> createReview(Map<String, dynamic> reviewData) async {
     try {
       final res = await http.post(
@@ -903,7 +903,7 @@ class ApiService {
     }
   }
 
-  // 25. LẤY DANH SÁCH THÔNG BÁO HỆ THỐNG (GET /api/notifications)
+  // 25. LẤY DANH SÁCH THÔNG BÁO HỆ THỐNG, GET /api/notifications
   static Future<List<Map<String, dynamic>>> fetchNotifications() async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/notifications')).timeout(const Duration(seconds: 4));
@@ -930,7 +930,7 @@ class ApiService {
     ];
   }
 
-  // 26. ĐÁNH DẤU ĐÃ ĐỌC THÔNG BÁO (PUT /api/notifications/:id/read)
+  // 26. ĐÁNH DẤU ĐÃ ĐỌC THÔNG BÁO, PUT /api/notifications/:id/read
   static Future<bool> markNotificationRead(String notifId) async {
     try {
       final res = await http.put(
@@ -943,7 +943,7 @@ class ApiService {
     }
   }
 
-  // 27. REAL AI BARBER VISION: PHÂN TÍCH NGŨ QUAN & DÁNG MẶT (POST /api/ai/analyze-face)
+  // 27. REAL AI BARBER VISION: PHÂN TÍCH NGŨ QUAN & DÁNG MẶT, POST /api/ai/analyze-face
   static Future<Map<String, dynamic>?> analyzeFace(String imageBase64OrUrl) async {
     try {
       final res = await http.post(
@@ -961,7 +961,7 @@ class ApiService {
     return null;
   }
 
-  // 27b. REAL AI BARBER VISION: TIỀN XỬ LÝ ẢNH (CẮT ẢNH, XÓA NỀN & XÓA TÓC CŨ)
+  // 27b. REAL AI BARBER VISION: TIỀN XỬ LÝ ẢNH, CẮT ẢNH, XÓA NỀN & XÓA TÓC CŨ
   static Future<Map<String, dynamic>?> preprocessCustomerPhoto(String imageBase64OrUrl) async {
     try {
       final res = await http.post(
@@ -979,7 +979,7 @@ class ApiService {
     return null;
   }
 
-  // 28. REAL AI BARBER VISION: BIẾN ĐỔI KIỂU TÓC THẬT (POST /api/ai/restyle-hair)
+  // 28. REAL AI BARBER VISION: BIẾN ĐỔI KIỂU TÓC THẬT, POST /api/ai/restyle-hair
   static Future<Map<String, dynamic>?> restyleHair({
     required String imageBase64OrUrl,
     required String hairstyleId,
@@ -1005,7 +1005,7 @@ class ApiService {
     return null;
   }
 
-  // 29. TƯ VẤN TRỰC TIẾP VỚI MASTER BARBER AI (POST /api/ai/consultation)
+  // 29. TƯ VẤN TRỰC TIẾP VỚI MASTER BARBER AI, POST /api/ai/consultation
   static Future<String> askBarberAi(String message) async {
     try {
       final res = await http.post(

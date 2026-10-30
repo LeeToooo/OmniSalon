@@ -314,7 +314,7 @@
   ];
 
   // --------------------------------------------------------------------------
-  // LAYER: VALIDATOR SERVICE (CLEAN INPUT VALIDATION)
+  // LAYER: VALIDATOR SERVICE, CLEAN INPUT VALIDATION
   // --------------------------------------------------------------------------
 
   class ValidatorService {
@@ -364,7 +364,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // LAYER: TOKEN SERVICE (JWT ENCODING, SIGNING & VERIFICATION WITH CACHE)
+  // LAYER: TOKEN SERVICE, JWT ENCODING, SIGNING & VERIFICATION WITH CACHE
   // --------------------------------------------------------------------------
 
   class TokenService {
@@ -480,7 +480,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // LAYER: USER REPOSITORY (PERSISTENCE ABSTRACTION)
+  // LAYER: USER REPOSITORY, PERSISTENCE ABSTRACTION
   // --------------------------------------------------------------------------
 
   class UserRepository {
@@ -511,7 +511,7 @@
 
       const serverList = (this._serverAccounts && this._serverAccounts.length > 0) ? this._serverAccounts : [];
       const userMap = new Map();
-      // Luôn bảo tồn SEED_USERS (bao gồm TK_ADMIN / admin)
+      // Luôn bảo tồn SEED_USERS, bao gồm TK_ADMIN / admin
       SEED_USERS.forEach(u => userMap.set(u.id || u.username, u));
       // Kết hợp tài khoản thành viên đăng ký cục bộ
       dynamicUsers.forEach(u => {
@@ -521,7 +521,7 @@
       // Dữ liệu tài khoản từ SQL Server là nguồn chuẩn tuyệt đối
       serverList.forEach(u => {
         const k = (u.username || u.phone || u.id || '').toLowerCase();
-        // Nếu đã có trong userMap (từ local/seed), đồng bộ mật khẩu & vai trò mới nhất từ SQL Server
+        // Nếu đã có trong userMap, từ local/seed, đồng bộ mật khẩu & vai trò mới nhất từ SQL Server
         for (const [key, val] of userMap.entries()) {
           const valPhone = (val.phone || '').trim();
           const valEmail = (val.email || '').trim().toLowerCase();
@@ -550,7 +550,7 @@
       const cleanStripNoSpace = cleanStrip.replace(/\s+/g, '');
       const all = this.getAll();
 
-      // Hỗ trợ alias quản trị tối cao (admin, user_admin, admin@omnisalon.vn)
+      // Hỗ trợ alias quản trị tối cao, admin, user_admin, admin@omnisalon.vn
       if (clean === 'admin' || clean === 'admin@omnisalon.vn' || clean === 'user_admin' || clean === 'executive@omnisalon.vn' || clean === 'hahien_master') {
         const adminUser = all.find(u => u.username === 'admin' || u.role === ROLES.SUPER_ADMIN || u.id === 'TK_ADMIN')
                        || SEED_USERS.find(u => u.username === 'admin');
@@ -685,7 +685,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // LAYER: PERMISSION POLICY SERVICE (RBAC EVALUATION)
+  // LAYER: PERMISSION POLICY SERVICE, RBAC EVALUATION
   // --------------------------------------------------------------------------
 
   class PermissionPolicyService {
@@ -726,7 +726,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // LAYER: SESSION STORAGE SERVICE (STORAGE FACADE)
+  // LAYER: SESSION STORAGE SERVICE, STORAGE FACADE
   // --------------------------------------------------------------------------
 
   class SessionStorageService {
@@ -761,7 +761,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // LAYER: AUTH ENGINE (FACADE PATTERN — PUBLIC API)
+  // LAYER: AUTH ENGINE, FACADE PATTERN — PUBLIC API
   // --------------------------------------------------------------------------
 
   class AuthEngine {

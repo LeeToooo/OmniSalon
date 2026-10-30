@@ -6795,7 +6795,7 @@ button.disabled {
   }
 
   .web-nav-links .nav-link-optional {
-    display: none !important;
+    display: inline-flex !important;
   }
 
   .user-info-text-wrap {
@@ -11495,12 +11495,11 @@ p,
   box-sizing: border-box !important;
 }
 
-.form-control-custom,
+.form-control-custom:not(textarea),
 .quick-booking-pill-select,
 .admin-select-filter,
 .modal-content-shell input,
-.modal-content-shell select,
-.modal-content-shell textarea {
+.modal-content-shell select {
   min-height: 48px !important;
   height: 48px !important;
   padding: 0 16px !important;
@@ -11508,6 +11507,20 @@ p,
   font-weight: 500 !important;
   border-radius: 12px !important;
   box-sizing: border-box !important;
+}
+
+.modal-content-shell textarea,
+textarea.form-control-custom,
+.review-textarea-large {
+  min-height: 180px !important;
+  height: auto !important;
+  padding: 14px 16px !important;
+  line-height: 1.6 !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  border-radius: 12px !important;
+  box-sizing: border-box !important;
+  resize: vertical !important;
 }
 
 .web-search-input {
@@ -17399,7 +17412,8 @@ tr:nth-child(2) .booking-service-badge .service-tooltip-content::after {
 
 @media (min-width: 1200px) {
   .hero-main-title {
-    white-space: nowrap !important;
+    white-space: normal !important;
+    word-break: normal !important;
   }
 }
 

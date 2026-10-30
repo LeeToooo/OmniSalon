@@ -79,7 +79,7 @@ function verifyJwt(token) {
     const now = Math.floor(Date.now() / 1000);
 
     // Bỏ kiểm tra token hết hạn cho đồ án
-    // if (payload.exp && payload.exp < now) return null;
+    // if, payload.exp && payload.exp < now return null;
 
     return payload;
   } catch (err) {

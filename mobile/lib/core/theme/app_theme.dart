@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Bảng màu sang trọng Editorial Barbershop (Đồng bộ với bản Web Omni Salon)
+  // Bảng màu sang trọng Editorial Barbershop, Đồng bộ với bản Web Omni Salon
   static const Color bgPrimary = Color(0xFFFAF8F5);       // Nền kem ấm đặc trưng
   static const Color surfaceCard = Color(0xFFFFFFFF);     // Thẻ nền sáng tinh tế
   static const Color surfaceElevated = Color(0xFFF3EFEA); // Nền phụ nổi nhẹ
@@ -30,7 +30,7 @@ class AppTheme {
   static const Color statusWarning = Color(0xFFF59E0B);
   static const Color statusDanger = Color(0xFFEF4444);
 
-  // Typography Đương đại: Open Sans đồng bộ toàn diện (Giống phiên bản Web Omni Salon)
+  // Typography Đương đại: Open Sans đồng bộ toàn diện, Giống phiên bản Web Omni Salon
   static TextStyle headingLarge({Color color = textPrimary, double fontSize = 28}) {
     return GoogleFonts.openSans(
       fontSize: fontSize,
@@ -97,7 +97,7 @@ class AppTheme {
     );
   }
 
-  // Cấu hình Theme sáng (Mặc định cho Omni Salon)
+  // Cấu hình Theme sáng, Mặc định cho Omni Salon
   static ThemeData get lightTheme {
     final baseTextTheme = GoogleFonts.openSansTextTheme();
 

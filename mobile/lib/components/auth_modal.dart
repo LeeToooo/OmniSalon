@@ -372,7 +372,7 @@ class _AuthModalState extends State<AuthModal> {
               ),
               const SizedBox(height: 12),
 
-              // NGÀY SINH (Đồng bộ với yêu cầu SQL không hardcode 2001)
+              // NGÀY SINH, Đồng bộ với yêu cầu SQL không hardcode 2001
               _buildFieldLabel('NGÀY SINH:'),
               GestureDetector(
                 onTap: _pickBirthday,

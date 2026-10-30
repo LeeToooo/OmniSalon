@@ -103,27 +103,33 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     // 2. TẢI ĐƠN HÀNG MỸ PHẨM
     List<SalonOrder> fetchedOrders = await ApiService.fetchOrders();
     if (!isStaffOrAdmin) {
-      // Bảo mật riêng tư: Khách hàng chỉ xem đơn hàng của chính mình
-      fetchedOrders = fetchedOrders.where((o) {
-        final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
-        final matchPhone = userPhone.isNotEmpty && oPhone.isNotEmpty && oPhone == userPhone;
-        final matchUserId = (o.userId != null && o.userId!.isNotEmpty && (o.userId == userId || o.userId == user.maKhachHang));
-        return matchPhone || matchUserId;
-      }).toList();
-
       if (q.isNotEmpty) {
-        final qLower = q.toLowerCase();
-        fetchedOrders = fetchedOrders.where((o) =>
-          o.orderCode.toLowerCase().contains(qLower) ||
-          o.items.any((it) => it.name.toLowerCase().contains(qLower)) ||
-          o.paymentStatus.toLowerCase().contains(qLower) ||
-          o.orderStatus.toLowerCase().contains(qLower)
-        ).toList();
+        final qClean = q.replaceAll('#', '').trim().toLowerCase();
+        final directMatch = (SalonOrder o) => o.orderCode.replaceAll('#', '').toLowerCase().contains(qClean) || o.id.replaceAll('#', '').toLowerCase().contains(qClean);
+        fetchedOrders = fetchedOrders.where((o) {
+          if (directMatch(o)) return true;
+          final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
+          final matchPhone = userPhone.isNotEmpty && oPhone.isNotEmpty && oPhone == userPhone;
+          final matchUserId = (o.userId != null && o.userId!.isNotEmpty && (o.userId == userId || o.userId == user.maKhachHang));
+          return (matchPhone || matchUserId) && (
+            o.items.any((it) => it.name.toLowerCase().contains(qClean)) ||
+            o.paymentStatus.toLowerCase().contains(qClean) ||
+            o.orderStatus.toLowerCase().contains(qClean)
+          );
+        }).toList();
+      } else {
+        fetchedOrders = fetchedOrders.where((o) {
+          final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
+          final matchPhone = userPhone.isNotEmpty && oPhone.isNotEmpty && oPhone == userPhone;
+          final matchUserId = (o.userId != null && o.userId!.isNotEmpty && (o.userId == userId || o.userId == user.maKhachHang));
+          return matchPhone || matchUserId;
+        }).toList();
       }
     } else if (q.isNotEmpty) {
-      final qLower = q.toLowerCase();
+      final qLower = q.replaceAll('#', '').trim().toLowerCase();
       fetchedOrders = fetchedOrders.where((o) =>
         o.orderCode.toLowerCase().contains(qLower) ||
+        o.id.toLowerCase().contains(qLower) ||
         o.customerPhone.contains(q) ||
         o.customerName.toLowerCase().contains(qLower)
       ).toList();
@@ -1313,6 +1319,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
       itemCount: orderList.length,
       itemBuilder: (context, idx) {
         final o = orderList[idx];
+        final isCancelled = o.orderStatus.toLowerCase().contains('hủy') || o.orderStatus.toLowerCase() == 'cancelled';
+        final isPaid = o.paymentStatus.toLowerCase().contains('đã thanh toán') || o.paymentStatus.toLowerCase() == 'paid';
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(16),
@@ -1336,29 +1344,29 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                       border: Border.all(color: const Color(0xFFC59B27).withValues(alpha: 0.4)),
                     ),
                     child: Text(
-                      '#${o.orderCode}',
+                      '#' + o.orderCode,
                       style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC59B27), fontSize: 13),
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                      color: isCancelled ? const Color(0xFFEF4444).withValues(alpha: 0.15) : const Color(0xFF10B981).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(9999),
                     ),
                     child: Text(
                       o.orderStatus,
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: Color(0xFF10B981)),
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: isCancelled ? const Color(0xFFEF4444) : const Color(0xFF10B981)),
                     ),
                   ),
                 ],
               ),
               const Divider(height: 16, color: Color(0xFF2E2C29)),
-              Text('Người nhận: ${o.customerName} • ${o.customerPhone}', style: const TextStyle(color: Color(0xFFFAF8F5), fontWeight: FontWeight.w700, fontSize: 13)),
+              Text('Người nhận: ' + o.customerName + ' • ' + o.customerPhone, style: const TextStyle(color: Color(0xFFFAF8F5), fontWeight: FontWeight.w700, fontSize: 13)),
               const SizedBox(height: 4),
-              Text('Địa chỉ: ${o.shippingAddress}', style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12)),
+              Text('Địa chỉ: ' + o.shippingAddress, style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12)),
               const SizedBox(height: 4),
-              Text('Thanh toán: ${o.paymentMethod} (${o.paymentStatus})', style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12)),
+              Text('Thanh toán: ' + o.paymentMethod + ' (' + o.paymentStatus + ')', style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12)),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1375,31 +1383,30 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC59B27),
-                      foregroundColor: const Color(0xFF141413),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  if (!isCancelled && !isPaid)
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC59B27),
+                        foregroundColor: const Color(0xFF141413),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      icon: const Icon(Icons.payment_rounded, size: 16),
+                      label: const Text('Thanh Toán Ngay', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                      onPressed: () => _showOrderPaymentModal(o),
                     ),
-                    icon: const Icon(Icons.payment_rounded, size: 16),
-                    label: const Text('Thanh Toán Ngay', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                    onPressed: () => _showOrderPaymentModal(o),
-                  ),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFFAF8F5)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  if (!isCancelled)
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFFAF8F5)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
+                      label: const Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFFFAF8F5))),
+                      onPressed: () => _showOrderRatingDialog(o),
                     ),
-                    icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
-                    label: const Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFFFAF8F5))),
-                    onPressed: () => _showOrderRatingDialog(o),
-                  ),
-                  if (o.orderStatus.toLowerCase().contains('chờ') ||
-                      o.orderStatus.toLowerCase().contains('xử lý') ||
-                      o.orderStatus == 'Pending' ||
-                      o.orderStatus == 'Processing')
+                  if (!isCancelled)
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFDC2626)),

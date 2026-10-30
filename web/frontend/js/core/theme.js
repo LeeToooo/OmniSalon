@@ -83,7 +83,7 @@
         btn.setAttribute('title', theme === 'dark' ? 'Chế độ Tối (Đen than & Vàng đồng) - Bấm để chuyển Sáng' : 'Chế độ Sáng (Kem ấm & Vàng đồng) - Bấm để chuyển Tối');
       });
 
-      // Cập nhật Segmented Control (nếu có trong Mobile Profile / Settings)
+      // Cập nhật Segmented Control, nếu có trong Mobile Profile / Settings
       const segmentBtns = document.querySelectorAll('.theme-segment-btn');
       segmentBtns.forEach(seg => {
         const targetTheme = seg.getAttribute('data-target-theme');
@@ -106,7 +106,7 @@
     }
   };
 
-  // Khởi chạy ngay lập tức khi file được nạp để tránh chớp trắng (FOUC)
+  // Khởi chạy ngay lập tức khi file được nạp để tránh chớp trắng, FOUC
   ThemeEngine.init();
 
   // Export toàn cục

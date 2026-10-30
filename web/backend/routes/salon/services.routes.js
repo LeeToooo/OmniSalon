@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // QUẢN LÝ DỊCH VỤ & COMBO LÀM ĐẸP
 // Bảng CSDL: DichVu, ComboDichVu, KhuyenMai_DichVu, DanhGia
 // =========================================================================
@@ -149,7 +149,7 @@ async function handleServiceRoutes(req, res, ctx) {
         UNION ALL
         SELECT MaDichVu FROM ChiTietLichHen WHERE MaDichVu = ?
         UNION ALL
-        SELECT MaDichVu FROM ComboDichVu_ChiTiet WHERE MaDichVu = ?
+        SELECT MaDichVu FROM ChiTietComboDichVu WHERE MaDichVu = ?
         UNION ALL
         SELECT MaDichVu FROM KhuyenMai_DichVu WHERE MaDichVu = ?
       ) t
@@ -172,31 +172,58 @@ async function handleServiceRoutes(req, res, ctx) {
   // GÓI DỊCH VỤ COMBO
   // -----------------------------------------------------------------------
 
-  // GET /api/combos - Lấy danh sách gói combo khuyến mãi trọn gói
+  // GET /api/combos - Lấy danh sách gói combo khuyến mãi trọn gói kèm dịch vụ con
   if (pathname === '/api/combos' && method === 'GET') {
-    const rows = await querySql(`SELECT MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`);
-    const combos = rows.map(r => ({
-      id: r.MaCombo,
-      MaCombo: r.MaCombo,
-      name: r.TenCombo,
-      TenCombo: r.TenCombo,
-      description: r.MoTa,
-      MoTa: r.MoTa,
-      price: parseFloat(r.GiaCombo || 0),
-      GiaCombo: parseFloat(r.GiaCombo || 0),
-      duration: r.ThoiLuong ? `${r.ThoiLuong} phút` : '60 phút',
-      durationMinutes: r.ThoiLuong || 60,
-      ThoiLuong: r.ThoiLuong || 60,
-      image: r.HinhAnh || '',
-      HinhAnh: r.HinhAnh || '',
-      status: r.TrangThai || 'Kinh doanh'
-    }));
+    const [rows, detailRows] = await Promise.all([
+      querySql(`SELECT MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`),
+      querySql(`SELECT ct.MaCombo, ct.MaDichVu, ct.SoLuong, dv.TenDichVu, dv.Gia, dv.ThoiLuong 
+                FROM ChiTietComboDichVu ct 
+                LEFT JOIN DichVu dv ON ct.MaDichVu = dv.MaDichVu`)
+    ]);
+
+    const comboMap = new Map();
+    (detailRows || []).forEach(ct => {
+      if (!comboMap.has(ct.MaCombo)) comboMap.set(ct.MaCombo, []);
+      comboMap.get(ct.MaCombo).push({
+        id: ct.MaDichVu,
+        MaDichVu: ct.MaDichVu,
+        name: ct.TenDichVu || ct.MaDichVu,
+        TenDichVu: ct.TenDichVu || ct.MaDichVu,
+        quantity: ct.SoLuong || 1,
+        SoLuong: ct.SoLuong || 1,
+        price: parseFloat(ct.Gia || 0),
+        duration: ct.ThoiLuong || 0
+      });
+    });
+
+    const combos = (rows || []).map(r => {
+      const details = comboMap.get(r.MaCombo) || [];
+      const serviceIds = details.map(d => d.id || d.MaDichVu);
+      return {
+        id: r.MaCombo,
+        MaCombo: r.MaCombo,
+        name: r.TenCombo,
+        TenCombo: r.TenCombo,
+        description: r.MoTa,
+        MoTa: r.MoTa,
+        price: parseFloat(r.GiaCombo || 0),
+        GiaCombo: parseFloat(r.GiaCombo || 0),
+        duration: r.ThoiLuong ? `${r.ThoiLuong} phút` : '60 phút',
+        durationMinutes: r.ThoiLuong || 60,
+        ThoiLuong: r.ThoiLuong || 60,
+        image: r.HinhAnh || '',
+        HinhAnh: r.HinhAnh || '',
+        status: r.TrangThai || 'Kinh doanh',
+        serviceIds,
+        services: details
+      };
+    });
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(combos));
     return true;
   }
 
-  // POST /api/combos - Thêm combo gói mới
+  // POST /api/combos - Thêm combo gói mới kèm chi tiết dịch vụ con
   if (pathname === '/api/combos' && method === 'POST') {
     const body = parsedBody || {};
     const maxRows = await querySql(`SELECT TOP 1 MaCombo FROM ComboDichVu ORDER BY LEN(MaCombo) DESC, MaCombo DESC`);
@@ -218,12 +245,25 @@ async function handleServiceRoutes(req, res, ctx) {
       [cbId, name, desc, price, duration, image, status]
     );
 
+    // Lưu danh sách dịch vụ con vào ChiTietComboDichVu
+    const serviceIds = Array.isArray(body.serviceIds) ? body.serviceIds : (Array.isArray(body.services) ? body.services : []);
+    if (serviceIds.length > 0) {
+      for (const sId of serviceIds) {
+        const cleanId = typeof sId === 'object' ? (sId.id || sId.MaDichVu) : sId;
+        if (cleanId) {
+          try {
+            await querySql(`INSERT INTO ChiTietComboDichVu (MaCombo, MaDichVu, SoLuong) VALUES (?, ?, 1)`, [cbId, cleanId]);
+          } catch (_) { }
+        }
+      }
+    }
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, combo: { id: cbId, MaCombo: cbId, name, price, duration, status } }));
+    res.end(JSON.stringify({ success: true, combo: { id: cbId, MaCombo: cbId, name, price, duration, status, serviceIds } }));
     return true;
   }
 
-  // PUT /api/combos/:id - Sửa thông tin combo
+  // PUT /api/combos/:id - Sửa thông tin combo và chi tiết dịch vụ con
   if (pathname.startsWith('/api/combos/') && method === 'PUT') {
     const id = pathname.replace('/api/combos/', '').trim();
     const body = parsedBody || {};
@@ -246,6 +286,21 @@ async function handleServiceRoutes(req, res, ctx) {
         id
       ]
     );
+
+    // Cập nhật lại các dịch vụ trong combo nếu client gửi lên
+    if (Array.isArray(body.serviceIds) || Array.isArray(body.services)) {
+      const serviceIds = Array.isArray(body.serviceIds) ? body.serviceIds : body.services;
+      await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?`, [id]);
+      for (const sId of serviceIds) {
+        const cleanId = typeof sId === 'object' ? (sId.id || sId.MaDichVu) : sId;
+        if (cleanId) {
+          try {
+            await querySql(`INSERT INTO ChiTietComboDichVu (MaCombo, MaDichVu, SoLuong) VALUES (?, ?, 1)`, [id, cleanId]);
+          } catch (_) { }
+        }
+      }
+    }
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;

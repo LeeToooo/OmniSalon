@@ -131,7 +131,7 @@ class AuthService {
 
   static Future<bool> sendGmailOtp(String email) async {
     // Viết sẵn hàm service gửi OTP qua Gmail chuẩn bị cho giai đoạn production
-    // Ở chế độ chờ (mock): Giả lập gửi thành công và in ra console để test
+    // Ở chế độ chờ, mock: Giả lập gửi thành công và in ra console để test
     const mockOtp = '888999';
     lastGeneratedOtp = mockOtp;
     debugPrint('[AuthService] 📧 Đã chuẩn bị mã OTP xác thực Gmail cho: $email -> Mã OTP: $mockOtp (enableGmailOtpVerification: $enableGmailOtpVerification)');

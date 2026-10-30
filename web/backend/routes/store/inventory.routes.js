@@ -364,7 +364,7 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/suppliers/:id - Xóa nhà cung cấp (Soft delete nếu có phiếu nhập)
+  // DELETE /api/suppliers/:id - Xóa nhà cung cấp, Soft delete nếu có phiếu nhập
   if (pathname.startsWith('/api/suppliers/') && method === 'DELETE') {
     const id = pathname.replace('/api/suppliers/', '').trim();
     const linkedReceipts = await querySql('SELECT TOP 1 MaPhieuNhap FROM PhieuNhapKho WHERE MaNhaCungCap = ?', [id]);

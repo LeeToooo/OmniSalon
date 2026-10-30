@@ -1,4 +1,5 @@
 import 'package:omni_salon_mobile/core/api/api_service.dart';
+import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
@@ -15,6 +16,388 @@ class ShopScreen extends StatefulWidget {
     required this.cartItems,
     required this.onAddToCart,
   });
+
+  // Mở modal xem chi tiết sản phẩm và 4 góc nhìn thực tế
+  static void showProductDetailModal(
+    BuildContext context, {
+    required Product product,
+    Function(OrderItem)? onAddToCart,
+  }) {
+    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
+    int quantity = 1;
+    int selectedAngle = 0;
+
+    final List<String> angleImages = product.image.contains('_01.jpg')
+        ? [
+            product.image,
+            product.image.replaceAll('_01.jpg', '_02.jpg'),
+            product.image.replaceAll('_01.jpg', '_03.jpg'),
+            product.image.replaceAll('_01.jpg', '_04.jpg'),
+          ]
+        : [product.image];
+
+    final angleBadges = [
+      'Góc 1: Chính diện',
+      'Góc 2: Nghiêng 45°',
+      'Góc 3: Mở nắp / Chất sáp',
+      'Góc 4: Mặt sau & Tem'
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(color: AppTheme.borderColor, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Khung ảnh sản phẩm chính và nhãn góc nhìn
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          color: AppTheme.charcoal,
+                          height: 220,
+                          width: double.infinity,
+                          child: EditorialImage(
+                            imageUrl: angleImages[selectedAngle % angleImages.length],
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.camera_alt_outlined, size: 12, color: AppTheme.accentGold),
+                              const SizedBox(width: 4),
+                              Text(
+                                angleBadges[selectedAngle % angleBadges.length],
+                                style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // 4 Thumbnail góc nhìn sản phẩm
+                  if (angleImages.length > 1) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(angleImages.length, (idx) {
+                        final isSel = selectedAngle == idx;
+                        return GestureDetector(
+                          onTap: () => setModalState(() => selectedAngle = idx),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: isSel ? AppTheme.accentGold : AppTheme.borderColor,
+                                width: isSel ? 2 : 1,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: SizedBox(
+                                width: 50,
+                                height: 50,
+                                child: EditorialImage(imageUrl: angleImages[idx], fit: BoxFit.cover),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Text(
+                    product.brand.toUpperCase(),
+                    style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.name,
+                    style: AppTheme.headingSmall(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        currencyFormat.format(product.actualPrice),
+                        style: AppTheme.headingSmall(fontSize: 20, color: AppTheme.accentGold),
+                      ),
+                      if (product.discountPercent > 0) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          currencyFormat.format(product.originalPrice),
+                          style: AppTheme.bodySmall(
+                            fontSize: 13,
+                            color: AppTheme.textMuted,
+                          ).copyWith(decoration: TextDecoration.lineThrough),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppTheme.statusDanger.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '-${product.discountPercent}% FLASH SALE',
+                            style: AppTheme.labelUppercase(fontSize: 9, color: AppTheme.statusDanger),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    product.description.isNotEmpty ? product.description : 'Sản phẩm tạo kiểu cao cấp chính hãng từ Omni Salon, giữ nếp lâu dài và an toàn cho da đầu.',
+                    style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontSize: 13),
+                  ),
+                  if (onAddToCart != null) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Text('Số lượng:', style: AppTheme.bodyMedium(fontWeight: FontWeight.w600)),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline, color: AppTheme.accentGold),
+                          onPressed: () {
+                            if (quantity > 1) {
+                              setModalState(() => quantity--);
+                            }
+                          },
+                        ),
+                        Text('$quantity', style: AppTheme.headingSmall(fontSize: 16)),
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline, color: AppTheme.accentGold),
+                          onPressed: () {
+                            setModalState(() => quantity++);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          onAddToCart(OrderItem(
+                            productId: product.id,
+                            name: product.name,
+                            price: product.actualPrice,
+                            quantity: quantity,
+                            image: product.image,
+                          ));
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Đã thêm $quantity x ${product.name} vào giỏ hàng!'),
+                              backgroundColor: AppTheme.charcoal,
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentGold,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: Text(
+                          'Thêm Vào Giỏ • ${currencyFormat.format(product.actualPrice * quantity)}',
+                          style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.charcoal),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  const Divider(color: AppTheme.borderColorSubtle),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('ĐÁNH GIÁ SẢN PHẨM', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              const Icon(Icons.star_rounded, size: 16, color: Color(0xFFF59E0B)),
+                              const SizedBox(width: 4),
+                              Text('5.0 / 5.0 (18 đánh giá)', style: AppTheme.bodySmall(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppTheme.accentGold),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        ),
+                        icon: const Icon(Icons.edit_note_rounded, size: 16, color: AppTheme.accentGold),
+                        label: Text('Viết Đánh Giá', style: AppTheme.bodySmall(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.accentGold)),
+                        onPressed: () {
+                          ShopScreen.showWriteReviewDialog(context, product);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.borderColorSubtle),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Nguyễn Văn Tuấn', style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                            Text('2 ngày trước', style: AppTheme.bodySmall(fontSize: 10.5, color: AppTheme.textMuted)),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        const Row(
+                          children: [
+                            Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                            Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                            Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                            Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                            Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text('Sản phẩm mùi thơm nam tính dễ chịu, độ giữ nếp tự nhiên cực tốt!', style: AppTheme.bodySmall(fontSize: 12, color: AppTheme.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Dialog gửi đánh giá sản phẩm
+  static void showWriteReviewDialog(BuildContext context, Product p) {
+    if (!AuthService.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Quý khách vui lòng đăng nhập để gửi đánh giá sản phẩm!'),
+          backgroundColor: AppTheme.statusDanger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    final commentCtrl = TextEditingController();
+    int rating = 5;
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) => AlertDialog(
+          backgroundColor: AppTheme.surfaceCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          title: Text('Đánh Giá ' + p.name, style: AppTheme.headingSmall(fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Chọn số sao:', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) => GestureDetector(
+                  onTap: () => setDlgState(() => rating = index + 1),
+                  child: Icon(
+                    index < rating ? Icons.star_rounded : Icons.star_border_rounded,
+                    color: const Color(0xFFF59E0B),
+                    size: 32,
+                  ),
+                )),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: commentCtrl,
+                style: AppTheme.bodyMedium(),
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'Nhận xét về chất sáp, độ giữ nếp, hương thơm...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('HỦY BỎ'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final txt = commentCtrl.text.trim();
+                if (txt.isEmpty) return;
+                await ApiService.createReview({
+                  'productId': p.id,
+                  'rating': rating,
+                  'comment': txt,
+                  'customerName': AuthService.currentUser?.fullName ?? 'Khách Hàng',
+                });
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Cảm ơn bạn! Đánh giá đã được ghi nhận thành công.'),
+                    backgroundColor: AppTheme.statusSuccess,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentGold),
+              child: const Text('GỬI ĐÁNH GIÁ', style: TextStyle(color: AppTheme.charcoal, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   State<ShopScreen> createState() => _ShopScreenState();
@@ -126,146 +509,10 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   void _showProductDetails(Product p) {
-    int quantity = 1;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppTheme.surfaceCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(color: AppTheme.borderColor, borderRadius: BorderRadius.circular(2)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: SizedBox(
-                      height: 200,
-                      width: double.infinity,
-                      child: EditorialImage(imageUrl: p.image, fit: BoxFit.contain),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    p.brand.toUpperCase(),
-                    style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    p.name,
-                    style: AppTheme.headingSmall(fontSize: 18),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text(
-                        currencyFormat.format(p.actualPrice),
-                        style: AppTheme.headingSmall(fontSize: 20, color: AppTheme.accentGold),
-                      ),
-                      if (p.discountPercent > 0) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          currencyFormat.format(p.originalPrice),
-                          style: AppTheme.bodySmall(
-                            fontSize: 13,
-                            color: AppTheme.textMuted,
-                          ).copyWith(decoration: TextDecoration.lineThrough),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.statusDanger.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            '-${p.discountPercent}% FLASH SALE',
-                            style: AppTheme.labelUppercase(fontSize: 9, color: AppTheme.statusDanger),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    p.description.isNotEmpty ? p.description : 'Sản phẩm tạo kiểu cao cấp chính hãng từ Omni Salon, giữ nếp lâu dài và an toàn cho da đầu.',
-                    style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Text('Số lượng:', style: AppTheme.bodyMedium(fontWeight: FontWeight.w600)),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.remove_circle_outline, color: AppTheme.accentGold),
-                        onPressed: () {
-                          if (quantity > 1) {
-                            setModalState(() => quantity--);
-                          }
-                        },
-                      ),
-                      Text('$quantity', style: AppTheme.headingSmall(fontSize: 16)),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle_outline, color: AppTheme.accentGold),
-                        onPressed: () {
-                          setModalState(() => quantity++);
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        widget.onAddToCart(OrderItem(
-                          productId: p.id,
-                          name: p.name,
-                          price: p.actualPrice,
-                          quantity: quantity,
-                          image: p.image,
-                        ));
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Đã thêm $quantity x ${p.name} vào giỏ hàng!'),
-                            backgroundColor: AppTheme.charcoal,
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentGold,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: Text(
-                        'Thêm Vào Giỏ • ${currencyFormat.format(p.actualPrice * quantity)}',
-                        style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.charcoal),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    ShopScreen.showProductDetailModal(
+      context,
+      product: p,
+      onAddToCart: widget.onAddToCart,
     );
   }
 
@@ -332,33 +579,38 @@ class _ShopScreenState extends State<ShopScreen> {
                       ),
                     ),
                   ),
-                  if (!_isLookbookMode) ...[
-                    const SizedBox(width: 8),
-                    PopupMenuButton<String>(
-                      icon: Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceCard,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppTheme.borderColor),
-                        ),
-                        child: const Icon(Icons.sort_rounded, size: 20, color: AppTheme.accentGold),
+                  const SizedBox(width: 8),
+                  PopupMenuButton<String>(
+                    icon: Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.borderColor),
                       ),
-                      tooltip: 'Sắp xếp sản phẩm',
-                      onSelected: (val) => setState(() => _sortOption = val),
-                      itemBuilder: (ctx) => const [
-                        PopupMenuItem(value: 'default', child: Text('Mặc định')),
-                        PopupMenuItem(value: 'price_asc', child: Text('Giá: Thấp đến cao')),
-                        PopupMenuItem(value: 'price_desc', child: Text('Giá: Cao đến thấp')),
-                        PopupMenuItem(value: 'discount', child: Text('Giảm giá nhiều nhất')),
-                      ],
+                      child: const Icon(Icons.sort_rounded, size: 20, color: AppTheme.accentGold),
                     ),
-                  ],
+                    tooltip: 'Sắp xếp sản phẩm',
+                    onSelected: (val) {
+                      setState(() {
+                        _sortOption = val;
+                        if (_isLookbookMode && val != 'default') {
+                          _selectedCategory = 'all_grid';
+                        }
+                      });
+                    },
+                    itemBuilder: (ctx) => const [
+                      PopupMenuItem(value: 'default', child: Text('Mặc định')),
+                      PopupMenuItem(value: 'price_asc', child: Text('Giá: Thấp đến cao')),
+                      PopupMenuItem(value: 'price_desc', child: Text('Giá: Cao đến thấp')),
+                      PopupMenuItem(value: 'discount', child: Text('Giảm giá nhiều nhất')),
+                    ],
+                  ),
                 ],
               ),
             ),
 
-            // 2. DANH MỤC NGANG (HORIZONTAL CHIPS)
+            // 2. DANH MỤC NGANG, HORIZONTAL CHIPS
             SizedBox(
               height: 38,
               child: ListView.separated(
@@ -397,7 +649,7 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
             const SizedBox(height: 6),
 
-            // 3. NỘI DUNG CHÍNH (LOOKBOOK MODE HOẶC FILTERED GRID)
+            // 3. NỘI DUNG CHÍNH, LOOKBOOK MODE HOẶC FILTERED GRID
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2))
@@ -471,7 +723,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 onViewAll: () => setState(() => _selectedCategory = 'bestsellers'),
               ),
 
-            // Bento Promo Banner 1 (Chuẩn Lookbook 3 ô)
+            // Bento Promo Banner 1, Chuẩn Lookbook 3 ô
             _buildBentoPromoBanner1(),
 
             // Dòng 2: Apestomen Singapore
@@ -528,7 +780,7 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   // =========================================================================
-  // KHỐI SHOWCASE DÒNG SẢN PHẨM TRƯỢT NGANG (SLIDER)
+  // KHỐI SHOWCASE DÒNG SẢN PHẨM TRƯỢT NGANG, SLIDER
   // =========================================================================
   Widget _buildShowcaseSection({
     required String eyebrow,
@@ -586,7 +838,7 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   // =========================================================================
-  // BENTO BANNERS NGHỆ THUẬT (CHUẨN ẢNH 1 LOOKBOOK)
+  // BENTO BANNERS NGHỆ THUẬT, CHUẨN ẢNH 1 LOOKBOOK
   // =========================================================================
   Widget _buildBentoPromoBanner1() {
     return Padding(
@@ -848,7 +1100,7 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   // =========================================================================
-  // CHẾ ĐỘ BỘ LỌC (FILTERED GRID VIEW)
+  // CHẾ ĐỘ BỘ LỌC, FILTERED GRID VIEW
   // =========================================================================
   Widget _buildFilteredGridView(List<Product> filtered) {
     return Column(
@@ -880,7 +1132,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       const Icon(Icons.auto_stories_rounded, size: 14, color: AppTheme.accentGold),
                       const SizedBox(width: 4),
                       Text(
-                        'Xem Lookbook',
+                        'Xóa bộ lọc',
                         style: AppTheme.labelUppercase(fontSize: 9.5, color: AppTheme.accentGold),
                       ),
                     ],
@@ -930,7 +1182,7 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   // =========================================================================
-  // THẺ SẢN PHẨM DÙNG CHUNG (CHO CẢ GRID & SLIDER)
+  // THẺ SẢN PHẨM DÙNG CHUNG, CHO CẢ GRID & SLIDER
   // =========================================================================
   Widget _buildProductCard(Product p, {double? width}) {
     return GestureDetector(

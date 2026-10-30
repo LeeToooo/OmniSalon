@@ -15,7 +15,10 @@ async function handleOrderRoutes(req, res, ctx) {
 
   // GET /api/orders hoặc GET /api/orders/:id - Tra cứu danh sách hoặc chi tiết đơn hàng
   if ((pathname === '/api/orders' || pathname.startsWith('/api/orders/')) && !pathname.endsWith('/cancel') && method === 'GET') {
-    const orderIdParam = pathname.startsWith('/api/orders/') ? pathname.replace('/api/orders/', '').trim() : null;
+    let orderIdParam = pathname.startsWith('/api/orders/') ? pathname.replace('/api/orders/', '').trim() : null;
+    if (orderIdParam) {
+      orderIdParam = decodeURIComponent(orderIdParam).replace(/^#+/, '').trim();
+    }
     let queryStr = `
       SELECT dh.MaDonHang, dh.MaKhachHang, dh.MaChiNhanh, 
              CONVERT(VARCHAR(19), dh.NgayDat, 120) AS NgayDat,
@@ -29,8 +32,8 @@ async function handleOrderRoutes(req, res, ctx) {
     `;
     const params = [];
     if (orderIdParam) {
-      queryStr += ' WHERE dh.MaDonHang = ?';
-      params.push(orderIdParam);
+      queryStr += ' WHERE dh.MaDonHang = ? OR dh.MaDonHang = ? OR dh.MaDonHang LIKE ?';
+      params.push(orderIdParam, '#' + orderIdParam, '%' + orderIdParam);
     } else {
       queryStr += ' ORDER BY dh.NgayDat DESC';
     }
@@ -79,7 +82,10 @@ async function handleOrderRoutes(req, res, ctx) {
         id: r.MaDonHang,
         MaDonHang: r.MaDonHang,
         orderCode: r.MaDonHang,
+        userId: r.MaKhachHang,
         customerId: r.MaKhachHang,
+        MaKhachHang: r.MaKhachHang,
+        phone: r.SdtKhachHang || '',
         customerName: r.TenKhachHang || 'Khách Hàng',
         customerPhone: r.SdtKhachHang || '',
         branchId: r.MaChiNhanh,
@@ -268,29 +274,42 @@ async function handleOrderRoutes(req, res, ctx) {
   // POST /api/orders/:id/cancel - Hủy đơn hàng và hoàn lại tồn kho
   // Không cho hủy nếu đơn đang giao hoặc đã giao xong
   if (pathname.startsWith('/api/orders/') && pathname.endsWith('/cancel') && method === 'POST') {
-    const id = pathname.replace('/api/orders/', '').replace('/cancel', '').trim();
+    let rawId = pathname.replace('/api/orders/', '').replace('/cancel', '').trim();
+    rawId = decodeURIComponent(rawId).replace(/^#+/, '').trim();
     const reason = (parsedBody && parsedBody.reason) || 'Khách hàng yêu cầu hủy đơn';
 
-    const orderRow = await querySql('SELECT MaDonHang, MaChiNhanh, TrangThai FROM DonHang WHERE MaDonHang = ?', [id]);
+    // Tìm kiếm đơn hàng theo mã chính xác hoặc các biến thể DH13, DH013, ...
+    let orderRow = await querySql('SELECT MaDonHang, MaChiNhanh, TrangThai FROM DonHang WHERE MaDonHang = ? OR MaDonHang = ?', [rawId, '#' + rawId]);
+    if (!orderRow || orderRow.length === 0) {
+      const numMatch = rawId.match(/\d+/);
+      if (numMatch) {
+        const num = parseInt(numMatch[0], 10);
+        const pad3 = 'DH' + String(num).padStart(3, '0');
+        const noPad = 'DH' + num;
+        orderRow = await querySql('SELECT MaDonHang, MaChiNhanh, TrangThai FROM DonHang WHERE MaDonHang = ? OR MaDonHang = ? OR MaDonHang LIKE ?', [pad3, noPad, '%' + rawId + '%']);
+      }
+    }
+
     if (!orderRow || orderRow.length === 0) {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${id}!` }));
+      res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${rawId}!` }));
       return true;
     }
 
+    const actualId = orderRow[0].MaDonHang;
     const currentStatus = (orderRow[0].TrangThai || '').trim();
     const cleanStatus = currentStatus.toLowerCase();
     // Đơn hàng ở trạng thái nào cũng được hủy, trừ khi đã ở trạng thái Đã hủy
     if (cleanStatus === 'đã hủy' || cleanStatus === 'cancelled') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, error: `Đơn hàng #${id} đã được hủy trước đó, không thể hủy lại.` }));
+      res.end(JSON.stringify({ success: false, error: `Đơn hàng #${actualId} đã được hủy trước đó, không thể hủy lại.` }));
       return true;
     }
 
-    await querySql("UPDATE DonHang SET TrangThai = N'Đã hủy', GhiChu = ISNULL(GhiChu, '') + ' [Lý do hủy: ' + ? + ']' WHERE MaDonHang = ?", [reason, id]);
+    await querySql("UPDATE DonHang SET TrangThai = N'Đã hủy', GhiChu = ISNULL(GhiChu, '') + ' [Lý do hủy: ' + ? + ']' WHERE MaDonHang = ?", [reason, actualId]);
 
     // Hoàn lại số lượng tồn kho theo từng lô ChiTietDonHang và đồng bộ TonKho chi nhánh
-    const ctdhRows = await querySql('SELECT MaChiTietPhieuNhap, SoLuong, MaSanPham FROM ChiTietDonHang WHERE MaDonHang = ?', [id]);
+    const ctdhRows = await querySql('SELECT MaChiTietPhieuNhap, SoLuong, MaSanPham FROM ChiTietDonHang WHERE MaDonHang = ?', [actualId]);
     const branchId = orderRow[0].MaChiNhanh || 'CN01';
     if (ctdhRows && ctdhRows.length > 0) {
       for (const item of ctdhRows) {
@@ -306,7 +325,7 @@ async function handleOrderRoutes(req, res, ctx) {
     }
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: `Đã hủy đơn hàng #${id} thành công!` }));
+    res.end(JSON.stringify({ success: true, message: `Đã hủy đơn hàng #${actualId} thành công!`, orderCode: actualId }));
     return true;
   }
 

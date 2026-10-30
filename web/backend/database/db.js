@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DB_NAME = process.env.SQL_DATABASE || 'QL_SALONTOC';
+const DB_CANDIDATES = [process.env.SQL_DATABASE, 'QL_SALONTOC', 'QL_SALON'].filter(Boolean);
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
 const SQL_FILE = fs.existsSync(path.join(__dirname, 'QL_SALON.sql'))
@@ -100,7 +101,7 @@ async function applyPerformanceOptimizations() {
       END
     `);
 
-    // Đảm bảo có tài khoản Quản trị viên tối cao (Super Admin) trong CSDL SQL
+    // Đảm bảo có tài khoản Quản trị viên tối cao, Super Admin trong CSDL SQL
     await querySql(`
       IF NOT EXISTS (SELECT 1 FROM NhanVien WHERE MaNhanVien = 'NV00')
       BEGIN
@@ -161,37 +162,39 @@ async function applyPerformanceOptimizations() {
 }
 
 async function initDbConnection() {
-  console.log(`[SQL CONNECT] Đang dò tìm SQL Server và kết nối tới CSDL [${DB_NAME}]...`);
+  console.log(`[SQL CONNECT] Đang dò tìm SQL Server và kết nối tới CSDL (${DB_CANDIDATES.join(' / ')})...`);
   for (const srv of SERVER_INSTANCES) {
     for (const drv of DRIVERS) {
-      const connStr = `Server=${srv};Database=${DB_NAME};Trusted_Connection=yes;Driver={${drv}};TrustServerCertificate=yes;LoginTimeout=2;Connection Timeout=2;`;
-      try {
-        const rows = await new Promise((resolve, reject) => {
-          let done = false;
-          const t = setTimeout(() => {
-            if (!done) { done = true; reject(new Error('Probe timeout')); }
-          }, 2500);
-          sql.query(connStr, 'SELECT 1 AS ok;', (err, res) => {
-            if (done) return;
-            done = true;
-            clearTimeout(t);
-            if (err) reject(err);
-            else resolve(res);
+      for (const targetDb of DB_CANDIDATES) {
+        const connStr = `Server=${srv};Database=${targetDb};Trusted_Connection=yes;Driver={${drv}};TrustServerCertificate=yes;LoginTimeout=2;Connection Timeout=2;`;
+        try {
+          const rows = await new Promise((resolve, reject) => {
+            let done = false;
+            const t = setTimeout(() => {
+              if (!done) { done = true; reject(new Error('Probe timeout')); }
+            }, 2500);
+            sql.query(connStr, 'SELECT 1 AS ok;', (err, res) => {
+              if (done) return;
+              done = true;
+              clearTimeout(t);
+              if (err) reject(err);
+              else resolve(res);
+            });
           });
-        });
-        if (rows && rows.length > 0) {
-          activeDbConfig = { server: srv, driver: drv, connStr, database: DB_NAME };
-          console.log(`[SQL OK] Đã liên kết trực tiếp thành công!`);
-          console.log(`  - Server:   ${srv}`);
-          console.log(`  - Database: ${DB_NAME}`);
-          console.log(`  - Driver:   ${drv}`);
+          if (rows && rows.length > 0) {
+            activeDbConfig = { server: srv, driver: drv, connStr, database: targetDb };
+            console.log(`[SQL OK] Đã liên kết trực tiếp thành công!`);
+            console.log(`  - Server:   ${srv}`);
+            console.log(`  - Database: ${targetDb}`);
+            console.log(`  - Driver:   ${drv}`);
 
-          // Áp dụng các index và view mới ngầm
-          applyPerformanceOptimizations();
+            // Áp dụng các index và view mới ngầm
+            applyPerformanceOptimizations();
 
-          return activeDbConfig;
-        }
-      } catch (_) { }
+            return activeDbConfig;
+          }
+        } catch (_) { }
+      }
     }
   }
 

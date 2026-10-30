@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // OmniSalon & Omni Salon Enterprise Suite
 // PHÂN HỆ QUẢN TRỊ SALON TRÊN WEB
 // Phiên bản: 11.1 Clean Architecture, Zero N+1 Query, DRY Optimized
@@ -70,7 +70,7 @@
     getActiveRole(user) {
       const targetUser = user || this.getCurrentUser();
       const r = String(targetUser?.role || targetUser?.vaiTroSql || targetUser?.ChucVu || '').toUpperCase();
-      if (r === 'CASHIER' || r.includes('THU NGÂN') || r.includes('THU_NGÂN')) return 'CASHIER';
+      if (r === 'CASHIER' || r.includes('THU NGÂN') || r.includes('THU_NGÂN') || r.includes('THỢ') || r.includes('BARBER')) return 'CASHIER';
       if (r === 'BRANCH_MANAGER' || r.includes('QUẢN LÝ') || r.includes('QUAN_LY') || r.includes('MANAGER')) return 'BRANCH_MANAGER';
       return 'SUPER_ADMIN';
     },
@@ -81,8 +81,8 @@
       const role = String(u.role || u.vaiTroSql || u.VaiTro || '').toUpperCase();
       const chucVu = String(u.ChucVu || u.chucVuSql || '').toUpperCase();
       const username = String(u.username || '').toLowerCase();
-      const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO', 'BRANCH_MANAGER', 'QUẢN LÝ', 'QUẢN LÝ CHI NHÁNH', 'CASHIER', 'THU NGÂN', 'THU_NGÂN', 'STAFF', 'NHÂN VIÊN'];
-      return allowedRoles.includes(role) || chucVu.includes('QUẢN') || chucVu.includes('THU NGÂN') || chucVu.includes('NHÂN VIÊN') || username === 'admin';
+      const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO', 'BRANCH_MANAGER', 'QUẢN LÝ', 'QUẢN LÝ CHI NHÁNH', 'CASHIER', 'THU NGÂN', 'THU_NGÂN', 'STAFF', 'NHÂN VIÊN', 'THỢ', 'THỢ CHÍNH', 'THỢ PHỤ', 'BARBER'];
+      return allowedRoles.includes(role) || role.includes('THỢ') || chucVu.includes('THỢ') || chucVu.includes('QUẢN') || chucVu.includes('THU NGÂN') || chucVu.includes('NHÂN VIÊN') || username === 'admin';
     },
 
     isSuperAdmin(user) {
@@ -361,7 +361,7 @@
         if (!stats) return;
 
         const status = (b.status || '').toLowerCase();
-        // Cả 'completed' và 'confirmed' (hoặc 'hoàn thành', 'đã xác nhận') đều là lịch hợp lệ tạo doanh thu
+        // Cả 'completed' và 'confirmed', hoặc 'hoàn thành', 'đã xác nhận' đều là lịch hợp lệ tạo doanh thu
         if (status === 'completed' || status === 'confirmed' || status === 'hoàn thành' || status === 'đã xác nhận') {
           stats.completedCutsCount += 1;
           const val = Number(b.totalPrice || 0);
@@ -391,7 +391,7 @@
         }
       });
 
-      // Tính hoa hồng sau gom nhóm (15% doanh thu cắt)
+      // Tính hoa hồng sau gom nhóm, 15% doanh thu cắt
       statsMap.forEach(stats => {
         const comm = Math.round(stats.totalCutValue * stats.commissionRate);
         stats.commissionAmount = comm;
@@ -517,7 +517,7 @@
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
           { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
-          // Quyền của Thu Ngân (kèm theo cho Quản Lý):
+          // Quyền của Thu Ngân, kèm theo cho Quản Lý:
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
           { id: 'audit', icon: tabIcons.audit, label: 'Lịch Sử Đơn Hàng & POS' }
@@ -538,7 +538,7 @@
       } else {
         // SUPER_ADMIN / ADMIN: Full quyền Admin + Quản lý + Thu ngân
         visibleTabs = [
-          // Quyền Quản trị tối cao (Admin):
+          // Quyền Quản trị tối cao, Admin:
           { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Toàn Chuỗi Salon' },
           { id: 'branches', icon: tabIcons.branches, label: 'Quản Lý Chuỗi Chi Nhánh' },
           // Quyền Quản lý vận hành dịch vụ & kho:
@@ -773,8 +773,8 @@
       this.closeSidebar();
       const user = this.getCurrentUser();
       const activeRole = this.getActiveRole(user);
-      if (activeRole === 'CASHIER' && !['pos', 'bookings', 'audit'].includes(tabName)) {
-        if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Tiếp nhận lịch hẹn và Lịch sử đơn!', 'warning');
+      if (activeRole === 'CASHIER' && !['receipts', 'pos', 'bookings', 'audit'].includes(tabName)) {
+        if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Tiếp nhận lịch hẹn, Lập phiếu nhập và Lịch sử đơn!', 'warning');
         return;
       }
       if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'audit'].includes(tabName)) {
@@ -793,7 +793,7 @@
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const activeRole = this.getActiveRole(user);
 
-      if (activeRole === 'CASHIER' && !['pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
+      if (activeRole === 'CASHIER' && !['receipts', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
         this.adminSubTab = 'pos';
       } else if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
         this.adminSubTab = 'overview';
@@ -827,7 +827,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB 1: TỔNG QUAN DOANH THU & KPIS (OVERVIEW - ZERO N+1)
+    // SUB-TAB 1: TỔNG QUAN DOANH THU & KPIS, OVERVIEW - ZERO N+1
     // -----------------------------------------------------------------------
     renderOverviewTab(user, branches, stylists, products, bookings = null, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
@@ -881,7 +881,7 @@
         `;
       }).join('');
 
-      // Khử N+1: Eager loading map cho Barber Rankings (chỉ xếp hạng thợ cắt tóc)
+      // Khử N+1: Eager loading map cho Barber Rankings, chỉ xếp hạng thợ cắt tóc
       let scopedStylists = (branchId ? stylists.filter(s => s.branchId === branchId || s.MaChiNhanh === branchId) : stylists)
         .filter(s => !(s.role || s.ChucVu || '').toLowerCase().includes('thu ngân'));
       if (scopedStylists.length === 0) {
@@ -1131,7 +1131,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB: QUẢN LÝ CHI NHÁNH (BRANCHES MANAGEMENT)
+    // SUB-TAB: QUẢN LÝ CHI NHÁNH, BRANCHES MANAGEMENT
     // -----------------------------------------------------------------------
     renderBranchesTab(user, branches, stylists, bookings = null, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
@@ -1360,12 +1360,12 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB 2: ĐIỀU PHỐI LỊCH HẸN (BOOKINGS DISPATCHER REALTIME 4RAU)
+    // SUB-TAB 2: ĐIỀU PHỐI LỊCH HẸN, BOOKINGS DISPATCHER REALTIME 4RAU
     // -----------------------------------------------------------------------
     renderBookingsTab(user, bookings, branches, stylists, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
 
-      // Mốc thời gian thực tại Việt Nam (Realtime Local)
+      // Mốc thời gian thực tại Việt Nam, Realtime Local
       const now = new Date();
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -1376,7 +1376,7 @@
       const nowTime = `${nowH}:${nowM}`;
       const nowTimestamp = now.getTime();
 
-      // Xác định lịch gần nhất trong tương lai (Nearest Upcoming Booking)
+      // Xác định lịch gần nhất trong tương lai, Nearest Upcoming Booking
       let nearestBookingId = null;
       let minFutureDiff = Infinity;
       bookings.forEach(b => {
@@ -1388,7 +1388,7 @@
         const bTimestamp = new Date(dtStr).getTime();
         if (!isNaN(bTimestamp)) {
           const diff = bTimestamp - nowTimestamp;
-          // Ca hẹn sắp diễn ra (từ trước 15 phút đến tương lai)
+          // Ca hẹn sắp diễn ra, từ trước 15 phút đến tương lai
           if (diff >= -900000 && diff < minFutureDiff) {
             minFutureDiff = diff;
             nearestBookingId = b.id;
@@ -1396,7 +1396,7 @@
         }
       });
 
-      // Tra cứu nhanh khách hàng đặt lịch (Quick Customer Search)
+      // Tra cứu nhanh khách hàng đặt lịch, Quick Customer Search
       const lookupQ = (this.customerLookupQuery || '').toLowerCase().trim();
       let lookupResults = [];
       if (lookupQ) {
@@ -1408,7 +1408,7 @@
         );
       }
 
-      // 1 Danh sách khách đang chờ vào ghế tại sảnh (Waiting Lounge)
+      // 1 Danh sách khách đang chờ vào ghế tại sảnh, Waiting Lounge
       let waitingBookings = bookings.filter(b => {
         const rawSt = (b.status || '').toLowerCase().trim();
         return rawSt === 'waiting' || rawSt === 'chờ vào ghế';
@@ -1446,8 +1446,8 @@
         );
       }
 
-      // Bàn điều phối ghế cắt (Kanban Dispatcher)
-      // CHÚ Ý NGHIỆP VỤ: Ghế cắt phục vụ ca trong ngày được chọn (mặc định là HÔM NAY)
+      // Bàn điều phối ghế cắt, Kanban Dispatcher
+      // CHÚ Ý NGHIỆP VỤ: Ghế cắt phục vụ ca trong ngày được chọn, mặc định là HÔM NAY
       // để tránh khách đặt 9h sáng mai bị lẫn vào ghế cắt lúc 9h hôm nay!
       const workstationDate = this.filterDate || todayStr;
       const workstationBookings = bookings.filter(b => {
@@ -1504,7 +1504,7 @@
         </div>
       `;
 
-      // HTML cho Bàn Kanban Điều Phối Ghế Cắt (Workstations Dispatcher)
+      // HTML cho Bàn Kanban Điều Phối Ghế Cắt, Workstations Dispatcher
       const timelineHtml = `
         <div style="margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
@@ -1945,7 +1945,7 @@
         const stylists = window.store.getStylists();
         content.innerHTML = this.renderBookingsTab(user, bookings, branches, stylists);
 
-        // Khôi phục lại chính xác focus và con trỏ cho input vừa nhập (ngăn chặn mất focus khi gõ 1 chữ)
+        // Khôi phục lại chính xác focus và con trỏ cho input vừa nhập, ngăn chặn mất focus khi gõ 1 chữ
         if (activeId) {
           const restored = document.getElementById(activeId);
           if (restored) {
@@ -2269,13 +2269,14 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB 3: ĐỘI NGŨ BARBER & HOA HỒNG (ZERO N+1 WITH STATS MAP)
+    // SUB-TAB 3: ĐỘI NGŨ BARBER & HOA HỒNG, ZERO N+1 WITH STATS MAP
     // -----------------------------------------------------------------------
     renderStylistsTab(user, stylists, branches, bookings = null, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const allBookings = bookings || ((window.store && window.store.getBookings) ? window.store.getBookings() : []);
 
-      let filteredStylists = [...stylists];
+      // Loại bỏ NV00, Chủ tịch / Quản trị tối cao khỏi danh sách thợ salon
+      let filteredStylists = [...stylists].filter(s => (s.id || s.MaNhanVien) !== 'NV00' && !String(s.name || s.HoTen || '').toLowerCase().includes('lê minh hoàng'));
       if (this.isBranchManager(user) && user.branchId) {
         filteredStylists = filteredStylists.filter(s => s.branchId === user.branchId);
       } else if (this.filterBranch !== 'all') {
@@ -2515,7 +2516,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB 4: QUẢN TRỊ CATALOG (SERVICES, COMBOS, PRODUCTS CRUD)
+    // SUB-TAB 4: QUẢN TRỊ CATALOG, SERVICES, COMBOS, PRODUCTS CRUD
     // -----------------------------------------------------------------------
     _renderCatalogTableRows(pagedItems, type) {
       if (!pagedItems || pagedItems.length === 0) {
@@ -2776,6 +2777,27 @@
                 <input type="text" id="catCategory" class="form-control-custom" value="${this.escapeHtml(item?.category || (isCombo ? 'Combo VIP' : 'Cắt & Tạo Kiểu'))}" required>
               </div>
             `}
+            ${isCombo ? `
+              <div style="margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 8px; padding: 10px;">
+                <label class="sub-label" style="display: block; margin-bottom: 6px; font-weight: 700; color: #f59e0b;">
+                  Dịch Vụ Đi Kèm Gói Combo (Tự động tính tổng thời lượng):
+                </label>
+                <div style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+                  ${((window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : []).map(s => {
+                    const sId = s.id || s.MaDichVu;
+                    const curIds = item?.serviceIds || (Array.isArray(item?.services) ? item.services.map(x => typeof x === 'object' ? (x.id || x.MaDichVu) : x) : []);
+                    const isChecked = curIds.includes(sId);
+                    const sDur = s.durationMinutes || parseInt(s.duration) || 30;
+                    return `
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; user-select: none;">
+                        <input type="checkbox" class="combo-service-checkbox" value="${sId}" data-duration="${sDur}" ${isChecked ? 'checked' : ''} onchange="AdminWeb.onComboServiceToggle()">
+                        <span><strong>${this.escapeHtml(s.name || s.TenDichVu)}</strong> (${sDur} phút - ${SalonUtils.formatCurrency(s.price || s.Gia)})</span>
+                      </label>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            ` : ''}
             <div style="margin-bottom: 12px;">
               <label class="sub-label">Đường Dẫn Ảnh (Image URL):</label>
               <input type="text" id="catImage" class="form-control-custom" value="${this.escapeHtml(itemImage || (type === 'combos' ? 'DichVu_Men/CBDV1.jpg' : type === 'services' ? 'DichVu_Men/DV1.jpg' : 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg'))}">
@@ -2793,6 +2815,18 @@
       `);
     },
 
+    onComboServiceToggle() {
+      const checkboxes = document.querySelectorAll('.combo-service-checkbox:checked');
+      let totalDuration = 0;
+      checkboxes.forEach(cb => {
+        totalDuration += parseInt(cb.getAttribute('data-duration'), 10) || 0;
+      });
+      const durInput = document.getElementById('catDurationOrStock');
+      if (durInput && totalDuration > 0) {
+        durInput.value = totalDuration;
+      }
+    },
+
     submitCatalogForm(type, itemId) {
       const name = (document.getElementById('catName')?.value || '').trim();
       const price = Number(document.getElementById('catPrice')?.value) || 0;
@@ -2806,6 +2840,12 @@
         if (window.UICommon) window.UICommon.showToast('Vui lòng nhập tên và giá bán hợp lệ!', 'warning');
         else alert('Vui lòng nhập tên và giá bán hợp lệ!');
         return;
+      }
+
+      let serviceIds = [];
+      if (type === 'combos') {
+        const checkedCbs = document.querySelectorAll('.combo-service-checkbox:checked');
+        serviceIds = Array.from(checkedCbs).map(cb => cb.value);
       }
 
       if (type === 'services' && (!image || image.includes('unsplash.com'))) {
@@ -2827,7 +2867,7 @@
         if (type === 'services') {
           window.store.updateService(itemId, { name, price, oldPrice, category: catOrBrand, duration: durOrStock, image, description });
         } else if (type === 'combos') {
-          window.store.updateCombo(itemId, { name, price, oldPrice, duration: durOrStock, image, description });
+          window.store.updateCombo(itemId, { name, price, oldPrice, duration: durOrStock, image, description, serviceIds, services: serviceIds });
         } else {
           window.store.updateProduct(itemId, { name, price, oldPrice, originalPrice: oldPrice, GiaBan: oldPrice, brand: catOrBrand, stock: durOrStock, image, description });
         }
@@ -2836,7 +2876,7 @@
         if (type === 'services') {
           window.store.addService({ name, price, oldPrice, category: catOrBrand, duration: durOrStock, image, description });
         } else if (type === 'combos') {
-          window.store.addCombo({ name, price, oldPrice, duration: durOrStock, image, description });
+          window.store.addCombo({ name, price, oldPrice, duration: durOrStock, image, description, serviceIds, services: serviceIds });
         } else {
           window.store.addProduct({ name, price, oldPrice, brand: catOrBrand, stock: durOrStock, image, description });
         }
@@ -2852,7 +2892,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB 5: QUẢN LÝ KHO HÀNG ĐA CHI NHÁNH (INVENTORY, FEFO, RECEIPTS, SUPPLIERS)
+    // SUB-TAB 5: QUẢN LÝ KHO HÀNG ĐA CHI NHÁNH, INVENTORY, FEFO, RECEIPTS, SUPPLIERS
     // -----------------------------------------------------------------------
     switchInventorySubTab(type) {
       this.inventorySubTab = type;
@@ -2868,7 +2908,8 @@
     renderInventoryTab(user, branches, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
-      const subType = this.inventorySubTab || 'stock';
+      const isCashierOrBarber = this.isCashier(user) || (!this.isSuperAdmin(user) && !this.isBranchManager(user));
+      const subType = isCashierOrBarber ? 'receipts' : (this.inventorySubTab || 'stock');
 
       const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];
       const fefoLots = (window.store && typeof window.store.getFefoLots === 'function') ? window.store.getFefoLots(branchId) : [];
@@ -2959,7 +3000,7 @@
     _renderInventoryContent(subType, { inventory, fefoLots, receipts, suppliers, discountRules, q }) {
       this.inventoryPage = this.inventoryPage || 1;
 
-      // Phân hệ Tồn Kho & Sản Phẩm (stock)
+      // Phân hệ Tồn Kho & Sản Phẩm, stock
       if (subType === 'stock') {
         const normQ = this._normalizeSearchText(q);
         const filtered = inventory.filter(it => {
@@ -3049,7 +3090,7 @@
         `;
       }
 
-      // Phân hệ Định Giá Lô FEFO (vw_GiaBanTheoLoHienTai)
+      // Phân hệ Định Giá Lô FEFO, vw_GiaBanTheoLoHienTai
       if (subType === 'fefo') {
         const normQ = this._normalizeSearchText(q);
         const filtered = fefoLots.filter(l => {
@@ -3127,7 +3168,7 @@
         `;
       }
 
-      // Phân hệ Phiếu Nhập Kho (PhieuNhapKho & ChiTietPhieuNhap)
+      // Phân hệ Phiếu Nhập Kho, PhieuNhapKho & ChiTietPhieuNhap
       if (subType === 'receipts') {
         const normQ = this._normalizeSearchText(q);
         const filtered = receipts.filter(r => {
@@ -3192,7 +3233,7 @@
         `;
       }
 
-      // Phân hệ Nhà Cung Cấp Hàng Hóa (NhaCungCap)
+      // Phân hệ Nhà Cung Cấp Hàng Hóa, NhaCungCap
       if (subType === 'rules') {
         return `
           <div style="display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start;">
@@ -3256,7 +3297,8 @@
       if (container) {
         const user = this.getCurrentUser();
         const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
-        const subType = this.inventorySubTab || 'stock';
+        const isCashierOrBarber = this.isCashier(user) || (!this.isSuperAdmin(user) && !this.isBranchManager(user));
+      const subType = isCashierOrBarber ? 'receipts' : (this.inventorySubTab || 'stock');
         const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];
         const fefoLots = (window.store && typeof window.store.getFefoLots === 'function') ? window.store.getFefoLots(branchId) : [];
         const receipts = (window.store && typeof window.store.getReceipts === 'function') ? window.store.getReceipts(branchId) : [];
@@ -3501,7 +3543,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // QUẢN LÝ PHIẾU NHẬP KHO (INVENTORY RECEIPTS - SQL PHIEUNHAPKHO & CHITIETPHIEUNHAP)
+    // QUẢN LÝ PHIẾU NHẬP KHO, INVENTORY RECEIPTS - SQL PHIEUNHAPKHO & CHITIETPHIEUNHAP
     // -----------------------------------------------------------------------
     // Multi-item Receipt State & Management
     openAddReceiptModal() {
@@ -3839,13 +3881,19 @@
             </div>
             <div>
               <div style="font-size: 12px; color: #888;">Trạng Thái:</div>
-              <span class="stock-badge-safe">${this.escapeHtml(receipt.status || receipt.TrangThai || 'Đã duyệt')}</span>
+              <span class="${(receipt.status || receipt.TrangThai) === 'Đã từ chối' ? 'stock-badge-critical' : 'stock-badge-safe'}">${this.escapeHtml(receipt.status || receipt.TrangThai || 'Đã duyệt')}</span>
             </div>
             <div>
               <div style="font-size: 12px; color: #888;">Tổng Tiền:</div>
               <strong style="font-size: 16px; color: #10b981;">${SalonUtils.formatCurrency(receipt.total || receipt.TongTien)}</strong>
             </div>
           </div>
+
+          ${(receipt.rejectReason || receipt.LyDoTuChoi || (receipt.status || receipt.TrangThai) === 'Đã từ chối') ? `
+            <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; color: #ef4444; font-size: 13px;">
+              <strong>⚠️ Lý Do Từ Chối Phiếu:</strong> ${this.escapeHtml(receipt.rejectReason || receipt.LyDoTuChoi || 'Không đạt tiêu chuẩn kiểm định lô hàng')}
+            </div>
+          ` : ''}
 
           <h4 style="font-size: 14px; font-weight: 700; margin: 0 0 10px 0;">Danh Sách Mặt Hàng Trong Phiếu (${items.length}):</h4>
           <div style="overflow-x: auto; margin-bottom: 16px;">
@@ -3887,7 +3935,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // QUY TRÌNH XÁC NHẬN XÓA CHUNG TOÀN HỆ THỐNG (UNIFIED DELETE CONFIRM MODAL)
+    // QUY TRÌNH XÁC NHẬN XÓA CHUNG TOÀN HỆ THỐNG, UNIFIED DELETE CONFIRM MODAL
     // Áp dụng 1 form duy nhất cho: Sản Phẩm, Dịch Vụ, Gói Combo, Thợ, Lịch Hẹn
     // -----------------------------------------------------------------------
     openUniversalDeleteModal(type, id) {
@@ -4075,14 +4123,28 @@
     },
 
     // -----------------------------------------------------------------------
-    // THÊM & CHỈNH SỬA THỢ (THỢ CHÍNH & THỢ PHỤ) LƯU VÀO DATABASE SQL
+    // THÊM & CHỈNH SỬA THỢ, THỢ CHÍNH & THỢ PHỤ LƯU VÀO DATABASE SQL
     // -----------------------------------------------------------------------
     openAddStylistModal(stylistId = null) {
       const branches = window.store.getBranches() || [];
       const st = stylistId ? window.store.getStylistById(stylistId) : null;
       const isEdit = !!st;
-      const role = st?.role || 'Thợ chính';
-      const level = st?.level || (role === 'Thợ phụ' ? 'Junior Barber' : 'Master Barber');
+      const rawRole = (st?.role || st?.ChucVu || '').toLowerCase();
+      let role = 'Thợ chính';
+      if (rawRole.includes('phụ')) role = 'Thợ phụ';
+      else if (rawRole.includes('ngân')) role = 'Thu ngân';
+      else if (rawRole.includes('quản lý')) role = 'Quản lý chi nhánh';
+      else if (rawRole.includes('chính')) role = 'Thợ chính';
+      else if (st?.role) role = st.role;
+
+      const rawLevel = st?.level || st?.CapBac || '';
+      let level = rawLevel;
+      if (!level) {
+        if (role === 'Thợ phụ') level = 'Junior Barber';
+        else if (role === 'Thu ngân') level = 'Chuyên viên thu ngân';
+        else if (role === 'Quản lý chi nhánh') level = 'Nhân viên';
+        else level = 'Master Barber';
+      }
       const user = this.getCurrentUser();
       const isSuper = this.isSuperAdmin(user);
       const isManager = this.isBranchManager(user);
@@ -4110,7 +4172,7 @@
                   <option value="Thợ chính" ${role === 'Thợ chính' ? 'selected' : ''}>Thợ chính (Lead Barber)</option>
                   <option value="Thợ phụ" ${role === 'Thợ phụ' ? 'selected' : ''}>Thợ phụ (Assistant Barber)</option>
                   <option value="Thu ngân" ${role === 'Thu ngân' ? 'selected' : ''}>Thu ngân (Cashier)</option>
-                  ${isSuper ? `<option value="Quản lý chi nhánh" ${role === 'Quản lý chi nhánh' || role === 'Quản lý' ? 'selected' : ''}>Quản lý chi nhánh</option>` : ''}
+                  ${isSuper ? `<option value="Quản lý chi nhánh" ${role === 'Quản lý chi nhánh' || role === 'Quản lý' ? 'selected' : ''}>Quản lý chi nhánh</option>` : (role === 'Quản lý chi nhánh' || role === 'Quản lý' ? `<option value="Quản lý chi nhánh" selected disabled>Quản lý chi nhánh (Khóa)</option>` : '')}
                 </select>
               </div>
 
@@ -4120,6 +4182,7 @@
                   <option value="Master Barber" ${level === 'Master Barber' ? 'selected' : ''}>Master Barber</option>
                   <option value="Senior Barber" ${level === 'Senior Barber' ? 'selected' : ''}>Senior Barber</option>
                   <option value="Junior Barber" ${level === 'Junior Barber' ? 'selected' : ''}>Junior Barber</option>
+                  <option value="Chuyên viên thu ngân" ${level === 'Chuyên viên thu ngân' ? 'selected' : ''}>Chuyên viên thu ngân</option>
                   <option value="Nhân viên" ${level === 'Nhân viên' ? 'selected' : ''}>Nhân viên</option>
                 </select>
               </div>
@@ -4184,7 +4247,9 @@
         levelSelect.value = 'Junior Barber';
       } else if (role === 'Thợ chính') {
         levelSelect.value = 'Master Barber';
-      } else if (role === 'Thu ngân' || role === 'Quản lý chi nhánh') {
+      } else if (role === 'Thu ngân') {
+        levelSelect.value = 'Chuyên viên thu ngân';
+      } else if (role === 'Quản lý chi nhánh') {
         levelSelect.value = 'Nhân viên';
       }
     },
@@ -4229,7 +4294,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // THÊM & CHỈNH SỬA CHI NHÁNH LƯU VÀO DATABASE SQL (ADD & EDIT BRANCH MODAL)
+    // THÊM & CHỈNH SỬA CHI NHÁNH LƯU VÀO DATABASE SQL, ADD & EDIT BRANCH MODAL
     // -----------------------------------------------------------------------
     openAddBranchModal(branchId = null) {
       const br = branchId ? window.store.getBranchById(branchId) : null;
@@ -4363,7 +4428,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB 6: QUẦY THU NGÂN POS TẠI CHỖ (COUNTER POS CHECKOUT - DRY PRICING)
+    // SUB-TAB 6: QUẦY THU NGÂN POS TẠI CHỖ, COUNTER POS CHECKOUT - DRY PRICING
     // -----------------------------------------------------------------------
     renderPosTab(user, services, combos, products, branches, stylists, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
@@ -4867,7 +4932,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // SUB-TAB 7: NHẬT KÝ KIỂM TOÁN & HÓA ĐƠN HỆ THỐNG (AUDIT, INVOICES, NOTIFICATIONS)
+    // SUB-TAB 7: NHẬT KÝ KIỂM TOÁN & HÓA ĐƠN HỆ THỐNG, AUDIT, INVOICES, NOTIFICATIONS
     // -----------------------------------------------------------------------
     switchAuditSubTab(type) {
       this.auditSubTab = type;
@@ -4940,7 +5005,7 @@
     _renderAuditContent(subType, { logs, invoices, payments, notifications, orders, q }) {
       this.auditPage = this.auditPage || 1;
 
-      // Phân hệ Nhật Ký Kiểm Toán (logs)
+      // Phân hệ Nhật Ký Kiểm Toán, logs
       if (subType === 'logs') {
         let filtered = [...logs];
         if (this.auditActionFilter !== 'all') {
@@ -4992,7 +5057,7 @@
         `;
       }
 
-      // Phân hệ Hóa Đơn & Thanh Toán (HoaDon, ChiTietHoaDon, ThanhToan)
+      // Phân hệ Hóa Đơn & Thanh Toán, HoaDon, ChiTietHoaDon, ThanhToan
       if (subType === 'invoices') {
         const filtered = invoices.filter(inv => {
           if (!q) return true;
@@ -5077,7 +5142,7 @@
         `;
       }
 
-      // Phân hệ Thông Báo Hệ Thống (ThongBao)
+      // Phân hệ Thông Báo Hệ Thống, ThongBao
       if (subType === 'notifications') {
         const filtered = notifications.filter(n => {
           if (!q) return true;
@@ -5131,7 +5196,7 @@
         `;
       }
 
-      // Phân hệ Đơn Đặt Hàng & Xử Lý Thanh Toán (DonHang, ChiTietDonHang, ThanhToan)
+      // Phân hệ Đơn Đặt Hàng & Xử Lý Thanh Toán, DonHang, ChiTietDonHang, ThanhToan
       if (subType === 'orders') {
         const orderList = orders || [];
         let filtered = orderList.filter(o => {

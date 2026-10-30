@@ -200,6 +200,11 @@
                             ${item.PhanTramGiam ? `<span style="font-size: 11px; background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 1px 5px; border-radius: 4px; font-weight: 800; margin-left: 4px;">-${item.PhanTramGiam}%</span>` : ''}
                           ` : `${SalonUtils.formatCurrency(item.price)}`}
                         </div>
+                        <div class="cart-row-angles-action" style="margin-top: 6px;">
+                          <a href="/product?id=${item.productId}" onclick="event.preventDefault(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #C59B27; text-decoration: none; font-weight: 600;" title="Xem các góc chụp thực tế của sản phẩm">
+                            📷 Xem chi tiết & 4 góc nhìn sản phẩm →
+                          </a>
+                        </div>
                       </div>
 
                       <div class="cart-row-stepper-wrap">

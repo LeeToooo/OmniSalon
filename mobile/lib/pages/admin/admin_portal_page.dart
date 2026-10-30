@@ -103,7 +103,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
   }
 
   // =========================================================================
-  // ACTIONS QUẢN LÝ LỊCH HẸN (DISPATCHER)
+  // ACTIONS QUẢN LÝ LỊCH HẸN, DISPATCHER
   // =========================================================================
   Future<void> _changeBookingStatus(Booking b, String newStatus) async {
     final ok = await ApiService.updateBookingStatus(b.id, newStatus);
@@ -284,7 +284,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
   }
 
   // =========================================================================
-  // GIAO DIỆN CHÍNH (ADMIN PORTAL SHELL)
+  // GIAO DIỆN CHÍNH, ADMIN PORTAL SHELL
   // =========================================================================
   @override
   Widget build(BuildContext context) {
@@ -368,7 +368,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
   }
 
   // =========================================================================
-  // 1. TAB TỔNG QUAN (OVERVIEW)
+  // 1. TAB TỔNG QUAN, OVERVIEW
   // =========================================================================
   Widget _buildOverviewTab() {
     final todayRev = _metrics['todayRevenue'] ?? 8450000;
@@ -556,7 +556,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
   }
 
   // =========================================================================
-  // 2. TAB ĐIỀU PHỐI LỊCH HẸN (DISPATCHER)
+  // 2. TAB ĐIỀU PHỐI LỊCH HẸN, DISPATCHER
   // =========================================================================
   Widget _buildDispatcherTab() {
     final filtered = _bookings.where((b) {
@@ -853,6 +853,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
               children: [
                 DropdownButtonFormField<String>(
                   initialValue: _posBranchId,
+                  isExpanded: true,
                   dropdownColor: AppTheme.charcoalLight,
                   style: AppTheme.bodyMedium(color: AppTheme.textLight),
                   decoration: const InputDecoration(
@@ -891,6 +892,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
                   initialValue: _posStylistId,
+                  isExpanded: true,
                   dropdownColor: AppTheme.charcoalLight,
                   style: AppTheme.bodyMedium(color: AppTheme.textLight),
                   decoration: const InputDecoration(
@@ -899,7 +901,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
                     prefixIcon: Icon(Icons.content_cut_rounded, color: AppTheme.accentGold),
                     isDense: true,
                   ),
-                  items: _stylists.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
+                  items: _stylists.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name, overflow: TextOverflow.ellipsis))).toList(),
                   onChanged: (val) => setState(() => _posStylistId = val),
                 ),
               ],
@@ -1142,7 +1144,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
   }
 
   // =========================================================================
-  // 4. TAB ĐỘI NGŨ NHÂN SỰ & THỢ CẮT (STAFF)
+  // 4. TAB ĐỘI NGŨ NHÂN SỰ & THỢ CẮT, STAFF
   // =========================================================================
   Widget _buildStaffTab() {
     return ListView.builder(
@@ -1255,7 +1257,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
   }
 
   // =========================================================================
-  // 6. TAB BẢNG GIÁ DỊCH VỤ (CATALOG)
+  // 6. TAB BẢNG GIÁ DỊCH VỤ, CATALOG
   // =========================================================================
   Widget _buildCatalogTab() {
     return ListView.builder(
@@ -1347,7 +1349,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
   }
 
   // =========================================================================
-  // 7. TAB HÓA ĐƠN & KIỂM TOÁN (INVOICES)
+  // 7. TAB HÓA ĐƠN & KIỂM TOÁN, INVOICES
   // =========================================================================
   Widget _buildInvoicesTab() {
     return ListView.builder(

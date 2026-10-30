@@ -217,7 +217,7 @@
     },
 
     // ---------------------------------------------------------------------
-    // SKELETON LOADING STATE (Khớp 100% kích thước của Card Chi Nhánh)
+    // SKELETON LOADING STATE, Khớp 100% kích thước của Card Chi Nhánh
     // ---------------------------------------------------------------------
     renderSkeleton(count = 3) {
       const items = Array.from({ length: count });

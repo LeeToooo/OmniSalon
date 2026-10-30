@@ -12,7 +12,7 @@
       return Number(amount).toLocaleString('vi-VN') + '\u00A0đ';
     },
 
-    // Format ngày hiển thị dạng DD/MM/YYYY (cắt bỏ phần giờ 'T' của chuỗi ISO)
+    // Format ngày hiển thị dạng DD/MM/YYYY, cắt bỏ phần giờ 'T' của chuỗi ISO
     formatDate(dateStr) {
       if (!dateStr) return '';
       try {
@@ -153,11 +153,11 @@
       const bg = options.bg || '#ffffff';
       const cleanText = String(text || 'OMNISALON-OMNI');
 
-      // Hash ma trận 21x21 (Chuẩn QR Code Version 1)
+      // Hash ma trận 21x21, Chuẩn QR Code Version 1
       const matrixSize = 21;
       const matrix = Array.from({ length: matrixSize }, () => Array(matrixSize).fill(0));
 
-      // Finder patterns ở 3 góc (7x7)
+      // Finder patterns ở 3 góc, 7x7
       const setFinderPattern = (r0, c0) => {
         for (let r = 0; r < 7; r++) {
           for (let c = 0; c < 7; c++) {
@@ -227,7 +227,7 @@
       if (typeof window === 'undefined' || !window.location) return '/';
       if (window.location.protocol === 'file:') return '../../';
 
-      // Hỗ trợ GitHub Pages (hostname kết thúc bằng github.io)
+      // Hỗ trợ GitHub Pages, hostname kết thúc bằng github.io
       if (window.location.hostname && window.location.hostname.endsWith('github.io')) {
         const segments = (window.location.pathname || '').split('/').filter(Boolean);
         const repo = (segments.length > 0 && !['index.html', 'admin', 'customer', 'api', 'pages', 'services', 'stylists', 'booking', 'shop', 'cart', 'product', 'branches', 'ai-studio'].includes(segments[0]))
@@ -341,7 +341,7 @@
     },
     init() {},
     setPlatform(platform) {
-      // Duy trì 1 link web duy nhất (Web Desktop & Web Mobile)
+      // Duy trì 1 link web duy nhất, Web Desktop & Web Mobile
       if (typeof window !== 'undefined' && window.location && window.location.pathname.includes('app.html')) {
         window.location.replace('index.html');
       }

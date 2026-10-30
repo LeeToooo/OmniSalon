@@ -254,7 +254,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               const SizedBox(height: 16),
 
               // =========================================================
-              // CHẾ ĐỘ CHỜ / TEST NHANH (Khi enableGmailOtpVerification = false)
+              // CHẾ ĐỘ CHỜ / TEST NHANH, Khi enableGmailOtpVerification = false
               // =========================================================
               if (!AuthService.enableGmailOtpVerification) ...[
                 Container(

@@ -36,7 +36,7 @@
         ? (selectedBranchObj.TenChiNhanh || selectedBranchObj.name || '').replace(/^(Men\s+Salon\s+Barber|Omni\s+Salon\s+Barber|Omni\s+Salon)\s*[-–—]?\s*/gi, '').replace(/^Q(\d+)\b/i, 'Quận $1').replace(/[–—]/g, '-').trim()
         : 'Tất Cả Chi Nhánh';
 
-      const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
+      const allStylists = ((window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : []).filter(s => (s.id || s.MaNhanVien) !== 'NV00');
       const filtered = this.selectedBranch === 'all'
         ? allStylists
         : allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch);
@@ -189,7 +189,7 @@
     },
 
     changePage(newPage) {
-      const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
+      const allStylists = ((window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : []).filter(s => (s.id || s.MaNhanVien) !== 'NV00');
       const filtered = this.selectedBranch === 'all'
         ? allStylists
         : allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch);
@@ -207,7 +207,7 @@
     },
 
     refreshStylists() {
-      const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
+      const allStylists = ((window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : []).filter(s => (s.id || s.MaNhanVien) !== 'NV00');
       const filtered = this.selectedBranch === 'all'
         ? allStylists
         : allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch);
@@ -224,7 +224,7 @@
 
     renderStylistCards(filtered) {
       if (!filtered) {
-        const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
+        const allStylists = ((window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : []).filter(s => (s.id || s.MaNhanVien) !== 'NV00');
         filtered = this.selectedBranch === 'all'
           ? allStylists
           : allStylists.filter(s => s.branchId === this.selectedBranch || s.MaChiNhanh === this.selectedBranch);

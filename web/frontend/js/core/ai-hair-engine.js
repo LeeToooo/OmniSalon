@@ -247,17 +247,17 @@
       return null;
     },
 
-    // CÂN BẰNG KHUÔN MẶT CHUẨN GEMINI AI (FACIAL FEATURE BALANCING)
-    // - Tự động cân bằng ánh sáng 2 bên mặt (triệt tiêu bóng đổ lệch)
+    // CÂN BẰNG KHUÔN MẶT CHUẨN GEMINI AI, FACIAL FEATURE BALANCING
+    // - Tự động cân bằng ánh sáng 2 bên mặt, triệt tiêu bóng đổ lệch
     // - Làm mịn da tự nhiên chuẩn studio portrait, giữ mắt, mũi, môi sắc nét 100%
-    // - Nâng sáng vùng chữ T và gò má (Radiant Facial Symmetry)
+    // - Nâng sáng vùng chữ T và gò má, Radiant Facial Symmetry
     applyGeminiFaceBalancing(ctx, width, height, geo, options = {}) {
       const { balanceLighting = true, smoothSkin = true } = options;
       const { centerX, foreheadY, faceWidth, faceHeight } = geo;
 
       ctx.save();
 
-      // Cân bằng ánh sáng 2 bên gương mặt (Auto Lighting Balance)
+      // Cân bằng ánh sáng 2 bên gương mặt, Auto Lighting Balance
       if (balanceLighting) {
         ctx.save();
         ctx.globalCompositeOperation = 'soft-light';
@@ -277,7 +277,7 @@
         ctx.restore();
       }
 
-      // Làm mịn da & xóa khuyết điểm (Bilateral Skin Polish)
+      // Làm mịn da & xóa khuyết điểm, Bilateral Skin Polish
       if (smoothSkin) {
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
@@ -295,7 +295,7 @@
         ctx.fill();
         ctx.restore();
 
-        // Điểm xuyết ánh sáng rạng rỡ (Radiant Studio Highlight) trên gò má & sống mũi
+        // Điểm xuyết ánh sáng rạng rỡ, Radiant Studio Highlight trên gò má & sống mũi
         ctx.save();
         ctx.globalCompositeOperation = 'overlay';
         const noseHighlight = ctx.createLinearGradient(centerX, foreheadY + 20, centerX, foreheadY + faceHeight * 0.5);
@@ -316,7 +316,7 @@
       const style = this.hairstyles[styleId] || this.hairstyles['layer-korean'];
       const color = this.hairColors[colorId] || this.hairColors['natural-black'];
 
-      // Chuẩn hóa sourceImageElement (nhận HTMLImageElement hoặc URL/Base64 string)
+      // Chuẩn hóa sourceImageElement, nhận HTMLImageElement hoặc URL/Base64 string
       let imgElement;
       if (typeof sourceImageOrUrl === 'string') {
         let loadUrl = sourceImageOrUrl;
@@ -339,7 +339,7 @@
         throw new Error('Dữ liệu ảnh không hợp lệ');
       }
 
-      // Gọi Real AI Vision Backend (MediaPipe 3D Landmark Warping + Multiclass Hair Inpainting)
+      // Gọi Real AI Vision Backend, MediaPipe 3D Landmark Warping + Multiclass Hair Inpainting
       try {
         let srcData = (typeof sourceImageOrUrl === 'string') ? sourceImageOrUrl : (imgElement.src || '');
         if (imgElement && imgElement.naturalWidth > 0 && (!srcData || !srcData.startsWith('data:image'))) {
@@ -373,7 +373,7 @@
         }
       } catch (_) {}
 
-      // Nếu không kết nối được backend, trả về ảnh gốc (không vẽ hình vector hoạt hình)
+      // Nếu không kết nối được backend, trả về ảnh gốc, không vẽ hình vector hoạt hình
       return (typeof sourceImageOrUrl === 'string') ? sourceImageOrUrl : (imgElement.src || '');
     },
 
@@ -418,7 +418,7 @@
       }
       hCtx.putImageData(imgData, 0, 0);
 
-      // Làm mềm chân tóc tự nhiên (Feathering hairline boundary) để hòa tan vào vòm trán
+      // Làm mềm chân tóc tự nhiên, Feathering hairline boundary để hòa tan vào vòm trán
       const fH = Math.round(hh * 0.18);
       hCtx.save();
       hCtx.globalCompositeOperation = 'destination-out';
@@ -530,7 +530,7 @@
 
       ctx.closePath();
 
-      // Đổ màu tóc chính với dải chuyển màu 3 chiều (Volume Radial Gradient)
+      // Đổ màu tóc chính với dải chuyển màu 3 chiều, Volume Radial Gradient
       const grad = ctx.createLinearGradient(centerX, hairTop - 20, centerX, foreheadY + 50);
       grad.addColorStop(0, `rgba(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)}, ${color.opacity || 0.98})`);
       grad.addColorStop(0.35, `rgba(${hr}, ${hg}, ${hb}, ${(color.opacity || 0.98) * 0.95})`);
@@ -577,7 +577,7 @@
         ctx.stroke();
       }
 
-      // Điểm xuyết vầng sáng bóng mượt (Salon Specular Highlight)
+      // Điểm xuyết vầng sáng bóng mượt, Salon Specular Highlight
       const sheenGrad = ctx.createLinearGradient(
         centerX - faceWidth * 0.2, crownY - 10,
         centerX + faceWidth * 0.2, crownY + 25

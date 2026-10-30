@@ -289,7 +289,7 @@ async function handleAuthRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/auth/profile - Cập nhật hồ sơ cá nhân (họ tên, email, ngày sinh)
+  // PUT /api/auth/profile - Cập nhật hồ sơ cá nhân, họ tên, email, ngày sinh
   if (pathname === '/api/auth/profile' && method === 'PUT') {
     const { id, fullName, phone, email, birthday, ngaySinh } = parsedBody || {};
     const bday = (birthday || ngaySinh || '').trim();

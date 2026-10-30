@@ -5,7 +5,7 @@ import 'package:omni_salon_mobile/pages/auth/login_page.dart';
 import 'package:omni_salon_mobile/pages/user/my_bookings_page.dart';
 import 'package:omni_salon_mobile/pages/user/branches_page.dart';
 import 'package:omni_salon_mobile/pages/user/stylists_page.dart';
-import 'package:omni_salon_mobile/pages/admin/admin_portal_page.dart';
+// Admin portal moved to Web-only
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -40,7 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Thẻ thông tin khách hàng (Editorial Member Card)
+              // Thẻ thông tin khách hàng, Editorial Member Card
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -157,26 +157,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
               ],
 
-              if (isLoggedIn && (user?.role == 'SUPER_ADMIN' || user?.role == 'ADMIN' || user?.role == 'BRANCH_MANAGER' || user?.role == 'Quản trị viên' || user?.role == 'Quản lý' || user?.phone == 'admin')) ...[
-                Text(
-                  'QUẢN TRỊ VIÊN',
-                  style: AppTheme.labelUppercase(fontSize: 11, color: AppTheme.accentGold),
-                ),
-                const SizedBox(height: 8),
-                _buildOptionTile(
-                  icon: Icons.admin_panel_settings_outlined,
-                  title: 'Trung tâm Quản trị Omni Portal',
-                  subtitle: 'Báo cáo doanh thu, duyệt lịch hẹn, kho FEFO & POS',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AdminHubScreen()),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
 
-              // Danh mục tùy chọn (Settings & Actions)
+
+              // Danh mục tùy chọn, Settings & Actions
               Text(
                 'TIỆN ÍCH HỘI VIÊN',
                 style: AppTheme.labelUppercase(fontSize: 11, color: AppTheme.textSecondary),

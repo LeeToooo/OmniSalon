@@ -98,7 +98,7 @@ class EditorialImage extends StatelessWidget {
     return imageWidget;
   }
 
-  // Bộ lọc màu ấm nhẹ (Warm Editorial Toning) giúp ảnh hài hòa với tông màu Kem & Vàng đồng
+  // Bộ lọc màu ấm nhẹ, Warm Editorial Toning giúp ảnh hài hòa với tông màu Kem & Vàng đồng
   Widget _applyWarmToneFilter(Widget child) {
     return ColorFiltered(
       colorFilter: const ColorFilter.mode(

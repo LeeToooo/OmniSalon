@@ -71,7 +71,7 @@ async function handleProductRoutes(req, res, ctx) {
         const expDate = new Date(r.HanSuDung);
         daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
         if (daysLeft <= 0) {
-          // Lô hàng đã hết hạn (QT05) -> Thu hồi, không hiển thị và không bán
+          // Lô hàng đã hết hạn, QT05 -> Thu hồi, không hiển thị và không bán
           return null;
         }
         const matchedRule = (discountRules || []).find(rl => daysLeft >= rl.SoNgayConLaiToiThieu && daysLeft <= rl.SoNgayConLaiToiDa);
@@ -80,7 +80,7 @@ async function handleProductRoutes(req, res, ctx) {
         }
       }
 
-      // Khuyến mãi KM01 (Chào Thu Rực Rỡ 10% đến 31/10/2026)
+      // Khuyến mãi KM01, Chào Thu Rực Rỡ 10% đến 31/10/2026
       let promoDiscount = 0;
       const matchedLink = (kmSanPhamRows || []).find(km => km.MaSanPham === r.MaSanPham && km.MaKhuyenMai === 'KM01');
       const matchedPromo = matchedLink ? (promoRows || []).find(p => p.MaKhuyenMai === 'KM01') : null;

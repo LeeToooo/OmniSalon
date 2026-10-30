@@ -6,7 +6,7 @@ const { getFullSqlDatabase } = require('../../services/helper_service');
 async function handleAccountsRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
 
-  // GET /api/accounts - Lấy danh sách tài khoản (đã che trường mật khẩu an toàn)
+  // GET /api/accounts - Lấy danh sách tài khoản, đã che trường mật khẩu an toàn
   if (pathname === '/api/accounts' && method === 'GET') {
     const rows = await querySql(`
       SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.VaiTro, tk.TrangThai AS TrangThaiTK,
@@ -50,7 +50,7 @@ async function handleAccountsRoutes(req, res, ctx) {
     return true;
   }
 
-  // GET /api/users - Danh sách người dùng hệ thống (phục vụ trang quản trị nội bộ)
+  // GET /api/users - Danh sách người dùng hệ thống, phục vụ trang quản trị nội bộ
   if (pathname === '/api/users' && method === 'GET') {
     const rows = await querySql(`
       SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.VaiTro, tk.TrangThai,

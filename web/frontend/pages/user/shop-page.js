@@ -64,6 +64,8 @@
       let activeCatLabel = 'Tất Cả';
       if (this.selectedCategory === 'fefo_expiry') {
         activeCatLabel = 'Ưu Đãi Đặc Biệt';
+      } else if (this.selectedCategory === 'bestsellers') {
+        activeCatLabel = 'Bán Chạy Nhất';
       } else if (this.selectedCategory !== 'all') {
         const matchCat = categories.find(c => c.id === this.selectedCategory || c.MaDanhMuc === this.selectedCategory);
         if (matchCat) {
@@ -78,7 +80,6 @@
         { id: 'blumaan', label: 'Blumaan' },
         { id: 'kevin murphy', label: 'Kevin Murphy' },
         { id: 'reuzel', label: 'Reuzel' },
-        { id: 'olaplex', label: 'Olaplex' },
         { id: 'davines', label: 'Davines' }
       ];
       let activeBrandLabel = 'Tất Cả';
@@ -162,11 +163,16 @@
                       <span>🔥 Ưu Đãi Đặc Biệt</span>
                       ${this.selectedCategory === 'fefo_expiry' ? '<span style="color:#ef4444; font-weight:800;">✓</span>' : ''}
                     </div>
+                    <div class="shop-dropdown-item ${this.selectedCategory === 'bestsellers' ? 'selected' : ''}" onclick="ShopPage.setCategory('bestsellers')" style="color: #f59e0b;">
+                      <span>⭐ Sản Phẩm Bán Chạy Nhất</span>
+                      ${this.selectedCategory === 'bestsellers' ? '<span style="color:#f59e0b; font-weight:800;">✓</span>' : ''}
+                    </div>
                     ${categories.map(c => {
+        const cId = c.id || c.MaDanhMuc;
         const cName = (c.TenDanhMuc || c.name || '').split(' - ')[0];
-        const isSel = this.selectedCategory === c.id;
+        const isSel = this.selectedCategory === cId;
         return `
-                        <div class="shop-dropdown-item ${isSel ? 'selected' : ''}" onclick="ShopPage.setCategory('${c.id}')">
+                        <div class="shop-dropdown-item ${isSel ? 'selected' : ''}" onclick="ShopPage.setCategory('${cId}')">
                           <span>${cName}</span>
                           ${isSel ? '<span style="color:#C59B27; font-weight:800;">✓</span>' : ''}
                         </div>
@@ -272,7 +278,7 @@
 
     
     // -----------------------------------------------------------------------
-    // HỆ THỐNG LOOKBOOK SHOWCASE & BENTO BANNERS CHUẨN ẢNH 1 (4RAU STYLE)
+    // HỆ THỐNG LOOKBOOK SHOWCASE & BENTO BANNERS CHUẨN ẢNH 1, 4RAU STYLE
     // -----------------------------------------------------------------------
     getAllActiveProducts() {
       let all = (window.store && typeof window.store.getProducts === 'function')
@@ -347,61 +353,33 @@
         return '<div style="padding: 40px; text-align: center; color: var(--text-secondary);">Đang cập nhật danh mục sản phẩm...</div>';
       }
 
-      // 1. Phân nhóm sản phẩm thông minh
+      // 1. Phân nhóm sản phẩm thông minh, Chỉ hiển thị đúng sản phẩm theo từng thương hiệu
       const norm = (str) => String(str || '').toLowerCase();
 
-      // Top Bán Chạy Nhất (Ưu tiên sản phẩm có đánh giá cao hoặc có chiết khấu)
-      let bestSellers = allProducts.filter(p => (p.PhanTramGiam && p.PhanTramGiam > 0) || Number(p.rating || 5.0) >= 4.9 || norm(p.name).includes('volcanic') || norm(p.name).includes('claymation') || norm(p.name).includes('blue') || norm(p.name).includes('rough rider'));
+      // Top Bán Chạy Nhất, Ưu tiên sản phẩm có đánh giá cao hoặc có chiết khấu
+      let bestSellers = allProducts.filter(p => (p.PhanTramGiam && p.PhanTramGiam > 0) || Number(p.rating || 5.0) >= 4.8 || norm(p.name).includes('volcanic') || norm(p.name).includes('claymation') || norm(p.name).includes('blue') || norm(p.name).includes('rough rider'));
       if (bestSellers.length < 5) bestSellers = allProducts.slice(0, 6);
 
-      // Apestomen (Singapore)
-      let apestomen = allProducts.filter(p => norm(p.brand).includes('apestomen') || norm(p.name).includes('apestomen') || norm(p.name).includes('volcanic') || norm(p.name).includes('nitro') || norm(p.name).includes('cola pomade'));
-      if (apestomen.length < 5) {
-        const others = allProducts.filter(p => !apestomen.includes(p) && (p.categoryId === 'DM01' || p.categoryId === 'DM02'));
-        apestomen = apestomen.concat(others).slice(0, 5);
-      }
+      // Apestomen, Singapore
+      const apestomen = allProducts.filter(p => norm(p.brand).includes('apestomen') || norm(p.name).includes('apestomen') || norm(p.name).includes('volcanic') || norm(p.name).includes('nitro') || norm(p.name).includes('cola pomade'));
 
-      // Hanz de Fuko (California)
-      let hanz = allProducts.filter(p => norm(p.brand).includes('hanz') || norm(p.name).includes('hanz') || norm(p.name).includes('claymation') || norm(p.name).includes('gravity paste') || norm(p.name).includes('quicksand') || norm(p.name).includes('spongewax'));
-      if (hanz.length < 5) {
-        const others = allProducts.filter(p => !hanz.includes(p) && p.categoryId === 'DM01');
-        hanz = hanz.concat(others).slice(0, 5);
-      }
+      // Hanz de Fuko, California
+      const hanz = allProducts.filter(p => norm(p.brand).includes('hanz') || norm(p.name).includes('hanz') || norm(p.name).includes('claymation') || norm(p.name).includes('gravity paste') || norm(p.name).includes('quicksand') || norm(p.name).includes('spongewax'));
 
-      // Blumaan (USA)
-      let blumaan = allProducts.filter(p => norm(p.brand).includes('blumaan') || norm(p.name).includes('blumaan') || norm(p.name).includes('cavalier') || norm(p.name).includes('monarch') || norm(p.name).includes('meraki') || norm(p.name).includes('hybrid cream'));
-      if (blumaan.length < 5) {
-        const others = allProducts.filter(p => !blumaan.includes(p) && (p.categoryId === 'DM01' || p.categoryId === 'DM03'));
-        blumaan = blumaan.concat(others).slice(0, 5);
-      }
+      // Blumaan, USA
+      const blumaan = allProducts.filter(p => norm(p.brand).includes('blumaan') || norm(p.name).includes('blumaan') || norm(p.name).includes('cavalier') || norm(p.name).includes('monarch') || norm(p.name).includes('meraki') || norm(p.name).includes('hybrid cream'));
 
-      // Reuzel Pomade (Rotterdam, Hà Lan)
-      let reuzel = allProducts.filter(p => norm(p.brand).includes('reuzel') || norm(p.name).includes('reuzel'));
-      if (reuzel.length < 5) {
-        const others = allProducts.filter(p => !reuzel.includes(p) && (p.categoryId === 'DM02' || p.categoryId === 'DM08'));
-        reuzel = reuzel.concat(others).slice(0, 5);
-      }
+      // Reuzel Pomade, Rotterdam, Hà Lan
+      const reuzel = allProducts.filter(p => norm(p.brand).includes('reuzel') || norm(p.name).includes('reuzel'));
 
       // Kevin Murphy & Uppercut Deluxe
-      let kevinUppercut = allProducts.filter(p => norm(p.brand).includes('kevin') || norm(p.brand).includes('uppercut') || norm(p.name).includes('rough rider') || norm(p.name).includes('night rider') || norm(p.name).includes('uppercut'));
-      if (kevinUppercut.length < 5) {
-        const others = allProducts.filter(p => !kevinUppercut.includes(p) && (p.categoryId === 'DM01' || p.categoryId === 'DM02'));
-        kevinUppercut = kevinUppercut.concat(others).slice(0, 5);
-      }
+      const kevinUppercut = allProducts.filter(p => norm(p.brand).includes('kevin') || norm(p.brand).includes('uppercut') || norm(p.name).includes('rough rider') || norm(p.name).includes('night rider') || norm(p.name).includes('uppercut'));
 
-      // Davines & Olaplex Chăm Sóc Phục Hồi
-      let davinesOlaplex = allProducts.filter(p => norm(p.brand).includes('davines') || norm(p.brand).includes('olaplex') || norm(p.brand).includes('kerasys') || p.categoryId === 'DM05');
-      if (davinesOlaplex.length < 5) {
-        const others = allProducts.filter(p => !davinesOlaplex.includes(p) && (p.categoryId === 'DM05' || p.categoryId === 'DM06'));
-        davinesOlaplex = davinesOlaplex.concat(others).slice(0, 5);
-      }
+      // Davines Chăm Sóc Phục Hồi, Không có Olaplex
+      const davinesOlaplex = allProducts.filter(p => norm(p.brand).includes('davines') || norm(p.brand).includes('kerasys') || norm(p.name).includes('davines'));
 
       // Dụng Cụ Barber & Shaving Proraso
-      let toolsGrooming = allProducts.filter(p => norm(p.brand).includes('proraso') || norm(p.brand).includes('amish') || norm(p.brand).includes('y.s. park') || norm(p.brand).includes('ats') || p.categoryId === 'DM08' || p.categoryId === 'DM09' || p.categoryId === 'DM07' || p.categoryId === 'DM06');
-      if (toolsGrooming.length < 5) {
-        const others = allProducts.filter(p => !toolsGrooming.includes(p));
-        toolsGrooming = toolsGrooming.concat(others).slice(0, 5);
-      }
+      const toolsGrooming = allProducts.filter(p => norm(p.brand).includes('proraso') || norm(p.brand).includes('amish') || norm(p.brand).includes('y.s. park') || norm(p.brand).includes('ats') || p.categoryId === 'DM08' || p.categoryId === 'DM09');
 
       return `
         <!-- DÒNG 1: SẢN PHẨM BÁN CHẠY NHẤT -->
@@ -487,8 +465,8 @@
         <!-- DÒNG 6: KEVIN MURPHY & UPPERCUT DELUXE -->
         ${this.renderShowcaseRow('kevin_uppercut', 'PREMIUM BARBERSHOP STYLING', 'Kevin Murphy &amp; Uppercut Deluxe', "ShopPage.setCategory('DM01')", kevinUppercut)}
 
-        <!-- DÒNG 7: DAVINES & OLAPLEX PHỤC HỒI TÓC -->
-        ${this.renderShowcaseRow('davines_olaplex', 'ITALY & USA SALON FORMULA', 'Davines &amp; Olaplex Hair Care', "ShopPage.setBrand('davines')", davinesOlaplex)}
+        <!-- DÒNG 7: DAVINES PHỤC HỒI TÓC -->
+        ${this.renderShowcaseRow('davines_olaplex', 'ITALY SALON FORMULA', 'Davines Hair Care &amp; Phục Hồi Tóc', "ShopPage.setBrand('davines')", davinesOlaplex)}
 
         <!-- DÒNG 8: DỤNG CỤ BARBER & PRORASO SHAVING -->
         ${this.renderShowcaseRow('barber_tools', 'AUTHENTIC BARBER TOOLS & SHAVING', 'Dụng Cụ Barber &amp; Cạo Mặt Proraso', "ShopPage.setCategory('DM08')", toolsGrooming)}
@@ -582,6 +560,12 @@
       // Filter theo Danh mục
       if (this.selectedCategory === 'fefo_expiry') {
         filtered = filtered.filter(p => (p.PhanTramGiam && p.PhanTramGiam > 0) || p.isNearExpiry);
+      } else if (this.selectedCategory === 'bestsellers') {
+        const norm = (str) => String(str || '').toLowerCase();
+        filtered = filtered.filter(p => (p.PhanTramGiam && p.PhanTramGiam > 0) || Number(p.rating || 5.0) >= 4.8 || norm(p.name).includes('volcanic') || norm(p.name).includes('claymation') || norm(p.name).includes('blue') || norm(p.name).includes('rough rider'));
+        if (filtered.length === 0) {
+          filtered = [...allProducts].sort((a, b) => (b.rating || 5) - (a.rating || 5)).slice(0, 12);
+        }
       } else if (this.selectedCategory !== 'all') {
         filtered = filtered.filter(p => p.categoryId === this.selectedCategory || p.MaDanhMuc === this.selectedCategory);
       }
@@ -1453,7 +1437,7 @@
 
           <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 380px; overflow-y: auto;">
             ${branches.map((b, idx) => {
-              // Lấy tồn kho chi nhánh trực tiếp từ CSDL SQL (bảng TonKho)
+              // Lấy tồn kho chi nhánh trực tiếp từ CSDL SQL, bảng TonKho
               const rawStock = (window.store && typeof window.store.getStockForBranch === 'function')
                 ? window.store.getStockForBranch(productId, b.id)
                 : null;
@@ -1592,9 +1576,15 @@
             <div style="font-size: 36px; margin-bottom: 10px;">⭐</div>
             <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Chưa có đánh giá nào cho sản phẩm này</h4>
             <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0 0 18px;">Hãy là người đầu tiên trải nghiệm chất lượng sản phẩm và chia sẻ cảm nhận của bạn!</p>
-            <button type="button" class="btn-submit-terracotta" style="padding: 8px 22px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="ShopPage.openWriteProductReviewModal('${product.id || product.MaSanPham}', '${this.escapeHtml(product.name || product.TenSanPham)}')">
-              ⭐ Viết Đánh Giá Đầu Tiên
-            </button>
+            ${(window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function' && window.CustomerWeb.getCurrentUser()) ? `
+              <button type="button" class="btn-submit-terracotta" style="padding: 8px 22px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="ShopPage.openWriteProductReviewModal('${product.id || product.MaSanPham}', '${this.escapeHtml(product.name || product.TenSanPham)}')">
+                ⭐ Viết Đánh Giá Đầu Tiên
+              </button>
+            ` : `
+              <button type="button" class="btn-submit-terracotta" style="padding: 8px 22px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="if(window.UICommon && typeof window.UICommon.openAuthModal === 'function') window.UICommon.openAuthModal('login');">
+                🔑 Đăng Nhập Để Đánh Giá
+              </button>
+            `}
           </div>
         `;
       }
@@ -1622,9 +1612,15 @@
             <div class="pdp-reviews-big-num" style="font-size: 42px; font-weight: 900; color: #F59E0B; line-height: 1;">${avgScore}</div>
             <div style="color: #F59E0B; font-size: 20px; margin: 6px 0;">${'★'.repeat(fullStars)}${'☆'.repeat(5 - fullStars)}</div>
             <div style="font-size: 13px; color: var(--text-secondary);">Dựa trên ${totalReviews} đánh giá thực tế</div>
-            <button type="button" class="btn-submit-terracotta" style="margin-top: 14px; padding: 7px 16px; font-size: 12px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="ShopPage.openWriteProductReviewModal('${product.id || product.MaSanPham}', '${this.escapeHtml(product.name || product.TenSanPham)}')">
-              ⭐ Viết Đánh Giá
-            </button>
+            ${(window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function' && window.CustomerWeb.getCurrentUser()) ? `
+              <button type="button" class="btn-submit-terracotta" style="margin-top: 14px; padding: 7px 16px; font-size: 12px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="ShopPage.openWriteProductReviewModal('${product.id || product.MaSanPham}', '${this.escapeHtml(product.name || product.TenSanPham)}')">
+                ⭐ Viết Đánh Giá
+              </button>
+            ` : `
+              <button type="button" class="btn-submit-terracotta" style="margin-top: 14px; padding: 7px 16px; font-size: 12px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="if(window.UICommon && typeof window.UICommon.openAuthModal === 'function') window.UICommon.openAuthModal('login');">
+                🔑 Đăng Nhập Để Đánh Giá
+              </button>
+            `}
           </div>
           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 240px;">
             ${[
@@ -1680,6 +1676,15 @@
       const user = (window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function') 
         ? window.CustomerWeb.getCurrentUser() 
         : null;
+      if (!user) {
+        if (window.UICommon) {
+          window.UICommon.showToast('Quý khách vui lòng đăng nhập để gửi đánh giá sản phẩm!', 'warning');
+          if (typeof window.UICommon.openAuthModal === 'function') {
+            window.UICommon.openAuthModal('login');
+          }
+        }
+        return;
+      }
       const initialName = user ? (user.fullName || user.name || '') : '';
 
       modal.classList.remove('modal-wide');
@@ -1784,14 +1789,24 @@
         window.UICommon.showToast('Cảm ơn bạn! Đánh giá sản phẩm đã được đăng tải thành công.');
       }
 
-      // Re-render tab reviews
+      // Đồng bộ vào mảng _currentReviews của ShopPage ngay lập tức
+      if (!Array.isArray(this._currentReviews)) {
+        this._currentReviews = [];
+      }
+      this._currentReviews.unshift(newReview);
+
+      // Cập nhật số đếm đánh giá trên tab
+      const countEl = document.getElementById('pdpReviewTabCount');
+      if (countEl) countEl.textContent = '(' + this._currentReviews.length + ')';
+
+      // Re-render tab reviews với danh sách mới nhất
       const panel = document.getElementById('tabReviews');
       if (panel) {
         const prod = (window.store && typeof window.store.getProductById === 'function')
           ? window.store.getProductById(productId)
-          : null;
+          : { id: productId, name: author };
         if (prod) {
-          panel.innerHTML = this.renderDynamicProductReviews(prod);
+          panel.innerHTML = this.renderDynamicProductReviews(prod, this._currentReviews);
         }
       }
     },

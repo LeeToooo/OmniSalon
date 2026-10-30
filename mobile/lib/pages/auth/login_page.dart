@@ -54,7 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (widget.onLoginSuccess != null) {
         widget.onLoginSuccess!();
-      } else {
+      }
+      if (mounted) {
         Navigator.of(context).pop(true);
       }
     } else {
@@ -240,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Tài khoản thử nghiệm nhanh (Tiện ích hỗ trợ thẩm định và kiểm thử)
+                // Tài khoản thử nghiệm nhanh, Tiện ích hỗ trợ thẩm định và kiểm thử
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(

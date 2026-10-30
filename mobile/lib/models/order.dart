@@ -95,14 +95,29 @@ class SalonOrder {
     final rawDiscount = json['discountAmount'] ?? json['TongGiamGia'] ?? 0;
     final num discountNum = rawDiscount is num ? rawDiscount : (num.tryParse(rawDiscount.toString()) ?? 0);
 
+    final rawStatus = json['orderStatus'] ?? json['TrangThai'] ?? 'Đang xử lý';
+    String normStatus = rawStatus.toString();
+    final lowStatus = normStatus.toLowerCase();
+    if (lowStatus.contains('hủy') || lowStatus == 'cancelled') {
+      normStatus = 'Đã hủy';
+    } else if (lowStatus.contains('hoàn tất') || lowStatus.contains('đã giao') || lowStatus == 'completed' || lowStatus == 'delivered') {
+      normStatus = 'Hoàn tất';
+    } else if (lowStatus.contains('đang giao') || lowStatus == 'delivering' || lowStatus == 'shipping') {
+      normStatus = 'Đang giao';
+    } else if (lowStatus.contains('chờ') || lowStatus == 'pending') {
+      normStatus = 'Chờ xác nhận';
+    } else if (lowStatus.contains('xử lý') || lowStatus == 'processing') {
+      normStatus = 'Đang xử lý';
+    }
+
     return SalonOrder(
       id: json['id'] ?? json['MaDonHang'] ?? '',
       orderCode: json['orderCode'] ?? json['MaDonHang'] ?? json['id'] ?? 'DH01',
-      userId: json['userId']?.toString() ?? json['MaKhachHang']?.toString(),
+      userId: json['userId']?.toString() ?? json['customerId']?.toString() ?? json['MaKhachHang']?.toString(),
       branchId: json['branchId'] ?? json['MaChiNhanh'] ?? 'CN01',
       branchName: json['branchName'] ?? json['TenChiNhanh'] ?? 'Omni Salon Chi Nhánh',
       customerName: json['customerName'] ?? json['TenKhachHang'] ?? 'Khách Hàng',
-      customerPhone: json['customerPhone'] ?? json['SdtKhachHang'] ?? json['SoDienThoai'] ?? '',
+      customerPhone: json['customerPhone'] ?? json['phone'] ?? json['SdtKhachHang'] ?? json['SoDienThoai'] ?? '',
       shippingAddress: json['shippingAddress'] ?? json['DiaChiGiaoHang'] ?? json['DiaChiGiao'] ?? 'Nhận tại quầy',
       items: itemsList,
       totalAmount: totalNum.toInt(),
@@ -110,7 +125,7 @@ class SalonOrder {
       voucherCode: json['voucherCode'],
       paymentMethod: json['paymentMethod'] ?? 'Tiền mặt',
       paymentStatus: json['paymentStatus'] ?? 'Chưa thanh toán',
-      orderStatus: json['orderStatus'] ?? json['TrangThai'] ?? 'Đang xử lý',
+      orderStatus: normStatus,
       createdAt: json['createdAt'] ?? json['orderDate'] ?? '',
     );
   }

@@ -10,6 +10,7 @@ import 'package:omni_salon_mobile/components/editorial_image.dart';
 import 'package:omni_salon_mobile/components/marquee_banner.dart';
 import 'package:omni_salon_mobile/pages/user/stylists_page.dart';
 import 'package:omni_salon_mobile/pages/user/booking_page.dart';
+import 'package:omni_salon_mobile/pages/user/branches_page.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int)? onNavigateToTab;
@@ -107,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 4. AI STUDIO 3D TEASER BANNER (ĐỒNG BỘ 100% VỚI WEB)
+          // 4. AI STUDIO 3D TEASER BANNER, ĐỒNG BỘ 100% VỚI WEB
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -164,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 6. ĐỘI NGŨ MASTER STYLIST (ĐỒNG BỘ 100% VỚI WEB 3-COLUMN SHOWCASE)
+          // 6. ĐỘI NGŨ MASTER STYLIST, ĐỒNG BỘ 100% VỚI WEB 3-COLUMN SHOWCASE
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
@@ -229,9 +230,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Hệ Thống Chi Nhánh Omni',
-                    style: AppTheme.headingMedium(fontSize: 22),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Hệ Thống Chi Nhánh Omni',
+                        style: AppTheme.headingMedium(fontSize: 22),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const BranchesScreen()),
+                          );
+                        },
+                        child: Text(
+                          'Xem toàn bộ chi nhánh →',
+                          style: AppTheme.bodySmall(
+                            color: AppTheme.accentGold,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Text(

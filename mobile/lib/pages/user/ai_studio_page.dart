@@ -143,7 +143,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     }
   }
 
-  // 2. GỌI API SINH KIỂU TÓC THẬT BẰNG AI (TỰ ĐỘNG TÁCH NỀN & XÓA TÓC CŨ KHI BẮT ĐẦU MÔ PHỎNG)
+  // 2. GỌI API SINH KIỂU TÓC THẬT BẰNG AI, TỰ ĐỘNG TÁCH NỀN & XÓA TÓC CŨ KHI BẮT ĐẦU MÔ PHỎNG
   Future<void> _runRestyleSimulation() async {
     if (_isScanning) return;
 
@@ -366,7 +366,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Thanh chuyển chế độ xem góc chân dung (Giữ nguyên tóc thật của khách)
+              // Thanh chuyển chế độ xem góc chân dung, Giữ nguyên tóc thật của khách
               if (_croppedImageUrl != null) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -441,7 +441,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
               const SizedBox(height: 16),
 
               // ========================================================
-              // THẺ CHẨN ĐOÁN DÁNG MẶT AI (REAL FACE DIAGNOSTIC)
+              // THẺ CHẨN ĐOÁN DÁNG MẶT AI, REAL FACE DIAGNOSTIC
               // ========================================================
               Container(
                 width: double.infinity,
@@ -839,7 +839,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     );
   }
 
-  // Before & After Interactive Slider View (Comparing actual photo with REAL restyled photo)
+  // Before & After Interactive Slider View, Comparing actual photo with REAL restyled photo
   Widget _buildBeforeAfterComparison() {
     final resultUrl = _resultImageUrl ?? _currentPhotoUrl;
 

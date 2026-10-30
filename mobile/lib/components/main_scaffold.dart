@@ -77,9 +77,13 @@ class MainScaffoldState extends State<MainScaffold> {
     final currentUser = AuthService.userNotifier.value;
     final currentId = currentUser?.id;
     if (_lastUserId != currentId) {
-      await _saveCartForUser(_lastUserId);
+      final existingItems = List<OrderItem>.from(_sharedCart);
       _lastUserId = currentId;
-      await _loadCartForUser(currentId);
+      if (existingItems.isNotEmpty) {
+        await _saveCartForUser(currentId);
+      } else {
+        await _loadCartForUser(currentId);
+      }
     }
     if (mounted) setState(() {});
   }
@@ -236,7 +240,7 @@ class MainScaffoldState extends State<MainScaffold> {
             ],
           ),
 
-          // Nút Profile avatar -> Mở ProfileScreen (Hồ sơ hội viên)
+          // Nút Profile avatar -> Mở ProfileScreen, Hồ sơ hội viên
           Padding(
             padding: const EdgeInsets.only(right: 14, left: 2),
             child: GestureDetector(

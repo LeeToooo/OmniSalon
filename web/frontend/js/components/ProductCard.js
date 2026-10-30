@@ -217,7 +217,7 @@
     },
 
     // ---------------------------------------------------------------------
-    // SKELETON LOADING STATE (Khớp 100% layout và kích thước của Card)
+    // SKELETON LOADING STATE, Khớp 100% layout và kích thước của Card
     // ---------------------------------------------------------------------
     renderSkeleton(count = 4) {
       const items = Array.from({ length: count });
@@ -243,7 +243,7 @@
     },
 
     // ---------------------------------------------------------------------
-    // EMPTY STATE (Thiết kế phẳng, rõ ràng, không AI bloat)
+    // EMPTY STATE, Thiết kế phẳng, rõ ràng, không AI bloat
     // ---------------------------------------------------------------------
     renderEmptyState(options = {}) {
       const {
@@ -271,7 +271,7 @@
     },
 
     // ---------------------------------------------------------------------
-    // ERROR STATE (Xử lý sự cố mạng / tải dữ liệu lỗi)
+    // ERROR STATE, Xử lý sự cố mạng / tải dữ liệu lỗi
     // ---------------------------------------------------------------------
     renderErrorState(options = {}) {
       const {

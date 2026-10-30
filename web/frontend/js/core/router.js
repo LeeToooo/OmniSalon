@@ -86,7 +86,7 @@
     },
 
     getCurrentPath() {
-      // Ưu tiên đọc từ Hash nếu có (hỗ trợ file:// và static server / GitHub Pages)
+      // Ưu tiên đọc từ Hash nếu có, hỗ trợ file:// và static server / GitHub Pages
       const hash = window.location.hash;
       if (hash && hash.startsWith('#/')) {
         return hash.replace(/^#/, '');
@@ -100,7 +100,7 @@
         clean = clean.slice(0, -1);
       }
 
-      // Loại bỏ subpath tên repository trên GitHub Pages (ví dụ: /OmniSalon -> /)
+      // Loại bỏ subpath tên repository trên GitHub Pages, ví dụ: /OmniSalon -> /
       if (window.location.hostname && window.location.hostname.endsWith('github.io')) {
         const segments = clean.split('/').filter(Boolean);
         if (segments.length === 1 && segments[0].toLowerCase() === 'omnisalon') {
@@ -301,7 +301,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // GIAO DIỆN ỔN ĐỊNH & VỮNG CHÃI (TRIỆT TIÊU CHAO ĐẢO 3D KHI DI CHUỘT)
+    // GIAO DIỆN ỔN ĐỊNH & VỮNG CHÃI, TRIỆT TIÊU CHAO ĐẢO 3D KHI DI CHUỘT
     // -----------------------------------------------------------------------
     initTiltEffects(scope = document) {
       const cards = scope.querySelectorAll('.card-3d-tilt, .service-bento-card, .stylist-nordic-card, .product-nordic-card, .md3-service-card, .md3-stylist-card');
@@ -312,7 +312,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // CỐ ĐỊNH NÚT BẤM (TRIỆT TIÊU HIỆU ỨNG HÚT NAM CHÂM CHẠY THEO CHUỘT)
+    // CỐ ĐỊNH NÚT BẤM, TRIỆT TIÊU HIỆU ỨNG HÚT NAM CHÂM CHẠY THEO CHUỘT
     // -----------------------------------------------------------------------
     initMagneticButtons(scope = document) {
       const buttons = scope.querySelectorAll('.nordic-btn-primary, .nordic-btn-secondary, .stylist-book-btn, .service-bento-btn, .btn-magnetic');
@@ -322,7 +322,7 @@
     },
 
     // -----------------------------------------------------------------------
-    // INTERACTIVE TIME SLOT RIPPLE (HIỆU ỨNG CHẠM NHẸ KHI CHỌN GIỜ)
+    // INTERACTIVE TIME SLOT RIPPLE, HIỆU ỨNG CHẠM NHẸ KHI CHỌN GIỜ
     // -----------------------------------------------------------------------
     initSlotRippleDelegation() {
       document.addEventListener('click', (e) => {

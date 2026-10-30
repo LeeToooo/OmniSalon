@@ -8,7 +8,7 @@ const catIcons = {
 
 const brandPrefixes = [
   'DoMedia', 'Hanz de Fuko', 'Apestomen', 'Blumaan', 'Kevin Murphy', 'Reuzel',
-  'Olaplex', 'Davines', 'By Vilain', 'Uppercut Deluxe',
+  'Davines', 'By Vilain', 'Uppercut Deluxe',
   'L’Oréal Professionnel', 'Schwarzkopf Professional', 'Morris Motley',
   'Slick Gorilla', 'Dapper Dan', 'Suavecito', 'Proraso', 'Kerasys Homme'
 ];
@@ -190,7 +190,10 @@ async function getFullSqlDatabase() {
                      nv.CapBac, nv.ChucVu, nv.TrangThai, cn.TenChiNhanh 
               FROM NhanVien nv 
               LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh 
-              WHERE nv.TrangThai = N'Đang làm việc'`),
+              WHERE nv.TrangThai = N'Đang làm việc'
+                AND nv.MaNhanVien <> 'NV00'
+                AND nv.ChucVu NOT LIKE N'%Quản trị%'
+                AND nv.ChucVu NOT LIKE N'%Chủ tịch%'`),
     querySql(`SELECT MaDanhMuc, TenDanhMuc, MoTa, TrangThai FROM DanhMucSanPham`),
     querySql(`SELECT MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi, TrangThai FROM NhaCungCap`),
     querySql(`SELECT sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
@@ -470,6 +473,52 @@ async function getFullSqlDatabase() {
     NgayApDung: r.NgayApDung
   }));
 
+  // Chuẩn hóa danh sách gói combo làm đẹp
+  const mappedCombos = (comboRows || []).map(r => {
+    const details = (chiTietComboRows || []).filter(c => c.MaCombo === r.MaCombo);
+    const serviceIds = details.map(c => c.MaDichVu);
+    const sumDuration = details.reduce((sum, d) => sum + parseInt(d.ThoiLuong || 0, 10), 0);
+    const finalDuration = r.ThoiLuong || sumDuration || 60;
+    return {
+      id: r.MaCombo,
+      MaCombo: r.MaCombo,
+      name: r.TenCombo,
+      TenCombo: r.TenCombo,
+      description: r.MoTa || '',
+      MoTa: r.MoTa || '',
+      price: parseFloat(r.GiaCombo || 0),
+      GiaCombo: parseFloat(r.GiaCombo || 0),
+      duration: finalDuration,
+      durationMinutes: finalDuration,
+      ThoiLuong: finalDuration,
+      image: r.HinhAnh || '',
+      HinhAnh: r.HinhAnh || '',
+      status: r.TrangThai || 'Kinh doanh',
+      TrangThai: r.TrangThai || 'Kinh doanh',
+      serviceIds,
+      services: details.map(d => ({
+        id: d.MaDichVu,
+        MaDichVu: d.MaDichVu,
+        name: d.TenDichVu,
+        TenDichVu: d.TenDichVu,
+        duration: d.ThoiLuong,
+        price: parseFloat(d.Gia || 0)
+      }))
+    };
+  });
+
+  // Chuẩn hóa danh mục sản phẩm, hỗ trợ cả id và MaDanhMuc
+  const mappedCategories = (catRows || []).map(r => ({
+    id: r.MaDanhMuc,
+    MaDanhMuc: r.MaDanhMuc,
+    name: r.TenDanhMuc,
+    TenDanhMuc: r.TenDanhMuc,
+    description: r.MoTa,
+    MoTa: r.MoTa,
+    status: r.TrangThai,
+    TrangThai: r.TrangThai
+  }));
+
   // Chuẩn hóa danh sách thợ cắt
   const mappedStylists = (stylistRows || []).map(r => ({
     id: r.MaNhanVien,
@@ -485,8 +534,10 @@ async function getFullSqlDatabase() {
     TenChiNhanh: r.TenChiNhanh,
     rank: r.CapBac,
     CapBac: r.CapBac,
+    level: r.CapBac,
     position: r.ChucVu,
     ChucVu: r.ChucVu,
+    role: r.ChucVu,
     status: r.TrangThai,
     TrangThai: r.TrangThai
   }));
@@ -494,9 +545,9 @@ async function getFullSqlDatabase() {
   return {
     branches: mappedBranches,
     services: mappedServices,
-    combos: comboRows,
+    combos: mappedCombos,
     stylists: mappedStylists,
-    categories: catRows,
+    categories: mappedCategories,
     suppliers: suppRows,
     products: mappedProducts,
     bookings: mappedBookings,
