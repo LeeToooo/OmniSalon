@@ -32,15 +32,20 @@ async function handleStaffRoutes(req, res, ctx) {
   // GET /api/stylists hoặc /api/admin/staff - Danh sách nhân sự / stylist
   if ((pathname === '/api/stylists' || pathname === '/api/admin/staff') && method === 'GET') {
     const branchParam = parsedUrl.searchParams.get('branch_id');
+    const isPublicStylists = (pathname === '/api/stylists');
     let q = `
       SELECT nv.MaNhanVien, nv.MaChiNhanh, nv.HoTen, nv.SoDienThoai, nv.Email, 
              nv.CapBac, nv.ChucVu, nv.TrangThai, cn.TenChiNhanh 
       FROM NhanVien nv 
       LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
+      WHERE 1=1
     `;
     const params = [];
+    if (isPublicStylists) {
+      q += ` AND nv.MaNhanVien <> 'NV00' AND nv.ChucVu NOT LIKE N'%Quản trị%' AND nv.ChucVu NOT LIKE N'%Chủ tịch%'`;
+    }
     if (branchParam && branchParam !== 'all') {
-      q += ` WHERE nv.MaChiNhanh = ?`;
+      q += ` AND nv.MaChiNhanh = ?`;
       params.push(branchParam);
     }
     q += ` ORDER BY nv.MaChiNhanh ASC, nv.MaNhanVien ASC`;

@@ -271,6 +271,15 @@
     },
 
     toggleAccordion(stepKey) {
+      // Bắt buộc chọn ít nhất 1 dịch vụ hoặc combo ở Bước 1 trước khi mở Bước 2, 3, 4
+      if ((stepKey === 'step2' || stepKey === 'step3' || stepKey === 'step4') && (!this.bookingState.serviceIds || this.bookingState.serviceIds.length === 0)) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc combo ở Bước 1 trước!', 'warning');
+        return;
+      }
+      if (stepKey === 'step4' && (!this.bookingState.timeSlot || !this.bookingState.date)) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng chọn ngày và giờ hẹn ở Bước 3 trước!', 'warning');
+        return;
+      }
       this.expandedSteps[stepKey] = !this.expandedSteps[stepKey];
       const body = document.getElementById(`body${stepKey.charAt(0).toUpperCase() + stepKey.slice(1)}`);
       if (body) {

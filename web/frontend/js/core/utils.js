@@ -1,6 +1,6 @@
 ﻿// =========================================================================
 // OmniSalon / Omni Salon — CORE UTILITIES MODULE
-// Phiên bản: 2.2.0 Clean Architecture 
+// Các hàm tiện ích dùng chung trong giao diện 
 // =========================================================================
 
 (function (window) {
@@ -12,13 +12,84 @@
       return Number(amount).toLocaleString('vi-VN') + '\u00A0đ';
     },
 
+    // Format ngày hiển thị dạng DD/MM/YYYY (cắt bỏ phần giờ 'T' của chuỗi ISO)
     formatDate(dateStr) {
       if (!dateStr) return '';
       try {
-        const parts = String(dateStr).split('-');
-        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        if (dateStr instanceof Date) {
+          const d = dateStr;
+          const day = String(d.getDate()).padStart(2, '0');
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          return `${day}/${month}/${d.getFullYear()}`;
+        }
+        const s = String(dateStr).trim();
+        const dateOnly = s.includes('T') ? s.split('T')[0] : (s.includes(' ') ? s.split(' ')[0] : s);
+        const parts = dateOnly.split('-');
+        if (parts.length === 3) {
+          const day = parts[2].padStart(2, '0');
+          const month = parts[1].padStart(2, '0');
+          const year = parts[0];
+          return `${day}/${month}/${year}`;
+        }
+        const d = new Date(s);
+        if (!isNaN(d.getTime())) {
+          const day = String(d.getDate()).padStart(2, '0');
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          return `${day}/${month}/${d.getFullYear()}`;
+        }
       } catch (e) {}
       return String(dateStr);
+    },
+
+    formatDateTime(dateStr) {
+      if (!dateStr) return '';
+      try {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+          const day = String(d.getDate()).padStart(2, '0');
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const year = d.getFullYear();
+          const hours = String(d.getHours()).padStart(2, '0');
+          const minutes = String(d.getMinutes()).padStart(2, '0');
+          return `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+      } catch (e) {}
+      return this.formatDate(dateStr);
+    },
+
+    // Kiểm tra điều kiện hủy đơn: chỉ cho hủy khi đơn chưa giao (chờ xác nhận, đang xử lý, đóng gói)
+    canCancelOrder(orderOrStatus) {
+      if (!orderOrStatus) return false;
+      const s = typeof orderOrStatus === 'string' 
+        ? orderOrStatus 
+        : (orderOrStatus.orderStatus || orderOrStatus.TrangThai || orderOrStatus.status || '');
+      const clean = String(s).toLowerCase().trim();
+      
+      // Nếu đã hủy hoặc đã hoàn thành rồi thì không hủy nữa
+      if (clean.includes('hủy') || clean === 'cancelled') return false;
+      if (clean.includes('hoàn tất') || clean.includes('thành công') || clean === 'completed' || clean === 'delivered' || clean.includes('đã giao')) return false;
+      // Đang giao hàng thì không cho hủy
+      if (clean.includes('đang giao') || clean === 'delivering' || clean === 'shipping' || (clean.includes('giao') && !clean.includes('đã giao'))) return false;
+
+      // Chỉ hủy khi đơn đang chờ xác nhận hoặc đang đóng gói
+      return clean.includes('chờ') || clean.includes('xác nhận') || clean.includes('xử lý') || clean.includes('đóng gói') || clean.includes('chuẩn bị') || clean === 'pending' || clean === 'processing';
+    },
+
+    formatOrderStatus(status) {
+      const s = String(status || '').toLowerCase().trim();
+      if (s.includes('hủy') || s === 'cancelled') {
+        return { key: 'cancelled', label: 'Đã hủy', cssClass: 'status-cancelled', step: 0 };
+      }
+      if (s.includes('hoàn tất') || s.includes('đã giao') || s === 'completed' || s === 'delivered') {
+        return { key: 'completed', label: 'Đã giao hàng', cssClass: 'status-completed', step: 4 };
+      }
+      if (s.includes('đang giao') || s === 'delivering' || s === 'shipping' || (s.includes('giao') && !s.includes('đã giao'))) {
+        return { key: 'delivering', label: 'Đang giao hàng', cssClass: 'status-shipping', step: 3 };
+      }
+      if (s.includes('đóng gói') || s.includes('xử lý') || s === 'processing') {
+        return { key: 'processing', label: 'Đang đóng gói', cssClass: 'status-confirmed', step: 2 };
+      }
+      return { key: 'pending', label: 'Chờ xác nhận', cssClass: 'status-waiting', step: 1 };
     },
 
     escapeHtml(str) {

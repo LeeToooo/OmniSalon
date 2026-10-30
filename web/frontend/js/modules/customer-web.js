@@ -441,10 +441,10 @@
 
                   <!-- 5. Nút Đăng Nhập / Đăng Ký / Cá Nhân -->
                   ${user ? `
-                    <button class="dropdown-item-btn" onclick="CustomerWeb.openCustomerPortalModal(); CustomerWeb.closeUserMenu();">
+                    <button class="dropdown-item-btn" onclick="CustomerWeb.closeUserMenu(); if(window.AppRouter) window.AppRouter.navigate('/profile'); else CustomerWeb.switchTab('profile');">
                       <span>Trang Cá Nhân &amp; Điểm Thưởng</span>
                     </button>
-                    <button class="dropdown-logout-btn" onclick="window.AuthEngine ? window.AuthEngine.logout() : (window.store && window.store.logout()); CustomerWeb.currentTab = 'home'; CustomerWeb.renderHeader(); if(window.AppRouter) window.AppRouter.navigate('/'); else CustomerWeb.switchTab('home'); if(window.UICommon) window.UICommon.showToast('Đã đăng xuất tài khoản!'); CustomerWeb.closeUserMenu();">
+                    <button class="dropdown-logout-btn" onclick="window.AuthEngine ? window.AuthEngine.logout() : (window.store && window.store.logout()); CustomerWeb._lookupLastQuery = ''; CustomerWeb.currentTab = 'home'; CustomerWeb.renderHeader(); if(window.AppRouter) window.AppRouter.navigate('/'); else CustomerWeb.switchTab('home'); if(window.UICommon) window.UICommon.showToast('Đã đăng xuất tài khoản!'); CustomerWeb.closeUserMenu();">
                       <span>Đăng Xuất</span>
                     </button>
                   ` : `
@@ -620,7 +620,7 @@
               <li><a href="/shop?brand=blumaan" onclick="CustomerWeb.selectShopBrand('blumaan', event)">Blumaan (USA)</a></li>
               <li><a href="/shop?brand=reuzel" onclick="CustomerWeb.selectShopBrand('reuzel', event)">Reuzel Pomade (Rotterdam)</a></li>
               <li><a href="/shop?brand=kevin%20murphy" onclick="CustomerWeb.selectShopBrand('kevin murphy', event)">Kevin Murphy &amp; Uppercut</a></li>
-              <li><a href="/shop?brand=davines" onclick="CustomerWeb.selectShopBrand('davines', event)">Davines &amp; Olaplex</a></li>
+              <li><a href="/shop?brand=davines" onclick="CustomerWeb.selectShopBrand('davines', event)">Davines (Italy)</a></li>
               <li class="mega-col-action"><a href="/shop" onclick="CustomerWeb.selectShopCategory('all', event)">Xem Tất Cả Thương Hiệu &rarr;</a></li>
             </ul>
           </div>
@@ -936,7 +936,8 @@
         'shop': '/shop',
         'cart': '/cart',
         'branches': '/branches',
-        'ai': '/ai-studio'
+        'ai': '/ai-studio',
+        'profile': '/profile'
       };
 
       const targetRoute = routeMap[tab] || '/';
@@ -1171,21 +1172,43 @@
       const rawQuery = isCustomer ? (user.phone || user.id || '') : (input ? input.value.trim() : '');
       const query = rawQuery.toLowerCase();
 
+      // Nếu chưa đăng nhập và ô tìm kiếm trống thì hiện hướng dẫn, tránh lộ đơn hàng người khác
+      if (!isCustomer && (!query || query.length < 3)) {
+        container.innerHTML = `
+          <div style="padding: 32px 20px; text-align: center; background: var(--surface-elevated); border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="font-size: 32px; margin-bottom: 12px;">🔍</div>
+            <div style="font-size: 16px; font-weight: 700; color: #f59e0b; margin-bottom: 8px;">Tra Cứu Đơn Hàng Mỹ Phẩm</div>
+            <div style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; max-width: 420px; margin: 0 auto 16px;">
+              Vui lòng nhập <strong>Số điện thoại</strong> hoặc <strong>Mã đơn hàng</strong> (VD: DH11) vào ô tìm kiếm ở trên để tra cứu tiến trình đơn hàng của bạn.
+            </div>
+            <div style="font-size: 12px; color: #94a3b8; background: rgba(255,255,255,0.03); padding: 8px 14px; border-radius: 8px; display: inline-block;">
+              💡 Vui lòng nhập đúng số điện thoại hoặc mã đơn để tra cứu trạng thái đơn hàng.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
       const orders = (window.store && typeof window.store.getOrders === 'function') 
         ? window.store.getOrders() 
         : (window.store && window.store.state && window.store.state.orders ? window.store.state.orders : []);
 
-      let matches = orders.filter(o => {
-        if (!query) return true;
-        const oCode = (o.orderCode || o.id || o.MaDonHang || '').toLowerCase();
-        const cPhone = (o.customerPhone || '').toLowerCase();
-        const cName = (o.customerName || '').toLowerCase();
-        const uId = (o.userId || '').toLowerCase();
-        return oCode.includes(query) || cPhone.includes(query) || cName.includes(query) || uId === query;
-      });
-
+      let matches = [];
       if (isCustomer) {
-        matches = matches.filter(o => (user.phone && o.customerPhone && o.customerPhone.trim() === user.phone.trim()) || (user.id && o.userId === user.id));
+        matches = orders.filter(o => {
+          const userPhone = (user.phone || '').trim().toLowerCase();
+          const oPhone = (o.customerPhone || '').trim().toLowerCase();
+          const uId = (o.userId || '').trim().toLowerCase();
+          const currentUserId = (user.id || '').trim().toLowerCase();
+          return (userPhone && oPhone === userPhone) || (currentUserId && uId === currentUserId);
+        });
+      } else {
+        // Lọc theo số điện thoại hoặc mã đơn hàng
+        matches = orders.filter(o => {
+          const oCode = (o.orderCode || o.id || o.MaDonHang || '').toLowerCase();
+          const cPhone = (o.customerPhone || '').toLowerCase();
+          return oCode === query || cPhone === query || (query.length >= 4 && (oCode.includes(query) || cPhone.includes(query)));
+        });
       }
 
       if (!matches || matches.length === 0) {
@@ -1214,22 +1237,23 @@
         <div style="display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto;">
           ${matches.map(o => {
             const oCode = o.orderCode || o.id || o.MaDonHang || 'DH';
-            const statusStr = String(o.orderStatus || o.TrangThai || 'Processing');
-            const isCancelled = statusStr === 'Cancelled' || statusStr === 'Đã hủy';
-            const isCompleted = statusStr === 'Completed' || statusStr === 'Đã giao';
-            const isCancellable = !isCancelled && !isCompleted;
+            const rawStatus = o.orderStatus || o.TrangThai || o.status || 'Processing';
+            const statusInfo = (window.SalonUtils && typeof window.SalonUtils.formatOrderStatus === 'function')
+              ? window.SalonUtils.formatOrderStatus(rawStatus)
+              : { label: 'Đang xử lý', cssClass: 'status-confirmed', key: 'processing' };
+            const isCancelled = statusInfo.key === 'cancelled';
+            const isCompleted = statusInfo.key === 'completed';
+            const isDelivering = statusInfo.key === 'delivering';
+            // Kiểm tra trạng thái đơn: chỉ hiện nút hủy khi chưa giao
+            const isCancellable = (window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function')
+              ? window.SalonUtils.canCancelOrder(o)
+              : (!isCancelled && !isCompleted && !isDelivering);
             const items = Array.isArray(o.items) ? o.items : [];
-            const formattedDate = o.createdAt ? SalonUtils.formatDate(o.createdAt) : (o.orderDate ? SalonUtils.formatDate(o.orderDate) : 'Hôm nay');
+            const rawDate = o.createdAt || o.orderDate || o.NgayDat;
+            const formattedDate = rawDate ? (window.SalonUtils ? window.SalonUtils.formatDateTime(rawDate) : String(rawDate).split('T')[0]) : 'Hôm nay';
 
-            let statusLabel = 'Đang xử lý';
-            let statusBadgeClass = 'status-confirmed';
-            if (isCancelled) {
-              statusLabel = 'Đã hủy';
-              statusBadgeClass = 'status-cancelled';
-            } else if (isCompleted) {
-              statusLabel = 'Đã giao hàng';
-              statusBadgeClass = 'status-completed';
-            }
+            const statusLabel = statusInfo.label;
+            const statusBadgeClass = statusInfo.cssClass;
 
             return `
               <div class="lookup-card-result" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; opacity: ${isCancelled ? '0.75' : '1'};">
@@ -1283,11 +1307,19 @@
                       </button>
                     `}
                     ${isCancellable ? `
-                      <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
+                      <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); font-weight: 700;" 
                               onclick="CustomerWeb.cancelOrderByCustomer('${o.id || o.orderCode}')">
                         Hủy Đơn Hàng
                       </button>
-                    ` : ''}
+                    ` : (isDelivering ? `
+                      <span style="font-size: 11px; color: #0284c7; background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600;">
+                        🚚 Đang giao hàng - Không thể hủy
+                      </span>
+                    ` : (isCompleted ? `
+                      <span style="font-size: 11px; color: #16a34a; background: rgba(22, 163, 74, 0.1); border: 1px solid rgba(22, 163, 74, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600;">
+                        ✓ Đã giao hàng
+                      </span>
+                    ` : ''))}
                   </div>
                 </div>
               </div>
@@ -1330,8 +1362,21 @@
 
       // Nếu là khách hàng thì bắt buộc chỉ tra cứu theo SĐT của chính mình
       const query = isCustomer ? (user.phone || '').trim() : input.value.trim();
-      if (!query || query.length < 3) {
-        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập số điện thoại hoặc mã lịch hẹn hợp lệ!', 'warning');
+      if (!isCustomer && (!query || query.length < 3)) {
+        container.innerHTML = `
+          <div style="padding: 32px 20px; text-align: center; background: var(--surface-elevated); border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="font-size: 32px; margin-bottom: 12px;">📅</div>
+            <div style="font-size: 16px; font-weight: 700; color: #f59e0b; margin-bottom: 8px;">Tra Cứu Lịch Hẹn Cắt Tóc</div>
+            <div style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; max-width: 420px; margin: 0 auto 16px;">
+              Vui lòng nhập <strong>Số điện thoại</strong> của bạn vào ô tìm kiếm ở trên để tra cứu chi tiết lịch hẹn và stylist phục vụ.
+            </div>
+            <div>
+              <button class="btn-submit-terracotta" style="padding: 10px 24px; font-size: 13.5px; font-weight: 800; border-radius: 10px;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
+                + Đặt Lịch Hẹn Ngay
+              </button>
+            </div>
+          </div>
+        `;
         return;
       }
 
@@ -3030,10 +3075,19 @@
         return;
       }
 
-      this._modalSource = 'portal';
-      this._subModalSource = null;
-      this.portalActiveTab = initialTab || 'bookings';
-      this.renderCustomerPortalModalBody();
+      if (window.UICommon && typeof window.UICommon.closeGlobalModal === 'function') {
+        window.UICommon.closeGlobalModal();
+      }
+
+      if (window.ProfilePage) {
+        window.ProfilePage.activeTab = initialTab || 'bookings';
+      }
+
+      if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
+        window.AppRouter.navigate('/profile');
+      } else {
+        this.switchTab('profile');
+      }
     },
 
     switchPortalTab(tabName) {
@@ -3443,6 +3497,16 @@
                           ⭐ Đánh Giá Đơn Hàng
                         </button>
                       `}
+                      ${(window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function' ? window.SalonUtils.canCancelOrder(o) : (step === 1 || step === 2)) ? `
+                        <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); font-weight: 700;" 
+                                onclick="CustomerWeb.cancelOrderByCustomer('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
+                          Hủy Đơn Hàng
+                        </button>
+                      ` : (step === 3 ? `
+                        <span style="font-size: 11px; color: #0284c7; background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600;">
+                          🚚 Đang giao hàng - Không thể hủy
+                        </span>
+                      ` : '')}
                     </div>
                   </div>
                 </div>

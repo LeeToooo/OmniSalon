@@ -100,7 +100,7 @@
         const isCombo = item.isCombo;
         const durationRaw = item.duration || item.ThoiLuong || item.duration_minutes || (isCombo ? 75 : 45);
         const durationVal = String(durationRaw).replace(/\s*phút\s*/gi, '').trim();
-        const actualPrice = item.price || item.Gia || 0;
+        const actualPrice = item.price || item.Gia || item.GiaCombo || item.GiaTien || 0;
         const originalPrice = item.originalPrice || item.oldPrice;
         const priceFormatted = SalonUtils.formatCurrency(actualPrice);
 
@@ -114,7 +114,7 @@
             
             <!-- ẢNH DỊCH VỤ ĐỒNG NHẤT KHÓA TỶ LỆ VÀNG 16:10 (KHÔNG GIÃN NỞ MÉO HÌNH, KHÔNG DƯ CỤT) -->
             <div class="service-card-media" style="position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: #141413;">
-              <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform 0.5s ease;" alt="${item.name || item.TenDichVu}" loading="lazy"
+              <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform 0.5s ease;" alt="${item.name || item.TenDichVu || item.TenCombo || 'Dịch vụ'}" loading="lazy"
                    onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg');">
               <div style="position: absolute; top: 12px; left: 12px; background: rgba(20, 20, 19, 0.85); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #FAF8F5; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 2;">
                 ⏱ ${durationVal} phút
@@ -134,7 +134,7 @@
             <div class="service-card-body" style="padding: clamp(16px, 1.2vw, 24px); flex: 1; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
               <div>
                 <h3 class="font-serif tracking-tight leading-tight service-card-title" style="font-size: clamp(17px, 1.15vw, 22px); font-weight: 700; color: var(--text-primary); margin: 0 0 8px;">
-                  ${item.name || item.TenDichVu}
+                  ${item.name || item.TenDichVu || item.TenCombo}
                 </h3>
                 <p class="service-card-desc" style="font-size: clamp(13px, 0.85vw, 15px); color: var(--text-secondary); line-height: 1.6; margin: 0 0 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: clamp(54px, 3.8vw, 68px);">
                   ${item.description || item.MoTa || 'Tư vấn phom dáng theo chất tóc và gương mặt, kết hợp kỹ thuật cắt kéo thủ công và tạo kiểu với sáp pomade chính hãng.'}

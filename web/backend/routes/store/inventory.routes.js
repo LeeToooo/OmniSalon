@@ -115,7 +115,7 @@ async function handleInventoryRoutes(req, res, ctx) {
       [receiptId]
     );
     if (pnkRows.length === 0) {
-      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: 'Không tìm thấy phiếu nhập' }));
       return true;
     }
@@ -213,18 +213,67 @@ async function handleInventoryRoutes(req, res, ctx) {
           [ctpnId, nextPnId, pId, lotNum, expDate, qty, qty, cost, lineTotal]
         );
 
+        if (stt === 'Đã duyệt') {
+          await querySql(
+            `IF EXISTS (SELECT 1 FROM TonKho WHERE MaSanPham = ? AND MaChiNhanh = ?)
+               UPDATE TonKho SET SoLuongTon = SoLuongTon + ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?
+             ELSE
+               INSERT INTO TonKho (MaSanPham, MaChiNhanh, SoLuongTon, MucCanhBao, NgayCapNhat) VALUES (?, ?, ?, 5, GETDATE())`,
+            [pId, bId, qty, pId, bId, pId, bId, qty]
+          );
+        }
+      }
+    }
+
+    res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: true, id: nextPnId, MaPhieuNhap: nextPnId, total: tot, status: stt }));
+    return true;
+  }
+
+  // POST /api/inventory/receipts/:id/approve - Quản lý duyệt phiếu nhập kho
+  if (pathname.startsWith('/api/inventory/receipts/') && pathname.endsWith('/approve') && method === 'POST') {
+    const id = pathname.replace('/api/inventory/receipts/', '').replace('/approve', '').trim();
+    const approverId = (parsedBody && parsedBody.approverId) || 'NV01';
+
+    const pnkRows = await querySql('SELECT MaPhieuNhap, MaChiNhanh, TrangThai FROM PhieuNhapKho WHERE MaPhieuNhap = ?', [id]);
+    if (!pnkRows || pnkRows.length === 0) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiếu nhập #' + id }));
+      return true;
+    }
+
+    const bId = pnkRows[0].MaChiNhanh;
+    await querySql("UPDATE PhieuNhapKho SET TrangThai = N'Đã duyệt', NgayDuyet = GETDATE(), MaNguoiDuyet = ? WHERE MaPhieuNhap = ?", [approverId, id]);
+
+    // Cộng tồn kho cho từng sản phẩm trong phiếu nhập
+    const ctpnRows = await querySql('SELECT MaSanPham, SoLuong FROM ChiTietPhieuNhap WHERE MaPhieuNhap = ?', [id]);
+    if (ctpnRows && ctpnRows.length > 0) {
+      for (const it of ctpnRows) {
         await querySql(
           `IF EXISTS (SELECT 1 FROM TonKho WHERE MaSanPham = ? AND MaChiNhanh = ?)
              UPDATE TonKho SET SoLuongTon = SoLuongTon + ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?
            ELSE
              INSERT INTO TonKho (MaSanPham, MaChiNhanh, SoLuongTon, MucCanhBao, NgayCapNhat) VALUES (?, ?, ?, 5, GETDATE())`,
-          [pId, bId, qty, pId, bId, pId, bId, qty]
+          [it.MaSanPham, bId, it.SoLuong, it.MaSanPham, bId, it.MaSanPham, bId, it.SoLuong]
         );
       }
     }
 
-    res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, id: nextPnId, MaPhieuNhap: nextPnId, total: tot }));
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: true, message: 'Đã duyệt phiếu nhập #' + id + ' thành công!' }));
+    return true;
+  }
+
+  // POST /api/inventory/receipts/:id/reject - Quản lý từ chối phiếu nhập kho kèm lý do bắt buộc
+  if (pathname.startsWith('/api/inventory/receipts/') && pathname.endsWith('/reject') && method === 'POST') {
+    const id = pathname.replace('/api/inventory/receipts/', '').replace('/reject', '').trim();
+    const approverId = (parsedBody && parsedBody.approverId) || 'NV01';
+    const reason = (parsedBody && parsedBody.reason) || 'Thông tin lô hàng hoặc giá nhập không hợp lệ';
+
+    await querySql("UPDATE PhieuNhapKho SET TrangThai = N'Đã từ chối', LyDoTuChoi = ?, NgayDuyet = GETDATE(), MaNguoiDuyet = ? WHERE MaPhieuNhap = ?", [reason, approverId, id]);
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: true, message: 'Đã từ chối phiếu nhập #' + id + '!' }));
     return true;
   }
 

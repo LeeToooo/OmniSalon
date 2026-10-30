@@ -65,43 +65,57 @@ async function handleProductRoutes(req, res, ctx) {
       let discountPercent = 0;
       let promoInfo = null;
 
-      // Ưu tiên 1: Áp dụng quy tắc giảm giá xả hàng theo hạn sử dụng
+      let fefoDiscount = 0;
+      let daysLeft = 999;
       if (r.HanSuDung) {
         const expDate = new Date(r.HanSuDung);
-        const daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
-        if (daysLeft >= 0) {
-          const matchedRule = (discountRules || []).find(rl => daysLeft >= rl.SoNgayConLaiToiThieu && daysLeft <= rl.SoNgayConLaiToiDa);
-          if (matchedRule) {
-            discountPercent = parseFloat(matchedRule.PhanTramGiam || 0);
-            finalPrice = Math.round(origPrice * (1 - discountPercent / 100));
-            promoInfo = {
-              code: matchedRule.MaQuyTac,
-              name: `Cận date (${daysLeft} ngày) - Giảm ${discountPercent}%`,
-              discountPercent
-            };
-          }
+        daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+        if (daysLeft <= 0) {
+          // Lô hàng đã hết hạn (QT05) -> Thu hồi, không hiển thị và không bán
+          return null;
+        }
+        const matchedRule = (discountRules || []).find(rl => daysLeft >= rl.SoNgayConLaiToiThieu && daysLeft <= rl.SoNgayConLaiToiDa);
+        if (matchedRule) {
+          fefoDiscount = parseFloat(matchedRule.PhanTramGiam || 0);
         }
       }
 
-      // Ưu tiên 2: Khuyến mãi theo chiến dịch marketing nếu chưa có giảm giá cận date
-      if (discountPercent === 0) {
-        const matchedLink = (kmSanPhamRows || []).find(km => km.MaSanPham === r.MaSanPham);
-        const matchedPromo = matchedLink ? (promoRows || []).find(p => p.MaKhuyenMai === matchedLink.MaKhuyenMai) : null;
-        if (matchedPromo) {
-          if (matchedPromo.HinhThuc && matchedPromo.HinhThuc.includes('%')) {
-            discountPercent = parseFloat(matchedPromo.GiaTriGiam || 0);
-            finalPrice = Math.round(origPrice * (1 - discountPercent / 100));
-          } else {
-            const discountAmt = parseFloat(matchedPromo.GiaTriGiam || 0);
-            finalPrice = Math.max(0, origPrice - discountAmt);
-            discountPercent = origPrice > 0 ? Math.round((discountAmt / origPrice) * 100) : 0;
-          }
-          promoInfo = {
-            code: matchedPromo.MaKhuyenMai,
-            name: matchedPromo.TenKhuyenMai,
-            discountPercent
-          };
-        }
+      // Khuyến mãi KM01 (Chào Thu Rực Rỡ 10% đến 31/10/2026)
+      let promoDiscount = 0;
+      const matchedLink = (kmSanPhamRows || []).find(km => km.MaSanPham === r.MaSanPham && km.MaKhuyenMai === 'KM01');
+      const matchedPromo = matchedLink ? (promoRows || []).find(p => p.MaKhuyenMai === 'KM01') : null;
+      if (matchedPromo) {
+        promoDiscount = parseFloat(matchedPromo.GiaTriGiam || 10);
+      }
+
+      // Giảm giá lũy tiến: Mức cao hơn trước, sau đó áp tiếp mức còn lại trên giá đã giảm
+      if (fefoDiscount > 0 && promoDiscount > 0) {
+        const d1 = Math.max(fefoDiscount, promoDiscount);
+        const d2 = Math.min(fefoDiscount, promoDiscount);
+        const price1 = origPrice * (1 - d1 / 100);
+        finalPrice = Math.round(price1 * (1 - d2 / 100));
+        discountPercent = Math.round((1 - (finalPrice / origPrice)) * 100);
+        promoInfo = {
+          code: 'KM01_FEFO',
+          name: 'Cận date ' + daysLeft + ' ngày (-' + d1 + '%) + Chào Thu (-' + d2 + '%)',
+          discountPercent
+        };
+      } else if (fefoDiscount > 0) {
+        finalPrice = Math.round(origPrice * (1 - fefoDiscount / 100));
+        discountPercent = fefoDiscount;
+        promoInfo = {
+          code: 'FEFO',
+          name: 'Xả kho cận date (' + daysLeft + ' ngày) - Giảm ' + fefoDiscount + '%',
+          discountPercent
+        };
+      } else if (promoDiscount > 0) {
+        finalPrice = Math.round(origPrice * (1 - promoDiscount / 100));
+        discountPercent = promoDiscount;
+        promoInfo = {
+          code: 'KM01',
+          name: 'Chào Thu Rực Rỡ - Giảm 10%',
+          discountPercent
+        };
       }
 
       const pStock = parseInt(r.SoLuongTon || 0, 10);
@@ -114,30 +128,38 @@ async function handleProductRoutes(req, res, ctx) {
         name: r.TenSanPham,
         TenSanPham: r.TenSanPham,
         categoryId: r.MaDanhMuc,
-        category: r.TenDanhMuc || 'Chăm sóc tóc',
-        brand: typeof detectBrand === 'function' ? detectBrand(r.TenSanPham) : (brandPrefixes[r.MaSanPham] || 'Omni Professional'),
+        MaDanhMuc: r.MaDanhMuc,
+        categoryName: r.TenDanhMuc || 'Sản Phẩm Nam',
+        TenDanhMuc: r.TenDanhMuc || 'Sản Phẩm Nam',
+        brand: r.ThuongHieu || 'CHÍNH HÃNG',
+        ThuongHieu: r.ThuongHieu || 'CHÍNH HÃNG',
         price: finalPrice,
+        GiaBanThucTe: finalPrice,
         originalPrice: origPrice,
-        GiaBan: origPrice,
+        GiaNiemYetGoc: origPrice,
         costPrice: parseFloat(r.GiaNhap || 0),
+        GiaNhap: parseFloat(r.GiaNhap || 0),
         discountPercent,
-        promotion: promoInfo,
         stock: pStock,
         SoLuongTon: pStock,
-        inStock: pStock > 0,
+        unit: r.DonViTinh || 'Hộp',
+        DonViTinh: r.DonViTinh || 'Hộp',
         rating: avgRating,
-        reviewsCount: ratings.length,
+        reviewCount: ratings.length,
         image: r.HinhAnh || '',
         HinhAnh: r.HinhAnh || '',
-        images: getProductGallery(r.HinhAnh),
-        description: r.MoTa,
-        MoTa: r.MoTa,
-        expiryDate: r.HanSuDung,
-        status: r.TrangThaiKinhDoanh || 'Kinh doanh'
+        description: r.MoTa || '',
+        MoTa: r.MoTa || '',
+        lotNumber: r.SoLo || null,
+        SoLo: r.SoLo || null,
+        expiryDate: r.HanSuDung || null,
+        HanSuDung: r.HanSuDung || null,
+        daysLeft: (r.HanSuDung && daysLeft !== 999) ? daysLeft : null,
+        promo: promoInfo
       };
-    });
+    }).filter(Boolean);
 
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(products));
     return true;
   }

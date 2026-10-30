@@ -27,6 +27,7 @@
       this.register('/branches', () => this._renderPage('BranchesPage'));
       this.register('/ai-studio', () => this._renderPage('AiStudioPage'));
       this.register('/admin', () => this._renderPage('AdminPortal'));
+      this.register('/profile', () => this._renderPage('ProfilePage'));
 
       // Lắng nghe thay đổi History API & Hash
       window.addEventListener('popstate', () => {
@@ -187,7 +188,8 @@
             '/cart': 'cart',
             '/product': 'shop',
             '/branches': 'branches',
-            '/ai-studio': 'ai'
+            '/ai-studio': 'ai',
+            '/profile': 'profile'
           };
           const targetTab = tabMap[normalized] || 'home';
           if (window.CustomerWeb.currentTab !== targetTab) {
@@ -227,33 +229,7 @@
         return;
       }
 
-      // RBAC Security Guard cho route /admin
-      if (pageComponentName === 'AdminPortal' || pageComponentName === 'AdminWeb') {
-        const user = (window.AuthEngine && typeof window.AuthEngine.getCurrentUser === 'function')
-          ? window.AuthEngine.getCurrentUser()
-          : (window.store && typeof window.store.getCurrentUser === 'function' ? window.store.getCurrentUser() : null);
-        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO', 'BRANCH_MANAGER', 'QUẢN LÝ', 'QUẢN LÝ CHI NHÁNH', 'CASHIER', 'THU NGÂN', 'THU_NGÂN'];
-        const role = String(user?.role || user?.vaiTroSql || user?.VaiTro || '').toUpperCase();
-        const chucVu = String(user?.ChucVu || user?.chucVuSql || '').toUpperCase();
-        const username = String(user?.username || '').toLowerCase();
-        const isAllowed = user && (allowedRoles.includes(role) || chucVu.includes('QUẢN LÝ') || chucVu.includes('THU NGÂN') || chucVu.includes('QUẢN TRỊ') || username === 'admin');
 
-        if (!isAllowed) {
-          if (window.AdminWeb && typeof window.AdminWeb.renderAccessDenied === 'function') {
-            window.AdminWeb.renderAccessDenied(container, user);
-          } else {
-            container.innerHTML = `
-              <div class="omni-container" style="padding: 100px 20px; text-align: center;">
-                <div style="font-size: 48px; font-weight: 900; color: #EF4444; margin-bottom: 20px; letter-spacing: 0.05em;">403</div>
-                <h2 style="font-size: 28px; color: #EF4444; font-weight: 900; margin-bottom: 12px;">TRUY CẬP BỊ TỪ CHỐI</h2>
-                <p style="color: #CBD5E1; max-width: 520px; margin: 0 auto 24px; font-size: 15px;">Khu vực quản trị chỉ dành riêng cho Quản lý &amp; Nhân viên salon có thẩm quyền.</p>
-                <button class="nordic-btn-primary" onclick="AppRouter.navigate('/')">Quay Lại Trang Chủ</button>
-              </div>
-            `;
-          }
-          return;
-        }
-      }
 
       const currentView = container.querySelector('.page-view');
 

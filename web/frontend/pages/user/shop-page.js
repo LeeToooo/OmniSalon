@@ -32,6 +32,17 @@
       document.querySelectorAll('.shop-dropdown-btn.active').forEach(el => el.classList.remove('active'));
     },
 
+    // Hàm loại bỏ ký tự nguy hiểm tránh lỗi hiển thị xss
+    escapeHtml(str) {
+      if (typeof str !== 'string') return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    },
+
     render(container, params = {}) {
       if (!container) return;
 
@@ -229,12 +240,12 @@
                     <span class="active-filter-pill">${activeFilterSummary}</span>
                     <span class="active-filter-count">(${filtered.length} sản phẩm)</span>
                   </div>
-                  <button type="button" class="btn-clear-to-lookbook" onclick="ShopPage.resetFilters()" title="Quay lại toàn bộ Lookbook">
+                  <button type="button" class="btn-clear-to-lookbook" onclick="ShopPage.resetFilters()" title="Đặt lại bộ lọc tìm kiếm">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
-                    <span>Xem Toàn Bộ Lookbook</span>
+                    <span>Xóa Bộ Lọc</span>
                   </button>
                 </div>
 
@@ -394,7 +405,7 @@
 
       return `
         <!-- DÒNG 1: SẢN PHẨM BÁN CHẠY NHẤT -->
-        ${this.renderShowcaseRow('bestsellers', 'OMNI SIGNATURE GROOMING', 'Sản Phẩm Bán Chạy Nhất', "ShopPage.setCategory('all')", bestSellers)}
+        ${this.renderShowcaseRow('bestsellers', 'OMNI SIGNATURE GROOMING', 'Sản Phẩm Bán Chạy Nhất', "ShopPage.setCategory('bestsellers')", bestSellers)}
 
         <!-- BENTO BANNER 1 (CHUẨN ẢNH 1: 3 BANNERS NGHỆ THUẬT) -->
         <div class="shop-bento-grid">
@@ -812,6 +823,8 @@
         angleList[3] = { index: 3, badge: 'Góc 4 • Mặt Sau & Thành Phần', label: 'Mặt Sau & Thành Phần', icon: '🏷️' };
       }
       this.currentAngleList = angleList;
+      this._currentReviews = null;
+      setTimeout(() => this.fetchProductReviews(targetId, prod), 10);
 
       // Trích xuất thông số từ mô tả sản phẩm trong CSDL chuẩn
       const rawDesc = prod.MoTa || prod.description || '';
@@ -912,7 +925,7 @@
       // Nhận diện thương hiệu chuẩn xác từ tên sản phẩm thay vì hardcode
       const knownBrands = [
         'Hanz de Fuko', 'Apestomen', 'Blumaan', 'Kevin Murphy', 'Reuzel',
-        'Olaplex', 'Davines', 'By Vilain', 'Uppercut Deluxe',
+        'Davines', 'By Vilain', 'Uppercut Deluxe',
         "L'Oréal Professionnel", "L'Oréal", 'Schwarzkopf Professional', 'Schwarzkopf',
         'Morris Motley', 'Slick Gorilla', 'Dapper Dan', 'Suavecito', 'Proraso', 'Kerasys Homme', 'ATS'
       ];
@@ -1198,7 +1211,7 @@
                   Thành Phần &amp; Độ An Toàn
                 </button>
                 <button type="button" class="pdp-tab-btn" onclick="ShopPage.switchDetailTab('tabReviews', this)">
-                  Đánh Giá Của Khách Hàng (${prod.reviewCount || 142})
+                  Đánh Giá Của Khách Hàng <span id="pdpReviewTabCount">(${prod.reviewCount || 0})</span>
                 </button>
               </div>
 
@@ -1240,76 +1253,9 @@
                 </ul>
               </div>
 
-              <!-- Tab 4: Đánh giá -->
+              <!-- Tab 4: Đánh giá sản phẩm -->
               <div class="pdp-tab-panel" id="tabReviews">
-                <div class="pdp-reviews-summary">
-                  <div class="pdp-reviews-score">
-                    <div class="pdp-reviews-big-num">4.9</div>
-                    <div style="color: #F59E0B; font-size: 18px; margin-bottom: 4px;">★★★★★</div>
-                    <div style="font-size: 13px; color: var(--text-secondary);">Dựa trên 142 đánh giá xác thực</div>
-                  </div>
-                  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
-                      <span style="width: 50px;">5 sao</span>
-                      <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-                        <div style="width: 92%; height: 100%; background: #F59E0B; border-radius: 4px;"></div>
-                      </div>
-                      <span style="width: 35px; text-align: right; color: var(--text-secondary);">92%</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
-                      <span style="width: 50px;">4 sao</span>
-                      <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-                        <div style="width: 6%; height: 100%; background: #F59E0B; border-radius: 4px;"></div>
-                      </div>
-                      <span style="width: 35px; text-align: right; color: var(--text-secondary);">6%</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
-                      <span style="width: 50px;">3 sao</span>
-                      <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-                        <div style="width: 2%; height: 100%; background: #F59E0B; border-radius: 4px;"></div>
-                      </div>
-                      <span style="width: 35px; text-align: right; color: var(--text-secondary);">2%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="pdp-reviews-list">
-                  <div class="pdp-review-item">
-                    <div class="pdp-review-user">
-                      <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="avatar" class="pdp-review-avatar">
-                      <div class="pdp-review-meta">
-                        <h4>Nguyễn Hoàng Long <span class="pdp-verified-badge">✓ Đã Mua Hàng</span></h4>
-                        <div class="pdp-review-date">Đánh giá ngày 12/10/2026 • Chi nhánh Quận 1</div>
-                      </div>
-                    </div>
-                    <div style="color: #F59E0B; font-size: 14px; margin-bottom: 8px;">★★★★★</div>
-                    <p class="pdp-review-comment">Sáp giữ nếp cực tốt, mình đi xe máy đội mũ bảo hiểm 40 phút mà bỏ mũ ra chỉ cần vuốt lại vài đường là tóc vào form y như cũ. Mùi hương gỗ tuyết tùng rất sang trọng, bạn gái mình khen suốt. Đóng gói của Omni Salon cẩn thận có tem chính hãng!</p>
-                  </div>
-
-                  <div class="pdp-review-item">
-                    <div class="pdp-review-user">
-                      <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=100&q=80" alt="avatar" class="pdp-review-avatar">
-                      <div class="pdp-review-meta">
-                        <h4>Trần Minh Quân <span class="pdp-verified-badge">✓ Đã Mua Hàng</span></h4>
-                        <div class="pdp-review-date">Đánh giá ngày 08/10/2026 • Giao hàng hỏa tốc 2h</div>
-                      </div>
-                    </div>
-                    <div style="color: #F59E0B; font-size: 14px; margin-bottom: 8px;">★★★★★</div>
-                    <p class="pdp-review-comment">Chất sáp mềm tan trong tay rất nhanh, không bị bết rít. Gội đầu cực kỳ dễ sạch, xả nước ấm là trôi hết không cần gội đi gội lại 2 lần. Xứng đáng với mức giá cao cấp!</p>
-                  </div>
-
-                  <div class="pdp-review-item">
-                    <div class="pdp-review-user">
-                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" alt="avatar" class="pdp-review-avatar">
-                      <div class="pdp-review-meta">
-                        <h4>Lê Duy Khang <span class="pdp-verified-badge">✓ Đã Mua Hàng</span></h4>
-                        <div class="pdp-review-date">Đánh giá ngày 02/10/2026 • Chi nhánh Cầu Giấy</div>
-                      </div>
-                    </div>
-                    <div style="color: #F59E0B; font-size: 14px; margin-bottom: 8px;">★★★★★</div>
-                    <p class="pdp-review-comment">Được thợ tại salon tư vấn dùng hũ này sau khi uốn tóc layer. Tóc có độ tơi texture rõ rệt, không bị bóng loáng giả tạo. Sẽ ủng hộ Omni Salon dài dài!</p>
-                  </div>
-                </div>
+                ${ShopPage.renderDynamicProductReviews(prod)}
               </div>
             </div>
 
@@ -1595,6 +1541,258 @@
       if (this.selectedVariant) customData.variant = this.selectedVariant;
       if (window.UICommon && typeof window.UICommon.buyNow === 'function') {
         window.UICommon.buyNow(productId, qty, customData);
+      }
+    },
+
+    // Lấy danh sách đánh giá từ API backend hoặc Store
+    async fetchProductReviews(productId, product) {
+      if (!productId) return;
+      try {
+        const res = await fetch('/api/reviews?productId=' + encodeURIComponent(productId));
+        const list = await res.json();
+        if (Array.isArray(list)) {
+          this._currentReviews = list;
+          const container = document.getElementById('tabReviews');
+          if (container && product) {
+            container.innerHTML = this.renderDynamicProductReviews(product, list);
+          }
+          const countEl = document.getElementById('pdpReviewTabCount');
+          if (countEl) countEl.textContent = '(' + list.length + ')';
+        }
+      } catch (e) {
+        console.warn('Lỗi tải đánh giá sản phẩm:', e);
+      }
+    },
+
+    getProductReviews(product, providedList) {
+      if (Array.isArray(providedList)) return providedList;
+      if (Array.isArray(this._currentReviews)) return this._currentReviews;
+      if (!product) return [];
+      const prodId = String(product.id || product.MaSanPham || '');
+      const prodName = String(product.name || product.TenSanPham || '');
+
+      const allReviews = (window.store && window.store.state && Array.isArray(window.store.state.reviews))
+        ? window.store.state.reviews
+        : [];
+      return allReviews.filter(r => 
+        (r.productId && String(r.productId).trim() === prodId) || 
+        (r.MaSanPham && String(r.MaSanPham).trim() === prodId) ||
+        (r.orderId && r.productName && r.productName.toLowerCase() === prodName.toLowerCase())
+      );
+    },
+
+    renderDynamicProductReviews(product, providedList) {
+      if (!product) return '';
+      const reviews = this.getProductReviews(product, providedList);
+      const totalReviews = reviews.length;
+
+      if (totalReviews === 0) {
+        return `
+          <div style="padding: 42px 20px; text-align: center; background: var(--surface-card); border-radius: 12px; border: 1px dashed var(--border-color);">
+            <div style="font-size: 36px; margin-bottom: 10px;">⭐</div>
+            <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Chưa có đánh giá nào cho sản phẩm này</h4>
+            <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0 0 18px;">Hãy là người đầu tiên trải nghiệm chất lượng sản phẩm và chia sẻ cảm nhận của bạn!</p>
+            <button type="button" class="btn-submit-terracotta" style="padding: 8px 22px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="ShopPage.openWriteProductReviewModal('${product.id || product.MaSanPham}', '${this.escapeHtml(product.name || product.TenSanPham)}')">
+              ⭐ Viết Đánh Giá Đầu Tiên
+            </button>
+          </div>
+        `;
+      }
+
+      const totalStars = reviews.reduce((sum, r) => sum + (Number(r.rating || r.SoSao) || 5), 0);
+      const avgScore = (totalStars / totalReviews).toFixed(1);
+
+      const count5 = reviews.filter(r => Number(r.rating || r.SoSao) === 5).length;
+      const count4 = reviews.filter(r => Number(r.rating || r.SoSao) === 4).length;
+      const count3 = reviews.filter(r => Number(r.rating || r.SoSao) === 3).length;
+      const count2 = reviews.filter(r => Number(r.rating || r.SoSao) === 2).length;
+      const count1 = reviews.filter(r => Number(r.rating || r.SoSao) <= 1).length;
+
+      const p5 = Math.round((count5 / totalReviews) * 100);
+      const p4 = Math.round((count4 / totalReviews) * 100);
+      const p3 = Math.round((count3 / totalReviews) * 100);
+      const p2 = Math.round((count2 / totalReviews) * 100);
+      const p1 = Math.round((count1 / totalReviews) * 100);
+
+      const fullStars = Math.round(Number(avgScore));
+
+      return `
+        <div class="pdp-reviews-summary" style="display: flex; gap: 24px; padding: 20px; background: var(--surface-card); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px; flex-wrap: wrap;">
+          <div class="pdp-reviews-score" style="text-align: center; min-width: 180px;">
+            <div class="pdp-reviews-big-num" style="font-size: 42px; font-weight: 900; color: #F59E0B; line-height: 1;">${avgScore}</div>
+            <div style="color: #F59E0B; font-size: 20px; margin: 6px 0;">${'★'.repeat(fullStars)}${'☆'.repeat(5 - fullStars)}</div>
+            <div style="font-size: 13px; color: var(--text-secondary);">Dựa trên ${totalReviews} đánh giá thực tế</div>
+            <button type="button" class="btn-submit-terracotta" style="margin-top: 14px; padding: 7px 16px; font-size: 12px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="ShopPage.openWriteProductReviewModal('${product.id || product.MaSanPham}', '${this.escapeHtml(product.name || product.TenSanPham)}')">
+              ⭐ Viết Đánh Giá
+            </button>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 240px;">
+            ${[
+              { star: 5, count: count5, percent: p5 },
+              { star: 4, count: count4, percent: p4 },
+              { star: 3, count: count3, percent: p3 },
+              { star: 2, count: count2, percent: p2 },
+              { star: 1, count: count1, percent: p1 }
+            ].map(row => `
+              <div style="display: flex; align-items: center; gap: 10px; font-size: 12.5px;">
+                <span style="width: 45px; color: var(--text-secondary);">${row.star} sao</span>
+                <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+                  <div style="width: ${row.percent}%; height: 100%; background: #F59E0B; border-radius: 4px;"></div>
+                </div>
+                <span style="width: 38px; text-align: right; color: var(--text-secondary); font-size: 12px;">${row.percent}%</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="pdp-reviews-list">
+          ${reviews.map(r => {
+            const author = r.customerName || r.TenKhachHang || r.author || 'Khách Hàng';
+            const star = Number(r.rating || r.SoSao || 5);
+            const dateStr = r.date ? (window.SalonUtils ? window.SalonUtils.formatDate(r.date) : r.date) : 'Gần đây';
+            const orderInfo = r.orderId ? ` • Đơn hàng #${r.orderId}` : '';
+            return `
+              <div class="pdp-review-item" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 16px;">
+                <div class="pdp-review-user" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                  <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center;">
+                    ${(window.SalonUtils && typeof window.SalonUtils.getInitials === 'function') ? window.SalonUtils.getInitials(author) : author.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div class="pdp-review-meta">
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">${this.escapeHtml(author)} <span class="pdp-verified-badge" style="color: #10B981; font-size: 11px; margin-left: 6px; font-weight: 600;">✓ Đã Mua Hàng</span></h4>
+                    <div class="pdp-review-date" style="font-size: 12px; color: var(--text-secondary);">Đánh giá ngày ${dateStr}${orderInfo}</div>
+                  </div>
+                </div>
+                <div style="color: #F59E0B; font-size: 13px; margin-bottom: 6px;">${'★'.repeat(star)}${'☆'.repeat(5 - star)}</div>
+                <p class="pdp-review-comment" style="font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); margin: 0;">${this.escapeHtml(r.comment || r.NoiDung || 'Sản phẩm rất tốt!')}</p>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    },
+
+        // Mở popup cho khách tự chấm sao và gửi đánh giá sản phẩm
+    openWriteProductReviewModal(productId, productName) {
+      const modal = document.getElementById('globalModal');
+      const modalBody = document.getElementById('globalModalBody');
+      if (!modal || !modalBody) return;
+
+      const user = (window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function') 
+        ? window.CustomerWeb.getCurrentUser() 
+        : null;
+      const initialName = user ? (user.fullName || user.name || '') : '';
+
+      modal.classList.remove('modal-wide');
+      modal.classList.add('active');
+
+      modalBody.innerHTML = `
+        <div style="padding: 10px;">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary, #141413); margin: 0 0 6px;">Đánh Giá Sản Phẩm</h3>
+            <p style="font-size: 13px; color: var(--accent-gold, #C59B27); margin: 0; font-weight: 600;">${this.escapeHtml(productName || 'Sản phẩm')}</p>
+          </div>
+
+          <div style="margin-bottom: 14px; text-align: center;">
+            <div style="font-size: 13px; color: var(--text-secondary, #575752); margin-bottom: 6px;">Chọn số sao đánh giá:</div>
+            <div id="reviewStarRatingSelector" style="font-size: 28px; cursor: pointer; color: #F59E0B; user-select: none;">
+              <span data-star="1" onclick="ShopPage._selectRatingStar(1)">★</span>
+              <span data-star="2" onclick="ShopPage._selectRatingStar(2)">★</span>
+              <span data-star="3" onclick="ShopPage._selectRatingStar(3)">★</span>
+              <span data-star="4" onclick="ShopPage._selectRatingStar(4)">★</span>
+              <span data-star="5" onclick="ShopPage._selectRatingStar(5)">★</span>
+            </div>
+            <input type="hidden" id="pdpReviewStarInput" value="5">
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 12.5px; color: var(--text-secondary, #575752); margin-bottom: 4px; font-weight: 600;">Họ và tên của bạn:</label>
+            <input type="text" id="pdpReviewAuthorInput" class="form-control-custom" style="width: 100%; height: 40px; font-size: 13.5px;" value="${this.escapeHtml(initialName)}" placeholder="Ví dụ: Nguyễn Văn A">
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 12.5px; color: var(--text-secondary, #575752); margin-bottom: 4px; font-weight: 600;">Nội dung nhận xét về sản phẩm:</label>
+            <textarea id="pdpReviewCommentInput" class="form-control-custom" rows="3" style="width: 100%; font-size: 13.5px; padding: 10px;" placeholder="Chia sẻ cảm nhận của bạn về độ giữ nếp, mùi hương, chất sáp..."></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn-cancel" onclick="UICommon.closeGlobalModal()" style="height: 40px; padding: 0 16px; font-size: 13px;">Hủy Bỏ</button>
+            <button type="button" class="btn-submit-terracotta" style="height: 40px; padding: 0 20px; font-size: 13px; font-weight: 800; background: #d97706;" onclick="ShopPage.submitProductReview('${productId}')">
+              Gửi Đánh Giá Ngay
+            </button>
+          </div>
+        </div>
+      `;
+    },
+
+    _selectRatingStar(star) {
+      const input = document.getElementById('pdpReviewStarInput');
+      const selector = document.getElementById('reviewStarRatingSelector');
+      if (input) input.value = star;
+      if (selector) {
+        const spans = selector.querySelectorAll('span');
+        spans.forEach((s, idx) => {
+          s.style.color = (idx < star) ? '#F59E0B' : '#475569';
+        });
+      }
+    },
+
+    async submitProductReview(productId) {
+      const star = parseInt(document.getElementById('pdpReviewStarInput')?.value || '5', 10);
+      const author = document.getElementById('pdpReviewAuthorInput')?.value.trim() || 'Khách Hàng';
+      const comment = document.getElementById('pdpReviewCommentInput')?.value.trim();
+
+      if (!comment || comment.length < 5) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập nhận xét ít nhất 5 ký tự!', 'warning');
+        return;
+      }
+
+      const newReview = {
+        id: 'DG_' + Date.now(),
+        productId,
+        MaSanPham: productId,
+        customerName: author,
+        author,
+        rating: star,
+        SoSao: star,
+        comment,
+        NoiDung: comment,
+        date: new Date().toISOString()
+      };
+
+      if (window.store && window.store.state) {
+        if (!Array.isArray(window.store.state.reviews)) window.store.state.reviews = [];
+        window.store.state.reviews.unshift(newReview);
+        if (typeof window.store.saveState === 'function') window.store.saveState();
+      }
+
+      // Gửi đồng bộ lên backend API
+      try {
+        await fetch('/api/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId,
+            rating: star,
+            comment,
+            customerName: author
+          })
+        }).catch(() => {});
+      } catch (e) {}
+
+      if (window.UICommon) {
+        window.UICommon.closeGlobalModal();
+        window.UICommon.showToast('Cảm ơn bạn! Đánh giá sản phẩm đã được đăng tải thành công.');
+      }
+
+      // Re-render tab reviews
+      const panel = document.getElementById('tabReviews');
+      if (panel) {
+        const prod = (window.store && typeof window.store.getProductById === 'function')
+          ? window.store.getProductById(productId)
+          : null;
+        if (prod) {
+          panel.innerHTML = this.renderDynamicProductReviews(prod);
+        }
       }
     },
 

@@ -9,30 +9,49 @@ const { resolveOrCreateCustomer } = require('../../services/helper_service');
 async function handleReviewRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
 
-  // GET /api/reviews - Lấy danh sách đánh giá của khách hàng
-  // Tham số tùy chọn: order_id hoặc customer_id để lọc riêng
+  // GET /api/reviews - Lấy danh sách đánh giá (lọc theo productId, orderId hoặc customerId)
   if (pathname === '/api/reviews' && method === 'GET') {
     const orderIdParam = parsedUrl.searchParams.get('order_id') || parsedUrl.searchParams.get('orderId');
     const customerIdParam = parsedUrl.searchParams.get('customer_id') || parsedUrl.searchParams.get('customerId');
+    const productIdParam = parsedUrl.searchParams.get('product_id') || parsedUrl.searchParams.get('productId');
 
-    let queryStr = `
-      SELECT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
-             CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGia,
-             dg.TrangThai,
-             kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
-      FROM DanhGia dg
-      LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
-      WHERE dg.TrangThai = N'Hiển thị'
-    `;
+    let queryStr = '';
     const params = [];
-    if (orderIdParam) {
-      queryStr += ' AND dg.MaDonHang = ?';
-      params.push(orderIdParam);
-    } else if (customerIdParam) {
-      queryStr += ' AND dg.MaKhachHang = ?';
-      params.push(customerIdParam);
+
+    if (productIdParam) {
+      queryStr = `
+        SELECT DISTINCT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
+               dg.NgayDanhGia,
+               CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGiaStr,
+               dg.TrangThai,
+               kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
+        FROM DanhGia dg
+        LEFT JOIN DonHang dh ON dg.MaDonHang = dh.MaDonHang
+        LEFT JOIN ChiTietDonHang ctdh ON dh.MaDonHang = ctdh.MaDonHang
+        LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
+        WHERE dg.TrangThai = N'Hiển thị' AND (ctdh.MaSanPham = ? OR dg.NoiDung LIKE ?)
+        ORDER BY dg.NgayDanhGia DESC
+      `;
+      params.push(productIdParam, `%${productIdParam}%`);
+    } else {
+      queryStr = `
+        SELECT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
+               CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGia,
+               dg.TrangThai,
+               kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
+        FROM DanhGia dg
+        LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
+        WHERE dg.TrangThai = N'Hiển thị'
+      `;
+      if (orderIdParam) {
+        queryStr += ' AND dg.MaDonHang = ?';
+        params.push(orderIdParam);
+      } else if (customerIdParam) {
+        queryStr += ' AND dg.MaKhachHang = ?';
+        params.push(customerIdParam);
+      }
+      queryStr += ' ORDER BY dg.NgayDanhGia DESC';
     }
-    queryStr += ' ORDER BY dg.NgayDanhGia DESC';
 
     const rows = await querySql(queryStr, params);
     const mapped = rows.map(r => ({
@@ -46,7 +65,7 @@ async function handleReviewRoutes(req, res, ctx) {
       rating: r.SoSao,
       comment: r.NoiDung,
       image: r.HinhAnh,
-      date: r.NgayDanhGia,
+      date: r.NgayDanhGiaStr || r.NgayDanhGia,
       status: r.TrangThai
     }));
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

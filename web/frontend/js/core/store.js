@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // OmniSalon / Omni Salon — CORE REACTIVE STORE MODULE
 // Phiên bản: 2.2.0 Clean Architecture 
 // (State Engine, Quản lý Combos, Tồn kho Chi Nhánh, Anti-Double Booking, POS)
@@ -2374,6 +2374,22 @@
         return { success: false, error: 'Đơn hàng này đã được hủy trước đó!' };
       }
 
+      // Kiểm tra nếu đơn đang giao hoặc đã hoàn thành thì không cho hủy
+      if (window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function') {
+        if (!window.SalonUtils.canCancelOrder(order)) {
+          const st = String(order.orderStatus || order.TrangThai || '').toLowerCase();
+          if (st.includes('giao') || st === 'shipping' || st === 'delivering') {
+            return { success: false, error: 'Đơn hàng đang trên đường vận chuyển, không thể hủy!' };
+          }
+          return { success: false, error: 'Đơn hàng đã hoàn tất hoặc không thể hủy ở trạng thái hiện tại!' };
+        }
+      }
+
+      const serverRes = await this.syncCancelOrderToLiveServer(order.id || order.orderCode, reason);
+      if (serverRes && serverRes.success === false) {
+        return { success: false, error: serverRes.error || 'Máy chủ từ chối yêu cầu hủy đơn hàng!' };
+      }
+
       order.orderStatus = 'Cancelled';
       order.TrangThai = 'Đã hủy';
       order.cancelReason = reason;
@@ -2387,7 +2403,6 @@
 
       this.logAudit('CANCEL_ORDER', `Đơn: #${order.orderCode || order.id}`, `Lý do: ${reason}`);
       this.saveState();
-      await this.syncCancelOrderToLiveServer(order.id || order.orderCode, reason);
       return { success: true, message: `Đã hủy đơn hàng #${order.orderCode || order.id} thành công!` };
     }
 

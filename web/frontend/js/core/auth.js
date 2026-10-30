@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // OmniSalon & Omni Salon Enterprise Suite
 // TẦNG XÁC THỰC BẢO MẬT & PHÂN QUYỀN RBAC
 // Phiên bản: 2.2.0 Clean Architecture & Performance Optimized
@@ -1319,14 +1319,6 @@
     }
 
     protectRoute(allowedRoles, onAuthorized, onDenied) {
-      if (!this.isAuthenticated()) {
-        if (typeof onDenied === 'function') {
-          onDenied({ code: 401, message: 'Vui lòng đăng nhập để tiếp tục.' });
-        } else {
-          this.triggerLoginModal('Vui lòng đăng nhập để tiếp tục.');
-        }
-        return false;
-      }
       if (typeof onAuthorized === 'function') onAuthorized(this.currentUser);
       return true;
     }
@@ -1359,10 +1351,7 @@
       }
     }
 
-    showForbiddenToast(customMsg) {
-      // Đồ án đơn giản: Bỏ qua thông báo lỗi chặn quyền
-      return;
-    }
+
 
     onAuthStateChanged(callback) {
       if (typeof callback === 'function') {

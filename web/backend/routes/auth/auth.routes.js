@@ -212,7 +212,7 @@ async function handleAuthRoutes(req, res, ctx) {
 
       if (isPassMatch) {
         if (u.TrangThaiTK && u.TrangThaiTK.includes('Khóa')) {
-          res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ success: false, message: 'Tài khoản của bạn đang bị khóa.' }));
           return true;
         }

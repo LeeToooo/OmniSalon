@@ -252,7 +252,7 @@ async function handlePosRoutes(req, res, ctx) {
     `, [hdId]);
 
     if (!hdRows || hdRows.length === 0) {
-      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, message: 'Không tìm thấy hóa đơn' }));
       return true;
     }

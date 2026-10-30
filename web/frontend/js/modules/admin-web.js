@@ -76,9 +76,13 @@
     },
 
     canAccess(user) {
-      const targetUser = user || this.getCurrentUser();
-      if (!targetUser) return false;
-      return true;
+      const u = user || this.getCurrentUser();
+      if (!u) return false;
+      const role = String(u.role || u.vaiTroSql || u.VaiTro || '').toUpperCase();
+      const chucVu = String(u.ChucVu || u.chucVuSql || '').toUpperCase();
+      const username = String(u.username || '').toLowerCase();
+      const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO', 'BRANCH_MANAGER', 'QUẢN LÝ', 'QUẢN LÝ CHI NHÁNH', 'CASHIER', 'THU NGÂN', 'THU_NGÂN', 'STAFF', 'NHÂN VIÊN'];
+      return allowedRoles.includes(role) || chucVu.includes('QUẢN') || chucVu.includes('THU NGÂN') || chucVu.includes('NHÂN VIÊN') || username === 'admin';
     },
 
     isSuperAdmin(user) {
@@ -444,9 +448,9 @@
 
       const user = this.getCurrentUser();
 
-      // Kiểm tra quyền truy cập Role Guard
+      // Kiểm tra tài khoản có quyền trước khi vào trang quản trị
       if (!this.canAccess(user)) {
-        this.renderAccessDenied(container, user);
+        this.renderRequireStaffLogin(container, user);
         return;
       }
 
@@ -721,28 +725,28 @@
       if (overlay) overlay.classList.remove('open');
     },
 
-    renderAccessDenied(container, user) {
+    renderRequireStaffLogin(container, user) {
       container.innerHTML = `
-        <div class="admin-full-wrapper" style="min-height: 480px; display: flex; align-items: center; justify-content: center;">
+        <div class="admin-full-wrapper" style="min-height: 480px; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px 30px; max-width: 520px; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
-            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(220, 38, 38, 0.15); color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 18px;">Admin</div>
-            <div class="badge-terracotta" style="background: rgba(220, 38, 38, 0.12); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
-              OMNISALON ENTERPRISE • QUẢN TRỊ VIÊN
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 18px;">🔒</div>
+            <div class="badge-terracotta" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3);">
+              KHU VỰC DÀNH CHO QUẢN TRỊ &amp; NHÂN VIÊN
             </div>
-            <h2 style="font-size: 22px; font-weight: 900; color: var(--text-primary); margin: 12px 0 8px;">
-              TRUY CẬP BỊ TỪ CHỐI
+            <h2 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 14px 0 10px;">
+              Yêu Cầu Quyền Quản Trị
             </h2>
             <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin-bottom: 24px;">
               ${user
-                ? `Tài khoản <strong>${this.escapeHtml(user.fullName || user.username)}</strong> có vai trò <strong>${this.escapeHtml(user.role)}</strong> không có quyền truy cập vào Phân Hệ Quản Trị Trung Tâm OmniSalon.`
-                : 'Bạn chưa đăng nhập vào hệ thống. Vui lòng đăng nhập với tài khoản Quản trị viên, Quản lý chi nhánh hoặc Nhân viên để tiếp tục.'}
+                ? `Tài khoản <strong>${this.escapeHtml(user.fullName || user.username)}</strong> hiện không có quyền truy cập vào Phân Hệ Quản Trị. Vui lòng đăng nhập với tài khoản Quản lý hoặc Nhân viên có thẩm quyền.`
+                : 'Bạn chưa đăng nhập. Vui lòng đăng nhập với tài khoản Quản trị viên, Quản lý chi nhánh hoặc Nhân viên để vào trang này.'}
             </p>
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-              <button class="pill-btn-outline" onclick="AdminWeb._goToCustomerPortal()">
-                ← Về Trang Khách Hàng
+              <button class="pill-btn-outline" style="padding: 10px 20px; font-size: 13.5px;" onclick="if(window.AppRouter) window.AppRouter.navigate('/'); else AdminWeb._goToCustomerPortal();">
+                ← Về Trang Chủ
               </button>
-              <button class="btn-submit-terracotta" onclick="if(window.UICommon) window.UICommon.openAuthModal('login');">
-                Đăng Nhập Nhân Viên
+              <button class="btn-submit-terracotta" style="padding: 10px 22px; font-size: 13.5px; font-weight: 700; border-radius: 8px; background: #C59B27; color: #000;" onclick="if(window.UICommon) window.UICommon.openAuthModal('login');">
+                Đăng Nhập Tài Khoản
               </button>
             </div>
           </div>
@@ -2530,14 +2534,14 @@
                  onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DichVu_Men/DV1.jpg');">
           </td>
           <td><strong>${this.escapeHtml(item.id)}</strong></td>
-          <td style="font-weight: 800;">${this.escapeHtml(item.name)}</td>
+          <td style="font-weight: 800;">${this.escapeHtml(item.name || item.TenCombo || item.TenDichVu || item.id)}</td>
           <td>
             <span class="badge-terracotta" style="font-size: 10px; padding: 2px 8px;">
               ${this.escapeHtml(item.category || (type === 'combos' ? 'Combo VIP' : 'Dịch Vụ'))}
             </span>
           </td>
           <td style="font-weight: 900; color: #c85a44;">
-            ${SalonUtils.formatCurrency(item.price)}
+            ${SalonUtils.formatCurrency(item.price || item.GiaCombo || item.Gia || 0)}
             ${(type === 'services' && (item.NgayApDung || item.effectiveDate)) ? `
               <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary, #888); margin-top: 2px;">
                 Áp dụng: ${SalonUtils.formatDate(item.NgayApDung || item.effectiveDate)}
@@ -2545,10 +2549,10 @@
             ` : ''}
           </td>
           <td>
-            <strong>${item.duration || 45}</strong> phút
+            <strong>${item.duration || item.ThoiLuong || item.durationMinutes || 45}</strong> phút
           </td>
           <td style="font-size: 12px; color: var(--text-secondary, #888); max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            ${this.escapeHtml(item.description || 'Chất lượng tiêu chuẩn Omni Salon Suite')}
+            ${this.escapeHtml(item.description || item.MoTa || 'Chất lượng tiêu chuẩn Omni Salon Suite')}
           </td>
           <td>
             <div style="display: flex; gap: 4px;">
@@ -3247,9 +3251,63 @@
       }
     },
 
+    async approveReceipt(receiptId) {
+      if (!receiptId) return;
+      if (!confirm('Xác nhận phê duyệt phiếu nhập #' + receiptId + ' và cộng dồn số lượng vào tồn kho?')) return;
+      const user = this.getCurrentUser();
+      const approverId = user?.staffId || user?.MaNhanVien || 'NV01';
+      try {
+        const res = await fetch('/api/inventory/receipts/' + encodeURIComponent(receiptId) + '/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ approverId })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+          if (window.UICommon) window.UICommon.showToast(data.message || 'Đã duyệt phiếu nhập thành công!', 'success');
+          if (window.store && typeof window.store.fetchReceipts === 'function') await window.store.fetchReceipts();
+          if (window.store && typeof window.store.fetchInventory === 'function') await window.store.fetchInventory();
+          this.refreshInventoryView();
+        } else {
+          if (window.UICommon) window.UICommon.showToast(data?.error || 'Lỗi khi duyệt phiếu nhập', 'error');
+        }
+      } catch (e) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối khi duyệt phiếu nhập', 'error');
+      }
+    },
+
+    async rejectReceiptModal(receiptId) {
+      if (!receiptId) return;
+      const reason = prompt('Nhập lý do từ chối phiếu nhập #' + receiptId + ' (bắt buộc):', 'Thông tin lô hàng hoặc đơn giá không hợp lệ');
+      if (reason === null) return;
+      const cleanReason = reason.trim();
+      if (!cleanReason || cleanReason.length < 3) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do từ chối cụ thể (tối thiểu 3 ký tự)', 'warning');
+        return;
+      }
+      const user = this.getCurrentUser();
+      const approverId = user?.staffId || user?.MaNhanVien || 'NV01';
+      try {
+        const res = await fetch('/api/inventory/receipts/' + encodeURIComponent(receiptId) + '/reject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ approverId, reason: cleanReason })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+          if (window.UICommon) window.UICommon.showToast(data.message || 'Đã từ chối phiếu nhập!', 'warning');
+          if (window.store && typeof window.store.fetchReceipts === 'function') await window.store.fetchReceipts();
+          this.refreshInventoryView();
+        } else {
+          if (window.UICommon) window.UICommon.showToast(data?.error || 'Lỗi khi từ chối phiếu nhập', 'error');
+        }
+      } catch (e) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối khi từ chối phiếu nhập', 'error');
+      }
+    },
     refreshInventoryView() {
       const content = document.getElementById('adminSubTabContent');
-      if (content && this.adminSubTab === 'inventory') {
+      if (content && (this.adminSubTab === 'inventory' || this.adminSubTab === 'receipts')) {
         const user = this.getCurrentUser();
         const branches = window.store.getBranches();
         content.innerHTML = this.renderInventoryTab(user, branches);
@@ -3427,22 +3485,58 @@
     // -----------------------------------------------------------------------
     // QUẢN LÝ PHIẾU NHẬP KHO (INVENTORY RECEIPTS - SQL PHIEUNHAPKHO & CHITIETPHIEUNHAP)
     // -----------------------------------------------------------------------
+    // Multi-item Receipt State & Management
     openAddReceiptModal() {
       const user = this.getCurrentUser();
       const branches = window.store.getBranches() || [];
       const suppliers = window.store.getSuppliers() || [];
       const products = window.store.getProducts() || [];
-      const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : 'CN01');
+      const isSuper = this.isSuperAdmin(user);
+      const isManager = this.isBranchManager(user);
+      const branchId = (isManager && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : 'CN01');
+      const creatorName = user ? (user.fullName || user.name || user.username || 'Nhân viên') : 'Nhân viên kho';
+      const isStaffOnly = !isSuper && !isManager;
+
+      // Sinh mã lô chuẩn LOyyyyMM A001
+      const now = new Date();
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      const defaultLotPrefix = 'LO' + yr + mo + 'A';
+
+      // Khởi tạo danh sách dòng sản phẩm nhập kho
+      this._receiptItems = [
+        {
+          id: Date.now(),
+          productId: products[0]?.id || 'SP01',
+          quantity: 10,
+          costPrice: products[0]?.costPrice || products[0]?.GiaNhap || 150000,
+          lotNumber: defaultLotPrefix + '001',
+          expiryDate: new Date(now.getTime() + 365 * 24 * 3600 * 1000).toISOString().split('T')[0]
+        }
+      ];
 
       this._openModal(`
-        <div style="max-width: 650px; margin: 0 auto;">
-          <div class="badge-terracotta">QUẢN LÝ KHO & NHẬP HÀNG</div>
-          <h2 style="font-size: 20px; font-weight: 800; margin: 8px 0 16px;">LẬP PHIẾU NHẬP KHO MỚI</h2>
-          <form onsubmit="event.preventDefault(); AdminWeb.submitReceiptForm();">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <div style="max-width: 960px; margin: 0 auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <div class="badge-terracotta">QUẢN LÝ KHO &amp; NHẬP HÀNG</div>
+              <h2 style="font-size: 20px; font-weight: 800; margin: 6px 0 2px;">LẬP PHIẾU NHẬP KHO NHIỀU MẶT HÀNG</h2>
+              <div style="font-size: 13px; color: var(--text-secondary);">
+                Người lập phiếu: <strong style="color: #f59e0b;">${this.escapeHtml(creatorName)}</strong> 
+                ${isStaffOnly ? '• <span style="color: #d97706; font-weight: 700;">(Phiếu sẽ gửi Quản lý phê duyệt trước khi cộng kho)</span>' : '• <span style="color: #10b981; font-weight: 700;">(Tự động phê duyệt &amp; cộng tồn kho ngay)</span>'}
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 12px; color: var(--text-secondary);">Ngày lập phiếu:</span>
+              <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">${now.toLocaleDateString('vi-VN')}</div>
+            </div>
+          </div>
+
+          <form onsubmit="event.preventDefault(); AdminWeb.submitMultiItemReceipt();">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; background: var(--surface-card); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
               <div>
-                <label class="sub-label">Chi Nhánh Nhập Hàng:</label>
-                ${this.isBranchManager(user) ? `
+                <label class="sub-label">Chi Nhánh Nhập Hàng: <span style="color:#ef4444;">*</span></label>
+                ${isManager ? `
                   <input type="hidden" id="receiptBranchId" value="${branchId}">
                   <input type="text" class="form-control-custom" value="${this.escapeHtml(this._getBranchShortName(branchId))}" disabled>
                 ` : `
@@ -3452,115 +3546,237 @@
                 `}
               </div>
               <div>
-                <label class="sub-label">Nhà Cung Cấp:</label>
+                <label class="sub-label">Nhà Cung Cấp Hàng Hóa: <span style="color:#ef4444;">*</span></label>
                 <select id="receiptSupplierId" class="form-control-custom" required>
                   ${suppliers.map(s => `<option value="${s.id || s.MaNhaCungCap}">${this.escapeHtml(s.name || s.TenNhaCungCap)}</option>`).join('')}
                 </select>
               </div>
             </div>
 
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 10px; padding: 14px; margin-bottom: 14px;">
-              <h4 style="font-size: 13px; font-weight: 700; margin: 0 0 10px 0; color: #f59e0b;">Thông Tin Mặt Hàng Nhập Kho</h4>
-              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                <div>
-                  <label class="sub-label">Chọn Sản Phẩm:</label>
-                  <select id="receiptProductId" class="form-control-custom" onchange="AdminWeb._onReceiptProductChange(this.value);">
-                    ${products.map(p => `<option value="${p.id || p.MaSanPham}">${this.escapeHtml(p.name || p.TenSanPham)} (${p.id || p.MaSanPham})</option>`).join('')}
-                  </select>
-                </div>
-                <div>
-                  <label class="sub-label">Số Lượng:</label>
-                  <input type="number" id="receiptQuantity" class="form-control-custom" value="10" min="1" required oninput="AdminWeb._calcReceiptTotal();">
-                </div>
-                <div>
-                  <label class="sub-label">Đơn Giá Nhập (VNĐ):</label>
-                  <input type="number" id="receiptCostPrice" class="form-control-custom" value="${products[0]?.costPrice || products[0]?.GiaNhap || 150000}" min="1000" required oninput="AdminWeb._calcReceiptTotal();">
-                </div>
+            <!-- BẢNG NHẬP NHIỀU MẶT HÀNG DYNAMIC -->
+            <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="font-size: 14px; font-weight: 800; margin: 0; color: #f59e0b;">Danh Sách Mặt Hàng Nhập Kho</h4>
+                <button type="button" class="btn-submit-terracotta" style="padding: 6px 14px; font-size: 12px; font-weight: 700; background: #0284c7;" onclick="AdminWeb._addReceiptRow();">
+                  + Thêm Mặt Hàng
+                </button>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                  <label class="sub-label">Số Lô Hàng (FEFO):</label>
-                  <input type="text" id="receiptLotNumber" class="form-control-custom" value="LOT-${Date.now().toString().slice(-6)}" required>
-                </div>
-                <div>
-                  <label class="sub-label">Hạn Sử Dụng (EXP):</label>
-                  <input type="date" id="receiptExpiryDate" class="form-control-custom" value="${new Date(Date.now() + 365*24*3600*1000).toISOString().split('T')[0]}" required>
-                </div>
+
+              <div style="overflow-x: auto;">
+                <table class="admin-enterprise-table" style="font-size: 12.5px;">
+                  <thead>
+                    <tr>
+                      <th style="min-width: 220px;">Sản Phẩm</th>
+                      <th style="width: 90px; text-align: center;">Số Lượng</th>
+                      <th style="min-width: 130px;">Giá Nhập (VNĐ)</th>
+                      <th style="min-width: 140px;">Số Lô (FEFO)</th>
+                      <th style="min-width: 130px;">Hạn Dùng (EXP)</th>
+                      <th style="min-width: 120px; text-align: right;">Thành Tiền</th>
+                      <th style="width: 44px; text-align: center;">Xóa</th>
+                    </tr>
+                  </thead>
+                  <tbody id="receiptRowsTbody">
+                    ${this._renderReceiptRowsHtml()}
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 12px; background: rgba(16, 185, 129, 0.08); border-radius: 8px;">
-              <span style="font-weight: 700; font-size: 14px;">Tổng Tiền Nhập Kho:</span>
-              <strong id="receiptTotalDisplay" style="font-size: 18px; color: #10b981;">1.500.000 đ</strong>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 14px 20px; background: rgba(16, 185, 129, 0.08); border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.25);">
+              <div>
+                <span style="font-weight: 800; font-size: 15px; color: var(--text-primary);">Tổng Giá Trị Phiếu Nhập:</span>
+                <span id="receiptTotalItemsCount" style="font-size: 13px; color: var(--text-secondary); margin-left: 8px;">(1 mặt hàng)</span>
+              </div>
+              <strong id="receiptGrandTotalDisplay" style="font-size: 22px; color: #10b981; font-weight: 900;">1.500.000 đ</strong>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-              <button type="button" class="btn-cancel" onclick="AdminWeb._closeModal()">Hủy Bỏ</button>
-              <button type="submit" class="btn-submit-terracotta" style="font-weight: 700;">+ Lưu &amp; Nhập Kho SQL</button>
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="button" class="btn-cancel" style="min-height: 44px; padding: 0 20px;" onclick="AdminWeb._closeModal()">Hủy Bỏ</button>
+              <button type="submit" class="btn-submit-terracotta" style="min-height: 44px; padding: 0 24px; font-weight: 800;">
+                ${isStaffOnly ? '📤 Gửi Phiếu Chờ Duyệt' : '✓ Lưu &amp; Duyệt Nhập Kho SQL'}
+              </button>
             </div>
           </form>
         </div>
       `);
-      this._calcReceiptTotal();
+
+      this._recalculateReceiptGrandTotal();
     },
 
-    _onReceiptProductChange(prodId) {
+    _renderReceiptRowsHtml() {
+      const products = window.store.getProducts() || [];
+      return (this._receiptItems || []).map((row, idx) => {
+        const lineTotal = (row.quantity || 0) * (row.costPrice || 0);
+        return `
+          <tr id="receiptRow_${row.id}">
+            <td>
+              <select class="form-control-custom" style="padding: 6px 10px; font-size: 12.5px;" onchange="AdminWeb._onReceiptRowProductChange(${idx}, this.value)">
+                ${products.map(p => `<option value="${p.id || p.MaSanPham}" ${(p.id || p.MaSanPham) === row.productId ? 'selected' : ''}>${this.escapeHtml(p.name || p.TenSanPham)} (${p.id || p.MaSanPham})</option>`).join('')}
+              </select>
+            </td>
+            <td>
+              <input type="number" class="form-control-custom" style="padding: 6px 8px; font-size: 12.5px; text-align: center;" min="1" value="${row.quantity}" oninput="AdminWeb._onReceiptRowQtyChange(${idx}, this.value)">
+            </td>
+            <td>
+              <input type="number" class="form-control-custom" style="padding: 6px 8px; font-size: 12.5px;" min="1000" step="1000" value="${row.costPrice}" oninput="AdminWeb._onReceiptRowCostChange(${idx}, this.value)">
+            </td>
+            <td>
+              <input type="text" class="form-control-custom" style="padding: 6px 8px; font-size: 12px; font-family: monospace;" value="${this.escapeHtml(row.lotNumber)}" oninput="AdminWeb._receiptItems[${idx}].lotNumber = this.value">
+            </td>
+            <td>
+              <input type="date" class="form-control-custom" style="padding: 6px 8px; font-size: 12px;" value="${row.expiryDate}" oninput="AdminWeb._receiptItems[${idx}].expiryDate = this.value">
+            </td>
+            <td style="text-align: right; font-weight: 800; color: #10b981; font-size: 13px;" id="receiptLineTotal_${idx}">
+              ${SalonUtils.formatCurrency(lineTotal)}
+            </td>
+            <td style="text-align: center;">
+              ${(this._receiptItems.length > 1) ? `
+                <button type="button" style="background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 2px 6px;" onclick="AdminWeb._removeReceiptRow(${idx})" title="Xóa mặt hàng này">✕</button>
+              ` : `
+                <span style="color: var(--text-secondary); opacity: 0.4;">—</span>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    },
+
+    _addReceiptRow() {
+      const products = window.store.getProducts() || [];
+      const now = new Date();
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      const seq = String(this._receiptItems.length + 1).padStart(3, '0');
+      const defaultLot = 'LO' + yr + mo + 'A' + seq;
+
+      const p0 = products[this._receiptItems.length % products.length] || products[0];
+      this._receiptItems.push({
+        id: Date.now() + Math.random(),
+        productId: p0?.id || 'SP01',
+        quantity: 10,
+        costPrice: p0?.costPrice || p0?.GiaNhap || 150000,
+        lotNumber: defaultLot,
+        expiryDate: new Date(now.getTime() + 365 * 24 * 3600 * 1000).toISOString().split('T')[0]
+      });
+
+      const tbody = document.getElementById('receiptRowsTbody');
+      if (tbody) tbody.innerHTML = this._renderReceiptRowsHtml();
+      this._recalculateReceiptGrandTotal();
+    },
+
+    _removeReceiptRow(idx) {
+      if (this._receiptItems.length <= 1) return;
+      this._receiptItems.splice(idx, 1);
+      const tbody = document.getElementById('receiptRowsTbody');
+      if (tbody) tbody.innerHTML = this._renderReceiptRowsHtml();
+      this._recalculateReceiptGrandTotal();
+    },
+
+    _onReceiptRowProductChange(idx, prodId) {
       const p = window.store.getProductById(prodId);
-      if (p) {
-        const costInput = document.getElementById('receiptCostPrice');
-        if (costInput) {
-          costInput.value = p.costPrice || p.GiaNhap || Math.round((p.price || 200000) * 0.7);
+      if (this._receiptItems[idx]) {
+        this._receiptItems[idx].productId = prodId;
+        if (p) {
+          this._receiptItems[idx].costPrice = p.costPrice || p.GiaNhap || Math.round((p.price || 200000) * 0.7);
         }
       }
-      this._calcReceiptTotal();
+      const tbody = document.getElementById('receiptRowsTbody');
+      if (tbody) tbody.innerHTML = this._renderReceiptRowsHtml();
+      this._recalculateReceiptGrandTotal();
     },
 
-    _calcReceiptTotal() {
-      const qInput = document.getElementById('receiptQuantity');
-      const cInput = document.getElementById('receiptCostPrice');
-      const totalDisplay = document.getElementById('receiptTotalDisplay');
-      if (qInput && cInput && totalDisplay) {
-        const qty = parseInt(qInput.value, 10) || 0;
-        const cost = parseFloat(cInput.value) || 0;
-        totalDisplay.textContent = SalonUtils.formatCurrency(qty * cost);
+    _onReceiptRowQtyChange(idx, val) {
+      const qty = parseInt(val, 10) || 0;
+      if (this._receiptItems[idx]) {
+        this._receiptItems[idx].quantity = qty;
+        const lineTotal = qty * (this._receiptItems[idx].costPrice || 0);
+        const cell = document.getElementById('receiptLineTotal_' + idx);
+        if (cell) cell.textContent = SalonUtils.formatCurrency(lineTotal);
       }
+      this._recalculateReceiptGrandTotal();
     },
 
-    async submitReceiptForm() {
+    _onReceiptRowCostChange(idx, val) {
+      const cost = parseFloat(val) || 0;
+      if (this._receiptItems[idx]) {
+        this._receiptItems[idx].costPrice = cost;
+        const lineTotal = (this._receiptItems[idx].quantity || 0) * cost;
+        const cell = document.getElementById('receiptLineTotal_' + idx);
+        if (cell) cell.textContent = SalonUtils.formatCurrency(lineTotal);
+      }
+      this._recalculateReceiptGrandTotal();
+    },
+
+    _recalculateReceiptGrandTotal() {
+      let grandTotal = 0;
+      let totalQty = 0;
+      (this._receiptItems || []).forEach(row => {
+        grandTotal += (row.quantity || 0) * (row.costPrice || 0);
+        totalQty += (row.quantity || 0);
+      });
+      const grandEl = document.getElementById('receiptGrandTotalDisplay');
+      if (grandEl) grandEl.textContent = SalonUtils.formatCurrency(grandTotal);
+      const countEl = document.getElementById('receiptTotalItemsCount');
+      if (countEl) countEl.textContent = '(' + (this._receiptItems?.length || 0) + ' mặt hàng, ' + totalQty + ' sản phẩm)';
+    },
+
+    async submitMultiItemReceipt() {
       const branchId = document.getElementById('receiptBranchId')?.value || 'CN01';
       const supplierId = document.getElementById('receiptSupplierId')?.value || 'NCC01';
-      const productId = document.getElementById('receiptProductId')?.value || 'SP01';
-      const quantity = parseInt(document.getElementById('receiptQuantity')?.value, 10) || 10;
-      const costPrice = parseFloat(document.getElementById('receiptCostPrice')?.value) || 150000;
-      const lotNumber = document.getElementById('receiptLotNumber')?.value || `LOT-${Date.now().toString().slice(-6)}`;
-      const expiryDate = document.getElementById('receiptExpiryDate')?.value || new Date(Date.now() + 365*24*3600*1000).toISOString().split('T')[0];
-
       const user = this.getCurrentUser();
+      const isSuper = this.isSuperAdmin(user);
+      const isManager = this.isBranchManager(user);
+      const status = (isSuper || isManager) ? 'Đã duyệt' : 'Chờ duyệt';
       const staffId = user?.staffId || user?.MaNhanVien || 'NV01';
-      const total = quantity * costPrice;
 
-      const items = [{
-        productId,
-        quantity,
-        costPrice,
-        lotNumber,
-        expiryDate
-      }];
+      if (!this._receiptItems || this._receiptItems.length === 0) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng thêm ít nhất một mặt hàng nhập kho!', 'warning');
+        return;
+      }
+
+      let grandTotal = 0;
+      const formattedItems = this._receiptItems.map(it => {
+        const line = (it.quantity || 0) * (it.costPrice || 0);
+        grandTotal += line;
+        return {
+          productId: it.productId,
+          quantity: it.quantity,
+          costPrice: it.costPrice,
+          lotNumber: it.lotNumber,
+          expiryDate: it.expiryDate
+        };
+      });
 
       try {
-        await window.store.addReceipt({
-          branchId,
-          supplierId,
-          staffId,
-          items,
-          total,
-          status: 'Đã duyệt'
+        const res = await fetch('/api/inventory/receipts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            branchId,
+            supplierId,
+            staffId,
+            items: formattedItems,
+            total: grandTotal,
+            status
+          })
         });
-        this._closeModal();
-        if (window.UICommon) window.UICommon.showToast(`Đã lập và lưu phiếu nhập kho thành công vào SQL Server!`);
-        this.refreshInventoryView();
-      } catch (err) {
-        if (window.UICommon) window.UICommon.showToast(`Lỗi khi lập phiếu nhập kho: ${err.message}`, 'error');
+        const data = await res.json();
+        if (data && data.success) {
+          const msg = (status === 'Đã duyệt') 
+            ? 'Đã tạo và duyệt phiếu nhập #' + data.id + ' thành công! Tồn kho đã được cập nhật.'
+            : 'Đã gửi phiếu nhập #' + data.id + ' thành công! Đang chờ Quản lý chi nhánh phê duyệt.';
+          if (window.UICommon) {
+            window.UICommon.closeGlobalModal();
+            window.UICommon.showToast(msg, 'success');
+          }
+          if (window.store && typeof window.store.fetchReceipts === 'function') await window.store.fetchReceipts();
+          if (window.store && typeof window.store.fetchInventory === 'function') await window.store.fetchInventory();
+          this.refreshInventoryView();
+        } else {
+          if (window.UICommon) window.UICommon.showToast(data?.error || 'Lỗi khi lập phiếu nhập kho', 'error');
+        }
+      } catch (e) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối khi gửi phiếu nhập kho', 'error');
       }
     },
 
@@ -3872,10 +4088,11 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
               <div>
                 <label class="sub-label">Phân Loại Thợ / Vai Trò: <span style="color:#ef4444;">*</span></label>
-                <select id="stRole" class="form-control-custom" required onchange="AdminWeb.onStylistRoleChange(this.value)">
+                <select id="stRole" class="form-control-custom" required onchange="AdminWeb.onStylistRoleChange(this.value)" ${!isSuper && (role === 'Quản lý chi nhánh' || role === 'Quản lý') ? 'disabled title="Chỉ Quản trị tối cao mới được đổi vai trò Quản lý" style="opacity: 0.75; cursor: not-allowed;"' : ''}>
                   <option value="Thợ chính" ${role === 'Thợ chính' ? 'selected' : ''}>Thợ chính (Lead Barber)</option>
                   <option value="Thợ phụ" ${role === 'Thợ phụ' ? 'selected' : ''}>Thợ phụ (Assistant Barber)</option>
-                  ${isSuper ? `<option value="Quản lý chi nhánh" ${role === 'Quản lý chi nhánh' ? 'selected' : ''}>Quản lý chi nhánh</option>` : ''}
+                  <option value="Thu ngân" ${role === 'Thu ngân' ? 'selected' : ''}>Thu ngân (Cashier)</option>
+                  ${isSuper ? `<option value="Quản lý chi nhánh" ${role === 'Quản lý chi nhánh' || role === 'Quản lý' ? 'selected' : ''}>Quản lý chi nhánh</option>` : ''}
                 </select>
               </div>
 
@@ -3885,6 +4102,7 @@
                   <option value="Master Barber" ${level === 'Master Barber' ? 'selected' : ''}>Master Barber</option>
                   <option value="Senior Barber" ${level === 'Senior Barber' ? 'selected' : ''}>Senior Barber</option>
                   <option value="Junior Barber" ${level === 'Junior Barber' ? 'selected' : ''}>Junior Barber</option>
+                  <option value="Nhân viên" ${level === 'Nhân viên' ? 'selected' : ''}>Nhân viên</option>
                 </select>
               </div>
             </div>
@@ -3948,6 +4166,8 @@
         levelSelect.value = 'Junior Barber';
       } else if (role === 'Thợ chính') {
         levelSelect.value = 'Master Barber';
+      } else if (role === 'Thu ngân' || role === 'Quản lý chi nhánh') {
+        levelSelect.value = 'Nhân viên';
       }
     },
 

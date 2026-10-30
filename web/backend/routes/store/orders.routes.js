@@ -37,7 +37,7 @@ async function handleOrderRoutes(req, res, ctx) {
 
     const rows = await querySql(queryStr, params);
     if (orderIdParam && (!rows || rows.length === 0)) {
-      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${orderIdParam}!` }));
       return true;
     }
@@ -265,23 +265,34 @@ async function handleOrderRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/orders/:id/cancel - Khách hàng hoặc quản lý hủy đơn hàng
-  // Tự động hoàn trả số lượng vào đúng các lô hàng đã trích xuất trước đó
+  // POST /api/orders/:id/cancel - Hủy đơn hàng và hoàn lại tồn kho
+  // Không cho hủy nếu đơn đang giao hoặc đã giao xong
   if (pathname.startsWith('/api/orders/') && pathname.endsWith('/cancel') && method === 'POST') {
     const id = pathname.replace('/api/orders/', '').replace('/cancel', '').trim();
     const reason = (parsedBody && parsedBody.reason) || 'Khách hàng yêu cầu hủy đơn';
 
     const orderRow = await querySql('SELECT MaDonHang, MaChiNhanh, TrangThai FROM DonHang WHERE MaDonHang = ?', [id]);
     if (!orderRow || orderRow.length === 0) {
-      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${id}!` }));
       return true;
     }
 
     const currentStatus = (orderRow[0].TrangThai || '').trim();
-    if (currentStatus === 'Đã hủy' || currentStatus.toLowerCase() === 'cancelled') {
+    const cleanStatus = currentStatus.toLowerCase();
+    if (cleanStatus === 'đã hủy' || cleanStatus === 'cancelled') {
       res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: `Đơn hàng #${id} đã được hủy trước đó, không thể hủy lại.` }));
+      return true;
+    }
+
+    // Kiểm tra trạng thái: Nếu đơn đang giao hoặc đã giao thì chặn không cho hủy
+    if (cleanStatus.includes('giao') || cleanStatus === 'delivering' || cleanStatus === 'shipping' || cleanStatus === 'completed' || cleanStatus.includes('hoàn tất')) {
+      const errorMsg = (cleanStatus.includes('đang giao') || cleanStatus === 'delivering' || cleanStatus === 'shipping' || (cleanStatus.includes('giao') && !cleanStatus.includes('đã giao')))
+        ? `Đơn hàng #${id} đang trên đường giao hàng, không thể hủy!`
+        : `Đơn hàng #${id} đã hoàn tất giao hàng, không thể hủy!`;
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: errorMsg }));
       return true;
     }
 

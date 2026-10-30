@@ -82,7 +82,7 @@ const server = http.createServer(async (req, res) => {
 
       // Nếu client gọi đường dẫn /api/... nhưng không khớp router nào
       if (pathname.startsWith('/api/')) {
-        res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ error: 'Không tìm thấy API yêu cầu', path: pathname }));
       }
 
@@ -149,7 +149,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       // Không tìm thấy file
-      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       return res.end(JSON.stringify({ error: 'File Not Found', path: pathname }));
 
     } catch (err) {

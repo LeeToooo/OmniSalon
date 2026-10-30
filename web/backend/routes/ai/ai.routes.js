@@ -194,8 +194,8 @@ async function handleAiRoutes(req, res, ctx) {
         /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host);
 
       if (isPrivateHost) {
-        res.writeHead(403, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Truy cập tài nguyên mạng nội bộ bị từ chối (SSRF Protection)' }));
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Không thể truy cập hình ảnh này.' }));
         return true;
       }
       const client = targetUrl.startsWith('https://') ? https : http;

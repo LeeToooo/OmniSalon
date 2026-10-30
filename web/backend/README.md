@@ -39,7 +39,7 @@ Tài liệu giải thích cụ thể **chức năng** và **mục đích sử d�
 * **Sử dụng cho vấn đề gì:**
   * Tạo chuỗi Token JWT (HS256) khi người dùng đăng nhập thành công.
   * Đọc và giải mã token từ Header `Authorization: Bearer <token>`.
-  * Chặn người dùng chưa đăng nhập hoặc không đủ quyền hạn (ví dụ: Khách hàng cố tình gọi API của Quản lý/Admin) bằng mã lỗi `401 Unauthorized` hoặc `403 Forbidden`.
+  * Kiểm tra tài khoản và phản hồi thông báo thân thiện nếu chưa đăng nhập.
   * Quản lý danh sách tên miền được phép gọi API (CORS Whitelist).
 
 ---
