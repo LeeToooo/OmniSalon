@@ -1660,7 +1660,7 @@ const UICommon = {
       const data = await apiRes.json().catch(() => null);
       liveAttempted = true;
 
-      if (apiRes.ok && data && data.success) {
+      if (data && data.success) {
         res = data;
         // Đồng bộ phiên đăng nhập vào AuthEngine, store và session storage
         if (window.AuthEngine && typeof window.AuthEngine.setSessionFromBackend === 'function') {
@@ -1680,8 +1680,8 @@ const UICommon = {
           if (typeof window.store.saveState === 'function') window.store.saveState();
           if (typeof window.store.notify === 'function') window.store.notify('AUTH_CHANGED', data.user);
         }
-      } else if (!apiRes.ok && data && data.success === false) {
-        // Backend SQL Server đã từ chối xác thực vì sai thông tin hoặc sai mật khẩu
+      } else if (data && data.success === false) {
+        // Sai mật khẩu hoặc tài khoản không tồn tại trên CSDL
         this.showToast(data.message || 'Mật khẩu không chính xác. Vui lòng kiểm tra lại.', 'error');
         return;
       }

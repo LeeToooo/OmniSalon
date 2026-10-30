@@ -1,10 +1,23 @@
-﻿// =========================================================================
+// =========================================================================
 // QUẢN LÝ SẢN PHẨM MỸ PHẨM & DANH MỤC
 // Bảng CSDL: SanPham, DanhMucSanPham, TonKho, ChiTietPhieuNhap, QuyTacGiamGiaTheoHan
 // =========================================================================
 
 const { querySql } = require('../../database/db');
 const { catIcons, brandPrefixes, detectBrand } = require('../../services/helper_service');
+
+function getProductGallery(img) {
+  if (!img || typeof img !== 'string') return [];
+  if (img.includes('_01.jpg')) {
+    return [
+      img,
+      img.replace('_01.jpg', '_02.jpg'),
+      img.replace('_01.jpg', '_03.jpg'),
+      img.replace('_01.jpg', '_04.jpg')
+    ];
+  }
+  return [img];
+}
 
 async function handleProductRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
@@ -116,6 +129,7 @@ async function handleProductRoutes(req, res, ctx) {
         reviewsCount: ratings.length,
         image: r.HinhAnh || '',
         HinhAnh: r.HinhAnh || '',
+        images: getProductGallery(r.HinhAnh),
         description: r.MoTa,
         MoTa: r.MoTa,
         expiryDate: r.HanSuDung,

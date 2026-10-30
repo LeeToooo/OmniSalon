@@ -9,26 +9,27 @@ echo.
 
 REM Kiem tra thu vien Flutter SDK
 where flutter >nul 2>nul
-if %errorlevel% neq 0 (
+if errorlevel 1 (
     if exist "C:\src\flutter\bin\flutter.bat" (
         set "PATH=%PATH%;C:\src\flutter\bin"
     ) else (
         echo [LOI] Khong tim thay Flutter SDK tren may tinh!
-        pause
+        echo Nhan phim bat ky de thoat...
+        pause >nul
         exit /b 1
     )
 )
 
 REM Kiem tra va tu dong cai dat thu vien Node.js neu chua co
 if not exist "%~dp0node_modules\msnodesqlv8" (
-    echo [*] Dang tu dong chay "npm install" de cai thu vien Backend...
+    echo [*] Dang tu dong chay npm install de cai thu vien Backend...
     cd /d "%~dp0"
-    call npm install
+    call npm install --no-audit --no-fund
 )
 
 REM Kiem tra thu vien Flutter pub get
 if not exist "%~dp0mobile\.dart_tool" (
-    echo [*] Dang tai thu vien Flutter (flutter pub get)...
+    echo [*] Dang tai thu vien Flutter pub get...
     cd /d "%~dp0mobile"
     call flutter pub get
 )
@@ -44,9 +45,9 @@ if errorlevel 1 (
 )
 
 echo Chon thiet bi chay ung dung:
-echo   [1] Windows Desktop (Ung dung may tinh - Khuyen dung)
-echo   [2] Android (Dien thoai cam cap hoac may ao)
-echo   [3] Google Chrome (Trinh duyet)
+echo   [1] Windows Desktop - Ung dung may tinh (Khuyen dung)
+echo   [2] Android - Dien thoai hoac may ao
+echo   [3] Google Chrome - Trinh duyet
 echo.
 
 set "choice=1"
@@ -71,4 +72,6 @@ echo [*] Dang chay tren Windows Desktop...
 flutter run -d windows
 
 :DONE
-pause
+echo.
+echo Nhan phim bat ky de thoat...
+pause >nul

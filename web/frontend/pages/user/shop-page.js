@@ -777,14 +777,41 @@
       const hasDiscount = originalPrice > actualPrice && actualPrice > 0;
       const discountPercent = hasDiscount ? Math.round(((originalPrice - actualPrice) / originalPrice) * 100) : 0;
 
-      // Gallery 4 ảnh chất lượng cao chuẩn barbershop nam giới
-      const mainImgUrl = prod.image || prod.HinhAnh || 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Gravity_Paste.jpg';
-      const detailImages = [
-        mainImgUrl,
-        'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80'
+      // Bộ sưu tập 4 góc ảnh chụp thực tế chất lượng cao từ thư viện sản phẩm
+      const mainImgUrl = prod.image || prod.HinhAnh || '';
+      let detailImages = (Array.isArray(prod.images) && prod.images.length > 0) ? prod.images : null;
+      if (!detailImages || detailImages.length === 0) {
+        if (mainImgUrl && mainImgUrl.includes('_01.jpg')) {
+          detailImages = [
+            mainImgUrl,
+            mainImgUrl.replace('_01.jpg', '_02.jpg'),
+            mainImgUrl.replace('_01.jpg', '_03.jpg'),
+            mainImgUrl.replace('_01.jpg', '_04.jpg')
+          ];
+        } else if (mainImgUrl) {
+          detailImages = [mainImgUrl];
+        } else {
+          detailImages = [];
+        }
+      }
+
+      // Nhãn và biểu tượng cho 4 góc chụp chuyên nghiệp
+      const pNameLower = (prod.name || prod.TenSanPham || '').toLowerCase();
+      let angleList = [
+        { index: 0, badge: 'Góc 1 • Chính Diện', label: 'Mặt Chính Diện', icon: '📷' },
+        { index: 1, badge: 'Góc 2 • Nghiêng 45°', label: 'Góc Nghiêng 45°', icon: '📐' },
+        { index: 2, badge: 'Góc 3 • Chất Sáp / Mở Nắp', label: 'Chất Sáp / Mở Nắp', icon: '✨' },
+        { index: 3, badge: 'Góc 4 • Mặt Sau & Tem', label: 'Mặt Sau & Tem Nhãn', icon: '🏷️' }
       ];
+
+      if (pNameLower.includes('lược') || pNameLower.includes('máy sấy') || pNameLower.includes('kéo') || pNameLower.includes('brush') || pNameLower.includes('comb')) {
+        angleList[2] = { index: 2, badge: 'Góc 3 • Chi Tiết Máy', label: 'Cận Cảnh Chi Tiết', icon: '🔍' };
+        angleList[3] = { index: 3, badge: 'Góc 4 • Thông Số & Tem', label: 'Thông Số Kỹ Thuật', icon: '🏷️' };
+      } else if (pNameLower.includes('dầu gội') || pNameLower.includes('shampoo') || pNameLower.includes('xịt') || pNameLower.includes('spray') || pNameLower.includes('tonic') || pNameLower.includes('dưỡng')) {
+        angleList[2] = { index: 2, badge: 'Góc 3 • Vòi Xịt / Nắp', label: 'Đầu Vòi Xịt & Nắp Chai', icon: '🧴' };
+        angleList[3] = { index: 3, badge: 'Góc 4 • Mặt Sau & Thành Phần', label: 'Mặt Sau & Thành Phần', icon: '🏷️' };
+      }
+      this.currentAngleList = angleList;
 
       // Trích xuất thông số từ mô tả sản phẩm trong CSDL chuẩn
       const rawDesc = prod.MoTa || prod.description || '';
@@ -924,15 +951,27 @@
                 <div class="pdp-gallery-inner">
                   <!-- Thumbnails Dọc Trái -->
                   <div class="pdp-thumbnails-col">
-                    ${detailImages.map((img, idx) => `
-                      <div class="pdp-thumb-item ${idx === 0 ? 'active' : ''}" onclick="ShopPage.switchDetailImage('${img}', this, ${idx})">
-                        <img src="${SalonUtils.formatImageUrl(img)}" alt="thumb-${idx}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : null">
-                      </div>
-                    `).join('')}
+                    ${detailImages.map((img, idx) => {
+                      const ang = angleList[idx] || { badge: 'Góc ' + (idx + 1), icon: '📷' };
+                      return `
+                        <div class="pdp-thumb-item ${idx === 0 ? 'active' : ''}" 
+                             title="${ang.label || ang.badge}"
+                             onclick="ShopPage.switchDetailImage('${img}', this, ${idx})">
+                          <img src="${SalonUtils.formatImageUrl(img)}" alt="Góc ${idx + 1}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : null">
+                          <span class="pdp-thumb-angle-tag">G${idx + 1}</span>
+                        </div>
+                      `;
+                    }).join('')}
                   </div>
 
                   <!-- Khung Ảnh Lớn Chính -->
                   <div class="pdp-main-stage">
+                    <!-- Badge Góc chụp sản phẩm thực tế -->
+                    <div class="pdp-angle-stage-badge" id="pdpAngleStageBadge">
+                      <span class="pdp-angle-icon">${(angleList[0] && angleList[0].icon) || '📷'}</span>
+                      <span id="pdpAngleText">${(angleList[0] && angleList[0].badge) || 'Góc 1 • Chính Diện'}</span>
+                    </div>
+
                     <img id="pdpMainImg"
                          src="${SalonUtils.formatImageUrl(detailImages[0])}"
                          alt="${prod.name || prod.TenSanPham}"
@@ -1390,13 +1429,9 @@
         mainImg.style.opacity = '0';
         setTimeout(() => {
           mainImg.src = SalonUtils.formatImageUrl(imgUrl);
-          if (idx === 0 || imgUrl.includes('Men_Grooming_Products') || !imgUrl.includes('unsplash')) {
-            mainImg.style.mixBlendMode = 'multiply';
-          } else {
-            mainImg.style.mixBlendMode = 'normal';
-          }
+          mainImg.style.mixBlendMode = 'normal';
           mainImg.style.opacity = '1';
-        }, 150);
+        }, 140);
       }
       document.querySelectorAll('.pdp-thumb-item').forEach(el => el.classList.remove('active'));
       if (thumbEl) thumbEl.classList.add('active');
@@ -1407,6 +1442,12 @@
       if (counter) {
         const total = document.querySelectorAll('.pdp-thumb-item').length || 4;
         counter.textContent = `${idx + 1}/${total}`;
+      }
+      // Cập nhật badge góc chụp trên khung ảnh lớn
+      const angleBadge = document.getElementById('pdpAngleStageBadge');
+      if (angleBadge && this.currentAngleList && this.currentAngleList[idx]) {
+        const ang = this.currentAngleList[idx];
+        angleBadge.innerHTML = `<span class="pdp-angle-icon">${ang.icon}</span> <span id="pdpAngleText">${ang.badge}</span>`;
       }
     },
 

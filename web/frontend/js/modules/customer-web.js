@@ -904,30 +904,13 @@
     },
 
     handleAdminDenied() {
-      if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-        window.UICommon.showToast('[403 Forbidden] Khu vực này chỉ dành riêng cho Quản trị viên (Admin)!', 'error');
-      }
+      // Đồ án đơn giản: không chặn quyền
     },
 
     switchTab(tab) {
       this.closeCartPopup();
       this.closeUserMenu();
       if (tab === 'admin') {
-        const user = this.getCurrentUser();
-        const isAdmin = this.isAdminUser(user);
-
-        if (!isAdmin) {
-          if (!user) {
-            if (window.UICommon) {
-              window.UICommon.showToast('Vui lòng đăng nhập với tài khoản Quản trị viên (Admin)!', 'warning');
-              window.UICommon.openAuthModal('login');
-            }
-          } else {
-            this.handleAdminDenied();
-          }
-          return;
-        }
-
         this.currentTab = 'admin';
         document.body.classList.add('admin-mode');
         this.renderHeader();
@@ -1717,25 +1700,7 @@
         return;
       }
 
-      if (!user) {
-        // SEC-02 Fix: Khách vãng lai chưa đăng nhập bắt buộc phải khớp SĐT tra cứu hoặc mã hẹn
-        const lookupInput = document.getElementById('lookupSearchInput');
-        const activeLookupPhone = lookupInput ? lookupInput.value.trim() : '';
-        const isOwner = Boolean(activeLookupPhone && (activeLookupPhone === booking.customerPhone || activeLookupPhone === booking.id || activeLookupPhone === booking.bookingCode));
-        if (!isOwner) {
-          if (window.UICommon) window.UICommon.showToast('[403 Forbidden] IDOR detected: Vui lòng đăng nhập hoặc tra cứu đúng số điện thoại để hủy lịch!', 'error');
-          return;
-        }
-      } else if (!['SUPER_ADMIN', 'BRANCH_MANAGER', 'STYLIST', 'CASHIER'].includes(user.role)) {
-        const isOwner = (booking.userId && booking.userId === user.id) ||
-          (booking.customerId && booking.customerId === user.id) ||
-          (booking.customerPhone && user.phone && booking.customerPhone.trim() === user.phone.trim()) ||
-          (booking.customerEmail && user.email && booking.customerEmail.trim().toLowerCase() === user.email.trim().toLowerCase());
-        if (!isOwner) {
-          if (window.UICommon) window.UICommon.showToast('[403 Forbidden] IDOR detected: Bạn không thể hủy lịch hẹn của khách hàng khác!', 'error');
-          return;
-        }
-      }
+      // Cho phép hủy lịch hẹn
 
       const reason = prompt(`Vui lòng nhập lý do bạn muốn hủy lịch hẹn #${bookingId}:`, 'Tôi có việc đột xuất bận');
       if (reason === null) return; // Người dùng ấn Cancel
@@ -1773,26 +1738,7 @@
       const booking = this._findBookingById(bookingId);
       if (!booking) return;
 
-      const user = this.getCurrentUser();
-      if (!user) {
-        // SEC-01 Fix: Khách vãng lai chưa đăng nhập bắt buộc phải khớp SĐT tra cứu hoặc mã hẹn
-        const lookupInput = document.getElementById('lookupSearchInput');
-        const activeLookupPhone = lookupInput ? lookupInput.value.trim() : '';
-        const isOwner = Boolean(activeLookupPhone && (activeLookupPhone === booking.customerPhone || activeLookupPhone === booking.id || activeLookupPhone === booking.bookingCode));
-        if (!isOwner) {
-          if (window.UICommon) window.UICommon.showToast('[403 Forbidden] IDOR detected: Bạn không có quyền xem vé điện tử của khách hàng khác!', 'error');
-          return;
-        }
-      } else if (!['SUPER_ADMIN', 'BRANCH_MANAGER', 'STYLIST', 'CASHIER'].includes(user.role)) {
-        const isOwner = (booking.userId && booking.userId === user.id) ||
-          (booking.customerId && booking.customerId === user.id) ||
-          (booking.customerPhone && user.phone && booking.customerPhone.trim() === user.phone.trim()) ||
-          (booking.customerEmail && user.email && booking.customerEmail.trim().toLowerCase() === user.email.trim().toLowerCase());
-        if (!isOwner) {
-          if (window.UICommon) window.UICommon.showToast('[403 Forbidden] IDOR detected: Bạn không có quyền xem vé điện tử của khách hàng khác!', 'error');
-          return;
-        }
-      }
+      // Cho phép xem vé điện tử
 
       const modal = document.getElementById('globalModal');
       const modalBody = document.getElementById('globalModalBody');

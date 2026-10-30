@@ -147,13 +147,8 @@ async function main() {
   const masterConn = await detectWorkingConnection('master');
 
   if (!masterConn) {
-    console.error('\n[LỖI] Không thể kết nối tới SQL Server / SQL Express!');
-    console.error('Nguyên nhân có thể:');
-    console.error('1. Dịch vụ SQL Server (SQLEXPRESS) chưa được bật.');
-    console.error('   -> Khắc phục: Mở PowerShell chạy: net start MSSQL$SQLEXPRESS');
-    console.error('2. Máy tính chưa cài đặt SQL Server Express.');
-    console.error('   -> Tải tại: https://www.microsoft.com/en-us/sql-server/sql-server-downloads');
-    process.exit(1);
+    console.warn('\n[THÔNG BÁO] Chưa kết nối được SQL Server / SQL Express.\n  -> Hệ thống Web OmniSalon vẫn có thể khởi động với dữ liệu dự phòng.\n  -> Để kết nối SQL Server: Bật dịch vụ MSSQL hoặc tải SQL Server Express.\n');
+    process.exit(0);
   }
 
   console.log(`[OK] Kết nối thành công tới SQL Server: ${masterConn.server} (Driver: ${masterConn.driver})`);

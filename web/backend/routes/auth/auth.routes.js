@@ -86,14 +86,14 @@ async function handleAuthRoutes(req, res, ctx) {
     const cleanEmail = (email || '').trim().toLowerCase();
 
     if (!cleanPhone || !cleanPass) {
-      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, message: 'Số điện thoại và mật khẩu không được để trống.' }));
       return true;
     }
 
     const existingTk = await querySql('SELECT MaTaiKhoan FROM TaiKhoan WHERE TenDangNhap = ?', [cleanPhone]);
     if (existingTk && existingTk.length > 0) {
-      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, message: 'Số điện thoại này đã được đăng ký tài khoản.' }));
       return true;
     }
@@ -111,7 +111,7 @@ async function handleAuthRoutes(req, res, ctx) {
       }
       khId = 'KH' + (nextN < 10 ? '0' + nextN : nextN);
       await querySql(
-        `INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, HangThanhVien) VALUES (?, ?, ?, ?, N'Đồng')`,
+        `INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email) VALUES (?, ?, ?, ?)`,
         [khId, cleanName, cleanPhone, cleanEmail || null]
       );
     }
@@ -263,7 +263,7 @@ async function handleAuthRoutes(req, res, ctx) {
       }
     }
 
-    res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: false, message: 'Sai thông tin đăng nhập hoặc mật khẩu.' }));
     return true;
   }
@@ -272,11 +272,11 @@ async function handleAuthRoutes(req, res, ctx) {
   if (pathname === '/api/auth/me' && method === 'GET') {
     const authUser = extractAuthUser(req);
     if (!authUser) {
-      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({
-        success: false,
-        status: 'unauthenticated',
-        message: '401 Unauthorized: Phiên làm việc chưa xác thực hoặc token đã hết hạn.'
+        success: true,
+        status: 'guest',
+        user: null
       }));
       return true;
     }

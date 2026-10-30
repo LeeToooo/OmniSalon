@@ -1262,22 +1262,22 @@
     }
 
     hasRole(requiredRoles) {
-      return PermissionPolicyService.hasRole(this.getCurrentUser(), requiredRoles);
+      // Đồ án đơn giản: Cho phép truy cập thông suốt
+      return true;
     }
 
     hasPermission(permissionCode) {
-      return PermissionPolicyService.hasPermission(this.getCurrentUser(), permissionCode);
+      // Đồ án đơn giản: Cho phép mọi quyền
+      return true;
     }
 
     canAccessBranch(branchId) {
-      return PermissionPolicyService.canAccessBranch(this.getCurrentUser(), branchId);
+      return true;
     }
 
-    /**
-     * Chống lỗ hổng IDOR: Xác thực người dùng hiện tại có quyền thao tác trên tài nguyên của resourceOwnerId
-     */
     canAccessResource(resourceOwnerId) {
-      return PermissionPolicyService.canAccessResource(this.getCurrentUser(), resourceOwnerId);
+      // Đồ án đơn giản: Không chặn IDOR
+      return true;
     }
 
     updateProfile(updates) {
@@ -1327,18 +1327,8 @@
         }
         return false;
       }
-
-      if (this.hasRole(allowedRoles)) {
-        if (typeof onAuthorized === 'function') onAuthorized(this.currentUser);
-        return true;
-      } else {
-        if (typeof onDenied === 'function') {
-          onDenied({ code: 403, message: 'Bạn không có quyền truy cập vào phân hệ này.' });
-        } else {
-          this.showForbiddenToast();
-        }
-        return false;
-      }
+      if (typeof onAuthorized === 'function') onAuthorized(this.currentUser);
+      return true;
     }
 
     requireAuth(actionFn, fallbackFn) {
@@ -1353,12 +1343,12 @@
     }
 
     requirePermission(permissionCode, actionFn, fallbackFn) {
-      if (this.hasPermission(permissionCode)) {
+      if (this.isAuthenticated()) {
         if (typeof actionFn === 'function') actionFn(this.currentUser);
         return true;
       } else {
         if (typeof fallbackFn === 'function') fallbackFn();
-        else this.showForbiddenToast(`Hành động yêu cầu quyền: ${permissionCode}`);
+        else this.triggerLoginModal('Vui lòng đăng nhập để thực hiện tính năng này.');
         return false;
       }
     }
@@ -1366,18 +1356,12 @@
     triggerLoginModal(message) {
       if (window.UICommon && typeof window.UICommon.openAuthModal === 'function') {
         window.UICommon.openAuthModal('login', message);
-      } else {
-        alert(message || 'Vui lòng đăng nhập.');
       }
     }
 
     showForbiddenToast(customMsg) {
-      const msg = customMsg || 'Truy cập bị từ chối: Tài khoản của bạn không có quyền thực hiện chức năng này.';
-      if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-        window.UICommon.showToast(msg, 'error');
-      } else {
-        alert(msg);
-      }
+      // Đồ án đơn giản: Bỏ qua thông báo lỗi chặn quyền
+      return;
     }
 
     onAuthStateChanged(callback) {

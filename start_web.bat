@@ -1,56 +1,57 @@
 @echo off
 chcp 65001 >nul
-title OmniSalon Web
+title OmniSalon Web Server
 
 echo ==================================================
 echo   Khoi dong he thong OmniSalon Web
 echo ==================================================
 echo.
 
-REM Kiem tra Node.js
+REM 1. Kiem tra Node.js
 where node >nul 2>nul
-if %errorlevel% neq 0 (
+if errorlevel 1 (
     echo [LOI] Chua cai dat Node.js tren may tinh!
-    echo Vui long cai dat tai: https://nodejs.org
-    pause
+    echo Vui long cai dat Node.js tai: https://nodejs.org
+    echo.
+    echo Nhan phim bat ky de thoat...
+    pause >nul
     exit /b 1
 )
 
-REM Kiem tra va tu dong cai dat thu vien Node.js neu chua co
+REM 2. Kiem tra va tu dong cai dat thu vien Node.js neu chua co
 if not exist "%~dp0node_modules\msnodesqlv8" (
-    echo [*] Phat hien may tinh chua co thu muc node_modules.
-    echo [*] Dang tu dong chay "npm install" de tai cac thu vien (msnodesqlv8, mssql...), vui long doi giay lat...
+    echo [*] Phat hien chua co thu muc node_modules hoac thieu thu vien.
+    echo [*] Dang tu dong chay npm install, vui long cho trong giay lat...
     cd /d "%~dp0"
-    call npm install
+    call npm install --no-audit --no-fund
     if errorlevel 1 (
         echo.
-        echo [LOI] Khong the tu dong cai dat thu vien qua npm!
-        echo Vui long kiem tra ket noi mang va thu chay lenh: npm install
-        pause
-        exit /b 1
+        echo [CANH BAO] Cai dat thu vien qua npm chua hoan tat.
+        echo Ban co the thu mo CMD va chay lenh: npm install
+        echo.
+    ) else (
+        echo [*] Cai dat thu vien thanh cong!
+        echo.
     )
-    echo [*] Cai dat thu vien Node.js thanh cong!
-    echo.
 )
 
-REM Bat dich vu SQL Server neu chua chay
+REM 3. Bat dich vu SQL Server neu co tren may
 net start MSSQL$SQLEXPRESS >nul 2>&1
 net start MSSQLSERVER >nul 2>&1
 
-REM Kiem tra va nap co so du lieu
+REM 4. Giai phong cong 3000 neu dang bi chiem
+powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+
+REM 5. Kiem tra va khoi tao co so du lieu
+echo [*] Dang kiem tra ket noi co so du lieu...
 if "%1"=="--reset" (
-    echo [*] Dang tao lai co so du lieu tu dau...
     node "%~dp0web\backend\database\setup_db.js" --reset
 ) else (
     node "%~dp0web\backend\database\setup_db.js"
 )
 
-REM Giai phong cong 3000 neu dang bi chiem
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :3000 ^| findstr LISTENING 2^>nul') do (
-    taskkill /f /pid %%a >nul 2>&1
-)
-
 echo.
+echo ==================================================
 echo [*] Dang mo giao dien web tai: http://localhost:3000
 echo [*] Nhan Ctrl + C de dung he thong
 echo ==================================================
@@ -58,5 +59,10 @@ echo.
 
 start http://localhost:3000
 node "%~dp0web\backend\server.js"
-pause
 
+echo.
+echo ==================================================
+echo [THONG BAO] He thong da dung hoat dong.
+echo Nhan phim bat ky de dong cua so nay...
+echo ==================================================
+pause >nul

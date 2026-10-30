@@ -13681,6 +13681,54 @@ input::-ms-clear {
   backdrop-filter: blur(6px);
 }
 
+.pdp-angle-stage-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(18, 18, 20, 0.82);
+  color: #F4F4F5;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 5;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+}
+
+.pdp-thumb-item {
+  position: relative !important;
+}
+
+.pdp-thumb-angle-tag {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #D4AF37;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  line-height: 1.2;
+}
+
+.pdp-thumb-item.active .pdp-thumb-angle-tag {
+  background: #C59B27;
+  color: #0B0E14;
+  border-color: #F59E0B;
+}
+
 /* Khối biểu tượng cam kết nhỏ bên dưới ảnh */
 .pdp-gallery-assurances {
   display: grid;
@@ -19144,103 +19192,47 @@ html.light .btn-clear-to-lookbook {
 
 
 /* ==========================================================================
-   HEADER PERFECT CENTER ALIGNMENT ("Thanh menu để ra giữa")
-   ========================================================================== */
-.web-header-inner {
-  display: grid !important;
-  grid-template-columns: 1fr auto 1fr !important;
-  align-items: center !important;
-  justify-content: stretch !important;
-  width: 100% !important;
-  max-width: 1560px !important;
-  margin: 0 auto !important;
-  padding: 10px clamp(24px, 3vw, 48px) !important;
-  box-sizing: border-box !important;
-}
-
-.brand-logo-wrap {
-  grid-column: 1 !important;
-  justify-self: start !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  min-width: 160px !important;
-}
-
-.web-nav-links {
-  grid-column: 2 !important;
-  justify-self: center !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 12px !important;
-  margin: 0 auto !important;
-}
-
-.web-header-actions {
-  grid-column: 3 !important;
-  justify-self: end !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 8px !important;
-}
-
-@media (max-width: 1024px) {
-  .web-nav-links {
-    gap: 8px !important;
-  }
-}
-
-@media (max-width: 992px) {
-  .web-header-inner {
-    display: flex !important;
-    justify-content: space-between !important;
-  }
-  .web-nav-links {
-    display: none !important;
-  }
-}
-
-
-/* ==========================================================================
-   ZOOMED & FLUID HEADER (TRÀN 2 BÊN, KHÔNG TRỐNG MÉP, MENU TO RÕ)
+   FLUID & BALANCED RESPONSIVE HEADER (ĐỀU THEO SCALE TỪNG MÀN HÌNH)
    ========================================================================== */
 
-/* 1. Header Inner tràn viền 2 bên, loại bỏ hoàn toàn max-width gây khoảng trống đen */
 .web-main-header {
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 900 !important;
+  background: rgba(10, 11, 15, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
 }
 
 .web-header-inner {
-  display: grid !important;
-  grid-template-columns: 1fr auto 1fr !important;
+  display: flex !important;
   align-items: center !important;
-  justify-content: stretch !important;
+  justify-content: space-between !important;
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
-  padding: 14px clamp(24px, 3.5vw, 64px) !important;
+  padding: 10px clamp(14px, 2.2vw, 44px) !important;
   box-sizing: border-box !important;
-  gap: 20px !important;
+  gap: clamp(8px, 1.4vw, 24px) !important;
 }
 
-/* 2. Logo bên trái to, đĩnh đạc và uy quyền */
+/* 1. Logo thương hiệu bên trái */
 .brand-logo-wrap {
-  grid-column: 1 !important;
-  justify-self: start !important;
+  flex: 0 0 auto !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-start !important;
-  min-width: 170px !important;
   cursor: pointer !important;
+  user-select: none !important;
 }
 
 .logo-text-omni,
 .logo-text-OMNI {
-  font-size: clamp(23px, 1.8vw, 27px) !important;
+  font-size: clamp(19px, 1.45vw, 24px) !important;
   font-weight: 900 !important;
   letter-spacing: -0.025em !important;
   line-height: 1.15 !important;
@@ -19248,35 +19240,35 @@ html.light .btn-clear-to-lookbook {
 }
 
 .logo-sub-text {
-  font-size: 11px !important;
-  font-weight: 800 !important;
+  font-size: clamp(10.5px, 0.72vw, 12px) !important;
+  font-weight: 700 !important;
   color: #C59B27 !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-  margin-top: 3px !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
+  margin-top: 2px !important;
   display: inline-block !important;
 }
 
-/* 3. Menu điều hướng chính giữa được ZOOM TO RÕ RỆT, căn đúng tim màn hình */
+/* 2. Menu trung tâm: Co giãn mượt mà theo từng cỡ màn hình, căn giữa đều đặn */
 .web-nav-links {
-  grid-column: 2 !important;
-  justify-self: center !important;
+  flex: 1 1 auto !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: clamp(14px, 1.8vw, 32px) !important;
+  gap: clamp(4px, 0.95vw, 20px) !important;
   margin: 0 auto !important;
+  min-width: 0 !important;
 }
 
 .web-nav-links .nav-link {
-  font-size: 15.5px !important;
+  font-size: clamp(12.5px, 0.9vw, 14.5px) !important;
   font-weight: 700 !important;
   letter-spacing: -0.01em !important;
-  padding: 9px 14px !important;
+  padding: 7px clamp(6px, 0.65vw, 12px) !important;
   color: var(--text-primary, #F8FAFC) !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 5px !important;
   text-decoration: none !important;
   border-radius: 8px !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -19311,10 +19303,14 @@ html.light .btn-clear-to-lookbook {
   font-weight: 800 !important;
 }
 
+.nav-mega-parent {
+  position: relative !important;
+}
+
 .nav-mega-parent .nav-caret-icon {
-  width: 14px !important;
-  height: 14px !important;
-  margin-left: 4px !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: 2px !important;
   transition: transform 0.2s ease !important;
 }
 
@@ -19323,29 +19319,29 @@ html.light .btn-clear-to-lookbook {
   transform: rotate(180deg) !important;
 }
 
-/* 4. Cụm Actions bên phải to rõ, cân đối hoàn hảo */
+/* 3. Cụm Actions bên phải: Luôn hiển thị đầy đủ Tìm kiếm, Giỏ hàng, Đổi Theme, Tài khoản */
 .web-header-actions {
-  grid-column: 3 !important;
-  justify-self: end !important;
+  flex: 0 0 auto !important;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
-  gap: 12px !important;
+  gap: clamp(6px, 0.65vw, 12px) !important;
 }
 
 .web-search-box-wrap {
-  width: clamp(210px, 16vw, 290px) !important;
+  width: clamp(140px, 11vw, 240px) !important;
   position: relative !important;
   display: block !important;
+  flex-shrink: 1 !important;
 }
 
 .web-search-input {
   width: 100% !important;
-  height: 44px !important;
-  font-size: 14px !important;
+  height: clamp(36px, 2.2vw, 42px) !important;
+  font-size: clamp(12px, 0.8vw, 13.5px) !important;
   font-weight: 500 !important;
-  padding: 0 16px 0 40px !important;
-  border-radius: 10px !important;
+  padding: 0 12px 0 34px !important;
+  border-radius: 9px !important;
   background: var(--surface-card, #1C1C1A) !important;
   border: 1.5px solid var(--border-color, #2E2E2C) !important;
   color: var(--text-primary, #FFFFFF) !important;
@@ -19353,9 +19349,9 @@ html.light .btn-clear-to-lookbook {
 }
 
 .web-search-icon {
-  width: 16px !important;
-  height: 16px !important;
-  left: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+  left: 11px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
   position: absolute !important;
@@ -19363,9 +19359,9 @@ html.light .btn-clear-to-lookbook {
 }
 
 .header-action-btn {
-  width: 44px !important;
-  height: 44px !important;
-  border-radius: 10px !important;
+  width: clamp(36px, 2.2vw, 42px) !important;
+  height: clamp(36px, 2.2vw, 42px) !important;
+  border-radius: 9px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -19374,6 +19370,7 @@ html.light .btn-clear-to-lookbook {
   color: var(--text-primary, #FFFFFF) !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
 }
 
 .header-action-btn:hover {
@@ -19382,16 +19379,17 @@ html.light .btn-clear-to-lookbook {
 }
 
 .header-user-btn {
-  height: 44px !important;
-  padding: 0 16px 0 10px !important;
-  border-radius: 10px !important;
-  gap: 10px !important;
+  height: clamp(36px, 2.2vw, 42px) !important;
+  padding: 0 clamp(8px, 0.7vw, 14px) 0 6px !important;
+  border-radius: 9px !important;
+  gap: 8px !important;
   display: inline-flex !important;
   align-items: center !important;
   background: var(--surface-card, #1C1C1A) !important;
   border: 1.5px solid var(--border-color, #2E2E2C) !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
 }
 
 .header-user-btn:hover {
@@ -19399,20 +19397,21 @@ html.light .btn-clear-to-lookbook {
 }
 
 .user-avatar-text {
-  width: 32px !important;
-  height: 32px !important;
-  font-size: 14px !important;
+  width: clamp(26px, 1.8vw, 30px) !important;
+  height: clamp(26px, 1.8vw, 30px) !important;
+  font-size: clamp(11px, 0.75vw, 13px) !important;
   font-weight: 800 !important;
-  border-radius: 8px !important;
+  border-radius: 7px !important;
 }
 
 .user-name-text {
-  font-size: 14px !important;
+  font-size: clamp(12px, 0.8vw, 13.5px) !important;
   font-weight: 700 !important;
   color: var(--text-primary, #FFFFFF) !important;
+  white-space: nowrap !important;
 }
 
-/* 5. Mega Menu Panel trải rộng sang trọng */
+/* 4. Mega Menu Dropdown */
 .header-mega-menu {
   position: absolute !important;
   top: calc(100% + 14px) !important;
@@ -19430,13 +19429,36 @@ html.light .btn-clear-to-lookbook {
   transform: translateX(-50%) translateY(0) !important;
 }
 
-@media (max-width: 1024px) {
+/* 5. Breakpoints Scale tinh chỉnh từng dải màn hình */
+@media (max-width: 1366px) {
   .web-nav-links {
-    gap: 10px !important;
+    gap: 6px !important;
   }
   .web-nav-links .nav-link {
-    font-size: 14px !important;
-    padding: 7px 10px !important;
+    font-size: 13px !important;
+    padding: 6px 8px !important;
+  }
+  .web-search-box-wrap {
+    width: 155px !important;
+  }
+}
+
+@media (max-width: 1150px) {
+  .user-info-text-wrap {
+    display: none !important;
+  }
+  .header-user-btn {
+    padding: 0 6px !important;
+  }
+  .web-search-box-wrap {
+    width: 130px !important;
+  }
+  .web-nav-links {
+    gap: 4px !important;
+  }
+  .web-nav-links .nav-link {
+    font-size: 12px !important;
+    padding: 5px 6px !important;
   }
 }
 
@@ -19448,15 +19470,7 @@ html.light .btn-clear-to-lookbook {
   .web-nav-links {
     display: none !important;
   }
-}
-
-
-.logo-sub-text {
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  color: #C59B27 !important;
-  letter-spacing: 0.03em !important;
-  text-transform: none !important;
-  margin-top: 2px !important;
-  display: inline-block !important;
+  .web-search-box-wrap {
+    width: 160px !important;
+  }
 }
