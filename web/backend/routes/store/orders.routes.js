@@ -280,19 +280,10 @@ async function handleOrderRoutes(req, res, ctx) {
 
     const currentStatus = (orderRow[0].TrangThai || '').trim();
     const cleanStatus = currentStatus.toLowerCase();
+    // Đơn hàng ở trạng thái nào cũng được hủy, trừ khi đã ở trạng thái Đã hủy
     if (cleanStatus === 'đã hủy' || cleanStatus === 'cancelled') {
-      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: `Đơn hàng #${id} đã được hủy trước đó, không thể hủy lại.` }));
-      return true;
-    }
-
-    // Kiểm tra trạng thái: Nếu đơn đang giao hoặc đã giao thì chặn không cho hủy
-    if (cleanStatus.includes('giao') || cleanStatus === 'delivering' || cleanStatus === 'shipping' || cleanStatus === 'completed' || cleanStatus.includes('hoàn tất')) {
-      const errorMsg = (cleanStatus.includes('đang giao') || cleanStatus === 'delivering' || cleanStatus === 'shipping' || (cleanStatus.includes('giao') && !cleanStatus.includes('đã giao')))
-        ? `Đơn hàng #${id} đang trên đường giao hàng, không thể hủy!`
-        : `Đơn hàng #${id} đã hoàn tất giao hàng, không thể hủy!`;
-      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, error: errorMsg }));
       return true;
     }
 

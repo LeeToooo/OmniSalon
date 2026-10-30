@@ -57,7 +57,7 @@
       return this.formatDate(dateStr);
     },
 
-    // Kiểm tra điều kiện hủy đơn: chỉ cho hủy khi đơn chưa giao (chờ xác nhận, đang xử lý, đóng gói)
+    // Kiểm tra điều kiện hủy đơn: đơn ở bất kỳ trạng thái nào cũng được hủy, chỉ ẩn khi đã hủy rồi
     canCancelOrder(orderOrStatus) {
       if (!orderOrStatus) return false;
       const s = typeof orderOrStatus === 'string' 
@@ -65,14 +65,9 @@
         : (orderOrStatus.orderStatus || orderOrStatus.TrangThai || orderOrStatus.status || '');
       const clean = String(s).toLowerCase().trim();
       
-      // Nếu đã hủy hoặc đã hoàn thành rồi thì không hủy nữa
+      // Nếu đã hủy rồi thì không hủy nữa
       if (clean.includes('hủy') || clean === 'cancelled') return false;
-      if (clean.includes('hoàn tất') || clean.includes('thành công') || clean === 'completed' || clean === 'delivered' || clean.includes('đã giao')) return false;
-      // Đang giao hàng thì không cho hủy
-      if (clean.includes('đang giao') || clean === 'delivering' || clean === 'shipping' || (clean.includes('giao') && !clean.includes('đã giao'))) return false;
-
-      // Chỉ hủy khi đơn đang chờ xác nhận hoặc đang đóng gói
-      return clean.includes('chờ') || clean.includes('xác nhận') || clean.includes('xử lý') || clean.includes('đóng gói') || clean.includes('chuẩn bị') || clean === 'pending' || clean === 'processing';
+      return true;
     },
 
     formatOrderStatus(status) {

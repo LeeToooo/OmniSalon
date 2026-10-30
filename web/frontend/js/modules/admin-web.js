@@ -494,6 +494,7 @@
 
       if (activeRole === 'CASHIER') {
         visibleTabs = [
+          { id: 'receipts', icon: tabIcons.receipts, label: 'Lập Phiếu Nhập Kho' },
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
           { id: 'audit', icon: tabIcons.audit, label: 'Lịch Sử Đơn Hàng & POS' }
@@ -501,10 +502,10 @@
         tabGroups = [
           {
             groupLabel: 'NGHIỆP VỤ THU NGÂN & TIẾP ĐÓN',
-            ids: ['pos', 'bookings', 'audit']
+            ids: ['receipts', 'pos', 'bookings', 'audit']
           }
         ];
-        if (!['pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
+        if (!['receipts', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
           this.adminSubTab = 'pos';
         }
       } else if (activeRole === 'BRANCH_MANAGER') {
@@ -2856,6 +2857,11 @@
     switchInventorySubTab(type) {
       this.inventorySubTab = type;
       this.inventoryPage = 1;
+      if (type === 'receipts') {
+        this.adminSubTab = 'receipts';
+      } else {
+        this.adminSubTab = 'inventory';
+      }
       this.refreshInventoryView();
     },
 
@@ -2876,24 +2882,32 @@
       return `
         <div class="admin-table-container">
           <!-- Thanh Chuyển Đổi Phân Hệ Kho (SQL 100% Entities) -->
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 10px;">
-            <button type="button" class="admin-tab-btn ${subType === 'stock' ? 'active' : ''}" 
-                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('stock')">
-              📦 Tồn Kho &amp; Sản Phẩm (${inventory.length})
-            </button>
-            <button type="button" class="admin-tab-btn ${subType === 'fefo' ? 'active' : ''}" 
-                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('fefo')">
-              🏷️ Lô Hàng FEFO &amp; Giá Cận Hạn (${fefoLots.length})
-            </button>
-            <button type="button" class="admin-tab-btn ${subType === 'receipts' ? 'active' : ''}" 
-                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('receipts')">
-              📥 Phiếu Nhập Kho (${receipts.length})
-            </button>
-            <button type="button" class="admin-tab-btn ${subType === 'rules' ? 'active' : ''}" 
-                    style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('rules')">
-              🏢 Danh Sách Nhà Cung Cấp (${suppliers.length} NCC)
-            </button>
-          </div>
+          ${(this.isCashier(user) || (!this.isSuperAdmin(user) && !this.isBranchManager(user))) ? `
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 10px;">
+              <button type="button" class="admin-tab-btn active" style="padding: 6px 14px; font-size: 12px;">
+                📥 Phiếu Nhập Kho Của Tôi (${receipts.filter(r => (r.creatorId && r.creatorId === user?.staffId) || (r.MaNhanVien && r.MaNhanVien === user?.staffId) || (r.creatorName && (r.creatorName === user?.fullName || r.creatorName === user?.name)) || (r.staffName && (r.staffName === user?.fullName || r.staffName === user?.name))).length})
+              </button>
+            </div>
+          ` : `
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 10px;">
+              <button type="button" class="admin-tab-btn ${subType === 'stock' ? 'active' : ''}" 
+                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('stock')">
+                📦 Tồn Kho &amp; Sản Phẩm (${inventory.length})
+              </button>
+              <button type="button" class="admin-tab-btn ${subType === 'fefo' ? 'active' : ''}" 
+                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('fefo')">
+                🏷️ Lô Hàng FEFO &amp; Giá Cận Hạn (${fefoLots.length})
+              </button>
+              <button type="button" class="admin-tab-btn ${subType === 'receipts' ? 'active' : ''}" 
+                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('receipts')">
+                📥 Phiếu Nhập Kho (${receipts.length})
+              </button>
+              <button type="button" class="admin-tab-btn ${subType === 'rules' ? 'active' : ''}" 
+                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('rules')">
+                🏢 Danh Sách Nhà Cung Cấp (${suppliers.length} NCC)
+              </button>
+            </div>
+          `}
 
           <!-- Toolbar Kho Hàng -->
           <div class="admin-table-toolbar">
@@ -3162,6 +3176,10 @@
                     </td>
                     <td style="text-align: center; white-space: nowrap;">
                       <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="AdminWeb.viewReceiptDetailModal('${r.id || r.MaPhieuNhap}')">Chi Tiết</button>
+                      ${((this.isSuperAdmin(user) || this.isBranchManager(user)) && (r.status === 'Chờ duyệt' || r.TrangThai === 'Chờ duyệt')) ? `
+                        <button class="btn-submit-terracotta" style="padding: 3px 8px; font-size: 11px; background: #16a34a; margin-left: 4px;" onclick="AdminWeb.approveReceipt('${r.id || r.MaPhieuNhap}')">✓ Duyệt</button>
+                        <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); margin-left: 4px;" onclick="AdminWeb.rejectReceiptModal('${r.id || r.MaPhieuNhap}')">✕ Từ Chối</button>
+                      ` : ''}
                     </td>
                   </tr>
                 `).join('') : `

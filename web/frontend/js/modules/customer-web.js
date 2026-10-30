@@ -1244,6 +1244,7 @@
             const isCancelled = statusInfo.key === 'cancelled';
             const isCompleted = statusInfo.key === 'completed';
             const isDelivering = statusInfo.key === 'delivering';
+            const isPaid = (o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán' || o.TrangThaiThanhToan === 'Đã thanh toán');
             // Kiểm tra trạng thái đơn: chỉ hiện nút hủy khi chưa giao
             const isCancellable = (window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function')
               ? window.SalonUtils.canCancelOrder(o)
@@ -1294,7 +1295,13 @@
                       <span style="font-size: 12px; color: var(--text-secondary);">Bạn đã nhận hàng? Đánh giá để nhận điểm thưởng.</span>
                     `}
                   </div>
-                  <div style="display: flex; gap: 8px;">
+                  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    ${(!isPaid && !isCancelled) ? `
+                      <button class="btn-submit-terracotta" style="font-size: 11px; padding: 5px 12px; background: #16a34a; display: inline-flex; align-items: center; gap: 4px;" 
+                              onclick="CustomerWeb.openOrderPaymentModal('${this.escapeHtml(oCode)}')">
+                        💳 Thanh Toán Ngay (VietQR)
+                      </button>
+                    ` : ''}
                     ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(oCode)) ? `
                       <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
                               onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(oCode)}')">
@@ -3946,11 +3953,16 @@
           </div>
 
           <!-- Nút hành động -->
-          <div style="display: flex; justify-content: center;">
+          <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
             <button type="button" class="btn-cancel" 
-                    style="min-height: 42px; min-width: 140px; padding: 0 24px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
+                    style="min-height: 42px; min-width: 120px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
                     onclick="CustomerWeb.closeOrderPaymentModal()">
               Đóng Cửa Sổ
+            </button>
+            <button type="button" class="btn-submit-terracotta" 
+                    style="min-height: 42px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 800; background: #16a34a; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
+                    onclick="CustomerWeb.confirmOrderPaidMock('${this.escapeHtml(oCode)}')">
+              ✓ Tôi Đã Chuyển Khoản Thành Công
             </button>
           </div>
         </div>
@@ -3966,6 +3978,19 @@
         this.openCustomerPortalModal('orders');
       } else {
         this.openLookupModal(this._lookupLastQuery || '', 'orders');
+      }
+    },
+
+    async confirmOrderPaidMock(orderId) {
+      if (!orderId) return;
+      if (window.store && typeof window.store.confirmOrderPayment === 'function') {
+        const res = await window.store.confirmOrderPayment(orderId, 'VietQR');
+        if (res && res.success !== false) {
+          if (window.UICommon) window.UICommon.showToast(`Đơn hàng #${orderId} đã xác nhận thanh toán VietQR thành công!`, 'success');
+          this.closeOrderPaymentModal();
+        } else {
+          if (window.UICommon) window.UICommon.showToast(res?.error || 'Có lỗi khi xác nhận thanh toán!', 'error');
+        }
       }
     },
 
