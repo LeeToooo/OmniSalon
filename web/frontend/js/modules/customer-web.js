@@ -3357,8 +3357,9 @@
           <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary, #555); text-transform: uppercase; margin-bottom: 10px;">
             Lịch Sử Đơn Hàng &amp; Tiến Trình Vận Chuyển:
           </div>
-          <div style="max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
+          <div style="max-height: 540px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding-right: 6px;">
             ${orders.map(o => {
+        const oId = this.escapeHtml(o.id || o.orderCode || o.MaDonHang || 'DH');
         const rawSt = (o.orderStatus || o.status || o.TrangThai || 'Pending').toLowerCase();
         let step = 1;
         if (rawSt.includes('hủy') || rawSt === 'cancelled') {
@@ -3370,102 +3371,141 @@
         } else if (rawSt.includes('đóng gói') || rawSt.includes('xử lý') || rawSt === 'processing') {
           step = 2;
         } else {
-          step = 1; // Pending / Chờ xác nhận
+          step = 1;
         }
 
         const isPickup = o.deliveryType === 'PICKUP_BRANCH';
-        const items = o.items || [];
+        const isCancelled = (step === 0);
+        const isDelivering = (step === 3);
+        const isCompleted = (step === 4);
+        const isPaid = (o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán' || o.paymentStatus === 'PAID');
+        const items = Array.isArray(o.items) ? o.items : [];
+        const rawDate = o.createdAt || o.orderDate || o.NgayDat;
+        const formattedDate = rawDate ? (window.SalonUtils ? window.SalonUtils.formatDateTime(rawDate) : String(rawDate).split('T')[0]) : 'Hôm nay';
+        const oReview = (window.store && window.store.getReviewByOrderId) ? window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang) : null;
+
         return `
-                <div class="portal-card-history" style="background: var(--surface-card, #ffffff); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-radius: 12px; padding: 14px;">
-                  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
-                    <div>
-                      <strong style="color: var(--text-primary, #111); font-size: 14px;">#${this.escapeHtml(o.id || o.orderCode)}</strong>
-                      <span style="font-size: 12px; color: var(--text-secondary, #666); margin-left: 6px;">(${items.length} mặt hàng)</span>
+                <div class="portal-card-history order-card-premium" style="background: var(--surface-card, #1c1c1a); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 20px 24px; box-shadow: 0 6px 20px rgba(0,0,0,0.25);">
+                  
+                  <!-- Header don hang -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      <span style="font-size: 16px; font-weight: 900; color: #f59e0b; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); padding: 4px 10px; border-radius: 6px; font-family: monospace;">#${oId}</span>
+                      <span style="font-size: 13.5px; color: var(--text-secondary, #a1a1aa);">Đặt ngày: <strong style="color: #FAF8F5;">${formattedDate}</strong></span>
                     </div>
-                    <strong style="color: var(--color-terracotta); font-size: 14px;">${SalonUtils.formatCurrency(o.totalAmount || 0)}</strong>
+                    <div style="display: flex; align-items: baseline; gap: 6px;">
+                      <span style="font-size: 13px; color: var(--text-secondary, #a1a1aa); text-transform: uppercase; font-weight: 600;">Tổng:</span>
+                      <strong style="color: #f59e0b; font-size: 20px; font-weight: 900;">${SalonUtils.formatCurrency(o.totalAmount || 0)}</strong>
+                    </div>
                   </div>
 
-                  <!-- Visual Order Timeline 4 Bước -->
-                  ${step === 0 ? `
-                    <div style="margin: 10px 0; padding: 8px 12px; background: #fee2e2; border-radius: 8px; font-size: 11.5px; font-weight: 700; color: #b91c1c; text-align: center;">
-                      ❌ Đơn hàng đã được hủy
+                  <!-- Visual Timeline 4 Buoc -->
+                  ${isCancelled ? `
+                    <div style="padding: 12px 16px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; font-size: 14px; font-weight: 700; color: #ef4444; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                      <span>❌</span> Đơn hàng đã được hủy
                     </div>
                   ` : `
-                    <div class="order-status-timeline" style="display: flex; align-items: center; justify-content: space-between; margin: 10px 0; padding: 8px 12px; background: var(--surface-elevated, #f8fafc); border-radius: 8px; font-size: 11px;">
-                      <span style="font-weight: ${step >= 1 ? '800' : '500'}; color: ${step === 1 ? '#ea580c' : (step > 1 ? '#16a34a' : 'var(--text-secondary, #888)')}; display: inline-flex; align-items: center; gap: 2px;">
-                        ${step > 1 ? '✓' : '①'} Chờ Xác Nhận
-                      </span>
-                      <span style="color: ${step > 1 ? '#16a34a' : '#ccc'}; font-weight: 700;">→</span>
-                      <span style="font-weight: ${step >= 2 ? '800' : '500'}; color: ${step === 2 ? '#ea580c' : (step > 2 ? '#16a34a' : 'var(--text-secondary, #888)')}; display: inline-flex; align-items: center; gap: 2px;">
-                        ${step > 2 ? '✓' : '②'} Đang Đóng Gói
-                      </span>
-                      <span style="color: ${step > 2 ? '#16a34a' : '#ccc'}; font-weight: 700;">→</span>
-                      <span style="font-weight: ${step >= 3 ? '800' : '500'}; color: ${step === 3 ? '#0284c7' : (step > 3 ? '#16a34a' : 'var(--text-secondary, #888)')}; display: inline-flex; align-items: center; gap: 2px;">
-                        ${step > 3 ? '✓' : '③'} Đang Giao
-                      </span>
-                      <span style="color: ${step > 3 ? '#16a34a' : '#ccc'}; font-weight: 700;">→</span>
-                      <span style="font-weight: ${step === 4 ? '800' : '500'}; color: ${step === 4 ? '#16a34a' : 'var(--text-secondary, #888)'}; display: inline-flex; align-items: center; gap: 2px;">
-                        ${step === 4 ? '✓' : '④'} Hoàn Tất
-                      </span>
+                    <div class="order-status-timeline" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 12px 18px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; ${step > 1 ? 'background: #10B981; color: #000;' : (step === 1 ? 'background: #f59e0b; color: #000;' : 'background: rgba(255,255,255,0.1); color: #71717a;')}">${step > 1 ? '✓' : '1'}</span>
+                        <span style="font-size: 13.5px; font-weight: ${step >= 1 ? '800' : '600'}; color: ${step === 1 ? '#f59e0b' : (step > 1 ? '#10B981' : '#71717a')};">Chờ Xác Nhận</span>
+                      </div>
+                      <span style="color: ${step > 1 ? '#10B981' : 'rgba(255,255,255,0.2)'}; font-weight: 900; font-size: 16px;">→</span>
+                      
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; ${step > 2 ? 'background: #10B981; color: #000;' : (step === 2 ? 'background: #f59e0b; color: #000;' : 'background: rgba(255,255,255,0.1); color: #71717a;')}">${step > 2 ? '✓' : '2'}</span>
+                        <span style="font-size: 13.5px; font-weight: ${step >= 2 ? '800' : '600'}; color: ${step === 2 ? '#f59e0b' : (step > 2 ? '#10B981' : '#71717a')};">Đang Đóng Gói</span>
+                      </div>
+                      <span style="color: ${step > 2 ? '#10B981' : 'rgba(255,255,255,0.2)'}; font-weight: 900; font-size: 16px;">→</span>
+
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; ${step > 3 ? 'background: #10B981; color: #000;' : (step === 3 ? 'background: #0284c7; color: #fff;' : 'background: rgba(255,255,255,0.1); color: #71717a;')}">${step > 3 ? '✓' : '3'}</span>
+                        <span style="font-size: 13.5px; font-weight: ${step >= 3 ? '800' : '600'}; color: ${step === 3 ? '#0284c7' : (step > 3 ? '#10B981' : '#71717a')};">Đang Giao</span>
+                      </div>
+                      <span style="color: ${step === 4 ? '#10B981' : 'rgba(255,255,255,0.2)'}; font-weight: 900; font-size: 16px;">→</span>
+
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; ${step === 4 ? 'background: #10B981; color: #000;' : 'background: rgba(255,255,255,0.1); color: #71717a;'}">${step === 4 ? '✓' : '4'}</span>
+                        <span style="font-size: 13.5px; font-weight: ${step === 4 ? '800' : '600'}; color: ${step === 4 ? '#10B981' : '#71717a'};">Hoàn Tất</span>
+                      </div>
                     </div>
                   `}
 
-                  <div style="font-size: 12px; color: var(--text-secondary, #555); line-height: 1.5;">
-                    <div>Hình thức: <strong>${isPickup ? 'Nhận tại chi nhánh Omni Salon' : 'Giao hàng tận nhà'}</strong></div>
-                    <div>Thanh toán: <strong>${this.escapeHtml(o.paymentMethod || 'VietQR')}</strong> • Trạng thái: <strong style="color:${(o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán') ? '#16a34a' : '#ea580c'}">${(o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán') ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</strong></div>
-                  </div>
-
-                  <!-- Danh sách món hàng tóm tắt -->
-                  <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color, #e5e7eb); font-size: 11px; color: var(--text-secondary, #666);">
-                    ${items.map(it => {
-          const prod = productMap.get(String(it.productId || it.id)) || {};
-          const itemName = it.name || prod.name || 'Sản phẩm';
-          const itemQty = it.qty || it.quantity || 1;
-          const itemPrice = it.price || it.unitPrice || prod.price || 0;
-          return `
-                      <div style="display: flex; justify-content: space-between;">
-                        <span>• ${this.escapeHtml(itemName)} x${itemQty}</span>
-                        <span>${SalonUtils.formatCurrency(itemPrice * itemQty)}</span>
-                      </div>
-                      `;
-        }).join('')}
-                  </div>
-
-                  <!-- Khối đánh giá khách hàng đã mua hàng -->
-                  <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.08)); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <div>
-                      ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang)) ? `
-                        <span style="color: #f59e0b; font-size: 13px;">${'★'.repeat(window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang).rating || 5)}${'☆'.repeat(5 - (window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang).rating || 5))}</span>
-                        <span style="color: var(--text-secondary); font-size: 12px; margin-left: 6px; font-style: italic;">"${this.escapeHtml(window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang).comment || 'Rất hài lòng')}"</span>
-                      ` : `
-                        <span style="font-size: 12px; color: var(--text-secondary);">Bạn đã nhận được hàng? Hãy để lại đánh giá cho Omni Salon nhé!</span>
-                      `}
+                  <!-- Danh sach mon hang -->
+                  <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 12px; padding: 14px 18px; margin-bottom: 14px;">
+                    <div style="font-size: 12.5px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px;">
+                      📦 SẢN PHẨM TRONG ĐƠN:
                     </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                      ${items.map(it => {
+                        const prod = productMap.get(String(it.productId || it.id)) || {};
+                        const itemName = it.name || prod.name || 'Sản phẩm';
+                        const itemQty = it.qty || it.quantity || 1;
+                        const itemPrice = it.price || it.unitPrice || prod.price || 0;
+                        return `
+                          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14.5px;">
+                            <span style="color: #FAF8F5;">• ${this.escapeHtml(itemName)} <strong style="color: #f59e0b; margin-left: 6px;">× ${itemQty}</strong></span>
+                            <strong style="color: #f59e0b;">${SalonUtils.formatCurrency(itemPrice * itemQty)}</strong>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+
+                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255, 255, 255, 0.12); font-size: 13.5px; color: var(--text-secondary, #a1a1aa); display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between;">
+                      <div>Hình thức: <strong style="color: #FAF8F5;">${isPickup ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nơi'}</strong></div>
+                      <div>Thanh toán: <strong style="color: ${isPaid ? '#10B981' : '#f59e0b'};">${isPaid ? 'Đã Thanh Toán (VietQR)' : 'Chưa Thanh Toán'}</strong></div>
+                    </div>
+                  </div>
+
+                  <!-- Danh gia neu co -->
+                  ${oReview ? `
+                    <div style="font-size: 13.5px; color: #FAF8F5; padding: 10px 14px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                      <span style="color: #f59e0b; font-size: 15px;">${'★'.repeat(oReview.rating || 5)}${'☆'.repeat(5 - (oReview.rating || 5))}</span>
+                      <span style="font-style: italic; color: #e4e4e7;">"${this.escapeHtml(oReview.comment || 'Rất hài lòng')}"</span>
+                    </div>
+                  ` : ''}
+
+                  <!-- Hang nut thao tac: to, ro rang -->
+                  <div style="margin-top: 12px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                      ${isDelivering ? `
+                        <span style="font-size: 13px; color: #0284c7; background: rgba(2, 132, 199, 0.12); border: 1px solid rgba(2, 132, 199, 0.35); padding: 6px 12px; border-radius: 8px; font-weight: 700;">
+                          🚚 Đang vận chuyển
+                        </span>
+                      ` : (isCompleted ? `
+                        <span style="font-size: 13px; color: #10B981; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 6px 12px; border-radius: 8px; font-weight: 700;">
+                          ✓ Đã hoàn tất
+                        </span>
+                      ` : '')}
+                    </div>
+
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                      ${(o.paymentStatus !== 'Paid' && o.TrangThai !== 'Đã thanh toán' && !isCancelled) ? `
-                        <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #10b981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
-                                onclick="CustomerWeb.openOrderPaymentModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
+                      ${(!isPaid && !isCancelled) ? `
+                        <button type="button" class="btn-order-action" style="font-size: 13px; padding: 8px 16px; color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                                onclick="CustomerWeb.openOrderPaymentModal('${oId}')">
                           💳 Thanh Toán VietQR
                         </button>
                       ` : ''}
-                      ${(window.store && window.store.getReviewByOrderId && window.store.getReviewByOrderId(o.id || o.orderCode || o.MaDonHang)) ? `
-                        <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
-                                onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
+
+                      ${(!isCancelled) ? (oReview ? `
+                        <button type="button" class="btn-order-action" style="font-size: 13px; padding: 8px 16px; color: #f59e0b; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                                onclick="CustomerWeb.openOrderReviewModal('${oId}')">
                           ⭐ Sửa Đánh Giá
                         </button>
                       ` : `
-                        <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
-                                onclick="CustomerWeb.openOrderReviewModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
+                        <button type="button" class="btn-order-action" style="font-size: 13px; padding: 8px 16px; color: #f59e0b; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                                onclick="CustomerWeb.openOrderReviewModal('${oId}')">
                           ⭐ Đánh Giá Đơn Hàng
                         </button>
-                      `}
+                      `) : ''}
+
                       ${(window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function' ? window.SalonUtils.canCancelOrder(o) : (!isCancelled)) ? `
-                        <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
-                                onclick="CustomerWeb.openOrderCancelModal('${this.escapeHtml(o.id || o.orderCode || o.MaDonHang)}')">
+                        <button type="button" class="btn-order-action" style="font-size: 13px; padding: 8px 16px; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                                onclick="CustomerWeb.openOrderCancelModal('${oId}')">
                           ✕ Hủy Đơn Hàng
                         </button>
                       ` : `
-                        <span style="font-size: 11px; color: #94a3b8; background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); padding: 5px 12px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                        <span style="font-size: 12.5px; color: #94a3b8; background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); padding: 6px 14px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
                           ✕ Đã hủy đơn
                         </span>
                       `}

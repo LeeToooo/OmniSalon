@@ -1,17 +1,17 @@
-﻿USE master;
+USE master;
 GO
 
-IF DB_ID(N'QL_SALONTOC') IS NOT NULL
+IF DB_ID(N'QL_SALON') IS NOT NULL
 BEGIN
-    ALTER DATABASE QL_SALONTOC SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE QL_SALONTOC;
+    ALTER DATABASE QL_SALON SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE QL_SALON;
 END
 GO
 
-CREATE DATABASE QL_SALONTOC;
+CREATE DATABASE QL_SALON;
 GO
 
-USE QL_SALONTOC;
+USE QL_SALON;
 GO
 
 -- =========================================================================
@@ -1336,7 +1336,6 @@ INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh) VALUES
 -- 1. TÀI KHOẢN 80 NHÂN SỰ (20 Quản lý, 40 Thợ cắt/Barber, 20 Thu ngân)
 INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) VALUES
 ('TK_ADMIN', 'NV00', NULL, 'admin', 'admin123',     N'Quản trị viên', N'Hoạt động', '2026-01-01 08:00:00'),
-
 -- CN01
 ('TK_NV01', 'NV01', NULL, 'user_nv01', 'LeHoangHai',     N'Quản lý',   N'Hoạt động', '2026-01-01 08:00:00'),
 ('TK_NV02', 'NV02', NULL, 'user_nv02', 'DoDinhDo',       N'Nhân viên', N'Hoạt động', '2026-01-01 08:00:00'),

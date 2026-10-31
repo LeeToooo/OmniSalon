@@ -4715,6 +4715,23 @@ html.light .admin-enterprise-table tr:hover td,
 .order-status-timeline {
   user-select: none;
 }
+.order-status-timeline-large {
+  user-select: none;
+}
+.order-card-premium {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.order-card-premium:hover {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5) !important;
+}
+.btn-order-action {
+  transition: all 0.2s ease;
+}
+.btn-order-action:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+}
 
 /* Tối ưu tương tác khu vực quản trị */
 .chart-bar-group:hover rect {

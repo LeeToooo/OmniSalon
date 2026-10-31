@@ -151,22 +151,6 @@
                   </button>
                 </div>
               </div>
-
-              <!-- Banner Quản Trị Viên (Nếu là Admin) -->
-              ${isAdmin ? `
-                <div style="margin-top: 20px; padding: 14px 20px; background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 20px;">⚡</span>
-                    <div>
-                      <strong style="color: #f59e0b; font-size: 14px;">TRUNG TÂM QUẢN TRỊ SALON</strong>
-                      <div style="font-size: 12.5px; color: var(--text-secondary);">Bạn đang đăng nhập với quyền Quản trị viên Omni Salon.</div>
-                    </div>
-                  </div>
-                  <button type="button" class="btn-submit-terracotta" style="padding: 8px 18px; font-size: 13px; font-weight: 800; background: #f59e0b; color: #000; border-radius: 8px;" onclick="if(window.AppRouter) window.AppRouter.navigate('/admin'); else CustomerWeb.switchTab('admin');">
-                    Vào Bảng Điều Khiển Quản Trị →
-                  </button>
-                </div>
-              ` : ''}
             </div>
 
             <!-- 2. NAVIGATION TABS TRANG PROFILE -->
@@ -355,16 +339,21 @@
 
       return `
         <div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <div style="font-size: 13px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase;">
-              Lịch sử mua hàng &amp; Tiến trình vận chuyển (${orders.length} đơn):
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 17px; font-weight: 800; color: var(--text-primary);">
+                📦 Lịch sử mua hàng &amp; Tiến trình vận chuyển
+              </span>
+              <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 800;">
+                ${orders.length} đơn
+              </span>
             </div>
-            <button type="button" class="btn-submit-terracotta" style="padding: 8px 16px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #000;" onclick="if(window.AppRouter) window.AppRouter.navigate('/shop'); else CustomerWeb.switchTab('shop');">
+            <button type="button" class="btn-submit-terracotta" style="padding: 10px 22px; font-size: 14px; font-weight: 800; border-radius: 10px; background: #C59B27; color: #000; cursor: pointer;" onclick="if(window.AppRouter) window.AppRouter.navigate('/shop'); else CustomerWeb.switchTab('shop');">
               + Mua Thêm Sản Phẩm
             </button>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; flex-direction: column; gap: 20px;">
             ${orders.map(o => {
               const oCode = o.id || o.orderCode || o.MaDonHang || 'DH';
               const rawSt = (o.orderStatus || o.status || o.TrangThai || 'Pending').toLowerCase();
@@ -396,110 +385,144 @@
               const oReview = (window.store && window.store.getReviewByOrderId) ? window.store.getReviewByOrderId(oCode) : null;
 
               return `
-                <div class="profile-item-card" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px;">
+                <div class="profile-item-card order-card-premium" style="background: var(--surface-card, #1c1c1a); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 18px; padding: 26px 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); margin-bottom: 22px;">
                   
-                  <!-- Header đơn hàng -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                    <div>
-                      <span style="font-size: 16px; font-weight: 800; color: var(--text-primary); font-family: monospace;">#${oCode}</span>
-                      <span style="font-size: 13px; color: var(--text-secondary); margin-left: 10px;">Đặt ngày: <strong>${formattedDate}</strong></span>
+                  <!-- Header don hang -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                      <span style="font-size: 18px; font-weight: 900; color: #f59e0b; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.35); padding: 6px 14px; border-radius: 8px; font-family: monospace; letter-spacing: 0.5px;">#${oCode}</span>
+                      <span style="font-size: 14.5px; color: var(--text-secondary, #a1a1aa);">Đặt ngày: <strong style="color: #FAF8F5;">${formattedDate}</strong></span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                      <span style="font-size: 13px; color: var(--text-secondary);">Tổng tiền:</span>
-                      <strong style="font-size: 17px; color: #C59B27;">${window.SalonUtils ? window.SalonUtils.formatCurrency(o.totalAmount || 0) : o.totalAmount}</strong>
+                    <div style="display: flex; align-items: baseline; gap: 8px;">
+                      <span style="font-size: 14px; color: var(--text-secondary, #a1a1aa); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Tổng tiền:</span>
+                      <strong style="font-size: 24px; font-weight: 900; color: #f59e0b; letter-spacing: -0.5px;">${window.SalonUtils ? window.SalonUtils.formatCurrency(o.totalAmount || 0) : o.totalAmount}</strong>
                     </div>
                   </div>
 
-                  <!-- Visual Timeline 4 Bước -->
+                  <!-- Visual Timeline 4 Buoc -->
                   ${isCancelled ? `
-                    <div style="padding: 10px 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; font-size: 13px; font-weight: 700; color: #ef4444; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-                      <span>❌</span> Đơn hàng đã được hủy bỏ.
+                    <div style="padding: 16px 20px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; font-size: 15px; font-weight: 700; color: #ef4444; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                      <span style="font-size: 20px;">❌</span> <span>Đơn hàng đã được hủy bỏ.</span>
                     </div>
                   ` : `
-                    <div class="order-status-timeline" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 10px 16px; background: var(--surface-elevated); border-radius: 10px; font-size: 12.5px;">
-                      <span style="font-weight: ${step >= 1 ? '800' : '500'}; color: ${step === 1 ? '#ea580c' : (step > 1 ? '#10B981' : 'var(--text-secondary)')}; display: inline-flex; align-items: center; gap: 4px;">
-                        ${step > 1 ? '✓' : '①'} Chờ Xác Nhận
-                      </span>
-                      <span style="color: ${step > 1 ? '#10B981' : 'var(--border-color)'}; font-weight: 700;">→</span>
-                      <span style="font-weight: ${step >= 2 ? '800' : '500'}; color: ${step === 2 ? '#ea580c' : (step > 2 ? '#10B981' : 'var(--text-secondary)')}; display: inline-flex; align-items: center; gap: 4px;">
-                        ${step > 2 ? '✓' : '②'} Đang Đóng Gói
-                      </span>
-                      <span style="color: ${step > 2 ? '#10B981' : 'var(--border-color)'}; font-weight: 700;">→</span>
-                      <span style="font-weight: ${step >= 3 ? '800' : '500'}; color: ${step === 3 ? '#0284c7' : (step > 3 ? '#10B981' : 'var(--text-secondary)')}; display: inline-flex; align-items: center; gap: 4px;">
-                        ${step > 3 ? '✓' : '③'} Đang Giao Hàng
-                      </span>
-                      <span style="color: ${step > 3 ? '#10B981' : 'var(--border-color)'}; font-weight: 700;">→</span>
-                      <span style="font-weight: ${step === 4 ? '800' : '500'}; color: ${step === 4 ? '#10B981' : 'var(--text-secondary)'}; display: inline-flex; align-items: center; gap: 4px;">
-                        ${step === 4 ? '✓' : '④'} Hoàn Tất
-                      </span>
+                    <div class="order-status-timeline-large" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; padding: 18px 24px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px;">
+                      
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 1 ? 'background: #10B981; color: #000;' : (step === 1 ? 'background: #f59e0b; color: #000; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);' : 'background: rgba(255,255,255,0.1); color: #71717a;')}">
+                          ${step > 1 ? '✓' : '1'}
+                        </div>
+                        <span style="font-size: 14.5px; font-weight: ${step >= 1 ? '800' : '600'}; color: ${step === 1 ? '#f59e0b' : (step > 1 ? '#10B981' : '#71717a')};">Chờ Xác Nhận</span>
+                      </div>
+
+                      <div style="font-size: 18px; font-weight: 900; color: ${step > 1 ? '#10B981' : 'rgba(255,255,255,0.15)'};">→</div>
+
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 2 ? 'background: #10B981; color: #000;' : (step === 2 ? 'background: #f59e0b; color: #000; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);' : 'background: rgba(255,255,255,0.1); color: #71717a;')}">
+                          ${step > 2 ? '✓' : '2'}
+                        </div>
+                        <span style="font-size: 14.5px; font-weight: ${step >= 2 ? '800' : '600'}; color: ${step === 2 ? '#f59e0b' : (step > 2 ? '#10B981' : '#71717a')};">Đang Đóng Gói</span>
+                      </div>
+
+                      <div style="font-size: 18px; font-weight: 900; color: ${step > 2 ? '#10B981' : 'rgba(255,255,255,0.15)'};">→</div>
+
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 3 ? 'background: #10B981; color: #000;' : (step === 3 ? 'background: #0284c7; color: #fff; box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);' : 'background: rgba(255,255,255,0.1); color: #71717a;')}">
+                          ${step > 3 ? '✓' : '3'}
+                        </div>
+                        <span style="font-size: 14.5px; font-weight: ${step >= 3 ? '800' : '600'}; color: ${step === 3 ? '#0284c7' : (step > 3 ? '#10B981' : '#71717a')};">Đang Giao Hàng</span>
+                      </div>
+
+                      <div style="font-size: 18px; font-weight: 900; color: ${step === 4 ? '#10B981' : 'rgba(255,255,255,0.15)'};">→</div>
+
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step === 4 ? 'background: #10B981; color: #000; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);' : 'background: rgba(255,255,255,0.1); color: #71717a;'}">
+                          ${step === 4 ? '✓' : '4'}
+                        </div>
+                        <span style="font-size: 14.5px; font-weight: ${step === 4 ? '800' : '600'}; color: ${step === 4 ? '#10B981' : '#71717a'};">Hoàn Tất</span>
+                      </div>
+
                     </div>
                   `}
 
-                  <!-- Danh sách món hàng -->
-                  <div style="background: var(--surface-elevated); border-radius: 10px; padding: 12px 16px; margin-bottom: 12px;">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">Sản phẩm trong đơn:</div>
-                    ${items.map(it => {
-                      const prod = productMap.get(String(it.productId || it.id)) || {};
-                      const itName = it.name || prod.name || it.TenSanPham || 'Mỹ phẩm';
-                      const itQty = it.qty || it.quantity || 1;
-                      const itPrice = it.price || it.unitPrice || prod.price || 0;
-                      return `
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.8;">
-                          <span>• ${window.SalonUtils ? window.SalonUtils.escapeHtml(itName) : itName} <strong>× ${itQty}</strong></span>
-                          <strong style="color: #C59B27;">${window.SalonUtils ? window.SalonUtils.formatCurrency(itPrice * itQty) : (itPrice * itQty)}</strong>
-                        </div>
-                      `;
-                    }).join('')}
-                    <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border-color); font-size: 12.5px; color: var(--text-secondary);">
-                      Hình thức: <strong>${o.shippingAddress || (o.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nơi')}</strong> • Thanh toán: <strong>${isPaid ? 'Đã thanh toán (VietQR)' : 'Chưa thanh toán'}</strong>
+                  <!-- Danh sach mon hang -->
+                  <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 20px 24px; margin-bottom: 20px;">
+                    <div style="font-size: 13.5px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                      <span>📦</span> SẢN PHẨM TRONG ĐƠN:
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                      ${items.map((it, idx) => {
+                        const prod = productMap.get(String(it.productId || it.id)) || {};
+                        const itName = it.name || prod.name || it.TenSanPham || 'Mỹ phẩm';
+                        const itQty = it.qty || it.quantity || 1;
+                        const itPrice = it.price || it.unitPrice || prod.price || 0;
+                        return `
+                          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; ${idx < items.length - 1 ? 'border-bottom: 1px solid rgba(255, 255, 255, 0.05);' : ''}">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                              <span style="font-size: 16px; font-weight: 700; color: #FAF8F5;">• ${window.SalonUtils ? window.SalonUtils.escapeHtml(itName) : itName}</span>
+                              <span style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 800;">× ${itQty}</span>
+                            </div>
+                            <strong style="font-size: 16.5px; font-weight: 800; color: #f59e0b;">${window.SalonUtils ? window.SalonUtils.formatCurrency(itPrice * itQty) : (itPrice * itQty)}</strong>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+
+                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(255, 255, 255, 0.12); font-size: 14.5px; color: var(--text-secondary, #a1a1aa); display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center;">
+                      <div>
+                        <span>📍 Hình thức:</span> <strong style="color: #FAF8F5; margin-left: 4px;">${o.shippingAddress || (o.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nơi')}</strong>
+                      </div>
+                      <div>
+                        <span>💳 Thanh toán:</span> <strong style="color: ${isPaid ? '#10B981' : '#f59e0b'}; margin-left: 4px;">${isPaid ? 'Đã thanh toán (VietQR)' : 'Chưa thanh toán'}</strong>
+                      </div>
                     </div>
                   </div>
 
-                  <!-- Đánh giá nếu có -->
+                  <!-- Danh gia neu co -->
                   ${oReview ? `
-                    <div style="font-size: 12.5px; color: var(--text-secondary); padding: 8px 12px; background: rgba(245, 158, 11, 0.08); border-radius: 8px; margin-bottom: 12px;">
-                      <span style="color: #f59e0b;">${'★'.repeat(oReview.rating || 5)}${'☆'.repeat(5 - (oReview.rating || 5))}</span>
-                      <span style="margin-left: 6px; font-style: italic;">"${oReview.comment || 'Rất hài lòng'}"</span>
+                    <div style="font-size: 14.5px; color: #FAF8F5; padding: 12px 18px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                      <span style="color: #f59e0b; font-size: 17px; letter-spacing: 2px;">${'★'.repeat(oReview.rating || 5)}${'☆'.repeat(5 - (oReview.rating || 5))}</span>
+                      <span style="font-style: italic; color: #e4e4e7;">"${window.SalonUtils ? window.SalonUtils.escapeHtml(oReview.comment || 'Rất hài lòng') : (oReview.comment || 'Rất hài lòng')}"</span>
                     </div>
                   ` : ''}
 
-                  <!-- HÀNG NÚT THAO TÁC ĐỒNG BỘ: HỦY ĐƠN HÀNG, THANH TOÁN, ĐÁNH GIÁ -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                  <!-- Hang nut thao tac: to, ro rang, dong bo -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 18px;">
                     <div>
                       ${isDelivering ? `
-                        <span style="font-size: 12px; color: #0284c7; background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); padding: 5px 10px; border-radius: 8px; font-weight: 600;">
+                        <span style="font-size: 13.5px; color: #0284c7; background: rgba(2, 132, 199, 0.12); border: 1px solid rgba(2, 132, 199, 0.35); padding: 8px 16px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                           🚚 Đơn hàng đang được vận chuyển - Không thể hủy
                         </span>
                       ` : (isCompleted ? `
-                        <span style="font-size: 12px; color: #10B981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 10px; border-radius: 8px; font-weight: 600;">
+                        <span style="font-size: 13.5px; color: #10B981; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 8px 16px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                           ✓ Giao hàng thành công
                         </span>
                       ` : '')}
                     </div>
 
-                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                       ${(!isPaid && !isCancelled) ? `
-                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #10B981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
+                        <button type="button" class="btn-order-action" style="font-size: 13.5px; padding: 9px 20px; color: #10B981; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
                           💳 Thanh Toán VietQR
                         </button>
                       ` : ''}
 
                       ${(!isCancelled) ? (oReview ? `
-                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
+                        <button type="button" class="btn-order-action" style="font-size: 13.5px; padding: 9px 20px; color: #f59e0b; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
                           ⭐ Sửa Đánh Giá
                         </button>
                       ` : `
-                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
+                        <button type="button" class="btn-order-action" style="font-size: 13.5px; padding: 9px 20px; color: #f59e0b; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
                           ⭐ Đánh Giá Đơn Hàng
                         </button>
                       `) : ''}
 
                       ${isCancellable ? `
-                        <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="ProfilePage.cancelOrder('${oCode}')">
+                        <button type="button" class="btn-order-action" style="font-size: 13.5px; padding: 9px 20px; color: #ef4444; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="ProfilePage.cancelOrder('${oCode}')">
                           ✕ Hủy Đơn Hàng
                         </button>
                       ` : `
-                        <span style="font-size: 12px; color: #94a3b8; background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); padding: 5px 12px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                        <span style="font-size: 13.5px; color: #94a3b8; background: rgba(148, 163, 184, 0.12); border: 1px solid rgba(148, 163, 184, 0.3); padding: 8px 18px; border-radius: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                           ✕ Đã hủy đơn
                         </span>
                       `}

@@ -542,6 +542,45 @@ async function getFullSqlDatabase() {
     TrangThai: r.TrangThai
   }));
 
+  const mappedFefoLots = (fefoLotRows || []).map(r => ({
+    ...r,
+    id: r.MaChiTietPhieuNhap,
+    receiptDetailId: r.MaChiTietPhieuNhap,
+    branchId: r.MaChiNhanh,
+    branchName: r.TenChiNhanh,
+    lotNumber: r.SoLo,
+    productId: r.MaSanPham,
+    productName: r.TenSanPham,
+    originalPrice: Number(r.GiaNiemYetGoc) || 0,
+    expiryDate: r.HanSuDung ? (r.HanSuDung instanceof Date ? r.HanSuDung.toISOString().split('T')[0] : String(r.HanSuDung).split('T')[0].split(' ')[0]) : '',
+    remainingQuantity: Number(r.SoLuongConLai) || 0,
+    daysLeft: Number(r.SoNgayConLai) || 0,
+    discountPercent: Number(r.PhanTramGiam) || 0,
+    actualPrice: Number(r.GiaBanThucTe) || 0,
+    statusNote: r.TinhTrangHang || ''
+  }));
+
+  const mappedReceipts = (receiptRows || []).map(r => ({
+    ...r,
+    id: r.MaPhieuNhap,
+    receiptCode: r.MaPhieuNhap,
+    branchId: r.MaChiNhanh,
+    branchName: r.TenChiNhanh || ('Chi Nhánh ' + r.MaChiNhanh),
+    supplierId: r.MaNhaCungCap,
+    supplierName: r.TenNhaCungCap || 'NCC Chính Hãng',
+    staffId: r.MaNhanVien,
+    staffName: r.TenNguoiLap || 'Nhân viên kho',
+    approverId: r.MaNguoiDuyet,
+    approverName: r.TenNguoiDuyet || '—',
+    createdDate: r.NgayLap || '',
+    approvedDate: r.NgayDuyet || '',
+    total: Number(r.TongTien) || 0,
+    totalAmount: Number(r.TongTien) || 0,
+    status: r.TrangThai || 'Đã duyệt',
+    rejectReason: r.LyDoTuChoi || '',
+    itemCount: 1
+  }));
+
   return {
     branches: mappedBranches,
     services: mappedServices,
@@ -558,10 +597,10 @@ async function getFullSqlDatabase() {
     notifications: thongBaoRows,
     shifts: caLamViecRows,
     inventory: inventoryRows,
-    receipts: receiptRows,
+    receipts: mappedReceipts,
     invoices: invoiceRows,
     payments: paymentRows,
-    fefoLots: fefoLotRows,
+    fefoLots: mappedFefoLots,
     lowStock: lowStockRows
   };
 }

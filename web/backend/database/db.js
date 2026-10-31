@@ -3,8 +3,8 @@ const sql = require('msnodesqlv8');
 const fs = require('fs');
 const path = require('path');
 
-const DB_NAME = process.env.SQL_DATABASE || 'QL_SALONTOC';
-const DB_CANDIDATES = [process.env.SQL_DATABASE, 'QL_SALONTOC', 'QL_SALON'].filter(Boolean);
+const DB_NAME = process.env.SQL_DATABASE || 'QL_SALON';
+const DB_CANDIDATES = [process.env.SQL_DATABASE, 'QL_SALON', 'QL_SALONTOC'].filter(Boolean);
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
 const SQL_FILE = fs.existsSync(path.join(__dirname, 'QL_SALON.sql'))

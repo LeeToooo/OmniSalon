@@ -73,7 +73,7 @@ async function sendGmail(toEmail, otp) {
         </div>
       </div>
       <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 18px; text-align: center; font-size: 12px; color: #64748b;">
-        © 2026 Omni Salon Barber • Hệ thống CSDL SQL Server QL_SALONTOC
+        © 2026 Omni Salon Barber • Hệ thống CSDL SQL Server QL_SALON
       </div>
     </div>
   `;
