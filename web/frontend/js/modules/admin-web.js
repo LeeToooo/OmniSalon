@@ -96,8 +96,9 @@
     isBranchManager(user) {
       const targetUser = user || this.getCurrentUser();
       if (!targetUser) return false;
+      if (this.isSuperAdmin(targetUser)) return false;
       const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || '').toUpperCase();
-      return role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || role.includes('QUẢN LÝ') || role.includes('QUAN_LY') || (window.AuthEngine && typeof window.AuthEngine.hasRole === 'function' && window.AuthEngine.hasRole('BRANCH_MANAGER'));
+      return role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || role.includes('QUẢN LÝ') || role.includes('QUAN_LY');
     },
 
     isCashier(user) {
@@ -827,7 +828,7 @@
     renderOverviewTab(user, branches, stylists, products, bookings = null, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const allBookings = bookings || ((window.store && window.store.getBookings) ? window.store.getBookings() : []);
-      const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
+      const branchId = (this.isBranchManager(user) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
       
       const systemAnalytics = (window.store && typeof window.store.getRevenueAnalytics === 'function')
         ? window.store.getRevenueAnalytics(null)
@@ -2909,7 +2910,7 @@
 
     renderInventoryTab(user, branches, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
-      const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
+      const branchId = (this.isBranchManager(user) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
       const isCashier = this.isCashier(user);
       const subType = isCashier ? 'receipts' : (this.inventorySubTab || 'stock');
 
@@ -3302,7 +3303,7 @@
       const container = document.getElementById('adminInventoryContentContainer');
       if (container) {
         const user = this.getCurrentUser();
-        const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
+        const branchId = (this.isBranchManager(user) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
         const isCashier = this.isCashier(user);
         const subType = isCashier ? 'receipts' : (this.inventorySubTab || 'stock');
         const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];

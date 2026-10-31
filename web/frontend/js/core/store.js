@@ -1650,7 +1650,7 @@
     // QUẢN LÝ TỒN KHO CHI NHÁNH & TRỪ KHO NGUYÊN TỬ, ATOMIC STOCK
     // -----------------------------------------------------------------------
     getBranchInventory(branchId = null) {
-      const bId = (!branchId || branchId === 'all') ? null : branchId;
+      const bId = (!branchId || String(branchId).toLowerCase() === 'all') ? null : branchId;
 
       const prods = this.state.products || [];
       const invList = this.state.inventory || [];
@@ -3056,7 +3056,7 @@
 
     getReceipts(branchId = null) {
       const list = this.state.receipts || [];
-      if (!branchId || branchId === 'all') return list;
+      if (!branchId || String(branchId).toLowerCase() === 'all') return list;
       return list.filter(r => r.branchId === branchId || r.MaChiNhanh === branchId);
     }
 
@@ -3066,7 +3066,7 @@
 
     getInvoices(branchId = null) {
       const list = this.state.invoices || [];
-      if (!branchId || branchId === 'all') return list;
+      if (!branchId || String(branchId).toLowerCase() === 'all') return list;
       return list.filter(inv => inv.branchId === branchId || inv.MaChiNhanh === branchId);
     }
 
@@ -3082,19 +3082,19 @@
 
     getFefoLots(branchId = null) {
       const list = this.state.fefoLots || [];
-      if (!branchId || branchId === 'all') return list;
+      if (!branchId || String(branchId).toLowerCase() === 'all') return list;
       return list.filter(l => l.branchId === branchId || l.MaChiNhanh === branchId);
     }
 
     getLowStockWarnings(branchId = null) {
       const list = this.state.lowStockWarnings || [];
-      if (!branchId || branchId === 'all') return list;
+      if (!branchId || String(branchId).toLowerCase() === 'all') return list;
       return list.filter(w => w.branchId === branchId || w.MaChiNhanh === branchId);
     }
 
     getShifts(branchId = null, staffId = null) {
       let list = this.state.shifts || [];
-      if (branchId && branchId !== 'all') {
+      if (branchId && String(branchId).toLowerCase() !== 'all') {
         list = list.filter(s => s.branchId === branchId || s.MaChiNhanh === branchId);
       }
       if (staffId) {
