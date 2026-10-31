@@ -246,13 +246,6 @@
                     <span class="active-filter-pill">${activeFilterSummary}</span>
                     <span class="active-filter-count">(${filtered.length} sản phẩm)</span>
                   </div>
-                  <button type="button" class="btn-clear-to-lookbook" onclick="ShopPage.resetFilters()" title="Đặt lại bộ lọc tìm kiếm">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                    <span>Xóa Bộ Lọc</span>
-                  </button>
                 </div>
 
                 <div id="shopCatalogGrid" class="shop-filtered-catalog-grid">
@@ -767,10 +760,20 @@
         return;
       }
 
-      const actualPrice = Number(prod.GiaBanThucTe || prod.price || 0);
-      const originalPrice = Number(prod.GiaNiemYetGoc || prod.originalPrice || prod.oldPrice || actualPrice);
-      const hasDiscount = originalPrice > actualPrice && actualPrice > 0;
-      const discountPercent = hasDiscount ? Math.round(((originalPrice - actualPrice) / originalPrice) * 100) : 0;
+      const actualPrice = Number(prod.GiaBanThucTe !== undefined ? prod.GiaBanThucTe : (prod.price !== undefined ? prod.price : 0));
+      const originalPrice = Number(prod.originalPrice !== undefined ? prod.originalPrice : (prod.GiaNiemYetGoc !== undefined ? prod.GiaNiemYetGoc : (prod.GiaBan !== undefined ? prod.GiaBan : actualPrice)));
+      const fefoDiscount = Number(prod.fefoDiscount || prod.nearExpiryDiscount || 0);
+      const hasDiscount = (originalPrice > actualPrice && actualPrice > 0) || fefoDiscount > 0;
+      let discountPercent = Number(prod.discountPercent || prod.PhanTramGiam || 0);
+      if (!discountPercent && originalPrice > actualPrice && originalPrice > 0) {
+        discountPercent = Math.round(((originalPrice - actualPrice) / originalPrice) * 100);
+      }
+      const isExpired = Boolean(
+        prod.isExpired ||
+        (prod.daysLeft !== null && prod.daysLeft !== undefined && prod.daysLeft <= 0) ||
+        (prod.daysRemaining !== null && prod.daysRemaining !== undefined && prod.daysRemaining <= 0) ||
+        (prod.SoNgayConLai !== null && prod.SoNgayConLai !== undefined && prod.SoNgayConLai <= 0)
+      );
 
       // Bộ sưu tập 4 góc ảnh chụp thực tế chất lượng cao từ thư viện sản phẩm
       const mainImgUrl = prod.image || prod.HinhAnh || '';
@@ -1007,18 +1010,22 @@
                     <span>Đã bán <strong>${prod.reviewCount || 18}</strong></span>
                   </div>
                   <div class="pdp-4rau-instock">
-                    <span class="pdp-4rau-dot" style="background: #10B981;"></span>
-                    <span>Còn hàng</span>
+                    <span class="pdp-4rau-dot" style="background: ${isExpired ? '#ef4444' : '#10B981'};"></span>
+                    <span>${isExpired ? 'Hết hạn sử dụng' : 'Còn hàng'}</span>
                   </div>
                 </div>
 
                 <!-- 4. Khung Giá Nổi Bật -->
                 <div class="pdp-4rau-price-box">
-                  <span class="pdp-4rau-price" style="color: #C59B27; font-weight: 800; font-size: 26px;">${SalonUtils.formatCurrency(actualPrice)}</span>
-                  ${hasDiscount ? `
-                    <span class="pdp-4rau-old-price">${SalonUtils.formatCurrency(originalPrice)}</span>
-                    <span class="pdp-4rau-discount-tag" style="background: rgba(197, 155, 39, 0.15); color: #C59B27; border: 1px solid rgba(197, 155, 39, 0.3);">-${discountPercent}%</span>
-                  ` : ''}
+                  ${isExpired ? `
+                    <span class="pdp-4rau-price" style="color: #dc2626; font-weight: 800; font-size: 22px;">Đã hết hạn (Thu hồi tiêu hủy)</span>
+                  ` : `
+                    <span class="pdp-4rau-price" style="color: #C59B27; font-weight: 800; font-size: 26px;">${SalonUtils.formatCurrency(actualPrice)}</span>
+                    ${hasDiscount ? `
+                      <span class="pdp-4rau-old-price">${SalonUtils.formatCurrency(originalPrice)}</span>
+                      <span class="pdp-4rau-discount-tag" style="background: ${fefoDiscount > 0 ? '#fee2e2' : 'rgba(197, 155, 39, 0.15)'}; color: ${fefoDiscount > 0 ? '#dc2626' : '#C59B27'}; border: 1px solid ${fefoDiscount > 0 ? '#fca5a5' : 'rgba(197, 155, 39, 0.3)'};">${fefoDiscount > 0 ? 'Cận hạn -' + fefoDiscount + '%' : '-' + discountPercent + '%'}</span>
+                    ` : ''}
+                  `}
                 </div>
 
                 <!-- 5. CHI TIẾT ĐẶC TÍNH SẢN PHẨM (Tương phản cao trên nền tối) -->
@@ -1064,18 +1071,24 @@
 
                 <!-- 9. Cụm Nút CTA Chuẩn Levents: Thêm Giỏ & Mua Ngay Song Hành Tương Phản Cao -->
                 <div class="pdp-4rau-cta-row">
-                  <button type="button" class="pdp-btn-add-cart" onclick="ShopPage.handleDetailAddToCart('${prod.id}')">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-                      <line x1="3" x2="21" y1="6" y2="6"/>
-                      <path d="M16 10a4 4 0 0 1-8 0"/>
-                    </svg>
-                    <span>Thêm vào giỏ</span>
-                  </button>
-                  <button type="button" class="pdp-4rau-btn-buynow" onclick="ShopPage.handleDetailBuyNow('${prod.id}')">
-                    <span>Mua ngay</span>
-                    <span style="font-size: 15px; margin-left: 2px;">→</span>
-                  </button>
+                  ${isExpired ? `
+                    <button type="button" class="pdp-btn-add-cart disabled" disabled style="opacity: 0.5; cursor: not-allowed; background: #64748b;">
+                      <span>Không thể mua (Đã hết hạn)</span>
+                    </button>
+                  ` : `
+                    <button type="button" class="pdp-btn-add-cart" onclick="ShopPage.handleDetailAddToCart('${prod.id}')">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                        <line x1="3" x2="21" y1="6" y2="6"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                      </svg>
+                      <span>Thêm vào giỏ</span>
+                    </button>
+                    <button type="button" class="pdp-4rau-btn-buynow" onclick="ShopPage.handleDetailBuyNow('${prod.id}')">
+                      <span>Mua ngay</span>
+                      <span style="font-size: 15px; margin-left: 2px;">→</span>
+                    </button>
+                  `}
                   <button type="button" class="pdp-4rau-btn-wish" onclick="ShopPage.toggleWishlist('${prod.id}', this)" title="Lưu vào danh sách yêu thích" aria-label="Yêu thích">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -1506,6 +1519,17 @@
     },
 
     handleDetailAddToCart(productId) {
+      if (window.store && typeof window.store.getProducts === 'function') {
+        const prod = window.store.getProducts().find(p => p.id === productId || p.MaSanPham === productId);
+        if (prod && (prod.isExpired || (prod.daysLeft !== null && prod.daysLeft !== undefined && prod.daysLeft <= 0))) {
+          if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+            window.UICommon.showToast('Sản phẩm đã hết hạn sử dụng (Thu hồi tiêu hủy), không thể bán.', 'error');
+          } else {
+            alert('Sản phẩm đã hết hạn sử dụng (Thu hồi tiêu hủy), không thể bán.');
+          }
+          return;
+        }
+      }
       const input = document.getElementById('pdpDetailQtyInput');
       const qty = input ? (parseInt(input.value, 10) || 1) : 1;
       const customData = {};
@@ -1518,6 +1542,17 @@
     },
 
     handleDetailBuyNow(productId) {
+      if (window.store && typeof window.store.getProducts === 'function') {
+        const prod = window.store.getProducts().find(p => p.id === productId || p.MaSanPham === productId);
+        if (prod && (prod.isExpired || (prod.daysLeft !== null && prod.daysLeft !== undefined && prod.daysLeft <= 0))) {
+          if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+            window.UICommon.showToast('Sản phẩm đã hết hạn sử dụng (Thu hồi tiêu hủy), không thể bán.', 'error');
+          } else {
+            alert('Sản phẩm đã hết hạn sử dụng (Thu hồi tiêu hủy), không thể bán.');
+          }
+          return;
+        }
+      }
       const input = document.getElementById('pdpDetailQtyInput');
       const qty = input ? (parseInt(input.value, 10) || 1) : 1;
       const customData = {};

@@ -682,7 +682,7 @@
 
       // 130 Sản phẩm thực tế từ CSDL QL_SALON.sql
       const products = [
-        { id: 'SP01', name: 'Apestomen Volcanic Clay', brand: 'Apestomen', categoryId: 'DM01', price: 288000, originalPrice: 480000, discountPercent: 40, nearExpiryDiscount: 40, nearExpiryBatch: 'CTPN01001', nearExpiryStock: 18, promoDiscount: 10, hasPromotion: true, promotion: { id: 'KM01', code: 'KM01', name: 'Xả kho cận hạn FEFO (-40%)', discount: 40, discountPercent: 40, type: 'Giảm giá %' }, costPrice: 340000, stock: 24, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg', description: 'Tạo texture, tăng độ phồng, giữ tóc vào nếp với hiệu ứng khô tự nhiên. Áp dụng ưu đãi cận hạn FEFO cao nhất (-40%) cho 18 hộp đầu tiên.' },
+        { id: 'SP01', name: 'Apestomen Volcanic Clay', brand: 'Apestomen', categoryId: 'DM01', price: 129600, originalPrice: 480000, discountPercent: 73, PhanTramGiam: 73, fefoDiscount: 70, nearExpiryDiscount: 70, nearExpiryBatch: 'CTPN01001', nearExpiryStock: 19, promoDiscount: 10, daysLeft: 20, daysRemaining: 20, isNearExpiry: true, hasPromotion: true, promotion: { id: 'KM01_FEFO', code: 'KM01_FEFO', name: 'Xả kho cận hạn FEFO (-70%) + Chào Thu (-10%)', discount: 73, discountPercent: 73, fefoDiscount: 70, promoDiscount: 10, type: 'Giảm giá %' }, promo: { id: 'KM01_FEFO', code: 'KM01_FEFO', name: 'Xả kho cận hạn FEFO (-70%) + Chào Thu (-10%)', discount: 73, discountPercent: 73, fefoDiscount: 70, promoDiscount: 10, type: 'Giảm giá %' }, costPrice: 340000, stock: 24, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg', description: 'Tạo texture, tăng độ phồng, giữ tóc vào nếp với hiệu ứng khô tự nhiên. Áp dụng quy tắc cận hạn FEFO (-70%) kết hợp khuyến mãi (-10%) tính lũy tiến.' },
         { id: 'SP02', name: 'Hanz de Fuko Gravity Paste', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Gravity_Paste.jpg', description: 'Tạo độ phồng, texture rõ và giữ nếp chắc.' },
         { id: 'SP03', name: 'Hanz de Fuko Claymation', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Claymation.jpg', description: 'Clay kết hợp wax, tạo texture mạnh và giữ nếp lâu.' },
         { id: 'SP04', name: 'Hanz de Fuko Heavymade', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 690000, originalPrice: 690000, costPrice: 520000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Heavymade.jpg', description: 'Giữ nếp mạnh, tạo độ bóng vừa và kiểu tóc gọn gàng.' },
@@ -1039,8 +1039,12 @@
 
     getServiceById(serviceId) {
       if (!serviceId) return null;
+      const clean = String(serviceId).trim().toLowerCase();
       const services = this.getServices();
-      return services.find(s => s.id === serviceId || s.MaDichVu === serviceId) || null;
+      return services.find(s => 
+        String(s.id || '').trim().toLowerCase() === clean || 
+        String(s.MaDichVu || '').trim().toLowerCase() === clean
+      ) || null;
     }
 
     getCombos() {
@@ -1048,7 +1052,17 @@
     }
 
     getComboById(comboId) {
-      return (this.state.combos || []).find(c => c.id === comboId) || null;
+      if (!comboId) return null;
+      const clean = String(comboId).trim().toLowerCase();
+      return (this.state.combos || []).find(c => 
+        String(c.id || '').trim().toLowerCase() === clean || 
+        String(c.MaCombo || '').trim().toLowerCase() === clean
+      ) || null;
+    }
+
+    getOfferingById(id) {
+      if (!id) return null;
+      return this.getServiceById(id) || this.getComboById(id);
     }
 
     getAllOfferings() {
@@ -2091,11 +2105,20 @@
       const prod = this.getProductById(productId);
       if (!prod) return;
 
+      // Lô đã hết hạn (QT05, "Thu hồi tiêu hủy") không được bán trên giao diện khách
+      if (prod.isExpired || (prod.daysLeft !== null && prod.daysLeft !== undefined && prod.daysLeft <= 0) || (prod.daysRemaining !== null && prod.daysRemaining !== undefined && prod.daysRemaining <= 0)) {
+        if (typeof window.UICommon !== 'undefined' && typeof window.UICommon.showToast === 'function') {
+          window.UICommon.showToast('Lô hàng đã hết hạn (Thu hồi tiêu hủy), không được bán trên giao diện khách!', 'error');
+        }
+        return false;
+      }
+
       const cart = this.getCart();
       const existing = cart.find(item => item.productId === productId);
       if (existing) {
         existing.qty += qty;
       } else {
+        const fefoDisc = prod.fefoDiscount || prod.nearExpiryDiscount || 0;
         cart.push({
           productId: prod.id,
           name: prod.name,
@@ -2103,10 +2126,12 @@
           originalPrice: prod.originalPrice || prod.GiaNiemYetGoc || prod.GiaBan || prod.price,
           image: prod.image,
           brand: prod.brand,
-          badge: prod.badge || (prod.PhanTramGiam > 0 ? `Giảm ${prod.PhanTramGiam}%` : ''),
-          PhanTramGiam: prod.PhanTramGiam || 0,
-          isNearExpiry: Boolean(prod.isNearExpiry),
-          daysRemaining: prod.daysRemaining,
+          badge: fefoDisc > 0 ? `Cận hạn -${fefoDisc}%` : (prod.badge || (prod.discountPercent > 0 ? `Giảm ${prod.discountPercent}%` : '')),
+          PhanTramGiam: prod.discountPercent || prod.PhanTramGiam || 0,
+          fefoDiscount: fefoDisc,
+          promoDiscount: prod.promoDiscount || 0,
+          isNearExpiry: Boolean(prod.isNearExpiry || fefoDisc > 0),
+          daysRemaining: prod.daysRemaining !== undefined ? prod.daysRemaining : prod.daysLeft,
           qty
         });
       }

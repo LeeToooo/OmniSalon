@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // PHÂN HỆ ĐẶT LỊCH HẸN & KHUNG GIỜ
 // Bảng CSDL chính: LichHen, ChiTietLichHen, KhachHang, NhanVien, ChiNhanh
 // =========================================================================
@@ -290,19 +290,20 @@ async function handleBookingRoutes(req, res, ctx) {
 
     for (let i = 0; i < itemsToInsert.length; i++) {
       const it = itemsToInsert[i];
-      const rawId = it.id || it.serviceId || it.MaDichVu || it.MaCombo || '';
+      const rawId = String(it.id || it.serviceId || it.MaDichVu || it.MaCombo || '').trim();
+      const upperId = rawId.toUpperCase();
       let sId = null;
       let cbId = null;
       let itPrice = parseFloat(it.price || it.DonGia || 0);
 
-      if (rawId.startsWith('CB')) {
-        cbId = rawId;
+      if (upperId.startsWith('CB')) {
+        cbId = upperId;
         if (!itPrice) {
           const cbRow = await querySql('SELECT GiaCombo FROM ComboDichVu WHERE MaCombo = ?', [cbId]);
           if (cbRow && cbRow[0]) itPrice = parseFloat(cbRow[0].GiaCombo || 0);
         }
-      } else if (rawId.startsWith('DV')) {
-        sId = rawId;
+      } else if (upperId.startsWith('DV')) {
+        sId = upperId;
         if (!itPrice) {
           const dvRow = await querySql('SELECT Gia FROM DichVu WHERE MaDichVu = ?', [sId]);
           if (dvRow && dvRow[0]) itPrice = parseFloat(dvRow[0].Gia || 0);

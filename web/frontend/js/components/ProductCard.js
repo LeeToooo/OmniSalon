@@ -83,6 +83,14 @@
         discountPercent = Math.round(((originalPrice - actualPrice) / originalPrice) * 100);
       }
 
+      const fefoDiscount = Number(p.fefoDiscount || p.nearExpiryDiscount || 0);
+      const isExpired = Boolean(
+        p.isExpired ||
+        (p.daysLeft !== null && p.daysLeft !== undefined && p.daysLeft <= 0) ||
+        (p.daysRemaining !== null && p.daysRemaining !== undefined && p.daysRemaining <= 0) ||
+        (p.SoNgayConLai !== null && p.SoNgayConLai !== undefined && p.SoNgayConLai <= 0)
+      );
+
       // Rating & Lượt mua thực tế
       const rating = Number(p.rating !== undefined ? p.rating : 5.0).toFixed(1);
       const reviewCount = Number(p.reviewCount || p.LuotMua || 0);
@@ -109,12 +117,14 @@
         actualPrice,
         originalPrice,
         discountPercent,
+        fefoDiscount,
+        isExpired,
         rating,
         reviewCount,
         stock,
         image,
         cleanDesc,
-        isFlashSale: discountPercent > 0 || p.isNearExpiry === true
+        isFlashSale: discountPercent > 0 || fefoDiscount > 0 || p.isNearExpiry === true
       };
     },
 
@@ -136,17 +146,20 @@
 
       const formattedActual = formatCurrency(data.actualPrice);
       const formattedOriginal = formatCurrency(data.originalPrice);
-      const isOutOfStock = data.stock <= 0;
+      const isOutOfStock = data.stock <= 0 || data.isExpired;
 
       // Nhãn giảm giá phẳng tinh tế
-      const discountBadgeHtml = data.discountPercent > 0 ? `
-        <span class="flat-discount-badge" aria-label="-${data.discountPercent}%">
-          -${data.discountPercent}%
+      const badgeText = data.fefoDiscount > 0
+        ? `Cận hạn -${data.fefoDiscount}%`
+        : (data.discountPercent > 0 ? `-${data.discountPercent}%` : '');
+      const discountBadgeHtml = badgeText ? `
+        <span class="flat-discount-badge" aria-label="${badgeText}">
+          ${badgeText}
         </span>
       ` : '';
 
       // Hiển thị giá nổi bật
-      const priceDisplayHtml = (data.originalPrice > data.actualPrice && data.discountPercent > 0) ? `
+      const priceDisplayHtml = (data.originalPrice > data.actualPrice && (data.discountPercent > 0 || data.fefoDiscount > 0)) ? `
         <div class="product-price-row">
           <span class="product-price-current">${formattedActual}</span>
           <span class="product-price-original">${formattedOriginal}</span>
@@ -200,8 +213,8 @@
             <button type="button"
                     class="btn-card-add-bag ${isOutOfStock ? 'disabled' : ''}"
                     ${isOutOfStock ? 'disabled' : ''}
-                    title="${isOutOfStock ? 'Tạm thời hết hàng' : 'Thêm vào giỏ hàng'}"
-                    aria-label="Thêm vào giỏ"
+                    title="${data.isExpired ? 'Đã hết hạn (Thu hồi tiêu hủy)' : (isOutOfStock ? 'Tạm thời hết hàng' : 'Thêm vào giỏ hàng')}"
+                    aria-label="${data.isExpired ? 'Đã hết hạn' : 'Thêm vào giỏ'}"
                     onclick="event.stopPropagation(); if(typeof UICommon !== 'undefined' && UICommon.addToCart){ UICommon.addToCart('${data.id}', 'product'); if(typeof ShopPage !== 'undefined' && ShopPage.updateCartBadge) ShopPage.updateCartBadge(); }">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>

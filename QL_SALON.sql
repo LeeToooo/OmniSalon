@@ -514,27 +514,17 @@ SELECT
     DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) AS SoNgayConLai,
     CASE 
         WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN 100.00
-        ELSE (
-            SELECT MAX(val) FROM (
-                VALUES 
-                    (ISNULL(qt.PhanTramGiam, 0.00)),
-                    (ISNULL(km_sp.GiaTriGiam, 0.00))
-            ) AS T(val)
-        )
+        WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 AND ISNULL(km_sp.GiaTriGiam, 0.00) > 0 
+            THEN CAST(ISNULL(qt.PhanTramGiam, 0.00) + ISNULL(km_sp.GiaTriGiam, 0.00) - (ISNULL(qt.PhanTramGiam, 0.00) * ISNULL(km_sp.GiaTriGiam, 0.00) / 100.0) AS DECIMAL(5,2))
+        WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 THEN ISNULL(qt.PhanTramGiam, 0.00)
+        WHEN ISNULL(km_sp.GiaTriGiam, 0.00) > 0 THEN ISNULL(km_sp.GiaTriGiam, 0.00)
+        ELSE 0.00
     END AS PhanTramGiam,
     CAST(
-        sp.GiaBan * (1.0 - (
-            CASE 
-                WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN 100.00
-                ELSE (
-                    SELECT MAX(val) FROM (
-                        VALUES 
-                            (ISNULL(qt.PhanTramGiam, 0.00)),
-                            (ISNULL(km_sp.GiaTriGiam, 0.00))
-                    ) AS T(val)
-                )
-            END
-        ) / 100.0) 
+        CASE 
+            WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN 0.00
+            ELSE ROUND(sp.GiaBan * (1.0 - ISNULL(qt.PhanTramGiam, 0.00) / 100.0) * (1.0 - ISNULL(km_sp.GiaTriGiam, 0.00) / 100.0), 0)
+        END 
     AS DECIMAL(18,2)) AS GiaBanThucTe,
     CASE 
         WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN N'Đã hết hạn - Thu hồi'
@@ -735,19 +725,17 @@ BEGIN
             ctpn.SoLuongConLai,
             CASE 
                 WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN 100.00
-                ELSE (
-                    SELECT MAX(val) FROM (
-                        VALUES 
-                            (ISNULL(qt.PhanTramGiam, 0.00)),
-                            (ISNULL(km_sp.GiaTriGiam, 0.00))
-                    ) AS T(val)
-                )
+                WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 AND ISNULL(km_sp.GiaTriGiam, 0.00) > 0 
+                    THEN CAST(ISNULL(qt.PhanTramGiam, 0.00) + ISNULL(km_sp.GiaTriGiam, 0.00) - (ISNULL(qt.PhanTramGiam, 0.00) * ISNULL(km_sp.GiaTriGiam, 0.00) / 100.0) AS DECIMAL(5,2))
+                WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 THEN ISNULL(qt.PhanTramGiam, 0.00)
+                WHEN ISNULL(km_sp.GiaTriGiam, 0.00) > 0 THEN ISNULL(km_sp.GiaTriGiam, 0.00)
+                ELSE 0.00
             END AS PhanTramGiam
         FROM ChiTietPhieuNhap ctpn
         INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
         LEFT JOIN QuyTacGiamGiaTheoHan qt 
             ON DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) BETWEEN qt.SoNgayConLaiToiThieu AND qt.SoNgayConLaiToiDa
-            AND qt.TrangThai = N'Đang áp dụng'
+            AND (qt.TrangThai = N'Đang áp dụng' OR qt.TrangThai = N'Áp dụng')
         OUTER APPLY (
             SELECT TOP 1 km.GiaTriGiam
             FROM KhuyenMai_SanPham km_link
@@ -787,7 +775,7 @@ BEGIN
         ELSE
             SET @SoLuongTrichXuat = @SoLuongConLai;
 
-        SET @GiaThucTe = CAST(@GiaGoc * (1.0 - @PhanTramGiam / 100.0) AS DECIMAL(18,2));
+        SET @GiaThucTe = CAST(ROUND(@GiaGoc * (1.0 - @PhanTramGiam / 100.0), 0) AS DECIMAL(18,2));
         SET @NextNum = @NextNum + 1;
         SET @MaChiTietDonHang = 'CTDH' + CASE WHEN @NextNum < 10 THEN '0' + CAST(@NextNum AS VARCHAR(10)) ELSE CAST(@NextNum AS VARCHAR(10)) END;
 
@@ -851,19 +839,17 @@ BEGIN
             ctpn.SoLuongConLai,
             CASE 
                 WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN 100.00
-                ELSE (
-                    SELECT MAX(val) FROM (
-                        VALUES 
-                            (ISNULL(qt.PhanTramGiam, 0.00)),
-                            (ISNULL(km_sp.GiaTriGiam, 0.00))
-                    ) AS T(val)
-                )
+                WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 AND ISNULL(km_sp.GiaTriGiam, 0.00) > 0 
+                    THEN CAST(ISNULL(qt.PhanTramGiam, 0.00) + ISNULL(km_sp.GiaTriGiam, 0.00) - (ISNULL(qt.PhanTramGiam, 0.00) * ISNULL(km_sp.GiaTriGiam, 0.00) / 100.0) AS DECIMAL(5,2))
+                WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 THEN ISNULL(qt.PhanTramGiam, 0.00)
+                WHEN ISNULL(km_sp.GiaTriGiam, 0.00) > 0 THEN ISNULL(km_sp.GiaTriGiam, 0.00)
+                ELSE 0.00
             END AS PhanTramGiam
         FROM ChiTietPhieuNhap ctpn
         INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
         LEFT JOIN QuyTacGiamGiaTheoHan qt 
             ON DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) BETWEEN qt.SoNgayConLaiToiThieu AND qt.SoNgayConLaiToiDa
-            AND qt.TrangThai = N'Đang áp dụng'
+            AND (qt.TrangThai = N'Đang áp dụng' OR qt.TrangThai = N'Áp dụng')
         OUTER APPLY (
             SELECT TOP 1 km.GiaTriGiam
             FROM KhuyenMai_SanPham km_link
@@ -903,7 +889,7 @@ BEGIN
         ELSE
             SET @SoLuongTrichXuat = @SoLuongConLai;
 
-        SET @GiaThucTe = CAST(@GiaGoc * (1.0 - @PhanTramGiam / 100.0) AS DECIMAL(18,2));
+        SET @GiaThucTe = CAST(ROUND(@GiaGoc * (1.0 - @PhanTramGiam / 100.0), 0) AS DECIMAL(18,2));
         SET @NextNumHD = @NextNumHD + 1;
         SET @MaChiTietHDSanPham = 'CTHD' + CASE WHEN @NextNumHD < 10 THEN '0' + CAST(@NextNumHD AS VARCHAR(10)) ELSE CAST(@NextNumHD AS VARCHAR(10)) END;
 

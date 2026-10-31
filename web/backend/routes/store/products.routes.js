@@ -35,19 +35,23 @@ async function handleProductRoutes(req, res, ctx) {
                dm.TenDanhMuc,
                ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 0) AS SoLuongTon,
                CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung,
-               ctpn.SoLuongConLai
+               ctpn.SoLuongConLai,
+               ctpn.SoLo,
+               ctpn.MaChiTietPhieuNhap,
+               ctpn.SoNgayConLai
         FROM SanPham sp
         LEFT JOIN DanhMucSanPham dm ON sp.MaDanhMuc = dm.MaDanhMuc
         OUTER APPLY (
-            SELECT TOP 1 HanSuDung, SoLuongConLai 
+            SELECT TOP 1 HanSuDung, SoLuongConLai, SoLo, MaChiTietPhieuNhap,
+                   DATEDIFF(DAY, CAST(GETDATE() AS DATE), HanSuDung) AS SoNgayConLai
             FROM ChiTietPhieuNhap 
             WHERE MaSanPham = sp.MaSanPham AND SoLuongConLai > 0
             ORDER BY HanSuDung ASC
         ) ctpn
       `),
-      querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai FROM KhuyenMai WHERE TrangThai = N'Đang áp dụng'`),
+      querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
       querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`),
-      querySql(`SELECT MaQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam FROM QuyTacGiamGiaTheoHan WHERE TrangThai = N'Áp dụng' ORDER BY PhanTramGiam DESC`),
+      querySql(`SELECT MaQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam FROM QuyTacGiamGiaTheoHan WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng' OR TrangThai IS NULL) ORDER BY PhanTramGiam DESC`),
       querySql(`SELECT dg.SoSao, ctdh.MaSanPham FROM DanhGia dg JOIN ChiTietDonHang ctdh ON dg.MaDonHang = ctdh.MaDonHang WHERE ctdh.MaSanPham IS NOT NULL`)
     ]);
 
@@ -68,53 +72,76 @@ async function handleProductRoutes(req, res, ctx) {
       let fefoDiscount = 0;
       let daysLeft = 999;
       if (r.HanSuDung) {
-        const expDate = new Date(r.HanSuDung);
-        daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
-        if (daysLeft <= 0) {
-          // Lô hàng đã hết hạn, QT05 -> Thu hồi, không hiển thị và không bán
-          return null;
+        if (r.SoNgayConLai !== null && r.SoNgayConLai !== undefined) {
+          daysLeft = parseInt(r.SoNgayConLai, 10);
+        } else {
+          const expParts = String(r.HanSuDung).split('T')[0].split('-');
+          const expMid = new Date(parseInt(expParts[0], 10), parseInt(expParts[1], 10) - 1, parseInt(expParts[2], 10));
+          const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          daysLeft = Math.round((expMid - todayMid) / (1000 * 60 * 60 * 24));
         }
+
         const matchedRule = (discountRules || []).find(rl => daysLeft >= rl.SoNgayConLaiToiThieu && daysLeft <= rl.SoNgayConLaiToiDa);
         if (matchedRule) {
           fefoDiscount = parseFloat(matchedRule.PhanTramGiam || 0);
+        } else if (daysLeft <= 0) {
+          fefoDiscount = 100;
         }
       }
 
-      // Khuyến mãi KM01, Chào Thu Rực Rỡ 10% đến 31/10/2026
+      // Khuyến mãi áp dụng cho sản phẩm (ví dụ KM01 - Chào Thu Rực Rỡ 10%)
       let promoDiscount = 0;
-      const matchedLink = (kmSanPhamRows || []).find(km => km.MaSanPham === r.MaSanPham && km.MaKhuyenMai === 'KM01');
-      const matchedPromo = matchedLink ? (promoRows || []).find(p => p.MaKhuyenMai === 'KM01') : null;
-      if (matchedPromo) {
-        promoDiscount = parseFloat(matchedPromo.GiaTriGiam || 10);
+      let matchedPromo = null;
+      const linkedPromos = (kmSanPhamRows || []).filter(km => km.MaSanPham === r.MaSanPham);
+      for (const link of linkedPromos) {
+        const p = (promoRows || []).find(pr => pr.MaKhuyenMai === link.MaKhuyenMai);
+        if (p && parseFloat(p.GiaTriGiam || 0) > promoDiscount) {
+          promoDiscount = parseFloat(p.GiaTriGiam || 0);
+          matchedPromo = p;
+        }
       }
 
-      // Giảm giá lũy tiến: Mức cao hơn trước, sau đó áp tiếp mức còn lại trên giá đã giảm
-      if (fefoDiscount > 0 && promoDiscount > 0) {
+      // Giảm giá lũy tiến FEFO (Mục 23): Mức giảm cao nhất áp dụng trước, sau đó áp tiếp mức giảm còn lại
+      if (daysLeft <= 0) {
+        finalPrice = 0;
+        discountPercent = 100;
+        fefoDiscount = 100;
+        promoInfo = {
+          code: 'QT05',
+          name: 'Đã hết hạn (Thu hồi tiêu hủy)',
+          discountPercent: 100,
+          fefoDiscount: 100
+        };
+      } else if (fefoDiscount > 0 && promoDiscount > 0) {
         const d1 = Math.max(fefoDiscount, promoDiscount);
         const d2 = Math.min(fefoDiscount, promoDiscount);
         const price1 = origPrice * (1 - d1 / 100);
         finalPrice = Math.round(price1 * (1 - d2 / 100));
         discountPercent = Math.round((1 - (finalPrice / origPrice)) * 100);
         promoInfo = {
-          code: 'KM01_FEFO',
-          name: 'Cận date ' + daysLeft + ' ngày (-' + d1 + '%) + Chào Thu (-' + d2 + '%)',
-          discountPercent
+          code: (matchedPromo ? matchedPromo.MaKhuyenMai : 'KM') + '_FEFO',
+          name: 'Cận hạn ' + daysLeft + ' ngày (-' + fefoDiscount + '%) + ' + (matchedPromo ? matchedPromo.TenKhuyenMai : 'Khuyến mãi') + ' (-' + promoDiscount + '%)',
+          discountPercent,
+          fefoDiscount,
+          promoDiscount
         };
       } else if (fefoDiscount > 0) {
         finalPrice = Math.round(origPrice * (1 - fefoDiscount / 100));
         discountPercent = fefoDiscount;
         promoInfo = {
           code: 'FEFO',
-          name: 'Xả kho cận date (' + daysLeft + ' ngày) - Giảm ' + fefoDiscount + '%',
-          discountPercent
+          name: 'Xả kho cận hạn (' + daysLeft + ' ngày) - Giảm ' + fefoDiscount + '%',
+          discountPercent,
+          fefoDiscount
         };
       } else if (promoDiscount > 0) {
         finalPrice = Math.round(origPrice * (1 - promoDiscount / 100));
         discountPercent = promoDiscount;
         promoInfo = {
-          code: 'KM01',
-          name: 'Chào Thu Rực Rỡ - Giảm 10%',
-          discountPercent
+          code: matchedPromo ? matchedPromo.MaKhuyenMai : 'KM',
+          name: (matchedPromo ? matchedPromo.TenKhuyenMai : 'Khuyến mãi') + ' - Giảm ' + promoDiscount + '%',
+          discountPercent,
+          promoDiscount
         };
       }
 
@@ -137,9 +164,17 @@ async function handleProductRoutes(req, res, ctx) {
         GiaBanThucTe: finalPrice,
         originalPrice: origPrice,
         GiaNiemYetGoc: origPrice,
+        GiaBan: origPrice,
         costPrice: parseFloat(r.GiaNhap || 0),
         GiaNhap: parseFloat(r.GiaNhap || 0),
         discountPercent,
+        PhanTramGiam: discountPercent,
+        fefoDiscount,
+        nearExpiryDiscount: fefoDiscount,
+        promoDiscount,
+        isNearExpiry: fefoDiscount > 0 && daysLeft > 0,
+        isExpired: daysLeft <= 0,
+        isAvailable: daysLeft > 0,
         stock: pStock,
         SoLuongTon: pStock,
         unit: r.DonViTinh || 'Hộp',
@@ -152,10 +187,14 @@ async function handleProductRoutes(req, res, ctx) {
         MoTa: r.MoTa || '',
         lotNumber: r.SoLo || null,
         SoLo: r.SoLo || null,
+        batchId: r.MaChiTietPhieuNhap || null,
         expiryDate: r.HanSuDung || null,
         HanSuDung: r.HanSuDung || null,
         daysLeft: (r.HanSuDung && daysLeft !== 999) ? daysLeft : null,
-        promo: promoInfo
+        daysRemaining: (r.HanSuDung && daysLeft !== 999) ? daysLeft : null,
+        promo: promoInfo,
+        promotion: promoInfo,
+        hasPromotion: discountPercent > 0
       };
     }).filter(Boolean);
 

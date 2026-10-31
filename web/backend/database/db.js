@@ -155,6 +155,292 @@ async function applyPerformanceOptimizations() {
       GROUP BY hd.MaChiNhanh, cn.TenChiNhanh, CAST(hd.NgayLap AS DATE);
     `);
 
+    // Cập nhật View Định giá lô hàng FEFO & khuyến mãi lũy tiến (Mục 23)
+    await querySql(`
+      CREATE OR ALTER VIEW vw_GiaBanTheoLoHienTai AS
+      SELECT 
+          ctpn.MaChiTietPhieuNhap,
+          pnk.MaChiNhanh,
+          cn.TenChiNhanh,
+          ctpn.SoLo,
+          sp.MaSanPham,
+          sp.TenSanPham,
+          sp.GiaBan AS GiaNiemYetGoc,
+          ctpn.HanSuDung,
+          ctpn.SoLuongConLai,
+          DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) AS SoNgayConLai,
+          CASE 
+              WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN 100.00
+              WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 AND ISNULL(km_sp.GiaTriGiam, 0.00) > 0 
+                  THEN CAST(ISNULL(qt.PhanTramGiam, 0.00) + ISNULL(km_sp.GiaTriGiam, 0.00) - (ISNULL(qt.PhanTramGiam, 0.00) * ISNULL(km_sp.GiaTriGiam, 0.00) / 100.0) AS DECIMAL(5,2))
+              WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 THEN ISNULL(qt.PhanTramGiam, 0.00)
+              WHEN ISNULL(km_sp.GiaTriGiam, 0.00) > 0 THEN ISNULL(km_sp.GiaTriGiam, 0.00)
+              ELSE 0.00
+          END AS PhanTramGiam,
+          CAST(
+              CASE 
+                  WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN 0.00
+                  ELSE ROUND(sp.GiaBan * (1.0 - ISNULL(qt.PhanTramGiam, 0.00) / 100.0) * (1.0 - ISNULL(km_sp.GiaTriGiam, 0.00) / 100.0), 0)
+              END 
+          AS DECIMAL(18,2)) AS GiaBanThucTe,
+          CASE 
+              WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN N'Đã hết hạn - Thu hồi'
+              ELSE qt.TenQuyTac
+          END AS TinhTrangHang
+      FROM ChiTietPhieuNhap ctpn
+      INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
+      INNER JOIN ChiNhanh cn ON pnk.MaChiNhanh = cn.MaChiNhanh
+      INNER JOIN SanPham sp ON ctpn.MaSanPham = sp.MaSanPham
+      LEFT JOIN QuyTacGiamGiaTheoHan qt 
+          ON DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) BETWEEN qt.SoNgayConLaiToiThieu AND qt.SoNgayConLaiToiDa
+          AND (qt.TrangThai = N'Đang áp dụng' OR qt.TrangThai = N'Áp dụng')
+      OUTER APPLY (
+          SELECT TOP 1 km.GiaTriGiam
+          FROM KhuyenMai_SanPham km_link
+          INNER JOIN KhuyenMai km ON km_link.MaKhuyenMai = km.MaKhuyenMai
+          WHERE km_link.MaSanPham = sp.MaSanPham
+            AND (km.TrangThai = N'Đang áp dụng' OR km.TrangThai = N'Áp dụng')
+            AND CAST(GETDATE() AS DATE) BETWEEN km.NgayBatDau AND km.NgayKetThuc
+          ORDER BY km.GiaTriGiam DESC
+      ) AS km_sp
+      WHERE ctpn.SoLuongConLai > 0;
+    `);
+
+    // Stored Procedure trích xuất lô FEFO cho Đơn Hàng
+    await querySql(`
+      CREATE OR ALTER PROCEDURE sp_ThemChiTietDonHang
+          @MaDonHang VARCHAR(20),
+          @MaSanPham VARCHAR(20),
+          @SoLuong INT
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+
+          DECLARE @MaChiNhanh VARCHAR(20);
+          SELECT @MaChiNhanh = MaChiNhanh FROM DonHang WHERE MaDonHang = @MaDonHang;
+
+          IF @MaChiNhanh IS NULL
+          BEGIN
+              RAISERROR(N'Không tìm thấy đơn hàng hoặc đơn hàng chưa gán chi nhánh.', 16, 1);
+              RETURN;
+          END
+
+          DECLARE @TongTonKhaDung INT;
+          SELECT @TongTonKhaDung = ISNULL(SUM(ctpn.SoLuongConLai), 0)
+          FROM ChiTietPhieuNhap ctpn
+          INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
+          WHERE pnk.MaChiNhanh = @MaChiNhanh
+            AND ctpn.MaSanPham = @MaSanPham
+            AND ctpn.SoLuongConLai > 0
+            AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0;
+
+          IF @TongTonKhaDung < @SoLuong
+          BEGIN
+              RAISERROR(N'Tồn kho khả dụng tại chi nhánh không đủ đáp ứng số lượng yêu cầu.', 16, 1);
+              RETURN;
+          END
+
+          DECLARE @GiaGoc DECIMAL(18,2);
+          SELECT @GiaGoc = GiaBan FROM SanPham WHERE MaSanPham = @MaSanPham;
+
+          DECLARE cur_FEFO CURSOR LOCAL FAST_FORWARD FOR
+              SELECT 
+                  ctpn.MaChiTietPhieuNhap, 
+                  ctpn.SoLuongConLai,
+                  CASE 
+                      WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN 100.00
+                      WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 AND ISNULL(km_sp.GiaTriGiam, 0.00) > 0 
+                          THEN CAST(ISNULL(qt.PhanTramGiam, 0.00) + ISNULL(km_sp.GiaTriGiam, 0.00) - (ISNULL(qt.PhanTramGiam, 0.00) * ISNULL(km_sp.GiaTriGiam, 0.00) / 100.0) AS DECIMAL(5,2))
+                      WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 THEN ISNULL(qt.PhanTramGiam, 0.00)
+                      WHEN ISNULL(km_sp.GiaTriGiam, 0.00) > 0 THEN ISNULL(km_sp.GiaTriGiam, 0.00)
+                      ELSE 0.00
+                  END AS PhanTramGiam
+              FROM ChiTietPhieuNhap ctpn
+              INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
+              LEFT JOIN QuyTacGiamGiaTheoHan qt 
+                  ON DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) BETWEEN qt.SoNgayConLaiToiThieu AND qt.SoNgayConLaiToiDa
+                  AND (qt.TrangThai = N'Đang áp dụng' OR qt.TrangThai = N'Áp dụng')
+              OUTER APPLY (
+                  SELECT TOP 1 km.GiaTriGiam
+                  FROM KhuyenMai_SanPham km_link
+                  INNER JOIN KhuyenMai km ON km_link.MaKhuyenMai = km.MaKhuyenMai
+                  WHERE km_link.MaSanPham = @MaSanPham
+                    AND (km.TrangThai = N'Đang áp dụng' OR km.TrangThai = N'Áp dụng')
+                    AND CAST(GETDATE() AS DATE) BETWEEN km.NgayBatDau AND km.NgayKetThuc
+                  ORDER BY km.GiaTriGiam DESC
+              ) AS km_sp
+              WHERE pnk.MaChiNhanh = @MaChiNhanh
+                AND ctpn.MaSanPham = @MaSanPham
+                AND ctpn.SoLuongConLai > 0
+                AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
+              ORDER BY ctpn.HanSuDung ASC;
+
+          OPEN cur_FEFO;
+
+          DECLARE @MaLo VARCHAR(20);
+          DECLARE @SoLuongConLai INT;
+          DECLARE @PhanTramGiam DECIMAL(5,2);
+          DECLARE @SoLuongCanLay INT = @SoLuong;
+          DECLARE @SoLuongTrichXuat INT;
+          DECLARE @GiaThucTe DECIMAL(18,2);
+          DECLARE @MaChiTietDonHang VARCHAR(30);
+
+          DECLARE @NextNum INT;
+          SELECT @NextNum = ISNULL(MAX(TRY_CAST(SUBSTRING(MaChiTietDonHang, 5, 10) AS INT)), 0)
+          FROM ChiTietDonHang
+          WHERE MaChiTietDonHang LIKE 'CTDH%' AND LEN(MaChiTietDonHang) <= 10;
+
+          FETCH NEXT FROM cur_FEFO INTO @MaLo, @SoLuongConLai, @PhanTramGiam;
+
+          WHILE @@FETCH_STATUS = 0 AND @SoLuongCanLay > 0
+          BEGIN
+              IF @SoLuongConLai >= @SoLuongCanLay
+                  SET @SoLuongTrichXuat = @SoLuongCanLay;
+              ELSE
+                  SET @SoLuongTrichXuat = @SoLuongConLai;
+
+              SET @GiaThucTe = CAST(ROUND(@GiaGoc * (1.0 - @PhanTramGiam / 100.0), 0) AS DECIMAL(18,2));
+              SET @NextNum = @NextNum + 1;
+              SET @MaChiTietDonHang = 'CTDH' + CASE WHEN @NextNum < 10 THEN '0' + CAST(@NextNum AS VARCHAR(10)) ELSE CAST(@NextNum AS VARCHAR(10)) END;
+
+              INSERT INTO ChiTietDonHang 
+                  (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)
+              VALUES 
+                  (@MaChiTietDonHang, @MaDonHang, @MaSanPham, @MaLo, @SoLuongTrichXuat, @GiaGoc, @PhanTramGiam, @GiaThucTe, @GiaThucTe * @SoLuongTrichXuat);
+
+              SET @SoLuongCanLay = @SoLuongCanLay - @SoLuongTrichXuat;
+
+              FETCH NEXT FROM cur_FEFO INTO @MaLo, @SoLuongConLai, @PhanTramGiam;
+          END
+
+          CLOSE cur_FEFO;
+          DEALLOCATE cur_FEFO;
+
+          UPDATE DonHang 
+          SET TongTien = (SELECT ISNULL(SUM(ThanhTien), 0) FROM ChiTietDonHang WHERE MaDonHang = @MaDonHang)
+          WHERE MaDonHang = @MaDonHang;
+      END;
+    `);
+
+    // Stored Procedure trích xuất lô FEFO cho Hóa Đơn POS
+    await querySql(`
+      CREATE OR ALTER PROCEDURE sp_ThemChiTietHoaDonSanPham
+          @MaHoaDon VARCHAR(20),
+          @MaSanPham VARCHAR(20),
+          @SoLuong INT
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+
+          DECLARE @MaChiNhanh VARCHAR(20);
+          SELECT @MaChiNhanh = MaChiNhanh FROM HoaDon WHERE MaHoaDon = @MaHoaDon;
+
+          IF @MaChiNhanh IS NULL
+          BEGIN
+              RAISERROR(N'Không tìm thấy hóa đơn hoặc hóa đơn chưa gán chi nhánh.', 16, 1);
+              RETURN;
+          END
+
+          DECLARE @TongTonKhaDung INT;
+          SELECT @TongTonKhaDung = ISNULL(SUM(ctpn.SoLuongConLai), 0)
+          FROM ChiTietPhieuNhap ctpn
+          INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
+          WHERE pnk.MaChiNhanh = @MaChiNhanh
+            AND ctpn.MaSanPham = @MaSanPham
+            AND ctpn.SoLuongConLai > 0
+            AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0;
+
+          IF @TongTonKhaDung < @SoLuong
+          BEGIN
+              RAISERROR(N'Tồn kho khả dụng tại chi nhánh không đủ đáp ứng số lượng bán lẻ.', 16, 1);
+              RETURN;
+          END
+
+          DECLARE @GiaGoc DECIMAL(18,2);
+          SELECT @GiaGoc = GiaBan FROM SanPham WHERE MaSanPham = @MaSanPham;
+
+          DECLARE cur_FEFO_HD CURSOR LOCAL FAST_FORWARD FOR
+              SELECT 
+                  ctpn.MaChiTietPhieuNhap, 
+                  ctpn.SoLuongConLai,
+                  CASE 
+                      WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) <= 0 THEN 100.00
+                      WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 AND ISNULL(km_sp.GiaTriGiam, 0.00) > 0 
+                          THEN CAST(ISNULL(qt.PhanTramGiam, 0.00) + ISNULL(km_sp.GiaTriGiam, 0.00) - (ISNULL(qt.PhanTramGiam, 0.00) * ISNULL(km_sp.GiaTriGiam, 0.00) / 100.0) AS DECIMAL(5,2))
+                      WHEN ISNULL(qt.PhanTramGiam, 0.00) > 0 THEN ISNULL(qt.PhanTramGiam, 0.00)
+                      WHEN ISNULL(km_sp.GiaTriGiam, 0.00) > 0 THEN ISNULL(km_sp.GiaTriGiam, 0.00)
+                      ELSE 0.00
+                  END AS PhanTramGiam
+              FROM ChiTietPhieuNhap ctpn
+              INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
+              LEFT JOIN QuyTacGiamGiaTheoHan qt 
+                  ON DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) BETWEEN qt.SoNgayConLaiToiThieu AND qt.SoNgayConLaiToiDa
+                  AND (qt.TrangThai = N'Đang áp dụng' OR qt.TrangThai = N'Áp dụng')
+              OUTER APPLY (
+                  SELECT TOP 1 km.GiaTriGiam
+                  FROM KhuyenMai_SanPham km_link
+                  INNER JOIN KhuyenMai km ON km_link.MaKhuyenMai = km.MaKhuyenMai
+                  WHERE km_link.MaSanPham = @MaSanPham
+                    AND (km.TrangThai = N'Đang áp dụng' OR km.TrangThai = N'Áp dụng')
+                    AND CAST(GETDATE() AS DATE) BETWEEN km.NgayBatDau AND km.NgayKetThuc
+                  ORDER BY km.GiaTriGiam DESC
+              ) AS km_sp
+              WHERE pnk.MaChiNhanh = @MaChiNhanh
+                AND ctpn.MaSanPham = @MaSanPham
+                AND ctpn.SoLuongConLai > 0
+                AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
+              ORDER BY ctpn.HanSuDung ASC;
+
+          OPEN cur_FEFO_HD;
+
+          DECLARE @MaLo VARCHAR(20);
+          DECLARE @SoLuongConLai INT;
+          DECLARE @PhanTramGiam DECIMAL(5,2);
+          DECLARE @SoLuongCanLay INT = @SoLuong;
+          DECLARE @SoLuongTrichXuat INT;
+          DECLARE @GiaThucTe DECIMAL(18,2);
+          DECLARE @MaChiTietHDSanPham VARCHAR(30);
+
+          DECLARE @NextNumHD INT;
+          SELECT @NextNumHD = ISNULL(MAX(TRY_CAST(SUBSTRING(MaChiTietHDSanPham, 5, 10) AS INT)), 0)
+          FROM ChiTietHoaDon_SanPham
+          WHERE MaChiTietHDSanPham LIKE 'CTHD%' AND LEN(MaChiTietHDSanPham) <= 10;
+
+          FETCH NEXT FROM cur_FEFO_HD INTO @MaLo, @SoLuongConLai, @PhanTramGiam;
+
+          WHILE @@FETCH_STATUS = 0 AND @SoLuongCanLay > 0
+          BEGIN
+              IF @SoLuongConLai >= @SoLuongCanLay
+                  SET @SoLuongTrichXuat = @SoLuongCanLay;
+              ELSE
+                  SET @SoLuongTrichXuat = @SoLuongConLai;
+
+              SET @GiaThucTe = CAST(ROUND(@GiaGoc * (1.0 - @PhanTramGiam / 100.0), 0) AS DECIMAL(18,2));
+              SET @NextNumHD = @NextNumHD + 1;
+              SET @MaChiTietHDSanPham = 'CTHD' + CASE WHEN @NextNumHD < 10 THEN '0' + CAST(@NextNumHD AS VARCHAR(10)) ELSE CAST(@NextNumHD AS VARCHAR(10)) END;
+
+              INSERT INTO ChiTietHoaDon_SanPham 
+                  (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)
+              VALUES 
+                  (@MaChiTietHDSanPham, @MaHoaDon, @MaSanPham, @MaLo, @SoLuongTrichXuat, @GiaGoc, @PhanTramGiam, @GiaThucTe, @GiaThucTe * @SoLuongTrichXuat);
+
+              SET @SoLuongCanLay = @SoLuongCanLay - @SoLuongTrichXuat;
+
+              FETCH NEXT FROM cur_FEFO_HD INTO @MaLo, @SoLuongConLai, @PhanTramGiam;
+          END
+
+          CLOSE cur_FEFO_HD;
+          DEALLOCATE cur_FEFO_HD;
+
+          UPDATE HoaDon 
+          SET TongTien = (
+              ISNULL((SELECT SUM(ThanhTien) FROM ChiTietHoaDon_DichVu WHERE MaHoaDon = @MaHoaDon), 0) +
+              ISNULL((SELECT SUM(ThanhTien) FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = @MaHoaDon), 0)
+          )
+          WHERE MaHoaDon = @MaHoaDon;
+      END;
+    `);
+
     console.log('[DB MIGRATION] Đã áp dụng các Index và View tối ưu hiệu năng thành công!');
   } catch (err) {
     console.warn('[DB MIGRATION WARNING]', err.message);

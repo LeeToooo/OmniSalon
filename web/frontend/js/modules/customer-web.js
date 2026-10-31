@@ -573,15 +573,6 @@
           const el = document.getElementById('showcase_bestsellers');
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 150);
-      } else if (specialType === 'new') {
-        if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
-          window.AppRouter.navigate('/shop?category=DM01');
-        } else {
-          this.switchTab('shop');
-          if (window.ShopPage && typeof window.ShopPage.setCategory === 'function') {
-            window.ShopPage.setCategory('DM01');
-          }
-        }
       } else {
         this.selectShopCategory('all', event);
       }

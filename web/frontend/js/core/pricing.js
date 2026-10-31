@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // OmniSalon & Omni Salon Enterprise Suite
 // CORE PRICING & PROMOTION SERVICE
 // Module chức năng độc lập
@@ -243,30 +243,22 @@
      * - Hết hạn: Giảm 100% / Thu hồi
      * @param {number} originalPrice - Giá niêm yết gốc (GiaNiemYetGoc)
      * @param {number} daysRemaining - Số ngày còn lại đến hạn sử dụng
-     * @returns {{ discountPercent: number, actualPrice: number, badge: string, isNearExpiry: boolean, tier: string }}
+     * @param {number} [promoPercent=0] - Khuyến mãi bổ sung (nếu có)
+     * @returns {{ discountPercent: number, fefoDiscount: number, promoDiscount: number, actualPrice: number, badge: string, isNearExpiry: boolean, tier: string }}
      */
-    static calculateBatchExpiryDiscount(originalPrice, daysRemaining) {
+    static calculateBatchExpiryDiscount(originalPrice, daysRemaining, promoPercent = 0) {
       const orig = Math.max(0, Number(originalPrice) || 0);
       const days = Number(daysRemaining);
-
-      if (isNaN(days) || days > 180) {
-        return {
-          discountPercent: 0,
-          actualPrice: orig,
-          badge: '',
-          isNearExpiry: false,
-          tier: 'SAFE',
-          isExpired: false,
-          isAvailable: true
-        };
-      }
+      const promo = Math.max(0, Number(promoPercent) || 0);
 
       if (days <= 0) {
         return {
           discountPercent: 100,
+          fefoDiscount: 100,
+          promoDiscount: promo,
           actualPrice: 0,
-          badge: 'Ngưng Bán (Tiêu Hủy)',
-          customerBadge: '',
+          badge: 'Đã hết hạn (Thu hồi tiêu hủy)',
+          customerBadge: 'Đã hết hạn',
           isNearExpiry: true,
           tier: 'EXPIRED',
           isExpired: true,
@@ -274,32 +266,40 @@
         };
       }
 
-      let discountPercent = 0;
-      let customerBadge = '';
+      let fefoPercent = 0;
       let tier = 'SAFE';
 
-      // Chính sách bí mật salon: ẩn hạn dùng, hiển thị Flash Sale cho khách
       if (days <= 30) {
-        discountPercent = 70;
-        customerBadge = 'Flash Sale -70%';
+        fefoPercent = 70;
         tier = 'CRITICAL';
       } else if (days <= 90) {
-        discountPercent = 40;
-        customerBadge = 'Flash Sale -40%';
+        fefoPercent = 40;
         tier = 'WARNING';
       } else if (days <= 180) {
-        discountPercent = 20;
-        customerBadge = 'Flash Sale -20%';
+        fefoPercent = 20;
         tier = 'NEAR';
       }
 
-      const discounted = Math.round((orig * (100 - discountPercent) / 100) / 1000) * 1000;
+      // Tính chiết khấu gộp (compound) nếu vừa cận hạn vừa có khuyến mãi
+      let finalPrice = orig;
+      if (fefoPercent > 0 || promo > 0) {
+        const d1 = Math.max(fefoPercent, promo);
+        const d2 = Math.min(fefoPercent, promo);
+        const p1 = orig * (1 - d1 / 100);
+        finalPrice = Math.round(p1 * (1 - d2 / 100));
+      }
+
+      const totalDiscountPercent = orig > 0 ? Math.round(((orig - finalPrice) / orig) * 100) : 0;
+      const customerBadge = fefoPercent > 0 ? `Cận hạn -${fefoPercent}%` : (promo > 0 ? `-${promo}%` : '');
+
       return {
-        discountPercent,
-        actualPrice: discounted,
-        badge: customerBadge, // Khách hàng chỉ thấy nhãn Flash Sale
+        discountPercent: totalDiscountPercent,
+        fefoDiscount: fefoPercent,
+        promoDiscount: promo,
+        actualPrice: finalPrice,
+        badge: customerBadge,
         customerBadge,
-        isNearExpiry: true,
+        isNearExpiry: fefoPercent > 0,
         tier,
         isExpired: false,
         isAvailable: true
