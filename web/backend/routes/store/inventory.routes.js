@@ -25,8 +25,25 @@ async function handleInventoryRoutes(req, res, ctx) {
       params.push(branchParam);
     }
     const rows = await querySql(q, params);
+    const mapped = (rows || []).map(r => ({
+      ...r,
+      id: r.MaChiTietPhieuNhap,
+      receiptDetailId: r.MaChiTietPhieuNhap,
+      branchId: r.MaChiNhanh,
+      branchName: r.TenChiNhanh,
+      lotNumber: r.SoLo,
+      productId: r.MaSanPham,
+      productName: r.TenSanPham,
+      originalPrice: Number(r.GiaNiemYetGoc) || 0,
+      expiryDate: r.HanSuDung ? (r.HanSuDung instanceof Date ? r.HanSuDung.toISOString().split('T')[0] : String(r.HanSuDung).split('T')[0].split(' ')[0]) : '',
+      remainingQuantity: Number(r.SoLuongConLai) || 0,
+      daysLeft: Number(r.SoNgayConLai) || 0,
+      discountPercent: Number(r.PhanTramGiam) || 0,
+      actualPrice: Number(r.GiaBanThucTe) || 0,
+      statusNote: r.TinhTrangHang || ''
+    }));
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify(rows));
+    res.end(JSON.stringify(mapped));
     return true;
   }
 

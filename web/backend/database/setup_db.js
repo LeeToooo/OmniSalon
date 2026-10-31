@@ -8,7 +8,7 @@ const ROOT_DIR = path.resolve(__dirname, '..', '..', '..');
 const SQL_FILE = fs.existsSync(path.join(__dirname, 'QL_SALON.sql')) 
   ? path.join(__dirname, 'QL_SALON.sql') 
   : (fs.existsSync(path.join(ROOT_DIR, 'web', 'backend', 'QL_SALON.sql')) ? path.join(ROOT_DIR, 'web', 'backend', 'QL_SALON.sql') : path.join(ROOT_DIR, 'QL_SALON.sql'));
-const DB_NAME = process.env.SQL_DATABASE || 'QL_SALONTOC';
+const DB_NAME = process.env.SQL_DATABASE || 'QL_SALON';
 
 // Thứ tự driver thông dụng, ưu tiên Driver 17 và SQL Server để tránh lỗi mã hóa Driver 18
 const DRIVERS = [

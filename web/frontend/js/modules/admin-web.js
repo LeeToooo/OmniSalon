@@ -88,22 +88,24 @@
     isSuperAdmin(user) {
       const targetUser = user || this.getCurrentUser();
       if (!targetUser) return false;
-      const role = String(targetUser.role || targetUser.vaiTroSql || '').toUpperCase();
-      return role === 'SUPER_ADMIN' || role === 'QUẢN TRỊ VIÊN' || targetUser.username === 'admin' || (window.AuthEngine && window.AuthEngine.hasRole('SUPER_ADMIN'));
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || '').toUpperCase();
+      const username = String(targetUser.username || targetUser.TenDangNhap || '').toLowerCase();
+      return role === 'SUPER_ADMIN' || role === 'ADMIN' || role.includes('QUẢN TRỊ') || username === 'admin' || (window.AuthEngine && typeof window.AuthEngine.hasRole === 'function' && window.AuthEngine.hasRole('SUPER_ADMIN'));
     },
 
     isBranchManager(user) {
       const targetUser = user || this.getCurrentUser();
       if (!targetUser) return false;
-      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.ChucVu || '').toUpperCase();
-      return role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || role.includes('QUẢN LÝ');
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || '').toUpperCase();
+      return role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || role.includes('QUẢN LÝ') || role.includes('QUAN_LY') || (window.AuthEngine && typeof window.AuthEngine.hasRole === 'function' && window.AuthEngine.hasRole('BRANCH_MANAGER'));
     },
 
     isCashier(user) {
       const targetUser = user || this.getCurrentUser();
       if (!targetUser) return false;
-      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.ChucVu || '').toUpperCase();
-      return role === 'CASHIER' || role.includes('THU NGÂN') || role.includes('THU_NGÂN');
+      if (this.isSuperAdmin(targetUser) || this.isBranchManager(targetUser)) return false;
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || '').toUpperCase();
+      return role === 'CASHIER' || role === 'THU NGÂN' || role.includes('THU NGÂN') || role.includes('THU_NGÂN') || (window.AuthEngine && typeof window.AuthEngine.hasRole === 'function' && window.AuthEngine.hasRole('CASHIER'));
     },
 
     syncBranchScope(user) {
@@ -509,15 +511,12 @@
           this.adminSubTab = 'pos';
         }
       } else if (activeRole === 'BRANCH_MANAGER') {
-        // Quản lý có chức năng riêng Quản lý + có luôn đầy đủ quyền Thu ngân
         visibleTabs = [
-          // Chức năng riêng của Quản Lý:
           { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu Chi Nhánh' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
           { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
-          // Quyền của Thu Ngân, kèm theo cho Quản Lý:
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
           { id: 'audit', icon: tabIcons.audit, label: 'Lịch Sử Đơn Hàng & POS' }
@@ -536,17 +535,13 @@
           this.adminSubTab = 'overview';
         }
       } else {
-        // SUPER_ADMIN / ADMIN: Full quyền Admin + Quản lý + Thu ngân
         visibleTabs = [
-          // Quyền Quản trị tối cao, Admin:
           { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Toàn Chuỗi Salon' },
           { id: 'branches', icon: tabIcons.branches, label: 'Quản Lý Chuỗi Chi Nhánh' },
-          // Quyền Quản lý vận hành dịch vụ & kho:
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
           { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
-          // Quyền Thu ngân & Tiếp nhận:
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Điều Phối Lịch Hẹn' },
           { id: 'audit', icon: tabIcons.audit, label: 'Khách Hàng & Nhật Ký Kiểm Toán' }
@@ -784,6 +779,8 @@
       this.adminSubTab = tabName;
       if (tabName === 'receipts') {
         this.inventorySubTab = 'receipts';
+      } else if (tabName === 'inventory') {
+        this.inventorySubTab = 'stock';
       }
       const container = document.getElementById('webMainContainer');
       if (container) this.render(container);
@@ -811,9 +808,7 @@
         case 'catalog':
           return this.renderCatalogTab(services, combos, products);
         case 'inventory':
-          return this.renderInventoryTab(user, branches, bMap);
         case 'receipts':
-          this.inventorySubTab = 'receipts';
           return this.renderInventoryTab(user, branches, bMap);
         case 'pos':
           return this.renderPosTab(user, services, combos, products, branches, stylists, bMap);
@@ -991,10 +986,10 @@
           <div class="admin-inventory-status-info">
             <span class="inv-status-label">Tình Trạng Kho Hàng:</span>
             <span class="inv-status-stat">Mặt hàng: <strong>${inventoryList.length}</strong></span>
-            <span class="inv-status-stat">Phiếu nhập kho: <strong>${branchReceipts.length}</strong> (<a href="javascript:void(0)" onclick="AdminWeb.switchSubTab('receipts')" style="color: #f59e0b; text-decoration: underline; font-weight: 700;">Xem chi tiết</a>)</span>
+            <span class="inv-status-stat">Phiếu nhập kho: <strong>${branchReceipts.length}</strong> • <a href="javascript:void(0)" onclick="AdminWeb.switchSubTab('receipts')" style="color: #f59e0b; text-decoration: underline; font-weight: 700;">Xem chi tiết</a></span>
             ${this.isSuperAdmin(user) ? `
               <span class="inv-status-stat">Tổng tồn kho: <strong>${totalStockUnits}</strong> món</span>
-              <span class="inv-status-stat">Vốn tồn kho (giá nhập): <strong>${SalonUtils.formatCurrency(totalInventoryCost)}</strong></span>
+              <span class="inv-status-stat">Vốn tồn kho theo giá nhập: <strong>${SalonUtils.formatCurrency(totalInventoryCost)}</strong></span>
             ` : ''}
             ${lowStockCount > 0 
               ? `<span class="inv-status-badge inv-status-warning">${lowStockCount} mặt hàng sắp hết</span>` 
@@ -2897,19 +2892,26 @@
     switchInventorySubTab(type) {
       this.inventorySubTab = type;
       this.inventoryPage = 1;
-      if (type === 'receipts') {
+      const user = this.getCurrentUser();
+      const isCashier = this.isCashier(user);
+      if (isCashier) {
         this.adminSubTab = 'receipts';
       } else {
-        this.adminSubTab = 'inventory';
+        this.adminSubTab = (type === 'receipts') ? 'receipts' : 'inventory';
       }
-      this.refreshInventoryView();
+      const container = document.getElementById('webMainContainer');
+      if (container) {
+        this.render(container);
+      } else {
+        this.refreshInventoryView();
+      }
     },
 
     renderInventoryTab(user, branches, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
-      const isCashierOrBarber = this.isCashier(user) || (!this.isSuperAdmin(user) && !this.isBranchManager(user));
-      const subType = isCashierOrBarber ? 'receipts' : (this.inventorySubTab || 'stock');
+      const isCashier = this.isCashier(user);
+      const subType = isCashier ? 'receipts' : (this.inventorySubTab || 'stock');
 
       const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];
       const fefoLots = (window.store && typeof window.store.getFefoLots === 'function') ? window.store.getFefoLots(branchId) : [];
@@ -2922,30 +2924,30 @@
 
       return `
         <div class="admin-table-container">
-          <!-- Thanh Chuyển Đổi Phân Hệ Kho (SQL 100% Entities) -->
-          ${(this.isCashier(user) || (!this.isSuperAdmin(user) && !this.isBranchManager(user))) ? `
+          <!-- Thanh Chuyển Đổi Phân Hệ Kho -->
+          ${isCashier ? `
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 10px;">
               <button type="button" class="admin-tab-btn active" style="padding: 6px 14px; font-size: 12px;">
-                📥 Phiếu Nhập Kho Của Tôi (${receipts.filter(r => (r.creatorId && r.creatorId === user?.staffId) || (r.MaNhanVien && r.MaNhanVien === user?.staffId) || (r.creatorName && (r.creatorName === user?.fullName || r.creatorName === user?.name)) || (r.staffName && (r.staffName === user?.fullName || r.staffName === user?.name))).length})
+                📥 Phiếu Nhập Kho Của Tôi
               </button>
             </div>
           ` : `
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 10px;">
               <button type="button" class="admin-tab-btn ${subType === 'stock' ? 'active' : ''}" 
-                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('stock')">
-                📦 Tồn Kho &amp; Sản Phẩm (${inventory.length})
+                      style="padding: 6px 14px; font-size: 12px; cursor: pointer;" onclick="AdminWeb.switchInventorySubTab('stock')">
+                📦 Tồn Kho &amp; Sản Phẩm
               </button>
               <button type="button" class="admin-tab-btn ${subType === 'fefo' ? 'active' : ''}" 
-                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('fefo')">
-                🏷️ Lô Hàng FEFO &amp; Giá Cận Hạn (${fefoLots.length})
+                      style="padding: 6px 14px; font-size: 12px; cursor: pointer;" onclick="AdminWeb.switchInventorySubTab('fefo')">
+                🏷️ Lô Hàng FEFO &amp; Giá Cận Hạn
               </button>
               <button type="button" class="admin-tab-btn ${subType === 'receipts' ? 'active' : ''}" 
-                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('receipts')">
-                📥 Phiếu Nhập Kho (${receipts.length})
+                      style="padding: 6px 14px; font-size: 12px; cursor: pointer;" onclick="AdminWeb.switchInventorySubTab('receipts')">
+                📥 Phiếu Nhập Kho
               </button>
               <button type="button" class="admin-tab-btn ${subType === 'rules' ? 'active' : ''}" 
-                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchInventorySubTab('rules')">
-                🏢 Danh Sách Nhà Cung Cấp (${suppliers.length} NCC)
+                      style="padding: 6px 14px; font-size: 12px; cursor: pointer;" onclick="AdminWeb.switchInventorySubTab('rules')">
+                🏢 Danh Sách Nhà Cung Cấp
               </button>
             </div>
           `}
@@ -2968,15 +2970,6 @@
             </div>
 
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              ${lowStockList.length > 0 ? `
-                <span class="stock-badge-critical" style="padding: 6px 12px; font-size: 12px;">
-                  ⚠️ Cảnh báo: ${lowStockList.length} mặt hàng tồn thấp theo SQL View!
-                </span>
-              ` : `
-                <span class="stock-badge-safe" style="padding: 6px 12px; font-size: 12px;">
-                  ✓ Kho hàng ổn định
-                </span>
-              `}
               ${subType === 'stock' ? `
                 <button type="button" class="btn-submit-terracotta" style="padding: 7px 16px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;" onclick="AdminWeb.openProductModal()">
                   + Thêm Sản Phẩm Mới
@@ -3024,7 +3017,7 @@
                   <th style="white-space: nowrap;">Tên Sản Phẩm</th>
                   <th style="white-space: nowrap;">Thương Hiệu</th>
                   <th style="white-space: nowrap;">Đơn Giá Bán</th>
-                  <th style="color: #10b981; white-space: nowrap;">Giá Gốc (Nhập)</th>
+                  <th style="color: #10b981; white-space: nowrap;">Giá Gốc</th>
                   <th style="white-space: nowrap; text-align: center;">Số Lượng Tồn</th>
                   <th style="white-space: nowrap;">Điều Chỉnh Nhanh</th>
                   <th style="white-space: nowrap; text-align: center;">Hành Động</th>
@@ -3060,7 +3053,7 @@
                         ` : `
                           <span class="stock-badge-critical" style="font-size: 12px; font-weight: 800; padding: 4px 10px; display: inline-flex; align-items: center; gap: 5px;">
                             <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
-                            HẾT HÀNG (0)
+                            HẾT HÀNG
                           </span>
                         `)}
                       </td>
@@ -3095,10 +3088,11 @@
         const normQ = this._normalizeSearchText(q);
         const filtered = fefoLots.filter(l => {
           if (!normQ) return true;
-          const name = this._normalizeSearchText(l.productName || '');
-          const lot = this._normalizeSearchText(l.lotNumber || '');
-          const id = this._normalizeSearchText(l.productId || l.id || '');
-          return name.includes(normQ) || lot.includes(normQ) || id.includes(normQ);
+          const name = this._normalizeSearchText(l.productName || l.TenSanPham || '');
+          const lot = this._normalizeSearchText(l.lotNumber || l.SoLo || '');
+          const id = this._normalizeSearchText(l.productId || l.MaSanPham || l.id || l.MaChiTietPhieuNhap || '');
+          const br = this._normalizeSearchText(l.branchName || l.TenChiNhanh || '');
+          return name.includes(normQ) || lot.includes(normQ) || id.includes(normQ) || br.includes(normQ);
         });
         const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
         if (this.inventoryPage > totalPages) this.inventoryPage = totalPages;
@@ -3124,36 +3118,48 @@
               </thead>
               <tbody>
                 ${paged.length > 0 ? paged.map(lot => {
-                  const daysLeft = lot.daysLeft !== undefined ? lot.daysLeft : 100;
+                  const daysLeft = lot.daysLeft !== undefined ? lot.daysLeft : (lot.SoNgayConLai !== undefined ? lot.SoNgayConLai : 0);
                   const isExp = daysLeft <= 0;
                   const isNearExp = daysLeft > 0 && daysLeft <= 90;
+                  const statusNote = lot.statusNote || lot.TinhTrangHang || '';
                   let stBadge = isExp
                     ? `<span class="stock-badge-critical">Đã hết hạn - Thu hồi</span>`
-                    : (isNearExp ? `<span class="stock-badge-low">${lot.statusNote || 'Cận hạn giảm giá'}</span>` : `<span class="stock-badge-safe">Hạn sử dụng tốt</span>`);
+                    : (isNearExp ? `<span class="stock-badge-low">${this.escapeHtml(statusNote || 'Cận hạn giảm giá')}</span>` : `<span class="stock-badge-safe">${this.escapeHtml(statusNote || 'Hạn sử dụng tốt')}</span>`);
+
+                  const lotNumber = lot.lotNumber || lot.SoLo || '—';
+                  const lotId = lot.id || lot.MaChiTietPhieuNhap || '—';
+                  const productName = lot.productName || lot.TenSanPham || 'Sản phẩm';
+                  const branchName = lot.branchName || lot.TenChiNhanh || (lot.branchId || lot.MaChiNhanh ? ('Chi Nhánh ' + (lot.branchId || lot.MaChiNhanh)) : 'Toàn hệ thống');
+                  const rawExp = lot.expiryDate || lot.HanSuDung;
+                  const expDate = rawExp ? (typeof rawExp === 'string' ? (rawExp.includes('T') ? rawExp.split('T')[0] : (rawExp.includes(' ') && rawExp.length > 15 ? new Date(rawExp).toISOString().split('T')[0] : rawExp.split(' ')[0])) : (rawExp instanceof Date ? rawExp.toISOString().split('T')[0] : String(rawExp).split('T')[0])) : '—';
+                  const remainingQty = lot.remainingQuantity !== undefined ? lot.remainingQuantity : (lot.SoLuongConLai !== undefined ? lot.SoLuongConLai : 0);
+                  const origPrice = lot.originalPrice !== undefined ? lot.originalPrice : (lot.GiaNiemYetGoc !== undefined ? lot.GiaNiemYetGoc : 0);
+                  const discountPct = lot.discountPercent !== undefined ? lot.discountPercent : (lot.PhanTramGiam !== undefined ? lot.PhanTramGiam : 0);
+                  const actualPrice = lot.actualPrice !== undefined ? lot.actualPrice : (lot.GiaBanThucTe !== undefined ? lot.GiaBanThucTe : 0);
 
                   return `
                     <tr>
-                      <td><strong>${this.escapeHtml(lot.lotNumber || '—')}</strong></td>
-                      <td style="font-size: 11px; color: #888;">${this.escapeHtml(lot.id || lot.MaChiTietPhieuNhap)}</td>
-                      <td style="font-weight: 700;">${this.escapeHtml(lot.productName)}</td>
-                      <td>${this.escapeHtml(lot.branchName || `CN ${lot.branchId}`)}</td>
-                      <td style="white-space: nowrap;">${this.escapeHtml(lot.expiryDate || '—')}</td>
+                      <td><strong>${this.escapeHtml(lotNumber)}</strong></td>
+                      <td style="font-size: 11px; color: #888;">${this.escapeHtml(lotId)}</td>
+                      <td style="font-weight: 700;">${this.escapeHtml(productName)}</td>
+                      <td>${this.escapeHtml(branchName)}</td>
+                      <td style="white-space: nowrap;">${this.escapeHtml(expDate)}</td>
                       <td>
                         <strong style="color: ${isExp ? '#ef4444' : (isNearExp ? '#f59e0b' : '#10b981')};">
                           ${daysLeft} ngày
                         </strong>
                       </td>
-                      <td><strong style="font-size: 14px;">${lot.remainingQuantity || 0}</strong></td>
-                      <td style="text-decoration: ${lot.discountPercent > 0 ? 'line-through' : 'none'}; color: #888;">
-                        ${SalonUtils.formatCurrency(lot.originalPrice)}
+                      <td><strong style="font-size: 14px;">${remainingQty}</strong></td>
+                      <td style="text-decoration: ${discountPct > 0 ? 'line-through' : 'none'}; color: #888;">
+                        ${SalonUtils.formatCurrency(origPrice)}
                       </td>
                       <td>
                         <span class="badge-terracotta" style="font-weight: 800; font-size: 11px;">
-                          -${lot.discountPercent || 0}%
+                          -${discountPct}%
                         </span>
                       </td>
                       <td style="font-weight: 800; color: #f59e0b; font-size: 14px;">
-                        ${SalonUtils.formatCurrency(lot.actualPrice)}
+                        ${SalonUtils.formatCurrency(actualPrice)}
                       </td>
                       <td>${stBadge}</td>
                     </tr>
@@ -3203,13 +3209,13 @@
                 ${paged.length > 0 ? paged.map(r => `
                   <tr>
                     <td><strong>${this.escapeHtml(r.id || r.MaPhieuNhap)}</strong></td>
-                    <td>${this.escapeHtml(r.branchName || `Chi Nhánh ${r.branchId}`)}</td>
-                    <td style="font-weight: 700;">${this.escapeHtml(r.supplierName || 'NCC Chính Hãng')}</td>
-                    <td>${this.escapeHtml(r.staffName || 'Nhân viên kho')}</td>
-                    <td>${this.escapeHtml(r.approverName || '—')}</td>
-                    <td style="white-space: nowrap; font-size: 12px; color: #666;">${this.escapeHtml(r.createdDate || r.NgayLap)}</td>
+                    <td>${this.escapeHtml(r.branchName || r.TenChiNhanh || (r.branchId || r.MaChiNhanh ? ('Chi Nhánh ' + (r.branchId || r.MaChiNhanh)) : 'Toàn hệ thống'))}</td>
+                    <td style="font-weight: 700;">${this.escapeHtml(r.supplierName || r.TenNhaCungCap || 'NCC Chính Hãng')}</td>
+                    <td>${this.escapeHtml(r.staffName || r.TenNguoiLap || 'Nhân viên kho')}</td>
+                    <td>${this.escapeHtml(r.approverName || r.TenNguoiDuyet || '—')}</td>
+                    <td style="white-space: nowrap; font-size: 12px; color: #666;">${this.escapeHtml(r.createdDate || r.NgayLap || '—')}</td>
                     <td style="font-weight: 800; color: #10b981;">${SalonUtils.formatCurrency(r.total || r.TongTien)}</td>
-                    <td><span class="badge-terracotta" style="font-size: 11px;">${r.itemCount || 0} mục</span></td>
+                    <td><span class="badge-terracotta" style="font-size: 11px;">${r.itemCount || 1} mục</span></td>
                     <td>
                       <span class="${r.status === 'Đã duyệt' || r.TrangThai === 'Đã duyệt' ? 'stock-badge-safe' : 'stock-badge-critical'}">
                         ${this.escapeHtml(r.status || r.TrangThai || 'Đã duyệt')}
@@ -3297,8 +3303,8 @@
       if (container) {
         const user = this.getCurrentUser();
         const branchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
-        const isCashierOrBarber = this.isCashier(user) || (!this.isSuperAdmin(user) && !this.isBranchManager(user));
-      const subType = isCashierOrBarber ? 'receipts' : (this.inventorySubTab || 'stock');
+        const isCashier = this.isCashier(user);
+        const subType = isCashier ? 'receipts' : (this.inventorySubTab || 'stock');
         const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];
         const fefoLots = (window.store && typeof window.store.getFefoLots === 'function') ? window.store.getFefoLots(branchId) : [];
         const receipts = (window.store && typeof window.store.getReceipts === 'function') ? window.store.getReceipts(branchId) : [];
@@ -3366,10 +3372,15 @@
       }
     },
     refreshInventoryView() {
+      const container = document.getElementById('webMainContainer');
+      if (container && (this.adminSubTab === 'inventory' || this.adminSubTab === 'receipts')) {
+        this.render(container);
+        return;
+      }
       const content = document.getElementById('adminSubTabContent');
       if (content && (this.adminSubTab === 'inventory' || this.adminSubTab === 'receipts')) {
         const user = this.getCurrentUser();
-        const branches = window.store.getBranches();
+        const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
         content.innerHTML = this.renderInventoryTab(user, branches);
       }
     },
@@ -3465,19 +3476,19 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                   <div>
-                    <label class="sub-label">Đơn Giá Bán Ra (VNĐ) <span style="color: #ef4444;">*</span>:</label>
+                    <label class="sub-label">Đơn Giá Bán Ra VNĐ <span style="color: #ef4444;">*</span>:</label>
                     <input type="number" id="prodPrice" class="form-control-custom" style="font-weight: 700; color: #fbbf24 !important;" placeholder="350000" value="${product?.originalPrice || product?.GiaBan || product?.price || ''}" required min="1000">
                     <span style="font-size: 11px; color: #94a3b8;">Giá niêm yết bán cho khách</span>
                   </div>
                   <div>
-                    <label class="sub-label">Giá Gốc / Giá Nhập Kho (VNĐ) <span style="color: #ef4444;">*</span>:</label>
+                    <label class="sub-label">Giá Gốc / Giá Nhập Kho VNĐ <span style="color: #ef4444;">*</span>:</label>
                     <input type="number" id="prodCostPrice" class="form-control-custom" style="font-weight: 700; color: #10b981 !important;" placeholder="245000" value="${product?.costPrice || product?.GiaNhap || (product?.price ? Math.round(product.price * 0.7) : 245000)}" required min="1000">
                     <span style="font-size: 11px; color: #10b981;">Giá vốn thực tế khi nhập hàng</span>
                   </div>
                 </div>
 
                 <div style="margin-bottom: 14px;">
-                  <label class="sub-label">Đường Dẫn Ảnh (Men_Grooming_Products/... hoặc Link URL):</label>
+                  <label class="sub-label">Đường Dẫn Ảnh Men_Grooming_Products/... hoặc Link URL:</label>
                   <input type="text" id="prodImage" class="form-control-custom" placeholder="Men_Grooming_Products/... hoặc https://..." value="${this.escapeHtml(rawImg)}" oninput="AdminWeb._updateModalPreviewImage(this.value)">
                 </div>
 
@@ -3583,7 +3594,7 @@
               <h2 style="font-size: 20px; font-weight: 800; margin: 6px 0 2px;">LẬP PHIẾU NHẬP KHO NHIỀU MẶT HÀNG</h2>
               <div style="font-size: 13px; color: var(--text-secondary);">
                 Người lập phiếu: <strong style="color: #f59e0b;">${this.escapeHtml(creatorName)}</strong> 
-                ${isStaffOnly ? '• <span style="color: #d97706; font-weight: 700;">(Phiếu sẽ gửi Quản lý phê duyệt trước khi cộng kho)</span>' : '• <span style="color: #10b981; font-weight: 700;">(Tự động phê duyệt &amp; cộng tồn kho ngay)</span>'}
+                ${isStaffOnly ? '• <span style="color: #d97706; font-weight: 700;">Phiếu sẽ gửi Quản lý phê duyệt trước khi cộng kho</span>' : '• <span style="color: #10b981; font-weight: 700;">Tự động phê duyệt &amp; cộng tồn kho ngay</span>'}
               </div>
             </div>
             <div style="text-align: right;">
@@ -3628,9 +3639,9 @@
                     <tr>
                       <th style="min-width: 220px;">Sản Phẩm</th>
                       <th style="width: 90px; text-align: center;">Số Lượng</th>
-                      <th style="min-width: 130px;">Giá Nhập (VNĐ)</th>
-                      <th style="min-width: 140px;">Số Lô (FEFO)</th>
-                      <th style="min-width: 130px;">Hạn Dùng (EXP)</th>
+                      <th style="min-width: 130px;">Giá Nhập VNĐ</th>
+                      <th style="min-width: 140px;">Số Lô FEFO</th>
+                      <th style="min-width: 130px;">Hạn Dùng EXP</th>
                       <th style="min-width: 120px; text-align: right;">Thành Tiền</th>
                       <th style="width: 44px; text-align: center;">Xóa</th>
                     </tr>
@@ -4982,12 +4993,12 @@
               ${subType === 'logs' ? `
                 <select class="table-select-filter" onchange="AdminWeb.auditActionFilter = this.value; AdminWeb.auditPage = 1; AdminWeb.refreshAuditView();">
                   <option value="all" ${this.auditActionFilter === 'all' ? 'selected' : ''}>Tất cả hành động</option>
-                  <option value="BOOKING" ${this.auditActionFilter === 'BOOKING' ? 'selected' : ''}>Lịch Hẹn (Booking)</option>
-                  <option value="STOCK" ${this.auditActionFilter === 'STOCK' ? 'selected' : ''}>Kho Hàng (Stock)</option>
-                  <option value="PRODUCT" ${this.auditActionFilter === 'PRODUCT' ? 'selected' : ''}>Sản Phẩm (Product)</option>
-                  <option value="SERVICE" ${this.auditActionFilter === 'SERVICE' ? 'selected' : ''}>Dịch Vụ (Service)</option>
+                  <option value="BOOKING" ${this.auditActionFilter === 'BOOKING' ? 'selected' : ''}>Lịch Hẹn</option>
+                  <option value="STOCK" ${this.auditActionFilter === 'STOCK' ? 'selected' : ''}>Kho Hàng</option>
+                  <option value="PRODUCT" ${this.auditActionFilter === 'PRODUCT' ? 'selected' : ''}>Sản Phẩm</option>
+                  <option value="SERVICE" ${this.auditActionFilter === 'SERVICE' ? 'selected' : ''}>Dịch Vụ</option>
                   <option value="ORDER" ${this.auditActionFilter === 'ORDER' ? 'selected' : ''}>Hóa Đơn / POS</option>
-                  <option value="AUTH" ${this.auditActionFilter === 'AUTH' ? 'selected' : ''}>Xác Thực (Auth)</option>
+                  <option value="AUTH" ${this.auditActionFilter === 'AUTH' ? 'selected' : ''}>Xác Thực</option>
                 </select>
               ` : ''}
             </div>
