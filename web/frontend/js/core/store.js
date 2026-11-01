@@ -2173,7 +2173,7 @@
           originalPrice: prod.originalPrice || prod.GiaNiemYetGoc || prod.GiaBan || prod.price,
           image: prod.image,
           brand: prod.brand,
-          badge: fefoDisc > 0 ? `Cận hạn -${fefoDisc}%` : (prod.badge || (prod.discountPercent > 0 ? `Giảm ${prod.discountPercent}%` : '')),
+          badge: fefoDisc > 0 ? `-${fefoDisc}%` : (prod.badge || (prod.discountPercent > 0 ? `Giảm ${prod.discountPercent}%` : '')),
           PhanTramGiam: prod.discountPercent || prod.PhanTramGiam || 0,
           fefoDiscount: fefoDisc,
           promoDiscount: prod.promoDiscount || 0,

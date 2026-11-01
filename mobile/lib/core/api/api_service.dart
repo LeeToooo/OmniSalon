@@ -38,7 +38,7 @@ class ApiService {
     return baseUrl.replaceAll(RegExp(r'/api/?$'), '');
   }
 
-  // CHUYỂN ĐỔI ĐƯỜNG DẪN ẢNH TỪ SQL SERVER SANG LINK HTTP CHUẨN
+  // Chuyển đổi đường dẫn ảnh sang link http chuẩn
   static String getImageUrl(String? rawPath, {String fallback = ''}) {
     if (rawPath == null || rawPath.trim().isEmpty || rawPath.trim() == 'null') {
       if (fallback.isNotEmpty) return getImageUrl(fallback);
@@ -47,17 +47,18 @@ class ApiService {
 
     final trimmed = rawPath.trim();
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
+      return Uri.encodeFull(trimmed);
     }
 
-    String clean = trimmed.replaceFirst(RegExp(r'^/+'), '');
+    String clean = trimmed.replaceAll('\\', '/').replaceFirst(RegExp(r'^/+'), '');
     if (clean.startsWith('web/frontend/')) {
       clean = clean.substring(13);
     } else if (clean.startsWith('frontend/')) {
       clean = clean.substring(9);
     }
 
-    return '$baseServerUrl/$clean';
+    final fullUrl = '$baseServerUrl/$clean';
+    return Uri.encodeFull(fullUrl);
   }
 
   // KIỂM TRA TRẠNG THÁI KẾT NỐI SERVER & CSDL SQL SERVER

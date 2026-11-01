@@ -1155,11 +1155,11 @@
         email: backendUser.email || backendUser.EmailNV || backendUser.EmailKH || '',
         phone: backendUser.phone || backendUser.SdtNV || backendUser.SdtKH || '',
         role: role,
-        roleName: backendUser.roleName || backendUser.ChucVu || backendUser.vaiTroSql || 'Khách Hàng',
-        MaNhanVien: backendUser.MaNhanVien || null,
-        MaKhachHang: backendUser.MaKhachHang || null,
-        CapBac: backendUser.CapBac || null,
-        ChucVu: backendUser.ChucVu || null,
+        roleName: backendUser.roleName || backendUser.ChucVu || backendUser.chucVuSql || backendUser.vaiTroSql || 'Khách Hàng',
+        MaNhanVien: backendUser.staffId || backendUser.MaNhanVien || null,
+        MaKhachHang: backendUser.customerId || backendUser.MaKhachHang || null,
+        CapBac: backendUser.CapBac || backendUser.capBacSql || null,
+        ChucVu: backendUser.ChucVu || backendUser.chucVuSql || null,
         vaiTroSql: backendUser.vaiTroSql || null,
         branchId: backendUser.branchId || null,
         branchName: backendUser.branchName || 'Chi Nhánh OmniSalon',
@@ -1262,8 +1262,10 @@
     }
 
     hasRole(requiredRoles) {
-      // Đồ án đơn giản: Cho phép truy cập thông suốt
-      return true;
+      if (!this.currentUser) return false;
+      const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+      const userRole = this.currentUser.role || this.currentUser.vaiTroSql || '';
+      return roles.includes(userRole);
     }
 
     hasPermission(permissionCode) {

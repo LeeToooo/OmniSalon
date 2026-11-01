@@ -1208,7 +1208,7 @@
                     <span class="pdp-4rau-price" style="color: #C59B27; font-weight: 800; font-size: 26px;">${SalonUtils.formatCurrency(actualPrice)}</span>
                     ${hasDiscount ? `
                       <span class="pdp-4rau-old-price">${SalonUtils.formatCurrency(originalPrice)}</span>
-                      <span class="pdp-4rau-discount-tag" style="background: ${fefoDiscount > 0 ? '#fee2e2' : 'rgba(197, 155, 39, 0.15)'}; color: ${fefoDiscount > 0 ? '#dc2626' : '#C59B27'}; border: 1px solid ${fefoDiscount > 0 ? '#fca5a5' : 'rgba(197, 155, 39, 0.3)'};">${(fefoDiscount > 0 && prod.promoDiscount > 0) ? ('Giảm -' + discountPercent + '%') : (fefoDiscount > 0 ? ('Cận hạn -' + fefoDiscount + '%') : ('-' + discountPercent + '%'))}</span>
+                      <span class="pdp-4rau-discount-tag" style="background: ${fefoDiscount > 0 ? '#fee2e2' : 'rgba(197, 155, 39, 0.15)'}; color: ${fefoDiscount > 0 ? '#dc2626' : '#C59B27'}; border: 1px solid ${fefoDiscount > 0 ? '#fca5a5' : 'rgba(197, 155, 39, 0.3)'};">${'-' + (fefoDiscount || discountPercent) + '%'}</span>
                     ` : ''}
                   `}
                 </div>

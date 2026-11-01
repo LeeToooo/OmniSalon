@@ -280,7 +280,7 @@ class _CartScreenState extends State<CartScreen> {
       orderCode: '',
       userId: AuthService.currentUser?.id,
       branchId: MainScaffold.of(context)?.selectedBranch?.id ?? 'CN01',
-      branchName: MainScaffold.of(context)?.selectedBranch?.name ?? 'Omni Salon Flagship',
+      branchName: MainScaffold.of(context)?.selectedBranch?.name ?? 'Omni Salon Barber',
       customerName: name,
       customerPhone: phone,
       shippingAddress: address,
@@ -294,6 +294,8 @@ class _CartScreenState extends State<CartScreen> {
       createdAt: DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
     );
 
+    final finalOrderAmount = _finalTotal;
+    final paymentUsed = _selectedPayment;
     final assignedOrderCode = await ApiService.createOrder(newOrder);
 
     setState(() {
@@ -304,19 +306,20 @@ class _CartScreenState extends State<CartScreen> {
     if (widget.onUpdateCart != null) widget.onUpdateCart!();
     if (!mounted) return;
 
-    _showSuccessDialog(assignedOrderCode ?? 'DH01');
+    _showSuccessDialog(assignedOrderCode ?? 'DH01', finalOrderAmount, paymentUsed);
   }
 
-  void _showSuccessDialog(String orderCode) {
+  void _showSuccessDialog(String orderCode, [int orderAmount = 0, String paymentUsed = '']) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             Container(
               width: 56,
               height: 56,
@@ -338,7 +341,7 @@ class _CartScreenState extends State<CartScreen> {
               style: AppTheme.bodySmall(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
-            if (_selectedPayment.contains('VietQR')) ...[
+            if (paymentUsed.toLowerCase().contains('vietqr') || _selectedPayment.toLowerCase().contains('vietqr')) ...[
               const SizedBox(height: 14),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -354,7 +357,7 @@ class _CartScreenState extends State<CartScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=' + _finalTotal.toString() + '&addInfo=' + Uri.encodeComponent('DONHANG ' + orderCode) + '&accountName=OMNISALON%20ENTERPRISE',
+                        'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${orderAmount > 0 ? orderAmount : _finalTotal}&addInfo=${Uri.encodeComponent("DONHANG $orderCode")}&accountName=OMNISALON%20ENTERPRISE',
                         height: 170,
                         width: 170,
                         fit: BoxFit.contain,
@@ -369,12 +372,14 @@ class _CartScreenState extends State<CartScreen> {
                     const SizedBox(height: 8),
                     Text('MB Bank: 0900000000', style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
                     Text('Chủ TK: OMNISALON ENTERPRISE', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary)),
-                    Text('Nội dung: DONHANG ' + orderCode, style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
+                    Text('Số tiền: ${currencyFormat.format(orderAmount > 0 ? orderAmount : _finalTotal)}', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
+                    Text('Nội dung: DONHANG $orderCode', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
             ],
           ],
+        ),
         ),
         actions: [
           SizedBox(
@@ -653,8 +658,10 @@ class _CartScreenState extends State<CartScreen> {
                       style: AppTheme.bodyMedium(),
                       decoration: const InputDecoration(
                         labelText: 'Địa chỉ nhận hàng *',
+                        hintText: 'Nhập số nhà, tên đường, phường, quận...',
                         prefixIcon: Icon(Icons.location_on_outlined, size: 20),
                       ),
+                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Vui lòng nhập địa chỉ nhận hàng!' : null,
                     ),
                     const SizedBox(height: 20),
 

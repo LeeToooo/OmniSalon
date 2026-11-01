@@ -150,7 +150,7 @@
 
       // Nhãn giảm giá phẳng tinh tế
       const badgeText = data.fefoDiscount > 0
-        ? `Cận hạn -${data.fefoDiscount}%`
+        ? `-${data.fefoDiscount}%`
         : (data.discountPercent > 0 ? `-${data.discountPercent}%` : '');
       const discountBadgeHtml = badgeText ? `
         <span class="flat-discount-badge" aria-label="${badgeText}">

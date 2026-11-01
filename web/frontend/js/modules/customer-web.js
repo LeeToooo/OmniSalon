@@ -211,18 +211,19 @@
       if (!user) return 'Khách Vãng Lai';
       const role = String(user.role || user.vaiTroSql || user.VaiTro || '').toUpperCase();
       const chucVu = String(user.ChucVu || user.chucVuSql || '').toUpperCase();
+      const uid = String(user.id || user.MaNhanVien || user.staffId || '').toUpperCase();
 
-      if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'QUẢN TRỊ VIÊN' || chucVu === 'QUẢN TRỊ VIÊN' || user.username === 'admin') {
+      if (uid === 'NV00' || role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'QUẢN TRỊ VIÊN' || chucVu === 'QUẢN TRỊ VIÊN' || user.username === 'admin') {
         return 'Quản Trị Tối Cao';
       }
-      if (role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || chucVu === 'QUẢN LÝ CHI NHÁNH') {
+      if (role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || chucVu === 'QUẢN LÝ CHI NHÁNH' || chucVu.includes('QUẢN LÝ')) {
         return 'Quản Lý Chi Nhánh';
       }
-      if (role === 'STYLIST' || role === 'NHÂN VIÊN' || chucVu === 'THỢ CHÍNH' || chucVu === 'THỢ PHỤ') {
-        return user.CapBac ? `${user.CapBac} (${user.ChucVu || 'Thợ Tóc'})` : 'Thợ Barber Chuyên Nghiệp';
-      }
-      if (role === 'CASHIER' || role === 'THU NGÂN' || chucVu === 'THU NGÂN') {
+      if (role === 'CASHIER' || role === 'THU NGÂN' || chucVu === 'THU NGÂN' || chucVu.includes('THU NGÂN')) {
         return 'Thu Ngân Tiếp Tân';
+      }
+      if (role === 'STYLIST' || role === 'STAFF' || role === 'NHÂN VIÊN' || chucVu === 'THỢ CHÍNH' || chucVu === 'THỢ PHỤ' || chucVu.includes('THỢ') || chucVu.includes('BARBER')) {
+        return user.CapBac ? `${user.CapBac} (${user.ChucVu || 'Thợ Tóc'})` : (user.ChucVu || 'Thợ Barber Chuyên Nghiệp');
       }
       return `${user.tier && !user.tier.includes('OMNI') ? user.tier : 'Khách Hàng VIP'}`;
     },
@@ -389,10 +390,11 @@
 
                   <!-- 2. Chọn chi nhánh - Quản trị tối cao đổi chi nhánh, Quản lý chi nhánh & Thợ cố định chi nhánh -->
                   ${(() => {
-          const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
-          const isSuper = user && (roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN TRỊ') || user.username === 'admin');
+          const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || user?.chucVuSql || '').toUpperCase();
+          const uid = String(user?.id || user?.MaNhanVien || user?.staffId || '').toUpperCase();
+          const isSuper = user && (uid === 'NV00' || roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN TRỊ') || user.username === 'admin');
           const isBranchMgr = user && !isSuper && (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER'));
-          const isStf = user && !isSuper && !isBranchMgr && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
+          const isStf = user && !isSuper && !isBranchMgr && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN') || roleUpper.includes('STAFF') || roleUpper.includes('BARBER'));
 
           if (isSuper) {
             return `
@@ -445,8 +447,8 @@
 
                   <!-- 4. Lịch làm việc & Đăng ký ca làm  - Dành cho Thợ & Thu ngân -  -->
                   ${(() => {
-          const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
-          const isStf = user && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN'));
+          const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || user?.chucVuSql || '').toUpperCase();
+          const isStf = user && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN') || roleUpper.includes('STAFF') || roleUpper.includes('BARBER'));
           if (isStf) {
             return `
                         <button class="dropdown-item-btn" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 800; margin: 4px 0;" onclick="CustomerWeb.openStaffShiftModal(); CustomerWeb.closeUserMenu();">
@@ -973,26 +975,27 @@
     },
 
     renderAdminButtonHTML(user, isAdmin) {
-      if (isAdmin || this.isAdminUser(user)) {
-        const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
-        const isBarber = (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('BARBER')) && !roleUpper.includes('QUẢN LÝ') && !roleUpper.includes('ADMIN');
-        if (isBarber) {
-          // Thợ đã có nút cam "Lập Phiếu Nhập Kho" riêng trong avatar dropdown
-          return '';
-        }
-        const isCashier = user && (roleUpper.includes('CASHIER') || roleUpper.includes('THU NGÂN'));
-        const isManager = user && (roleUpper.includes('BRANCH') || roleUpper.includes('QUẢN LÝ'));
-        const label = isCashier ? 'Quầy Thu Ngân POS' : (isManager ? 'Bàn Làm Việc Quản Lý' : 'Bảng Quản Trị Tối Cao');
-        return `
-          <button class="dropdown-admin-btn ${this.currentTab === 'admin' ? 'active' : ''}" 
-                  onclick="CustomerWeb.closeUserMenu(); CustomerWeb.switchTab('${this.currentTab === 'admin' ? 'home' : 'admin'}');" 
-                  title="Vào Khu Vực Làm Việc Phân Hệ">
-            ${this.currentTab === 'admin' ? 'Xem Giao Diện Khách' : label}
-          </button>
-        `;
+      if (!user) return '';
+      const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || user?.chucVuSql || '').toUpperCase();
+      const uid = String(user?.id || user?.MaNhanVien || user?.staffId || '').toUpperCase();
+
+      const isSuper = (uid === 'NV00' || roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN TRỊ') || user.username === 'admin');
+      const isManager = !isSuper && (roleUpper.includes('BRANCH') || roleUpper.includes('QUẢN LÝ'));
+      const isCashier = !isSuper && !isManager && (roleUpper.includes('CASHIER') || roleUpper.includes('THU NGÂN'));
+
+      // Nhan vien tho khong co nut bang quan tri
+      if (!isSuper && !isManager && !isCashier) {
+        return '';
       }
-      // Dành riêng cho Admin & Nhân sự chuyên môn
-      return '';
+
+      const label = isCashier ? 'Quầy Thu Ngân POS' : (isManager ? 'Bàn Làm Việc Quản Lý' : 'Bảng Quản Trị Tối Cao');
+      return `
+        <button class="dropdown-admin-btn ${this.currentTab === 'admin' ? 'active' : ''}" 
+                onclick="CustomerWeb.closeUserMenu(); CustomerWeb.switchTab('${this.currentTab === 'admin' ? 'home' : 'admin'}');" 
+                title="Vào Khu Vực Làm Việc Phân Hệ">
+          ${this.currentTab === 'admin' ? 'Xem Giao Diện Khách' : label}
+        </button>
+      `;
     },
 
     handleAdminDenied() {

@@ -49,7 +49,12 @@ const server = http.createServer(async (req, res) => {
 
   // Phản hồi yêu cầu OPTIONS, CORS preflight
   if (req.method === 'OPTIONS') {
-    res.writeHead(200);
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': corsOrigin,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Requested-With',
+      'Access-Control-Max-Age': '86400'
+    });
     return res.end();
   }
 
@@ -122,7 +127,8 @@ const server = http.createServer(async (req, res) => {
                 'Content-Type': mime,
                 'Content-Length': stat.size,
                 'Cache-Control': isCode ? 'no-cache, no-store, must-revalidate' : 'public, max-age=86400',
-                'Access-Control-Allow-Origin': corsOrigin,
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
                 'Cross-Origin-Resource-Policy': 'cross-origin',
                 'Accept-Ranges': 'bytes'
               });

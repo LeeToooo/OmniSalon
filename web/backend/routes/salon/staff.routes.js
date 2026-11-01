@@ -45,19 +45,26 @@ async function handleStaffRoutes(req, res, ctx) {
     // Muc 24: Loai bo Quan tri toi cao khoi danh sach nhan su tai backend
     q += ` AND nv.MaNhanVien <> 'NV00' AND nv.ChucVu NOT LIKE N'%Quản trị%' AND nv.ChucVu NOT LIKE N'%Chủ tịch%'`;
     q += ` AND (nv.ChucVu LIKE N'%Quản lý%' OR nv.ChucVu LIKE N'%Thợ chính%' OR nv.ChucVu LIKE N'%Thợ phụ%' OR nv.ChucVu LIKE N'%Thu ngân%')`;
-    const authUserStaff = extractAuthUser(req);
+        const authUserStaff = extractAuthUser(req);
     if (authUserStaff) {
       const roleUpper = String(authUserStaff.role || authUserStaff.vaiTroSql || '').toUpperCase();
-      const isMgr = (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER')) && !roleUpper.includes('ADMIN') && !roleUpper.includes('QUẢN TRỊ');
-      if (isMgr && authUserStaff.branchId) {
+      const uid = String(authUserStaff.id || authUserStaff.MaNhanVien || authUserStaff.staffId || '').toUpperCase();
+      const isSuper = (uid === 'NV00' || roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN TRỊ') || authUserStaff.username === 'admin');
+      const isMgr = !isSuper && (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER'));
+      if (isMgr && authUserStaff.branchId && authUserStaff.branchId !== 'ALL') {
         if (branchParam && branchParam !== 'all' && branchParam !== authUserStaff.branchId) {
           res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ success: false, message: 'Quản lý chỉ được xem danh sách nhân sự của chi nhánh mình phụ trách.' }));
           return true;
         }
+        // Quản lý chỉ được xem nhân sự tại chi nhánh mình phụ trách
+        q += ` AND nv.MaChiNhanh = ?`;
+        params.push(authUserStaff.branchId);
+      } else if (branchParam && branchParam !== 'all') {
+        q += ` AND nv.MaChiNhanh = ?`;
+        params.push(branchParam);
       }
-    }
-    if (branchParam && branchParam !== 'all') {
+    } else if (branchParam && branchParam !== 'all') {
       q += ` AND nv.MaChiNhanh = ?`;
       params.push(branchParam);
     }

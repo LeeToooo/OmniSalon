@@ -4,6 +4,7 @@ class Stylist {
   final String id;
   final String name;
   final String level;
+  final String role;
   final String branchId;
   final String branchName;
   final String avatar;
@@ -16,6 +17,7 @@ class Stylist {
     required this.id,
     required this.name,
     required this.level,
+    this.role = '',
     required this.branchId,
     this.branchName = 'Omni Salon Barber',
     required this.avatar,
@@ -55,10 +57,14 @@ class Stylist {
       specs = (json['specialties'] as List).map((e) => e.toString()).toList();
     }
 
+    final rawRole = json['role'] ?? json['ChucVu'] ?? json['VaiTro'] ?? '';
+    final cleanRole = rawRole.toString();
+
     return Stylist(
       id: json['id'] ?? json['MaNhanVien'] ?? '',
       name: cleanName,
       level: cleanLevel,
+      role: cleanRole,
       branchId: json['branchId'] ?? json['MaChiNhanh'] ?? 'CN01',
       branchName: json['branchName'] ?? json['TenChiNhanh'] ?? 'Omni Salon Chi Nhánh',
       avatar: formattedAvatar,
@@ -74,6 +80,7 @@ class Stylist {
       'id': id,
       'name': name,
       'level': level,
+      'role': role,
       'branchId': branchId,
       'branchName': branchName,
       'avatar': avatar,

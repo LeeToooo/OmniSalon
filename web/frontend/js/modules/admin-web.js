@@ -88,16 +88,17 @@
     isSuperAdmin(user) {
       const targetUser = user || this.getCurrentUser();
       if (!targetUser) return false;
-      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || '').toUpperCase();
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || targetUser.chucVuSql || '').toUpperCase();
       const username = String(targetUser.username || targetUser.TenDangNhap || '').toLowerCase();
-      return role === 'SUPER_ADMIN' || role === 'ADMIN' || role.includes('QUẢN TRỊ') || username === 'admin' || (window.AuthEngine && typeof window.AuthEngine.hasRole === 'function' && window.AuthEngine.hasRole('SUPER_ADMIN'));
+      const uid = String(targetUser.id || targetUser.MaNhanVien || targetUser.staffId || '').toUpperCase();
+      return uid === 'NV00' || role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'QUẢN TRỊ VIÊN' || role === 'QUẢN TRỊ TỐI CAO' || role.includes('QUẢN TRỊ') || username === 'admin';
     },
 
     isBranchManager(user) {
       const targetUser = user || this.getCurrentUser();
       if (!targetUser) return false;
       if (this.isSuperAdmin(targetUser)) return false;
-      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || '').toUpperCase();
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || targetUser.chucVuSql || '').toUpperCase();
       return role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || role.includes('QUẢN LÝ') || role.includes('QUAN_LY');
     },
 
@@ -105,8 +106,8 @@
       const targetUser = user || this.getCurrentUser();
       if (!targetUser) return false;
       if (this.isSuperAdmin(targetUser) || this.isBranchManager(targetUser)) return false;
-      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || '').toUpperCase();
-      return role === 'CASHIER' || role === 'THU NGÂN' || role.includes('THU NGÂN') || role.includes('THU_NGÂN') || (window.AuthEngine && typeof window.AuthEngine.hasRole === 'function' && window.AuthEngine.hasRole('CASHIER'));
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || targetUser.chucVuSql || '').toUpperCase();
+      return role === 'CASHIER' || role === 'THU NGÂN' || role.includes('THU NGÂN') || role.includes('THU_NGÂN');
     },
 
     syncBranchScope(user) {
@@ -516,6 +517,7 @@
           { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu Chi Nhánh' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
+          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
@@ -524,14 +526,14 @@
         tabGroups = [
           {
             groupLabel: 'CHỨC NĂNG QUẢN LÝ CHI NHÁNH',
-            ids: ['overview', 'stylists', 'inventory', 'catalog']
+            ids: ['overview', 'stylists', 'inventory', 'receipts', 'catalog']
           },
           {
             groupLabel: 'QUYỀN THU NGÂN',
             ids: ['pos', 'bookings', 'audit']
           }
         ];
-        if (!['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab) && this.adminSubTab !== 'receipts') {
+        if (!['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
           this.adminSubTab = 'overview';
         }
       } else {
@@ -540,6 +542,7 @@
           { id: 'branches', icon: tabIcons.branches, label: 'Quản Lý Chuỗi Chi Nhánh' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
+          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Điều Phối Lịch Hẹn' },
@@ -547,12 +550,12 @@
         ];
         tabGroups = [
           {
-            groupLabel: 'QUẢN TRỊ HỆ THỐNG (ADMIN)',
+            groupLabel: 'QUẢN TRỊ HỆ THỐNG',
             ids: ['overview', 'branches']
           },
           {
             groupLabel: 'QUẢN LÝ VẬN HÀNH & KHO',
-            ids: ['stylists', 'inventory', 'catalog']
+            ids: ['stylists', 'inventory', 'receipts', 'catalog']
           },
           {
             groupLabel: 'QUYỀN THU NGÂN & TIẾP NHẬN',
@@ -771,21 +774,16 @@
         if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Tiếp nhận lịch hẹn, Lập phiếu nhập và Lịch sử đơn!', 'warning');
         return;
       }
-      if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(tabName) && tabName !== 'receipts') {
-        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Báo cáo, Thợ, Kho, Giá dịch vụ và toàn quyền Thu ngân!', 'warning');
+      if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'audit'].includes(tabName)) {
+        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Báo cáo, Thợ, Kho, Phiếu nhập, Giá dịch vụ và toàn quyền Thu ngân!', 'warning');
         return;
       }
       if (tabName === 'receipts') {
-        if (activeRole === 'CASHIER') {
-          this.adminSubTab = 'receipts';
-          this.inventorySubTab = 'receipts';
-        } else {
-          this.adminSubTab = 'inventory';
-          this.inventorySubTab = 'receipts';
-        }
+        this.adminSubTab = 'receipts';
+        this.inventorySubTab = 'receipts';
       } else if (tabName === 'inventory') {
         this.adminSubTab = 'inventory';
-        this.inventorySubTab = this.inventorySubTab || 'stock';
+        this.inventorySubTab = (this.inventorySubTab && this.inventorySubTab !== 'receipts') ? this.inventorySubTab : 'stock';
       } else {
         this.adminSubTab = tabName;
       }
@@ -2279,8 +2277,8 @@
 
       // Loại bỏ NV00, Chủ tịch / Quản trị tối cao khỏi danh sách thợ salon
       let filteredStylists = [...stylists].filter(s => (s.id || s.MaNhanVien) !== 'NV00' && !String(s.name || s.HoTen || '').toLowerCase().includes('lê minh hoàng'));
-      if (this.isBranchManager(user) && user.branchId) {
-        filteredStylists = filteredStylists.filter(s => s.branchId === user.branchId);
+      if (this.isBranchManager(user) && user.branchId && user.branchId !== 'ALL') {
+        filteredStylists = filteredStylists.filter(s => (s.branchId === user.branchId || s.MaChiNhanh === user.branchId));
       } else if (this.filterBranch !== 'all') {
         filteredStylists = filteredStylists.filter(s => s.branchId === this.filterBranch);
       }
@@ -3016,7 +3014,7 @@
       this.inventorySearchQuery = '';
       const user = this.getCurrentUser();
       const isCashier = this.isCashier(user);
-      if (isCashier) {
+      if (isCashier || type === 'receipts') {
         this.adminSubTab = 'receipts';
       } else {
         this.adminSubTab = 'inventory';
@@ -3025,6 +3023,16 @@
       if (content) {
         const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
         content.innerHTML = this.renderInventoryTab(user, branches);
+        document.querySelectorAll('.admin-sidebar-nav-item').forEach(btn => {
+          const isRec = (type === 'receipts');
+          const isBtnRec = btn.innerHTML.includes('Phiếu Nhập Kho') || btn.innerHTML.includes('receipts');
+          const isBtnInv = btn.innerHTML.includes('Quản Lý Kho') || btn.innerHTML.includes('inventory');
+          if (isRec) {
+            btn.classList.toggle('active', isBtnRec);
+          } else {
+            btn.classList.toggle('active', isBtnInv);
+          }
+        });
       } else {
         const container = document.getElementById('webMainContainer');
         if (container) {
@@ -3039,7 +3047,7 @@
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const branchId = (this.isBranchManager(user) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
       const isCashier = this.isCashier(user);
-      const subType = isCashier ? 'receipts' : (this.inventorySubTab || 'stock');
+      const subType = (isCashier || this.adminSubTab === 'receipts') ? 'receipts' : (this.inventorySubTab || 'stock');
 
       const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];
       const fefoLots = (window.store && typeof window.store.getFefoLots === 'function') ? window.store.getFefoLots(branchId) : [];

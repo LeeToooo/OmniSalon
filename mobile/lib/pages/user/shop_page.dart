@@ -496,6 +496,7 @@ class _ShopScreenState extends State<ShopScreen> {
   bool get _isLookbookMode {
     return _selectedCategory == 'all' &&
         _selectedBrand == 'all' &&
+        _sortOption == 'default' &&
         _searchController.text.trim().isEmpty;
   }
 
@@ -594,9 +595,6 @@ class _ShopScreenState extends State<ShopScreen> {
                     onSelected: (val) {
                       setState(() {
                         _sortOption = val;
-                        if (_isLookbookMode && val != 'default') {
-                          _selectedCategory = 'all_grid';
-                        }
                       });
                     },
                     itemBuilder: (ctx) => const [
@@ -1129,7 +1127,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.auto_stories_rounded, size: 14, color: AppTheme.accentGold),
+                      const Icon(Icons.filter_alt_off_rounded, size: 14, color: AppTheme.accentGold),
                       const SizedBox(width: 4),
                       Text(
                         'Xóa bộ lọc',
@@ -1157,7 +1155,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       const SizedBox(height: 12),
                       OutlinedButton(
                         onPressed: _resetToLookbook,
-                        child: const Text('Xem lại toàn bộ'),
+                        child: const Text('Xóa bộ lọc'),
                       ),
                     ],
                   ),

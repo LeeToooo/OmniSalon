@@ -127,12 +127,24 @@ function enforceAuth(req, res, allowedRoles = []) {
   };
 }
 
-// CORS Whitelist Configuration
+// Cấu hình CORS cho phép web và mobile
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:5500,http://127.0.0.1:5500,http://localhost:8080').split(',').map(o => o.trim());
 
 function getCorsOrigin(reqOrigin) {
-  if (!reqOrigin) return ALLOWED_ORIGINS[0];
-  return ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin : ALLOWED_ORIGINS[0];
+  if (!reqOrigin) return '*';
+  const trimmed = reqOrigin.trim();
+  if (
+    trimmed.startsWith('http://localhost:') ||
+    trimmed.startsWith('https://localhost:') ||
+    trimmed.startsWith('http://127.0.0.1:') ||
+    trimmed.startsWith('https://127.0.0.1:') ||
+    trimmed.startsWith('http://10.0.2.2:') ||
+    trimmed.startsWith('https://10.0.2.2:') ||
+    ALLOWED_ORIGINS.includes(trimmed)
+  ) {
+    return trimmed;
+  }
+  return ALLOWED_ORIGINS[0] || '*';
 }
 
 module.exports = {

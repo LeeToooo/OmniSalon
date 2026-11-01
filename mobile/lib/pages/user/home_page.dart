@@ -225,20 +225,28 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'MẠNG LƯỚI KHÔNG GIAN',
-                    style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
-                  ),
-                  const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        'Hệ Thống Chi Nhánh Omni',
-                        style: AppTheme.headingMedium(fontSize: 22),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'MẠNG LƯỚI KHÔNG GIAN',
+                              style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Hệ Thống Chi Nhánh Omni',
+                              style: AppTheme.headingMedium(fontSize: 22),
+                            ),
+                          ],
+                        ),
                       ),
-                      TextButton(
-                        onPressed: () {
+                      GestureDetector(
+                        onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const BranchesScreen()),
                           );

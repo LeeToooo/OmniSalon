@@ -283,7 +283,7 @@ class _BookingScreenState extends State<BookingScreen> {
       customerName: _nameController.text.trim(),
       customerPhone: _phoneController.text.trim(),
       branchId: _selectedBranch?.id ?? 'CN01',
-      branchName: _selectedBranch?.name ?? 'Omni Salon Flagship',
+      branchName: _selectedBranch?.name ?? 'Omni Salon Barber',
       serviceId: firstService.id,
       serviceName: selectedServicesList.map((e) => e['name']).join(' + '),
       serviceIds: _selectedServiceIds.toList(),
@@ -340,6 +340,7 @@ class _BookingScreenState extends State<BookingScreen> {
         status: booking.status,
         notes: booking.notes,
         createdAt: booking.createdAt,
+        paymentMethod: _selectedPaymentMethod,
       );
 
       _showSuccessDialog(confirmedBooking);
@@ -361,9 +362,10 @@ class _BookingScreenState extends State<BookingScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             Container(
               width: 56,
               height: 56,
@@ -403,7 +405,7 @@ class _BookingScreenState extends State<BookingScreen> {
               style: AppTheme.bodySmall(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
-            if (booking.paymentMethod == 'VietQR' || _selectedPaymentMethod == 'VietQR') ...[
+            if (booking.paymentMethod.toLowerCase().contains('vietqr') || _selectedPaymentMethod.toLowerCase().contains('vietqr')) ...[
               const SizedBox(height: 14),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -419,7 +421,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=' + booking.totalPrice.toString() + '&addInfo=' + Uri.encodeComponent('LICHHEN ' + booking.bookingCode) + '&accountName=OMNISALON%20ENTERPRISE',
+                        'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${booking.totalPrice}&addInfo=${Uri.encodeComponent("LICHHEN ${booking.bookingCode}")}&accountName=OMNISALON%20ENTERPRISE',
                         height: 170,
                         width: 170,
                         fit: BoxFit.contain,
@@ -434,12 +436,14 @@ class _BookingScreenState extends State<BookingScreen> {
                     const SizedBox(height: 8),
                     Text('MB Bank: 0900000000', style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
                     Text('Chủ TK: OMNISALON ENTERPRISE', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary)),
-                    Text('Nội dung: LICHHEN ' + booking.bookingCode, style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
+                    Text('Số tiền: ${currencyFormat.format(booking.totalPrice)}', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
+                    Text('Nội dung: LICHHEN ${booking.bookingCode}', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
             ],
           ],
+        ),
         ),
         actions: [
           SizedBox(
@@ -817,14 +821,19 @@ class _BookingScreenState extends State<BookingScreen> {
         : _stylists;
     final listToDisplay = branchStylists.isNotEmpty ? branchStylists : _stylists;
 
-    // Lọc chỉ giữ lại Thợ Barber, Master Stylist, Lead Barber, Assistant Barber, Branch Manager, loại bỏ nhân viên thu ngân/tạp vụ
+    // Loc giu lai quan ly tho chinh tho phu loai bo thu ngan nhan vien
     final barbersOnly = listToDisplay.where((st) {
+      if (st.id == 'NV00') return false;
+      final role = st.role.toLowerCase();
       final lvl = st.level.toLowerCase();
       final name = st.name.toLowerCase();
-      if (lvl.contains('nhân viên') || lvl.contains('thu ngân') || lvl.contains('cashier') || lvl.contains('kế toán') || st.id == 'NV00') {
+      if (role.contains('thu ngân') || role.contains('cashier') || role.contains('kế toán') || role.contains('nhân viên')) {
         return false;
       }
-      if (name.contains('nhân viên') || name.contains('thu ngân')) {
+      if (lvl.contains('nhân viên') || lvl.contains('thu ngân') || lvl.contains('cashier') || lvl.contains('kế toán')) {
+        return false;
+      }
+      if (name.contains('thu ngân') || name.contains('nguyễn thảo my')) {
         return false;
       }
       return true;

@@ -5,7 +5,6 @@ import 'package:omni_salon_mobile/pages/auth/login_page.dart';
 import 'package:omni_salon_mobile/pages/user/my_bookings_page.dart';
 import 'package:omni_salon_mobile/pages/user/branches_page.dart';
 import 'package:omni_salon_mobile/pages/user/stylists_page.dart';
-// Admin portal moved to Web-only
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

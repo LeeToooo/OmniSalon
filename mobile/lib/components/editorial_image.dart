@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
@@ -49,9 +50,9 @@ class EditorialImage extends StatelessWidget {
         imageWidget = _buildPlaceholder();
       }
     } else {
-      final int targetCacheWidth = (width != null && width!.isFinite && width! > 0)
+      final int? targetCacheWidth = (!kIsWeb && width != null && width!.isFinite && width! > 0)
           ? (width! * 2).clamp(160, 1200).toInt()
-          : 800;
+          : (!kIsWeb ? 800 : null);
 
       imageWidget = Image.network(
         cleanUrl,

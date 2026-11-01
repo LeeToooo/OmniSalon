@@ -43,8 +43,15 @@ class _StylistsScreenState extends State<StylistsScreen> {
   }
 
   List<Stylist> get _filteredStylists {
-    if (_selectedBranchId == 'all') return _allStylists;
-    return _allStylists.where((s) => s.branchId == _selectedBranchId).toList();
+    final list = _selectedBranchId == 'all' ? _allStylists : _allStylists.where((s) => s.branchId == _selectedBranchId).toList();
+    return list.where((st) {
+      if (st.id == 'NV00') return false;
+      final role = st.role.toLowerCase();
+      final lvl = st.level.toLowerCase();
+      if (role.contains('thu ngân') || role.contains('cashier') || role.contains('kế toán') || role.contains('nhân viên')) return false;
+      if (lvl.contains('thu ngân') || lvl.contains('cashier') || lvl.contains('kế toán') || lvl.contains('nhân viên')) return false;
+      return true;
+    }).toList();
   }
 
   String get _selectedBranchName {

@@ -290,7 +290,7 @@
       }
 
       const totalDiscountPercent = orig > 0 ? Math.round(((orig - finalPrice) / orig) * 100) : 0;
-      const customerBadge = fefoPercent > 0 ? `Cận hạn -${fefoPercent}%` : (promo > 0 ? `-${promo}%` : '');
+      const customerBadge = fefoPercent > 0 ? `-${fefoPercent}%` : (promo > 0 ? `-${promo}%` : '');
 
       return {
         discountPercent: totalDiscountPercent,

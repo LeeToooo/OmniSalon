@@ -24,12 +24,20 @@ class _BranchesScreenState extends State<BranchesScreen> {
     {'id': 'Quận 3', 'label': 'Quận 3'},
     {'id': 'Quận 4', 'label': 'Quận 4'},
     {'id': 'Quận 5', 'label': 'Quận 5'},
+    {'id': 'Quận 6', 'label': 'Quận 6'},
     {'id': 'Quận 7', 'label': 'Quận 7'},
+    {'id': 'Quận 8', 'label': 'Quận 8'},
     {'id': 'Quận 10', 'label': 'Quận 10'},
+    {'id': 'Quận 11', 'label': 'Quận 11'},
+    {'id': 'Quận 12', 'label': 'Quận 12'},
     {'id': 'Bình Thạnh', 'label': 'Bình Thạnh'},
     {'id': 'Tân Bình', 'label': 'Tân Bình'},
+    {'id': 'Tân Phú', 'label': 'Tân Phú'},
     {'id': 'Gò Vấp', 'label': 'Gò Vấp'},
     {'id': 'Phú Nhuận', 'label': 'Phú Nhuận'},
+    {'id': 'Bình Tân', 'label': 'Bình Tân'},
+    {'id': 'Bình Chánh', 'label': 'Bình Chánh'},
+    {'id': 'Hóc Môn', 'label': 'Hóc Môn'},
     {'id': 'Thủ Đức', 'label': 'TP. Thủ Đức'},
   ];
 
@@ -60,31 +68,19 @@ class _BranchesScreenState extends State<BranchesScreen> {
     final query = _searchController.text.trim().toLowerCase();
 
     final filtered = allBranches.where((b) {
-      // 1. Lọc theo quận với khả năng nhận diện linh hoạt các biến thể Quận X, Q.X, QX
+      // 1. Loc theo quan voi bieu thuc regex chinh xac
       if (selectedDistrict != 'all') {
         final text = '${b.name} ${b.address}'.toLowerCase();
         final dist = selectedDistrict.toLowerCase();
-        bool match = text.contains(dist);
-        if (!match) {
-          final matchNum = RegExp(r'quận\s*(\d+)').firstMatch(dist);
-          if (matchNum != null) {
-            final num = matchNum.group(1);
-            if (num != null && (text.contains('q.$num') || text.contains('q$num') || text.contains('quận $num'))) {
-              match = true;
-            }
-          } else if (dist.contains('thủ đức') && text.contains('thủ đức')) {
-            match = true;
-          } else if (dist.contains('bình thạnh') && text.contains('bình thạnh')) {
-            match = true;
-          } else if (dist.contains('tân bình') && text.contains('tân bình')) {
-            match = true;
-          } else if (dist.contains('gò vấp') && text.contains('gò vấp')) {
-            match = true;
-          } else if (dist.contains('phú nhuận') && text.contains('phú nhuận')) {
-            match = true;
-          }
+        final matchNum = RegExp(r'quận\s*(\d+)').firstMatch(dist);
+        if (matchNum != null) {
+          final n = matchNum.group(1);
+          final numStr = n ?? '';
+          final reg = RegExp(r'(^|[^a-z0-9])(q\.?\s*' + numStr + r'|quận\s*' + numStr + r')([^a-z0-9]|$)', caseSensitive: false);
+          if (!reg.hasMatch(text)) return false;
+        } else {
+          if (!text.contains(dist)) return false;
         }
-        if (!match) return false;
       }
 
       // 2. Lọc theo ô tìm kiếm
@@ -313,7 +309,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
                                           border: Border.all(color: isFlagship ? AppTheme.accentGold : AppTheme.borderColor),
                                         ),
                                         child: Text(
-                                          isFlagship ? 'CƠ SỞ FLAGSHIP' : 'CHI NHÁNH ${b.id}',
+                                          'CHI NHÁNH ${b.id}',
                                           style: AppTheme.labelUppercase(
                                             color: isFlagship ? AppTheme.charcoal : AppTheme.accentGold,
                                             fontSize: 9.5,
