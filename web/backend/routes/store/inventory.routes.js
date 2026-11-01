@@ -1,16 +1,47 @@
-﻿// =========================================================================
+// =========================================================================
 // QUẢN LÝ KHO HÀNG, PHIẾU NHẬP & NHÀ CUNG CẤP
 // Bảng CSDL: TonKho, PhieuNhapKho, ChiTietPhieuNhap, NhaCungCap, QuyTacGiamGiaTheoHan
 // =========================================================================
 
 const { querySql } = require('../../database/db');
+const { extractAuthUser } = require('../../middlewares/auth_middleware');
+
+function getUserRoleInfo(authUser) {
+  if (!authUser) return { isSuper: false, isManager: false, isStaff: false, branchId: null, staffId: null };
+  const role = String(authUser.role || authUser.vaiTroSql || authUser.VaiTro || authUser.ChucVu || '').toUpperCase();
+  const username = String(authUser.username || authUser.TenDangNhap || '').toLowerCase();
+  const isSuper = role === 'SUPER_ADMIN' || role === 'ADMIN' || role.includes('QUẢN TRỊ') || username === 'admin';
+  const isManager = !isSuper && (role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || role.includes('QUẢN LÝ') || role.includes('QUAN_LY'));
+  const isStaff = !isSuper && !isManager && (role === 'STAFF' || role === 'CASHIER' || role === 'STYLIST' || role.includes('THỢ') || role.includes('THU NGÂN') || role.includes('NHÂN VIÊN'));
+  const branchId = authUser.branchId || authUser.MaChiNhanh || null;
+  const staffId = authUser.staffId || authUser.MaNhanVien || authUser.id || null;
+  return { isSuper, isManager, isStaff, branchId, staffId };
+}
 
 async function handleInventoryRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
+  const authUser = extractAuthUser(req);
+  const userInfo = getUserRoleInfo(authUser);
 
   // GET /api/inventory - Báo cáo tồn kho theo từng chi nhánh salon
   if ((pathname === '/api/inventory' || pathname === '/api/admin/inventory') && method === 'GET') {
+    if (authUser && userInfo.isStaff) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Nhân viên không có quyền truy cập dữ liệu tồn kho.' }));
+      return true;
+    }
+
     const branchParam = parsedUrl.searchParams.get('branch_id');
+    let effectiveBranch = branchParam;
+    if (userInfo.isManager && userInfo.branchId) {
+      if (branchParam && branchParam !== 'all' && branchParam !== userInfo.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem tồn kho của chi nhánh mình phụ trách.' }));
+        return true;
+      }
+      effectiveBranch = userInfo.branchId;
+    }
+
     let q = `
       SELECT tk.MaSanPham, tk.MaChiNhanh, tk.SoLuongTon, tk.MucCanhBao,
              sp.TenSanPham, sp.GiaBan, sp.GiaNhap, sp.HinhAnh,
@@ -20,9 +51,9 @@ async function handleInventoryRoutes(req, res, ctx) {
       JOIN ChiNhanh cn ON tk.MaChiNhanh = cn.MaChiNhanh
     `;
     const params = [];
-    if (branchParam) {
+    if (effectiveBranch && effectiveBranch !== 'all') {
       q += ` WHERE tk.MaChiNhanh = ?`;
-      params.push(branchParam);
+      params.push(effectiveBranch);
     }
     const rows = await querySql(q, params);
     const mapped = (rows || []).map(r => ({
@@ -48,7 +79,15 @@ async function handleInventoryRoutes(req, res, ctx) {
     const parts = pathname.split('/');
     const prodId = parts[3];
     const { stock, branchId } = parsedBody || {};
-    const bId = branchId || 'CN01';
+    let bId = branchId || 'CN01';
+    if (userInfo.isManager && userInfo.branchId) {
+      if (branchId && branchId !== userInfo.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được cập nhật tồn kho của chi nhánh mình.' }));
+        return true;
+      }
+      bId = userInfo.branchId;
+    }
     await querySql(
       `UPDATE TonKho SET SoLuongTon = ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?`,
       [stock, prodId, bId]
@@ -61,6 +100,17 @@ async function handleInventoryRoutes(req, res, ctx) {
   // GET /api/inventory/receipts - Danh sách các phiếu nhập hàng từ nhà cung cấp
   if (pathname === '/api/inventory/receipts' && method === 'GET') {
     const branchParam = parsedUrl.searchParams.get('branch_id');
+    let effectiveBranch = branchParam;
+
+    if (userInfo.isManager && userInfo.branchId) {
+      if (branchParam && branchParam !== 'all' && branchParam !== userInfo.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem phiếu nhập của chi nhánh mình phụ trách.' }));
+        return true;
+      }
+      effectiveBranch = userInfo.branchId;
+    }
+
     let q = `
       SELECT pnk.MaPhieuNhap, pnk.MaChiNhanh, pnk.MaNhanVien, pnk.MaNguoiDuyet, pnk.MaNhaCungCap, 
              CONVERT(VARCHAR(19), pnk.NgayLap, 120) AS NgayLap, 
@@ -74,11 +124,15 @@ async function handleInventoryRoutes(req, res, ctx) {
       LEFT JOIN NhaCungCap ncc ON pnk.MaNhaCungCap = ncc.MaNhaCungCap 
       LEFT JOIN NhanVien nv1 ON pnk.MaNhanVien = nv1.MaNhanVien 
       LEFT JOIN NhanVien nv2 ON pnk.MaNguoiDuyet = nv2.MaNhanVien
+      WHERE 1=1
     `;
     const params = [];
-    if (branchParam && branchParam !== 'all') {
-      q += ` WHERE pnk.MaChiNhanh = ?`;
-      params.push(branchParam);
+    if (userInfo.isStaff && userInfo.staffId) {
+      q += ` AND pnk.MaNhanVien = ?`;
+      params.push(userInfo.staffId);
+    } else if (effectiveBranch && effectiveBranch !== 'all') {
+      q += ` AND pnk.MaChiNhanh = ?`;
+      params.push(effectiveBranch);
     }
     q += ` ORDER BY pnk.NgayLap DESC`;
     const rows = await querySql(q, params);
@@ -115,7 +169,7 @@ async function handleInventoryRoutes(req, res, ctx) {
   }
 
   // GET /api/inventory/receipts/:id - Xem chi tiết các lô hàng và giá nhập trong phiếu
-  if (pathname.startsWith('/api/inventory/receipts/') && method === 'GET') {
+  if (pathname.startsWith('/api/inventory/receipts/') && !pathname.endsWith('/approve') && !pathname.endsWith('/reject') && method === 'GET') {
     const receiptId = pathname.replace('/api/inventory/receipts/', '').trim();
     const pnkRows = await querySql(
       `SELECT pnk.*, cn.TenChiNhanh, ncc.TenNhaCungCap, nv1.HoTen AS TenNguoiLap, nv2.HoTen AS TenNguoiDuyet
@@ -133,6 +187,19 @@ async function handleInventoryRoutes(req, res, ctx) {
       return true;
     }
     const r = pnkRows[0];
+
+    // Kiem tra phan quyen xem chi tiet
+    if (userInfo.isStaff && userInfo.staffId && r.MaNhanVien !== userInfo.staffId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: 'Nhân viên chỉ được xem phiếu do mình lập.' }));
+      return true;
+    }
+    if (userInfo.isManager && userInfo.branchId && r.MaChiNhanh !== userInfo.branchId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: 'Quản lý chỉ được xem phiếu thuộc chi nhánh mình phụ trách.' }));
+      return true;
+    }
+
     const itemRows = await querySql(
       `SELECT ct.*, sp.TenSanPham, sp.HinhAnh, sp.GiaBan
        FROM ChiTietPhieuNhap ct
@@ -154,6 +221,8 @@ async function handleInventoryRoutes(req, res, ctx) {
       approvedDate: r.NgayDuyet,
       total: parseFloat(r.TongTien || 0),
       status: r.TrangThai,
+      rejectReason: r.LyDoTuChoi || null,
+      LyDoTuChoi: r.LyDoTuChoi || null,
       items: itemRows.map(it => ({
         id: it.MaChiTietPhieuNhap,
         productId: it.MaSanPham,
@@ -175,11 +244,34 @@ async function handleInventoryRoutes(req, res, ctx) {
   // POST /api/inventory/receipts - Nhập lô hàng mới vào kho
   if (pathname === '/api/inventory/receipts' && method === 'POST') {
     const { branchId, supplierId, staffId, items, total, status } = parsedBody || {};
-    const bId = branchId || 'CN01';
+    let bId = branchId || 'CN01';
+    let stId = staffId || 'NV01';
+    if (userInfo.staffId) stId = userInfo.staffId;
+
+    if (userInfo.isManager && userInfo.branchId) {
+      if (branchId && branchId !== userInfo.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được lập phiếu cho chi nhánh mình phụ trách.' }));
+        return true;
+      }
+      bId = userInfo.branchId;
+    } else if (userInfo.isStaff && userInfo.branchId) {
+      bId = userInfo.branchId;
+    }
+
     const sId = supplierId || 'NCC01';
-    const stId = staffId || 'NV01';
-    const stt = status || 'Đã duyệt';
     const tot = parseFloat(total || 0);
+
+    // Phan quyen tu dong duyet
+    let isAutoApprove = false;
+    let stt = 'Chờ duyệt';
+    if (userInfo.isSuper || userInfo.isManager) {
+      isAutoApprove = true;
+      stt = 'Đã duyệt';
+    } else {
+      isAutoApprove = false;
+      stt = 'Chờ duyệt';
+    }
 
     const countRows = await querySql(`SELECT MaPhieuNhap FROM PhieuNhapKho`);
     let maxNum = 0;
@@ -192,11 +284,19 @@ async function handleInventoryRoutes(req, res, ctx) {
     });
     const nextPnId = `PN${String(maxNum + 1).padStart(2, '0')}`;
 
-    await querySql(
-      `INSERT INTO PhieuNhapKho (MaPhieuNhap, MaChiNhanh, MaNhanVien, MaNguoiDuyet, MaNhaCungCap, NgayLap, NgayDuyet, TongTien, TrangThai)
-       VALUES (?, ?, ?, ?, ?, GETDATE(), GETDATE(), ?, ?)`,
-      [nextPnId, bId, stId, stId, sId, tot, stt]
-    );
+    if (isAutoApprove) {
+      await querySql(
+        `INSERT INTO PhieuNhapKho (MaPhieuNhap, MaChiNhanh, MaNhanVien, MaNguoiDuyet, MaNhaCungCap, NgayLap, NgayDuyet, TongTien, TrangThai)
+         VALUES (?, ?, ?, ?, ?, GETDATE(), GETDATE(), ?, ?)`,
+        [nextPnId, bId, stId, stId, sId, tot, stt]
+      );
+    } else {
+      await querySql(
+        `INSERT INTO PhieuNhapKho (MaPhieuNhap, MaChiNhanh, MaNhanVien, MaNguoiDuyet, MaNhaCungCap, NgayLap, NgayDuyet, TongTien, TrangThai)
+         VALUES (?, ?, ?, NULL, ?, GETDATE(), NULL, ?, ?)`,
+        [nextPnId, bId, stId, sId, tot, stt]
+      );
+    }
 
     if (Array.isArray(items) && items.length > 0) {
       const detailCountRows = await querySql(`SELECT MaChiTietPhieuNhap FROM ChiTietPhieuNhap`);
@@ -226,7 +326,7 @@ async function handleInventoryRoutes(req, res, ctx) {
           [ctpnId, nextPnId, pId, lotNum, expDate, qty, qty, cost, lineTotal]
         );
 
-        if (stt === 'Đã duyệt') {
+        if (isAutoApprove) {
           await querySql(
             `IF EXISTS (SELECT 1 FROM TonKho WHERE MaSanPham = ? AND MaChiNhanh = ?)
                UPDATE TonKho SET SoLuongTon = SoLuongTon + ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?
@@ -246,7 +346,13 @@ async function handleInventoryRoutes(req, res, ctx) {
   // POST /api/inventory/receipts/:id/approve - Quản lý duyệt phiếu nhập kho
   if (pathname.startsWith('/api/inventory/receipts/') && pathname.endsWith('/approve') && method === 'POST') {
     const id = pathname.replace('/api/inventory/receipts/', '').replace('/approve', '').trim();
-    const approverId = (parsedBody && parsedBody.approverId) || 'NV01';
+
+    // Kiem tra phan quyen phe duyet
+    if (authUser && userInfo.isStaff) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Nhân viên không có quyền phê duyệt phiếu nhập kho.' }));
+      return true;
+    }
 
     const pnkRows = await querySql('SELECT MaPhieuNhap, MaChiNhanh, TrangThai FROM PhieuNhapKho WHERE MaPhieuNhap = ?', [id]);
     if (!pnkRows || pnkRows.length === 0) {
@@ -255,10 +361,26 @@ async function handleInventoryRoutes(req, res, ctx) {
       return true;
     }
 
-    const bId = pnkRows[0].MaChiNhanh;
+    const receipt = pnkRows[0];
+    const bId = receipt.MaChiNhanh;
+
+    // Quan ly chi nhanh chi duoc duyet phieu cua chi nhanh minh phu trach
+    if (userInfo.isManager && userInfo.branchId && userInfo.branchId !== bId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được phê duyệt phiếu nhập của chi nhánh mình phụ trách.' }));
+      return true;
+    }
+
+    if (receipt.TrangThai === 'Đã duyệt') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true, message: 'Phiếu nhập #' + id + ' đã được duyệt trước đó.' }));
+      return true;
+    }
+
+    const approverId = userInfo.staffId || (parsedBody && parsedBody.approverId) || 'NV01';
     await querySql("UPDATE PhieuNhapKho SET TrangThai = N'Đã duyệt', NgayDuyet = GETDATE(), MaNguoiDuyet = ? WHERE MaPhieuNhap = ?", [approverId, id]);
 
-    // Cộng tồn kho cho từng sản phẩm trong phiếu nhập
+    // Cong ton kho cho tung san pham trong phieu nhap
     const ctpnRows = await querySql('SELECT MaSanPham, SoLuong FROM ChiTietPhieuNhap WHERE MaPhieuNhap = ?', [id]);
     if (ctpnRows && ctpnRows.length > 0) {
       for (const it of ctpnRows) {
@@ -280,13 +402,43 @@ async function handleInventoryRoutes(req, res, ctx) {
   // POST /api/inventory/receipts/:id/reject - Quản lý từ chối phiếu nhập kho kèm lý do bắt buộc
   if (pathname.startsWith('/api/inventory/receipts/') && pathname.endsWith('/reject') && method === 'POST') {
     const id = pathname.replace('/api/inventory/receipts/', '').replace('/reject', '').trim();
-    const approverId = (parsedBody && parsedBody.approverId) || 'NV01';
-    const reason = (parsedBody && parsedBody.reason) || 'Thông tin lô hàng hoặc giá nhập không hợp lệ';
 
+    // Kiem tra phan quyen tu choi
+    if (authUser && userInfo.isStaff) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Nhân viên không có quyền từ chối phiếu nhập kho.' }));
+      return true;
+    }
+
+    const pnkRows = await querySql('SELECT MaPhieuNhap, MaChiNhanh, TrangThai FROM PhieuNhapKho WHERE MaPhieuNhap = ?', [id]);
+    if (!pnkRows || pnkRows.length === 0) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiếu nhập #' + id }));
+      return true;
+    }
+
+    const receipt = pnkRows[0];
+    const bId = receipt.MaChiNhanh;
+
+    // Quan ly chi nhanh chi duoc tu choi phieu cua chi nhanh minh phu trach
+    if (userInfo.isManager && userInfo.branchId && userInfo.branchId !== bId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được từ chối phiếu nhập của chi nhánh mình phụ trách.' }));
+      return true;
+    }
+
+    const reason = (parsedBody && parsedBody.reason ? String(parsedBody.reason).trim() : '');
+    if (!reason || reason.length < 3) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Vui lòng cung cấp lý do từ chối cụ thể tối thiểu 3 ký tự.' }));
+      return true;
+    }
+
+    const approverId = userInfo.staffId || (parsedBody && parsedBody.approverId) || 'NV01';
     await querySql("UPDATE PhieuNhapKho SET TrangThai = N'Đã từ chối', LyDoTuChoi = ?, NgayDuyet = GETDATE(), MaNguoiDuyet = ? WHERE MaPhieuNhap = ?", [reason, approverId, id]);
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Đã từ chối phiếu nhập #' + id + '!' }));
+    res.end(JSON.stringify({ success: true, message: 'Đã từ chối phiếu nhập #' + id + ' thành công!' }));
     return true;
   }
 
@@ -300,12 +452,28 @@ async function handleInventoryRoutes(req, res, ctx) {
 
   // GET /api/inventory/lots - Danh sách các lô hàng kèm ngày hết hạn
   if ((pathname === '/api/inventory/lots' || pathname === '/api/admin/fefo' || pathname === '/api/inventory/fefo-lots') && method === 'GET') {
+    if (authUser && userInfo.isStaff) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Nhân viên không có quyền truy cập dữ liệu lô hàng FEFO.' }));
+      return true;
+    }
+
     const branchParam = parsedUrl.searchParams.get('branch_id');
+    let effectiveBranch = branchParam;
+    if (userInfo.isManager && userInfo.branchId) {
+      if (branchParam && branchParam !== 'all' && branchParam !== userInfo.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem lô hàng FEFO của chi nhánh mình phụ trách.' }));
+        return true;
+      }
+      effectiveBranch = userInfo.branchId;
+    }
+
     let q = `SELECT * FROM vw_GiaBanTheoLoHienTai`;
     const params = [];
-    if (branchParam && branchParam !== 'all') {
+    if (effectiveBranch && effectiveBranch !== 'all') {
       q += ` WHERE MaChiNhanh = ?`;
-      params.push(branchParam);
+      params.push(effectiveBranch);
     }
     const rows = await querySql(q, params);
     const mapped = (rows || []).map(r => ({
@@ -337,20 +505,30 @@ async function handleInventoryRoutes(req, res, ctx) {
   // GET /api/suppliers - Danh sách nhà cung cấp
   if (pathname === '/api/suppliers' && method === 'GET') {
     const rows = await querySql(`SELECT MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi, TrangThai FROM NhaCungCap`);
-    const suppliers = rows.map(r => ({
-      id: r.MaNhaCungCap,
-      MaNhaCungCap: r.MaNhaCungCap,
-      name: r.TenNhaCungCap,
-      TenNhaCungCap: r.TenNhaCungCap,
-      phone: r.SoDienThoai,
-      SoDienThoai: r.SoDienThoai,
-      email: r.Email,
-      Email: r.Email,
-      address: r.DiaChi,
-      DiaChi: r.DiaChi,
-      status: r.TrangThai || 'Hoạt động',
-      TrangThai: r.TrangThai || 'Hoạt động'
-    }));
+    const suppliers = rows.map(r => {
+      if (userInfo.isStaff) {
+        return {
+          id: r.MaNhaCungCap,
+          MaNhaCungCap: r.MaNhaCungCap,
+          name: r.TenNhaCungCap,
+          TenNhaCungCap: r.TenNhaCungCap
+        };
+      }
+      return {
+        id: r.MaNhaCungCap,
+        MaNhaCungCap: r.MaNhaCungCap,
+        name: r.TenNhaCungCap,
+        TenNhaCungCap: r.TenNhaCungCap,
+        phone: r.SoDienThoai,
+        SoDienThoai: r.SoDienThoai,
+        email: r.Email,
+        Email: r.Email,
+        address: r.DiaChi,
+        DiaChi: r.DiaChi,
+        status: r.TrangThai || 'Hoạt động',
+        TrangThai: r.TrangThai || 'Hoạt động'
+      };
+    });
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(suppliers));
     return true;
@@ -362,7 +540,7 @@ async function handleInventoryRoutes(req, res, ctx) {
     const maxRows = await querySql(`SELECT TOP 1 MaNhaCungCap FROM NhaCungCap ORDER BY LEN(MaNhaCungCap) DESC, MaNhaCungCap DESC`);
     let nextN = 6;
     if (maxRows && maxRows[0]) {
-      const m = maxRows[0].MaNhaCungCap.match(/NCC(\d+)/i);
+      const m = maxRows[0].MaNhaCungCap.match(/NCC(d+)/i);
       if (m) nextN = parseInt(m[1], 10) + 1;
     }
     const nccId = (body.id || body.MaNhaCungCap || ('NCC' + (nextN < 10 ? '0' + nextN : nextN))).trim();
@@ -390,96 +568,69 @@ async function handleInventoryRoutes(req, res, ctx) {
       [body.name || body.TenNhaCungCap || null, body.phone || body.SoDienThoai || null, body.email || body.Email || null, body.address || body.DiaChi || null, body.status || body.TrangThai || null, id]
     );
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, id }));
+    res.end(JSON.stringify({ success: true, message: 'Đã cập nhật nhà cung cấp #' + id }));
     return true;
   }
 
-  // DELETE /api/suppliers/:id - Xóa nhà cung cấp, Soft delete nếu có phiếu nhập
+  // DELETE /api/suppliers/:id - Xóa nhà cung cấp
   if (pathname.startsWith('/api/suppliers/') && method === 'DELETE') {
     const id = pathname.replace('/api/suppliers/', '').trim();
-    const linkedReceipts = await querySql('SELECT TOP 1 MaPhieuNhap FROM PhieuNhapKho WHERE MaNhaCungCap = ?', [id]);
-    if (linkedReceipts && linkedReceipts.length > 0) {
-      await querySql(`UPDATE NhaCungCap SET TrangThai = N'Ngừng hợp tác' WHERE MaNhaCungCap = ?`, [id]);
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: true, message: 'Đã chuyển trạng thái nhà cung cấp sang Ngừng hợp tác vì có phiếu nhập liên kết', id, softDeleted: true }));
-      return true;
-    }
     await querySql(`DELETE FROM NhaCungCap WHERE MaNhaCungCap = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Đã xóa nhà cung cấp khỏi SQL Server', id }));
+    res.end(JSON.stringify({ success: true, message: 'Đã xóa nhà cung cấp #' + id }));
     return true;
   }
 
   // -----------------------------------------------------------------------
-  // QUY TẮC GIẢM GIÁ THEO HẠN SỬ DỤNG
+  // QUY TAC GIAM GIA THEO HAN DUNG FEFO
   // -----------------------------------------------------------------------
 
-  // GET /api/inventory/discount-rules - Xem quy tắc tự động giảm giá xả hàng cận date
-  if (pathname === '/api/inventory/discount-rules' && method === 'GET') {
-    const rows = await querySql(`SELECT MaQuyTac, TenQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam, TrangThai FROM QuyTacGiamGiaTheoHan ORDER BY PhanTramGiam ASC`);
-    const rules = rows.map(r => ({
-      id: r.MaQuyTac,
-      MaQuyTac: r.MaQuyTac,
-      name: r.TenQuyTac,
-      TenQuyTac: r.TenQuyTac,
-      minDays: r.SoNgayConLaiToiThieu,
-      SoNgayConLaiToiThieu: r.SoNgayConLaiToiThieu,
-      maxDays: r.SoNgayConLaiToiDa,
-      SoNgayConLaiToiDa: r.SoNgayConLaiToiDa,
-      discountPercent: parseFloat(r.PhanTramGiam || 0),
-      PhanTramGiam: parseFloat(r.PhanTramGiam || 0),
-      status: r.TrangThai,
-      TrangThai: r.TrangThai
-    }));
+  // GET /api/discount-rules - Danh sách quy tắc giảm giá cận hạn
+  if (pathname === '/api/discount-rules' && method === 'GET') {
+    const rows = await querySql(`SELECT * FROM QuyTacGiamGiaTheoHan ORDER BY PhanTramGiam ASC`);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify(rules));
+    res.end(JSON.stringify(rows));
     return true;
   }
 
-  // POST /api/inventory/discount-rules - Thêm quy tắc giảm giá cận hạn mới
-  if (pathname === '/api/inventory/discount-rules' && method === 'POST') {
+  // POST /api/discount-rules - Thêm quy tắc mới
+  if (pathname === '/api/discount-rules' && method === 'POST') {
     const body = parsedBody || {};
-    const maxRules = await querySql(`SELECT TOP 1 MaQuyTac FROM QuyTacGiamGiaTheoHan ORDER BY LEN(MaQuyTac) DESC, MaQuyTac DESC`);
-    let nextN = 6;
-    if (maxRules && maxRules[0]) {
-      const m = maxRules[0].MaQuyTac.match(/QT(\d+)/i);
-      if (m) nextN = parseInt(m[1], 10) + 1;
-    }
-    const qtId = (body.id || body.MaQuyTac || ('QT' + (nextN < 10 ? '0' + nextN : nextN))).trim();
+    const id = body.id || body.MaQuyTac || ('QT' + Date.now().toString().slice(-4));
     const name = body.name || body.TenQuyTac || 'Quy tắc mới';
-    const minDays = body.minDays ?? body.SoNgayConLaiToiThieu ?? 0;
-    const maxDays = body.maxDays ?? body.SoNgayConLaiToiDa ?? 30;
-    const discountPercent = parseFloat(body.discountPercent ?? body.PhanTramGiam ?? 10);
+    const minD = parseInt(body.minDays || body.SoNgayConLaiToiThieu || 0, 10);
+    const maxD = parseInt(body.maxDays || body.SoNgayConLaiToiDa || 30, 10);
+    const pct = parseFloat(body.percent || body.PhanTramGiam || 10);
     const status = body.status || body.TrangThai || 'Áp dụng';
 
     await querySql(
       `INSERT INTO QuyTacGiamGiaTheoHan (MaQuyTac, TenQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam, TrangThai) VALUES (?, ?, ?, ?, ?, ?)`,
-      [qtId, name, minDays, maxDays, discountPercent, status]
+      [id, name, minD, maxD, pct, status]
     );
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, rule: { id: qtId, MaQuyTac: qtId, name, minDays, maxDays, discountPercent, status } }));
+    res.end(JSON.stringify({ success: true, rule: { id, name, minDays: minD, maxDays: maxD, percent: pct, status } }));
     return true;
   }
 
-  // PUT /api/inventory/discount-rules/:id - Sửa quy tắc giảm giá cận hạn
-  if (pathname.startsWith('/api/inventory/discount-rules/') && method === 'PUT') {
-    const id = pathname.replace('/api/inventory/discount-rules/', '').trim();
+  // PUT /api/discount-rules/:id - Sửa quy tắc
+  if (pathname.startsWith('/api/discount-rules/') && method === 'PUT') {
+    const id = pathname.replace('/api/discount-rules/', '').trim();
     const body = parsedBody || {};
     await querySql(
       `UPDATE QuyTacGiamGiaTheoHan SET TenQuyTac = COALESCE(?, TenQuyTac), SoNgayConLaiToiThieu = COALESCE(?, SoNgayConLaiToiThieu), SoNgayConLaiToiDa = COALESCE(?, SoNgayConLaiToiDa), PhanTramGiam = COALESCE(?, PhanTramGiam), TrangThai = COALESCE(?, TrangThai) WHERE MaQuyTac = ?`,
-      [body.name || body.TenQuyTac || null, body.minDays ?? body.SoNgayConLaiToiThieu ?? null, body.maxDays ?? body.SoNgayConLaiToiDa ?? null, body.discountPercent ?? body.PhanTramGiam ?? null, body.status || body.TrangThai || null, id]
+      [body.name || body.TenQuyTac || null, body.minDays || body.SoNgayConLaiToiThieu || null, body.maxDays || body.SoNgayConLaiToiDa || null, body.percent || body.PhanTramGiam || null, body.status || body.TrangThai || null, id]
     );
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, id }));
+    res.end(JSON.stringify({ success: true, message: 'Đã cập nhật quy tắc #' + id }));
     return true;
   }
 
-  // DELETE /api/inventory/discount-rules/:id - Xóa quy tắc giảm giá cận hạn
-  if (pathname.startsWith('/api/inventory/discount-rules/') && method === 'DELETE') {
-    const id = pathname.replace('/api/inventory/discount-rules/', '').trim();
+  // DELETE /api/discount-rules/:id - Xóa quy tắc
+  if (pathname.startsWith('/api/discount-rules/') && method === 'DELETE') {
+    const id = pathname.replace('/api/discount-rules/', '').trim();
     await querySql(`DELETE FROM QuyTacGiamGiaTheoHan WHERE MaQuyTac = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Đã xóa quy tắc giảm giá khỏi SQL Server', id }));
+    res.end(JSON.stringify({ success: true, message: 'Đã xóa quy tắc #' + id }));
     return true;
   }
 
@@ -489,4 +640,3 @@ async function handleInventoryRoutes(req, res, ctx) {
 module.exports = handleInventoryRoutes;
 module.exports.handleInventoryRoutes = handleInventoryRoutes;
 module.exports.default = handleInventoryRoutes;
-

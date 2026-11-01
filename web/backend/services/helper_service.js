@@ -193,13 +193,15 @@ async function getFullSqlDatabase() {
               WHERE nv.TrangThai = N'Đang làm việc'
                 AND nv.MaNhanVien <> 'NV00'
                 AND nv.ChucVu NOT LIKE N'%Quản trị%'
-                AND nv.ChucVu NOT LIKE N'%Chủ tịch%'`),
+                AND nv.ChucVu NOT LIKE N'%Chủ tịch%'
+                AND (nv.ChucVu LIKE N'%Quản lý%' OR nv.ChucVu LIKE N'%Thợ chính%' OR nv.ChucVu LIKE N'%Thợ phụ%' OR nv.ChucVu LIKE N'%Thu ngân%')`),
     querySql(`SELECT MaDanhMuc, TenDanhMuc, MoTa, TrangThai FROM DanhMucSanPham`),
     querySql(`SELECT MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi, TrangThai FROM NhaCungCap`),
     querySql(`SELECT sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
                      sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
                      dm.TenDanhMuc,
                      ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 0) AS SoLuongTon,
+                      ISNULL((SELECT SUM(ctdh.SoLuong) FROM ChiTietDonHang ctdh WHERE ctdh.MaSanPham = sp.MaSanPham), 0) + ISNULL((SELECT SUM(cthd.SoLuong) FROM ChiTietHoaDon_SanPham cthd WHERE cthd.MaSanPham = sp.MaSanPham), 0) AS SoLuongDaBan,
                      CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung,
                      ctpn.SoLuongConLai,
                      ctpn.SoLo,
@@ -289,7 +291,8 @@ async function getFullSqlDatabase() {
                      CONVERT(VARCHAR(19), pnk.NgayLap, 120) AS NgayLap, 
                      CONVERT(VARCHAR(19), pnk.NgayDuyet, 120) AS NgayDuyet, 
                      pnk.TongTien, pnk.TrangThai, pnk.LyDoTuChoi, cn.TenChiNhanh, ncc.TenNhaCungCap, 
-                     nv1.HoTen AS TenNguoiLap, nv2.HoTen AS TenNguoiDuyet 
+                     nv1.HoTen AS TenNguoiLap, nv2.HoTen AS TenNguoiDuyet,
+                     (SELECT COUNT(*) FROM ChiTietPhieuNhap WHERE MaPhieuNhap = pnk.MaPhieuNhap) AS SoLuongMatHang 
               FROM PhieuNhapKho pnk 
               LEFT JOIN ChiNhanh cn ON pnk.MaChiNhanh = cn.MaChiNhanh 
               LEFT JOIN NhaCungCap ncc ON pnk.MaNhaCungCap = ncc.MaNhaCungCap 
@@ -410,7 +413,7 @@ async function getFullSqlDatabase() {
     };
   });
 
-  // Chuẩn hóa danh sách sản phẩm với quy tắc giảm giá FEFO & Khuyến mãi lũy tiến (Mục 23)
+  // Chuẩn hóa danh sách sản phẩm với quy tắc giảm giá FEFO & Khuyến mãi lũy tiến  Mục 23 
   const mappedProducts = (prodRows || []).map(r => {
     const pStock = parseInt(r.SoLuongTon || 0, 10);
     const origPrice = parseFloat(r.GiaBan || 0);
@@ -439,7 +442,7 @@ async function getFullSqlDatabase() {
       }
     }
 
-    // Khuyến mãi áp dụng cho sản phẩm (ví dụ KM01 - Chào Thu Rực Rỡ 10%)
+    // Khuyến mãi áp dụng cho sản phẩm  ví dụ KM01 - Chào Thu Rực Rỡ 10% 
     let promoDiscount = 0;
     let matchedPromo = null;
     const nowStr = new Date().toISOString().slice(0, 10);
@@ -447,6 +450,7 @@ async function getFullSqlDatabase() {
     for (const link of linkedPromos) {
       const p = (promoRows || []).find(pr => {
         if (pr.MaKhuyenMai !== link.MaKhuyenMai) return false;
+        if (pr.DoiTuongApDung && pr.DoiTuongApDung.includes('Hội viên')) return false;
         const st = (pr.TrangThai || '').trim();
         if (st !== 'Đang áp dụng' && st !== 'Áp dụng') return false;
         if (pr.NgayBatDau && String(pr.NgayBatDau).slice(0, 10) > nowStr) return false;
@@ -459,7 +463,7 @@ async function getFullSqlDatabase() {
       }
     }
 
-    // Tính mức giảm lũy tiến FEFO (Mục 23): Mức cao hơn trước, sau đó áp tiếp mức còn lại
+    // Tính mức giảm lũy tiến FEFO  Mục 23 : Mức cao hơn trước, sau đó áp tiếp mức còn lại
     if (daysLeft <= 0) {
       finalPrice = 0;
       discountPercent = 100;
@@ -527,6 +531,8 @@ async function getFullSqlDatabase() {
       isAvailable: daysLeft > 0,
       stock: pStock,
       SoLuongTon: pStock,
+      soldCount: Number(r.SoLuongDaBan) || 0,
+      soLuongDaBan: Number(r.SoLuongDaBan) || 0,
       inStock: pStock > 0 && daysLeft > 0,
       image: r.HinhAnh || '',
       HinhAnh: r.HinhAnh || '',
@@ -564,9 +570,10 @@ async function getFullSqlDatabase() {
     TrangThai: r.TrangThai
   }));
 
-  // Chuẩn hóa danh sách dịch vụ và áp dụng khuyến mãi hiện hành (Mục 16)
+  // Chuẩn hóa danh sách dịch vụ và áp dụng khuyến mãi hiện hành  Mục 16 
   const todayDateStr = new Date().toISOString().slice(0, 10);
   const activeServicePromos = (promoRows || []).filter(p => {
+    if (p.DoiTuongApDung && p.DoiTuongApDung.includes('Hội viên')) return false;
     const st = (p.TrangThai || '').trim();
     const isApp = st === 'Đang áp dụng' || st === 'Áp dụng';
     const nb = p.NgayBatDau ? String(p.NgayBatDau).slice(0, 10) : '';
@@ -727,7 +734,7 @@ async function getFullSqlDatabase() {
     totalAmount: Number(r.TongTien) || 0,
     status: r.TrangThai || 'Đã duyệt',
     rejectReason: r.LyDoTuChoi || '',
-    itemCount: 1
+    itemCount: Number(r.SoLuongMatHang) || 1
   }));
 
   return {

@@ -2,6 +2,19 @@
 (function (window) {
   'use strict';
 
+  // Baseline 9 danh muc san pham goc tu CSDL SQL QL_SALON
+  const categoriesBaseline = [
+    { id: 'DM01', MaDanhMuc: 'DM01', shortName: 'Sáp vuốt tóc', name: 'Sáp vuốt tóc - Clay & Wax', TenDanhMuc: 'Sáp vuốt tóc - Clay & Wax' },
+    { id: 'DM02', MaDanhMuc: 'DM02', shortName: 'Pomade cổ điển & hiện đại', name: 'Pomade cổ điển & hiện đại', TenDanhMuc: 'Pomade cổ điển & hiện đại' },
+    { id: 'DM03', MaDanhMuc: 'DM03', shortName: 'Xịt tạo phồng & Pre-Styling', name: 'Xịt tạo phồng & Pre-Styling', TenDanhMuc: 'Xịt tạo phồng & Pre-Styling' },
+    { id: 'DM04', MaDanhMuc: 'DM04', shortName: 'Gôm xịt giữ nếp tóc nam', name: 'Gôm xịt giữ nếp tóc nam', TenDanhMuc: 'Gôm xịt giữ nếp tóc nam' },
+    { id: 'DM05', MaDanhMuc: 'DM05', shortName: 'Dầu gội & xả nam', name: 'Dầu gội & xả nam - trị gàu, kiểm dầu', TenDanhMuc: 'Dầu gội & xả nam - trị gàu, kiểm dầu' },
+    { id: 'DM06', MaDanhMuc: 'DM06', shortName: 'Bột tạo phồng', name: 'Bột tạo phồng', TenDanhMuc: 'Bột tạo phồng' },
+    { id: 'DM07', MaDanhMuc: 'DM07', shortName: 'Thuốc uốn lạnh & ép side tóc nam', name: 'Thuốc uốn lạnh & ép side tóc nam', TenDanhMuc: 'Thuốc uốn lạnh & ép side tóc nam' },
+    { id: 'DM08', MaDanhMuc: 'DM08', shortName: 'Chăm sóc râu', name: 'Chăm sóc râu - Beard Care', TenDanhMuc: 'Chăm sóc râu - Beard Care' },
+    { id: 'DM09', MaDanhMuc: 'DM09', shortName: 'Dụng cụ tạo kiểu nam', name: 'Dụng cụ tạo kiểu nam', TenDanhMuc: 'Dụng cụ tạo kiểu nam' }
+  ];
+
   const ShopPage = {
     selectedCategory: 'all',
     selectedBrand: 'all',
@@ -9,6 +22,74 @@
     searchQuery: '',
     currentPage: 1,
     pageSize: 15,
+    categoriesBaseline,
+    currentContainer: null,
+
+    // Lay danh sach danh muc hop nhat tu Store hoac Baseline
+    getCategoriesList() {
+      let storeCats = (window.store && typeof window.store.getCategories === 'function')
+        ? window.store.getCategories()
+        : [];
+      if (!Array.isArray(storeCats) || storeCats.length === 0) {
+        return categoriesBaseline;
+      }
+      return categoriesBaseline.map(base => {
+        const live = storeCats.find(c => (c.id || c.MaDanhMuc) === base.id);
+        if (!live) return base;
+        return {
+          id: base.id,
+          MaDanhMuc: base.id,
+          shortName: base.shortName,
+          name: live.TenDanhMuc || live.name || base.name,
+          TenDanhMuc: live.TenDanhMuc || live.name || base.TenDanhMuc
+        };
+      });
+    },
+
+    // Tim kiem danh muc theo ma hoac ten hoac alias
+    findCategory(key) {
+      if (!key || key === 'all') return null;
+      const clean = String(key).trim().toLowerCase();
+      const list = this.getCategoriesList();
+      let found = list.find(c => c.id.toLowerCase() === clean || (c.MaDanhMuc && c.MaDanhMuc.toLowerCase() === clean));
+      if (found) return found;
+      found = list.find(c => c.shortName.toLowerCase() === clean || c.name.toLowerCase() === clean || c.TenDanhMuc.toLowerCase() === clean);
+      if (found) return found;
+      found = list.find(c => c.shortName.toLowerCase().includes(clean) || clean.includes(c.shortName.toLowerCase()) || c.name.toLowerCase().includes(clean));
+      if (found) return found;
+      const aliasMap = {
+        'sap': 'DM01', 'sap-vuot-toc': 'DM01', 'clay': 'DM01', 'wax': 'DM01',
+        'pomade': 'DM02', 'pomade-co-dien': 'DM02',
+        'pre-styling': 'DM03', 'pre-style': 'DM03', 'xit-tao-phong': 'DM03', 'muoi-bien': 'DM03',
+        'gom': 'DM04', 'gom-xit': 'DM04', 'hairspray': 'DM04',
+        'dau-goi': 'DM05', 'dau-xa': 'DM05', 'shampoo': 'DM05', 'dau-goi-xa': 'DM05',
+        'bot': 'DM06', 'bot-tao-phong': 'DM06', 'powder': 'DM06',
+        'uon-lanh': 'DM07', 'down-perm': 'DM07', 'ep-side': 'DM07', 'thuoc-uon': 'DM07',
+        'rau': 'DM08', 'cham-soc-rau': 'DM08', 'beard': 'DM08', 'shaving': 'DM08',
+        'dung-cu': 'DM09', 'dung-cu-tao-kieu': 'DM09', 'luoc': 'DM09', 'may-say': 'DM09',
+        'phu-kien': 'DM09', 'phukien': 'DM09'
+      };
+      if (aliasMap[clean]) {
+        return list.find(c => c.id === aliasMap[clean]);
+      }
+      return null;
+    },
+
+    // Kiem tra san pham co thuoc danh muc duoc chon hay khong
+    productMatchesCategory(p, catId, catObj) {
+      if (!p) return false;
+      const pCatId = String(p.categoryId || p.MaDanhMuc || '').trim().toUpperCase();
+      const targetId = String(catId || '').trim().toUpperCase();
+      if (pCatId && targetId && pCatId === targetId) return true;
+      const pCatName = String(p.category || p.TenDanhMuc || p.categoryName || '').toLowerCase().trim();
+      if (catObj) {
+        const cShort = String(catObj.shortName || '').toLowerCase().trim();
+        const cFull = String(catObj.TenDanhMuc || catObj.name || '').toLowerCase().trim();
+        if (cShort && pCatName.includes(cShort)) return true;
+        if (cFull && pCatName.includes(cFull)) return true;
+      }
+      return false;
+    },
 
     toggleDropdown(id, e) {
       if (e) {
@@ -45,43 +126,56 @@
 
     render(container, params = {}) {
       if (!container) return;
+      this.currentContainer = container;
 
       if (params.category) this.selectedCategory = params.category;
       if (params.brand) this.selectedBrand = params.brand;
       if (params.price) this.selectedPriceRange = params.price;
 
-      let categories = (window.store && typeof window.store.getCategories === 'function')
-        ? window.store.getCategories()
-        : [];
-      if (!categories || categories.length === 0) {
-        categories = (window.INITIAL_DATA && window.INITIAL_DATA.categories) ||
-          (window.INITIAL_SALON_DATA && window.INITIAL_SALON_DATA.categories) || [];
-      }
-
+      const categories = this.getCategoriesList();
       const filtered = this.getFilteredProducts();
 
-      // Xác định nhãn hiển thị cho 3 Dropdown
+      // Xac dinh nhan hien thi cho 3 Dropdown
       let activeCatLabel = 'Tất Cả';
       if (this.selectedCategory === 'fefo_expiry') {
         activeCatLabel = 'Ưu Đãi Đặc Biệt';
       } else if (this.selectedCategory === 'bestsellers') {
-        activeCatLabel = 'Bán Chạy Nhất';
-      } else if (this.selectedCategory !== 'all') {
-        const matchCat = categories.find(c => c.id === this.selectedCategory || c.MaDanhMuc === this.selectedCategory);
-        if (matchCat) {
-          activeCatLabel = (matchCat.TenDanhMuc || matchCat.name || '').split(' - ')[0];
+        activeCatLabel = 'Bán Chạy';
+      } else if (this.selectedCategory === 'grooming') {
+        activeCatLabel = 'Grooming & Tạo Kiểu';
+      } else if (this.selectedCategory === 'phukien' || this.selectedCategory === 'dung-cu') {
+        activeCatLabel = 'Phụ Kiện & Dụng Cụ';
+      } else if (this.selectedCategory && this.selectedCategory !== 'all') {
+        const cat = this.findCategory(this.selectedCategory);
+        if (cat) {
+          activeCatLabel = cat.shortName || cat.name.split(' - ')[0];
+        } else {
+          activeCatLabel = String(this.selectedCategory).trim();
         }
       }
 
-      const brands = [
+      const baseBrands = [
         { id: 'all', label: 'Tất Cả Thương Hiệu' },
         { id: 'apestomen', label: 'Apestomen' },
         { id: 'hanz de fuko', label: 'Hanz De Fuko' },
         { id: 'blumaan', label: 'Blumaan' },
-        { id: 'kevin murphy', label: 'Kevin Murphy' },
+        { id: 'kevin-uppercut', label: 'Kevin Murphy & Uppercut' },
         { id: 'reuzel', label: 'Reuzel' },
-        { id: 'davines', label: 'Davines' }
+        { id: 'davines', label: 'Davines' },
+        { id: 'proraso', label: 'Proraso' }
       ];
+      const existingBrandIds = new Set(baseBrands.map(b => b.id));
+      (allActiveProducts || []).forEach(p => {
+        const b = p.brand;
+        if (b && b !== 'CHÍNH HÃNG' && b !== 'Omni Professional') {
+          const lower = b.toLowerCase();
+          if (!existingBrandIds.has(lower) && lower !== 'kevin murphy' && lower !== 'uppercut deluxe') {
+            baseBrands.push({ id: lower, label: b });
+            existingBrandIds.add(lower);
+          }
+        }
+      });
+      const brands = baseBrands;
       let activeBrandLabel = 'Tất Cả';
       const matchBrand = brands.find(b => b.id === this.selectedBrand);
       if (matchBrand && matchBrand.id !== 'all') {
@@ -168,16 +262,14 @@
                       ${this.selectedCategory === 'bestsellers' ? '<span style="color:#f59e0b; font-weight:800;">✓</span>' : ''}
                     </div>
                     ${categories.map(c => {
-        const cId = c.id || c.MaDanhMuc;
-        const cName = (c.TenDanhMuc || c.name || '').split(' - ')[0];
-        const isSel = this.selectedCategory === cId;
-        return `
-                        <div class="shop-dropdown-item ${isSel ? 'selected' : ''}" onclick="ShopPage.setCategory('${cId}')">
-                          <span>${cName}</span>
+                      const isSel = (this.selectedCategory === c.id || this.selectedCategory === c.shortName);
+                      return `
+                        <div class="shop-dropdown-item ${isSel ? 'selected' : ''}" onclick="ShopPage.setCategory('${c.id}')">
+                          <span>${c.shortName}</span>
                           ${isSel ? '<span style="color:#C59B27; font-weight:800;">✓</span>' : ''}
                         </div>
                       `;
-      }).join('')}
+                    }).join('')}
                   </div>
                 </div>
 
@@ -288,6 +380,42 @@
       });
     },
 
+    // Danh sach toan bo san pham ban chay nhat sap xep giam dan theo so luong da ban
+    getBestsellerProducts(allProducts) {
+      if (!Array.isArray(allProducts) || allProducts.length === 0) return [];
+      const norm = (str) => String(str || '').toLowerCase();
+      const list = allProducts.filter(p => {
+        if (p.isExpired === true) return false;
+        if (p.daysRemaining !== undefined && p.daysRemaining <= 0) return false;
+        const sold = Number(p.soLuongDaBan || p.soldCount || 0);
+        if (sold > 0) return true;
+        const disc = Number(p.discountPercent || p.PhanTramGiam || 0);
+        if (disc > 0) return true;
+        const rating = Number(p.rating || 0);
+        if (rating >= 4.8) return true;
+        const name = norm(p.name || p.TenSanPham);
+        if (name.includes('volcanic') || name.includes('claymation') || name.includes('quicksand') ||
+            name.includes('gravity') || name.includes('cavalier') || name.includes('meraki') ||
+            name.includes('reuzel') || name.includes('rough rider') || name.includes('proraso') ||
+            name.includes('shampoo') || name.includes('conditioner') || name.includes('pomade')) {
+          return true;
+        }
+        return false;
+      });
+
+      return list.sort((a, b) => {
+        const soldA = Number(a.soLuongDaBan || a.soldCount || 0);
+        const soldB = Number(b.soLuongDaBan || b.soldCount || 0);
+        if (soldB !== soldA) return soldB - soldA;
+        const discA = Number(a.discountPercent || a.PhanTramGiam || 0);
+        const discB = Number(b.discountPercent || b.PhanTramGiam || 0);
+        if (discB !== discA) return discB - discA;
+        const ratA = Number(a.rating || 5);
+        const ratB = Number(b.rating || 5);
+        return ratB - ratA;
+      });
+    },
+
     scrollSlider(sliderId, direction) {
       const slider = document.getElementById(sliderId);
       if (!slider) return;
@@ -349,30 +477,33 @@
       // 1. Phân nhóm sản phẩm thông minh, Chỉ hiển thị đúng sản phẩm theo từng thương hiệu
       const norm = (str) => String(str || '').toLowerCase();
 
-      // Top Bán Chạy Nhất, Ưu tiên sản phẩm có đánh giá cao hoặc có chiết khấu
-      let bestSellers = allProducts.filter(p => (p.PhanTramGiam && p.PhanTramGiam > 0) || Number(p.rating || 5.0) >= 4.8 || norm(p.name).includes('volcanic') || norm(p.name).includes('claymation') || norm(p.name).includes('blue') || norm(p.name).includes('rough rider'));
-      if (bestSellers.length < 5) bestSellers = allProducts.slice(0, 6);
+      // Top Ban Chay Nhat, uu tien san pham co luot ban thuc te hoac danh gia cao
+      const allBests = this.getBestsellerProducts(allProducts);
+      const bestSellers = allBests.slice(0, 10);
 
       // Apestomen, Singapore
-      const apestomen = allProducts.filter(p => norm(p.brand).includes('apestomen') || norm(p.name).includes('apestomen') || norm(p.name).includes('volcanic') || norm(p.name).includes('nitro') || norm(p.name).includes('cola pomade'));
+      const apestomen = allProducts.filter(p => norm(p.brand).includes('apestomen') || norm(p.name).includes('apestomen'));
 
       // Hanz de Fuko, California
-      const hanz = allProducts.filter(p => norm(p.brand).includes('hanz') || norm(p.name).includes('hanz') || norm(p.name).includes('claymation') || norm(p.name).includes('gravity paste') || norm(p.name).includes('quicksand') || norm(p.name).includes('spongewax'));
+      const hanz = allProducts.filter(p => norm(p.brand).includes('hanz') || norm(p.name).includes('hanz de fuko'));
 
       // Blumaan, USA
-      const blumaan = allProducts.filter(p => norm(p.brand).includes('blumaan') || norm(p.name).includes('blumaan') || norm(p.name).includes('cavalier') || norm(p.name).includes('monarch') || norm(p.name).includes('meraki') || norm(p.name).includes('hybrid cream'));
+      const blumaan = allProducts.filter(p => norm(p.brand).includes('blumaan') || norm(p.name).includes('blumaan'));
 
       // Reuzel Pomade, Rotterdam, Hà Lan
       const reuzel = allProducts.filter(p => norm(p.brand).includes('reuzel') || norm(p.name).includes('reuzel'));
 
       // Kevin Murphy & Uppercut Deluxe
-      const kevinUppercut = allProducts.filter(p => norm(p.brand).includes('kevin') || norm(p.brand).includes('uppercut') || norm(p.name).includes('rough rider') || norm(p.name).includes('night rider') || norm(p.name).includes('uppercut'));
+      const kevinUppercut = allProducts.filter(p => norm(p.brand).includes('kevin') || norm(p.name).includes('kevin') || norm(p.brand).includes('uppercut') || norm(p.name).includes('uppercut'));
 
-      // Davines Chăm Sóc Phục Hồi, Không có Olaplex
-      const davinesOlaplex = allProducts.filter(p => norm(p.brand).includes('davines') || norm(p.brand).includes('kerasys') || norm(p.name).includes('davines'));
+      // Davines Chăm Sóc Phục Hồi, Không có Kerasys
+      const davines = allProducts.filter(p => (norm(p.brand).includes('davines') || norm(p.name).includes('davines')) && !norm(p.brand).includes('kerasys') && !norm(p.name).includes('kerasys'));
 
-      // Dụng Cụ Barber & Shaving Proraso
-      const toolsGrooming = allProducts.filter(p => norm(p.brand).includes('proraso') || norm(p.brand).includes('amish') || norm(p.brand).includes('y.s. park') || norm(p.brand).includes('ats') || p.categoryId === 'DM08' || p.categoryId === 'DM09');
+      // Proraso Firenze Cạo Râu & Chăm Sóc Râu Nam
+      const proraso = allProducts.filter(p => norm(p.brand).includes('proraso') || norm(p.name).includes('proraso'));
+
+      // Dụng Cụ Tạo Kiểu Nam DM09
+      const tools = allProducts.filter(p => p.categoryId === 'DM09' || p.MaDanhMuc === 'DM09');
 
       return `
         <!-- DÒNG 1: SẢN PHẨM BÁN CHẠY NHẤT -->
@@ -456,35 +587,69 @@
         ${this.renderShowcaseRow('reuzel', 'ROTTERDAM, NETHERLANDS', 'Reuzel Pomade Barbershop', "ShopPage.setBrand('reuzel')", reuzel)}
 
         <!-- DÒNG 6: KEVIN MURPHY & UPPERCUT DELUXE -->
-        ${this.renderShowcaseRow('kevin_uppercut', 'PREMIUM BARBERSHOP STYLING', 'Kevin Murphy &amp; Uppercut Deluxe', "ShopPage.setCategory('DM01')", kevinUppercut)}
+        ${this.renderShowcaseRow('kevin_uppercut', 'PREMIUM BARBERSHOP STYLING', 'Kevin Murphy &amp; Uppercut Deluxe', "ShopPage.setBrand('kevin-uppercut')", kevinUppercut)}
 
         <!-- DÒNG 7: DAVINES PHỤC HỒI TÓC -->
-        ${this.renderShowcaseRow('davines_olaplex', 'ITALY SALON FORMULA', 'Davines Hair Care &amp; Phục Hồi Tóc', "ShopPage.setBrand('davines')", davinesOlaplex)}
+        ${this.renderShowcaseRow('davines', 'ITALY SALON FORMULA', 'Davines Hair Care &amp; Phục Hồi Tóc', "ShopPage.setBrand('davines')", davines)}
 
-        <!-- DÒNG 8: DỤNG CỤ BARBER & PRORASO SHAVING -->
-        ${this.renderShowcaseRow('barber_tools', 'AUTHENTIC BARBER TOOLS & SHAVING', 'Dụng Cụ Barber &amp; Cạo Mặt Proraso', "ShopPage.setCategory('DM08')", toolsGrooming)}
+        <!-- DÒNG 8: PRORASO CẠO RÂU & DƯỠNG RÂU Ý -->
+        ${this.renderShowcaseRow('proraso', 'AUTHENTIC BARBERSHOP SHAVING & BEARD CARE', 'Proraso Firenze Chăm Sóc Râu &amp; Cạo Mặt', "ShopPage.setBrand('proraso')", proraso)}
+
+        <!-- DÒNG 9: DỤNG CỤ TẠO KIỂU NAM -->
+        ${this.renderShowcaseRow('tools', 'BARBER ESSENTIALS & EQUIPMENT', 'Dụng Cụ Tạo Kiểu &amp; Thiết Bị Sấy Vuốt', "ShopPage.setCategory('DM09')", tools)}
       `;
     },
 
     setCategory(cat) {
-      this.selectedCategory = cat;
+      this.selectedCategory = cat || 'all';
       this.currentPage = 1;
       this.closeAllDropdowns();
-      this.render(document.getElementById('webMainContainer'));
+      const targetContainer = this.currentContainer || document.getElementById('webMainContainer');
+      this.render(targetContainer);
+      if (typeof window !== 'undefined' && window.history && window.history.pushState) {
+        try {
+          const newUrl = (this.selectedCategory && this.selectedCategory !== 'all')
+            ? '/shop?category=' + encodeURIComponent(this.selectedCategory)
+            : '/shop';
+          window.history.pushState(null, '', newUrl);
+        } catch (_) {}
+      }
+      if (this.selectedCategory !== 'all') {
+        setTimeout(() => {
+          const grid = document.getElementById('shopCatalogGrid') || document.querySelector('.shop-filter-bar');
+          if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
     },
 
     setBrand(brand) {
-      this.selectedBrand = brand;
+      this.selectedBrand = brand || 'all';
       this.currentPage = 1;
       this.closeAllDropdowns();
-      this.render(document.getElementById('webMainContainer'));
+      const targetContainer = this.currentContainer || document.getElementById('webMainContainer');
+      this.render(targetContainer);
+      if (typeof window !== 'undefined' && window.history && window.history.pushState) {
+        try {
+          const newUrl = (this.selectedBrand && this.selectedBrand !== 'all')
+            ? '/shop?brand=' + encodeURIComponent(this.selectedBrand)
+            : '/shop';
+          window.history.pushState(null, '', newUrl);
+        } catch (_) {}
+      }
+      if (this.selectedBrand !== 'all') {
+        setTimeout(() => {
+          const grid = document.getElementById('shopCatalogGrid') || document.querySelector('.shop-filter-bar');
+          if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
     },
 
     setPrice(range) {
-      this.selectedPriceRange = range;
+      this.selectedPriceRange = range || 'all';
       this.currentPage = 1;
       this.closeAllDropdowns();
-      this.render(document.getElementById('webMainContainer'));
+      const targetContainer = this.currentContainer || document.getElementById('webMainContainer');
+      this.render(targetContainer);
     },
 
     handleSearch(query) {
@@ -550,26 +715,38 @@
         return true;
       });
 
-      // Filter theo Danh mục
+      // Loc theo danh muc
       if (this.selectedCategory === 'fefo_expiry') {
         filtered = filtered.filter(p => (p.PhanTramGiam && p.PhanTramGiam > 0) || p.isNearExpiry);
       } else if (this.selectedCategory === 'bestsellers') {
-        const norm = (str) => String(str || '').toLowerCase();
-        filtered = filtered.filter(p => (p.PhanTramGiam && p.PhanTramGiam > 0) || Number(p.rating || 5.0) >= 4.8 || norm(p.name).includes('volcanic') || norm(p.name).includes('claymation') || norm(p.name).includes('blue') || norm(p.name).includes('rough rider'));
-        if (filtered.length === 0) {
-          filtered = [...allProducts].sort((a, b) => (b.rating || 5) - (a.rating || 5)).slice(0, 12);
-        }
-      } else if (this.selectedCategory !== 'all') {
-        filtered = filtered.filter(p => p.categoryId === this.selectedCategory || p.MaDanhMuc === this.selectedCategory);
+        filtered = this.getBestsellerProducts(filtered);
+      } else if (this.selectedCategory === 'grooming') {
+        const groomingIds = ['DM01', 'DM02', 'DM03', 'DM05', 'DM08'];
+        filtered = filtered.filter(p => groomingIds.includes(p.categoryId || p.MaDanhMuc));
+      } else if (this.selectedCategory === 'phukien' || this.selectedCategory === 'dung-cu') {
+        const toolIds = ['DM04', 'DM06', 'DM07', 'DM09'];
+        filtered = filtered.filter(p => toolIds.includes(p.categoryId || p.MaDanhMuc));
+      } else if (this.selectedCategory && this.selectedCategory !== 'all') {
+        const cat = this.findCategory(this.selectedCategory);
+        const catId = cat ? cat.id : this.selectedCategory;
+        filtered = filtered.filter(p => this.productMatchesCategory(p, catId, cat));
       }
 
       if (this.selectedBrand !== 'all') {
-        const queryBrand = this.selectedBrand.replace(/[’']/g, '').toLowerCase();
-        filtered = filtered.filter(p => {
-          const b = (p.brand || '').replace(/[’']/g, '').toLowerCase();
-          const n = (p.name || p.TenSanPham || '').replace(/[’']/g, '').toLowerCase();
-          return b.includes(queryBrand) || n.includes(queryBrand);
-        });
+        if (this.selectedBrand === 'kevin-uppercut') {
+          filtered = filtered.filter(p => {
+            const b = (p.brand || '').toLowerCase();
+            const n = (p.name || p.TenSanPham || '').toLowerCase();
+            return b.includes('kevin') || n.includes('kevin') || b.includes('uppercut') || n.includes('uppercut');
+          });
+        } else {
+          const queryBrand = this.selectedBrand.replace(/[’']/g, '').toLowerCase();
+          filtered = filtered.filter(p => {
+            const b = (p.brand || '').replace(/[’']/g, '').toLowerCase();
+            const n = (p.name || p.TenSanPham || '').replace(/[’']/g, '').toLowerCase();
+            return b.includes(queryBrand) || n.includes(queryBrand);
+          });
+        }
       }
 
       if (this.selectedPriceRange === 'under300') {
@@ -603,7 +780,13 @@
       this.currentPage = 1;
       const input = document.getElementById('shopSearchInput');
       if (input) input.value = '';
-      this.render(document.getElementById('webMainContainer'));
+      const targetContainer = this.currentContainer || document.getElementById('webMainContainer');
+      this.render(targetContainer);
+      if (typeof window !== 'undefined' && window.history && window.history.pushState) {
+        try {
+          window.history.pushState(null, '', '/shop');
+        } catch (_) {}
+      }
     },
 
     renderProducts(filtered) {
@@ -768,6 +951,7 @@
       if (!discountPercent && originalPrice > actualPrice && originalPrice > 0) {
         discountPercent = Math.round(((originalPrice - actualPrice) / originalPrice) * 100);
       }
+      this.currentPdpPrice = actualPrice;
       const isExpired = Boolean(
         prod.isExpired ||
         (prod.daysLeft !== null && prod.daysLeft !== undefined && prod.daysLeft <= 0) ||
@@ -892,7 +1076,8 @@
         }
       }
 
-      // Lọc ra 4 sản phẩm liên quan khác
+      this.selectedVariant = (variants && variants.length > 0) ? variants[0] : '';
+      // Loc ra 4 san pham lien quan khac
       const relatedProducts = allProducts.filter(p => (p.id !== prod.id && p.MaSanPham !== prod.id)).slice(0, 4);
 
       // Xác định Danh mục chuẩn xác theo bộ lọc của Shop
@@ -1023,7 +1208,7 @@
                     <span class="pdp-4rau-price" style="color: #C59B27; font-weight: 800; font-size: 26px;">${SalonUtils.formatCurrency(actualPrice)}</span>
                     ${hasDiscount ? `
                       <span class="pdp-4rau-old-price">${SalonUtils.formatCurrency(originalPrice)}</span>
-                      <span class="pdp-4rau-discount-tag" style="background: ${fefoDiscount > 0 ? '#fee2e2' : 'rgba(197, 155, 39, 0.15)'}; color: ${fefoDiscount > 0 ? '#dc2626' : '#C59B27'}; border: 1px solid ${fefoDiscount > 0 ? '#fca5a5' : 'rgba(197, 155, 39, 0.3)'};">${fefoDiscount > 0 ? 'Cận hạn -' + fefoDiscount + '%' : '-' + discountPercent + '%'}</span>
+                      <span class="pdp-4rau-discount-tag" style="background: ${fefoDiscount > 0 ? '#fee2e2' : 'rgba(197, 155, 39, 0.15)'}; color: ${fefoDiscount > 0 ? '#dc2626' : '#C59B27'}; border: 1px solid ${fefoDiscount > 0 ? '#fca5a5' : 'rgba(197, 155, 39, 0.3)'};">${(fefoDiscount > 0 && prod.promoDiscount > 0) ? ('Giảm -' + discountPercent + '%') : (fefoDiscount > 0 ? ('Cận hạn -' + fefoDiscount + '%') : ('-' + discountPercent + '%'))}</span>
                     ` : ''}
                   `}
                 </div>

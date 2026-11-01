@@ -34,6 +34,7 @@ async function handleProductRoutes(req, res, ctx) {
                sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
                dm.TenDanhMuc,
                ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 0) AS SoLuongTon,
+               ISNULL((SELECT SUM(ctdh.SoLuong) FROM ChiTietDonHang ctdh WHERE ctdh.MaSanPham = sp.MaSanPham), 0) + ISNULL((SELECT SUM(cthd.SoLuong) FROM ChiTietHoaDon_SanPham cthd WHERE cthd.MaSanPham = sp.MaSanPham), 0) AS SoLuongDaBan,
                CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung,
                ctpn.SoLuongConLai,
                ctpn.SoLo,
@@ -49,7 +50,7 @@ async function handleProductRoutes(req, res, ctx) {
             ORDER BY HanSuDung ASC
         ) ctpn
       `),
-      querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
+      querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai, DoiTuongApDung FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND (DoiTuongApDung IS NULL OR DoiTuongApDung NOT LIKE N'%Hội viên%') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
       querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`),
       querySql(`SELECT MaQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam FROM QuyTacGiamGiaTheoHan WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng' OR TrangThai IS NULL) ORDER BY PhanTramGiam DESC`),
       querySql(`SELECT dg.SoSao, ctdh.MaSanPham FROM DanhGia dg JOIN ChiTietDonHang ctdh ON dg.MaDonHang = ctdh.MaDonHang WHERE ctdh.MaSanPham IS NOT NULL`)
@@ -89,7 +90,7 @@ async function handleProductRoutes(req, res, ctx) {
         }
       }
 
-      // Khuyến mãi áp dụng cho sản phẩm (ví dụ KM01 - Chào Thu Rực Rỡ 10%)
+      // Khuyến mãi áp dụng cho sản phẩm  ví dụ KM01 - Chào Thu Rực Rỡ 10% 
       let promoDiscount = 0;
       let matchedPromo = null;
       const linkedPromos = (kmSanPhamRows || []).filter(km => km.MaSanPham === r.MaSanPham);
@@ -101,7 +102,7 @@ async function handleProductRoutes(req, res, ctx) {
         }
       }
 
-      // Giảm giá lũy tiến FEFO (Mục 23): Mức giảm cao nhất áp dụng trước, sau đó áp tiếp mức giảm còn lại
+      // Giảm giá lũy tiến FEFO  Mục 23 : Mức giảm cao nhất áp dụng trước, sau đó áp tiếp mức giảm còn lại
       if (daysLeft <= 0) {
         finalPrice = 0;
         discountPercent = 100;
@@ -158,8 +159,8 @@ async function handleProductRoutes(req, res, ctx) {
         MaDanhMuc: r.MaDanhMuc,
         categoryName: r.TenDanhMuc || 'Sản Phẩm Nam',
         TenDanhMuc: r.TenDanhMuc || 'Sản Phẩm Nam',
-        brand: r.ThuongHieu || 'CHÍNH HÃNG',
-        ThuongHieu: r.ThuongHieu || 'CHÍNH HÃNG',
+        brand: detectBrand(r.TenSanPham),
+        ThuongHieu: detectBrand(r.TenSanPham),
         price: finalPrice,
         GiaBanThucTe: finalPrice,
         originalPrice: origPrice,
@@ -177,6 +178,8 @@ async function handleProductRoutes(req, res, ctx) {
         isAvailable: daysLeft > 0,
         stock: pStock,
         SoLuongTon: pStock,
+        soldCount: Number(r.SoLuongDaBan) || 0,
+        soLuongDaBan: Number(r.SoLuongDaBan) || 0,
         unit: r.DonViTinh || 'Hộp',
         DonViTinh: r.DonViTinh || 'Hộp',
         rating: avgRating,

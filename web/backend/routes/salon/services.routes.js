@@ -16,7 +16,7 @@ async function handleServiceRoutes(req, res, ctx) {
   if (pathname === '/api/services' && method === 'GET') {
     const [rows, promoRows, kmDichVuRows, reviewRows] = await Promise.all([
       querySql(`SELECT MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu`),
-      querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai FROM KhuyenMai WHERE TrangThai = N'Đang áp dụng'`),
+      querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai, DoiTuongApDung, CONVERT(VARCHAR(10), NgayBatDau, 120) AS NgayBatDau, CONVERT(VARCHAR(10), NgayKetThuc, 120) AS NgayKetThuc FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND (DoiTuongApDung IS NULL OR DoiTuongApDung NOT LIKE N'%Hội viên%') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
       querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`),
       querySql(`SELECT dg.SoSao, ctlh.MaDichVu FROM DanhGia dg JOIN ChiTietLichHen ctlh ON dg.MaLichHen = ctlh.MaLichHen WHERE ctlh.MaDichVu IS NOT NULL`)
     ]);
@@ -226,6 +226,30 @@ async function handleServiceRoutes(req, res, ctx) {
   // POST /api/combos - Thêm combo gói mới kèm chi tiết dịch vụ con
   if (pathname === '/api/combos' && method === 'POST') {
     const body = parsedBody || {};
+    const name = (body.name || body.TenCombo || '').trim();
+    const price = parseFloat(body.price || body.GiaCombo || 0);
+    const rawServices = body.serviceIds || body.services || [];
+    const serviceIds = (Array.isArray(rawServices) ? rawServices : [])
+      .map(s => typeof s === 'object' ? (s.id || s.MaDichVu) : s)
+      .filter(Boolean);
+
+    // Kiểm tra dữ liệu hợp lệ trước khi lưu
+    if (!name) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Tên gói combo không được để trống.' }));
+      return true;
+    }
+    if (price <= 0) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Giá gói combo phải lớn hơn 0.' }));
+      return true;
+    }
+    if (serviceIds.length === 0) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Vui lòng chọn ít nhất 1 dịch vụ cấu thành gói combo.' }));
+      return true;
+    }
+
     const maxRows = await querySql(`SELECT TOP 1 MaCombo FROM ComboDichVu ORDER BY LEN(MaCombo) DESC, MaCombo DESC`);
     let nextN = 6;
     if (maxRows && maxRows[0]) {
@@ -233,33 +257,60 @@ async function handleServiceRoutes(req, res, ctx) {
       if (m) nextN = parseInt(m[1], 10) + 1;
     }
     const cbId = (body.id || body.MaCombo || ('CB' + (nextN < 10 ? '0' + nextN : nextN))).trim();
-    const name = body.name || body.TenCombo || 'Combo mới';
     const desc = body.description || body.MoTa || '';
-    const duration = parseInt(body.durationMinutes || body.ThoiLuong || 60, 10);
-    const price = parseFloat(body.price || body.GiaCombo || 200000);
-    const image = body.image || body.HinhAnh || '';
-    const status = body.status || body.TrangThai || 'Kinh doanh';
+    let duration = parseInt(body.durationMinutes || body.duration || body.ThoiLuong || 0, 10);
+    const image = body.image || body.HinhAnh || 'DichVu_Men/CBDV1.jpg';
+    const status = body.status || body.TrangThai || 'Đang kinh doanh';
 
-    await querySql(
-      `INSERT INTO ComboDichVu (MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [cbId, name, desc, price, duration, image, status]
-    );
-
-    // Lưu danh sách dịch vụ con vào ChiTietComboDichVu
-    const serviceIds = Array.isArray(body.serviceIds) ? body.serviceIds : (Array.isArray(body.services) ? body.services : []);
-    if (serviceIds.length > 0) {
-      for (const sId of serviceIds) {
-        const cleanId = typeof sId === 'object' ? (sId.id || sId.MaDichVu) : sId;
-        if (cleanId) {
-          try {
-            await querySql(`INSERT INTO ChiTietComboDichVu (MaCombo, MaDichVu, SoLuong) VALUES (?, ?, 1)`, [cbId, cleanId]);
-          } catch (_) { }
-        }
-      }
+    // Tự động tính tổng thời lượng từ bảng DichVu nếu chưa truyền
+    if (!duration || duration <= 0) {
+      const dvRows = await querySql(`SELECT MaDichVu, ThoiLuong FROM DichVu`);
+      const dvMap = new Map((dvRows || []).map(d => [d.MaDichVu, parseInt(d.ThoiLuong || 0, 10)]));
+      duration = serviceIds.reduce((sum, sId) => sum + (dvMap.get(sId) || 30), 0);
+      if (duration <= 0) duration = 60;
     }
 
+    // Thực hiện lưu combo và các dịch vụ con trong một transaction
+    let sqlBatch = `
+      BEGIN TRANSACTION;
+      BEGIN TRY
+        INSERT INTO ComboDichVu (MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai)
+        VALUES (?, ?, ?, ?, ?, ?, ?);
+    `;
+    const params = [cbId, name, desc, price, duration, image, status];
+    for (const sId of serviceIds) {
+      sqlBatch += `
+        INSERT INTO ChiTietComboDichVu (MaCombo, MaDichVu, SoLuong) VALUES (?, ?, 1);
+      `;
+      params.push(cbId, sId);
+    }
+    sqlBatch += `
+        COMMIT TRANSACTION;
+      END TRY
+      BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+      END CATCH;
+    `;
+    await querySql(sqlBatch, params);
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, combo: { id: cbId, MaCombo: cbId, name, price, duration, status, serviceIds } }));
+    res.end(JSON.stringify({
+      success: true,
+      combo: {
+        id: cbId,
+        MaCombo: cbId,
+        name,
+        TenCombo: name,
+        price,
+        GiaCombo: price,
+        duration: `${duration} phút`,
+        durationMinutes: duration,
+        ThoiLuong: duration,
+        status,
+        serviceIds
+      }
+    }));
     return true;
   }
 
@@ -267,38 +318,73 @@ async function handleServiceRoutes(req, res, ctx) {
   if (pathname.startsWith('/api/combos/') && method === 'PUT') {
     const id = pathname.replace('/api/combos/', '').trim();
     const body = parsedBody || {};
-    await querySql(
-      `UPDATE ComboDichVu SET 
-         TenCombo = COALESCE(?, TenCombo), 
-         MoTa = COALESCE(?, MoTa), 
-         ThoiLuong = COALESCE(?, ThoiLuong), 
-         GiaCombo = COALESCE(?, GiaCombo), 
-         HinhAnh = COALESCE(?, HinhAnh), 
-         TrangThai = COALESCE(?, TrangThai) 
-       WHERE MaCombo = ?`,
-      [
+    const rawServices = body.serviceIds || body.services;
+
+    // Cập nhật thông tin combo và chi tiết dịch vụ trong transaction nếu có danh sách dịch vụ
+    if (Array.isArray(rawServices)) {
+      const serviceIds = rawServices
+        .map(s => typeof s === 'object' ? (s.id || s.MaDichVu) : s)
+        .filter(Boolean);
+
+      let sqlBatch = `
+        BEGIN TRANSACTION;
+        BEGIN TRY
+          UPDATE ComboDichVu SET 
+             TenCombo = COALESCE(?, TenCombo), 
+             MoTa = COALESCE(?, MoTa), 
+             ThoiLuong = COALESCE(?, ThoiLuong), 
+             GiaCombo = COALESCE(?, GiaCombo), 
+             HinhAnh = COALESCE(?, HinhAnh), 
+             TrangThai = COALESCE(?, TrangThai) 
+          WHERE MaCombo = ?;
+
+          DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?;
+      `;
+      const params = [
         body.name || body.TenCombo || null,
         body.description || body.MoTa || null,
-        body.durationMinutes || body.ThoiLuong || null,
+        body.durationMinutes || body.duration || body.ThoiLuong || null,
         body.price || body.GiaCombo || null,
         body.image || body.HinhAnh || null,
         body.status || body.TrangThai || null,
+        id,
         id
-      ]
-    );
-
-    // Cập nhật lại các dịch vụ trong combo nếu client gửi lên
-    if (Array.isArray(body.serviceIds) || Array.isArray(body.services)) {
-      const serviceIds = Array.isArray(body.serviceIds) ? body.serviceIds : body.services;
-      await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?`, [id]);
+      ];
       for (const sId of serviceIds) {
-        const cleanId = typeof sId === 'object' ? (sId.id || sId.MaDichVu) : sId;
-        if (cleanId) {
-          try {
-            await querySql(`INSERT INTO ChiTietComboDichVu (MaCombo, MaDichVu, SoLuong) VALUES (?, ?, 1)`, [id, cleanId]);
-          } catch (_) { }
-        }
+        sqlBatch += `
+          INSERT INTO ChiTietComboDichVu (MaCombo, MaDichVu, SoLuong) VALUES (?, ?, 1);
+        `;
+        params.push(id, sId);
       }
+      sqlBatch += `
+          COMMIT TRANSACTION;
+        END TRY
+        BEGIN CATCH
+          IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+          THROW;
+        END CATCH;
+      `;
+      await querySql(sqlBatch, params);
+    } else {
+      await querySql(
+        `UPDATE ComboDichVu SET 
+           TenCombo = COALESCE(?, TenCombo), 
+           MoTa = COALESCE(?, MoTa), 
+           ThoiLuong = COALESCE(?, ThoiLuong), 
+           GiaCombo = COALESCE(?, GiaCombo), 
+           HinhAnh = COALESCE(?, HinhAnh), 
+           TrangThai = COALESCE(?, TrangThai) 
+         WHERE MaCombo = ?`,
+        [
+          body.name || body.TenCombo || null,
+          body.description || body.MoTa || null,
+          body.durationMinutes || body.duration || body.ThoiLuong || null,
+          body.price || body.GiaCombo || null,
+          body.image || body.HinhAnh || null,
+          body.status || body.TrangThai || null,
+          id
+        ]
+      );
     }
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

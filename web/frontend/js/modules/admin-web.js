@@ -516,7 +516,6 @@
           { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu Chi Nhánh' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
-          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
@@ -525,14 +524,14 @@
         tabGroups = [
           {
             groupLabel: 'CHỨC NĂNG QUẢN LÝ CHI NHÁNH',
-            ids: ['overview', 'stylists', 'inventory', 'receipts', 'catalog']
+            ids: ['overview', 'stylists', 'inventory', 'catalog']
           },
           {
             groupLabel: 'QUYỀN THU NGÂN',
             ids: ['pos', 'bookings', 'audit']
           }
         ];
-        if (!['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab)) {
+        if (!['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(this.adminSubTab) && this.adminSubTab !== 'receipts') {
           this.adminSubTab = 'overview';
         }
       } else {
@@ -541,7 +540,6 @@
           { id: 'branches', icon: tabIcons.branches, label: 'Quản Lý Chuỗi Chi Nhánh' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
-          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
           { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Điều Phối Lịch Hẹn' },
@@ -554,7 +552,7 @@
           },
           {
             groupLabel: 'QUẢN LÝ VẬN HÀNH & KHO',
-            ids: ['stylists', 'inventory', 'receipts', 'catalog']
+            ids: ['stylists', 'inventory', 'catalog']
           },
           {
             groupLabel: 'QUYỀN THU NGÂN & TIẾP NHẬN',
@@ -773,15 +771,23 @@
         if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Tiếp nhận lịch hẹn, Lập phiếu nhập và Lịch sử đơn!', 'warning');
         return;
       }
-      if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'audit'].includes(tabName)) {
-        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Báo cáo, Thợ, Kho, Phiếu nhập, Giá dịch vụ và toàn quyền Thu ngân!', 'warning');
+      if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'catalog', 'pos', 'bookings', 'audit'].includes(tabName) && tabName !== 'receipts') {
+        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Báo cáo, Thợ, Kho, Giá dịch vụ và toàn quyền Thu ngân!', 'warning');
         return;
       }
-      this.adminSubTab = tabName;
       if (tabName === 'receipts') {
-        this.inventorySubTab = 'receipts';
+        if (activeRole === 'CASHIER') {
+          this.adminSubTab = 'receipts';
+          this.inventorySubTab = 'receipts';
+        } else {
+          this.adminSubTab = 'inventory';
+          this.inventorySubTab = 'receipts';
+        }
       } else if (tabName === 'inventory') {
-        this.inventorySubTab = 'stock';
+        this.adminSubTab = 'inventory';
+        this.inventorySubTab = this.inventorySubTab || 'stock';
+      } else {
+        this.adminSubTab = tabName;
       }
       const container = document.getElementById('webMainContainer');
       if (container) this.render(container);
@@ -2365,7 +2371,7 @@
                         ` : `
                           <span style="background: rgba(168, 85, 247, 0.15); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 800;">Quản lý</span>
                         `}
-                        <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${this.escapeHtml(isCashier ? 'Chuyên viên thu ngân • POS' : (st.level || 'Master Barber'))}</span>
+                        <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${this.escapeHtml(st.CapBac || st.level || (isCashier ? 'Chuyên viên thu ngân • POS' : (st.role?.toLowerCase().includes('quản lý') ? 'Quản lý' : (isAssis ? 'Junior Barber' : 'Master Barber'))))}</span>
                       </div>
                       <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Cơ sở: ${this.escapeHtml(brName)}</div>
                     </div>
@@ -2524,22 +2530,31 @@
           </tr>
         `;
       }
-      return pagedItems.map(item => `
+      return pagedItems.map(item => {
+        const itemId = item.id || item.MaCombo || item.MaDichVu || item.MaSanPham || '';
+        const itemName = item.name || item.TenCombo || item.TenDichVu || item.TenSanPham || itemId;
+        const itemCat = item.category || (type === 'combos' ? 'Combo VIP' : (type === 'products' ? (item.brand || 'Sản Phẩm') : 'Dịch Vụ'));
+        const itemPrice = item.price !== undefined ? item.price : (item.GiaCombo !== undefined ? item.GiaCombo : (item.GiaBan !== undefined ? item.GiaBan : (item.Gia || 0)));
+        const itemDuration = item.durationMinutes || parseInt(item.duration || item.ThoiLuong || (type === 'combos' ? 60 : 45), 10) || 45;
+        const itemDesc = item.description || item.MoTa || (type === 'combos' ? 'Gói combo dịch vụ VIP tiêu chuẩn' : 'Chất lượng tiêu chuẩn Omni Salon Suite');
+        const itemImage = item.image || item.HinhAnh || (type === 'combos' ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg');
+
+        return `
         <tr>
           <td>
-            <img src="${SalonUtils.formatImageUrl(item.image)}" 
-                 style="width: 42px; height: 42px; border-radius: 6px; object-fit: cover;" alt="${this.escapeHtml(item.name)}"
+            <img src="${SalonUtils.formatImageUrl(itemImage)}" 
+                 style="width: 42px; height: 42px; border-radius: 6px; object-fit: cover;" alt="${this.escapeHtml(itemName)}"
                  onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DichVu_Men/DV1.jpg');">
           </td>
-          <td><strong>${this.escapeHtml(item.id)}</strong></td>
-          <td style="font-weight: 800;">${this.escapeHtml(item.name || item.TenCombo || item.TenDichVu || item.id)}</td>
+          <td><strong>${this.escapeHtml(itemId)}</strong></td>
+          <td style="font-weight: 800;">${this.escapeHtml(itemName)}</td>
           <td>
             <span class="badge-terracotta" style="font-size: 10px; padding: 2px 8px;">
-              ${this.escapeHtml(item.category || (type === 'combos' ? 'Combo VIP' : 'Dịch Vụ'))}
+              ${this.escapeHtml(itemCat)}
             </span>
           </td>
           <td style="font-weight: 900; color: #c85a44;">
-            ${SalonUtils.formatCurrency(item.price || item.GiaCombo || item.Gia || 0)}
+            ${SalonUtils.formatCurrency(itemPrice)}
             ${(type === 'services' && (item.NgayApDung || item.effectiveDate)) ? `
               <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary, #888); margin-top: 2px;">
                 Áp dụng: ${SalonUtils.formatDate(item.NgayApDung || item.effectiveDate)}
@@ -2547,25 +2562,25 @@
             ` : ''}
           </td>
           <td>
-            <strong>${item.duration || item.ThoiLuong || item.durationMinutes || 45}</strong> phút
+            <strong>${itemDuration}</strong> phút
           </td>
           <td style="font-size: 12px; color: var(--text-secondary, #888); max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            ${this.escapeHtml(item.description || item.MoTa || 'Chất lượng tiêu chuẩn Omni Salon Suite')}
+            ${this.escapeHtml(itemDesc)}
           </td>
           <td>
             <div style="display: flex; gap: 4px;">
               <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px;" 
-                      onclick="AdminWeb.openCatalogModal('${type}', '${item.id}')">
+                      onclick="AdminWeb.openCatalogModal('${type}', '${itemId}')">
                 Sửa
               </button>
               <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; color: #b91c1c; border-color: #fca5a5;" 
-                      onclick="AdminWeb.deleteCatalogItem('${type}', '${item.id}')">
+                      onclick="AdminWeb.deleteCatalogItem('${type}', '${itemId}')">
                 Xóa
               </button>
             </div>
           </td>
         </tr>
-      `).join('');
+      `}).join('');
     },
 
     renderCatalogTab(services, combos, products) {
@@ -2580,7 +2595,12 @@
       if (type === 'services') {
         items = services.filter(s => !q || (s.name && s.name.toLowerCase().includes(q)) || (s.category && s.category.toLowerCase().includes(q)) || (s.id && s.id.toLowerCase().includes(q)));
       } else {
-        items = combos.filter(c => !q || (c.name && c.name.toLowerCase().includes(q)) || (c.description && c.description.toLowerCase().includes(q)) || (c.id && c.id.toLowerCase().includes(q)));
+        items = combos.filter(c => {
+          const cName = (c.name || c.TenCombo || '').toLowerCase();
+          const cDesc = (c.description || c.MoTa || '').toLowerCase();
+          const cId = (c.id || c.MaCombo || '').toLowerCase();
+          return !q || cName.includes(q) || cDesc.includes(q) || cId.includes(q);
+        });
       }
 
       this.catalogPage = this.catalogPage || 1;
@@ -2601,7 +2621,7 @@
                       style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchCatalogTabType('combos')">
                 Gói Combo VIP (${combos.length})
               </button>
-              <input type="text" class="table-search-input" id="adminCatalogSearchInput" placeholder="Tìm theo tên dịch vụ..." 
+              <input type="text" class="table-search-input" id="adminCatalogSearchInput" placeholder="${type === 'combos' ? 'Tìm theo tên gói combo VIP...' : 'Tìm theo tên dịch vụ...'}" 
                      autocomplete="off"
                      value="${this.escapeHtml(this.catalogSearchQuery)}" 
                      oninput="AdminWeb.catalogSearchQuery = this.value; AdminWeb.catalogPage = 1; AdminWeb.refreshCatalogView();">
@@ -2672,7 +2692,12 @@
       if (type === 'services') {
         items = services.filter(s => !q || (s.name && s.name.toLowerCase().includes(q)) || (s.category && s.category.toLowerCase().includes(q)) || (s.id && s.id.toLowerCase().includes(q)));
       } else {
-        items = combos.filter(c => !q || (c.name && c.name.toLowerCase().includes(q)) || (c.description && c.description.toLowerCase().includes(q)) || (c.id && c.id.toLowerCase().includes(q)));
+        items = combos.filter(c => {
+          const cName = (c.name || c.TenCombo || '').toLowerCase();
+          const cDesc = (c.description || c.MoTa || '').toLowerCase();
+          const cId = (c.id || c.MaCombo || '').toLowerCase();
+          return !q || cName.includes(q) || cDesc.includes(q) || cId.includes(q);
+        });
       }
 
       this.catalogPage = this.catalogPage || 1;
@@ -2728,19 +2753,19 @@
       }
 
       this._openModal(`
-        <div style="max-width: 520px; margin: 0 auto;">
+        <div style="max-width: ${isCombo ? '600px' : '520px'}; margin: 0 auto;">
           <div class="badge-terracotta">QUẢN LÝ CATALOG SALON</div>
           <h2 style="font-size: 20px; font-weight: 800; margin: 8px 0 16px;">${isEdit ? 'CHỈNH SỬA' : 'THÊM MỚI'} ${typeLabel.toUpperCase()}</h2>
           <form onsubmit="event.preventDefault(); AdminWeb.submitCatalogForm('${type}', '${itemId || ''}');">
             <div style="margin-bottom: 12px;">
               <label class="sub-label">${nameLabel}</label>
-              <input type="text" id="catName" class="form-control-custom" placeholder="${isProduct ? 'VD: Sáp Brosh Matte / Pomade Reuzel...' : isCombo ? 'VD: Combo Quý Tộc Barber...' : 'VD: Cắt tóc nam Fade & Tạo kiểu...'}" value="${this.escapeHtml(item?.name || '')}" required>
+              <input type="text" id="catName" class="form-control-custom" placeholder="${isProduct ? 'VD: Sáp Brosh Matte / Pomade Reuzel...' : isCombo ? 'VD: Combo Quý Tộc Barber...' : 'VD: Cắt tóc nam Fade & Tạo kiểu...'}" value="${this.escapeHtml(item?.name || item?.TenCombo || item?.TenDichVu || item?.TenSanPham || '')}" required>
             </div>
             ${isProduct ? `
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                 <div>
                   <label class="sub-label">Giá Bán (VNĐ):</label>
-                  <input type="number" id="catPrice" class="form-control-custom" placeholder="250000" value="${item?.price || ''}" required min="1000">
+                  <input type="number" id="catPrice" class="form-control-custom" placeholder="250000" value="${item?.price !== undefined ? item.price : (item?.GiaCombo !== undefined ? item.GiaCombo : (item?.Gia || ''))}" required min="1000">
                 </div>
                 <div>
                   <label class="sub-label">Giá Gốc / So Sánh (VNĐ):</label>
@@ -2764,8 +2789,8 @@
                   <input type="number" id="catPrice" class="form-control-custom" placeholder="250000" value="${item?.price || ''}" required min="1000">
                 </div>
                 <div>
-                  <label class="sub-label">Thời Lượng Thực Hiện (Phút):</label>
-                  <input type="number" id="catDurationOrStock" class="form-control-custom" value="${item?.duration || (isCombo ? 90 : 45)}" required min="1">
+                  <label class="sub-label">Thời Lượng Thực Hiện (Phút): ${isCombo ? '<span style="font-size: 11px; color: #f59e0b; font-weight: normal;">(Tự động tính)</span>' : ''}</label>
+                  <input type="number" id="catDurationOrStock" class="form-control-custom" value="${item?.durationMinutes || parseInt(item?.duration || item?.ThoiLuong || (isCombo ? 0 : 45), 10) || (isCombo ? 0 : 45)}" ${isCombo ? 'readonly style="background: rgba(255,255,255,0.06); cursor: not-allowed; color: #f59e0b; font-weight: 700;"' : ''} required min="1">
                 </div>
               </div>
               <div style="margin-bottom: 12px;">
@@ -2774,23 +2799,45 @@
               </div>
             `}
             ${isCombo ? `
-              <div style="margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 8px; padding: 10px;">
-                <label class="sub-label" style="display: block; margin-bottom: 6px; font-weight: 700; color: #f59e0b;">
-                  Dịch Vụ Đi Kèm Gói Combo (Tự động tính tổng thời lượng):
-                </label>
-                <div style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+              <div style="margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 8px; padding: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <label class="sub-label" style="display: block; margin: 0; font-weight: 700; color: #f59e0b;">
+                    Dịch Vụ Cấu Thành Combo VIP:
+                  </label>
+                  <span id="comboSelectedCountBadge" style="background: rgba(245,158,11,0.18); color: #f59e0b; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(245,158,11,0.3);">
+                    Đã chọn: 0 dịch vụ
+                  </span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                  <input type="text" id="comboServiceSearch" class="form-control-custom" placeholder="Tìm nhanh dịch vụ theo tên hoặc mã..." style="padding: 6px 10px; font-size: 12px;" oninput="AdminWeb.filterComboServices(this.value)">
+                </div>
+                <div id="comboServicesList" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px;">
                   ${((window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : []).map(s => {
-                    const sId = s.id || s.MaDichVu;
-                    const curIds = item?.serviceIds || (Array.isArray(item?.services) ? item.services.map(x => typeof x === 'object' ? (x.id || x.MaDichVu) : x) : []);
+                    const sId = String(s.id || s.MaDichVu || '').trim();
+                    const rawCurIds = item?.serviceIds || (Array.isArray(item?.services) ? item.services.map(x => typeof x === 'object' ? (x.id || x.MaDichVu) : x) : []);
+                    const curIds = (Array.isArray(rawCurIds) ? rawCurIds : []).map(x => String(x).trim());
                     const isChecked = curIds.includes(sId);
-                    const sDur = s.durationMinutes || parseInt(s.duration) || 30;
+                    const sDur = parseInt(s.durationMinutes || s.duration || s.ThoiLuong || 30, 10);
+                    const sPrice = parseFloat(s.price || s.Gia || 0);
+                    const sName = s.name || s.TenDichVu || sId;
                     return `
-                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; user-select: none;">
-                        <input type="checkbox" class="combo-service-checkbox" value="${sId}" data-duration="${sDur}" ${isChecked ? 'checked' : ''} onchange="AdminWeb.onComboServiceToggle()">
-                        <span><strong>${this.escapeHtml(s.name || s.TenDichVu)}</strong> (${sDur} phút - ${SalonUtils.formatCurrency(s.price || s.Gia)})</span>
+                      <label class="combo-service-row" data-search="${this.escapeHtml((sId + ' ' + sName).toLowerCase())}" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 6px; background: rgba(255,255,255,0.02); cursor: pointer; transition: background 0.15s ease;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                          <input type="checkbox" class="combo-service-checkbox" value="${sId}" data-duration="${sDur}" data-name="${this.escapeHtml(sName)}" data-price="${sPrice}" ${isChecked ? 'checked' : ''} onchange="AdminWeb.onComboServiceToggle()" style="accent-color: #f59e0b; cursor: pointer; width: 15px; height: 15px;">
+                          <span style="font-size: 13px; font-weight: 600; color: #f3f4f6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${this.escapeHtml(sName)} <span style="font-size: 11px; color: #9ca3af; font-weight: normal;">#${sId}</span>
+                          </span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; flex-shrink: 0; margin-left: 8px;">
+                          <span style="color: #f59e0b; font-weight: 700;">${sDur} phút</span>
+                          <span style="color: #6b7280;">•</span>
+                          <span style="color: #10b981; font-weight: 600;">${SalonUtils.formatCurrency(sPrice)}</span>
+                        </div>
                       </label>
                     `;
                   }).join('')}
+                </div>
+                <div id="comboSelectedSummary" style="margin-top: 10px; padding: 8px 10px; border-radius: 6px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(245,158,11,0.3); font-size: 12px;">
                 </div>
               </div>
             ` : ''}
@@ -2800,7 +2847,7 @@
             </div>
             <div style="margin-bottom: 16px;">
               <label class="sub-label">Mô Tả Chi Tiết:</label>
-              <textarea id="catDescription" class="form-control-custom" rows="2" placeholder="Mô tả công dụng và các bước phục vụ...">${this.escapeHtml(item?.description || '')}</textarea>
+              <textarea id="catDescription" class="form-control-custom" rows="2" placeholder="Mô tả công dụng và các bước phục vụ...">${this.escapeHtml(item?.description || item?.MoTa || '')}</textarea>
             </div>
             <div style="display: flex; gap: 10px;">
               <button type="button" class="btn-cancel" style="flex: 1;" onclick="AdminWeb._closeModal()">Hủy Bỏ</button>
@@ -2809,18 +2856,83 @@
           </form>
         </div>
       `);
+
+      if (isCombo) {
+        setTimeout(() => {
+          if (typeof AdminWeb.onComboServiceToggle === 'function') {
+            AdminWeb.onComboServiceToggle();
+          }
+        }, 40);
+      }
     },
 
     onComboServiceToggle() {
       const checkboxes = document.querySelectorAll('.combo-service-checkbox:checked');
       let totalDuration = 0;
+      const selected = [];
       checkboxes.forEach(cb => {
-        totalDuration += parseInt(cb.getAttribute('data-duration'), 10) || 0;
+        const dur = parseInt(cb.getAttribute('data-duration'), 10) || 0;
+        const id = cb.value;
+        const name = cb.getAttribute('data-name') || id;
+        const price = parseFloat(cb.getAttribute('data-price')) || 0;
+        totalDuration += dur;
+        selected.push({ id, name, duration: dur, price });
       });
+
       const durInput = document.getElementById('catDurationOrStock');
-      if (durInput && totalDuration > 0) {
+      if (durInput) {
         durInput.value = totalDuration;
       }
+
+      const countBadge = document.getElementById('comboSelectedCountBadge');
+      if (countBadge) {
+        countBadge.textContent = 'Đã chọn: ' + selected.length + ' dịch vụ';
+      }
+
+      const summaryBox = document.getElementById('comboSelectedSummary');
+      if (summaryBox) {
+        if (selected.length === 0) {
+          summaryBox.innerHTML = '<span style="color: #ef4444; font-size: 12px; font-weight: 500;">Chưa chọn dịch vụ nào. Vui lòng chọn ít nhất 1 dịch vụ cho combo.</span>';
+        } else {
+          const chipsHtml = selected.map(s => `
+            <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; border-radius: 4px; padding: 3px 8px; font-size: 11px; margin: 2px;">
+              <span><strong>#${this.escapeHtml(s.id)}</strong> ${this.escapeHtml(s.name)}</span>
+              <span style="background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; color: #fff; font-weight: 700;">${s.duration}p</span>
+              <button type="button" onclick="AdminWeb.removeComboService('${s.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 2px; font-size: 13px; font-weight: bold; line-height: 1;" title="Bỏ dịch vụ này">&times;</button>
+            </span>
+          `).join('');
+          summaryBox.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; color: #d1d5db; font-size: 11px;">
+              <span>Dịch vụ đã chọn (${selected.length}):</span>
+              <span style="color: #f59e0b; font-weight: 700;">Tổng thời lượng: ${totalDuration} phút</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+              ${chipsHtml}
+            </div>
+          `;
+        }
+      }
+    },
+
+    removeComboService(serviceId) {
+      const cb = document.querySelector(`.combo-service-checkbox[value="${serviceId}"]`);
+      if (cb) {
+        cb.checked = false;
+        this.onComboServiceToggle();
+      }
+    },
+
+    filterComboServices(query) {
+      const q = (query || '').toLowerCase().trim();
+      const rows = document.querySelectorAll('.combo-service-row');
+      rows.forEach(r => {
+        const text = r.getAttribute('data-search') || '';
+        if (!q || text.includes(q)) {
+          r.style.display = 'flex';
+        } else {
+          r.style.display = 'none';
+        }
+      });
     },
 
     submitCatalogForm(type, itemId) {
@@ -2842,6 +2954,11 @@
       if (type === 'combos') {
         const checkedCbs = document.querySelectorAll('.combo-service-checkbox:checked');
         serviceIds = Array.from(checkedCbs).map(cb => cb.value);
+        if (serviceIds.length === 0) {
+          if (window.UICommon) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ cấu thành gói combo!', 'warning');
+          else alert('Vui lòng chọn ít nhất 1 dịch vụ cấu thành gói combo!');
+          return;
+        }
       }
 
       if (type === 'services' && (!image || image.includes('unsplash.com'))) {
@@ -2863,7 +2980,7 @@
         if (type === 'services') {
           window.store.updateService(itemId, { name, price, oldPrice, category: catOrBrand, duration: durOrStock, image, description });
         } else if (type === 'combos') {
-          window.store.updateCombo(itemId, { name, price, oldPrice, duration: durOrStock, image, description, serviceIds, services: serviceIds });
+          window.store.updateCombo(itemId, { name, price, oldPrice, duration: durOrStock, durationMinutes: durOrStock, image, description, serviceIds, services: serviceIds });
         } else {
           window.store.updateProduct(itemId, { name, price, oldPrice, originalPrice: oldPrice, GiaBan: oldPrice, brand: catOrBrand, stock: durOrStock, image, description });
         }
@@ -2872,7 +2989,7 @@
         if (type === 'services') {
           window.store.addService({ name, price, oldPrice, category: catOrBrand, duration: durOrStock, image, description });
         } else if (type === 'combos') {
-          window.store.addCombo({ name, price, oldPrice, duration: durOrStock, image, description, serviceIds, services: serviceIds });
+          window.store.addCombo({ name, price, oldPrice, duration: durOrStock, durationMinutes: durOrStock, image, description, serviceIds, services: serviceIds });
         } else {
           window.store.addProduct({ name, price, oldPrice, brand: catOrBrand, stock: durOrStock, image, description });
         }
@@ -2881,6 +2998,9 @@
 
       this._closeModal();
       this.refreshCatalogView();
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        window.store.syncWithLiveServer();
+      }
     },
 
     deleteCatalogItem(type, id) {
@@ -2893,18 +3013,25 @@
     switchInventorySubTab(type) {
       this.inventorySubTab = type;
       this.inventoryPage = 1;
+      this.inventorySearchQuery = '';
       const user = this.getCurrentUser();
       const isCashier = this.isCashier(user);
       if (isCashier) {
         this.adminSubTab = 'receipts';
       } else {
-        this.adminSubTab = (type === 'receipts') ? 'receipts' : 'inventory';
+        this.adminSubTab = 'inventory';
       }
-      const container = document.getElementById('webMainContainer');
-      if (container) {
-        this.render(container);
+      const content = document.getElementById('adminSubTabContent');
+      if (content) {
+        const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
+        content.innerHTML = this.renderInventoryTab(user, branches);
       } else {
-        this.refreshInventoryView();
+        const container = document.getElementById('webMainContainer');
+        if (container) {
+          this.render(container);
+        } else {
+          this.refreshInventoryView();
+        }
       }
     },
 
@@ -2993,6 +3120,7 @@
 
     _renderInventoryContent(subType, { inventory, fefoLots, receipts, suppliers, discountRules, q }) {
       this.inventoryPage = this.inventoryPage || 1;
+      const user = this.getCurrentUser();
 
       // Phân hệ Tồn Kho & Sản Phẩm, stock
       if (subType === 'stock') {
@@ -3323,10 +3451,14 @@
       if (!confirm('Xác nhận phê duyệt phiếu nhập #' + receiptId + ' và cộng dồn số lượng vào tồn kho?')) return;
       const user = this.getCurrentUser();
       const approverId = user?.staffId || user?.MaNhanVien || 'NV01';
+      const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       try {
         const res = await fetch('/api/inventory/receipts/' + encodeURIComponent(receiptId) + '/approve', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+          },
           body: JSON.stringify({ approverId })
         });
         const data = await res.json();
@@ -3343,25 +3475,51 @@
       }
     },
 
-    async rejectReceiptModal(receiptId) {
+    rejectReceiptModal(receiptId) {
       if (!receiptId) return;
-      const reason = prompt('Nhập lý do từ chối phiếu nhập #' + receiptId + ' (bắt buộc):', 'Thông tin lô hàng hoặc đơn giá không hợp lệ');
-      if (reason === null) return;
-      const cleanReason = reason.trim();
+      this._openModal(`
+        <div style="max-width: 480px; margin: 0 auto;">
+          <div class="badge-terracotta" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">TỪ CHỐI PHIẾU NHẬP KHO</div>
+          <h2 style="font-size: 18px; font-weight: 800; margin: 8px 0 14px; color: #f87171;">TỪ CHỐI PHIẾU #${this.escapeHtml(receiptId)}</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+            Vui lòng nhập lý do từ chối phiếu nhập kho này. Lý do sẽ được lưu vào cơ sở dữ liệu và hiển thị trong chi tiết phiếu.
+          </p>
+          <form onsubmit="event.preventDefault(); AdminWeb.confirmRejectReceipt('${receiptId}');">
+            <div style="margin-bottom: 16px;">
+              <label class="sub-label">Lý Do Từ Chối (Bắt buộc): <span style="color:#ef4444;">*</span></label>
+              <textarea id="rejectReceiptReasonInput" class="form-control-custom" rows="4" style="font-size: 13.5px; line-height: 1.5;" placeholder="Nhập lý do từ chối cụ thể tối thiểu 3 ký tự..." required>Thông tin lô hàng hoặc đơn giá không hợp lệ</textarea>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+              <button type="button" class="btn-cancel" onclick="AdminWeb._closeModal()">Hủy Bỏ</button>
+              <button type="submit" class="btn-submit-terracotta" style="background: #ef4444; border-color: #ef4444;">Xác Nhận Từ Chối</button>
+            </div>
+          </form>
+        </div>
+      `);
+    },
+
+    async confirmRejectReceipt(receiptId) {
+      const reasonInput = document.getElementById('rejectReceiptReasonInput');
+      const cleanReason = (reasonInput?.value || '').trim();
       if (!cleanReason || cleanReason.length < 3) {
-        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do từ chối cụ thể (tối thiểu 3 ký tự)', 'warning');
+        if (window.UICommon) window.UICommon.showToast('Vui lòng cung cấp lý do từ chối cụ thể tối thiểu 3 ký tự', 'warning');
         return;
       }
       const user = this.getCurrentUser();
       const approverId = user?.staffId || user?.MaNhanVien || 'NV01';
+      const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       try {
         const res = await fetch('/api/inventory/receipts/' + encodeURIComponent(receiptId) + '/reject', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+          },
           body: JSON.stringify({ approverId, reason: cleanReason })
         });
         const data = await res.json();
         if (data && data.success) {
+          this._closeModal();
           if (window.UICommon) window.UICommon.showToast(data.message || 'Đã từ chối phiếu nhập!', 'warning');
           if (window.store && typeof window.store.fetchReceipts === 'function') await window.store.fetchReceipts();
           this.refreshInventoryView();
@@ -3373,16 +3531,16 @@
       }
     },
     refreshInventoryView() {
-      const container = document.getElementById('webMainContainer');
-      if (container && (this.adminSubTab === 'inventory' || this.adminSubTab === 'receipts')) {
-        this.render(container);
-        return;
-      }
       const content = document.getElementById('adminSubTabContent');
       if (content && (this.adminSubTab === 'inventory' || this.adminSubTab === 'receipts')) {
         const user = this.getCurrentUser();
         const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
         content.innerHTML = this.renderInventoryTab(user, branches);
+        return;
+      }
+      const container = document.getElementById('webMainContainer');
+      if (container && (this.adminSubTab === 'inventory' || this.adminSubTab === 'receipts')) {
+        this.render(container);
       }
     },
 
@@ -3608,7 +3766,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; background: var(--surface-card); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
               <div>
                 <label class="sub-label">Chi Nhánh Nhập Hàng: <span style="color:#ef4444;">*</span></label>
-                ${isManager ? `
+                ${(isManager || isStaffOnly) ? `
                   <input type="hidden" id="receiptBranchId" value="${branchId}">
                   <input type="text" class="form-control-custom" value="${this.escapeHtml(this._getBranchShortName(branchId))}" disabled>
                 ` : `
@@ -3819,10 +3977,14 @@
         };
       });
 
+      const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       try {
         const res = await fetch('/api/inventory/receipts', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+          },
           body: JSON.stringify({
             branchId,
             supplierId,
@@ -4149,12 +4311,12 @@
       else if (rawRole.includes('chính')) role = 'Thợ chính';
       else if (st?.role) role = st.role;
 
-      const rawLevel = st?.level || st?.CapBac || '';
+      const rawLevel = (st?.CapBac || st?.level || '').trim();
       let level = rawLevel;
       if (!level) {
         if (role === 'Thợ phụ') level = 'Junior Barber';
         else if (role === 'Thu ngân') level = 'Chuyên viên thu ngân';
-        else if (role === 'Quản lý chi nhánh') level = 'Nhân viên';
+        else if (role === 'Quản lý chi nhánh' || role === 'Quản lý') level = 'Quản lý';
         else level = 'Master Barber';
       }
       const user = this.getCurrentUser();
@@ -4173,35 +4335,42 @@
       this._openModal(`
         <div style="max-width: 520px; margin: 0 auto;">
           <div class="badge-terracotta">QUẢN LÝ NHÂN SỰ</div>
-          <h2 style="font-size: 20px; font-weight: 800; margin: 8px 0 6px;">${isEdit ? 'CHỈNH SỬA THÔNG TIN THỢ' : 'THÊM THỢ MỚI'}</h2>
+          <h2 style="font-size: 20px; font-weight: 800; margin: 8px 0 6px;">${isEdit ? 'SỬA THÔNG TIN NHÂN SỰ' : 'THÊM NHÂN VIÊN MỚI'}</h2>
           <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;">Dữ liệu nhân sự được đồng bộ trực tiếp vào hệ thống OmniSalon.</p>
 
           <form onsubmit="event.preventDefault(); AdminWeb.submitStylistForm('${stylistId || ''}');">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
               <div>
                 <label class="sub-label">Phân Loại Thợ / Vai Trò: <span style="color:#ef4444;">*</span></label>
-                <select id="stRole" class="form-control-custom" required onchange="AdminWeb.onStylistRoleChange(this.value)" ${!isSuper && (role === 'Quản lý chi nhánh' || role === 'Quản lý') ? 'disabled title="Chỉ Quản trị tối cao mới được đổi vai trò Quản lý" style="opacity: 0.75; cursor: not-allowed;"' : ''}>
-                  <option value="Thợ chính" ${role === 'Thợ chính' ? 'selected' : ''}>Thợ chính (Lead Barber)</option>
-                  <option value="Thợ phụ" ${role === 'Thợ phụ' ? 'selected' : ''}>Thợ phụ (Assistant Barber)</option>
-                  <option value="Thu ngân" ${role === 'Thu ngân' ? 'selected' : ''}>Thu ngân (Cashier)</option>
-                  ${isSuper ? `<option value="Quản lý chi nhánh" ${role === 'Quản lý chi nhánh' || role === 'Quản lý' ? 'selected' : ''}>Quản lý chi nhánh</option>` : (role === 'Quản lý chi nhánh' || role === 'Quản lý' ? `<option value="Quản lý chi nhánh" selected disabled>Quản lý chi nhánh (Khóa)</option>` : '')}
-                </select>
+                ${!isSuper && (role === 'Quản lý chi nhánh' || role === 'Quản lý') ? `
+                  <select id="stRole" class="form-control-custom" disabled title="Chỉ Quản trị tối cao mới có quyền thay đổi vai trò Quản lý chi nhánh" style="opacity: 0.75; cursor: not-allowed;">
+                    <option value="Quản lý chi nhánh" selected>Quản lý chi nhánh (Khóa)</option>
+                  </select>
+                ` : `
+                  <select id="stRole" class="form-control-custom" required onchange="AdminWeb.onStylistRoleChange(this.value)">
+                    <option value="Thợ chính" ${role === 'Thợ chính' ? 'selected' : ''}>Thợ chính (Lead Barber)</option>
+                    <option value="Thợ phụ" ${role === 'Thợ phụ' ? 'selected' : ''}>Thợ phụ (Assistant Barber)</option>
+                    <option value="Thu ngân" ${role === 'Thu ngân' ? 'selected' : ''}>Thu Ngân (Cashier)</option>
+                    ${isSuper ? `<option value="Quản lý chi nhánh" ${role === 'Quản lý chi nhánh' || role === 'Quản lý' ? 'selected' : ''}>Quản lý (Branch Manager)</option>` : ''}
+                  </select>
+                `}
               </div>
 
               <div>
                 <label class="sub-label">Cấp Bậc Chuyên Môn: <span style="color:#ef4444;">*</span></label>
                 <select id="stLevel" class="form-control-custom" required>
+                  <option value="Quản lý" ${level === 'Quản lý' ? 'selected' : ''}>Quản lý</option>
                   <option value="Master Barber" ${level === 'Master Barber' ? 'selected' : ''}>Master Barber</option>
                   <option value="Senior Barber" ${level === 'Senior Barber' ? 'selected' : ''}>Senior Barber</option>
                   <option value="Junior Barber" ${level === 'Junior Barber' ? 'selected' : ''}>Junior Barber</option>
                   <option value="Chuyên viên thu ngân" ${level === 'Chuyên viên thu ngân' ? 'selected' : ''}>Chuyên viên thu ngân</option>
-                  <option value="Nhân viên" ${level === 'Nhân viên' ? 'selected' : ''}>Nhân viên</option>
+                  <option value="Nhân viên" ${level === 'Nhân viên' ? 'selected' : ''}>Nhân Viên</option>
                 </select>
               </div>
             </div>
 
             <div style="margin-bottom: 12px;">
-              <label class="sub-label">Họ và Tên Thợ: <span style="color:#ef4444;">*</span></label>
+              <label class="sub-label">Họ và Tên Nhân Sự: <span style="color:#ef4444;">*</span></label>
               <input type="text" id="stName" class="form-control-custom" placeholder="VD: Nguyễn Tuấn Kiệt" value="${this.escapeHtml(st?.name || st?.HoTen || '')}" required>
             </div>
 
@@ -4244,7 +4413,7 @@
             <div style="display: flex; gap: 10px; margin-top: 20px;">
               <button type="button" class="btn-cancel" style="flex: 1; min-height: 44px; font-weight: 700;" onclick="AdminWeb._closeModal()">Hủy Bỏ</button>
               <button type="submit" class="btn-submit-terracotta" style="flex: 1.3; min-height: 44px; font-weight: 800;">
-                ${isEdit ? 'Cập Nhật Thông Tin' : 'Lưu Thông Tin Thợ'}
+                ${isEdit ? 'Cập Nhật Thông Tin' : 'Lưu Thông Tin Nhân Viên'}
               </button>
             </div>
           </form>
@@ -4261,8 +4430,8 @@
         levelSelect.value = 'Master Barber';
       } else if (role === 'Thu ngân') {
         levelSelect.value = 'Chuyên viên thu ngân';
-      } else if (role === 'Quản lý chi nhánh') {
-        levelSelect.value = 'Nhân viên';
+      } else if (role === 'Quản lý chi nhánh' || role === 'Quản lý') {
+        levelSelect.value = 'Quản lý';
       }
     },
 
@@ -4272,7 +4441,8 @@
       const isManager = this.isBranchManager(user);
 
       const name = (document.getElementById('stName')?.value || '').trim();
-      const role = document.getElementById('stRole')?.value || 'Thợ chính';
+      const roleElem = document.getElementById('stRole');
+      let role = roleElem ? roleElem.value : 'Thợ chính';
       const level = document.getElementById('stLevel')?.value || 'Master Barber';
       let branchId = document.getElementById('stBranch')?.value || 'CN01';
       if (!isSuper && isManager && user?.branchId && user.branchId !== 'ALL') {
@@ -4284,25 +4454,53 @@
       const avatar = (document.getElementById('stAvatar')?.value || '').trim();
 
       if (!name) {
-        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập họ và tên của thợ!', 'warning');
+        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập họ và tên của nhân sự!', 'warning');
         return;
       }
 
-      if (role === 'Quản lý chi nhánh' && !isSuper) {
-        if (window.UICommon) window.UICommon.showToast('Chỉ Quản lý tối cao (Super Admin) mới có quyền phân quyền Quản lý chi nhánh!', 'error');
-        return;
+      if (!isSuper) {
+        if (stylistId) {
+          const curSt = window.store.getStylistById(stylistId);
+          const oldRole = curSt?.role || curSt?.ChucVu || '';
+          if (oldRole.includes('Quản lý')) {
+            role = oldRole;
+          } else if (role.includes('Quản lý')) {
+            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị tối cao mới có quyền bổ nhiệm Quản lý chi nhánh!', 'error');
+            return;
+          }
+        } else {
+          if (role.includes('Quản lý')) {
+            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị tối cao mới có quyền tạo Quản lý chi nhánh!', 'error');
+            return;
+          }
+        }
       }
+
+      const payload = {
+        name,
+        role,
+        level,
+        branchId,
+        phone,
+        email,
+        specialty,
+        avatar,
+        requestUserRole: isSuper ? 'SUPER_ADMIN' : (isManager ? 'BRANCH_MANAGER' : 'STAFF')
+      };
 
       if (stylistId) {
-        await window.store.updateStylist(stylistId, { name, role, level, branchId, phone, email, specialty, avatar });
-        if (window.UICommon) window.UICommon.showToast(`Đã cập nhật ${role} [${name}] vào database SQL!`);
+        await window.store.updateStylist(stylistId, payload);
+        if (window.UICommon) window.UICommon.showToast(`Đã cập nhật ${role} [${name}] thành công!`);
       } else {
-        const created = await window.store.addStylist({ name, role, level, branchId, phone, email, specialty, avatar });
-        if (window.UICommon) window.UICommon.showToast(`Đã thêm mới ${role} [${name}] vào database SQL (#${created?.id || ''})!`);
+        const created = await window.store.addStylist(payload);
+        if (window.UICommon) window.UICommon.showToast(`Đã thêm mới ${role} [${name}] (#${created?.id || ''}) thành công!`);
       }
 
       this._closeModal();
       this.refreshSubTab();
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        window.store.syncWithLiveServer();
+      }
     },
 
     // -----------------------------------------------------------------------

@@ -98,9 +98,10 @@
       }
       this.lastUserId = currentUserId;
 
-      // Khởi tạo tham số từ URL nếu có
-      if (params.service) {
-        const sId = String(params.service).replace(/[^a-zA-Z0-9_-]/g, '');
+      // Khoi tao tham so dich vu hoac combo tu URL neu co
+      const incomingOffering = params.service || params.combo;
+      if (incomingOffering) {
+        const sId = String(incomingOffering).replace(/[^a-zA-Z0-9_-]/g, '');
         if (!this.bookingState.serviceIds.some(id => String(id).toUpperCase() === sId.toUpperCase())) {
           this.bookingState.serviceIds.push(sId);
         }
@@ -216,7 +217,7 @@
 
             <!-- BƯỚC 2: CHỌN BARBER PHỤC VỤ -->
             <div class="booking-cascade-block" id="cascadeStep2" style="background: var(--surface-card); border: 1px solid ${hasSelectedStylist ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${hasSelectedServices ? '1' : '0.5'}; scroll-margin-top: 95px;">
-              <div class="cascade-header" onclick="${hasSelectedServices ? "BookingPage.toggleAccordion('step2')" : "if(window.UICommon && window.UICommon.showToast) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc combo ở Bước 1 trước!', 'warning')"}"
+              <div class="cascade-header" onclick="BookingPage.toggleAccordion('step2')"
                    style="padding: 18px 24px; background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; cursor: ${hasSelectedServices ? 'pointer' : 'not-allowed'}; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
                   <span style="width: 34px; height: 34px; border-radius: 50%; background: ${hasSelectedStylist ? '#C59B27' : 'var(--surface-elevated)'}; color: ${hasSelectedStylist ? '#141413' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">
@@ -225,7 +226,7 @@
                   <div>
                     <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">2. Chọn Thợ Barber Tạo Mẫu</h3>
                     <span style="font-size: 13px; color: ${hasSelectedStylist ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
-                      ${this.getSelectedStylistName() || (hasSelectedServices ? 'Chọn thợ phục vụ hoặc tự động xếp thợ nhanh' : 'Chờ chọn dịch vụ hoặc combo...')}
+                      ${this.getSelectedStylistName() || (hasSelectedServices ? 'Chọn thợ phục vụ hoặc tự động xếp thợ nhanh' : 'Chờ chọn dịch vụ hoặc combo ở Bước 1')}
                     </span>
                   </div>
                 </div>
@@ -238,7 +239,7 @@
 
             <!-- BƯỚC 3: CHỌN NGÀY VÀ GIỜ HẸN -->
             <div class="booking-cascade-block" id="cascadeStep3" style="background: var(--surface-card); border: 1px solid ${hasSelectedTime ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${hasSelectedServices ? '1' : '0.5'}; scroll-margin-top: 95px;">
-              <div class="cascade-header" onclick="${hasSelectedServices ? "BookingPage.toggleAccordion('step3')" : "if(window.UICommon && window.UICommon.showToast) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc combo ở Bước 1 trước!', 'warning')"}"
+              <div class="cascade-header" onclick="BookingPage.toggleAccordion('step3')"
                    style="padding: 18px 24px; background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; cursor: ${hasSelectedServices ? 'pointer' : 'not-allowed'}; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
                   <span style="width: 34px; height: 34px; border-radius: 50%; background: ${hasSelectedTime ? '#C59B27' : 'var(--surface-elevated)'}; color: ${hasSelectedTime ? '#141413' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">
@@ -247,7 +248,7 @@
                   <div>
                     <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">3. Chọn Ngày &amp; Khung Giờ Cắt Tóc</h3>
                     <span style="font-size: 13px; color: ${hasSelectedTime ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
-                      ${this.bookingState.timeSlot ? `Đã chọn: ${SalonUtils.formatDate(this.bookingState.date)} lúc ${this.bookingState.timeSlot}` : 'Bấm chọn ngày và giờ còn trống'}
+                      ${this.bookingState.timeSlot ? `Đã chọn: ${SalonUtils.formatDate(this.bookingState.date)} lúc ${this.bookingState.timeSlot}` : (hasSelectedServices ? 'Bấm chọn ngày và giờ còn trống' : 'Chờ chọn dịch vụ hoặc combo ở Bước 1')}
                     </span>
                   </div>
                 </div>
@@ -259,8 +260,8 @@
             </div>
 
             <!-- BƯỚC 4: THÔNG TIN KHÁCH HÀNG & XÁC NHẬN PHIẾU HẸN -->
-            <div class="booking-cascade-block" id="cascadeStep4" style="background: var(--surface-card); border: 1px solid ${this.expandedSteps.step4 || hasSelectedTime ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${hasSelectedTime ? '1' : '0.5'}; scroll-margin-top: 95px;">
-              <div class="cascade-header" onclick="${hasSelectedServices ? (this.bookingState.timeSlot ? "BookingPage.toggleAccordion('step4')" : "if(window.UICommon && window.UICommon.showToast) window.UICommon.showToast('Vui lòng chọn ngày và giờ hẹn ở Bước 3 trước!', 'warning')") : "if(window.UICommon && window.UICommon.showToast) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc combo ở Bước 1 trước!', 'warning')"}"
+            <div class="booking-cascade-block" id="cascadeStep4" style="background: var(--surface-card); border: 1px solid ${this.expandedSteps.step4 || hasSelectedTime ? '#C59B27' : 'var(--border-color)'}; border-radius: 8px; overflow: hidden; box-shadow: none; opacity: ${(hasSelectedServices && hasSelectedTime) ? '1' : '0.5'}; scroll-margin-top: 95px;">
+              <div class="cascade-header" onclick="BookingPage.toggleAccordion('step4')"
                    style="padding: 18px 24px; background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; cursor: ${(hasSelectedServices && this.bookingState.timeSlot) ? 'pointer' : 'not-allowed'}; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
                   <span style="width: 34px; height: 34px; border-radius: 50%; background: ${this.expandedSteps.step4 || hasSelectedTime ? '#C59B27' : 'var(--surface-elevated)'}; color: ${this.expandedSteps.step4 || hasSelectedTime ? '#141413' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">
@@ -286,29 +287,54 @@
     },
 
     toggleAccordion(stepKey) {
-      // Bắt buộc chọn ít nhất 1 dịch vụ hoặc combo ở Bước 1 trước khi mở Bước 2, 3, 4
-      if ((stepKey === 'step2' || stepKey === 'step3' || stepKey === 'step4') && (!this.bookingState.serviceIds || this.bookingState.serviceIds.length === 0)) {
-        if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-          window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc combo ở Bước 1 trước!', 'warning');
-        }
+      if (stepKey === 'step1') {
+        this.expandedSteps.step1 = !this.expandedSteps.step1;
+        this.render(this.currentContainer || document.getElementById('webMainContainer'));
         return;
       }
+
+      // Khoa buoc 2, 3, 4 neu chua chon it nhat 1 dich vu hoac combo
+      if (!this.bookingState.serviceIds || this.bookingState.serviceIds.length === 0) {
+        if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+          window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc gói combo ở Bước 1 trước!', 'warning');
+        } else if (typeof alert === 'function') {
+          alert('Vui lòng chọn ít nhất 1 dịch vụ hoặc gói combo ở Bước 1 trước!');
+        }
+        this.expandedSteps.step1 = true;
+        this.expandedSteps.step2 = false;
+        this.expandedSteps.step3 = false;
+        this.expandedSteps.step4 = false;
+        this.render(this.currentContainer || document.getElementById('webMainContainer'));
+        this.scrollToStepSafely('cascadeStep1');
+        return;
+      }
+
       if (stepKey === 'step4' && (!this.bookingState.timeSlot || !this.bookingState.date)) {
         if (window.UICommon && typeof window.UICommon.showToast === 'function') {
           window.UICommon.showToast('Vui lòng chọn ngày và giờ hẹn ở Bước 3 trước!', 'warning');
+        } else if (typeof alert === 'function') {
+          alert('Vui lòng chọn ngày và giờ hẹn ở Bước 3 trước!');
         }
+        this.expandedSteps.step3 = true;
+        this.render(this.currentContainer || document.getElementById('webMainContainer'));
+        this.scrollToStepSafely('cascadeStep3');
         return;
       }
+
       this.expandedSteps[stepKey] = !this.expandedSteps[stepKey];
-      const body = document.getElementById(`body${stepKey.charAt(0).toUpperCase() + stepKey.slice(1)}`);
-      if (body) {
-        body.style.display = this.expandedSteps[stepKey] ? 'block' : 'none';
-      }
-      this.render(document.getElementById('webMainContainer'));
+      this.render(this.currentContainer || document.getElementById('webMainContainer'));
     },
 
-    // XỬ LÝ CHỌN NHIỀU DỊCH VỤ / COMBO
-    toggleSelectService(serviceId) {
+    onSelectService(serviceId) {
+      this.toggleSelectService(serviceId, true);
+    },
+
+    onSelectCombo(comboId) {
+      this.toggleSelectService(comboId, true);
+    },
+
+    // Xu ly chon hoac bo chon dich vu va combo
+    toggleSelectService(serviceId, forceSelect = false) {
       if (!serviceId) return;
       const cleanId = String(serviceId).trim();
       const upperId = cleanId.toUpperCase();
@@ -317,15 +343,17 @@
       );
 
       if (existingIdx > -1) {
-        // Đã có -> Bỏ chọn
-        this.bookingState.serviceIds.splice(existingIdx, 1);
+        if (!forceSelect) {
+          // Da chon roi thi bam lai se bo chon
+          this.bookingState.serviceIds.splice(existingIdx, 1);
+        }
       } else {
-        // Chưa có -> Thêm vào danh sách chọn (cho phép chọn cùng lúc cả combo và dịch vụ lẻ)
+        // Them combo hoac dich vu vao danh sach chon
         this.bookingState.serviceIds.push(cleanId);
       }
       this.bookingState.serviceId = this.bookingState.serviceIds[0] || '';
 
-      // Nếu không còn dịch vụ/combo nào được chọn -> Tự động đóng các bước sau và mở lại bước 1
+      // Neu khong con dich vu hay combo nao thi tu dong dong cac buoc sau va mo lai buoc 1
       if (this.bookingState.serviceIds.length === 0) {
         this.expandedSteps.step1 = true;
         this.expandedSteps.step2 = false;
@@ -333,7 +361,7 @@
         this.expandedSteps.step4 = false;
       }
 
-      this.render(document.getElementById('webMainContainer'));
+      this.render(this.currentContainer || document.getElementById('webMainContainer'));
     },
 
     // Xóa toàn bộ dịch vụ đã chọn

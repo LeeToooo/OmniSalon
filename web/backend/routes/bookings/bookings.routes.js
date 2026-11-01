@@ -4,6 +4,7 @@
 // =========================================================================
 
 const { querySql } = require('../../database/db');
+const { extractAuthUser } = require('../../middlewares/auth_middleware');
 const {
   formatTime,
   formatDate,
@@ -117,7 +118,24 @@ async function handleBookingRoutes(req, res, ctx) {
 
   // GET /api/bookings - Danh sách toàn bộ lịch hẹn
   if (pathname === '/api/bookings' && method === 'GET') {
-    const rows = await querySql(`
+    const authUser = extractAuthUser(req);
+    const branchParam = parsedUrl.searchParams.get('branch_id');
+    let effectiveBranch = branchParam;
+
+    if (authUser) {
+      const roleUpper = String(authUser.role || authUser.vaiTroSql || '').toUpperCase();
+      const isMgr = (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER')) && !roleUpper.includes('ADMIN') && !roleUpper.includes('QUẢN TRỊ');
+      if (isMgr && authUser.branchId) {
+        if (branchParam && branchParam !== 'all' && branchParam !== authUser.branchId) {
+          res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem lịch hẹn của chi nhánh mình phụ trách.' }));
+          return true;
+        }
+        effectiveBranch = authUser.branchId;
+      }
+    }
+
+    let q = `
       SELECT lh.MaLichHen, lh.MaKhachHang, lh.MaNhanVien, lh.MaChiNhanh, 
              CONVERT(VARCHAR(10), lh.NgayHen, 120) AS NgayHen,
              CONVERT(VARCHAR(8), lh.GioBatDau) AS GioBatDau,
@@ -142,8 +160,14 @@ async function handleBookingRoutes(req, res, ctx) {
       LEFT JOIN KhachHang kh ON lh.MaKhachHang = kh.MaKhachHang
       LEFT JOIN NhanVien nv ON lh.MaNhanVien = nv.MaNhanVien
       LEFT JOIN ChiNhanh cn ON lh.MaChiNhanh = cn.MaChiNhanh
-      ORDER BY lh.NgayHen DESC, lh.GioBatDau DESC
-    `);
+    `;
+    const params = [];
+    if (effectiveBranch && effectiveBranch !== 'all') {
+      q += ` WHERE lh.MaChiNhanh = ?`;
+      params.push(effectiveBranch);
+    }
+    q += ` ORDER BY lh.NgayHen DESC, lh.GioBatDau DESC`;
+    const rows = await querySql(q, params);
 
     const bookings = rows.map(r => {
       const cName = r.TenKhachHang || 'Khách Hàng';

@@ -75,16 +75,16 @@
                1. PHẦN BANNER GIỚI THIỆU CHÍNH (HERO SECTION)
                ======================================================== -->
           <section class="nordic-editorial-hero" id="heroSection" style="background: var(--bg-primary); padding: 56px 0 48px;">
-            <div class="nordic-hero-split-grid omni-container" style="max-width: 100%; width: 100%; margin: 0; padding: 0 clamp(24px, 3.5vw, 64px); box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(340px, 580px); gap: clamp(32px, 3.5vw, 56px); align-items: center;">
+            <div class="nordic-hero-split-grid omni-container">
               
               <!-- Cột trái: Tiêu đề lớn & Đoạn văn kéo dài lấp đầy không gian -->
               <div class="nordic-hero-content-col" style="display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 100%;">
                 
-                <h1 class="font-serif tracking-tight leading-tight hero-main-title" style="font-size: clamp(48px, 4.8vw, 72px); font-weight: 800; color: var(--text-primary); margin: 0 0 18px; letter-spacing: -0.025em; line-height: 1.15; max-width: 100%;">
+                <h1 class="font-serif tracking-tight leading-tight hero-main-title" style="font-weight: 800; color: var(--text-primary); margin: 0 0 18px; letter-spacing: -0.025em; line-height: 1.15; max-width: 100%;">
                   Bản Lĩnh Phái Mạnh
                 </h1>
                 
-                <p class="hero-tagline" style="font-family: var(--font-sans); font-size: clamp(16.5px, 1.3vw, 20px); color: var(--text-secondary); line-height: 1.75; margin: 8px 0 24px; max-width: 100%; width: 100%; font-weight: 450;">
+                <p class="hero-tagline" style="font-family: var(--font-sans); font-size: clamp(15.5px, 1.2vw, 19px); color: var(--text-secondary); line-height: 1.75; margin: 8px 0 24px; max-width: 100%; width: 100%; font-weight: 450;">
                   Không gian chăm sóc tóc và râu dành riêng cho nam giới. Nơi từng đường kéo tỉ mỉ kết hợp phom tóc phù hợp góc cạnh gương mặt, sáp pomade chính hãng và sự thư giãn sau ngày làm việc.
                 </p>
                 
@@ -119,8 +119,8 @@
                          onerror="SalonUtils.handleImgError(this)">
                   </div>
 
-                  <!-- Floating Badge kính mờ (Glassmorphism) -->
-                  <div class="hero-floating-badge" style="position: absolute; left: -10px; bottom: 30px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 18px; color: var(--text-primary); z-index: 5;">
+                  <!-- Floating Badge kính mờ Glassmorphism -->
+                  <div class="hero-floating-badge" style="position: absolute; left: 10px; bottom: 30px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 18px; color: var(--text-primary); z-index: 5;">
                     <div style="display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; color: var(--brand-accent);">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                       <span>4.9 (2,500+ Đánh giá)</span>

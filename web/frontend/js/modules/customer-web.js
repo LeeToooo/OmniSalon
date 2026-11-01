@@ -407,7 +407,8 @@
                       `;
           }
           if (isBranchMgr) {
-            const userBranchName = user?.branchName || (user?.branchId ? branches.find(b => b.id === user.branchId)?.name : null) || currentBranch?.name || 'Chi Nhánh Quản Trị';
+            const bObj = user?.branchId ? branches.find(b => b.id === user.branchId || b.MaChiNhanh === user.branchId) : null;
+            const userBranchName = (bObj ? (bObj.TenChiNhanh || bObj.name) : null) || user?.branchName || currentBranch?.TenChiNhanh || currentBranch?.name || 'Chi Nhánh Quản Trị';
             return `
                         <div class="dropdown-branch-pill">
                           <div class="branch-pill-header">
@@ -470,6 +471,74 @@
                     </button>
                   `}
                 </div>
+              </div>
+
+              <!-- Nut Hamburger Menu khi man hinh hep hoac zoom cao -->
+              <button type="button" class="header-action-btn mobile-hamburger-btn" id="webMobileMenuBtn" onclick="CustomerWeb.toggleMobileDrawer()" title="Menu điều hướng" aria-label="Mở menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Drawer dieu huong dap ung cho man hinh hep -->
+          <div class="web-mobile-drawer-overlay" id="webMobileDrawerOverlay" onclick="CustomerWeb.closeMobileDrawer()">
+            <div class="web-mobile-drawer" id="webMobileDrawer" onclick="event.stopPropagation()">
+              <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
+                <div class="brand-logo-wrap" onclick="CustomerWeb.switchTab('home'); CustomerWeb.closeMobileDrawer();" style="cursor: pointer;">
+                  <span class="logo-text-omni" style="font-size: 18px; font-weight: 900;">OMNI SALON</span>
+                  <span class="logo-sub-text" style="font-size: 11px; color: #C59B27; font-weight: 700;">Barbershop Đương Đại</span>
+                </div>
+                <button type="button" class="drawer-close-btn" onclick="CustomerWeb.closeMobileDrawer()" aria-label="Đóng menu" style="width: 34px; height: 34px; border-radius: 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                  ✕
+                </button>
+              </div>
+              <nav class="drawer-nav-list" style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                <a href="/" class="drawer-nav-item ${this.currentTab === 'home' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('home'); CustomerWeb.closeMobileDrawer();">
+                  <span>🏠 Trang Chủ</span>
+                </a>
+                <a href="/services" class="drawer-nav-item ${this.currentTab === 'services' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('services'); CustomerWeb.closeMobileDrawer();">
+                  <span>✂️ Dịch Vụ</span>
+                </a>
+                <a href="/stylists" class="drawer-nav-item ${this.currentTab === 'stylists' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists'); CustomerWeb.closeMobileDrawer();">
+                  <span>💈 Thợ Tạo Mẫu</span>
+                </a>
+                <a href="/booking" class="drawer-nav-item text-highlight ${this.currentTab === 'booking' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('booking'); CustomerWeb.closeMobileDrawer();">
+                  <span>📅 Đặt Lịch Hẹn</span>
+                </a>
+                <a href="/shop" class="drawer-nav-item ${this.currentTab === 'shop' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('shop'); CustomerWeb.closeMobileDrawer();">
+                  <span>🛍️ Cửa Hàng</span>
+                </a>
+                <a href="/branches" class="drawer-nav-item ${this.currentTab === 'branches' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('branches'); CustomerWeb.closeMobileDrawer();">
+                  <span>📍 Chi Nhánh</span>
+                </a>
+                <a href="/ai-studio" class="drawer-nav-item text-highlight ${this.currentTab === 'ai' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('ai'); CustomerWeb.closeMobileDrawer();">
+                  <span>✨ AI Tạo Kiểu Tóc</span>
+                </a>
+                <a href="#" class="drawer-nav-item" onclick="event.preventDefault(); CustomerWeb.openLookupModal(); CustomerWeb.closeMobileDrawer();">
+                  <span>🔍 Tra Cứu Lịch Hẹn</span>
+                </a>
+              </nav>
+              <div class="drawer-footer" style="padding-top: 16px; border-top: 1px solid var(--border-color); margin-top: auto;">
+                ${user ? `
+                  <div class="drawer-user-info" style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <span class="user-avatar-text" style="width: 34px; height: 34px; font-size: 12px;">${SalonUtils.getInitials(user.fullName || user.name || user.username || 'Omni')}</span>
+                    <div style="display: flex; flex-direction: column; overflow: hidden;">
+                      <strong style="font-size: 13.5px; color: var(--text-primary);">${this.escapeHtml(user.fullName || user.name || user.username)}</strong>
+                      <small style="color: #C59B27; font-weight: 700;">${this.getRoleBadgeText(user)}</small>
+                    </div>
+                  </div>
+                  <button type="button" class="drawer-auth-btn" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 13px; font-weight: 700; cursor: pointer;" onclick="window.AuthEngine ? window.AuthEngine.logout() : (window.store && window.store.logout()); CustomerWeb.closeMobileDrawer(); CustomerWeb.switchTab('home');">
+                    Đăng Xuất
+                  </button>
+                ` : `
+                  <button type="button" class="drawer-auth-btn" style="width: 100%; padding: 11px; border-radius: 8px; background: #C59B27; border: none; color: #141413; font-size: 14px; font-weight: 800; cursor: pointer;" onclick="UICommon.openAuthModal('login'); CustomerWeb.closeMobileDrawer();">
+                    Đăng Nhập / Đăng Ký
+                  </button>
+                `}
               </div>
             </div>
           </div>
@@ -541,9 +610,9 @@
         window.AppRouter.navigate('/shop?category=' + encodeURIComponent(catId));
       } else {
         this.switchTab('shop');
-        if (window.ShopPage && typeof window.ShopPage.setCategory === 'function') {
-          window.ShopPage.setCategory(catId);
-        }
+      }
+      if (window.ShopPage && typeof window.ShopPage.setCategory === 'function') {
+        window.ShopPage.setCategory(catId);
       }
     },
 
@@ -564,15 +633,7 @@
       if (event) event.preventDefault();
       this.closeAllMegaMenus();
       if (specialType === 'bestseller') {
-        if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
-          window.AppRouter.navigate('/shop');
-        } else {
-          this.switchTab('shop');
-        }
-        setTimeout(() => {
-          const el = document.getElementById('showcase_bestsellers');
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 150);
+        return this.selectShopCategory('bestsellers', event);
       } else {
         this.selectShopCategory('all', event);
       }
@@ -627,7 +688,7 @@
               <li><a href="/shop?brand=hanz%20de%20fuko" onclick="CustomerWeb.selectShopBrand('hanz de fuko', event)">Hanz de Fuko (California)</a></li>
               <li><a href="/shop?brand=blumaan" onclick="CustomerWeb.selectShopBrand('blumaan', event)">Blumaan (USA)</a></li>
               <li><a href="/shop?brand=reuzel" onclick="CustomerWeb.selectShopBrand('reuzel', event)">Reuzel Pomade (Rotterdam)</a></li>
-              <li><a href="/shop?brand=kevin%20murphy" onclick="CustomerWeb.selectShopBrand('kevin murphy', event)">Kevin Murphy &amp; Uppercut</a></li>
+              <li><a href="/shop?brand=kevin-uppercut" onclick="CustomerWeb.selectShopBrand('kevin-uppercut', event)">Kevin Murphy &amp; Uppercut</a></li>
               <li><a href="/shop?brand=davines" onclick="CustomerWeb.selectShopBrand('davines', event)">Davines (Italy)</a></li>
               <li class="mega-col-action"><a href="/shop" onclick="CustomerWeb.selectShopCategory('all', event)">Xem Tất Cả Thương Hiệu &rarr;</a></li>
             </ul>
@@ -853,6 +914,22 @@
       const wrapper = document.querySelector('.header-user-menu-wrapper');
       if (dropdown) dropdown.classList.remove('open');
       if (wrapper) wrapper.classList.remove('open');
+    },
+
+    toggleMobileDrawer() {
+      const overlay = document.getElementById('webMobileDrawerOverlay');
+      if (overlay) {
+        overlay.classList.toggle('active');
+        document.body.style.overflow = overlay.classList.contains('active') ? 'hidden' : '';
+      }
+    },
+
+    closeMobileDrawer() {
+      const overlay = document.getElementById('webMobileDrawerOverlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+      }
+      document.body.style.overflow = '';
     },
 
     _initHeaderListeners() {
@@ -1298,6 +1375,26 @@
                   <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
                     <strong style="color: var(--text-primary);">Tổng thanh toán:</strong>
                     <strong style="color: var(--brand-accent); font-size: 16px;">${SalonUtils.formatCurrency(o.totalAmount || 0)}</strong>
+                  </div>
+                </div>
+
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    <span style="font-size: 12.5px; color: ${isPaid ? '#10B981' : '#f59e0b'}; font-weight: 700;">
+                      ${isPaid ? '✓ Đã Thanh Toán' : '⏳ Chưa Thanh Toán'}
+                    </span>
+                  </div>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    ${(!isPaid && !isCancelled) ? `
+                      <button type="button" class="btn-submit-terracotta" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
+                        <span>💳 Thanh Toán Ngay (VietQR)</span>
+                      </button>
+                    ` : ''}
+                    ${isCancellable ? `
+                      <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="${isUserLoggedIn ? `CustomerWeb.cancelOrderByCustomer('${oCode}')` : `CustomerWeb.promptLoginToCancelOrder('${oCode}')`}">
+                        Hủy Đơn Hàng
+                      </button>
+                    ` : ''}
                   </div>
                 </div>
 

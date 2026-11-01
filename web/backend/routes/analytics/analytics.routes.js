@@ -4,6 +4,7 @@
 // =========================================================================
 
 const { querySql } = require('../../database/db');
+const { extractAuthUser } = require('../../middlewares/auth_middleware');
 
 async function handleAnalyticsRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl } = ctx;
@@ -11,7 +12,23 @@ async function handleAnalyticsRoutes(req, res, ctx) {
   // GET /api/analytics/revenue - Báo cáo tổng doanh thu và số lượng hóa đơn
   // Tham số: branch_id
   if (pathname === '/api/analytics/revenue' && method === 'GET') {
+    const authUser = extractAuthUser(req);
     const branchParam = parsedUrl.searchParams.get('branch_id');
+    let effectiveBranch = branchParam;
+
+    if (authUser) {
+      const roleUpper = String(authUser.role || authUser.vaiTroSql || '').toUpperCase();
+      const isMgr = (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER')) && !roleUpper.includes('ADMIN') && !roleUpper.includes('QUẢN TRỊ');
+      if (isMgr && authUser.branchId) {
+        if (branchParam && branchParam !== 'all' && branchParam !== authUser.branchId) {
+          res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem doanh thu của chi nhánh mình phụ trách.' }));
+          return true;
+        }
+        effectiveBranch = authUser.branchId;
+      }
+    }
+
     let q = `
       SELECT 
         ISNULL(SUM(TongTien), 0) AS TongDoanhThu,
@@ -20,9 +37,9 @@ async function handleAnalyticsRoutes(req, res, ctx) {
       WHERE TrangThai = N'Đã thanh toán'
     `;
     const params = [];
-    if (branchParam) {
+    if (effectiveBranch && effectiveBranch !== 'all') {
       q += ` AND MaChiNhanh = ?`;
-      params.push(branchParam);
+      params.push(effectiveBranch);
     }
     const rows = await querySql(q, params);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

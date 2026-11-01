@@ -139,7 +139,7 @@
   <script src="js/components/ProductCard.js?v=20261026_ghfix1"></script>
   <script src="js/components/BranchCard.js?v=20261026_ghfix1"></script>
   <script src="js/modules/customer-web.js?v=20261026_ghfix1"></script>
-  <script src="js/modules/admin-web.js?v=20261031_v5"></script>
+  <script src="js/modules/admin-web.js?v=20261031_v6"></script>
   <script src="js/modules/ui-web.js?v=20261026_ghfix1"></script>
 
   <!-- Các trang giao diện người dùng -->
@@ -209,8 +209,14 @@
         else if (typeof UICommon !== 'undefined') UICommon.goToCartPage();
       }, 600);
     }
-    if (_searchParams.get('category') && typeof ServicesPage !== 'undefined') {
-      setTimeout(() => ServicesPage.setCategory(_searchParams.get('category')), 250);
+    if (_searchParams.get('category')) {
+      const _catParam = _searchParams.get('category');
+      const _curPath = (window.location.pathname || '').toLowerCase();
+      if (_curPath.includes('/shop')) {
+        setTimeout(() => { if (typeof ShopPage !== 'undefined') ShopPage.setCategory(_catParam); }, 250);
+      } else if (typeof ServicesPage !== 'undefined') {
+        setTimeout(() => ServicesPage.setCategory(_catParam), 250);
+      }
     }
     if (_searchParams.get('adminTab') && typeof AdminWeb !== 'undefined') {
       setTimeout(() => {

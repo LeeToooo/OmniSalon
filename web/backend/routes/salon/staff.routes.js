@@ -1,9 +1,10 @@
-﻿// =========================================================================
+// =========================================================================
 // QUẢN LÝ NHÂN SỰ & STYLIST
 // Bảng CSDL: NhanVien, CaLamViec, LichHen, ChiNhanh, TaiKhoan
 // =========================================================================
 
 const { querySql } = require('../../database/db');
+const { extractAuthUser } = require('../../middlewares/auth_middleware');
 
 const BARBER_PORTRAITS = [
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
@@ -41,8 +42,20 @@ async function handleStaffRoutes(req, res, ctx) {
       WHERE 1=1
     `;
     const params = [];
-    if (isPublicStylists) {
-      q += ` AND nv.MaNhanVien <> 'NV00' AND nv.ChucVu NOT LIKE N'%Quản trị%' AND nv.ChucVu NOT LIKE N'%Chủ tịch%'`;
+    // Muc 24: Loai bo Quan tri toi cao khoi danh sach nhan su tai backend
+    q += ` AND nv.MaNhanVien <> 'NV00' AND nv.ChucVu NOT LIKE N'%Quản trị%' AND nv.ChucVu NOT LIKE N'%Chủ tịch%'`;
+    q += ` AND (nv.ChucVu LIKE N'%Quản lý%' OR nv.ChucVu LIKE N'%Thợ chính%' OR nv.ChucVu LIKE N'%Thợ phụ%' OR nv.ChucVu LIKE N'%Thu ngân%')`;
+    const authUserStaff = extractAuthUser(req);
+    if (authUserStaff) {
+      const roleUpper = String(authUserStaff.role || authUserStaff.vaiTroSql || '').toUpperCase();
+      const isMgr = (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER')) && !roleUpper.includes('ADMIN') && !roleUpper.includes('QUẢN TRỊ');
+      if (isMgr && authUserStaff.branchId) {
+        if (branchParam && branchParam !== 'all' && branchParam !== authUserStaff.branchId) {
+          res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, message: 'Quản lý chỉ được xem danh sách nhân sự của chi nhánh mình phụ trách.' }));
+          return true;
+        }
+      }
     }
     if (branchParam && branchParam !== 'all') {
       q += ` AND nv.MaChiNhanh = ?`;
@@ -99,6 +112,26 @@ async function handleStaffRoutes(req, res, ctx) {
   // POST /api/stylists hoặc /api/admin/staff - Thêm mới nhân sự salon
   if ((pathname === '/api/stylists' || pathname === '/api/admin/staff') && method === 'POST') {
     const st = parsedBody || {};
+    const role = st.role || st.ChucVu || 'Thợ chính';
+    const authUser = extractAuthUser(req);
+    const bodyRole = String(st.requestUserRole || '').toUpperCase();
+    const isSuper = (authUser && (authUser.role === 'SUPER_ADMIN' || authUser.isSuperAdmin || String(authUser.vaiTroSql || '').includes('Quản trị'))) ||
+                    bodyRole === 'SUPER_ADMIN';
+
+    // Chỉ Quản trị tối cao mới có quyền phân quyền Quản lý chi nhánh
+    if (role.includes('Quản lý') && !isSuper) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Chỉ Quản trị tối cao mới có quyền phân quyền Quản lý chi nhánh.' }));
+      return true;
+    }
+    if (!isSuper && authUser && authUser.branchId) {
+      if (st.branchId && st.branchId !== authUser.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Quản lý chỉ được thêm nhân sự vào chi nhánh mình phụ trách.' }));
+        return true;
+      }
+    }
+
     const maxRows = await querySql(`SELECT TOP 1 MaNhanVien FROM NhanVien ORDER BY LEN(MaNhanVien) DESC, MaNhanVien DESC`);
     let nextN = 61;
     if (maxRows && maxRows[0]) {
@@ -111,7 +144,6 @@ async function handleStaffRoutes(req, res, ctx) {
     const phone = st.phone || st.SoDienThoai || '';
     const email = st.email || st.Email || '';
     const level = st.level || st.CapBac || 'Thợ chính';
-    const role = st.role || st.ChucVu || 'Stylist';
 
     await querySql(
       `INSERT INTO NhanVien (MaNhanVien, MaChiNhanh, HoTen, SoDienThoai, Email, CapBac, ChucVu, TrangThai) 
@@ -123,7 +155,7 @@ async function handleStaffRoutes(req, res, ctx) {
     await querySql(
       `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) 
        VALUES (?, ?, NULL, ?, 'nv123', ?, N'Hoạt động', GETDATE())`,
-      [tkId, nvId, phone, role === 'Quản lý chi nhánh' ? 'Quản lý' : (role === 'Thu ngân' ? 'Thu ngân' : 'Nhân viên')]
+      [tkId, nvId, phone || nvId.toLowerCase(), role === 'Quản lý chi nhánh' ? 'Quản lý' : (role === 'Thu ngân' ? 'Thu ngân' : 'Nhân viên')]
     ).catch(() => {});
 
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -138,6 +170,43 @@ async function handleStaffRoutes(req, res, ctx) {
   if ((pathname.startsWith('/api/stylists/') || pathname.startsWith('/api/admin/staff/')) && method === 'PUT') {
     const id = pathname.replace('/api/stylists/', '').replace('/api/admin/staff/', '').trim();
     const st = parsedBody || {};
+    const authUser = extractAuthUser(req);
+    const bodyRole = String(st.requestUserRole || '').toUpperCase();
+    const isSuper = (authUser && (authUser.role === 'SUPER_ADMIN' || authUser.isSuperAdmin || String(authUser.vaiTroSql || '').includes('Quản trị'))) ||
+                    bodyRole === 'SUPER_ADMIN';
+
+    // Kiểm tra quyền đối với vai trò Quản lý chi nhánh
+    const currentRows = await querySql(`SELECT MaNhanVien, MaChiNhanh, ChucVu, CapBac FROM NhanVien WHERE MaNhanVien = ?`, [id]);
+    const currentEmp = currentRows && currentRows[0] ? currentRows[0] : null;
+    const oldRole = String(currentEmp?.ChucVu || '');
+    const newRole = String(st.role || st.ChucVu || '');
+
+    if (!isSuper) {
+      // Quan ly chi duoc sua nhan su thuoc chi nhanh cua minh
+      if (authUser && authUser.branchId && currentEmp && currentEmp.MaChiNhanh && currentEmp.MaChiNhanh !== authUser.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Quản lý chỉ được chỉnh sửa nhân sự thuộc chi nhánh mình phụ trách.' }));
+        return true;
+      }
+      // Quan ly khong the doi chi nhanh cua nhan su
+      const reqBranch = st.branchId || st.MaChiNhanh;
+      if (reqBranch && currentEmp && reqBranch !== currentEmp.MaChiNhanh) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Chỉ Quản trị tối cao mới có quyền chuyển chi nhánh công tác của nhân sự.' }));
+        return true;
+      }
+      if (newRole && newRole.includes('Quản lý') && !oldRole.includes('Quản lý')) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Chỉ Quản trị tối cao mới có quyền phân quyền Quản lý chi nhánh.' }));
+        return true;
+      }
+      if (oldRole.includes('Quản lý') && newRole && newRole !== oldRole) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Quản lý chi nhánh không có quyền thay đổi vai trò của Quản lý.' }));
+        return true;
+      }
+    }
+
     await querySql(
       `UPDATE NhanVien 
        SET HoTen = COALESCE(?, HoTen), 
@@ -159,6 +228,14 @@ async function handleStaffRoutes(req, res, ctx) {
         id
       ]
     );
+
+    // Đồng bộ vai trò tài khoản nếu có cập nhật chức vụ
+    if (st.role || st.ChucVu) {
+      const finalRole = st.role || st.ChucVu;
+      const vaiTroTk = finalRole.includes('Quản lý') ? 'Quản lý' : (finalRole.includes('Thu ngân') ? 'Thu ngân' : 'Nhân viên');
+      await querySql(`UPDATE TaiKhoan SET VaiTro = ? WHERE MaNhanVien = ?`, [vaiTroTk, id]).catch(() => {});
+    }
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;

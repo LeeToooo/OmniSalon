@@ -242,7 +242,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/bookings`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(booking)
         });
         if (res && res.ok) {
@@ -262,7 +262,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/orders`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(order)
         });
         const data = await res.json().catch(() => ({}));
@@ -287,7 +287,7 @@
         const cleanId = String(orderId || '').replace(/^#+/, '').trim();
         const res = await fetch(`${this.liveServerUrl}/orders/${encodeURIComponent(cleanId)}/cancel`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify({ reason })
         });
         return await res.json().catch(() => ({ success: true }));
@@ -301,7 +301,7 @@
       try {
         await fetch(`${this.liveServerUrl}/bookings/${bookingId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify({ status, ...extraData })
         });
       } catch (_) { }
@@ -315,7 +315,7 @@
         const url = isUpdate ? `${this.liveServerUrl}/stylists/${id}` : `${this.liveServerUrl}/stylists`;
         const res = await fetch(url, {
           method,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(stylist)
         });
         if (res.ok) {
@@ -351,7 +351,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/services`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(service)
         });
         if (res.ok) {
@@ -379,7 +379,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/products`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(product)
         });
         if (res.ok) {
@@ -403,7 +403,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/products/${productId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(updates)
         });
         return await res.json().catch(() => ({ success: true }));
@@ -429,7 +429,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/inventory/receipts`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(receipt)
         });
         if (res.ok) {
@@ -456,7 +456,7 @@
       try {
         await fetch(`${this.liveServerUrl}/branches`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(branch)
         });
       } catch (_) { }
@@ -487,7 +487,7 @@
         };
         const res = await fetch(`${this.liveServerUrl}/pos/checkout`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(payload)
         });
         if (res.ok) {
@@ -551,7 +551,7 @@
         { id: 'LH07', MaLichHen: 'LH07', bookingCode: 'LH07', customerId: 'KH07', customerName: 'Trần Đình Phong', customerPhone: '0988000007', stylistId: 'NV20', stylistName: 'Đinh Trọng Nghĩa', branchId: 'CN07', branchName: 'Men Salon Barber Q10 - 3 Tháng 2', bookingDate: '2026-10-13', date: '2026-10-13', timeSlot: '13:30', status: 'Confirmed', serviceName: 'Uốn lọn xoăn Texture', totalPrice: 650000, TongTien: 650000 },
         { id: 'LH08', MaLichHen: 'LH08', bookingCode: 'LH08', customerId: 'KH08', customerName: 'Nguyễn Hải Đăng', customerPhone: '0988000008', stylistId: 'NV23', stylistName: 'Đỗ Thái Bảo', branchId: 'CN08', branchName: 'Men Salon Barber Phú Nhuận - Phan Xích Long', bookingDate: '2026-10-13', date: '2026-10-13', timeSlot: '14:00', status: 'Confirmed', serviceName: 'Cắt tỉa gọn tóc dài', totalPrice: 250000, TongTien: 250000 },
         { id: 'LH09', MaLichHen: 'LH09', bookingCode: 'LH09', customerId: 'KH09', customerName: 'Dương Gia Bảo', customerPhone: '0988000009', stylistId: 'NV26', stylistName: 'Lâm Trường Giang', branchId: 'CN09', branchName: 'Men Salon Barber Gò Vấp - Quang Trung', bookingDate: '2026-10-14', date: '2026-10-14', timeSlot: '09:00', status: 'Confirmed', serviceName: 'Nhuộm nâu hạt dẻ sáng', totalPrice: 950000, TongTien: 950000 },
-        { id: 'LH10', MaLichHen: 'LH10', bookingCode: 'LH10', customerId: 'KH10', customerName: 'Phan Hoàng Long', customerPhone: '0988000010', stylistId: 'NV29', stylistName: 'Bùi Tiến Dũng', branchId: 'CN10', branchName: 'Men Salon Barber Thủ Đức - Võ Văn Ngân', bookingDate: '2026-10-14', date: '2026-10-14', timeSlot: '16:00', status: 'Confirmed', serviceName: 'Hấp dưỡng phục hồi Olaplex', totalPrice: 800000, TongTien: 800000 }
+        { id: 'LH10', MaLichHen: 'LH10', bookingCode: 'LH10', customerId: 'KH10', customerName: 'Phan Hoàng Long', customerPhone: '0988000010', stylistId: 'NV29', stylistName: 'Bùi Tiến Dũng', branchId: 'CN10', branchName: 'Men Salon Barber Thủ Đức - Võ Văn Ngân', bookingDate: '2026-10-14', date: '2026-10-14', timeSlot: '16:00', status: 'Confirmed', serviceName: 'Uốn tóc Ruffled phong cách hip-hop', totalPrice: 800000, TongTien: 800000 }
       ];
 
       // 10 Đơn Hàng Bán Lẻ từ CSDL QL_SALON.sql, Tổng: 5.350.000 đ
@@ -574,7 +574,7 @@
         { id: 'DV02', MaDichVu: 'DV02', name: 'Cắt & Ép Side tóc nam (Down Perm Combo)', price: 250000, Gia: 250000, originalPrice: 250000, NgayApDung: '2026-01-01', duration: '60 phút', durationMinutes: 60, ThoiLuong: 60, description: 'Cắt form chuẩn kết hợp ép xẹp tóc mai và gáy bị vểnh chỉa, giữ nếp 1-2 tháng.', category: 'Cắt & Tạo Kiểu', rating: 4.98, reviewCount: 310, image: 'Men_Grooming_Products/DichVu_Men/DV2.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV2.jpg' },
         { id: 'DV03', MaDichVu: 'DV03', name: 'Uốn tóc xoăn Texture / Ziczac phồng Hàn Quốc', price: 585000, Gia: 585000, originalPrice: 650000, discountPercent: 10, hasPromotion: true, promotion: { id: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', discount: 10, discountPercent: 10, type: 'Giảm giá %' }, NgayApDung: '2026-01-01', duration: '90 phút', durationMinutes: 90, ThoiLuong: 90, description: 'Uốn lạnh tạo lọn sóng phồng tự nhiên, giúp tóc bồng bềnh dễ sấy tạo kiểu.', category: 'Uốn & Nhuộm', rating: 4.92, reviewCount: 280, image: 'Men_Grooming_Products/DichVu_Men/DV3.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV3.jpg' },
         { id: 'DV04', MaDichVu: 'DV04', name: 'Nhuộm màu thời trang nam (Khói / Rêu / Bạch kim)', price: 855000, Gia: 855000, originalPrice: 950000, discountPercent: 10, hasPromotion: true, promotion: { id: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', discount: 10, discountPercent: 10, type: 'Giảm giá %' }, NgayApDung: '2026-01-01', duration: '120 phút', durationMinutes: 120, ThoiLuong: 120, description: 'Tẩy khử ánh sắc và nhuộm tông màu thời trang cao cấp bảo vệ sợi tóc.', category: 'Uốn & Nhuộm', rating: 4.90, reviewCount: 195, image: 'Men_Grooming_Products/DichVu_Men/DV4.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV4.jpg' },
-        { id: 'DV05', MaDichVu: 'DV05', name: 'Uốn tóc con sâu Dreadlocks / Uốn Ruffled phá cách', price: 680000, Gia: 680000, originalPrice: 800000, discountPercent: 15, hasPromotion: true, promotion: { id: 'KM02', code: 'KM02', name: 'Đặc quyền Salon VIP', discount: 15, discountPercent: 15, type: 'Giảm giá %' }, NgayApDung: '2026-01-01', duration: '100 phút', durationMinutes: 100, ThoiLuong: 100, description: 'Kỹ thuật uốn giấy bạc / uốn con sâu tạo hiệu ứng xù gai góc, phong cách hip-hop cá tính.', category: 'Uốn & Nhuộm', rating: 4.96, reviewCount: 250, image: 'Men_Grooming_Products/DichVu_Men/DV5.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV5.jpg' },
+        { id: 'DV05', MaDichVu: 'DV05', name: 'Uốn tóc con sâu Dreadlocks / Uốn Ruffled phá cách', price: 800000, Gia: 800000, originalPrice: 800000, discountPercent: 0, hasPromotion: false, promotion: null, NgayApDung: '2026-01-01', duration: '100 phút', durationMinutes: 100, ThoiLuong: 100, description: 'Kỹ thuật uốn giấy bạc / uốn con sâu tạo hiệu ứng xù gai góc, phong cách hip-hop cá tính.', category: 'Uốn & Nhuộm', rating: 4.96, reviewCount: 250, image: 'Men_Grooming_Products/DichVu_Men/DV5.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV5.jpg' },
         { id: 'DV06', MaDichVu: 'DV06', name: 'Kẻ Line Hair Tattoo nghệ thuật & Điêu khắc chân tóc', price: 150000, Gia: 150000, originalPrice: 150000, NgayApDung: '2026-01-01', duration: '30 phút', durationMinutes: 30, ThoiLuong: 30, description: 'Kỹ thuật dùng dao lam điêu khắc các họa tiết hoa văn, đường line sắc nét tạo điểm nhấn.', category: 'Cắt & Tạo Kiểu', rating: 4.93, reviewCount: 310, image: 'Men_Grooming_Products/DichVu_Men/DV6.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV6.jpg' },
         { id: 'DV07', MaDichVu: 'DV07', name: 'Cạo mặt, tỉa râu truyền thống & Khăn nóng', price: 80000, Gia: 80000, originalPrice: 80000, NgayApDung: '2026-01-01', duration: '30 phút', durationMinutes: 30, ThoiLuong: 30, description: 'Cạo râu bằng dao cạo bọt kem Proraso, chườm khăn nóng làm sạch lỗ chân lông.', category: 'Chăm Sóc & Phục Hồi', rating: 4.97, reviewCount: 520, image: 'Men_Grooming_Products/DichVu_Men/DV7.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV7.jpg' },
         { id: 'DV08', MaDichVu: 'DV08', name: 'Nhuộm đen phủ bạc thảo dược tự nhiên cho nam giới', price: 180000, Gia: 180000, originalPrice: 180000, NgayApDung: '2026-01-01', duration: '45 phút', durationMinutes: 45, ThoiLuong: 45, description: 'Phủ bạc 100% bằng chiết xuất thảo mộc không mùi hắc, trả lại màu tóc đen khỏe tự nhiên.', category: 'Uốn & Nhuộm', rating: 4.94, reviewCount: 380, image: 'Men_Grooming_Products/DichVu_Men/DV8.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV8.jpg' },
@@ -687,7 +687,7 @@
         { id: 'SP03', name: 'Hanz de Fuko Claymation', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Claymation.jpg', description: 'Clay kết hợp wax, tạo texture mạnh và giữ nếp lâu.' },
         { id: 'SP04', name: 'Hanz de Fuko Heavymade', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 690000, originalPrice: 690000, costPrice: 520000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Heavymade.jpg', description: 'Giữ nếp mạnh, tạo độ bóng vừa và kiểu tóc gọn gàng.' },
         { id: 'SP05', name: 'Hanz de Fuko Quicksand', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Quicksand.jpg', description: 'Tạo texture, volume và cảm giác tóc khô tự nhiên.' },
-        { id: 'SP06', name: 'Hanz de Fuko Modify', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 747150, originalPrice: 879000, discountPercent: 15, hasPromotion: true, promotion: { id: 'KM02', code: 'KM02', name: 'Đặc quyền Salon VIP', discount: 15, discountPercent: 15, type: 'Giảm giá %' }, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Modify.jpg', description: 'Tạo kiểu linh hoạt, dễ chỉnh sửa và tạo độ bóng tự nhiên.' },
+        { id: 'SP06', name: 'Hanz de Fuko Modify', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, discountPercent: 0, hasPromotion: false, promotion: null, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Modify.jpg', description: 'Tạo kiểu linh hoạt, dễ chỉnh sửa và tạo độ bóng tự nhiên.' },
         { id: 'SP07', name: 'Hanz de Fuko Sponge Wax', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Sponge_Wax.jpg', description: 'Tạo texture, volume và giữ tóc tự nhiên.' },
         { id: 'SP08', name: 'Blumaan Monarch Matte Paste', brand: 'Blumaan', categoryId: 'DM01', price: 615000, originalPrice: 615000, costPrice: 499000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Blumaan/Blumaan_Monarch_Matte_Paste.jpg', description: 'Tạo texture, volume và hiệu ứng lì tự nhiên.' },
         { id: 'SP09', name: 'Blumaan Meraki Original Styling', brand: 'Blumaan', categoryId: 'DM01', price: 559000, originalPrice: 559000, costPrice: 429000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Blumaan/Blumaan_Meraki_Original_Styling.jpg', description: 'Tăng volume, texture và tạo kiểu linh hoạt.' },
@@ -924,10 +924,27 @@
 
     getCurrentBranch() {
       const branches = this.getBranches();
+      const user = this.getCurrentUser();
+      const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
+      const isSuper = user && (roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN TRỊ') || user.username === 'admin');
+      const isBranchMgr = user && !isSuper && (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER'));
+      if (isBranchMgr && user?.branchId && user.branchId !== 'ALL') {
+        const myBranch = branches.find(b => b.id === user.branchId || b.MaChiNhanh === user.branchId);
+        if (myBranch) return myBranch;
+      }
       return branches.find(b => b.id === this.state.selectedBranchId || b.MaChiNhanh === this.state.selectedBranchId) || branches[0] || null;
     }
 
     setSelectedBranch(branchId) {
+      const user = this.getCurrentUser();
+      const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || '').toUpperCase();
+      const isSuper = user && (roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN TRỊ') || user.username === 'admin');
+      const isBranchMgr = user && !isSuper && (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER'));
+      if (isBranchMgr && user?.branchId && user.branchId !== 'ALL') {
+        if (branchId !== user.branchId) {
+          return;
+        }
+      }
       const exists = this.getBranchById(branchId);
       if (exists) {
         this.state.selectedBranchId = exists.id;
@@ -1047,17 +1064,45 @@
       ) || null;
     }
 
+    _normalizeCombo(c) {
+      if (!c) return null;
+      const id = c.id || c.MaCombo || '';
+      const name = c.name || c.TenCombo || id;
+      const price = (c.price !== undefined && c.price !== null) ? Number(c.price) : Number(c.GiaCombo || 0);
+      const durRaw = c.durationMinutes || c.durationVal || c.ThoiLuong || c.duration || 60;
+      const durationVal = typeof durRaw === 'number' ? durRaw : (parseInt(String(durRaw).replace(/\D/g, ''), 10) || 60);
+      const description = c.description || c.MoTa || '';
+      const image = c.image || c.HinhAnh || 'DichVu_Men/CBDV1.jpg';
+      return {
+        ...c,
+        id,
+        MaCombo: id,
+        name,
+        TenCombo: name,
+        price,
+        GiaCombo: price,
+        duration: durationVal,
+        durationMinutes: durationVal,
+        ThoiLuong: durationVal,
+        description,
+        MoTa: description,
+        image,
+        HinhAnh: image
+      };
+    }
+
     getCombos() {
-      return this.state.combos || [];
+      return (this.state.combos || []).map(c => this._normalizeCombo(c));
     }
 
     getComboById(comboId) {
       if (!comboId) return null;
       const clean = String(comboId).trim().toLowerCase();
-      return (this.state.combos || []).find(c => 
+      const found = (this.state.combos || []).find(c => 
         String(c.id || '').trim().toLowerCase() === clean || 
         String(c.MaCombo || '').trim().toLowerCase() === clean
-      ) || null;
+      );
+      return found ? this._normalizeCombo(found) : null;
     }
 
     getOfferingById(id) {
@@ -1112,8 +1157,9 @@
         HinhAnh: comboData.image || 'DichVu_Men/CBDV1.jpg',
         description: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
         MoTa: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
-        services: Array.isArray(comboData.services) ? comboData.services : (Array.isArray(comboData.serviceIds) ? comboData.serviceIds : ['DV01', 'DV02']),
-        serviceIds: Array.isArray(comboData.serviceIds) ? comboData.serviceIds : (Array.isArray(comboData.services) ? comboData.services : ['DV01', 'DV02']),
+        durationMinutes: Number(comboData.duration || 75),
+        services: Array.isArray(comboData.services) ? comboData.services : (Array.isArray(comboData.serviceIds) ? comboData.serviceIds : []),
+        serviceIds: Array.isArray(comboData.serviceIds) ? comboData.serviceIds : (Array.isArray(comboData.services) ? comboData.services : []),
         rating: 5.0,
         reviewsCount: 1
       };
@@ -1239,8 +1285,9 @@
 
     getStylistById(stylistId) {
       if (!stylistId) return null;
-      const stylists = this.getStylists();
-      return stylists.find(s => s.id === stylistId || s.MaNhanVien === stylistId) || null;
+      const stylists = this.state.stylists || [];
+      const cleanId = String(stylistId).trim().toLowerCase();
+      return stylists.find(s => String(s.id || '').trim().toLowerCase() === cleanId || String(s.MaNhanVien || '').trim().toLowerCase() === cleanId) || null;
     }
 
     async addStylist(stylistData) {
@@ -1817,7 +1864,7 @@
       if (typeof fetch !== 'undefined') {
         fetch(`${this.liveServerUrl}/inventory/${pId}/stock`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify({ stock: newStock, branchId: bId })
         }).catch(() => {});
       }
@@ -1917,7 +1964,7 @@
       if (typeof fetch !== 'undefined' && this.liveServerUrl && pId) {
         fetch(`${this.liveServerUrl}/inventory/${pId}/stock`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify({ stock: val, branchId: bId })
         }).catch(() => {});
       }
@@ -2105,7 +2152,7 @@
       const prod = this.getProductById(productId);
       if (!prod) return;
 
-      // Lô đã hết hạn (QT05, "Thu hồi tiêu hủy") không được bán trên giao diện khách
+      // Lo da het han khong duoc ban tren giao dien khach
       if (prod.isExpired || (prod.daysLeft !== null && prod.daysLeft !== undefined && prod.daysLeft <= 0) || (prod.daysRemaining !== null && prod.daysRemaining !== undefined && prod.daysRemaining <= 0)) {
         if (typeof window.UICommon !== 'undefined' && typeof window.UICommon.showToast === 'function') {
           window.UICommon.showToast('Lô hàng đã hết hạn (Thu hồi tiêu hủy), không được bán trên giao diện khách!', 'error');
@@ -2198,7 +2245,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/reviews`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(payload)
         });
         const data = await res.json().catch(() => ({}));
@@ -2259,7 +2306,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/reviews`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(payload)
         });
         const data = await res.json().catch(() => ({}));
@@ -2475,7 +2522,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/orders/${order.id || order.orderCode}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify({
             paymentStatus: 'Paid',
             status: order.orderStatus,
@@ -2541,7 +2588,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/orders/${order.id || order.orderCode}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify({
             status: vietnameseStatus,
             orderStatus: normalizedStatus,
@@ -2916,7 +2963,7 @@
         let cat = 'Cắt & Tạo Kiểu';
         if (sName.includes('uốn')) cat = 'Uốn Tóc Nghệ Thuật';
         else if (sName.includes('nhuộm')) cat = 'Nhuộm Màu Thời Trang';
-        else if (sName.includes('phục hồi') || sName.includes('olaplex') || sName.includes('hấp')) cat = 'Phục Hồi & Chăm Sóc';
+        else if (sName.includes('phục hồi') || sName.includes('hấp')) cat = 'Phục Hồi & Chăm Sóc';
         catCounts[cat] = (catCounts[cat] || 0) + 1;
         totalCat++;
       }
@@ -3064,6 +3111,14 @@
       return (this.state.receipts || []).find(r => r.id === receiptId || r.MaPhieuNhap === receiptId) || null;
     }
 
+    async fetchReceipts() {
+      await this.syncWithLiveServer();
+    }
+
+    async fetchInventory() {
+      await this.syncWithLiveServer();
+    }
+
     getInvoices(branchId = null) {
       const list = this.state.invoices || [];
       if (!branchId || String(branchId).toLowerCase() === 'all') return list;
@@ -3136,7 +3191,7 @@
       try {
         await fetch(`/api/services/${serviceId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(updates)
         });
       } catch (_) {}
@@ -3147,7 +3202,7 @@
       try {
         const res = await fetch(`${this.liveServerUrl}/combos`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(combo)
         });
         if (res.ok) {
@@ -3174,7 +3229,7 @@
       try {
         await fetch(`/api/combos/${comboId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(updates)
         });
       } catch (_) {}
@@ -3184,7 +3239,7 @@
       try {
         const res = await fetch('/api/shifts', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(shiftData)
         });
         if (res.ok) {
