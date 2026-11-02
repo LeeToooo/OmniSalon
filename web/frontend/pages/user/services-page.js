@@ -104,12 +104,7 @@
           <div class="services-fluid-container" style="width: 100%; max-width: 100%; margin: 0; padding: 0 clamp(20px, 3vw, 56px); box-sizing: border-box;">
             <!-- Header Banner -->
             <div style="text-align: center; margin-bottom: 40px;">
-              <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
-                BẢNG GIÁ DỊCH VỤ NIÊM YẾT
-              </span>
-              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 3.8vw, 46px); font-weight: 700; color: var(--text-primary); margin: 0 0 12px;">
-                Dịch Vụ Cắt Tóc &amp; Gói Grooming Toàn Diện
-              </h1>
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(48px, 6vw, 76px); font-weight: 800; color: var(--text-primary); margin: 0 0 14px;">Bảng Giá & Dịch Vụ</h1>
               <p style="font-size: clamp(14px, 1vw, 16px); color: var(--text-secondary); max-width: min(800px, 65vw); margin: 0 auto 28px; line-height: 1.6;">
                 Từng đường kéo, từng đường cạo khăn nóng và kỹ thuật fade chuẩn xác mang lại diện mạo đĩnh đạc và phong độ vững vàng cho quý ông.
               </p>
@@ -149,6 +144,184 @@
     setCategory(category) {
       this.activeCategory = category;
       this.render(document.getElementById('webMainContainer'));
+    },
+
+            /* Lay thong tin tam ly khach hang theo tung dich vu */
+    getServicePsychologyMeta(item) {
+      const shield = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A6208" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`;
+      const star = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A6208" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+      const bolt = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A6208" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
+
+      if (!item) {
+        return {
+          highlight: 'Chăm sóc diện mạo quý ông chuẩn mực',
+          steps: [
+            { label: 'Tư vấn', detail: 'Tư vấn phom tóc phù hợp góc cạnh gương mặt' },
+            { label: 'Kỹ thuật', detail: 'Đường kéo sắc sảo và cạo viền tỉ mỉ' },
+            { label: 'Tạo kiểu', detail: 'Sấy tạo phồng và hoàn thiện bằng sáp cao cấp' }
+          ],
+          trustBadge: shield + ' <span>Bảo hành kiểu tóc 7 ngày</span>'
+        };
+      }
+
+      const id = String(item.id || item.MaDichVu || item.MaCombo || '').toUpperCase();
+      const name = String(item.name || item.TenDichVu || item.TenCombo || '').toLowerCase();
+      const desc = String(item.description || item.MoTa || '');
+
+      /* Dich vu DV01 hoac cat fade sap pomade */
+      if (id === 'DV01' || name.includes('fade') || (name.includes('cắt') && name.includes('pomade'))) {
+        return {
+          highlight: 'Định hình phom góc cạnh • Chuẩn phong độ quý ông',
+          steps: [
+            { label: 'Tư vấn', detail: 'Phân tích tỉ lệ gương mặt & chất tóc riêng bạn' },
+            { label: 'Cắt Fade', detail: 'Kỹ thuật kéo thủ công & cạo viền sắc nét' },
+            { label: 'Vuốt Pomade', detail: 'Sấy phồng tạo kiểu & sáp Reuzel chính hãng' }
+          ],
+          trustBadge: shield + ' <span>Bảo hành kiểu tóc 7 ngày</span>'
+        };
+      }
+
+      /* Dich vu DV02 hoac ep side down perm */
+      if (id === 'DV02' || name.includes('ép side') || name.includes('down perm')) {
+        return {
+          highlight: 'Triệt tiêu tóc mai vểnh chỉa • Vào nếp ôm sát tự nhiên',
+          steps: [
+            { label: 'Cắt phom', detail: 'Định hình độ dài tóc mai và sau gáy lý tưởng' },
+            { label: 'Ép xẹp', detail: 'Thuốc uốn thảo mộc hữu cơ chuẩn salon Hàn Quốc' },
+            { label: 'Hiệu quả', detail: 'Giữ nếp phẳng lì 1-2 tháng, sấy nhẹ là đẹp' }
+          ],
+          trustBadge: star + ' <span>Giữ nếp bền đẹp 60 ngày</span>'
+        };
+      }
+
+      /* Dich vu DV03 hoac uon texture ziczac */
+      if (id === 'DV03' || name.includes('texture') || name.includes('ziczac') || (name.includes('uốn') && !name.includes('sâu'))) {
+        return {
+          highlight: 'Tạo độ phồng bồng bềnh • Tóc dày dặn tự nhiên gấp đôi',
+          steps: [
+            { label: 'Tạo sóng', detail: 'Kỹ thuật cuộn trục định hình lọn tóc sóng sánh' },
+            { label: 'Dưỡng chất', detail: 'Bổ sung Keratin chống khô xơ và gãy ngọn' },
+            { label: 'Tại nhà', detail: 'Chỉ mất 3 phút sấy tay là tóc tự lên nếp chuẩn' }
+          ],
+          trustBadge: star + ' <span>Dễ tự sấy tạo phom tại nhà</span>'
+        };
+      }
+
+      /* Dich vu DV04 hoac nhuom thoi trang */
+      if (id === 'DV04' || name.includes('khói') || name.includes('bạch kim') || name.includes('thời trang')) {
+        return {
+          highlight: 'Tông màu thời thượng • Bật tông sáng da & khí chất nam tính',
+          steps: [
+            { label: 'Nâng tông', detail: 'Tẩy khử ánh sắc êm dịu, không rát chân tóc' },
+            { label: 'Lên màu', detail: 'Pha màu công thức riêng chuẩn sắc từng ánh nhìn' },
+            { label: 'Khóa màu', detail: 'Ủ dưỡng phục hồi bảo vệ cấu trúc sợi tóc' }
+          ],
+          trustBadge: star + ' <span>Chuẩn sắc và không khô xơ</span>'
+        };
+      }
+
+      /* Dich vu DV05 hoac uon con sau dreadlocks */
+      if (id === 'DV05' || name.includes('con sâu') || name.includes('dreadlock') || name.includes('ruffled')) {
+        return {
+          highlight: 'Phong cách Hip-Hop cá tính • Bụi bặm & khác biệt độc bản',
+          steps: [
+            { label: 'Uốn bạc', detail: 'Xoắn giấy bạc chuyên sâu tạo texture gai góc' },
+            { label: 'Khóa lọn', detail: 'Giữ sóng xù chắc khỏe bền phom suốt 3 tháng' },
+            { label: 'Dễ chơi', detail: 'Chỉ cần xịt muối khoáng là giữ form ngầu cả ngày' }
+          ],
+          trustBadge: bolt + ' <span>Phong cách đường phố độc bản</span>'
+        };
+      }
+
+      /* Dich vu DV06 hoac ke line tattoo */
+      if (id === 'DV06' || name.includes('tattoo') || name.includes('line') || name.includes('điêu khắc')) {
+        return {
+          highlight: 'Điêu khắc chân tóc nghệ thuật • Dấu ấn sắc bén riêng bạn',
+          steps: [
+            { label: 'Thiết kế', detail: 'Vẽ phác thảo line hoặc họa tiết độc quyền' },
+            { label: 'Khắc tỉ mỉ', detail: 'Dao cạo thủ công sắc lẹm chuẩn từng milimet' },
+            { label: 'Hoàn thiện', detail: 'Làm dịu da và cạo mịn viền chân tóc sắc nét' }
+          ],
+          trustBadge: star + ' <span>Nét cạo thủ công sắc sảo</span>'
+        };
+      }
+
+      /* Dich vu DV07 hoac cao mat tia rau */
+      if (id === 'DV07' || name.includes('cạo mặt') || name.includes('tỉa râu') || name.includes('khăn nóng')) {
+        return {
+          highlight: 'Nghi thức thư giãn quý ông • Làm sạch sâu & sảng khoái',
+          steps: [
+            { label: 'Khăn nóng', detail: 'Xông thảo mộc giãn nở chân lông, giãn cơ mặt' },
+            { label: 'Cạo bọt Ý', detail: 'Kem Proraso Ý lướt dao êm ái, không rát da' },
+            { label: 'Aftershave', detail: 'Thoa lotion bạc hà the mát làm dịu và se khít' }
+          ],
+          trustBadge: shield + ' <span>Êm ái và không kích ứng</span>'
+        };
+      }
+
+      /* Dich vu DV08 hoac phu bac thao duoc */
+      if (id === 'DV08' || name.includes('phủ bạc') || name.includes('nhuộm đen')) {
+        return {
+          highlight: 'Trẻ hóa diện mạo tức thì • Chiết xuất thảo dược lành tính',
+          steps: [
+            { label: 'Thảo mộc', detail: 'Lành tính tuyệt đối, không mùi hắc amoniac' },
+            { label: 'Phủ 100%', detail: 'Tóc đen bóng tự nhiên, không bị đen kịt giả tạo' },
+            { label: 'Bền màu', detail: 'Không phai đỏ, không dính màu vào da đầu' }
+          ],
+          trustBadge: shield + ' <span>Thảo mộc tự nhiên lành tính</span>'
+        };
+      }
+
+      /* Dich vu DV09 hoac duong sinh bam huyet */
+      if (id === 'DV09' || name.includes('dưỡng sinh') || name.includes('bấm huyệt')) {
+        return {
+          highlight: 'Đả thông kinh lạc • Xua tan nhức mỏi đầu & vai gáy',
+          steps: [
+            { label: 'Nước gội', detail: 'Bồ kết & sả thảo mộc cô đặc làm sạch gàu dầu' },
+            { label: 'Bấm huyệt', detail: 'Massage 14 huyệt đạo đầu, cổ và vai gáy' },
+            { label: 'Rửa mặt', detail: 'Đắp khăn ấm thảo dược và xịt dưỡng nang tóc' }
+          ],
+          trustBadge: shield + ' <span>Xả stress tức thì sau giờ làm</span>'
+        };
+      }
+
+      /* Dich vu DV10 hoac phuc hoi Keratin */
+      if (id === 'DV10' || name.includes('keratin') || name.includes('hấp dầu') || name.includes('phục hồi')) {
+        return {
+          highlight: 'Hồi sinh tóc hư tổn • Khôi phục độ chắc khỏe bóng mượt',
+          steps: [
+            { label: 'Kiểm tra', detail: 'Soi chất tóc xác định mức độ khô xơ, gãy rụng' },
+            { label: 'Nạp Keratin', detail: 'Cung cấp protein tái tạo lõi tóc bị hư tổn' },
+            { label: 'Hấp Ozon', detail: 'Khóa biểu bì tóc giúp sợi tóc đanh dày suôn mềm' }
+          ],
+          trustBadge: star + ' <span>Phục hồi hư tổn tầng sâu</span>'
+        };
+      }
+
+      /* Combo tron goi */
+      if (item.isCombo || id.startsWith('CB')) {
+        return {
+          highlight: 'Trải nghiệm All-In-One hoàn hảo • Tiết kiệm 25% chi phí',
+          steps: [
+            { label: 'Trọn gói', detail: 'Bao gồm cắt phom, gội dưỡng sinh & cạo khăn nóng' },
+            { label: 'Thư giãn VIP', detail: 'Ghế massage riêng tư và phục vụ trà thảo mộc' },
+            { label: 'Stylist riêng', detail: 'Master Barber chăm sóc tỉ mỉ từng đường nét' }
+          ],
+          trustBadge: shield + ' <span>Trọn gói VIP tiết kiệm 25%</span>'
+        };
+      }
+
+      /* Fallback cho dich vu khac */
+      const parts = desc ? desc.split(/[,.;]/).map(s => s.trim()).filter(Boolean) : [];
+      return {
+        highlight: 'Chăm sóc diện mạo quý ông chuẩn mực',
+        steps: [
+          { label: 'Tư vấn', detail: parts[0] || 'Phân tích tỉ lệ khuôn mặt và chất tóc' },
+          { label: 'Kỹ thuật', detail: parts[1] || 'Cắt fade chuẩn xác và cạo viền thủ công' },
+          { label: 'Tạo kiểu', detail: parts[2] || 'Sấy phồng tạo phom và vuốt sáp chính hãng' }
+        ],
+        trustBadge: shield + ' <span>Bảo hành kiểu tóc 7 ngày</span>'
+      };
     },
 
     renderCards() {
@@ -216,7 +389,7 @@
           : rawImg;
 
         const displayName = this.escapeHtml(item.name);
-        const displayDesc = this.escapeHtml(item.description);
+        const meta = this.getServicePsychologyMeta(item);
 
         return `
           <div class="service-editorial-card" id="bentoCard_${item.id}">
@@ -225,15 +398,15 @@
             <div class="service-card-media" style="position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: #141413; cursor: pointer;" onclick="ServicesPage.openServiceDetailModal('${item.id}')">
               <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform 0.5s ease;" alt="${displayName}" loading="lazy"
                    onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='Men_Grooming_Products/DichVu_Men/DV1.jpg');">
-              <div style="position: absolute; top: 12px; left: 12px; background: rgba(20, 20, 19, 0.85); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #FAF8F5; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 2;">
-                ⏱ ${durationVal} phút
+              <div style="position: absolute; top: 12px; left: 12px; background: rgba(20, 20, 19, 0.85); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 700; color: #FAF8F5; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 2;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:3px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>${durationVal} phút
               </div>
               ${isCombo ? `
-                <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #C59B27, #eab308); color: #141413; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; border: none; letter-spacing: 0.04em; z-index: 2;">
+                <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #C59B27, #eab308); color: #141413; padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 800; border: none; letter-spacing: 0.04em; z-index: 2;">
                   COMBO ĐẶC BIỆT
                 </div>
               ` : (item.discountPercent > 0 ? `
-                <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; border: none; letter-spacing: 0.04em; z-index: 2;">
+                <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 800; border: none; letter-spacing: 0.04em; z-index: 2;">
                   GIẢM -${item.discountPercent}%
                 </div>
               ` : '')}
@@ -242,29 +415,49 @@
             <!-- NOI DUNG DICH VU EDITORIAL -->
             <div class="service-card-body" style="padding: clamp(16px, 1.2vw, 24px); flex: 1; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
               <div>
-                <h3 class="font-serif tracking-tight leading-tight service-card-title" style="font-size: clamp(17px, 1.15vw, 22px); font-weight: 700; color: var(--text-primary); margin: 0 0 8px; cursor: pointer;" onclick="ServicesPage.openServiceDetailModal('${item.id}')">
+                <h3 class="font-serif tracking-tight leading-tight service-card-title" style="font-size: clamp(17px, 1.15vw, 22px); font-weight: 700; color: var(--text-primary); margin: 0 0 10px; cursor: pointer;" onclick="ServicesPage.openServiceDetailModal('${item.id}')">
                   ${displayName}
                 </h3>
-                <p class="service-card-desc" style="font-size: clamp(13px, 0.85vw, 15px); color: var(--text-secondary); line-height: 1.6; margin: 0 0 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: clamp(54px, 3.8vw, 68px);">
-                  ${displayDesc}
-                </p>
+
+                <!-- DONG LEAD HOOK TAM LY KHACH HANG -->
+                <div class="service-psy-lead" style="font-size: clamp(12.5px, 0.82vw, 13.5px); font-weight: 700; color: var(--text-primary); margin: 0 0 12px; padding: 4px 0 4px 10px; border-left: 3px solid #8A6208; line-height: 1.45;">
+                  ${meta.highlight}
+                </div>
+
+                <!-- CUM 3 BUOC TRAI NGHIEM KHACH HANG PHAI DOC -->
+                <div class="service-psy-steps" style="display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px; background: rgba(0, 0, 0, 0.03); border: none; border-radius: 6px; padding: 10px 12px;">
+                  ${meta.steps.map(step => `
+                    <div style="display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; line-height: 1.45;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A6208" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      <div>
+                        <strong style="color: var(--text-primary); font-weight: 700;">${step.label}:</strong>
+                        <span style="color: var(--text-secondary);">${step.detail}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <!-- CAM KET AN TAM -->
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: #8A6208; margin: 0 0 14px;">
+                  <span>${meta.trustBadge}</span>
+                </div>
               </div>
 
               <!-- GIA VA NUT CHI TIET VA DAT LICH -->
-              <div class="service-card-footer" style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <div class="service-card-footer" style="margin-top: auto; padding-top: 14px; border-top: none; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <div>
-                  <span class="service-card-price" style="font-size: clamp(18px, 1.2vw, 23px); font-weight: 800; color: #C59B27;">${priceFormatted}</span>
-                  ${originalPrice && originalPrice > actualPrice ? `<span style="font-size: clamp(12px, 0.8vw, 13.5px); text-decoration: line-through; color: var(--text-muted); margin-left: 6px;">${window.SalonUtils ? window.SalonUtils.formatCurrency(originalPrice) : originalPrice}</span>` : ''}
+                  <span class="service-card-price" style="font-size: clamp(18px, 1.2vw, 23px); font-weight: 800; color: #8A6208;">${priceFormatted}</span>
+                  ${originalPrice && originalPrice > actualPrice ? `<span style="font-size: 13.5px; text-decoration: line-through; color: var(--text-muted); margin-left: 6px;">${window.SalonUtils ? window.SalonUtils.formatCurrency(originalPrice) : originalPrice}</span>` : ''}
                 </div>
-                <div style="display: flex; gap: 6px; align-items: center;">
+                <div style="display: flex; gap: 8px; align-items: center;">
                   <button type="button" onclick="ServicesPage.openServiceDetailModal('${item.id}')"
-                          class="service-card-btn"
-                          style="min-height: clamp(36px, 2.2vw, 42px); height: clamp(36px, 2.2vw, 42px); padding: 0 clamp(10px, 0.8vw, 14px); border-radius: 6px; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: clamp(12px, 0.8vw, 13.5px); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease;">
+                          class="service-card-btn service-card-btn-detail"
+                          style="min-height: clamp(36px, 2.2vw, 42px); height: clamp(36px, 2.2vw, 42px); padding: 0 clamp(10px, 0.8vw, 14px); border-radius: 6px; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 13.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease;">
                     Chi Tiết
                   </button>
                   <button onclick="ServicesPage.selectAndBook('${item.id}')"
-                          class="service-card-btn"
-                          style="min-height: clamp(36px, 2.2vw, 42px); height: clamp(36px, 2.2vw, 42px); padding: 0 clamp(14px, 1vw, 20px); border-radius: 6px; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); font-size: clamp(12.5px, 0.8vw, 14px); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease; white-space: nowrap;">
+                          class="service-card-btn service-card-btn-book"
+                          style="min-height: clamp(36px, 2.2vw, 42px); height: clamp(36px, 2.2vw, 42px); padding: 0 clamp(14px, 1vw, 20px); border-radius: 6px; background: #141413; border: 1px solid #C59B27; color: #FAF8F5; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease; white-space: nowrap;">
                     Đặt Lịch →
                   </button>
                 </div>
@@ -383,16 +576,16 @@
           <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; align-items: flex-start;">
             <div style="flex: 1; min-width: 280px; max-width: 440px; aspect-ratio: 16/10; border-radius: 12px; overflow: hidden; position: relative; background: #141413;">
               <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover;" alt="${this.escapeHtml(title)}">
-              <div style="position: absolute; top: 12px; left: 12px; background: rgba(20, 20, 19, 0.85); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #FAF8F5;">
-                ⏱ ${durationVal} phút
+              <div style="position: absolute; top: 12px; left: 12px; background: rgba(20, 20, 19, 0.85); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 700; color: #FAF8F5;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:3px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>${durationVal} phút
               </div>
             </div>
 
             <div style="flex: 1.2; min-width: 280px;">
-              <div style="font-size: 11px; font-weight: 800; color: #C59B27; letter-spacing: 0.05em; margin-bottom: 6px;">${categoryTag}</div>
+              <div style="font-size: 13px; font-weight: 800; color: #8A6208; letter-spacing: 0.05em; margin-bottom: 6px;">${categoryTag}</div>
               <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 0 0 10px; line-height: 1.3;">${this.escapeHtml(title)}</h2>
               <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
-                <span style="font-size: 26px; font-weight: 900; color: #C59B27;">${priceFormatted}</span>
+                <span style="font-size: 26px; font-weight: 900; color: #8A6208;">${priceFormatted}</span>
                 ${item.originalPrice && item.originalPrice > actualPrice ? `
                   <span style="font-size: 16px; text-decoration: line-through; color: var(--text-muted);">${window.SalonUtils ? window.SalonUtils.formatCurrency(item.originalPrice) : item.originalPrice}</span>
                   <span style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 800;">-${item.discountPercent}%</span>
@@ -414,7 +607,7 @@
           <!-- Cac dich vu thanh phan trong Combo neu co -->
           ${comboServices.length > 0 ? `
             <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
-              <h4 style="font-size: 13px; font-weight: 800; color: #C59B27; text-transform: uppercase; margin: 0 0 12px;">Các Dịch Vụ Bao Gồm Trong Combo</h4>
+              <h4 style="font-size: 13px; font-weight: 800; color: #8A6208; text-transform: uppercase; margin: 0 0 12px;">Các Dịch Vụ Bao Gồm Trong Combo</h4>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
                 ${comboServices.map(s => `
                   <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-primary);">
@@ -428,28 +621,28 @@
 
           <!-- QUY TRINH THUC HIEN TIEU CHUAN -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-            <div style="font-size: 11.5px; font-weight: 800; color: #C59B27; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+            <div style="font-size: 13.5px; font-weight: 800; color: #8A6208; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
               QUY TRÌNH THỰC HIỆN TIÊU CHUẨN TẠI OMNI SALON
             </div>
             <div style="display: flex; flex-direction: column; gap: 10px;">
               <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px;">
-                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #C59B27; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">1</span>
+                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #8A6208; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">1</span>
                 <div><strong>Bước 1:</strong> Tư vấn phom dáng mặt &amp; cấu trúc sợi tóc, lựa chọn kiểu tóc phù hợp phong cách.</div>
               </div>
               <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px;">
-                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #C59B27; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">2</span>
+                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #8A6208; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">2</span>
                 <div><strong>Bước 2:</strong> Gội xả thảo mộc &amp; massage bấm huyệt đả thông kinh lạc, làm sạch da đầu chuyên sâu.</div>
               </div>
               <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px;">
-                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #C59B27; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">3</span>
+                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #8A6208; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">3</span>
                 <div><strong>Bước 3:</strong> Cắt fade &amp; tỉa texture tạo tầng bồng bềnh bằng kéo thủ công Nhật Bản chuẩn từng milimet.</div>
               </div>
               <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px;">
-                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #C59B27; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">4</span>
+                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #8A6208; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">4</span>
                 <div><strong>Bước 4:</strong> Cạo viền sắc nét, chườm khăn nóng thảo mộc thư giãn cơ mặt và làm dịu chân tóc.</div>
               </div>
               <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px;">
-                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #C59B27; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">5</span>
+                <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid #C59B27; color: #8A6208; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">5</span>
                 <div><strong>Bước 5:</strong> Sấy tạo phom &amp; vuốt sáp / pomade cao cấp khóa form giữ nếp tự nhiên suốt ngày dài.</div>
               </div>
             </div>

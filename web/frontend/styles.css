@@ -148,7 +148,7 @@ h4,
   letter-spacing: 0.12em !important;
   font-size: clamp(16.5px, 1.4vw, 19px) !important;
   font-weight: 800 !important;
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   display: inline-block !important;
   line-height: 1.35 !important;
   margin-bottom: 2px !important;
@@ -297,6 +297,142 @@ button:active,
   padding-left: clamp(20px, 3vw, 56px) !important;
   padding-right: clamp(20px, 3vw, 56px) !important;
   box-sizing: border-box !important;
+}
+
+
+/* Che do thu gon thanh menu ben trai - Thuc ra thuc vao */
+.admin-sidebar {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease !important;
+}
+
+.admin-main-viewport {
+  transition: margin-left 0.28s cubic-bezier(0.16, 1, 0.3, 1), width 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.admin-dashboard-layout.sidebar-collapsed .admin-sidebar {
+  transform: translateX(-100%) !important;
+  box-shadow: none !important;
+}
+
+.admin-dashboard-layout.sidebar-collapsed .admin-main-viewport {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+.admin-sidebar-collapse-btn {
+  background: transparent;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+  color: var(--text-secondary, #A1A1AA);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.admin-sidebar-collapse-btn:hover {
+  color: #D97706;
+  border-color: #D97706;
+  background: rgba(217, 119, 6, 0.1);
+  transform: scale(1.05);
+}
+
+.admin-topbar-sidebar-toggle {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 8px;
+  background: var(--surface-elevated, #18181B);
+  border: 1px solid var(--border-color, #222225);
+  color: var(--text-primary, #F4F4F5);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-topbar-sidebar-toggle:hover {
+  border-color: #D97706;
+  color: #D97706;
+  background: var(--surface-card, #121214);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(217, 119, 6, 0.2);
+}
+
+.admin-topbar-sidebar-toggle:active {
+  transform: scale(0.95);
+}
+
+.admin-sidebar-edge-toggle {
+  position: fixed;
+  left: 0;
+  top: 96px;
+  z-index: 1050;
+  width: 32px;
+  height: 48px;
+  border: none;
+  border-radius: 0 10px 10px 0;
+  background: #D97706;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 3px 0 12px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, background 0.15s ease;
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-sidebar-edge-toggle:hover {
+  background: #F59E0B;
+  width: 36px;
+}
+
+.admin-dashboard-layout.sidebar-collapsed .admin-sidebar-edge-toggle {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+html.light .admin-sidebar-collapse-btn,
+body.light .admin-sidebar-collapse-btn,
+[data-theme="light"] .admin-sidebar-collapse-btn {
+  border-color: #CBD5E1;
+  color: #64748B;
+}
+
+html.light .admin-sidebar-collapse-btn:hover,
+body.light .admin-sidebar-collapse-btn:hover,
+[data-theme="light"] .admin-sidebar-collapse-btn:hover {
+  background: rgba(217, 119, 6, 0.1);
+  color: #D97706;
+  border-color: #D97706;
+}
+
+html.light .admin-topbar-sidebar-toggle,
+body.light .admin-topbar-sidebar-toggle,
+[data-theme="light"] .admin-topbar-sidebar-toggle {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #1E293B;
+}
+
+html.light .admin-topbar-sidebar-toggle:hover,
+body.light .admin-topbar-sidebar-toggle:hover,
+[data-theme="light"] .admin-topbar-sidebar-toggle:hover {
+  border-color: #D97706;
+  color: #D97706;
+  background: #F8FAFC;
 }
 
 @media (max-width: 1024px) {
@@ -1228,8 +1364,8 @@ body.light .ai-demo-portrait-btn,
 
 html.light .ai-demo-portrait-btn:hover,
 [data-theme="light"] .ai-demo-portrait-btn:hover {
-  border-color: #C59B27 !important;
-  color: #C59B27 !important;
+  border-color: #8A6208 !important;
+  color: #8A6208 !important;
 }
 
 html.light .ai-style-pill-btn,
@@ -1267,7 +1403,7 @@ html.light .ai-style-pill-btn.selected strong,
 [data-theme="light"] .ai-style-pill-btn.selected strong,
 html.light [id^="pillStyle_"].selected strong,
 [data-theme="light"] [id^="pillStyle_"].selected strong {
-  color: #C59B27 !important;
+  color: #8A6208 !important;
 }
 
 html.light .ai-color-pill-btn,
@@ -1298,7 +1434,7 @@ html.light .ai-color-pill-btn.selected span:last-child,
 [data-theme="light"] .ai-color-pill-btn.selected span:last-child,
 html.light [id^="pillColor_"].selected span:last-child,
 [data-theme="light"] [id^="pillColor_"].selected span:last-child {
-  color: #C59B27 !important;
+  color: #8A6208 !important;
 }
 
 html.light #btnRunAiRestyle,
@@ -1329,7 +1465,7 @@ html.dark .ai-color-pill-btn.selected,
 
 html.dark .ai-color-pill-btn.selected span:last-child,
 [data-theme="dark"] .ai-color-pill-btn.selected span:last-child {
-  color: #C59B27 !important;
+  color: #8A6208 !important;
 }
 
 /* Nút chọn kiểu tóc AI trang chủ */
@@ -1351,14 +1487,14 @@ html.dark .ai-color-pill-btn.selected span:last-child,
 }
 
 .ai-home-style-pill:hover {
-  border-color: #C59B27 !important;
-  color: #C59B27 !important;
+  border-color: #8A6208 !important;
+  color: #8A6208 !important;
 }
 
 .ai-home-style-pill.active {
   background: var(--surface-card, #FFFFFF) !important;
   border: 1.5px solid #C59B27 !important;
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   font-weight: 700 !important;
 }
 
@@ -1882,8 +2018,8 @@ html.light .admin-tab-btn:hover {
 
 [data-theme="light"] .admin-tab-btn.active,
 html.light .admin-tab-btn.active {
-  color: #C59B27 !important;
-  border-bottom-color: #C59B27 !important;
+  color: #8A6208 !important;
+  border-bottom-color: #8A6208 !important;
 }
 
 [data-theme="light"] .admin-table-container,
@@ -3628,7 +3764,7 @@ html.light .admin-sidebar-nav-item:hover {
     height: 100vh;
     z-index: 3000;
     transform: translateX(-100%);
-    box-shadow: 12px 0 32px rgba(0, 0, 0, 0.6);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.07);
   }
 
   .admin-sidebar.open {
@@ -4484,19 +4620,22 @@ html.light .admin-enterprise-table tr:hover td,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
-  border-bottom: 1px dashed var(--border-color, rgba(255, 255, 255, 0.1));
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-bottom: 1px dashed var(--border-color, rgba(0, 0, 0, 0.08));
   font-size: 13px;
-  color: var(--text-primary, #FFFFFF);
-  transition: background 0.15s ease;
+  color: var(--text-primary);
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+  margin-bottom: 3px;
 }
 
 .pos-bill-row:last-child {
   border-bottom: none;
+  margin-bottom: 0;
 }
 
 .pos-bill-row:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(200, 90, 68, 0.07);
 }
 
 .pos-summary-table {
@@ -8987,7 +9126,7 @@ body.dark .web-footer a:not([style*="color: #C59B27"]):not([style*="color: rgb(1
 }
 
 .web-footer a:hover {
-  color: #C59B27 !important;
+  color: #8A6208 !important;
 }
 
 .web-footer .footer-bottom-bar,
@@ -9612,449 +9751,14 @@ body.dark .web-footer .footer-copyright,
 
 /* Cân bằng khối mở đầu hai cột */
 .nordic-hero-split-grid {
-  display: grid;
-  grid-template-columns: 55fr 45fr;
-  gap: 48px;
-  /* Khoảng cách giữa hai cột */
-  align-items: center;
-  width: 100%;
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 32px;
-  padding-right: 32px;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 2;
-}
-
-@media (max-width: 992px) {
-  .nordic-hero-split-grid {
-    grid-template-columns: 1fr;
-    gap: 32px;
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-}
-
-@media (max-width: 640px) {
-  .nordic-hero-split-grid {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-}
-
-/* Cột trái chứa nội dung và nút bấm */
-.nordic-hero-content-col {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 1.75rem;
-  width: 100%;
-}
-
-.nordic-hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  background: rgba(212, 175, 55, 0.12);
-  border: 1px solid rgba(212, 175, 55, 0.45);
-  border-radius: 9999px;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: #D4AF37;
-  text-transform: uppercase;
-  margin: 0;
-}
-
-.nordic-hero-title {
-  font-size: clamp(34px, 4.2vw, 62px);
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
-  color: #FFFFFF;
-  margin: 0;
-}
-
-.nordic-hero-title .text-gold {
-  color: #C59B27 !important;
-}
-
-.nordic-hero-tagline {
-  font-size: clamp(15px, 1.5vw, 19px);
-  color: #CBD5E1;
-  max-width: 700px;
-  line-height: 1.65;
-  margin: 0;
-}
-
-.nordic-cta-group {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin: 0;
-}
-
-/* Cột phải chứa hình ảnh nổi bật */
-.nordic-hero-visual-col {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  position: relative;
-}
-
-.floating-showcase {
-  position: relative;
-  width: 100%;
-  max-width: 580px;
-  margin: 0 auto;
-}
-
-.hero-visual-card {
-  border-radius: 28px;
-  overflow: hidden;
-  border: 1px solid rgba(212, 175, 55, 0.35) !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(212, 175, 55, 0.2) !important;
-  background: #10131C;
-  position: relative;
-}
-
-.hero-showcase-img {
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  display: block;
-}
-
-.hero-showcase-overlay {
-  position: absolute;
-  bottom: 0;
-  inset-inline: 0;
-  padding: 28px 24px;
-  background: linear-gradient(180deg, transparent 0%, rgba(16, 19, 28, 0.96) 100%);
-}
-
-.hero-showcase-badge {
-  font-size: 13px;
-  font-weight: 800;
-  color: #D4AF37;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  display: block;
-}
-
-.hero-showcase-title {
-  font-size: 22px;
-  font-weight: 900;
-  color: #FFFFFF;
-  margin-top: 4px;
-}
-
-.hero-showcase-desc {
-  font-size: 15px;
-  color: #CBD5E1;
-  margin-top: 4px;
-}
-
-/* Dàn đều thanh thống kê bốn cột bằng nhau */
-.nordic-metrics-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  margin-top: 56px;
-  padding: 28px 32px;
-  background: #10131C !important;
-  border: 1px solid rgba(212, 175, 55, 0.18) !important;
-  border-radius: 20px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.08);
-  width: 100%;
-  max-width: 1440px;
-  margin-left: auto;
-  margin-right: auto;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 2;
-}
-
-@media (max-width: 992px) {
-  .nordic-metrics-strip {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    padding: 20px 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .nordic-metrics-strip {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 16px 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .nordic-metrics-strip {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 16px 12px;
-  }
-}
-
-.nordic-metric-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 6px;
-  padding: 8px 12px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.nordic-metric-value {
-  font-size: clamp(28px, 3.2vw, 40px);
-  font-weight: 900;
-  color: #F59E0B;
-  letter-spacing: -0.02em;
-  text-shadow: none;
-  line-height: 1.1;
-  text-align: center;
-}
-
-.nordic-metric-label {
-  font-size: 15px;
-  font-weight: 700;
-  color: #CBD5E1;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  text-align: center;
-  line-height: 1.3;
-}
-
-/* Bố cục lưới linh hoạt cho dịch vụ thợ cắt và sản phẩm */
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-@media (max-width: 1024px) {
-  .bento-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-}
-
-@media (max-width: 640px) {
-  .bento-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
-.bento-grid-wide {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-@media (max-width: 1024px) {
-  .bento-grid-wide {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-}
-
-@media (max-width: 640px) {
-  .bento-grid-wide {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
-/* Lưới xác nhận bước bốn đặt lịch */
-.booking-confirmation-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 32px;
-  align-items: start;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-@media (max-width: 868px) {
-  .booking-confirmation-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-}
-
-/* Thẻ dịch vụ dạng lưới */
-.service-bento-card {
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-  height: 100% !important;
-  background: #11141D !important;
-  border: 1px solid rgba(212, 175, 55, 0.15) !important;
-  border-radius: 16px !important;
-  overflow: hidden;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
-}
-
-.service-bento-card:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.2) !important;
-  border-color: rgba(212, 175, 55, 0.4) !important;
-}
-
-.service-bento-img-wrap {
-  position: relative !important;
-  width: 100% !important;
-  height: 192px !important;
-  /* Chiều cao thẻ dịch vụ */
-  overflow: hidden !important;
-  background: #0B0D13;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-}
-
-.service-bento-img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  transition: transform 0.4s ease;
-}
-
-.card-3d-tilt:hover .service-bento-img {
-  transform: scale(1.05);
-}
-
-.service-bento-duration {
-  position: absolute !important;
-  top: 12px !important;
-  left: 12px !important;
-  background: rgba(7, 8, 11, 0.88) !important;
-  backdrop-filter: blur(8px) !important;
-  color: #FFFFFF !important;
-  padding: 5px 12px !important;
-  border-radius: 9999px !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.service-bento-badge-save {
-  position: absolute !important;
-  top: 12px !important;
-  right: 12px !important;
-  background: linear-gradient(135deg, #10B981, #059669);
-  color: #FFFFFF;
-  padding: 5px 12px;
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
-}
-
-.service-bento-body {
-  padding: 20px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 !important;
-  justify-content: space-between !important;
-  background: var(--surface-card, #11141D);
-}
-
-.service-bento-title {
-  font-size: 20px !important;
-  font-weight: 800 !important;
-  color: var(--text-primary, #1e293b);
-  margin-bottom: 8px !important;
-  line-height: 1.35 !important;
-}
-
-.service-bento-desc {
-  font-size: 15px !important;
-  color: var(--text-secondary, #CBD5E1);
-  line-height: 1.6 !important;
-  margin-bottom: 16px !important;
-  flex: 1;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-.service-bento-footer {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  padding-top: 14px !important;
-  border-top: none !important;
-}
-
-.service-bento-price {
-  font-size: 20px !important;
-  font-weight: 900 !important;
-  color: #F59E0B !important;
-  letter-spacing: -0.01em;
-}
-
-.service-bento-btn {
-  height: 48px !important;
-  min-height: 48px !important;
-  padding: 0 20px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
-  color: #000000 !important;
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  border-radius: 12px !important;
-  border: none !important;
-  cursor: pointer !important;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3) !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  text-decoration: none !important;
-}
-
-.service-bento-btn:hover {
-  filter: brightness(1.1) !important;
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5) !important;
-  transform: translateY(-1px) !important;
-}
-
-.service-bento-btn:active {
-  transform: scale(0.98) !important;
-}
-
-/* Thẻ thợ tạo mẫu ba cột cân đối */
-.stylists-3col-grid {
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 32px !important;
-  max-width: 1152px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 540px) !important;
+  gap: clamp(32px, 4vw, 56px) !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 1560px !important;
+  margin: 0 auto !important;
+  padding: 0 clamp(24px, 3.5vw, 64px) !important;
   box-sizing: border-box !important;
 }
 
@@ -10344,7 +10048,7 @@ body.dark .web-footer .footer-copyright,
 
 .web-nav-links .nav-link:hover,
 .web-nav-links .nav-link.active {
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   background: transparent !important;
   box-shadow: none !important;
 }
@@ -11078,7 +10782,7 @@ html.light .pos-bill-row,
 
 html.light .pos-bill-row:hover,
 [data-theme="light"] .pos-bill-row:hover {
-  background-color: #F1F5F9 !important;
+  background-color: rgba(200, 90, 68, 0.07) !important;
 }
 
 html.light .pos-summary-table,
@@ -11116,8 +10820,7 @@ html.light .pos-pay-btn.active,
 /* Áp dụng nền tối cho quầy thu ngân */
 html.dark .pos-panel,
 body.dark .pos-panel,
-[data-theme="dark"] .pos-panel,
-body.admin-mode .pos-panel {
+[data-theme="dark"] .pos-panel {
   background-color: var(--bg-primary, #141413) !important;
   border: 1px solid var(--border-color, #2A2A28) !important;
   color: var(--text-primary, #FAF8F5) !important;
@@ -11125,16 +10828,14 @@ body.admin-mode .pos-panel {
 
 html.dark .pos-panel-header,
 body.dark .pos-panel-header,
-[data-theme="dark"] .pos-panel-header,
-body.admin-mode .pos-panel-header {
+[data-theme="dark"] .pos-panel-header-header {
   border-bottom: 1px solid var(--border-color, #2A2A28) !important;
   color: var(--text-primary, #FAF8F5) !important;
 }
 
 html.dark .pos-item-card,
 body.dark .pos-item-card,
-[data-theme="dark"] .pos-item-card,
-body.admin-mode .pos-item-card {
+[data-theme="dark"] .pos-item-card {
   background-color: var(--surface-card, #1C1C1A) !important;
   border: 1px solid var(--border-color, #2A2A28) !important;
   color: var(--text-primary, #FAF8F5) !important;
@@ -11142,8 +10843,7 @@ body.admin-mode .pos-item-card {
 
 html.dark .pos-item-card:hover,
 body.dark .pos-item-card:hover,
-[data-theme="dark"] .pos-item-card:hover,
-body.admin-mode .pos-item-card:hover {
+[data-theme="dark"] .pos-item-card:hover:hover {
   background-color: var(--surface-card-hover, #242422) !important;
   border-color: var(--color-accent-gold, #C59B27) !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
@@ -11151,16 +10851,14 @@ body.admin-mode .pos-item-card:hover {
 
 html.dark .pos-item-card-img,
 body.dark .pos-item-card-img,
-[data-theme="dark"] .pos-item-card-img,
-body.admin-mode .pos-item-card-img {
+[data-theme="dark"] .pos-item-card-img-img {
   background-color: var(--bg-primary, #141413) !important;
   border: 1px solid var(--border-color, #2A2A28) !important;
 }
 
 html.dark .pos-bill-list,
 body.dark .pos-bill-list,
-[data-theme="dark"] .pos-bill-list,
-body.admin-mode .pos-bill-list {
+[data-theme="dark"] .pos-bill-list {
   background-color: var(--bg-primary, #141413) !important;
   border: 1px solid var(--border-color, #2A2A28) !important;
   color: var(--text-primary, #FAF8F5) !important;
@@ -11168,8 +10866,7 @@ body.admin-mode .pos-bill-list {
 
 html.dark .pos-bill-row,
 body.dark .pos-bill-row,
-[data-theme="dark"] .pos-bill-row,
-body.admin-mode .pos-bill-row {
+[data-theme="dark"] .pos-bill-row {
   background-color: var(--surface-card, #1C1C1A) !important;
   border-bottom: 1px solid var(--border-color, #2A2A28) !important;
   color: var(--text-primary, #FAF8F5) !important;
@@ -11177,15 +10874,13 @@ body.admin-mode .pos-bill-row {
 
 html.dark .pos-bill-row:hover,
 body.dark .pos-bill-row:hover,
-[data-theme="dark"] .pos-bill-row:hover,
-body.admin-mode .pos-bill-row:hover {
+[data-theme="dark"] .pos-bill-row:hover:hover {
   background-color: var(--surface-card-hover, #242422) !important;
 }
 
 html.dark .pos-summary-table,
 body.dark .pos-summary-table,
-[data-theme="dark"] .pos-summary-table,
-body.admin-mode .pos-summary-table {
+[data-theme="dark"] .pos-summary-table {
   background-color: var(--bg-primary, #141413) !important;
   border: 1px solid var(--border-color, #2A2A28) !important;
   color: var(--text-primary, #FAF8F5) !important;
@@ -11193,23 +10888,20 @@ body.admin-mode .pos-summary-table {
 
 html.dark .pos-summary-row,
 body.dark .pos-summary-row,
-[data-theme="dark"] .pos-summary-row,
-body.admin-mode .pos-summary-row {
+[data-theme="dark"] .pos-summary-row {
   color: var(--text-secondary, #A6A6A0) !important;
 }
 
 html.dark .pos-summary-row.total-row,
 body.dark .pos-summary-row.total-row,
-[data-theme="dark"] .pos-summary-row.total-row,
-body.admin-mode .pos-summary-row.total-row {
+[data-theme="dark"] .pos-summary-row.total-row.total-row {
   color: var(--color-accent-gold, #C59B27) !important;
   border-top: 1px dashed var(--border-color, #2A2A28) !important;
 }
 
 html.dark .pos-pay-btn,
 body.dark .pos-pay-btn,
-[data-theme="dark"] .pos-pay-btn,
-body.admin-mode .pos-pay-btn {
+[data-theme="dark"] .pos-pay-btn {
   background-color: var(--surface-card, #1C1C1A) !important;
   border: 1px solid var(--border-color, #2A2A28) !important;
   color: var(--text-secondary, #A6A6A0) !important;
@@ -11217,8 +10909,7 @@ body.admin-mode .pos-pay-btn {
 
 html.dark .pos-pay-btn.active,
 body.dark .pos-pay-btn.active,
-[data-theme="dark"] .pos-pay-btn.active,
-body.admin-mode .pos-pay-btn.active {
+[data-theme="dark"] .pos-pay-btn.active.active {
   background-color: rgba(197, 155, 39, 0.18) !important;
   border: 1.5px solid var(--color-accent-gold, #C59B27) !important;
   color: var(--color-accent-gold, #C59B27) !important;
@@ -11813,7 +11504,7 @@ html.light .admin-pagination-bar .admin-page-active,
 [data-theme="light"] .admin-pagination-bar .admin-page-active {
   background: #C59B27 !important;
   color: #141413 !important;
-  border-color: #C59B27 !important;
+  border-color: #8A6208 !important;
   font-weight: 900 !important;
   box-shadow: 0 2px 10px rgba(197, 155, 39, 0.4) !important;
 }
@@ -12409,7 +12100,7 @@ body {
 }
 
 .booking-service-visual-card.selected {
-  border-color: #C59B27 !important;
+  border-color: #8A6208 !important;
   background: var(--surface-card) !important;
   box-shadow: 0 6px 20px rgba(197, 155, 39, 0.22) !important;
 }
@@ -12588,7 +12279,7 @@ body {
 .svc-select-btn.selected {
   background: #C59B27 !important;
   color: #141413 !important;
-  border-color: #C59B27 !important;
+  border-color: #8A6208 !important;
   font-weight: 800;
 }
 
@@ -12854,7 +12545,7 @@ body {
 }
 
 .product-brand-tag {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   color: var(--brand-accent, #f59e0b);
   letter-spacing: 0.06em;
@@ -13095,7 +12786,26 @@ body {
 }
 
 .branch-clean-card:hover .branch-cover-img {
-  transform: scale(1.04);
+  filter: brightness(1.02);
+}
+
+#branchWebDemoCardContainer .branch-cover-img {
+  transition: transform 0.12s ease-out, object-position 0.12s ease-out !important;
+}
+
+/* Split Layout cho Form Chi Nhanh Admin */
+.branch-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 420px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .branch-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
 }
 
 .branch-badges-top {
@@ -16883,8 +16593,8 @@ body.light .modal-close-icon-btn:hover {
 
 .shop-dropdown-btn:hover,
 .shop-dropdown-btn.active {
-  border-color: #C59B27 !important;
-  color: #C59B27 !important;
+  border-color: #8A6208 !important;
+  color: #8A6208 !important;
 }
 
 .shop-dropdown-btn .chevron-icon {
@@ -17024,8 +16734,8 @@ body.light .modal-close-icon-btn:hover {
   height: 100% !important;
   border-radius: 8px !important;
   overflow: hidden !important;
-  background: var(--surface-card) !important;
-  border: 1px solid var(--border-color) !important;
+  background: #FFFFFF !important;
+  border: none !important;
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
 }
 
@@ -17087,8 +16797,8 @@ body.light .modal-close-icon-btn:hover {
 
 .service-card-footer {
   margin-top: auto !important;
-  padding-top: 14px !important;
-  border-top: 1px solid var(--border-color) !important;
+  padding-top: 16px !important;
+  border-top: none !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -17098,7 +16808,7 @@ body.light .modal-close-icon-btn:hover {
 .service-card-price {
   font-size: clamp(18px, 1.2vw, 23px) !important;
   font-weight: 800 !important;
-  color: #C59B27 !important;
+  color: #8A6208 !important;
 }
 
 .service-card-btn,
@@ -17124,8 +16834,8 @@ body.light .modal-close-icon-btn:hover {
 
 .service-card-btn:hover,
 .stylist-card-cta-btn:hover {
-  border-color: #C59B27 !important;
-  color: #C59B27 !important;
+  border-color: #8A6208 !important;
+  color: #8A6208 !important;
   background: var(--surface-card) !important;
 }
 
@@ -17142,9 +16852,72 @@ html.light .stylist-card-cta-btn {
 [data-theme="light"] .stylist-card-cta-btn:hover,
 html.light .service-card-btn:hover,
 html.light .stylist-card-cta-btn:hover {
-  border-color: #C59B27 !important;
-  color: #C59B27 !important;
+  border-color: #8A6208 !important;
+  color: #8A6208 !important;
   background: #FFFFFF !important;
+}
+
+/* Thiet ke the dich vu theo tam ly hoc khach hang */
+.service-psy-lead {
+  font-size: clamp(12.5px, 0.82vw, 13.5px) !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  margin: 0 0 12px !important;
+  padding: 4px 0 4px 10px !important;
+  border-left: 3px solid #8A6208 !important;
+  line-height: 1.45 !important;
+}
+
+.service-psy-steps {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  margin: 0 0 12px !important;
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 6px !important;
+  padding: 10px 12px !important;
+}
+
+/* Nut Dat Lich noi bat thu hut hanh dong */
+button.service-card-btn-book,
+.service-editorial-card button.service-card-btn-book,
+[data-theme="light"] .service-editorial-card button.service-card-btn-book,
+html.light .service-editorial-card button.service-card-btn-book {
+  background: #141413 !important;
+  border: 1px solid #C59B27 !important;
+  color: #FAF8F5 !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+button.service-card-btn-book:hover,
+.service-editorial-card button.service-card-btn-book:hover,
+[data-theme="light"] .service-editorial-card button.service-card-btn-book:hover,
+html.light .service-editorial-card button.service-card-btn-book:hover {
+  background: #C59B27 !important;
+  border-color: #8A6208 !important;
+  color: #141413 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(197, 155, 39, 0.4) !important;
+}
+
+button.service-card-btn-detail,
+.service-editorial-card button.service-card-btn-detail,
+[data-theme="light"] .service-editorial-card button.service-card-btn-detail,
+html.light .service-editorial-card button.service-card-btn-detail {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: none !important;
+  color: var(--text-secondary) !important;
+}
+
+button.service-card-btn-detail:hover,
+.service-editorial-card button.service-card-btn-detail:hover,
+[data-theme="light"] .service-editorial-card button.service-card-btn-detail:hover,
+html.light .service-editorial-card button.service-card-btn-detail:hover {
+  border-color: #8A6208 !important;
+  color: var(--text-primary) !important;
+  background: var(--surface-card) !important;
 }
 
 /* Khung Shop tràn viền đồng bộ */
@@ -17473,10 +17246,11 @@ tr:nth-child(2) .booking-service-badge .service-tooltip-content::after {
 }
 
 .hero-main-title {
-  font-size: clamp(32px, 3.8vw, 60px) !important;
-  line-height: 1.15 !important;
+  font-size: clamp(48px, 5.5vw, 76px) !important;
+  line-height: 1.08 !important;
   word-break: normal !important;
   overflow-wrap: break-word !important;
+  letter-spacing: -0.03em !important;
 }
 
 .nordic-hero-content-col {
@@ -17669,7 +17443,7 @@ html.dark .footer-accent-text,
 [data-theme="dark"] .footer-accent-text,
 html.dark .footer-phone-text,
 [data-theme="dark"] .footer-phone-text {
-  color: #C59B27 !important;
+  color: #8A6208 !important;
 }
 
 /* 5. Clean metadata readability (> 13px) */
@@ -17838,7 +17612,7 @@ body.dark .pdp-4rau-heading {
 }
 
 .pdp-bullet-gold {
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   font-size: 11px !important;
   margin-right: 8px !important;
   display: inline-block !important;
@@ -17934,14 +17708,14 @@ html.light .pdp-4rau-chip.active {
 
 .btn-check-branch-stock:hover {
   background: rgba(197, 155, 39, 0.18) !important;
-  border-color: #C59B27 !important;
+  border-color: #8A6208 !important;
   color: #F59E0B !important;
 }
 
 [data-theme="light"] .btn-check-branch-stock,
 html.light .btn-check-branch-stock {
   background: #F4EEDC !important;
-  border-color: #C59B27 !important;
+  border-color: #8A6208 !important;
   color: #785A10 !important;
 }
 
@@ -18184,7 +17958,7 @@ html.light .pdp-policy-subtitle {
 .pdp-policy-arrow {
   font-size: 20px !important;
   line-height: 1 !important;
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   flex-shrink: 0 !important;
   font-weight: 700 !important;
@@ -18343,9 +18117,9 @@ body.dark .product-media-wrapper {
 }
 
 .product-brand-tag {
-  font-size: 11px !important;
+  font-size: 13px !important;
   font-weight: 800 !important;
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   letter-spacing: 0.04em !important;
   text-transform: uppercase !important;
 }
@@ -18432,7 +18206,7 @@ body.dark .btn-card-detail {
 [data-theme="dark"] .btn-card-detail:hover,
 body.dark .btn-card-detail:hover {
   background: #C59B27 !important;
-  border-color: #C59B27 !important;
+  border-color: #8A6208 !important;
   color: #141413 !important;
 }
 
@@ -18474,8 +18248,8 @@ body.dark .btn-card-add-bag {
 
 [data-theme="dark"] .btn-card-add-bag:hover:not(:disabled),
 body.dark .btn-card-add-bag:hover:not(:disabled) {
-  border-color: #C59B27 !important;
-  color: #C59B27 !important;
+  border-color: #8A6208 !important;
+  color: #8A6208 !important;
   background: rgba(197, 155, 39, 0.1) !important;
 }
 
@@ -18652,7 +18426,7 @@ html.light .mega-col-title {
 .mega-col-action a {
   font-size: 13.5px;
   font-weight: 700;
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   margin-top: 8px;
   display: inline-flex;
   align-items: center;
@@ -18883,6 +18657,7 @@ html.light .shop-slider-arrow {
   padding: 28px;
   box-sizing: border-box;
   border: 1px solid var(--border-color, #2E2E2C);
+  box-shadow: none !important;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
 }
 
@@ -19283,7 +19058,7 @@ html.light .btn-clear-to-lookbook {
 .logo-sub-text {
   font-size: clamp(10.5px, 0.72vw, 12px) !important;
   font-weight: 700 !important;
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   letter-spacing: 0.04em !important;
   text-transform: none !important;
   margin-top: 2px !important;
@@ -19317,13 +19092,13 @@ html.light .btn-clear-to-lookbook {
 }
 
 .web-nav-links .nav-link:hover {
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
 .web-nav-links .nav-link.active {
-  color: #C59B27 !important;
+  color: #8A6208 !important;
   background: transparent !important;
   box-shadow: none !important;
   font-weight: 800 !important;
@@ -19415,8 +19190,8 @@ html.light .btn-clear-to-lookbook {
 }
 
 .header-action-btn:hover {
-  border-color: #C59B27 !important;
-  color: #C59B27 !important;
+  border-color: #8A6208 !important;
+  color: #8A6208 !important;
 }
 
 .header-user-btn {
@@ -19434,7 +19209,7 @@ html.light .btn-clear-to-lookbook {
 }
 
 .header-user-btn:hover {
-  border-color: #C59B27 !important;
+  border-color: #8A6208 !important;
 }
 
 .user-avatar-text {
@@ -19476,15 +19251,19 @@ html.light .btn-clear-to-lookbook {
 }
 
 .web-mobile-drawer-overlay {
+  display: none !important;
   position: fixed !important;
   inset: 0 !important;
   background: rgba(0, 0, 0, 0.68) !important;
-  backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px) !important;
   z-index: 99999 !important;
   opacity: 0 !important;
   visibility: hidden !important;
   transition: opacity 0.25s ease, visibility 0.25s ease !important;
+}
+.web-mobile-drawer-overlay.active {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .web-mobile-drawer-overlay.active {
@@ -19532,7 +19311,7 @@ html.light .btn-clear-to-lookbook {
 .drawer-nav-item:hover,
 .drawer-nav-item.active {
   background: rgba(197, 155, 39, 0.12) !important;
-  color: #C59B27 !important;
+  color: #8A6208 !important;
 }
 
 .drawer-nav-item.text-highlight {
@@ -19608,4 +19387,289 @@ html.light .btn-clear-to-lookbook {
   .web-search-input {
     padding-left: 32px !important;
   }
+}
+
+/* Feature Experience Card Hover Micro-Interactions */
+.feature-experience-card {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+.feature-experience-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: rgba(197, 155, 39, 0.6) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08) !important;
+}
+.feature-experience-card:hover img {
+  transform: scale(1.05) !important;
+}
+.feature-experience-card:hover h3 {
+  color: var(--brand-accent, #C59B27) !important;
+}
+.feature-experience-card:hover .experience-card-arrow {
+  transform: translateX(4px) !important;
+}
+
+/* Bento and Campaign card text must ALWAYS be brilliant white and gold on dark photo overlays */
+.bento-card,
+.bento-card-content,
+.bento-card-content h3,
+.bento-card-content h4,
+.bento-card-content p,
+.bento-title,
+.bento-title-small,
+.campaign-banner-card,
+.campaign-banner-content,
+.campaign-banner-content h3,
+.campaign-title,
+html.light .bento-card-content h3,
+html.light .bento-card-content h4,
+body.light .bento-card-content h3,
+body.light .bento-card-content h4,
+[data-theme="light"] .bento-card-content h3,
+[data-theme="light"] .bento-card-content h4,
+html.light .campaign-banner-content h3,
+html.light .campaign-title,
+body.light .campaign-banner-content h3,
+body.light .campaign-title,
+[data-theme="light"] .campaign-banner-content h3,
+[data-theme="light"] .campaign-title {
+  color: #FFFFFF !important;
+}
+
+.bento-card-content .bento-desc,
+.campaign-desc,
+html.light .bento-card-content .bento-desc,
+body.light .bento-card-content .bento-desc,
+[data-theme="light"] .bento-card-content .bento-desc,
+html.light .campaign-desc,
+body.light .campaign-desc,
+[data-theme="light"] .campaign-desc {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.bento-card-content .bento-tag,
+.campaign-tag,
+html.light .campaign-tag {
+  color: #FBBF24 !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  border: 1px solid rgba(251, 191, 36, 0.4) !important;
+}
+
+.bento-card-content .bento-btn,
+.bento-card-content .bento-btn-small,
+.campaign-btn,
+html.light .campaign-btn {
+  color: #FBBF24 !important;
+  font-weight: 800 !important;
+}
+
+/* ========================================================
+   LUXURY BARBERSHOP HEADER AUTH & USER DROPDOWN REDESIGN
+   ======================================================== */
+
+/* 1. Direct CTA Dang Nhap tren Header khi chua dang nhap */
+.header-auth-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 6px;
+  background: var(--surface-card, #FFFFFF);
+  border: 1.5px solid var(--border-color, #E2E8F0);
+  color: var(--text-primary, #141413);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none;
+}
+.header-auth-cta-btn:hover {
+  border-color: #C59B27;
+  color: #C59B27;
+  background: rgba(197, 155, 39, 0.08);
+}
+
+/* 2. An viễn vĩnh hamburger drawer web menu */
+.mobile-hamburger-btn,
+.web-mobile-drawer-overlay {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* 3. Dropdown The Admin Sang Trong */
+.dropdown-admin-card-btn {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+  background: #141413 !important;
+  border: 1.5px solid #2E2E2C !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  margin: 3px 0 !important;
+}
+.dropdown-admin-card-btn:hover {
+  border-color: #8A6208 !important;
+  transform: translateY(-1px);
+}
+.admin-card-icon-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(197, 155, 39, 0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* 4. Huy hieu vai tro toi gian khong gradient loe loet */
+.header-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #855F08 !important;
+  background: rgba(197, 155, 39, 0.12) !important;
+  border: 1px solid rgba(197, 155, 39, 0.3) !important;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+html.dark .header-role-badge,
+body.dark .header-role-badge {
+  color: #FBBF24 !important;
+  background: rgba(251, 191, 36, 0.15) !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+}
+
+/* 5. Clean Dropdown Box Shell */
+.header-user-dropdown {
+  border-radius: 12px !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1) !important;
+}
+
+
+/* Split Layout cho Form Nhan Su Admin */
+.stylist-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 390px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .stylist-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+
+/* Split Layout cho Form San Pham Kho Admin */
+.product-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 380px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .product-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+
+/* Split Layout cho Form Nha Cung Cap Admin */
+.supplier-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 380px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .supplier-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+
+/* Split Layout cho Form Dich Vu / Catalog Admin */
+.catalog-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 380px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .catalog-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+/* Taste-Skill v2 App Screen Rules: Quiet App Title, Tabular Numerals, Clean Alignment */
+.admin-topbar-heading {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.015em !important;
+}
+
+.admin-enterprise-table,
+.admin-table-container,
+.admin-tab-btn,
+.admin-topbar,
+.stat-item,
+.admin-table-toolbar,
+.num,
+td,
+th {
+  font-variant-numeric: tabular-nums !important;
+}
+
+td[data-numeric="true"],
+th[data-numeric="true"],
+.td-numeric,
+.th-numeric {
+  text-align: right !important;
+}
+
+/* Tasteskill: Right-align phone / numeric cells in users table */
+.admin-table-container th:nth-child(4),
+.admin-table-container td:nth-child(4) {
+  text-align: right !important;
+}
+
+/* Ẩn hoàn toàn thanh cuộn (scrollbar) để giao diện phẳng, tinh gọn, không rác thị giác */
+.admin-dashboard-layout,
+.admin-dashboard-layout *,
+.admin-main-viewport,
+.admin-table-container,
+.admin-table-container > div,
+.admin-subnav-bar,
+.admin-sidebar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.admin-dashboard-layout::-webkit-scrollbar,
+.admin-dashboard-layout *::-webkit-scrollbar,
+.admin-main-viewport::-webkit-scrollbar,
+.admin-table-container::-webkit-scrollbar,
+.admin-table-container > div::-webkit-scrollbar,
+.admin-subnav-bar::-webkit-scrollbar,
+.admin-sidebar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }

@@ -84,6 +84,33 @@ async function handleAccountsRoutes(req, res, ctx) {
     return true;
   }
 
+  /* POST /api/users/role hoac PUT /api/users/:id/role - Phan quyen vai tro tai khoan vao SQL */
+  if ((pathname === '/api/users/role' && method === 'POST') || (pathname.startsWith('/api/users/') && pathname.endsWith('/role') && (method === 'PUT' || method === 'POST'))) {
+    const body = parsedBody || {};
+    const userId = pathname.startsWith('/api/users/') ? pathname.split('/')[3] : (body.id || body.userId || body.username);
+    const { role, vaiTro } = body;
+
+    const roleMap = {
+      'SUPER_ADMIN': 'Quản trị viên',
+      'BRANCH_MANAGER': 'Quản lý',
+      'CASHIER': 'Thu ngân',
+      'STYLIST': 'Nhân viên',
+      'STAFF': 'Nhân viên',
+      'CUSTOMER': 'Khách hàng'
+    };
+    const finalVaiTro = vaiTro || roleMap[role] || role || 'Khách hàng';
+
+    try {
+      await querySql('UPDATE TaiKhoan SET VaiTro = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, userId, userId]);
+    } catch (err) {
+      console.warn('SQL update TaiKhoan failed, proceeding with memory state:', err.message);
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: true, message: 'Phan quyen tai khoan thanh cong', userId, vaiTro: finalVaiTro }));
+    return true;
+  }
+
   return false;
 }
 

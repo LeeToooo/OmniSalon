@@ -361,187 +361,136 @@
                 </svg>
               </button>
 
-              <!-- User Menu Dropdown  - Gom Chi nhánh, Tra cứu & Quản lý vào menu Avatar -  -->
-              <div class="header-user-menu-wrapper flex-shrink-0">
-                <div class="header-user-btn" id="headerUserBtn" onclick="CustomerWeb.toggleUserMenu(event)" title="Mở menu thành viên &amp; tiện ích">
-                  <span class="user-avatar-text">${user ? SalonUtils.getInitials(user.fullName || user.name || user.username || 'Omni') : 'OS'}</span>
-                  <div class="user-info-text-wrap">
-                    <span class="user-name-text">${user ? ((user.fullName || user.name || user.username || 'Tài Khoản').trim().split(' ').slice(-1)[0] || 'Tài Khoản') : 'Đăng Nhập'}</span>
-                  </div>
-                </div>
+              <!-- User / Auth Header Section -->
+              ${user ? `
+                <!-- User Menu Dropdown khi da dang nhap -->
+                <div class="header-user-menu-wrapper flex-shrink-0">
+                  <button type="button" class="header-user-btn" id="headerUserBtn" onclick="CustomerWeb.toggleUserMenu(event)" title="Menu tài khoản ${this.escapeHtml(user.fullName || user.name || user.username)}">
+                    <span class="user-avatar-text">${SalonUtils.getInitials(user.fullName || user.name || user.username || 'Omni')}</span>
+                    <span class="user-name-text">${((user.fullName || user.name || user.username || 'Tài Khoản').trim().split(' ').slice(-1)[0] || 'Tài Khoản')}</span>
+                    <svg class="user-caret-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
 
-                <!-- Dropdown Content Menu khi bấm vào Avatar -->
-                <div class="header-user-dropdown" id="headerUserDropdown">
-                  ${user ? `
+                  <!-- Dropdown Content Menu khi bam vao Avatar -->
+                  <div class="header-user-dropdown" id="headerUserDropdown">
                     <div class="dropdown-user-header">
-                      <span class="user-avatar-text" style="width: 38px; height: 38px; font-size: 14px;">${SalonUtils.getInitials(user.fullName || user.name || user.username || 'Omni')}</span>
-                      <div class="dropdown-user-details" style="display: flex; flex-direction: column; overflow: hidden; gap: 2px;">
-                        <span class="dropdown-user-name">${user.fullName || user.name || user.username}</span>
-                        <span class="header-role-badge role-${(user.role || 'customer').toLowerCase()}" style="width: fit-content;">${this.getRoleBadgeText(user)}</span>
+                      <span class="user-avatar-text" style="width: 42px; height: 42px; font-size: 15px; font-weight: 800;">${SalonUtils.getInitials(user.fullName || user.name || user.username || 'Omni')}</span>
+                      <div class="dropdown-user-details" style="display: flex; flex-direction: column; overflow: hidden; gap: 3px;">
+                        <span class="dropdown-user-name" style="font-size: 14.5px; font-weight: 800; color: var(--text-primary); line-height: 1.3;">${this.escapeHtml(user.fullName || user.name || user.username)}</span>
+                        <span class="header-role-badge" style="width: fit-content;">${this.getRoleBadgeText(user)}</span>
                       </div>
                     </div>
-                  ` : ''}
 
-                  <!-- 1. Tra cứu lịch hẹn -->
-                  <button onclick="CustomerWeb.openLookupModal(); CustomerWeb.closeUserMenu();" class="dropdown-item-btn">
-                    
-                    <span>Tra Cứu Lịch Hẹn</span>
-                  </button>
+                    <!-- Chon chi nhanh cho nhan vien hoac quan tri -->
+                    ${(() => {
+                      const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || user?.chucVuSql || '').toUpperCase();
+                      const uid = String(user?.id || user?.MaNhanVien || user?.staffId || '').toUpperCase();
+                      const isSuper = user && (uid === 'NV00' || roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN TRỊ') || user.username === 'admin');
+                      const isBranchMgr = user && !isSuper && (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER'));
+                      const isStf = user && !isSuper && !isBranchMgr && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN') || roleUpper.includes('STAFF') || roleUpper.includes('BARBER'));
 
-                  <!-- 2. Chọn chi nhánh - Quản trị tối cao đổi chi nhánh, Quản lý chi nhánh & Thợ cố định chi nhánh -->
-                  ${(() => {
-          const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || user?.chucVuSql || '').toUpperCase();
-          const uid = String(user?.id || user?.MaNhanVien || user?.staffId || '').toUpperCase();
-          const isSuper = user && (uid === 'NV00' || roleUpper.includes('ADMIN') || roleUpper.includes('QUẢN TRỊ') || user.username === 'admin');
-          const isBranchMgr = user && !isSuper && (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER'));
-          const isStf = user && !isSuper && !isBranchMgr && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN') || roleUpper.includes('STAFF') || roleUpper.includes('BARBER'));
-
-          if (isSuper) {
-            return `
-                        <div class="dropdown-branch-pill">
-                          <div class="branch-pill-header">
-                            <span>Chi nhánh quản trị:</span>
+                      if (isSuper) {
+                        return `
+                          <div class="dropdown-branch-pill">
+                            <div class="branch-pill-header">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                              <span>Chi nhánh quản trị:</span>
+                            </div>
+                            <select class="header-branch-select" onchange="window.store && window.store.setSelectedBranch(this.value)">
+                              ${branches.map(b => `<option value="${b.id}" ${b.id === currentBranch?.id ? 'selected' : ''}>${(b.TenChiNhanh || b.name).trim()}</option>`).join('')}
+                            </select>
                           </div>
-                          <select class="header-branch-select" onchange="window.store && window.store.setSelectedBranch(this.value)">
-                            ${branches.map(b => `<option value="${b.id}" ${b.id === currentBranch?.id ? 'selected' : ''}>${(b.TenChiNhanh || b.name).trim()}</option>`).join('')}
-                          </select>
-                        </div>
-                      `;
-          }
-          if (isBranchMgr) {
-            const bObj = user?.branchId ? branches.find(b => b.id === user.branchId || b.MaChiNhanh === user.branchId) : null;
-            const userBranchName = (bObj ? (bObj.TenChiNhanh || bObj.name) : null) || user?.branchName || currentBranch?.TenChiNhanh || currentBranch?.name || 'Chi Nhánh Quản Trị';
-            return `
-                        <div class="dropdown-branch-pill">
-                          <div class="branch-pill-header">
-                            <span>Chi nhánh quản trị:</span>
+                        `;
+                      }
+                      if (isBranchMgr) {
+                        const bObj = user?.branchId ? branches.find(b => b.id === user.branchId || b.MaChiNhanh === user.branchId) : null;
+                        const userBranchName = (bObj ? (bObj.TenChiNhanh || bObj.name) : null) || user?.branchName || currentBranch?.TenChiNhanh || currentBranch?.name || 'Chi Nhánh Quản Trị';
+                        return `
+                          <div class="dropdown-branch-pill">
+                            <div class="branch-pill-header">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                              <span>Chi nhánh quản trị:</span>
+                            </div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); padding: 2px 0;">
+                              ${this.escapeHtml(userBranchName.split('—')[0].trim())}
+                            </div>
                           </div>
-                          <div style="font-size: 12.5px; font-weight: 800; color: #f59e0b; padding: 4px 0;">
-                            ${this.escapeHtml(userBranchName.split('—')[0].trim())}
+                        `;
+                      }
+                      if (isStf) {
+                        const userBranchName = user?.branchName || (user?.branchId ? branches.find(b => b.id === user.branchId)?.name : null) || currentBranch?.name || 'Omni Salon Barber';
+                        return `
+                          <div class="dropdown-branch-pill">
+                            <div class="branch-pill-header">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                              <span>Chi nhánh công tác:</span>
+                            </div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); padding: 2px 0;">
+                              ${this.escapeHtml(userBranchName.split('—')[0].trim())}
+                            </div>
                           </div>
-                        </div>
-                      `;
-          }
-          if (isStf) {
-            const userBranchName = user?.branchName || (user?.branchId ? branches.find(b => b.id === user.branchId)?.name : null) || currentBranch?.name || 'Omni Salon Barber';
-            return `
-                        <div class="dropdown-branch-pill">
-                          <div class="branch-pill-header">
-                            <span>Chi nhánh công tác:</span>
-                          </div>
-                          <div style="font-size: 12.5px; font-weight: 800; color: #f59e0b; padding: 4px 0;">
-                            ${this.escapeHtml(userBranchName.split('—')[0].trim())}
-                          </div>
-                        </div>
-                        <button class="dropdown-item-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #14171F; font-weight: 800; margin: 4px 0; border: none; border-radius: 8px; justify-content: center; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);" onclick="CustomerWeb.closeUserMenu(); if(window.AdminWeb) { AdminWeb.adminSubTab = 'receipts'; AdminWeb.inventorySubTab = 'receipts'; CustomerWeb.switchTab('admin'); setTimeout(() => { AdminWeb.switchSubTab('receipts'); AdminWeb.openAddReceiptModal(); }, 200); }">
-                          <span>📥 Lập Phiếu Nhập Kho</span>
-                        </button>
-                      `;
-          }
-          // Khách hàng hoặc chưa đăng nhập: Ẩn hoàn toàn khối chi nhánh phục vụ
-          return '';
-        })()}
+                          <button class="dropdown-item-btn" style="background: var(--surface-card); color: var(--text-primary); font-weight: 700; border: 1px solid var(--border-color); border-radius: 8px; margin: 2px 0;" onclick="CustomerWeb.closeUserMenu(); if(window.AdminWeb) { AdminWeb.adminSubTab = 'receipts'; AdminWeb.inventorySubTab = 'receipts'; CustomerWeb.switchTab('admin'); setTimeout(() => { AdminWeb.switchSubTab('receipts'); AdminWeb.openAddReceiptModal(); }, 200); }">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                            <span>Lập Phiếu Nhập Kho</span>
+                          </button>
+                        `;
+                      }
+                      return '';
+                    })()}
 
-                  <!-- 3. Nút Quản Trị Salon  - Chỉ dành riêng cho Admin / Quản lý / Thu ngân -  -->
-                  ${this.renderAdminButtonHTML(user, isAdmin)}
+                    <!-- Nut Quan Tri Salon cho Admin hoac Quan Ly -->
+                    ${this.renderAdminButtonHTML(user, isAdmin)}
 
-                  <!-- 4. Lịch làm việc & Đăng ký ca làm  - Dành cho Thợ & Thu ngân -  -->
-                  ${(() => {
-          const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || user?.chucVuSql || '').toUpperCase();
-          const isStf = user && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN') || roleUpper.includes('STAFF') || roleUpper.includes('BARBER'));
-          if (isStf) {
-            return `
-                        <button class="dropdown-item-btn" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 800; margin: 4px 0;" onclick="CustomerWeb.openStaffShiftModal(); CustomerWeb.closeUserMenu();">
-                          <span>Lịch Làm Hôm Nay &amp; Đăng Ký Ca</span>
-                        </button>
-                      `;
-          }
-          return '';
-        })()}
+                    <!-- Lich lam viec danh cho Tho va Thu ngan -->
+                    ${(() => {
+                      const roleUpper = String(user?.role || user?.vaiTroSql || user?.VaiTro || user?.ChucVu || user?.chucVuSql || '').toUpperCase();
+                      const isStf = user && (roleUpper.includes('THỢ') || roleUpper.includes('STYLIST') || roleUpper.includes('THU NGÂN') || roleUpper.includes('CASHIER') || roleUpper.includes('NHÂN VIÊN') || roleUpper.includes('STAFF') || roleUpper.includes('BARBER'));
+                      if (isStf) {
+                        return `
+                          <button class="dropdown-item-btn" style="margin: 2px 0;" onclick="CustomerWeb.openStaffShiftModal(); CustomerWeb.closeUserMenu();">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <span>Lịch Làm Hôm Nay &amp; Đăng Ký Ca</span>
+                          </button>
+                        `;
+                      }
+                      return '';
+                    })()}
 
-                  <!-- 5. Nút Đăng Nhập / Đăng Ký / Cá Nhân -->
-                  ${user ? `
+                    <!-- Trang ca nhan va diem thuong -->
                     <button class="dropdown-item-btn" onclick="CustomerWeb.closeUserMenu(); if(window.AppRouter) window.AppRouter.navigate('/profile'); else CustomerWeb.switchTab('profile');">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                       <span>Trang Cá Nhân &amp; Điểm Thưởng</span>
                     </button>
+
+                    <!-- Tra cuu lich hen -->
+                    <button onclick="CustomerWeb.openLookupModal(); CustomerWeb.closeUserMenu();" class="dropdown-item-btn">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                      <span>Tra Cứu Lịch Hẹn</span>
+                    </button>
+
+                    <div style="height: 1px; background: var(--border-color); margin: 4px 0;"></div>
+
+                    <!-- Nut Dang Xuat -->
                     <button class="dropdown-logout-btn" onclick="window.AuthEngine ? window.AuthEngine.logout() : (window.store && window.store.logout()); CustomerWeb._lookupLastQuery = ''; CustomerWeb.currentTab = 'home'; CustomerWeb.renderHeader(); if(window.AppRouter) window.AppRouter.navigate('/'); else CustomerWeb.switchTab('home'); if(window.UICommon) window.UICommon.showToast('Đã đăng xuất tài khoản!'); CustomerWeb.closeUserMenu();">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                       <span>Đăng Xuất</span>
                     </button>
-                  ` : `
-                    <button class="dropdown-primary-btn" onclick="UICommon.openAuthModal('login'); CustomerWeb.closeUserMenu();">
-                      <span>Đăng Nhập / Đăng Ký</span>
-                    </button>
-                  `}
-                </div>
-              </div>
-
-              <!-- Nut Hamburger Menu khi man hinh hep hoac zoom cao -->
-              <button type="button" class="header-action-btn mobile-hamburger-btn" id="webMobileMenuBtn" onclick="CustomerWeb.toggleMobileDrawer()" title="Menu điều hướng" aria-label="Mở menu">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Drawer dieu huong dap ung cho man hinh hep -->
-          <div class="web-mobile-drawer-overlay" id="webMobileDrawerOverlay" onclick="CustomerWeb.closeMobileDrawer()">
-            <div class="web-mobile-drawer" id="webMobileDrawer" onclick="event.stopPropagation()">
-              <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
-                <div class="brand-logo-wrap" onclick="CustomerWeb.switchTab('home'); CustomerWeb.closeMobileDrawer();" style="cursor: pointer;">
-                  <span class="logo-text-omni" style="font-size: 18px; font-weight: 900;">OMNI SALON</span>
-                  <span class="logo-sub-text" style="font-size: 11px; color: #C59B27; font-weight: 700;">Barbershop Đương Đại</span>
-                </div>
-                <button type="button" class="drawer-close-btn" onclick="CustomerWeb.closeMobileDrawer()" aria-label="Đóng menu" style="width: 34px; height: 34px; border-radius: 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                  ✕
-                </button>
-              </div>
-              <nav class="drawer-nav-list" style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                <a href="/" class="drawer-nav-item ${this.currentTab === 'home' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('home'); CustomerWeb.closeMobileDrawer();">
-                  <span>🏠 Trang Chủ</span>
-                </a>
-                <a href="/services" class="drawer-nav-item ${this.currentTab === 'services' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('services'); CustomerWeb.closeMobileDrawer();">
-                  <span>✂️ Dịch Vụ</span>
-                </a>
-                <a href="/stylists" class="drawer-nav-item ${this.currentTab === 'stylists' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists'); CustomerWeb.closeMobileDrawer();">
-                  <span>💈 Thợ Tạo Mẫu</span>
-                </a>
-                <a href="/booking" class="drawer-nav-item text-highlight ${this.currentTab === 'booking' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('booking'); CustomerWeb.closeMobileDrawer();">
-                  <span>📅 Đặt Lịch Hẹn</span>
-                </a>
-                <a href="/shop" class="drawer-nav-item ${this.currentTab === 'shop' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('shop'); CustomerWeb.closeMobileDrawer();">
-                  <span>🛍️ Cửa Hàng</span>
-                </a>
-                <a href="/branches" class="drawer-nav-item ${this.currentTab === 'branches' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('branches'); CustomerWeb.closeMobileDrawer();">
-                  <span>📍 Chi Nhánh</span>
-                </a>
-                <a href="/ai-studio" class="drawer-nav-item text-highlight ${this.currentTab === 'ai' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('ai'); CustomerWeb.closeMobileDrawer();">
-                  <span>✨ AI Tạo Kiểu Tóc</span>
-                </a>
-                <a href="#" class="drawer-nav-item" onclick="event.preventDefault(); CustomerWeb.openLookupModal(); CustomerWeb.closeMobileDrawer();">
-                  <span>🔍 Tra Cứu Lịch Hẹn</span>
-                </a>
-              </nav>
-              <div class="drawer-footer" style="padding-top: 16px; border-top: 1px solid var(--border-color); margin-top: auto;">
-                ${user ? `
-                  <div class="drawer-user-info" style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                    <span class="user-avatar-text" style="width: 34px; height: 34px; font-size: 12px;">${SalonUtils.getInitials(user.fullName || user.name || user.username || 'Omni')}</span>
-                    <div style="display: flex; flex-direction: column; overflow: hidden;">
-                      <strong style="font-size: 13.5px; color: var(--text-primary);">${this.escapeHtml(user.fullName || user.name || user.username)}</strong>
-                      <small style="color: #C59B27; font-weight: 700;">${this.getRoleBadgeText(user)}</small>
-                    </div>
                   </div>
-                  <button type="button" class="drawer-auth-btn" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 13px; font-weight: 700; cursor: pointer;" onclick="window.AuthEngine ? window.AuthEngine.logout() : (window.store && window.store.logout()); CustomerWeb.closeMobileDrawer(); CustomerWeb.switchTab('home');">
-                    Đăng Xuất
+                </div>
+              ` : `
+                <!-- Nut Dang Nhap truc tiep sang trong khi chua dang nhap -->
+                <div class="header-auth-action flex-shrink-0">
+                  <button type="button" class="header-auth-cta-btn" onclick="UICommon.openAuthModal('login')" title="Đăng nhập hoặc đăng ký tài khoản Omni Salon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Đăng Nhập</span>
                   </button>
-                ` : `
-                  <button type="button" class="drawer-auth-btn" style="width: 100%; padding: 11px; border-radius: 8px; background: #C59B27; border: none; color: #141413; font-size: 14px; font-weight: 800; cursor: pointer;" onclick="UICommon.openAuthModal('login'); CustomerWeb.closeMobileDrawer();">
-                    Đăng Nhập / Đăng Ký
-                  </button>
-                `}
-              </div>
+                </div>
+              `}
             </div>
           </div>
         </header>
@@ -983,17 +932,28 @@
       const isManager = !isSuper && (roleUpper.includes('BRANCH') || roleUpper.includes('QUẢN LÝ'));
       const isCashier = !isSuper && !isManager && (roleUpper.includes('CASHIER') || roleUpper.includes('THU NGÂN'));
 
-      // Nhan vien tho khong co nut bang quan tri
       if (!isSuper && !isManager && !isCashier) {
         return '';
       }
 
       const label = isCashier ? 'Quầy Thu Ngân POS' : (isManager ? 'Bàn Làm Việc Quản Lý' : 'Bảng Quản Trị Tối Cao');
+      const sub = isCashier ? 'Thanh toán & Đơn hàng' : (isManager ? 'Vận hành chi nhánh' : 'Toàn quyền hệ thống salon');
       return `
-        <button class="dropdown-admin-btn ${this.currentTab === 'admin' ? 'active' : ''}" 
+        <button type="button" class="dropdown-admin-card-btn ${this.currentTab === 'admin' ? 'active' : ''}" 
                 onclick="CustomerWeb.closeUserMenu(); CustomerWeb.switchTab('${this.currentTab === 'admin' ? 'home' : 'admin'}');" 
-                title="Vào Khu Vực Làm Việc Phân Hệ">
-          ${this.currentTab === 'admin' ? 'Xem Giao Diện Khách' : label}
+                title="Vào khu vực làm việc phân hệ">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="admin-card-icon-box">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C59B27" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+            <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.25;">
+              <span style="font-size: 13.5px; font-weight: 800; color: #FFFFFF;">${this.currentTab === 'admin' ? 'Xem Giao Diện Khách' : label}</span>
+              <span style="font-size: 11px; color: #94A3B8; font-weight: 600;">${sub}</span>
+            </div>
+          </div>
+          <span style="color: #C59B27; font-size: 14px; font-weight: 800;">→</span>
         </button>
       `;
     },

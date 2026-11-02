@@ -108,6 +108,9 @@
         totalChairs,
         isFlagship,
         image,
+        imagePosition: b.imagePosition || 'center',
+        imageZoom: Number(b.imageZoom || 1),
+        imageFit: b.imageFit || 'cover',
         opStatus,
         mapUrl
       };
@@ -121,93 +124,110 @@
       if (!data) return '';
 
       const {
-        onBookClick = `BranchesPage.selectBranchAndBook ? BranchesPage.selectBranchAndBook('${data.id}') : null`
+        onBookClick = `BranchesPage.selectBranchAndBook ? BranchesPage.selectBranchAndBook('${data.id}') : null`,
+        showAdminControls = false
       } = options;
+
+      const adminFloatBarHtml = showAdminControls ? `
+        <div class="branch-photo-float-bar">
+          <button type="button" class="btn-float-ctrl" onclick="AdminWeb.nudgeBranchImage('left')" title="Dịch trái (X -5%)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="btn-float-ctrl" onclick="AdminWeb.nudgeBranchImage('up')" title="Dịch lên (Y -5%)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+          </button>
+          <button type="button" class="btn-float-ctrl" onclick="AdminWeb.nudgeBranchImage('down')" title="Dịch xuống (Y +5%)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <button type="button" class="btn-float-ctrl" onclick="AdminWeb.nudgeBranchImage('right')" title="Dịch phải (X +5%)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+
+          <span class="float-ctrl-sep"></span>
+
+          <button type="button" class="btn-float-ctrl" onclick="AdminWeb.stepBranchZoom(-0.1)" title="Thu nhỏ (-10%)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button type="button" class="btn-float-ctrl" onclick="AdminWeb.stepBranchZoom(0.1)" title="Phóng to (+10%)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+
+          <span class="float-ctrl-sep"></span>
+
+          <button type="button" class="btn-float-ctrl" onclick="AdminWeb.resetBranchImageAdjustments()" title="Đặt lại mặc định">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+        </div>
+      ` : '';
 
       return `
         <article class="branch-clean-card" id="branchCard_${data.id}" data-branch-id="${data.id}">
           
-          <!-- HÌNH ẢNH MẶT TIỀN SALON & HUY HIỆU TRẠNG THÁI -->
+          <!-- HINH ANH MAT TIEN SALON O TREN -->
           <div class="branch-media-box">
             <img src="${data.image}" 
                  alt="${data.shortName}" 
                  loading="lazy" 
                  class="branch-cover-img"
+                 style="object-position: ${data.imagePosition || 'center'}; transform-origin: ${data.imagePosition || '50% 50%'}; ${data.imageZoom && data.imageZoom !== 1 ? 'transform: scale(' + data.imageZoom + ') !important;' : ''} transition: transform 0.12s ease-out, object-position 0.12s ease-out;"
                  onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80');">
             
-            <!-- Huy hiệu quận -->
+            <!-- Huy hieu quan -->
             <div class="branch-badges-top">
               <span class="branch-district-tag">${data.district}</span>
             </div>
 
-            <!-- Trạng thái hoạt động thời gian thực -->
+            <!-- Trang thai hoat dong thoi gian thuc -->
             <div class="branch-status-floating ${data.opStatus.badgeClass}">
               <span class="status-indicator-dot"></span>
               <span>${data.opStatus.label} • ${data.opStatus.subtext}</span>
             </div>
+
+            ${adminFloatBarHtml}
           </div>
 
-          <!-- NỘI DUNG CHI TIẾT CHI NHÁNH -->
+          <!-- NOI DUNG CHI TIET CHI NHANH O DUOI (CHUAN TASTE-SKILL, KHONG DUNG ICON AI) -->
           <div class="branch-content-body">
             <div>
-              
-
               <h3 class="branch-name-title font-serif tracking-tight leading-tight" title="${data.shortName}">
                 ${data.shortName}
               </h3>
 
-              <!-- THÔNG TIN ĐỊA CHỈ & LIÊN HỆ (LUCIDE SVG STROKE 1.5) -->
-              <div class="branch-info-list">
-                <div class="branch-info-row">
-                  <span class="info-icon" style="color: var(--brand-accent, #C59B27); display: inline-flex; align-items: center; margin-top: 2px;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
-                      <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                  </span>
-                  <span class="info-text branch-address-val">${data.address}</span>
+              <div class="branch-meta-specs">
+                <div class="branch-meta-item">
+                  <span class="meta-label">Địa chỉ</span>
+                  <span class="meta-value branch-address-val">${data.address}</span>
                 </div>
 
-                <div class="branch-info-row">
-                  <span class="info-icon" style="color: var(--brand-accent, #C59B27); display: inline-flex; align-items: center; margin-top: 2px;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <circle cx="12" cy="12" r="10"/>
-                      <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                  </span>
-                  <span class="info-text">Giờ mở cửa: <strong>${data.hours}</strong></span>
+                <div class="branch-meta-item">
+                  <span class="meta-label">Giờ mở cửa</span>
+                  <span class="meta-value"><strong>${data.hours}</strong></span>
                 </div>
 
-                <div class="branch-info-row">
-                  <span class="info-icon" style="color: var(--brand-accent, #C59B27); display: inline-flex; align-items: center; margin-top: 2px;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                    </svg>
+                <div class="branch-meta-item">
+                  <span class="meta-label">Hotline</span>
+                  <span class="meta-value">
+                    <a href="tel:${data.phone}" class="branch-phone-link">${data.phone}</a>
                   </span>
-                  <span class="info-text">Hotline: <a href="tel:${data.phone}" class="branch-phone-link">${data.phone}</a></span>
                 </div>
               </div>
             </div>
 
-            <!-- HÀNH ĐỘNG THỰC TẾ: CHỈ ĐƯỜNG & ĐẶT LỊCH HẸN -->
+            <!-- HANH DONG THUC TE: DAT LICH HEN & CHI DUONG (KHONG ICON AI THUA THAI) -->
             <div class="branch-actions-row">
+              <button type="button"
+                      class="branch-book-btn"
+                      onclick="${onBookClick}">
+                Đặt Lịch Hẹn
+              </button>
+
               <a href="${data.mapUrl}" 
                  target="_blank" 
                  rel="noopener noreferrer" 
                  class="branch-map-btn" 
                  title="Mở bản đồ Google Maps chỉ đường đến chi nhánh này">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polygon points="3 11 22 2 13 21 11 13 3 11"/>
-                </svg>
-                <span>Chỉ Đường</span>
+                Chỉ Đường
               </a>
-
-              <button type="button"
-                      class="branch-book-btn"
-                      onclick="${onBookClick}">
-                <span>Đặt Lịch</span>
-                <span>→</span>
-              </button>
             </div>
 
           </div>

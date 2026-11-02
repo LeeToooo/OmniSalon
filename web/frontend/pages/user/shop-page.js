@@ -134,6 +134,7 @@
 
       const categories = this.getCategoriesList();
       const filtered = this.getFilteredProducts();
+      const allActiveProducts = this.getAllActiveProducts();
 
       // Xac dinh nhan hien thi cho 3 Dropdown
       let activeCatLabel = 'Tất Cả';
@@ -208,7 +209,6 @@
       if (this.selectedPriceRange !== 'all') {
         activeFilterSummary += (activeFilterSummary ? ' • ' : '') + 'Mức giá: ' + activePriceLabel;
       }
-      const allActiveProducts = this.getAllActiveProducts();
 
       container.innerHTML = `
         <div class="shop-page-shell" style="background-color: var(--bg-primary); min-height: 100vh; color: var(--text-primary); padding: 48px 0 88px;">
@@ -242,7 +242,7 @@
                 <!-- Dropdown Danh Mục -->
                 <div class="shop-dropdown-wrap">
                   <button type="button" id="shopCatDropdownBtn" class="shop-dropdown-btn ${this.selectedCategory !== 'all' ? 'active' : ''}" onclick="ShopPage.toggleDropdown('shopCatDropdown', event)">
-                    <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">DANH MỤC:</span>
+                    <span style="font-size: 13px; font-weight: 800; color: var(--text-primary); margin-right: 4px;">Danh mục:</span>
                     <span>${activeCatLabel}</span>
                     <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>
@@ -276,7 +276,7 @@
                 <!-- Dropdown Thương Hiệu -->
                 <div class="shop-dropdown-wrap">
                   <button type="button" id="shopBrandDropdownBtn" class="shop-dropdown-btn ${this.selectedBrand !== 'all' ? 'active' : ''}" onclick="ShopPage.toggleDropdown('shopBrandDropdown', event)">
-                    <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">THƯƠNG HIỆU:</span>
+                    <span style="font-size: 13px; font-weight: 800; color: var(--text-primary); margin-right: 4px;">Thương hiệu:</span>
                     <span>${activeBrandLabel}</span>
                     <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>
@@ -298,7 +298,7 @@
                 <!-- Dropdown Mức Giá -->
                 <div class="shop-dropdown-wrap">
                   <button type="button" id="shopPriceDropdownBtn" class="shop-dropdown-btn ${this.selectedPriceRange !== 'all' ? 'active' : ''}" onclick="ShopPage.toggleDropdown('shopPriceDropdown', event)">
-                    <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">MỨC GIÁ:</span>
+                    <span style="font-size: 13px; font-weight: 800; color: var(--text-primary); margin-right: 4px;">Mức giá:</span>
                     <span>${activePriceLabel}</span>
                     <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>
@@ -516,10 +516,10 @@
             <div class="bento-card-bg" style="background-image: url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80');"></div>
             <div class="bento-card-overlay"></div>
             <div class="bento-card-content">
-              <span class="bento-tag">BỘ SƯU TẬP QUÝ ÔNG</span>
-              <h3 class="bento-title font-serif">Pomade Cao Cấp</h3>
-              <p class="bento-desc">Gốc dầu và gốc nước cho độ bóng bẩy chuẩn mực, phom tóc Pompadour &amp; Slick Back lịch lãm vượt thời gian.</p>
-              <div class="bento-btn">KHÁM PHÁ NGAY &rarr;</div>
+              <span class="bento-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important;">BỘ SƯU TẬP QUÝ ÔNG</span>
+              <h3 class="bento-title font-serif" style="color: #FFFFFF !important; ">Pomade Cao Cấp</h3>
+              <p class="bento-desc" style="color: rgba(255, 255, 255, 0.95) !important;">Độ bóng bẩy chuẩn mực, tạo phom Pompadour lịch lãm.</p>
+              <div class="bento-btn" style="color: #FBBF24 !important; font-weight: 800;">KHÁM PHÁ NGAY &rarr;</div>
             </div>
           </div>
 
@@ -530,9 +530,9 @@
               <div class="bento-card-bg" style="background-image: url('https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=700&q=80');"></div>
               <div class="bento-card-overlay"></div>
               <div class="bento-card-content">
-                <span class="bento-tag">VOLUME &amp; TEXTURE</span>
-                <h4 class="bento-title-small">Clay &amp; Fiber Tạo Phồng</h4>
-                <div class="bento-btn-small">MUA NGAY &rarr;</div>
+                <span class="bento-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important;">VOLUME &amp; TEXTURE</span>
+                <h4 class="bento-title-small" style="color: #FFFFFF !important; ">Clay &amp; Fiber Tạo Phồng</h4>
+                <div class="bento-btn-small" style="color: #FBBF24 !important; font-weight: 800;">MUA NGAY &rarr;</div>
               </div>
             </div>
 
@@ -542,8 +542,8 @@
               <div class="bento-card-overlay bento-overlay-sale"></div>
               <div class="bento-card-content">
                 <span class="bento-tag bento-tag-sale">ƯU ĐÃI GIỚI HẠN</span>
-                <h4 class="bento-title-small">Flash Sale Giảm Đến 40%</h4>
-                <div class="bento-btn-small bento-btn-sale">SĂN DEAL NGAY &rarr;</div>
+                <h4 class="bento-title-small" style="color: #FFFFFF !important; ">Flash Sale Giảm Đến 40%</h4>
+                <div class="bento-btn-small bento-btn-sale" style="color: #FCA5A5 !important; font-weight: 800;">SĂN DEAL NGAY &rarr;</div>
               </div>
             </div>
           </div>
@@ -558,10 +558,10 @@
             <div class="campaign-banner-bg" style="background-image: url('https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=800&q=80');"></div>
             <div class="campaign-banner-overlay"></div>
             <div class="campaign-banner-content">
-              <span class="campaign-tag">PRE-STYLING &amp; BẢO VỆ NHIỆT</span>
-              <h3 class="campaign-title font-serif">Xịt Muối Biển &amp; Pre-Styling</h3>
-              <p class="campaign-desc">Bảo vệ sợi tóc khỏi nhiệt độ máy sấy, tăng volume bồng bềnh và kết cấu texture tự nhiên.</p>
-              <div class="campaign-btn">KHÁM PHÁ NGAY &rarr;</div>
+              <span class="campaign-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important; border: 1px solid rgba(251, 191, 36, 0.4) !important;">PRE-STYLING &amp; BẢO VỆ NHIỆT</span>
+              <h3 class="campaign-title font-serif" style="color: #FFFFFF !important; ">Xịt Muối Biển &amp; Pre-Styling</h3>
+              <p class="campaign-desc" style="color: rgba(255, 255, 255, 0.95) !important;">Bảo vệ tóc khỏi nhiệt sấy, tăng volume bồng bềnh.</p>
+              <div class="campaign-btn" style="color: #FBBF24 !important; font-weight: 800;">KHÁM PHÁ NGAY &rarr;</div>
             </div>
           </div>
 
@@ -569,10 +569,10 @@
             <div class="campaign-banner-bg" style="background-image: url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80');"></div>
             <div class="campaign-banner-overlay"></div>
             <div class="campaign-banner-content">
-              <span class="campaign-tag">CHĂM SÓC CHUYÊN SÂU</span>
-              <h3 class="campaign-title font-serif">Dầu Gội &amp; Dưỡng Phục Hồi</h3>
-              <p class="campaign-desc">Cân bằng dầu nhờn da đầu nam giới, ngăn gàu và phục hồi sợi tóc hư tổn từ gốc.</p>
-              <div class="campaign-btn">MUA NGAY &rarr;</div>
+              <span class="campaign-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important; border: 1px solid rgba(251, 191, 36, 0.4) !important;">CHĂM SÓC CHUYÊN SÂU</span>
+              <h3 class="campaign-title font-serif" style="color: #FFFFFF !important; ">Dầu Gội &amp; Dưỡng Phục Hồi</h3>
+              <p class="campaign-desc" style="color: rgba(255, 255, 255, 0.95) !important;">Cân bằng dầu da đầu, ngăn gàu và phục hồi chân tóc.</p>
+              <div class="campaign-btn" style="color: #FBBF24 !important; font-weight: 800;">MUA NGAY &rarr;</div>
             </div>
           </div>
         </div>

@@ -1504,135 +1504,184 @@ const UICommon = {
     modal.classList.add('active', 'modal-auth');
     const shell = modal.querySelector('.modal-content-shell');
     if (shell) {
-      shell.style.maxWidth = '480px';
+      shell.style.maxWidth = '460px';
       shell.style.width = '95vw';
+      shell.style.borderRadius = '14px';
+      shell.style.padding = '30px 28px';
     }
 
-    const titleText = this.authTab === 'login' ? 'Đăng Nhập Tài Khoản' : (this.authTab === 'register' ? 'Đăng Ký Mới' : 'Khôi Phục Mật Khẩu');
+    const titleText = this.authTab === 'login' ? 'Đăng Nhập Tài Khoản' : (this.authTab === 'register' ? 'Đăng Ký Thành Viên' : 'Khôi Phục Mật Khẩu');
 
     modalBody.innerHTML = `
       <div class="auth-modal-content">
-        <div style="text-align: center; margin-bottom: 22px;">
-          <h2 class="auth-modal-title font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; margin: 0 0 6px; color: var(--text-primary);">${titleText}</h2>
-          <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0; line-height: 1.5;">Đồng bộ đa nền tảng Web Portal, App Mobile và Quản Trị</p>
+        <!-- Brand Header sang trong -->
+        <div style="text-align: center; margin-bottom: 20px;">
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #C59B27; display: block; margin-bottom: 6px;">
+            OMNI SALON • BARBERSHOP ĐƯƠNG ĐẠI
+          </span>
+          <h2 class="auth-modal-title font-serif tracking-tight leading-tight" style="font-size: 25px; font-weight: 800; margin: 0 0 6px; color: var(--text-primary); letter-spacing: -0.02em;">
+            ${titleText}
+          </h2>
+          <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+            Đồng bộ đặt lịch hẹn, tích điểm thành viên và ưu đãi độc quyền.
+          </p>
         </div>
 
-        <!-- Thanh chuyen tab phan doan -->
-        <div class="auth-segmented-nav">
-          <button type="button" class="auth-segmented-nav-btn ${this.authTab === 'login' ? 'active' : ''}" onclick="UICommon.openAuthModal('login')">
+        <!-- Thanh chuyen tab phan doan cao cap -->
+        <div class="auth-segmented-nav" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: var(--surface-elevated, #F3EFEA); border: 1px solid var(--border-color, #E2E8F0); border-radius: 8px; padding: 4px; margin-bottom: 20px;">
+          <button type="button" class="auth-segmented-nav-btn ${this.authTab === 'login' ? 'active' : ''}" onclick="UICommon.openAuthModal('login')" style="padding: 9px; font-size: 13.5px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; transition: all 0.15s ease;">
             Đăng Nhập
           </button>
-          <button type="button" class="auth-segmented-nav-btn ${this.authTab === 'register' ? 'active' : ''}" onclick="UICommon.openAuthModal('register')">
+          <button type="button" class="auth-segmented-nav-btn ${this.authTab === 'register' ? 'active' : ''}" onclick="UICommon.openAuthModal('register')" style="padding: 9px; font-size: 13.5px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; transition: all 0.15s ease;">
             Đăng Ký Mới
           </button>
-          <button type="button" class="auth-segmented-nav-btn ${this.authTab === 'reset' ? 'active' : ''}" onclick="UICommon.openAuthModal('reset')">
-            Đổi Mật Khẩu
+          <button type="button" class="auth-segmented-nav-btn ${this.authTab === 'reset' ? 'active' : ''}" onclick="UICommon.openAuthModal('reset')" style="padding: 9px; font-size: 13.5px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; transition: all 0.15s ease;">
+            Quên Mật Khẩu
           </button>
         </div>
 
         ${this.authTab === 'login' ? `
           <!-- Tab dang nhap tai khoan -->
           <form onsubmit="event.preventDefault(); UICommon.handleLogin();">
-            <div style="margin-bottom: 16px;">
+            <div style="margin-bottom: 14px;">
               <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Email, Tên đăng nhập hoặc Số điện thoại:</label>
-              <input type="text" id="loginAccount" class="form-control-custom" placeholder="Ví dụ: user_nv01, user_kh01, 0908..." required autocomplete="username">
+              <input type="text" id="loginAccount" class="form-control-custom" placeholder="Ví dụ: admin, user_nv01, 0908..." required autocomplete="username" style="width: 100%; height: 44px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
             </div>
             <div style="margin-bottom: 18px;">
               <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
                 <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0;">Mật khẩu:</label>
-                <a href="javascript:void(0)" onclick="UICommon.openAuthModal('reset')" style="color: #d97706; font-size: 12.5px; font-weight: 700; text-decoration: none;">Quên mật khẩu?</a>
+                <a href="javascript:void(0)" onclick="UICommon.openAuthModal('reset')" style="color: #C59B27; font-size: 13px; font-weight: 700; text-decoration: none;">Quên mật khẩu?</a>
               </div>
               <div style="position: relative; display: flex; align-items: center;">
-                <input type="password" id="loginPassword" class="form-control-custom" style="padding-right: 44px; width: 100%;" placeholder="Nhập mật khẩu tài khoản" required autocomplete="current-password">
-                <button type="button" onclick="UICommon.togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                <input type="password" id="loginPassword" class="form-control-custom" style="width: 100%; height: 44px; padding-left: 14px; padding-right: 44px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;" placeholder="Nhập mật khẩu tài khoản" required autocomplete="current-password">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 6px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn-submit-terracotta" style="width: 100%; min-height: 48px; font-size: 15px; font-weight: 800; border-radius: 12px; margin-top: 6px;">Đăng Nhập Ngay →</button>
+            <button type="submit" class="btn-submit-terracotta" style="width: 100%; height: 46px; font-size: 15px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #141413; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease;">
+              Đăng Nhập Ngay →
+            </button>
           </form>
+
+          <!-- Quick Demo Switcher cho Hoi dong va khao sat nhanh -->
+          <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; text-align: center;">
+              Đăng Nhập Nhanh Trải Nghiệm:
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <button type="button" onclick="UICommon.quickDemoLogin('admin', 'admin123')" style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;">
+                <span>👑 Quản Trị Tối Cao</span>
+              </button>
+              <button type="button" onclick="UICommon.quickDemoLogin('user_nv01', 'LeHoangHai')" style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;">
+                <span>👔 Quản Lý Q1</span>
+              </button>
+              <button type="button" onclick="UICommon.quickDemoLogin('user_nv02', 'DoDinhDo')" style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;">
+                <span>✂️ Thợ Barber NV01</span>
+              </button>
+              <button type="button" onclick="UICommon.quickDemoLogin('user_kh01', 'NgoVanTuan')" style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;">
+                <span>👤 Khách Hàng VIP</span>
+              </button>
+            </div>
+          </div>
         ` : this.authTab === 'reset' ? `
           <!-- Tab quen mat khau va nhan ma xac thuc -->
           <form onsubmit="event.preventDefault(); UICommon.handleResetPassword();">
             <div style="margin-bottom: 14px;">
               <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Gmail hoặc Số điện thoại tài khoản:</label>
               <div style="display: flex; gap: 8px;">
-                <input type="text" id="resetIdentifier" class="form-control-custom" placeholder="nhapemail@gmail.com hoặc SĐT" required style="flex: 1;">
-                <button type="button" id="btnSendResetOtp" onclick="UICommon.sendResetOtp()" style="background: linear-gradient(180deg, #f59e0b, #d97706); color: #ffffff; font-weight: 800; font-size: 13.5px; padding: 0 18px; border-radius: 10px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
+                <input type="text" id="resetIdentifier" class="form-control-custom" placeholder="nhapemail@gmail.com hoặc SĐT" required style="flex: 1; height: 44px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
+                <button type="button" id="btnSendResetOtp" onclick="UICommon.sendResetOtp()" style="background: #141413; color: #FFFFFF; font-weight: 700; font-size: 13px; padding: 0 16px; border-radius: 8px; border: 1px solid #2E2E2C; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
                   Gửi Mã
                 </button>
               </div>
             </div>
             <div style="margin-bottom: 14px;">
               <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Mã Xác Nhận Gmail 6 số:</label>
-              <input type="text" id="resetOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số (VD: 839201)" maxlength="6" required>
-              <div id="resetOtpStatusTip" style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">
+              <input type="text" id="resetOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số (VD: 839201)" maxlength="6" required style="width: 100%; height: 44px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
+              <div id="resetOtpStatusTip" style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
                 Mã xác thực gồm 6 chữ số có hiệu lực trong 5 phút. Vui lòng kiểm tra hộp thư đến hoặc mục Thư rác.
               </div>
             </div>
             <div style="margin-bottom: 18px;">
               <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Mật khẩu mới cần đổi:</label>
               <div style="position: relative; display: flex; align-items: center;">
-                <input type="password" id="resetPasswordInput" class="form-control-custom" style="padding-right: 44px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
-                <button type="button" onclick="UICommon.togglePasswordVisibility('resetPasswordInput', this)" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                <input type="password" id="resetPasswordInput" class="form-control-custom" style="width: 100%; height: 44px; padding-left: 14px; padding-right: 44px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('resetPasswordInput', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 6px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn-submit-terracotta" style="width: 100%; min-height: 48px; font-size: 15px; font-weight: 800; border-radius: 12px;">Lưu Mật Khẩu Mới →</button>
+            <button type="submit" class="btn-submit-terracotta" style="width: 100%; height: 46px; font-size: 15px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #141413; border: none; cursor: pointer; transition: all 0.2s ease;">
+              Lưu Mật Khẩu Mới →
+            </button>
+            <div style="text-align: center; margin-top: 14px;">
+              <a href="javascript:void(0)" onclick="UICommon.openAuthModal('login')" style="color: #C59B27; font-size: 13.5px; font-weight: 700; text-decoration: none;">
+                ← Quay lại Đăng Nhập
+              </a>
+            </div>
           </form>
-          <div style="font-size: 12px; color: var(--text-secondary); text-align: center; margin-top: 12px;">
-            Mật khẩu mới sẽ được cập nhật trực tiếp vào cơ sở dữ liệu OmniSalon!
-          </div>
         ` : `
           <!-- Tab dang ky thanh vien moi -->
           <form onsubmit="event.preventDefault(); UICommon.handleRegister();">
             <div style="margin-bottom: 12px;">
-              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Họ và Tên Khách Hàng:</label>
-              <input type="text" id="regFullName" class="form-control-custom" placeholder="Nguyễn Văn A" required>
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; display: block;">Họ và Tên Khách Hàng:</label>
+              <input type="text" id="regFullName" class="form-control-custom" placeholder="Nguyễn Văn A" required style="width: 100%; height: 42px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
             </div>
             <div style="margin-bottom: 12px;">
-              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Số Điện Thoại:</label>
-              <input type="tel" id="regPhone" class="form-control-custom" placeholder="0908123456" required pattern="[0-9]{9,11}">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; display: block;">Số Điện Thoại:</label>
+              <input type="tel" id="regPhone" class="form-control-custom" placeholder="0908123456" required pattern="[0-9]{9,11}" style="width: 100%; height: 42px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
             </div>
             <div style="margin-bottom: 12px;">
-              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Ngày Sinh:</label>
-              <input type="date" id="regBirthday" class="form-control-custom" required max="2025-12-31" style="color-scheme: dark;">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; display: block;">Ngày Sinh:</label>
+              <input type="date" id="regBirthday" class="form-control-custom" required max="2025-12-31" style="width: 100%; height: 42px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
             </div>
             <div style="margin-bottom: 12px;">
-              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Gmail Xác Thực Nhận Mã OTP:</label>
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; display: block;">Gmail Xác Thực Nhận Mã OTP:</label>
               <div style="display: flex; gap: 8px;">
-                <input type="email" id="regEmail" class="form-control-custom" placeholder="khachhang@gmail.com" required style="flex: 1;">
-                <button type="button" id="btnSendOtp" onclick="UICommon.sendEmailOtp()" style="background: linear-gradient(180deg, #f59e0b, #d97706); color: #ffffff; font-weight: 800; font-size: 13.5px; padding: 0 18px; border-radius: 10px; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
+                <input type="email" id="regEmail" class="form-control-custom" placeholder="khachhang@gmail.com" required style="flex: 1; height: 42px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
+                <button type="button" id="btnSendOtp" onclick="UICommon.sendEmailOtp()" style="background: #141413; color: #FFFFFF; font-weight: 700; font-size: 13px; padding: 0 16px; border-radius: 8px; border: 1px solid #2E2E2C; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
                   Gửi Mã
                 </button>
               </div>
             </div>
-            <div style="margin-bottom: 14px;" id="regOtpGroup">
-              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Mã Xác Nhận Gmail 6 số:</label>
-              <input type="text" id="regOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số (VD: 839201)" maxlength="6" required>
-              <div id="otpStatusTip" style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">
+            <div style="margin-bottom: 12px;" id="regOtpGroup">
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; display: block;">Mã Xác Nhận Gmail 6 số:</label>
+              <input type="text" id="regOtp" class="form-control-custom" placeholder="Nhập mã 6 chữ số (VD: 839201)" maxlength="6" required style="width: 100%; height: 42px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
+              <div id="otpStatusTip" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
                 Mã xác nhận 6 số có hiệu lực trong 5 phút. Vui lòng kiểm tra hộp thư đến hoặc mục Thư rác.
               </div>
             </div>
             <div style="margin-bottom: 18px;">
-              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Mật khẩu khởi tạo:</label>
+              <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; display: block;">Mật khẩu khởi tạo:</label>
               <div style="position: relative; display: flex; align-items: center;">
-                <input type="password" id="regPassword" class="form-control-custom" style="padding-right: 44px; width: 100%;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
-                <button type="button" onclick="UICommon.togglePasswordVisibility('regPassword', this)" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
+                <input type="password" id="regPassword" class="form-control-custom" style="width: 100%; height: 42px; padding-left: 14px; padding-right: 44px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;" placeholder="Tối thiểu 6 ký tự" required minlength="6">
+                <button type="button" onclick="UICommon.togglePasswordVisibility('regPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 6px; display: inline-flex; align-items: center; justify-content: center; z-index: 2;" title="Hiển thị hoặc ẩn mật khẩu" aria-label="Hiện mật khẩu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn-submit-terracotta" style="width: 100%; min-height: 48px; font-size: 15px; font-weight: 800; border-radius: 12px;">Tạo Tài Khoản Thành Viên →</button>
+            <button type="submit" class="btn-submit-terracotta" style="width: 100%; height: 46px; font-size: 15px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #141413; border: none; cursor: pointer; transition: all 0.2s ease;">
+              Tạo Tài Khoản Thành Viên →
+            </button>
           </form>
-          <div style="font-size: 12px; color: var(--text-secondary); text-align: center; margin-top: 12px;">
+          <div style="font-size: 12.5px; color: var(--text-secondary); text-align: center; margin-top: 12px;">
             Đăng ký tài khoản để tích điểm đổi quà và lưu giữ bộ sưu tập tóc Omni Salon!
           </div>
         `}
       </div>
     `;
     modal.classList.add('active');
+  },
+
+  quickDemoLogin(acc, pass) {
+    const accEl = document.getElementById('loginAccount');
+    const passEl = document.getElementById('loginPassword');
+    if (accEl && passEl) {
+      accEl.value = acc;
+      passEl.value = pass;
+      this.handleLogin();
+    }
   },
 
   async handleLogin() {

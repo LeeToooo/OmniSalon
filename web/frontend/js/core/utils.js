@@ -41,7 +41,7 @@
       return String(dateStr);
     },
 
-    formatDateTime(dateStr) {
+    formatDateTime(dateStr, withSeconds = false) {
       if (!dateStr) return '';
       try {
         const d = new Date(dateStr);
@@ -51,7 +51,10 @@
           const year = d.getFullYear();
           const hours = String(d.getHours()).padStart(2, '0');
           const minutes = String(d.getMinutes()).padStart(2, '0');
-          return `${day}/${month}/${year} ${hours}:${minutes}`;
+          const sec = String(d.getSeconds()).padStart(2, '0');
+          return withSeconds
+            ? `${day}/${month}/${year} ${hours}:${minutes}:${sec}`
+            : `${day}/${month}/${year} ${hours}:${minutes}`;
         }
       } catch (e) {}
       return this.formatDate(dateStr);

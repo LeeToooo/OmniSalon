@@ -984,7 +984,10 @@
         city: city,
         region: city === 'Hà Nội' ? 'hn' : city === 'Đà Nẵng' ? 'dn' : 'hcm',
         image: branchData.image || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80',
-        status: branchData.status || 'Hoạt động'
+        status: branchData.status || 'Hoạt động',
+        imagePosition: branchData.imagePosition || 'center',
+        imageFit: branchData.imageFit || 'cover',
+        imageZoom: Number(branchData.imageZoom || 1)
       };
 
       if (!this.state.branches) this.state.branches = [];
@@ -1040,6 +1043,60 @@
 
     getUsers() {
       return this.state.users || [];
+    }
+
+    async updateUserRole(userId, newRole) {
+      if (!userId || !newRole) return null;
+      const roleMap = {
+        SUPER_ADMIN: 'Quản trị viên',
+        BRANCH_MANAGER: 'Quản lý',
+        CASHIER: 'Thu ngân',
+        STYLIST: 'Nhân viên',
+        STAFF: 'Nhân viên',
+        CUSTOMER: 'Khách hàng'
+      };
+      const vaiTro = roleMap[newRole] || newRole;
+      const roleCode = Object.keys(roleMap).find(k => roleMap[k] === vaiTro) || newRole;
+
+      /* 1. Cap nhat trong store state */
+      const users = this.state.users || [];
+      const user = users.find(u => u.MaTaiKhoan === userId || u.TenDangNhap === userId || u.id === userId || u.username === userId);
+      if (user) {
+        user.VaiTro = vaiTro;
+        user.role = roleCode;
+        user.roleName = vaiTro;
+      }
+
+      /* 2. Cap nhat trong Auth engine neu ton tai */
+      if (typeof window !== 'undefined' && window.Auth && typeof window.Auth.getAllUsers === 'function') {
+        const authUser = window.Auth.getAllUsers().find(u => u.id === userId || u.username === userId || u.MaTaiKhoan === userId || u.TenDangNhap === userId);
+        if (authUser) {
+          authUser.role = roleCode;
+          authUser.vaiTro = vaiTro;
+          authUser.vaiTroSql = vaiTro;
+          authUser.roleName = vaiTro;
+        }
+      }
+
+      /* 3. Ghi nhat ky kiem toan audit */
+      const opName = user ? (user.HoTen || user.fullName || user.TenDangNhap || user.username) : userId;
+      if (typeof this.logAudit === 'function') {
+        this.logAudit('UPDATE_USER_ROLE', `Tài khoản: ${user?.TenDangNhap || user?.username || userId}`, `Cập nhật vai trò: ${vaiTro} [${roleCode}]`);
+      }
+
+      /* 4. Dong bo backend API */
+      try {
+        await fetch('/api/users/role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: userId, role: roleCode, vaiTro })
+        });
+      } catch (e) {
+        /* Offline local fallback */
+      }
+
+      if (typeof this.saveState === 'function') this.saveState();
+      return user || { id: userId, username: userId, role: roleCode, VaiTro: vaiTro };
     }
 
     // -----------------------------------------------------------------------
@@ -3091,6 +3148,71 @@
 
     getSupplierById(supplierId) {
       return (this.state.suppliers || []).find(s => s.id === supplierId || s.MaNhaCungCap === supplierId) || null;
+    }
+
+    async addSupplier(data) {
+      try {
+        const res = await fetch('/api/suppliers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const resJson = await res.json();
+        if (resJson && resJson.success && resJson.supplier) {
+          if (!this.state.suppliers) this.state.suppliers = [];
+          this.state.suppliers.push(resJson.supplier);
+          this.saveToStorage();
+          return resJson.supplier;
+        }
+      } catch (err) {
+        console.warn('API error addSupplier, fallback local:', err);
+      }
+      /* Fallback local */
+      const id = data.id || ('NCC' + String(Date.now()).slice(-3));
+      const newSup = { ...data, id, MaNhaCungCap: id, status: data.status || 'Hoạt động' };
+      if (!this.state.suppliers) this.state.suppliers = [];
+      this.state.suppliers.push(newSup);
+      this.saveToStorage();
+      return newSup;
+    }
+
+    async updateSupplier(supplierId, data) {
+      try {
+        const res = await fetch('/api/suppliers/' + encodeURIComponent(supplierId), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        await res.json();
+      } catch (err) {
+        console.warn('API error updateSupplier, fallback local:', err);
+      }
+      /* Update local state */
+      if (this.state.suppliers) {
+        const idx = this.state.suppliers.findIndex(s => s.id === supplierId || s.MaNhaCungCap === supplierId);
+        if (idx !== -1) {
+          this.state.suppliers[idx] = { ...this.state.suppliers[idx], ...data };
+          this.saveToStorage();
+        }
+      }
+      return true;
+    }
+
+    async deleteSupplier(supplierId) {
+      try {
+        const res = await fetch('/api/suppliers/' + encodeURIComponent(supplierId), {
+          method: 'DELETE'
+        });
+        await res.json();
+      } catch (err) {
+        console.warn('API error deleteSupplier, fallback local:', err);
+      }
+      /* Update local state */
+      if (this.state.suppliers) {
+        this.state.suppliers = this.state.suppliers.filter(s => s.id !== supplierId && s.MaNhaCungCap !== supplierId);
+        this.saveToStorage();
+      }
+      return true;
     }
 
     getDiscountRules() {

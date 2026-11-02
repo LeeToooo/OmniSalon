@@ -477,7 +477,10 @@ body.dark .btn-flat-outline:hover:not(:disabled) {
   background: #121622 !important;
 }
 
-/* Thẻ chi nhánh */
+/* =========================================================================
+   TASTE-SKILL VERTICAL BRANCH CARD (ANH TREN, CHU DUOI THEO YEU CAU)
+   ========================================================================= */
+
 .branch-clean-card {
   position: relative !important;
   display: flex !important;
@@ -548,7 +551,46 @@ body.dark .branch-media-box {
 }
 
 .branch-clean-card:hover .branch-cover-img {
-  transform: scale(1.04) !important;
+  filter: brightness(1.02) !important;
+}
+
+#branchWebDemoCardContainer .branch-cover-img,
+#branchEditorMediaContainer .branch-cover-img {
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), object-position 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+#branchEditorMediaContainer.is-dragging .branch-cover-img {
+  transition: none !important;
+}
+
+/* Row hover and active highlight for Admin Branch Table */
+.admin-branch-table-row {
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-branch-table-row:hover:not(.is-selected) {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.admin-branch-table-row.is-selected {
+  background: rgba(197, 155, 39, 0.16) !important;
+  box-shadow: inset 3px 0 0 #C59B27 !important;
+}
+
+/* Split Layout cho Form Chi Nhanh Admin */
+.branch-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 420px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .branch-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
 }
 
 .branch-badges-top {
@@ -562,7 +604,7 @@ body.dark .branch-media-box {
 }
 
 .branch-district-tag {
-  font-size: 13px !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
   background: rgba(20, 20, 19, 0.88) !important;
   backdrop-filter: blur(8px) !important;
@@ -581,16 +623,6 @@ html.light .branch-district-tag {
   border: 1px solid rgba(197, 155, 39, 0.35) !important;
 }
 
-.branch-flagship-tag {
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  background: #C59B27 !important;
-  color: #141413 !important;
-  padding: 4px 10px !important;
-  border-radius: 6px !important;
-}
-
-/* Trạng thái hoạt động thời gian thực */
 .branch-status-floating {
   position: absolute !important;
   bottom: 13px !important;
@@ -604,7 +636,7 @@ html.light .branch-district-tag {
   -webkit-backdrop-filter: blur(8px) !important;
   padding: 4px 10px !important;
   border-radius: 6px !important;
-  font-size: 13.5px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   box-sizing: border-box !important;
@@ -646,7 +678,7 @@ html.light .branch-status-floating {
   flex-shrink: 0 !important;
 }
 
-/* Thân thẻ chi nhánh */
+/* NOI DUNG THIEU KE CHUAN TASTE-SKILL: CHU O DUOI */
 .branch-content-body {
   padding: 18px 20px 20px !important;
   display: flex !important;
@@ -654,46 +686,6 @@ html.light .branch-status-floating {
   justify-content: space-between !important;
   flex: 1 !important;
   gap: 14px !important;
-}
-
-.branch-eyebrow-row {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  margin-bottom: 6px !important;
-  font-size: 13.5px !important;
-}
-
-.branch-sub-label {
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  color: var(--brand-accent, #C59B27) !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-}
-
-[data-theme="light"] .branch-sub-label,
-html.light .branch-sub-label {
-  color: #826012 !important;
-}
-
-[data-theme="dark"] .branch-sub-label,
-html.dark .branch-sub-label {
-  color: #C59B27 !important;
-}
-
-.branch-chair-count {
-  font-weight: 700 !important;
-  color: var(--text-secondary, #64748b) !important;
-  background: var(--surface-elevated, #f1f5f9) !important;
-  padding: 2px 7px !important;
-  border-radius: 4px !important;
-}
-
-[data-theme="dark"] .branch-chair-count,
-body.dark .branch-chair-count {
-  background: #181d2a !important;
-  color: #94a3b8 !important;
 }
 
 .branch-name-title {
@@ -709,45 +701,48 @@ body.dark .branch-name-title {
   color: #FAF8F5 !important;
 }
 
-.branch-info-list {
+.branch-meta-specs {
   display: flex !important;
   flex-direction: column !important;
-  gap: 8px !important;
-  font-size: 13.5px !important;
-  color: var(--text-secondary, #52525B) !important;
-  margin-bottom: 4px !important;
+  gap: 7px !important;
+  margin: 0 0 4px !important;
+  padding: 0 !important;
 }
 
-[data-theme="dark"] .branch-info-list,
-body.dark .branch-info-list {
-  color: #A1A1AA !important;
-}
-
-.branch-info-row {
+.branch-meta-item {
   display: flex !important;
-  align-items: flex-start !important;
-  gap: 8px !important;
+  align-items: baseline !important;
+  gap: 10px !important;
+  font-size: 13px !important;
   line-height: 1.45 !important;
+  margin: 0 !important;
 }
 
-.branch-info-row .info-icon {
+.branch-meta-item .meta-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--text-muted, #71717a) !important;
+  width: 70px !important;
   flex-shrink: 0 !important;
-  margin-top: 2px !important;
-  color: var(--brand-accent, #C59B27) !important;
+  margin: 0 !important;
 }
 
-.branch-address-val {
-  color: var(--text-primary, #141413) !important;
+.branch-meta-item .meta-value {
+  color: var(--text-primary, #27272a) !important;
   font-weight: 500 !important;
+  margin: 0 !important;
+  flex: 1 !important;
 }
 
-[data-theme="dark"] .branch-address-val,
-body.dark .branch-address-val {
-  color: #E2E2DC !important;
+[data-theme="dark"] .branch-meta-item .meta-value,
+body.dark .branch-meta-item .meta-value {
+  color: #e4e4e7 !important;
 }
 
 .branch-phone-link {
-  color: var(--brand-accent, #C59B27) !important;
+  color: var(--brand-accent, #c59b27) !important;
   text-decoration: none !important;
   font-weight: 700 !important;
 }
@@ -756,7 +751,6 @@ body.dark .branch-address-val {
   text-decoration: underline !important;
 }
 
-/* Nút chỉ đường và đặt lịch */
 .branch-actions-row {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
@@ -766,57 +760,57 @@ body.dark .branch-address-val {
   margin-top: auto !important;
 }
 
-[data-theme="dark"] .branch-actions-row,
-body.dark .branch-actions-row {
-  border-color: #262624 !important;
-}
-
-/* Nút Chỉ Đường - Tinh tế, rõ ràng */
-.branch-map-btn {
+.branch-book-btn {
   width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  min-height: 42px !important;
-  height: 42px !important;
-  background: #242422 !important;
-  color: #FAF8F5 !important;
-  border: 1px solid #363633 !important;
+  height: 40px !important;
+  background: var(--brand-accent, #c59b27) !important;
+  color: #141413 !important;
+  border: none !important;
   border-radius: 8px !important;
   font-size: 13.5px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;
+  transition: opacity 0.2s ease, transform 0.15s ease !important;
+}
+
+.branch-book-btn:hover {
+  opacity: 0.92 !important;
+  transform: translateY(-1px) !important;
+}
+
+.branch-map-btn {
+  width: 100% !important;
+  height: 40px !important;
+  background: var(--surface-elevated, #f4f4f0) !important;
+  color: var(--text-primary, #141413) !important;
+  border: 1px solid var(--border-color, #d4d4d8) !important;
+  border-radius: 8px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   text-decoration: none !important;
-  box-shadow: none !important;
-  transition: all 0.2s ease !important;
   box-sizing: border-box !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
+}
+
+[data-theme="dark"] .branch-map-btn,
+body.dark .branch-map-btn {
+  background: #242422 !important;
+  color: #FAF8F5 !important;
+  border-color: #363633 !important;
 }
 
 .branch-map-btn:hover {
-  background: #2E2E2A !important;
-  color: #FFFFFF !important;
-  border-color: #4A4A45 !important;
+  border-color: var(--text-primary, #141413) !important;
 }
 
-[data-theme="light"] .branch-map-btn,
-html.light .branch-map-btn,
-body.light .branch-map-btn {
-  background: #F4F4F0 !important;
-  color: #141413 !important;
-  border: 1px solid #DEDEC6 !important;
-}
-
-[data-theme="light"] .branch-map-btn:hover,
-html.light .branch-map-btn:hover,
-body.light .branch-map-btn:hover {
-  background: #E8E8E0 !important;
-  color: #000000 !important;
-  border-color: #141413 !important;
-}
-
-/* Nút Đặt Lịch - Vàng thương hiệu #C59B27 nổi bật */
+/* Nut Dat Lich 
 .branch-book-btn {
   width: 100% !important;
   max-width: 100% !important;
@@ -1043,7 +1037,7 @@ html.light .flat-discount-badge {
 [data-theme="dark"] .product-brand-tag,
 body.dark .product-brand-tag {
   color: #E5B334 !important;
-  font-size: 11.5px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -1228,7 +1222,7 @@ body.dark .product-media-wrapper {
 }
 
 .product-brand-tag {
-  font-size: 11px !important;
+  font-size: 13px !important;
   font-weight: 800 !important;
   color: #C59B27 !important;
   letter-spacing: 0.04em !important;
@@ -2407,4 +2401,293 @@ html.light .btn-clear-to-lookbook {
   text-transform: none !important;
   margin-top: 2px !important;
   display: inline-block !important;
+}
+
+/* =========================================================================
+   MANUAL CONTROLS DOCK: DPAD 4 CHIEU & ZOOM STEPPERS (TASTE-SKILL TACTILE)
+   ========================================================================= */
+
+.branch-manual-controls-dock {
+  background: var(--surface-elevated, #f8f8f7) !important;
+  border: 1px solid var(--border-color, rgba(20, 20, 19, 0.1)) !important;
+  border-radius: 10px !important;
+  padding: 16px 20px !important;
+  box-sizing: border-box !important;
+}
+
+[data-theme="dark"] .branch-manual-controls-dock,
+body.dark .branch-manual-controls-dock {
+  background: #1c1c1a !important;
+  border-color: #2e2e2a !important;
+}
+
+.dpad-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 34px) !important;
+  grid-template-rows: repeat(3, 34px) !important;
+  gap: 3px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.btn-dpad {
+  width: 34px !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--surface-card, #ffffff) !important;
+  color: var(--text-primary, #18181b) !important;
+  border: 1px solid var(--border-color, #d4d4d8) !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-theme="dark"] .btn-dpad,
+body.dark .btn-dpad {
+  background: #262624 !important;
+  color: #f4f4f5 !important;
+  border-color: #3f3f3a !important;
+}
+
+.btn-dpad:hover {
+  background: var(--brand-accent, #c59b27) !important;
+  color: #141413 !important;
+  border-color: var(--brand-accent, #c59b27) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-dpad:active {
+  transform: scale(0.94) !important;
+}
+
+.btn-dpad-center {
+  background: var(--surface-elevated, #f4f4f5) !important;
+  color: var(--text-muted, #71717a) !important;
+}
+
+[data-theme="dark"] .btn-dpad-center,
+body.dark .btn-dpad-center {
+  background: #1f1f1d !important;
+  color: #a1a1aa !important;
+}
+
+.zoom-stepper-control {
+  display: inline-flex !important;
+  align-items: center !important;
+  background: var(--surface-card, #ffffff) !important;
+  border: 1px solid var(--border-color, #d4d4d8) !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  height: 34px !important;
+}
+
+[data-theme="dark"] .zoom-stepper-control,
+body.dark .zoom-stepper-control {
+  background: #262624 !important;
+  border-color: #3f3f3a !important;
+}
+
+.btn-zoom-step {
+  width: 36px !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  color: var(--text-primary, #18181b) !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s ease !important;
+}
+
+[data-theme="dark"] .btn-zoom-step,
+body.dark .btn-zoom-step {
+  color: #f4f4f5 !important;
+}
+
+.btn-zoom-step:hover {
+  background: var(--brand-accent, #c59b27) !important;
+  color: #141413 !important;
+}
+
+.btn-zoom-step:active {
+  opacity: 0.8 !important;
+}
+
+.zoom-value-text {
+  min-width: 52px !important;
+  text-align: center !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary, #18181b) !important;
+  font-variant-numeric: tabular-nums !important;
+  padding: 0 4px !important;
+  user-select: none !important;
+}
+
+[data-theme="dark"] .zoom-value-text,
+body.dark .zoom-value-text {
+  color: #f4f4f5 !important;
+}
+
+.btn-quick-pos {
+  height: 34px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background: var(--surface-card, #ffffff) !important;
+  color: var(--text-primary, #18181b) !important;
+  border: 1px solid var(--border-color, #d4d4d8) !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-theme="dark"] .btn-quick-pos,
+body.dark .btn-quick-pos {
+  background: #262624 !important;
+  color: #f4f4f5 !important;
+  border-color: #3f3f3a !important;
+}
+
+.btn-quick-pos:hover {
+  border-color: var(--brand-accent, #c59b27) !important;
+  color: var(--brand-accent, #c59b27) !important;
+}
+
+.btn-quick-reset {
+  color: var(--text-muted, #71717a) !important;
+}
+
+/* =========================================================================
+   FLOATING MANUAL CONTROLS PILL (DISCREET & SLEEK ON PHOTO)
+   ========================================================================= */
+
+.branch-photo-float-bar {
+  position: absolute !important;
+  top: 10px !important;
+  bottom: auto !important;
+  right: 10px !important;
+  left: auto !important;
+  transform: none !important;
+  z-index: 10 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  padding: 3px 6px !important;
+  background: rgba(18, 18, 18, 0.85) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
+}
+
+.btn-float-ctrl {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f4f4f5 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+}
+
+.btn-float-ctrl:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  transform: scale(1.08) !important;
+}
+
+.btn-float-ctrl:focus,
+.btn-float-ctrl:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.btn-float-ctrl:active {
+  background: var(--brand-accent, #c59b27) !important;
+  border-color: var(--brand-accent, #c59b27) !important;
+  color: #141413 !important;
+  transform: scale(0.95) !important;
+}
+
+.float-ctrl-sep {
+  width: 1px !important;
+  height: 14px !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  margin: 0 3px !important;
+}
+
+/* Split Layout cho Form Nhan Su Admin */
+.stylist-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 390px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .stylist-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+/* Split Layout cho Form San Pham Kho Admin */
+.product-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 380px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .product-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+
+
+/* Split Layout cho Form Nha Cung Cap Admin */
+.supplier-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 380px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .supplier-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+
+/* Split Layout cho Form Dich Vu / Catalog Admin */
+.catalog-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 380px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .catalog-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
 }

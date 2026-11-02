@@ -54,19 +54,60 @@
       }).join('');
     },
 
+    scrollProducts: function(direction) {
+      const slider = document.getElementById('homeProductsSlider');
+      if (!slider) return;
+      const card = slider.querySelector('.product-clean-card');
+      const step = card ? (card.offsetWidth + 20) * 1.5 : 320;
+      slider.scrollBy({ left: direction * step, behavior: 'smooth' });
+    },
+
+    getDiverseFeaturedProducts: function(allProducts, maxCount) {
+      const limit = maxCount || 14;
+      if (!Array.isArray(allProducts) || allProducts.length === 0) return [];
+
+      const byBrand = new Map();
+      allProducts.forEach(function(p) {
+        const b = p.brand || 'Khac';
+        if (!byBrand.has(b)) byBrand.set(b, []);
+        byBrand.get(b).push(p);
+      });
+
+      const selected = [];
+      const usedIds = new Set();
+      const brands = Array.from(byBrand.keys());
+
+      let round = 0;
+      while (selected.length < limit && round < 8) {
+        for (let i = 0; i < brands.length; i++) {
+          if (selected.length >= limit) break;
+          const brandList = byBrand.get(brands[i]);
+          if (brandList && brandList.length > round) {
+            const prod = brandList[round];
+            if (!usedIds.has(prod.id)) {
+              selected.push(prod);
+              usedIds.add(prod.id);
+            }
+          }
+        }
+        round++;
+      }
+
+      return selected.length > 0 ? selected : allProducts.slice(0, limit);
+    },
+
     render(container, params = {}) {
       if (!container) return;
 
       const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
       const stylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
       const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
-      const rawProducts = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts('new') : [];
-
-      // Lọc bỏ sản phẩm đã hết hạn, ẩn tuyệt đối thông tin cận date, gắn nhãn Flash Sale
-      const displayProducts = rawProducts.filter(p => {
+      const allStoreProducts = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
+      const validProducts = (allStoreProducts || []).filter(function(p) {
         if (p.isExpired || p.SoNgayConLai <= 0) return false;
         return true;
       });
+      const displayProducts = HomePage.getDiverseFeaturedProducts(validProducts, 14);
 
       container.innerHTML = `
         <div class="home-page-light-shell" style="background-color: var(--bg-primary, #FAF8F5); min-height: 100vh; color: var(--text-primary, #141413); width: 100%; padding-bottom: 96px;">
@@ -74,37 +115,54 @@
           <!-- ========================================================
                1. PHẦN BANNER GIỚI THIỆU CHÍNH (HERO SECTION)
                ======================================================== -->
-          <section class="nordic-editorial-hero" id="heroSection" style="background: var(--bg-primary); padding: 56px 0 48px;">
+          <section class="nordic-editorial-hero" id="heroSection" style="background: var(--bg-primary); padding: 56px 0 44px;">
             <div class="nordic-hero-split-grid omni-container">
               
               <!-- Cột trái: Tiêu đề lớn & Đoạn văn kéo dài lấp đầy không gian -->
               <div class="nordic-hero-content-col" style="display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 100%;">
                 
-                <h1 class="font-serif tracking-tight leading-tight hero-main-title" style="font-weight: 800; color: var(--text-primary); margin: 0 0 18px; letter-spacing: -0.025em; line-height: 1.15; max-width: 100%;">
+                <h1 class="font-serif tracking-tight leading-tight hero-main-title" style="font-weight: 800; color: var(--text-primary); margin: 0 0 16px; letter-spacing: -0.025em; line-height: 1.08; max-width: 100%;">
                   Bản Lĩnh Phái Mạnh
                 </h1>
                 
-                <p class="hero-tagline" style="font-family: var(--font-sans); font-size: clamp(15.5px, 1.2vw, 19px); color: var(--text-secondary); line-height: 1.75; margin: 8px 0 24px; max-width: 100%; width: 100%; font-weight: 450;">
-                  Không gian chăm sóc tóc và râu dành riêng cho nam giới. Nơi từng đường kéo tỉ mỉ kết hợp phom tóc phù hợp góc cạnh gương mặt, sáp pomade chính hãng và sự thư giãn sau ngày làm việc.
-                </p>
+                <!-- Dong chu nho gioi thieu cach dieu diem nhan cao cap dam net khong chim -->
+                <div class="hero-editorial-lead" style="position: relative; margin: 6px 0 28px; padding-left: 20px; border-left: 3.5px solid var(--brand-accent, #C59B27); max-width: 580px;">
+                  <p class="hero-tagline" style="margin: 0 0 14px; font-family: var(--font-sans); font-size: clamp(18px, 1.3vw, 21px); font-weight: 800 !important; color: #141413 !important; line-height: 1.45; letter-spacing: -0.015em;">
+                    Chăm sóc tóc &amp; râu chuyên biệt, định hình phom tóc góc cạnh nam tính.
+                  </p>
+                  <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary, #141413); background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); padding: 6px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                      <span style="width: 6px; height: 6px; border-radius: 50%; background: #C59B27; display: inline-block;"></span>
+                      Định Form Chuẩn Tỉ Lệ
+                    </span>
+                    <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary, #141413); background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); padding: 6px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                      <span style="width: 6px; height: 6px; border-radius: 50%; background: #C59B27; display: inline-block;"></span>
+                      100% Pomade Chính Hãng
+                    </span>
+                    <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary, #141413); background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); padding: 6px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                      <span style="width: 6px; height: 6px; border-radius: 50%; background: #C59B27; display: inline-block;"></span>
+                      Bảo Hành Kiểu Tóc 7 Ngày
+                    </span>
+                  </div>
+                </div>
                 
                 <!-- CTA tinh gọn: 1 Nút chính nổi bật + 1 Text Link có mũi tên -->
                 <div class="nordic-cta-group" style="display: flex; align-items: center; flex-wrap: wrap; gap: 18px; margin-top: 4px;">
-                  <button class="btn-hero-primary" onclick="AppRouter.navigate('/booking')" style="padding: 15px 42px; border-radius: 6px; font-weight: 700; font-size: 16px; min-width: 210px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none; transition: all 0.2s ease;">
+                  <button class="btn-hero-primary" onclick="AppRouter.navigate('/booking')" style="padding: 16px 42px; border-radius: 6px; font-weight: 700; font-size: 16px; min-width: 210px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none; transition: all 0.2s ease;">
                     <span>Đặt Lịch Hẹn Ngay</span>
                   </button>
-                  <a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" class="hero-link-secondary" style="font-family: var(--font-sans); font-size: 16px; font-weight: 700; color: var(--brand-accent); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: gap 0.2s ease;">
+                  <a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" class="hero-link-secondary" style="font-family: var(--font-sans); font-size: 16px; font-weight: 700; color: var(--brand-accent); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--brand-accent); padding-bottom: 2px; transition: gap 0.2s ease;">
                     <span>Khám phá bảng giá</span>
                     <span style="font-size: 16px;">→</span>
                   </a>
                 </div>
               </div>
 
-              <!-- Cột phải: Bố cục ảnh ghép bất đối xứng chuẩn cũ & Floating Badge kính mờ -->
+              <!-- Cột phải: Bố cục ảnh ghép bất đối xứng chuẩn & Floating Badge -->
               <div class="nordic-hero-visual-col" style="display: flex; justify-content: flex-end;">
-                <div style="position: relative; width: 100%; max-width: 580px; height: 480px;">
+                <div style="position: relative; width: 100%; max-width: 560px; height: 480px;">
                   <!-- Ảnh chân dung lớn -->
-                  <div style="position: absolute; left: 0; top: 0; width: 90%; height: 440px; border-radius: 8px; overflow: hidden; background: #141413;">
+                  <div style="position: absolute; left: 0; top: 0; width: 88%; height: 440px; border-radius: 8px; overflow: hidden; background: #141413;">
                     <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/CBDV1.jpg')}"
                          style="width: 100%; height: 100%; object-fit: cover;"
                          alt="Omni Salon Barbershop Combo Quý Tộc"
@@ -112,20 +170,20 @@
                   </div>
                   
                   <!-- Ảnh chi tiết nhỏ chồng lên góc dưới phải -->
-                  <div style="position: absolute; right: 0; bottom: 0; width: 185px; height: 185px; border-radius: 10px; overflow: hidden; border: 4px solid var(--bg-primary, #FAF8F5); background: #141413; z-index: 3;">
+                  <div style="position: absolute; right: 0; bottom: 0; width: 190px; height: 190px; border-radius: 8px; overflow: hidden; border: 4px solid var(--bg-primary, #FAF8F5); background: #141413; z-index: 3;">
                     <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV6.jpg')}"
                          style="width: 100%; height: 100%; object-fit: cover;"
                          alt="Kỹ thuật kẻ line tattoo chân tóc"
                          onerror="SalonUtils.handleImgError(this)">
                   </div>
 
-                  <!-- Floating Badge kính mờ Glassmorphism -->
-                  <div class="hero-floating-badge" style="position: absolute; left: 10px; bottom: 30px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 18px; color: var(--text-primary); z-index: 5;">
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; color: var(--brand-accent);">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <!-- Floating Badge không dùng shadow -->
+                  <div class="hero-floating-badge" style="position: absolute; left: 14px; bottom: 28px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 20px; color: var(--text-primary); z-index: 5; box-shadow: none;">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 14.5px; font-weight: 800; color: var(--brand-accent);">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                       <span>4.9 (2,500+ Đánh giá)</span>
                     </div>
-                    <div style="font-size: 13.5px; color: var(--text-secondary); margin-top: 3px; font-weight: 500;">
+                    <div style="font-size: 13.5px; color: var(--text-primary); margin-top: 4px; font-weight: 600;">
                       Bảo hành kiểu tóc 7 ngày
                     </div>
                   </div>
@@ -133,84 +191,52 @@
               </div>
             </div>
 
-            <!-- Khối 4 Trải Nghiệm & Không Gian Tiêu Biểu (Editorial Layout & Clean Copywriting) -->
-            <div class="omni-container" style="max-width: 100%; width: 100%; margin: 44px 0 0; padding: 0 clamp(24px, 3.5vw, 64px); box-sizing: border-box; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; background: transparent;">
+            <!-- Khối 4 Trải Nghiệm & Không Gian Tiêu Biểu -->
+            <div class="omni-container" style="max-width: 100%; width: 100%; margin: 48px 0 0; padding: 0 clamp(24px, 3.5vw, 64px); box-sizing: border-box; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; background: transparent;">
               
               <!-- Thẻ 1: Không gian chi nhánh -->
-              <div class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-                <div style="position: relative; height: 180px; overflow: hidden; background: #141413;">
-                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg')}" alt="Không gian chi nhánh OmniSalon" style="width: 100%; height: 100%; object-fit: cover;" onerror="SalonUtils.handleImgError(this)">
+              <a href="/branches" onclick="event.preventDefault(); AppRouter.navigate('/branches')" class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; text-decoration: none; cursor: pointer; box-shadow: none;">
+                <div style="position: relative; height: 260px; overflow: hidden; background: #141413;">
+                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg')}" alt="Không gian chi nhánh OmniSalon" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
-                <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                  <div>
-                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Không Gian Barbershop Đương Đại</h3>
-                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0;">Ghế cắt công thái học êm ái, ánh sáng vừa vặn và âm nhạc thư giãn dành riêng cho nam giới.</p>
-                  </div>
-                  <div style="margin-top: 14px;">
-                    <a href="/branches" onclick="event.preventDefault(); AppRouter.navigate('/branches')" class="experience-card-link" style="display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 700; text-decoration: none;">
-                      <span>Hệ thống 20 chi nhánh</span>
-                      <span>→</span>
-                    </a>
-                  </div>
+                <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Không Gian Barbershop Đương Đại</h3>
+                  <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
-              </div>
+              </a>
 
               <!-- Thẻ 2: Đội ngũ thợ -->
-              <div class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-                <div style="position: relative; height: 180px; overflow: hidden; background: #141413;">
-                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV1.jpg')}" alt="Dịch vụ tạo mẫu chuẩn mực uy tín" style="width: 100%; height: 100%; object-fit: cover; object-position: center top;" onerror="SalonUtils.handleImgError(this)">
+              <a href="/stylists" onclick="event.preventDefault(); AppRouter.navigate('/stylists')" class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; text-decoration: none; cursor: pointer; box-shadow: none;">
+                <div style="position: relative; height: 260px; overflow: hidden; background: #141413;">
+                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV1.jpg')}" alt="Dịch vụ tạo mẫu chuẩn mực uy tín" style="width: 100%; height: 100%; object-fit: cover; object-position: center top; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
-                <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                  <div>
-                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Kỹ Thuật Kéo &amp; Fade Tỉ Mỉ</h3>
-                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0;">Đội ngũ thợ barber hiểu chất tóc Á Đông, tư vấn độ dài và cách vuốt sáp dễ dàng hằng ngày.</p>
-                  </div>
-                  <div style="margin-top: 14px;">
-                    <a href="/stylists" onclick="event.preventDefault(); AppRouter.navigate('/stylists')" class="experience-card-link" style="display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 700; text-decoration: none;">
-                      <span>Bảo hành kiểu tóc 7 ngày</span>
-                      <span>→</span>
-                    </a>
-                  </div>
+                <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Kỹ Thuật Kéo &amp; Fade Tỉ Mỉ</h3>
+                  <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
-              </div>
+              </a>
 
-              <!-- Thẻ 3: Mỹ phẩm nam chính hãng -->
-              <div class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-                <div style="position: relative; height: 180px; overflow: hidden; background: #FFFFFF; width: 100%; display: flex; align-items: center; justify-content: center;">
-                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg')}" alt="Sáp vuốt &amp; Pomade chính hãng" style="width: 100%; height: 100%; object-fit: contain; padding: 8px; display: block;" onerror="SalonUtils.handleImgError(this)">
+              <!-- Thẻ 3: Mỹ phẩm nam chính hãng - Sáp Vuốt & Pomade Chính Hãng -->
+              <a href="/shop" onclick="event.preventDefault(); AppRouter.navigate('/shop')" class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; text-decoration: none; cursor: pointer; box-shadow: none;">
+                <div style="position: relative; height: 260px; overflow: hidden; background: #FFFFFF; width: 100%; display: flex; align-items: center; justify-content: center;">
+                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg')}" alt="Sáp vuốt &amp; Pomade chính hãng" style="width: 100%; height: 100%; object-fit: contain; padding: 22px; display: block; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
-                <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                  <div>
-                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Sáp Vuốt &amp; Pomade Chính Hãng</h3>
-                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0;">Sáp vuốt tóc, pomade gốc nước, dầu dưỡng râu nhập khẩu nguyên hộp, an toàn cho da đầu.</p>
-                  </div>
-                  <div style="margin-top: 14px;">
-                    <a href="/shop" onclick="event.preventDefault(); AppRouter.navigate('/shop')" class="experience-card-link" style="display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 700; text-decoration: none;">
-                      <span>Khám phá sản phẩm</span>
-                      <span>→</span>
-                    </a>
-                  </div>
+                <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Sáp Vuốt &amp; Pomade Chính Hãng</h3>
+                  <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
-              </div>
+              </a>
 
               <!-- Thẻ 4: Gội dưỡng sinh & Thư giãn -->
-              <div class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-                <div style="position: relative; height: 180px; overflow: hidden; background: #141413;">
-                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV7.jpg')}" alt="Gội đầu dưỡng sinh thư giãn" style="width: 100%; height: 100%; object-fit: cover;" onerror="SalonUtils.handleImgError(this)">
+              <a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; text-decoration: none; cursor: pointer; box-shadow: none;">
+                <div style="position: relative; height: 260px; overflow: hidden; background: #141413;">
+                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV7.jpg')}" alt="Gội đầu dưỡng sinh thư giãn" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
-                <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                  <div>
-                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Gội Thảo Mộc &amp; Cạo Mặt Khăn Nóng</h3>
-                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0;">Cạo râu êm ái bọt kem, chườm khăn nóng làm sạch sâu lỗ chân lông và massage cổ vai gáy.</p>
-                  </div>
-                  <div style="margin-top: 14px;">
-                    <a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" class="experience-card-link" style="display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 700; text-decoration: none;">
-                      <span>Trải nghiệm phục hồi</span>
-                      <span>→</span>
-                    </a>
-                  </div>
+                <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Gội Thảo Mộc &amp; Cạo Mặt Khăn Nóng</h3>
+                  <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
-              </div>
+              </a>
 
             </div>
           </section>
@@ -247,51 +273,7 @@
             </div>
           </div>
 
-          <!-- ========================================================
-               3. DỊCH VỤ CẮT TÓC & CHĂM SÓC HIỆN ĐẠI
-               ======================================================== -->
-          <section class="web-section omni-container" style="max-width: 1640px; margin: 0 auto; padding: 48px clamp(16px, 3.5vw, 48px) 24px;">
-            <div class="section-title-wrap" style="text-align: center; margin-bottom: 32px;">
-              <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0;">Dịch Vụ Cắt Tóc &amp; Chăm Sóc Hiện Đại</h2>
-              <p style="color: var(--text-secondary); font-size: 14.5px; max-width: 680px; margin: 10px auto 0; line-height: 1.6;">
-                Không phô trương hình thức, Omni Salon tập trung vào độ sắc nét của từng nhát kéo, độ vừa vặn của phom tóc và sự thư giãn thoải mái tuyệt đối của mỗi người đàn ông khi ngồi vào ghế.
-              </p>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
-              <div class="card-pillar" style="padding: 24px 20px; background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
-                <div>
-                  
-                  <h3 class="font-serif tracking-tight leading-tight" style="color: var(--text-primary); font-size: 17px; font-weight: 700; margin: 0 0 8px;">Định Form Theo Khuôn Mặt</h3>
-                  <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin: 0;">Cắt chỉnh độ dài và tỉa texture dựa theo cấu trúc hộp sọ, tôn vinh đường nét quai hàm nam tính tự nhiên.</p>
-                </div>
-              </div>
-
-              <div class="card-pillar" style="padding: 24px 20px; background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
-                <div>
-                  
-                  <h3 class="font-serif tracking-tight leading-tight" style="color: var(--text-primary); font-size: 17px; font-weight: 700; margin: 0 0 8px;">Sáp &amp; Pomade Nhập Khẩu</h3>
-                  <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin: 0;">100% Sản phẩm tạo kiểu và dưỡng tóc chính hãng từ các thương hiệu barber uy tín, an toàn cho da đầu.</p>
-                </div>
-              </div>
-
-              <div class="card-pillar" style="padding: 24px 20px; background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
-                <div>
-                  
-                  <h3 class="font-serif tracking-tight leading-tight" style="color: var(--text-primary); font-size: 17px; font-weight: 700; margin: 0 0 8px;">Tay Kéo Barber Tỉ Mỉ</h3>
-                  <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin: 0;">Đội ngũ thợ lành nghề, lắng nghe mong muốn của khách và hướng dẫn chi tiết cách tự chăm sóc tóc tại nhà.</p>
-                </div>
-              </div>
-
-              <div class="card-pillar" style="padding: 24px 20px; background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
-                <div>
-                  
-                  <h3 class="font-serif tracking-tight leading-tight" style="color: var(--text-primary); font-size: 17px; font-weight: 700; margin: 0 0 8px;">Mô Phỏng Kiểu Tóc AI 3D</h3>
-                  <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin: 0;">Công nghệ thử kiểu tóc trực quan trước khi cắt, giúp bạn an tâm tuyệt đối về phom tóc dự định thay đổi.</p>
-                </div>
-              </div>
-            </div>
-          </section>
+          
 
           <!-- ========================================================
                4. DỊCH VỤ & GÓI COMBO TIÊU BIỂU (ASYMMETRIC BENTO GRID)
@@ -418,17 +400,34 @@
               </button>
             </div>
 
-            <div class="products-clean-grid" id="homeProductsGrid">
-              ${displayProducts.slice(0, 4).map(p => {
-          if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.render === 'function') {
-            return window.ProductCard.render(p);
-          }
-          if (typeof window.UICommon !== 'undefined' && typeof window.UICommon.renderProductCard === 'function') {
-            return window.UICommon.renderProductCard(p);
-          }
-          return '';
-        }).join('')}
+            <!-- Slider chuyen luot xem my pham chon loc -->
+            <div class="shop-slider-container" style="position: relative; width: 100%;">
+              <button type="button" class="shop-slider-arrow arrow-prev" onclick="HomePage.scrollProducts(-1)" aria-label="Cuộn sang trái" title="Cuộn xem trước">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+
+              <div class="shop-slider-track" id="homeProductsSlider" style="display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding: 8px 4px 18px; scrollbar-width: none;">
+                ${displayProducts.map(function(p) {
+                  if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.render === 'function') {
+                    return window.ProductCard.render(p);
+                  }
+                  if (typeof window.UICommon !== 'undefined' && typeof window.UICommon.renderProductCard === 'function') {
+                    return window.UICommon.renderProductCard(p);
+                  }
+                  return '';
+                }).join('')}
+              </div>
+
+              <button type="button" class="shop-slider-arrow arrow-next" onclick="HomePage.scrollProducts(1)" aria-label="Cuộn sang phải" title="Cuộn xem tiếp">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
             </div>
+
+            <div id="homeProductsGrid" style="display:none;"></div>
           </section>
 
           <!-- Hidden hooks for test assertions compatibility -->

@@ -540,7 +540,7 @@ async function handleInventoryRoutes(req, res, ctx) {
     const maxRows = await querySql(`SELECT TOP 1 MaNhaCungCap FROM NhaCungCap ORDER BY LEN(MaNhaCungCap) DESC, MaNhaCungCap DESC`);
     let nextN = 6;
     if (maxRows && maxRows[0]) {
-      const m = maxRows[0].MaNhaCungCap.match(/NCC(d+)/i);
+      const m = maxRows[0].MaNhaCungCap.match(/NCC(\\d+)/i);
       if (m) nextN = parseInt(m[1], 10) + 1;
     }
     const nccId = (body.id || body.MaNhaCungCap || ('NCC' + (nextN < 10 ? '0' + nextN : nextN))).trim();
