@@ -98,7 +98,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
       backgroundColor: AppTheme.bgPrimary,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
@@ -134,7 +134,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: 'Tìm theo tên đường, quận, chi nhánh...',
-                prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.textMuted),
+                prefixIcon: Icon(Icons.search_rounded, size: 20, color: AppTheme.textMuted),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear_rounded, size: 18),
@@ -150,11 +150,11 @@ class _BranchesScreenState extends State<BranchesScreen> {
                 fillColor: AppTheme.surfaceCard,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppTheme.borderColor),
+                  borderSide: BorderSide(color: AppTheme.borderColor),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppTheme.borderColor),
+                  borderSide: BorderSide(color: AppTheme.borderColor),
                 ),
               ),
             ),
@@ -207,7 +207,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.storefront_outlined, size: 48, color: AppTheme.textMuted),
+                            Icon(Icons.storefront_outlined, size: 48, color: AppTheme.textMuted),
                             const SizedBox(height: 12),
                             Text(
                               'Không tìm thấy chi nhánh nào.',

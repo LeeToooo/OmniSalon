@@ -11,6 +11,7 @@ const {
   computeEndTime,
   resolveOrCreateCustomer,
   generateNextBookingId,
+  generateNextCtlhId,
   resolveServiceInfo
 } = require('../../services/helper_service');
 
@@ -108,7 +109,11 @@ async function handleBookingRoutes(req, res, ctx) {
        LEFT JOIN NhanVien nv ON lh.MaNhanVien = nv.MaNhanVien
        LEFT JOIN ChiNhanh cn ON lh.MaChiNhanh = cn.MaChiNhanh
        WHERE lh.MaLichHen LIKE ? OR kh.SoDienThoai LIKE ? OR kh.HoTen LIKE ?
-       ORDER BY lh.NgayHen DESC, lh.GioBatDau DESC`,
+       ORDER BY 
+         CASE WHEN lh.MaLichHen LIKE 'LH[0-9]%' 
+              THEN CAST(SUBSTRING(lh.MaLichHen, 3, 10) AS INT) 
+              ELSE 0 END DESC,
+         lh.NgayHen DESC, lh.GioBatDau DESC`,
       [`%${q}%`, `%${q}%`, `%${q}%`]
     );
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -166,7 +171,11 @@ async function handleBookingRoutes(req, res, ctx) {
       q += ` WHERE lh.MaChiNhanh = ?`;
       params.push(effectiveBranch);
     }
-    q += ` ORDER BY lh.NgayHen DESC, lh.GioBatDau DESC`;
+    q += ` ORDER BY 
+         CASE WHEN lh.MaLichHen LIKE 'LH[0-9]%' 
+              THEN CAST(SUBSTRING(lh.MaLichHen, 3, 10) AS INT) 
+              ELSE 0 END DESC,
+         lh.NgayHen DESC, lh.GioBatDau DESC`;
     const rows = await querySql(q, params);
 
     const bookings = rows.map(r => {
@@ -303,16 +312,7 @@ async function handleBookingRoutes(req, res, ctx) {
       itemsToInsert = [{ id: 'DV01' }];
     }
 
-    const maxCtlhRows = await querySql(
-      `SELECT TOP 1 MaChiTietLichHen FROM ChiTietLichHen WHERE MaChiTietLichHen LIKE 'CTLH%' AND LEN(MaChiTietLichHen) <= 10 ORDER BY LEN(MaChiTietLichHen) DESC, MaChiTietLichHen DESC`
-    );
-    let nextCtlhNum = 10;
-    if (maxCtlhRows && maxCtlhRows[0]) {
-      const match = maxCtlhRows[0].MaChiTietLichHen.match(/CTLH(\d+)/i);
-      if (match) nextCtlhNum = parseInt(match[1], 10);
-    }
-
-    for (let i = 0; i < itemsToInsert.length; i++) {
+        for (let i = 0; i < itemsToInsert.length; i++) {
       const it = itemsToInsert[i];
       const rawId = String(it.id || it.serviceId || it.MaDichVu || it.MaCombo || '').trim();
       const upperId = rawId.toUpperCase();
@@ -343,8 +343,7 @@ async function handleBookingRoutes(req, res, ctx) {
         }
       }
 
-      nextCtlhNum++;
-      const ctlhId = 'CTLH' + (nextCtlhNum < 10 ? '0' + nextCtlhNum : nextCtlhNum);
+      const ctlhId = await generateNextCtlhId();
       await querySql(
         `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, ?, 1, ?, ?)`,
         [ctlhId, id, sId, cbId, itPrice, itPrice]

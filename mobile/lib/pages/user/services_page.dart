@@ -7,9 +7,247 @@ import 'package:omni_salon_mobile/models/stylist.dart';
 import 'package:omni_salon_mobile/components/editorial_image.dart';
 
 class ServicesScreen extends StatefulWidget {
-  final Function(String? serviceId)? onNavigateToBooking;
+  final void Function({String? serviceId, String? stylistId, String? branchId})? onNavigateToBooking;
 
   const ServicesScreen({super.key, this.onNavigateToBooking});
+
+  // Modal xem chi tiết dịch vụ dùng chung cho cả Services Screen và Home Screen
+  static void showServiceDetailModal(
+    BuildContext context, {
+    required SalonService service,
+    void Function({String? serviceId, String? stylistId, String? branchId})? onNavigateToBooking,
+  }) {
+    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(color: AppTheme.borderColor, borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    height: 180,
+                    width: double.infinity,
+                    child: EditorialImage(imageUrl: service.image, fit: BoxFit.cover),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentGold.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        service.category.toUpperCase(),
+                        style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(Icons.schedule_rounded, size: 14, color: AppTheme.textSecondary),
+                        const SizedBox(width: 4),
+                        Text('${service.duration} phút', style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(service.name, style: AppTheme.headingSmall(fontSize: 18)),
+                const SizedBox(height: 4),
+                Text(currencyFormat.format(service.price), style: AppTheme.headingMedium(fontSize: 20, color: AppTheme.accentGold)),
+                const SizedBox(height: 10),
+                Text(service.description, style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontSize: 13)),
+                const SizedBox(height: 14),
+
+                Text('QUY TRÌNH THỰC HIỆN TIÊU CHUẨN', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
+                const SizedBox(height: 6),
+                _buildStepItem('1', 'Tư vấn phom dáng mặt & cấu trúc sợi tóc.'),
+                _buildStepItem('2', 'Gội xả thảo mộc & massage bấm huyệt đả thông kinh lạc.'),
+                _buildStepItem('3', 'Cắt fade & tỉa texture tạo tầng bồng bềnh bằng kéo nhật.'),
+                _buildStepItem('4', 'Cạo viền sắc nét & chườm khăn nóng thư giãn.'),
+                _buildStepItem('5', 'Sấy tạo phom & vuốt sáp / pomade khóa form giữ nếp cả ngày.'),
+                const SizedBox(height: 16),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      if (onNavigateToBooking != null) {
+                        onNavigateToBooking(serviceId: service.id);
+                      }
+                    },
+                    child: Text('ĐẶT LỊCH DỊCH VỤ NÀY NGAY (${currencyFormat.format(service.price)})'),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Divider(color: AppTheme.borderColorSubtle),
+                const SizedBox(height: 12),
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: ApiService.fetchReviews(serviceId: service.id),
+                  builder: (context, snapshot) {
+                    final reviews = snapshot.data ?? [];
+                    final count = reviews.length;
+                    double avg = 5.0;
+                    if (count > 0) {
+                      final total = reviews.fold<int>(0, (sum, r) => sum + (int.tryParse(r['rating']?.toString() ?? '5') ?? 5));
+                      avg = total / count;
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('ĐÁNH GIÁ DỊCH VỤ', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            const Icon(Icons.star_rounded, size: 15, color: Color(0xFFF59E0B)),
+                            const SizedBox(width: 4),
+                            Text(
+                              count > 0
+                                  ? '${avg.toStringAsFixed(1)} / 5.0 ($count đánh giá)'
+                                  : 'Chưa có đánh giá',
+                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accentGold),
+                              ),
+                            ),
+                          )
+                        else if (reviews.isEmpty)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceElevated,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppTheme.borderColorSubtle),
+                            ),
+                            child: Text(
+                              'Chưa có đánh giá nào cho dịch vụ này. Hãy đặt lịch và trải nghiệm để lại đánh giá bạn nhé!',
+                              style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textSecondary),
+                            ),
+                          )
+                        else
+                          ...reviews.take(3).map((r) {
+                            final stars = int.tryParse(r['rating']?.toString() ?? '5') ?? 5;
+                            final dateStr = (r['date'] ?? '').toString();
+                            final shortDate = dateStr.length >= 10 ? dateStr.substring(0, 10) : dateStr;
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppTheme.surfaceElevated,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppTheme.borderColorSubtle),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        r['customerName'] ?? 'Khách Hàng',
+                                        style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                                      ),
+                                      Text(
+                                        shortDate.isNotEmpty ? shortDate : 'Gần đây',
+                                        style: AppTheme.bodySmall(fontSize: 10.5, color: AppTheme.textMuted),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: List.generate(
+                                      5,
+                                      (idx) => Icon(
+                                        Icons.star_rounded,
+                                        size: 13,
+                                        color: idx < stars ? const Color(0xFFF59E0B) : AppTheme.borderColor,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    r['comment'] ?? '',
+                                    style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildStepItem(String num, String desc) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 18,
+            height: 18,
+            margin: const EdgeInsets.only(top: 1, right: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceElevated,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.6)),
+            ),
+            child: Center(
+              child: Text(num, style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppTheme.accentGold)),
+            ),
+          ),
+          Expanded(child: Text(desc, style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textPrimary))),
+        ],
+      ),
+    );
+  }
 
   @override
   State<ServicesScreen> createState() => _ServicesScreenState();
@@ -29,7 +267,7 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
     {'id': 'Combo VIP', 'label': 'Combo Quý Tộc'},
     {'id': 'Cắt & Tạo Kiểu', 'label': 'Cắt & Tạo Kiểu'},
     {'id': 'Uốn & Nhuộm', 'label': 'Uốn & Nhuộm'},
-    {'id': 'Chăm Sóc & Phục Hồi', 'label': 'Dưỡng Sinh & Râu'},
+    {'id': 'Dưỡng Sinh & Râu', 'label': 'Dưỡng Sinh & Râu'},
   ];
 
   final _stylistSearchController = TextEditingController();
@@ -66,261 +304,10 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
   }
 
   void _showServiceDetailModal(SalonService s) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppTheme.surfaceCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
-          ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(color: AppTheme.borderColor, borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: SizedBox(
-                  height: 180,
-                  width: double.infinity,
-                  child: EditorialImage(imageUrl: s.image, fit: BoxFit.cover),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentGold.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      s.category.toUpperCase(),
-                      style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.schedule_rounded, size: 14, color: AppTheme.textSecondary),
-                      const SizedBox(width: 4),
-                      Text('${s.duration} phút', style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(s.name, style: AppTheme.headingSmall(fontSize: 18)),
-              const SizedBox(height: 4),
-              Text(currencyFormat.format(s.price), style: AppTheme.headingMedium(fontSize: 20, color: AppTheme.accentGold)),
-              const SizedBox(height: 10),
-              Text(s.description, style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontSize: 13)),
-              const SizedBox(height: 14),
-
-              Text('QUY TRÌNH THỰC HIỆN TIÊU CHUẨN', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
-              const SizedBox(height: 6),
-              _buildStepItem('1', 'Tư vấn phom dáng mặt & cấu trúc sợi tóc.'),
-              _buildStepItem('2', 'Gội xả thảo mộc & massage bấm huyệt đả thông kinh lạc.'),
-              _buildStepItem('3', 'Cắt fade & tỉa texture tạo tầng bồng bềnh bằng kéo nhật.'),
-              _buildStepItem('4', 'Cạo viền sắc nét & chườm khăn nóng thư giãn.'),
-              _buildStepItem('5', 'Sấy tạo phom & vuốt sáp / pomade khóa form giữ nếp cả ngày.'),
-              const SizedBox(height: 16),
-
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    if (widget.onNavigateToBooking != null) {
-                      widget.onNavigateToBooking!(s.id);
-                    }
-                  },
-                  child: Text('ĐẶT LỊCH DỊCH VỤ NÀY NGAY (${currencyFormat.format(s.price)})'),
-                ),
-              ),
-              const SizedBox(height: 18),
-              const Divider(color: AppTheme.borderColorSubtle),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('ĐÁNH GIÁ DỊCH VỤ', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
-                      const SizedBox(height: 2),
-                      const Row(
-                        children: [
-                          Icon(Icons.star_rounded, size: 15, color: Color(0xFFF59E0B)),
-                          SizedBox(width: 4),
-                          Text('5.0 / 5.0 (24 đánh giá)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                        ],
-                      ),
-                    ],
-                  ),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppTheme.accentGold),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    ),
-                    icon: const Icon(Icons.rate_review_outlined, size: 15, color: AppTheme.accentGold),
-                    label: Text('Viết Đánh Giá', style: AppTheme.bodySmall(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.accentGold)),
-                    onPressed: () => _showWriteServiceReviewDialog(s),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceElevated,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.borderColorSubtle),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Lê Hoàng Nam', style: AppTheme.bodySmall(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                        Text('Hôm qua', style: AppTheme.bodySmall(fontSize: 10.5, color: AppTheme.textMuted)),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    const Row(
-                      children: [
-                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
-                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
-                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
-                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
-                        Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text('Tay nghề thợ barber rất khéo, cắt fade mượt mà và massage da đầu thư giãn tuyệt vời!', style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textSecondary)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-  void _showWriteServiceReviewDialog(SalonService s) {
-    final commentCtrl = TextEditingController();
-    int rating = 5;
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDlgState) => AlertDialog(
-          backgroundColor: AppTheme.surfaceCard,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          title: Text('Đánh Giá ' + s.name, style: AppTheme.headingSmall(fontSize: 16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Chọn số sao:', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
-              const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) => GestureDetector(
-                  onTap: () => setDlgState(() => rating = index + 1),
-                  child: Icon(
-                    index < rating ? Icons.star_rounded : Icons.star_border_rounded,
-                    color: const Color(0xFFF59E0B),
-                    size: 32,
-                  ),
-                )),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: commentCtrl,
-                style: AppTheme.bodyMedium(),
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'Nhận xét về tay nghề thợ, thái độ phục vụ...',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('HỦY BỎ'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final txt = commentCtrl.text.trim();
-                if (txt.isEmpty) return;
-                await ApiService.createReview({
-                  'serviceId': s.id,
-                  'rating': rating,
-                  'comment': txt,
-                  'customerName': 'Khách Hàng',
-                });
-                Navigator.of(ctx).pop();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Cảm ơn bạn! Đánh giá dịch vụ đã được ghi nhận.'),
-                      backgroundColor: AppTheme.statusSuccess,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              },
-              child: const Text('GỬI ĐÁNH GIÁ'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStepItem(String num, String desc) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 18,
-            height: 18,
-            margin: const EdgeInsets.only(top: 1, right: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceElevated,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.6)),
-            ),
-            child: Center(
-              child: Text(num, style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppTheme.accentGold)),
-            ),
-          ),
-          Expanded(child: Text(desc, style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textPrimary))),
-        ],
-      ),
+    ServicesScreen.showServiceDetailModal(
+      context,
+      service: s,
+      onNavigateToBooking: widget.onNavigateToBooking,
     );
   }
 
@@ -404,9 +391,35 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
 
     final query = _serviceQuery.trim().toLowerCase();
     final filtered = _allServices.where((s) {
-      final matchesCat = _selectedCategory == 'all'
-          ? true
-          : (_selectedCategory == 'Combo VIP' ? s.isCombo : s.category == _selectedCategory);
+      bool matchesCat = true;
+      if (_selectedCategory == 'all') {
+        matchesCat = true;
+      } else if (_selectedCategory == 'Combo VIP') {
+        matchesCat = s.isCombo || s.category == 'Combo VIP';
+      } else if (_selectedCategory == 'Cắt & Tạo Kiểu') {
+        matchesCat = s.category == 'Cắt & Tạo Kiểu' && !s.isCombo;
+      } else if (_selectedCategory == 'Uốn & Nhuộm') {
+        final text = '${s.name} ${s.description} ${s.category}'.toLowerCase();
+        matchesCat = s.category == 'Uốn & Nhuộm' ||
+            text.contains('uốn') ||
+            text.contains('nhuộm') ||
+            text.contains('tẩy');
+      } else if (_selectedCategory == 'Dưỡng Sinh & Râu' || _selectedCategory == 'Chăm Sóc & Phục Hồi') {
+        final text = '${s.name} ${s.description} ${s.category}'.toLowerCase();
+        matchesCat = s.category == 'Dưỡng Sinh & Râu' ||
+            s.category == 'Chăm Sóc & Phục Hồi' ||
+            text.contains('râu') ||
+            text.contains('cạo mặt') ||
+            text.contains('ráy tai') ||
+            text.contains('facial') ||
+            text.contains('dưỡng sinh') ||
+            text.contains('gội') ||
+            text.contains('massage') ||
+            text.contains('chăm sóc');
+      } else {
+        matchesCat = s.category == _selectedCategory;
+      }
+
       if (!matchesCat) return false;
       if (query.isEmpty) return true;
       return s.name.toLowerCase().contains(query) ||
@@ -436,7 +449,7 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                 prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.accentGold),
                 suffixIcon: _serviceQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
+                        icon: Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
                         onPressed: () {
                           _serviceSearchController.clear();
                           setState(() => _serviceQuery = '');
@@ -510,7 +523,7 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
     return GestureDetector(
       onTap: () => _showServiceDetailModal(s),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
+        margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
           color: AppTheme.surfaceCard,
           borderRadius: BorderRadius.circular(10),
@@ -528,8 +541,8 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                     bottomRight: Radius.circular(9),
                   ),
                   child: SizedBox(
-                    width: 90,
-                    height: 90,
+                    width: 58,
+                    height: 58,
                     child: EditorialImage(
                       imageUrl: s.image,
                       fit: BoxFit.cover,
@@ -538,7 +551,7 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                    padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -551,7 +564,7 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                             ),
                             Row(
                               children: [
-                                const Icon(Icons.schedule_rounded, size: 12, color: AppTheme.textSecondary),
+                                Icon(Icons.schedule_rounded, size: 12, color: AppTheme.textSecondary),
                                 const SizedBox(width: 3),
                                 Text(
                                   '${s.duration} phút',
@@ -564,14 +577,7 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                         const SizedBox(height: 3),
                         Text(
                           s.name,
-                          style: AppTheme.headingSmall(fontSize: 15.5),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          s.description,
-                          style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                          style: AppTheme.headingSmall(fontSize: 15),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -581,32 +587,26 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                 ),
               ],
             ),
-            const Divider(color: AppTheme.borderColorSubtle, height: 1),
+            Divider(color: AppTheme.borderColorSubtle, height: 1),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Giá niêm yết', style: AppTheme.bodySmall(fontSize: 10.5, color: AppTheme.textMuted)),
-                      Text(
-                        currencyFormat.format(s.price),
-                        style: AppTheme.headingSmall(fontSize: 16, color: AppTheme.accentGold),
-                      ),
-                    ],
+                  Text(
+                    currencyFormat.format(s.price),
+                    style: AppTheme.headingSmall(fontSize: 15.5, color: AppTheme.accentGold),
                   ),
                   ElevatedButton(
                     onPressed: () {
                       if (widget.onNavigateToBooking != null) {
-                        widget.onNavigateToBooking!(s.id);
+                        widget.onNavigateToBooking!(serviceId: s.id);
                       }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.accentGold,
                       foregroundColor: AppTheme.charcoal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -635,6 +635,15 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
 
     final query = _stylistQuery.trim().toLowerCase();
     final filtered = _allStylists.where((barber) {
+      final levelLower = barber.level.toLowerCase();
+      final roleLower = barber.role.toLowerCase();
+      if (roleLower.contains('thu ngân') ||
+          roleLower.contains('cashier') ||
+          roleLower.contains('kế toán') ||
+          levelLower.contains('thu ngân') ||
+          levelLower == 'nhân viên') {
+        return false;
+      }
       if (query.isEmpty) return true;
       return barber.name.toLowerCase().contains(query) ||
           barber.level.toLowerCase().contains(query) ||
@@ -663,7 +672,7 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                 prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.accentGold),
                 suffixIcon: _stylistQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
+                        icon: Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
                         onPressed: () {
                           _stylistSearchController.clear();
                           setState(() => _stylistQuery = '');
@@ -758,7 +767,10 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                               tooltip: 'Đặt lịch với thợ này',
                               onPressed: () {
                                 if (widget.onNavigateToBooking != null) {
-                                  widget.onNavigateToBooking!(null);
+                                  widget.onNavigateToBooking!(
+                                    stylistId: barber.id,
+                                    branchId: barber.branchId,
+                                  );
                                 }
                               },
                             ),

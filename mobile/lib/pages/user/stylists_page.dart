@@ -495,6 +495,7 @@ class _StylistsScreenState extends State<StylistsScreen> {
                         MaterialPageRoute(
                           builder: (_) => BookingScreen(
                             preselectedBranchId: s.branchId,
+                            preselectedStylistId: s.id,
                           ),
                         ),
                       );

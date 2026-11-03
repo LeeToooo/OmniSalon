@@ -8,17 +8,18 @@ const { resolveOrCreateCustomer } = require('../../services/helper_service');
 
 async function handleReviewRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
-
-  // GET /api/reviews - Lấy danh sách đánh giá lọc theo productId, orderId hoặc customerId
+  // GET /api/reviews - Lấy danh sách đánh giá lọc theo productId, serviceId, orderId hoặc customerId
   if (pathname === '/api/reviews' && method === 'GET') {
     const orderIdParam = parsedUrl.searchParams.get('order_id') || parsedUrl.searchParams.get('orderId');
     const customerIdParam = parsedUrl.searchParams.get('customer_id') || parsedUrl.searchParams.get('customerId');
     const productIdParam = parsedUrl.searchParams.get('product_id') || parsedUrl.searchParams.get('productId');
+    const serviceIdParam = parsedUrl.searchParams.get('service_id') || parsedUrl.searchParams.get('serviceId');
 
     let queryStr = '';
     const params = [];
 
     if (productIdParam) {
+      // Đánh giá sản phẩm: Đơn hàng -> Chi tiết đơn hàng -> Mã sản phẩm
       queryStr = `
         SELECT DISTINCT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
                dg.NgayDanhGia,
@@ -26,17 +27,33 @@ async function handleReviewRoutes(req, res, ctx) {
                dg.TrangThai,
                kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
         FROM DanhGia dg
-        LEFT JOIN DonHang dh ON dg.MaDonHang = dh.MaDonHang
-        LEFT JOIN ChiTietDonHang ctdh ON dh.MaDonHang = ctdh.MaDonHang
+        JOIN DonHang dh ON dg.MaDonHang = dh.MaDonHang
+        JOIN ChiTietDonHang ctdh ON dh.MaDonHang = ctdh.MaDonHang
         LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
-        WHERE dg.TrangThai = N'Hiển thị' AND (ctdh.MaSanPham = ? OR dg.NoiDung LIKE ?)
+        WHERE dg.TrangThai = N'Hiển thị' AND ctdh.MaSanPham = ?
         ORDER BY dg.NgayDanhGia DESC
       `;
-      params.push(productIdParam, `%${productIdParam}%`);
+      params.push(productIdParam);
+    } else if (serviceIdParam) {
+      // Đánh giá dịch vụ / combo: Lịch hẹn -> Chi tiết lịch hẹn -> Mã dịch vụ hoặc Mã combo
+      queryStr = `
+        SELECT DISTINCT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
+               dg.NgayDanhGia,
+               CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGiaStr,
+               dg.TrangThai,
+               kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
+        FROM DanhGia dg
+        JOIN LichHen lh ON dg.MaLichHen = lh.MaLichHen
+        JOIN ChiTietLichHen ctlh ON lh.MaLichHen = ctlh.MaLichHen
+        LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
+        WHERE dg.TrangThai = N'Hiển thị' AND (ctlh.MaDichVu = ? OR ctlh.MaCombo = ?)
+        ORDER BY dg.NgayDanhGia DESC
+      `;
+      params.push(serviceIdParam, serviceIdParam);
     } else {
       queryStr = `
         SELECT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
-               CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGia,
+               CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGiaStr,
                dg.TrangThai,
                kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
         FROM DanhGia dg
@@ -53,7 +70,9 @@ async function handleReviewRoutes(req, res, ctx) {
       queryStr += ' ORDER BY dg.NgayDanhGia DESC';
     }
 
-    const rows = await querySql(queryStr, params);
+    let rows = await querySql(queryStr, params);
+    if (!rows) rows = [];
+
     const mapped = rows.map(r => ({
       id: r.MaDanhGia,
       MaDanhGia: r.MaDanhGia,
@@ -152,11 +171,14 @@ async function handleReviewRoutes(req, res, ctx) {
             [dhId, khId]
           ).catch(() => {});
 
+          let lotRow = await querySql('SELECT TOP 1 MaChiTietPhieuNhap, DonGiaNhap FROM ChiTietPhieuNhap WHERE MaSanPham = ?', [prodId]);
+          const lotId = (lotRow && lotRow[0]) ? lotRow[0].MaChiTietPhieuNhap : 'CTPN01001';
+          const ctDhId = `CTDH_${randSuffix}`;
           await querySql(
-            `INSERT INTO ChiTietDonHang (MaDonHang, MaSanPham, SoLuong, DonGia, ThanhTien)
-             VALUES (?, ?, 1, 350000, 350000)`,
-            [dhId, prodId]
-          ).catch(() => {});
+            `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)
+             VALUES (?, ?, ?, ?, 1, 350000, 0.00, 350000, 350000)`,
+            [ctDhId, dhId, prodId, lotId]
+          ).catch((e) => { console.error('Error insert ChiTietDonHang:', e); });
         }
         lhId = null;
       } else if (serviceId) {
@@ -168,6 +190,14 @@ async function handleReviewRoutes(req, res, ctx) {
            VALUES (?, ?, 'CN01', 'NV02', CAST(GETDATE() AS DATE), '10:00:00', '10:45:00', 300000, N'Đã hoàn thành', N'Lịch hẹn tự động lưu trữ cho đánh giá dịch vụ')`,
           [lhId, khId]
         ).catch(() => {});
+
+        const isCombo = serviceId.toUpperCase().startsWith('CB');
+        const ctLhId = `CTLH_${randSuffix}`;
+        await querySql(
+          `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien)
+           VALUES (?, ?, ?, ?, 1, 300000, 300000)`,
+          [ctLhId, lhId, isCombo ? null : serviceId, isCombo ? serviceId : null]
+        ).catch((e) => { console.error('Error insert ChiTietLichHen:', e); });
         dhId = null;
       } else {
         // Trường hợp chung: gán 1 lịch hẹn đại diện để thỏa mãn CK_DanhGia_DoiTuong

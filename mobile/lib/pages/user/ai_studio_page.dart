@@ -645,7 +645,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (_isScanning) ...[
-                        const SizedBox(
+                        SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(color: AppTheme.charcoal, strokeWidth: 2),
@@ -778,7 +778,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                               hintStyle: TextStyle(fontSize: 11.5, color: Colors.grey.shade500),
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: AppTheme.borderColor)),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide(color: AppTheme.borderColor)),
                             ),
                             onSubmitted: _sendChatMessage,
                           ),
@@ -919,7 +919,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                         BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 6),
                       ],
                     ),
-                    child: const Icon(Icons.compare_arrows_rounded, color: AppTheme.charcoal, size: 18),
+                    child: Icon(Icons.compare_arrows_rounded, color: AppTheme.charcoal, size: 18),
                   ),
                 ),
               ),

@@ -15,12 +15,14 @@ class BookingScreen extends StatefulWidget {
   final Branch? initialBranch;
   final String? preselectedBranchId;
   final String? preselectedServiceId;
+  final String? preselectedStylistId;
 
   const BookingScreen({
     super.key,
     this.initialBranch,
     this.preselectedBranchId,
     this.preselectedServiceId,
+    this.preselectedStylistId,
   });
 
   @override
@@ -106,6 +108,33 @@ class _BookingScreenState extends State<BookingScreen> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant BookingScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.preselectedStylistId != oldWidget.preselectedStylistId ||
+        widget.preselectedBranchId != oldWidget.preselectedBranchId ||
+        widget.preselectedServiceId != oldWidget.preselectedServiceId) {
+      if (widget.preselectedStylistId != null && widget.preselectedStylistId!.isNotEmpty) {
+        final st = _stylists.where((s) => s.id.toUpperCase() == widget.preselectedStylistId!.toUpperCase()).firstOrNull;
+        if (st != null) {
+          _selectedStylist = st;
+        }
+      }
+      final targetBranchId = widget.preselectedBranchId ?? _selectedStylist?.branchId;
+      if (targetBranchId != null && targetBranchId.isNotEmpty) {
+        final b = _branches.where((item) => item.id.toUpperCase() == targetBranchId.toUpperCase()).firstOrNull;
+        if (b != null) {
+          _selectedBranch = b;
+        }
+      }
+      if (widget.preselectedServiceId != null && widget.preselectedServiceId!.isNotEmpty) {
+        _selectedServiceIds.clear();
+        _selectedServiceIds.add(widget.preselectedServiceId!);
+      }
+      _loadAvailableSlots();
+    }
+  }
+
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     final branches = await ApiService.fetchBranches();
@@ -118,13 +147,27 @@ class _BookingScreenState extends State<BookingScreen> {
       _services = services;
       _stylists = stylists;
 
-      if (widget.initialBranch != null) {
+      // 1. Khởi tạo thợ nếu được chọn trước
+      if (widget.preselectedStylistId != null && widget.preselectedStylistId!.isNotEmpty) {
+        final st = stylists.where((s) => s.id.toUpperCase() == widget.preselectedStylistId!.toUpperCase()).firstOrNull;
+        if (st != null) {
+          _selectedStylist = st;
+        }
+      }
+
+      // 2. Khởi tạo chi nhánh: Ưu tiên preselectedBranchId hoặc chi nhánh của thợ đã chọn
+      final targetBranchId = widget.preselectedBranchId ?? _selectedStylist?.branchId;
+      if (targetBranchId != null && targetBranchId.isNotEmpty) {
+        final b = branches.where((item) => item.id.toUpperCase() == targetBranchId.toUpperCase()).firstOrNull;
+        if (b != null) {
+          _selectedBranch = b;
+        } else if (widget.initialBranch != null) {
+          _selectedBranch = widget.initialBranch;
+        } else if (branches.isNotEmpty) {
+          _selectedBranch = branches.first;
+        }
+      } else if (widget.initialBranch != null) {
         _selectedBranch = widget.initialBranch;
-      } else if (widget.preselectedBranchId != null) {
-        _selectedBranch = branches.firstWhere(
-          (b) => b.id == widget.preselectedBranchId,
-          orElse: () => branches.isNotEmpty ? branches.first : null as dynamic,
-        );
       } else if (branches.isNotEmpty) {
         _selectedBranch = branches.first;
       }
@@ -211,6 +254,18 @@ class _BookingScreenState extends State<BookingScreen> {
       }
     }
     if (!mounted) return;
+
+    if (_selectedBranch == null) {
+      _showStepWarning('Vui lòng chọn chi nhánh salon');
+      setState(() => _currentStep = 0);
+      return;
+    }
+
+    if (_selectedServiceIds.isEmpty) {
+      _showStepWarning('Vui lòng chọn ít nhất 1 dịch vụ chăm sóc tóc');
+      setState(() => _currentStep = 1);
+      return;
+    }
 
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -488,7 +543,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppTheme.bgPrimary,
         body: Center(
           child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
@@ -525,7 +580,7 @@ class _BookingScreenState extends State<BookingScreen> {
     final canPop = Navigator.of(context).canPop();
     return Container(
       padding: EdgeInsets.fromLTRB(canPop ? 6 : 16, canPop ? 6 : 12, 16, 12),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
         border: Border(bottom: BorderSide(color: AppTheme.borderColor)),
       ),
@@ -705,7 +760,7 @@ class _BookingScreenState extends State<BookingScreen> {
               prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.accentGold),
               suffixIcon: _serviceQuery.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
+                      icon: Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
                       onPressed: () {
                         _serviceSearchController.clear();
                         setState(() => _serviceQuery = '');
@@ -877,7 +932,7 @@ class _BookingScreenState extends State<BookingScreen> {
               prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.accentGold),
               suffixIcon: _stylistQuery.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
+                      icon: Icon(Icons.clear_rounded, size: 18, color: AppTheme.textSecondary),
                       onPressed: () {
                         _stylistSearchController.clear();
                         setState(() => _stylistQuery = '');
@@ -1042,7 +1097,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 child: Container(
                   width: 68,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.charcoal : AppTheme.surfaceCard,
+                    color: isSelected ? (AppTheme.isDarkMode ? AppTheme.accentGold.withValues(alpha: 0.18) : AppTheme.charcoal) : AppTheme.surfaceCard,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isSelected ? AppTheme.accentGold : AppTheme.borderColor,
@@ -1215,15 +1270,15 @@ class _BookingScreenState extends State<BookingScreen> {
           child: Column(
             children: [
               _buildConfirmRow('Chi nhánh:', _selectedBranch?.name ?? 'Omni Salon'),
-              const Divider(color: AppTheme.borderColorSubtle),
+              Divider(color: AppTheme.borderColorSubtle),
               _buildConfirmRow('Thời gian:', '$_selectedTimeSlot • $dateFormatted'),
-              const Divider(color: AppTheme.borderColorSubtle),
+              Divider(color: AppTheme.borderColorSubtle),
               _buildConfirmRow('Thợ Barber:', _selectedStylist?.name ?? 'Master Barber (Ngẫu nhiên)'),
-              const Divider(color: AppTheme.borderColorSubtle),
+              Divider(color: AppTheme.borderColorSubtle),
               _buildConfirmRow('Dịch vụ:', '${_selectedServiceIds.length} dịch vụ ($_totalDuration phút)'),
-              const Divider(color: AppTheme.borderColorSubtle),
+              Divider(color: AppTheme.borderColorSubtle),
               _buildConfirmRow('Thanh toán:', _selectedPaymentMethod == 'VietQR' ? 'Chuyển khoản VietQR' : 'Thanh toán tại quầy'),
-              const Divider(color: AppTheme.borderColorSubtle),
+              Divider(color: AppTheme.borderColorSubtle),
               _buildConfirmRow('Tổng thanh toán:', currencyFormat.format(_totalPrice), isHighlight: true),
             ],
           ),
@@ -1282,7 +1337,7 @@ class _BookingScreenState extends State<BookingScreen> {
         TextFormField(
           controller: _nameController,
           style: AppTheme.bodyMedium(),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Họ và tên quý khách *',
             prefixIcon: Icon(Icons.person_outline_rounded, size: 20, color: AppTheme.textSecondary),
           ),
@@ -1293,7 +1348,7 @@ class _BookingScreenState extends State<BookingScreen> {
           controller: _phoneController,
           keyboardType: TextInputType.phone,
           style: AppTheme.bodyMedium(),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Số điện thoại nhận tin xác nhận *',
             prefixIcon: Icon(Icons.phone_outlined, size: 20, color: AppTheme.textSecondary),
           ),
@@ -1304,7 +1359,7 @@ class _BookingScreenState extends State<BookingScreen> {
           controller: _notesController,
           maxLines: 2,
           style: AppTheme.bodyMedium(),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Yêu cầu đặc biệt (tùy chọn)',
             hintText: 'Ví dụ: Tỉa tóc layer bay bổng, da đầu nhạy cảm...',
             prefixIcon: Icon(Icons.edit_note_rounded, size: 20, color: AppTheme.textSecondary),
@@ -1452,10 +1507,57 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  void _showStepWarning(String msg) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: AppTheme.accentGold, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(msg, style: AppTheme.bodyMedium(color: AppTheme.textLight, fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ),
+        backgroundColor: AppTheme.charcoal,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  bool _isStepValid() {
+    switch (_currentStep) {
+      case 0:
+        return _selectedBranch != null;
+      case 1:
+        return _selectedServiceIds.isNotEmpty;
+      case 2:
+        return true;
+      case 3:
+        if (_selectedTimeSlot.isEmpty) return false;
+        final slot = _slotAvailability.firstWhere(
+          (s) => s['time'] == _selectedTimeSlot,
+          orElse: () => <String, dynamic>{'available': true, 'isBooked': false, 'isPast': false},
+        );
+        return slot['isBooked'] != true && slot['isPast'] != true && slot['available'] != false;
+      case 4:
+        return _selectedServiceIds.isNotEmpty &&
+            _nameController.text.trim().isNotEmpty &&
+            _phoneController.text.trim().isNotEmpty;
+      default:
+        return true;
+    }
+  }
+
   Widget _buildBottomNavControl() {
+    final stepValid = _isStepValid();
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
         border: Border(top: BorderSide(color: AppTheme.borderColor)),
       ),
@@ -1478,6 +1580,35 @@ class _BookingScreenState extends State<BookingScreen> {
                 onPressed: _isSubmitting
                     ? null
                     : () async {
+                        // BẮT BUỘC CHỌN TỪNG BƯỚC MỚI ĐƯỢC TIẾP TỤC
+                        if (_currentStep == 0) {
+                          if (_selectedBranch == null) {
+                            _showStepWarning('Vui lòng chọn chi nhánh salon để tiếp tục!');
+                            return;
+                          }
+                        } else if (_currentStep == 1) {
+                          if (_selectedServiceIds.isEmpty) {
+                            _showStepWarning('Vui lòng chọn ít nhất 1 gói dịch vụ để tiếp tục!');
+                            return;
+                          }
+                        } else if (_currentStep == 3) {
+                          if (_selectedTimeSlot.isEmpty) {
+                            _showStepWarning('Vui lòng chọn khung giờ hẹn để tiếp tục!');
+                            return;
+                          }
+                          final slot = _slotAvailability.firstWhere(
+                            (s) => s['time'] == _selectedTimeSlot,
+                            orElse: () => <String, dynamic>{'available': true, 'isBooked': false, 'isPast': false},
+                          );
+                          if (slot['isBooked'] == true || slot['isPast'] == true || slot['available'] == false) {
+                            final reason = slot['isBooked'] == true
+                                ? 'Khung giờ $_selectedTimeSlot thợ đã kín lịch! Vui lòng chọn ca khác.'
+                                : 'Khung giờ $_selectedTimeSlot đã qua so với hiện tại! Vui lòng chọn ca khác.';
+                            _showStepWarning(reason);
+                            return;
+                          }
+                        }
+
                         if (_currentStep < 4) {
                           setState(() => _currentStep++);
                           if (_currentStep == 3) {
@@ -1486,14 +1617,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         } else {
                           // BƯỚC 5: Yêu cầu đăng nhập trước khi xác nhận đặt lịch
                           if (AuthService.currentUser == null) {
-                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Vui lòng đăng nhập tài khoản để xác nhận đặt lịch hẹn!', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
-                                backgroundColor: AppTheme.charcoal,
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
+                            _showStepWarning('Vui lòng đăng nhập tài khoản để xác nhận đặt lịch hẹn!');
                             await Navigator.of(context).push(
                               MaterialPageRoute(builder: (_) => const LoginScreen()),
                             );
@@ -1506,8 +1630,14 @@ class _BookingScreenState extends State<BookingScreen> {
                           _submitBooking();
                         }
                       },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: stepValid
+                      ? AppTheme.accentGold
+                      : AppTheme.accentGold.withValues(alpha: 0.55),
+                  foregroundColor: AppTheme.charcoal,
+                ),
                 child: _isSubmitting
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),

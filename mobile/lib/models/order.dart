@@ -82,6 +82,8 @@ class SalonOrder {
     required this.createdAt,
   });
 
+  String get orderDate => createdAt;
+
   factory SalonOrder.fromJson(Map<String, dynamic> json) {
     var rawItems = json['items'];
     List<OrderItem> itemsList = [];

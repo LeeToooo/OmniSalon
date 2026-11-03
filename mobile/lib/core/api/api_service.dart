@@ -50,7 +50,8 @@ class ApiService {
       return Uri.encodeFull(trimmed);
     }
 
-    String clean = trimmed.replaceAll('\\', '/').replaceFirst(RegExp(r'^/+'), '');
+    String clean =
+        trimmed.replaceAll('\\', '/').replaceFirst(RegExp(r'^/+'), '');
     if (clean.startsWith('web/frontend/')) {
       clean = clean.substring(13);
     } else if (clean.startsWith('frontend/')) {
@@ -64,7 +65,9 @@ class ApiService {
   // KIỂM TRA TRẠNG THÁI KẾT NỐI SERVER & CSDL SQL SERVER
   static Future<Map<String, dynamic>> checkHealth() async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/health')).timeout(const Duration(seconds: 3));
+      final res = await http
+          .get(Uri.parse('$baseUrl/health'))
+          .timeout(const Duration(seconds: 3));
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes));
       }
@@ -75,10 +78,14 @@ class ApiService {
   // 1. LẤY DANH SÁCH CHI NHÁNH TỪ BẢNG ChiNhanh, KÈM ẢNH THẬT
   static Future<List<Branch>> fetchBranches() async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/branches')).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(Uri.parse('$baseUrl/branches'))
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data.map((json) => Branch.fromJson(json as Map<String, dynamic>)).toList();
+        return data
+            .map((json) => Branch.fromJson(json as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {}
     return _seedBranches;
@@ -88,15 +95,20 @@ class ApiService {
   static Future<List<SalonService>> fetchServices() async {
     List<SalonService> allServices = [];
     try {
-      final res = await http.get(Uri.parse('$baseUrl/services')).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(Uri.parse('$baseUrl/services'))
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        allServices.addAll(data.map((json) => SalonService.fromJson(json as Map<String, dynamic>)));
+        allServices.addAll(data.map(
+            (json) => SalonService.fromJson(json as Map<String, dynamic>)));
       }
     } catch (_) {}
 
     try {
-      final resCombo = await http.get(Uri.parse('$baseUrl/combos')).timeout(const Duration(seconds: 4));
+      final resCombo = await http
+          .get(Uri.parse('$baseUrl/combos'))
+          .timeout(const Duration(seconds: 4));
       if (resCombo.statusCode == 200) {
         final List comboData = jsonDecode(utf8.decode(resCombo.bodyBytes));
         allServices.addAll(comboData.map((json) {
@@ -119,53 +131,93 @@ class ApiService {
       final url = branchId != null && branchId.isNotEmpty && branchId != 'all'
           ? '$baseUrl/stylists?branch_id=$branchId'
           : '$baseUrl/stylists';
-      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+      final res =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data.map((json) => Stylist.fromJson(json as Map<String, dynamic>)).toList();
+        return data
+            .map((json) => Stylist.fromJson(json as Map<String, dynamic>))
+            .where((s) {
+          final levelLower = s.level.toLowerCase();
+          final roleLower = s.role.toLowerCase();
+          if (roleLower.contains('thu ngân') ||
+              roleLower.contains('cashier') ||
+              roleLower.contains('kế toán') ||
+              levelLower.contains('thu ngân') ||
+              levelLower == 'nhân viên') {
+            return false;
+          }
+          return true;
+        }).toList();
       }
     } catch (_) {}
 
     if (branchId != null && branchId.isNotEmpty && branchId != 'all') {
-      final filtered = _seedStylists.where((s) => s.branchId == branchId).toList();
+      final filtered =
+          _seedStylists.where((s) => s.branchId == branchId).toList();
       if (filtered.isNotEmpty) return filtered;
     }
     return _seedStylists;
   }
 
   // 4. LẤY KHUNG GIỜ TRỐNG CHO ĐẶT LỊCH
-  static Future<List<Map<String, dynamic>>> fetchAvailableSlots(String date, String stylistId) async {
+  static Future<List<Map<String, dynamic>>> fetchAvailableSlots(
+      String date, String stylistId) async {
     final defaultSlots = [
-      '08:30', '09:30', '10:30', '11:30',
-      '13:30', '14:30', '15:30', '16:30',
-      '17:30', '18:30', '19:30', '20:30'
+      '08:30',
+      '09:30',
+      '10:30',
+      '11:30',
+      '13:30',
+      '14:30',
+      '15:30',
+      '16:30',
+      '17:30',
+      '18:30',
+      '19:30',
+      '20:30'
     ];
 
     List<Map<String, dynamic>> slots = [];
     try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/bookings/available-slots?date=$date&stylistId=$stylistId'),
-      ).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(
+            Uri.parse(
+                '$baseUrl/bookings/available-slots?date=$date&stylistId=$stylistId'),
+          )
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        slots = data.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e as Map)).toList();
+        slots = data
+            .map<Map<String, dynamic>>(
+                (e) => Map<String, dynamic>.from(e as Map))
+            .toList();
       }
     } catch (_) {}
 
     if (slots.isEmpty) {
-      slots = defaultSlots.map<Map<String, dynamic>>((t) => <String, dynamic>{'time': t, 'available': true, 'isBooked': false}).toList();
+      slots = defaultSlots
+          .map<Map<String, dynamic>>((t) => <String, dynamic>{
+                'time': t,
+                'available': true,
+                'isBooked': false
+              })
+          .toList();
     }
 
     // Luôn đối soát thêm với các lịch hẹn cục bộ mới tạo trong phiên
-    final localBookedTimes = _localBookings.where((b) {
-      if (b.status == 'Cancelled' || b.status == 'Đã hủy') return false;
-      if (b.date != date) return false;
-      if (stylistId.isNotEmpty && stylistId != 'all') {
-        return b.stylistId == stylistId ||
-            b.stylistName.toLowerCase().contains(stylistId.toLowerCase());
-      }
-      return true;
-    }).map((b) => b.timeSlot).toSet();
+    final localBookedTimes = _localBookings
+        .where((b) {
+          if (b.status == 'Cancelled' || b.status == 'Đã hủy') return false;
+          if (b.date != date) return false;
+          if (stylistId.isNotEmpty && stylistId != 'all') {
+            return b.stylistId == stylistId ||
+                b.stylistName.toLowerCase().contains(stylistId.toLowerCase());
+          }
+          return true;
+        })
+        .map((b) => b.timeSlot)
+        .toSet();
 
     if (localBookedTimes.isNotEmpty) {
       slots = slots.map((s) {
@@ -186,13 +238,18 @@ class ApiService {
   }
 
   // 5. LẤY DANH SÁCH SẢN PHẨM & TÌM KIẾM
-  static Future<List<Product>> fetchProducts({String query = '', String category = 'all'}) async {
+  static Future<List<Product>> fetchProducts(
+      {String query = '', String category = 'all'}) async {
     List<Product> products = [];
     try {
-      final res = await http.get(Uri.parse('$baseUrl/products')).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(Uri.parse('$baseUrl/products'))
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        products = data.map((json) => Product.fromJson(json as Map<String, dynamic>)).toList();
+        products = data
+            .map((json) => Product.fromJson(json as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {
       products = _seedProducts;
@@ -219,10 +276,24 @@ class ApiService {
   // 6. LẤY DANH SÁCH ĐẶT LỊCH, LichHen
   static Future<List<Booking>> fetchBookings() async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/bookings')).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(Uri.parse('$baseUrl/bookings'))
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        final list = data.map((json) => Booking.fromJson(json as Map<String, dynamic>)).toList();
+        final list = data
+            .map((json) => Booking.fromJson(json as Map<String, dynamic>))
+            .toList()
+          ..sort((a, b) {
+            final numA =
+                int.tryParse(a.bookingCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+            final numB =
+                int.tryParse(b.bookingCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+            if (numA != numB) return numB.compareTo(numA);
+            final dComp = b.date.compareTo(a.date);
+            if (dComp != 0) return dComp;
+            return b.timeSlot.compareTo(a.timeSlot);
+          });
         if (list.isNotEmpty) return list;
       }
     } catch (_) {}
@@ -234,27 +305,44 @@ class ApiService {
     final clean = query.trim();
     if (clean.isEmpty) return fetchBookings();
     try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/bookings/lookup?q=${Uri.encodeComponent(clean)}'),
-      ).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(
+            Uri.parse(
+                '$baseUrl/bookings/lookup?q=${Uri.encodeComponent(clean)}'),
+          )
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data.map((json) => Booking.fromJson(json as Map<String, dynamic>)).toList();
+        return data
+            .map((json) => Booking.fromJson(json as Map<String, dynamic>))
+            .toList()
+          ..sort((a, b) {
+            final numA =
+                int.tryParse(a.bookingCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+            final numB =
+                int.tryParse(b.bookingCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+            if (numA != numB) return numB.compareTo(numA);
+            final dComp = b.date.compareTo(a.date);
+            if (dComp != 0) return dComp;
+            return b.timeSlot.compareTo(a.timeSlot);
+          });
       }
     } catch (_) {}
 
-    return _localBookings.where((b) =>
-      b.bookingCode.toLowerCase().contains(clean.toLowerCase()) ||
-      b.customerPhone.contains(clean) ||
-      b.customerName.toLowerCase().contains(clean.toLowerCase())
-    ).toList();
+    return _localBookings
+        .where((b) =>
+            b.bookingCode.toLowerCase().contains(clean.toLowerCase()) ||
+            b.customerPhone.contains(clean) ||
+            b.customerName.toLowerCase().contains(clean.toLowerCase()))
+        .toList();
   }
 
   // 7b. SINH MÃ LỊCH HẸN TUẦN TỰ CHUẨN CSDL, LH01, LH02... LH11, LH12...
   static String generateNextBookingCode() {
     int maxSeq = 10;
     for (final b in _localBookings) {
-      final m = RegExp(r'LH(\d+)', caseSensitive: false).firstMatch(b.bookingCode);
+      final m =
+          RegExp(r'LH(\d+)', caseSensitive: false).firstMatch(b.bookingCode);
       if (m != null) {
         final n = int.tryParse(m.group(1) ?? '0') ?? 0;
         if (n > maxSeq) maxSeq = n;
@@ -267,7 +355,8 @@ class ApiService {
   static String generateNextOrderCode() {
     int maxSeq = 10;
     for (final o in _localOrders) {
-      final m = RegExp(r'DH(\d+)', caseSensitive: false).firstMatch(o.orderCode);
+      final m =
+          RegExp(r'DH(\d+)', caseSensitive: false).firstMatch(o.orderCode);
       if (m != null) {
         final n = int.tryParse(m.group(1) ?? '0') ?? 0;
         if (n > maxSeq) maxSeq = n;
@@ -279,17 +368,21 @@ class ApiService {
   // 8. ĐẶT LỊCH MỚI
   static Future<Map<String, dynamic>> createBooking(Booking booking) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/bookings'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(booking.toJson()),
-      ).timeout(const Duration(seconds: 5));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/bookings'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(booking.toJson()),
+          )
+          .timeout(const Duration(seconds: 5));
       if (res.statusCode == 200 || res.statusCode == 201) {
         final data = jsonDecode(utf8.decode(res.bodyBytes));
         String finalCode = booking.bookingCode;
         if (data is Map) {
           final innerBooking = data['booking'] is Map ? data['booking'] : data;
-          final sCode = innerBooking['bookingCode'] ?? innerBooking['id'] ?? innerBooking['MaLichHen'];
+          final sCode = innerBooking['bookingCode'] ??
+              innerBooking['id'] ??
+              innerBooking['MaLichHen'];
           if (sCode != null && sCode.toString().isNotEmpty) {
             finalCode = sCode.toString();
           }
@@ -320,14 +413,20 @@ class ApiService {
       } else {
         try {
           final errData = jsonDecode(utf8.decode(res.bodyBytes));
-          return {'success': false, 'message': errData['error'] ?? errData['message'] ?? 'Đặt lịch không thành công'};
+          return {
+            'success': false,
+            'message': errData['error'] ??
+                errData['message'] ??
+                'Đặt lịch không thành công'
+          };
         } catch (_) {}
       }
     } catch (_) {
       // Fallback offline: Sinh mã tuần tự LH01, LH02...
       int maxSeq = 10;
       for (final b in _localBookings) {
-        final m = RegExp(r'LH(\d+)', caseSensitive: false).firstMatch(b.bookingCode);
+        final m =
+            RegExp(r'LH(\d+)', caseSensitive: false).firstMatch(b.bookingCode);
         if (m != null) {
           final n = int.tryParse(m.group(1) ?? '0') ?? 0;
           if (n > maxSeq) maxSeq = n;
@@ -367,8 +466,10 @@ class ApiService {
   }
 
   // 9. CẬP NHẬT TRẠNG THÁI LỊCH HẸN, ĐỔI THỢ, VÀO GHẾ, HOÀN THÀNH, HỦY
-  static Future<bool> updateBookingStatus(String bookingId, String newStatus, {String? stylistId, String? stylistName}) async {
-    final idx = _localBookings.indexWhere((b) => b.id == bookingId || b.bookingCode == bookingId);
+  static Future<bool> updateBookingStatus(String bookingId, String newStatus,
+      {String? stylistId, String? stylistName}) async {
+    final idx = _localBookings
+        .indexWhere((b) => b.id == bookingId || b.bookingCode == bookingId);
     if (idx != -1) {
       final old = _localBookings[idx];
       _localBookings[idx] = Booking(
@@ -396,14 +497,16 @@ class ApiService {
       );
     }
     try {
-      final res = await http.put(
-        Uri.parse('$baseUrl/bookings/$bookingId'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'status': newStatus,
-          if (stylistId != null) 'stylistId': stylistId,
-        }),
-      ).timeout(const Duration(seconds: 4));
+      final res = await http
+          .put(
+            Uri.parse('$baseUrl/bookings/$bookingId'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'status': newStatus,
+              if (stylistId != null) 'stylistId': stylistId,
+            }),
+          )
+          .timeout(const Duration(seconds: 4));
       return res.statusCode == 200;
     } catch (_) {
       return true;
@@ -411,13 +514,16 @@ class ApiService {
   }
 
   // 10. HỦY LỊCH HẸN
-  static Future<bool> cancelBooking(String bookingId, {String reason = 'Khách hủy trên app'}) async {
+  static Future<bool> cancelBooking(String bookingId,
+      {String reason = 'Khách hủy trên app'}) async {
     return updateBookingStatus(bookingId, 'Cancelled');
   }
 
   // 11. ĐỔI LỊCH HẸN, RESCHEDULE
-  static Future<bool> rescheduleBooking(String bookingId, String newDate, String newTime) async {
-    final idx = _localBookings.indexWhere((b) => b.id == bookingId || b.bookingCode == bookingId);
+  static Future<bool> rescheduleBooking(
+      String bookingId, String newDate, String newTime) async {
+    final idx = _localBookings
+        .indexWhere((b) => b.id == bookingId || b.bookingCode == bookingId);
     if (idx != -1) {
       final old = _localBookings[idx];
       _localBookings[idx] = Booking(
@@ -440,11 +546,14 @@ class ApiService {
       );
     }
     try {
-      final res = await http.put(
-        Uri.parse('$baseUrl/bookings/$bookingId'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'date': newDate, 'timeSlot': newTime, 'status': 'Confirmed'}),
-      ).timeout(const Duration(seconds: 4));
+      final res = await http
+          .put(
+            Uri.parse('$baseUrl/bookings/$bookingId'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(
+                {'date': newDate, 'timeSlot': newTime, 'status': 'Confirmed'}),
+          )
+          .timeout(const Duration(seconds: 4));
       return res.statusCode == 200;
     } catch (_) {
       return true;
@@ -454,10 +563,14 @@ class ApiService {
   // 12. LẤY DANH SÁCH ĐƠN HÀNG, DonHang
   static Future<List<SalonOrder>> fetchOrders() async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/orders')).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(Uri.parse('$baseUrl/orders'))
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        final list = data.map((json) => SalonOrder.fromJson(json as Map<String, dynamic>)).toList();
+        final list = data
+            .map((json) => SalonOrder.fromJson(json as Map<String, dynamic>))
+            .toList();
         if (list.isNotEmpty) return list;
       }
     } catch (_) {}
@@ -467,20 +580,26 @@ class ApiService {
   // 13. TẠO ĐƠN HÀNG MỚI, TRẢ VỀ MÃ ĐƠN HÀNG CHUẨN CSDL DH01, DH02...
   static Future<String?> createOrder(SalonOrder order) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/orders'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(order.toJson()),
-      ).timeout(const Duration(seconds: 5));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/orders'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(order.toJson()),
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (res.statusCode == 200 || res.statusCode == 201) {
         final data = jsonDecode(utf8.decode(res.bodyBytes));
         String? serverId;
         if (data is Map) {
           if (data['order'] is Map) {
-            serverId = (data['order']['orderCode'] ?? data['order']['id'] ?? data['order']['MaDonHang'])?.toString();
+            serverId = (data['order']['orderCode'] ??
+                    data['order']['id'] ??
+                    data['order']['MaDonHang'])
+                ?.toString();
           } else {
-            serverId = (data['orderCode'] ?? data['id'] ?? data['MaDonHang'])?.toString();
+            serverId = (data['orderCode'] ?? data['id'] ?? data['MaDonHang'])
+                ?.toString();
           }
         }
         if (serverId != null && serverId.isNotEmpty) {
@@ -541,8 +660,10 @@ class ApiService {
   }
 
   // 13b. HỦY ĐƠN HÀNG ONLINE & HOÀN KHO THEO LÔ HẠN DÙNG, FEFO
-  static Future<bool> cancelOrder(String orderId, {String reason = 'Khách hủy trên app'}) async {
-    final idx = _localOrders.indexWhere((o) => o.id == orderId || o.orderCode == orderId);
+  static Future<bool> cancelOrder(String orderId,
+      {String reason = 'Khách hủy trên app'}) async {
+    final idx = _localOrders
+        .indexWhere((o) => o.id == orderId || o.orderCode == orderId);
     if (idx != -1) {
       final old = _localOrders[idx];
       _localOrders[idx] = SalonOrder(
@@ -565,11 +686,13 @@ class ApiService {
       );
     }
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/orders/$orderId/cancel'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'reason': reason}),
-      ).timeout(const Duration(seconds: 5));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/orders/$orderId/cancel'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'reason': reason}),
+          )
+          .timeout(const Duration(seconds: 5));
       return res.statusCode == 200;
     } catch (_) {
       return true;
@@ -587,23 +710,93 @@ class ApiService {
     String? customerPhone,
   }) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/reviews'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          if (bookingId != null) 'bookingId': bookingId,
-          if (orderId != null) 'orderId': orderId,
-          'rating': rating,
-          'comment': comment,
-          if (customerId != null) 'customerId': customerId,
-          if (customerName != null) 'customerName': customerName,
-          if (customerPhone != null) 'customerPhone': customerPhone,
-        }),
-      ).timeout(const Duration(seconds: 5));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/reviews'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              if (bookingId != null) 'bookingId': bookingId,
+              if (orderId != null) 'orderId': orderId,
+              'rating': rating,
+              'comment': comment,
+              if (customerId != null) 'customerId': customerId,
+              if (customerName != null) 'customerName': customerName,
+              if (customerPhone != null) 'customerPhone': customerPhone,
+            }),
+          )
+          .timeout(const Duration(seconds: 5));
       return res.statusCode == 200 || res.statusCode == 201;
     } catch (e) {
       debugPrint('Error submitting review: $e');
       return false;
+    }
+  }
+
+  // 14.1 LẤY ĐÁNH GIÁ THỰC TẾ TỪ SQL SERVER (THEO DỊCH VỤ HOẶC SẢN PHẨM)
+  static Future<List<Map<String, dynamic>>> fetchReviews({
+    String? productId,
+    String? serviceId,
+    String? bookingId,
+    String? orderId,
+    String? customerId,
+  }) async {
+    try {
+      final params = <String>[];
+      if (productId != null && productId.isNotEmpty)
+        params.add('productId=$productId');
+      if (serviceId != null && serviceId.isNotEmpty)
+        params.add('serviceId=$serviceId');
+      if (bookingId != null && bookingId.isNotEmpty)
+        params.add('bookingId=$bookingId');
+      if (orderId != null && orderId.isNotEmpty) params.add('orderId=$orderId');
+      if (customerId != null && customerId.isNotEmpty)
+        params.add('customerId=$customerId');
+      final queryStr = params.isNotEmpty ? '?${params.join('&')}' : '';
+      final res = await http
+          .get(Uri.parse('$baseUrl/reviews$queryStr'))
+          .timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final List data = jsonDecode(utf8.decode(res.bodyBytes));
+        return data.map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching reviews: $e');
+    }
+    // Fallback dữ liệu chuẩn từ SQL seed nếu chưa kết nối
+    if (serviceId != null) {
+      return [
+        {
+          'customerName': 'Lê Hoàng Nam',
+          'rating': 5,
+          'date': '2026-10-10 11:30:00',
+          'comment':
+              'Master Stylist cắt tóc kỹ lưỡng, đường fade sắc nét và vuốt sáp tạo kiểu rất hợp với gương mặt mình.',
+        },
+        {
+          'customerName': 'Trần Minh Quân',
+          'rating': 5,
+          'date': '2026-10-09 15:40:00',
+          'comment':
+              'Dịch vụ chuyên nghiệp hàng đầu, thợ tư vấn tạo kiểu rất có tâm, gội đầu bấm huyệt cực kỳ thư giãn.',
+        },
+      ];
+    } else {
+      return [
+        {
+          'customerName': 'Nguyễn Văn Tuấn',
+          'rating': 5,
+          'date': '2026-10-08 16:30:00',
+          'comment':
+              'Sản phẩm chính hãng độ giữ nếp cực tốt, mùi hương nam tính cổ điển sang trọng, rất hài lòng!',
+        },
+        {
+          'customerName': 'Hoàng Gia Bảo',
+          'rating': 5,
+          'date': '2026-10-07 14:20:00',
+          'comment':
+              'Hàng chuẩn tem chống hàng giả Omni Salon, đóng gói cẩn thận 3 lớp, giao hàng siêu nhanh.',
+        },
+      ];
     }
   }
 
@@ -612,9 +805,15 @@ class ApiService {
   // 14. ADMIN OVERVIEW METRICS, KẾT NỐI TRỰC TIẾP ANALYTICS & BOOKINGS TỪ SQL SERVER
   static Future<Map<String, dynamic>> fetchAdminMetrics() async {
     try {
-      final revFuture = http.get(Uri.parse('$baseUrl/analytics/revenue')).timeout(const Duration(seconds: 4));
-      final bFuture = http.get(Uri.parse('$baseUrl/bookings')).timeout(const Duration(seconds: 4));
-      final stFuture = http.get(Uri.parse('$baseUrl/stylists')).timeout(const Duration(seconds: 4));
+      final revFuture = http
+          .get(Uri.parse('$baseUrl/analytics/revenue'))
+          .timeout(const Duration(seconds: 4));
+      final bFuture = http
+          .get(Uri.parse('$baseUrl/bookings'))
+          .timeout(const Duration(seconds: 4));
+      final stFuture = http
+          .get(Uri.parse('$baseUrl/stylists'))
+          .timeout(const Duration(seconds: 4));
 
       final results = await Future.wait([revFuture, bFuture, stFuture]);
       final revRes = results[0];
@@ -648,17 +847,33 @@ class ApiService {
         'occupancyRate': 85.5,
         'totalInvoices': totalInvoices > 0 ? totalInvoices : 18,
         'branches': [
-          {'name': 'Q1 - Bến Thành', 'revenue': (totalRevenue > 0 ? (totalRevenue * 0.5).round() : 4200000), 'bookings': (todayBookings > 0 ? (todayBookings * 0.5).round() : 14)},
-          {'name': 'Tân Bình - Cộng Hòa', 'revenue': (totalRevenue > 0 ? (totalRevenue * 0.35).round() : 2850000), 'bookings': (todayBookings > 0 ? (todayBookings * 0.35).round() : 9)},
-          {'name': 'Bình Thạnh - ĐBP', 'revenue': (totalRevenue > 0 ? (totalRevenue * 0.15).round() : 1400000), 'bookings': (todayBookings > 0 ? (todayBookings * 0.15).round() : 5)},
+          {
+            'name': 'Q1 - Bến Thành',
+            'revenue':
+                (totalRevenue > 0 ? (totalRevenue * 0.5).round() : 4200000),
+            'bookings': (todayBookings > 0 ? (todayBookings * 0.5).round() : 14)
+          },
+          {
+            'name': 'Tân Bình - Cộng Hòa',
+            'revenue':
+                (totalRevenue > 0 ? (totalRevenue * 0.35).round() : 2850000),
+            'bookings': (todayBookings > 0 ? (todayBookings * 0.35).round() : 9)
+          },
+          {
+            'name': 'Bình Thạnh - ĐBP',
+            'revenue':
+                (totalRevenue > 0 ? (totalRevenue * 0.15).round() : 1400000),
+            'bookings': (todayBookings > 0 ? (todayBookings * 0.15).round() : 5)
+          },
         ]
       };
     } catch (_) {}
 
     final todayBookings = _localBookings.length;
     final todayRevenue = _localBookings
-        .where((b) => b.status == 'Completed' || b.status == 'Confirmed')
-        .fold(0, (sum, b) => sum + b.totalPrice) + 8450000;
+            .where((b) => b.status == 'Completed' || b.status == 'Confirmed')
+            .fold(0, (sum, b) => sum + b.totalPrice) +
+        8450000;
 
     return {
       'todayBookings': todayBookings > 0 ? todayBookings : 28,
@@ -674,15 +889,19 @@ class ApiService {
   }
 
   // 15. ADMIN INVENTORY ITEMS, GET /api/inventory
-  static Future<List<InventoryItem>> fetchInventory({String branchId = 'all'}) async {
+  static Future<List<InventoryItem>> fetchInventory(
+      {String branchId = 'all'}) async {
     try {
       final url = branchId != 'all' && branchId.isNotEmpty
           ? '$baseUrl/inventory?branch_id=$branchId'
           : '$baseUrl/inventory';
-      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+      final res =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data.map((j) => InventoryItem.fromJson(j as Map<String, dynamic>)).toList();
+        return data
+            .map((j) => InventoryItem.fromJson(j as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {}
 
@@ -695,10 +914,13 @@ class ApiService {
       final url = branchId != null && branchId.isNotEmpty && branchId != 'all'
           ? '$baseUrl/inventory/lots?branch_id=$branchId'
           : '$baseUrl/inventory/lots';
-      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+      final res =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data.map((j) => FefoLot.fromJson(j as Map<String, dynamic>)).toList();
+        return data
+            .map((j) => FefoLot.fromJson(j as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {}
 
@@ -711,10 +933,13 @@ class ApiService {
       final url = branchId != null && branchId.isNotEmpty && branchId != 'all'
           ? '$baseUrl/invoices?branch_id=$branchId'
           : '$baseUrl/invoices';
-      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+      final res =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data.map((j) => Invoice.fromJson(j as Map<String, dynamic>)).toList();
+        return data
+            .map((j) => Invoice.fromJson(j as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {}
 
@@ -727,10 +952,13 @@ class ApiService {
       final url = branchId != null && branchId.isNotEmpty && branchId != 'all'
           ? '$baseUrl/stylists?branch_id=$branchId'
           : '$baseUrl/stylists';
-      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+      final res =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data.map((j) => StaffMember.fromJson(j as Map<String, dynamic>)).toList();
+        return data
+            .map((j) => StaffMember.fromJson(j as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {}
 
@@ -738,17 +966,20 @@ class ApiService {
   }
 
   // 19. CẬP NHẬT TRẠNG THÁI CA TRỰC NHÂN VIÊN, PUT /api/stylists/:id
-  static Future<bool> updateStaffStatus(String staffId, String newStatus) async {
+  static Future<bool> updateStaffStatus(
+      String staffId, String newStatus) async {
     final idx = _seedStaff.indexWhere((s) => s.id == staffId);
     if (idx != -1) {
       _seedStaff[idx].status = newStatus;
     }
     try {
-      final res = await http.put(
-        Uri.parse('$baseUrl/stylists/$staffId'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'status': newStatus, 'TrangThai': newStatus}),
-      ).timeout(const Duration(seconds: 3));
+      final res = await http
+          .put(
+            Uri.parse('$baseUrl/stylists/$staffId'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'status': newStatus, 'TrangThai': newStatus}),
+          )
+          .timeout(const Duration(seconds: 3));
       return res.statusCode == 200;
     } catch (_) {
       return true;
@@ -759,7 +990,8 @@ class ApiService {
   static Future<Invoice> createPosInvoice(Map<String, dynamic> billData) async {
     int maxInv = 10;
     for (final inv in _seedInvoices) {
-      final m = RegExp(r'HD(\d+)', caseSensitive: false).firstMatch(inv.invoiceNumber);
+      final m = RegExp(r'HD(\d+)', caseSensitive: false)
+          .firstMatch(inv.invoiceNumber);
       if (m != null) {
         final n = int.tryParse(m.group(1) ?? '0') ?? 0;
         if (n > maxInv) maxInv = n;
@@ -784,18 +1016,22 @@ class ApiService {
     _seedInvoices.insert(0, inv);
 
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/pos/checkout'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(billData),
-      ).timeout(const Duration(seconds: 4));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/pos/checkout'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(billData),
+          )
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200 || res.statusCode == 201) {
         final data = jsonDecode(utf8.decode(res.bodyBytes));
         if (data['invoice'] != null) {
           final srvInv = data['invoice'];
           return Invoice(
             id: srvInv['id']?.toString() ?? inv.id,
-            invoiceNumber: srvInv['invoiceNo']?.toString() ?? srvInv['id']?.toString() ?? inv.invoiceNumber,
+            invoiceNumber: srvInv['invoiceNo']?.toString() ??
+                srvInv['id']?.toString() ??
+                inv.invoiceNumber,
             customerId: inv.customerId,
             customerName: inv.customerName,
             customerPhone: inv.customerPhone,
@@ -815,7 +1051,8 @@ class ApiService {
   }
 
   // 21. CẬP NHẬT GIÁ DỊCH VỤ TRONG CATALOG
-  static Future<bool> updateService(String serviceId, int price, int duration) async {
+  static Future<bool> updateService(
+      String serviceId, int price, int duration) async {
     final idx = _seedServices.indexWhere((s) => s.id == serviceId);
     if (idx != -1) {
       final old = _seedServices[idx];
@@ -831,11 +1068,13 @@ class ApiService {
       );
     }
     try {
-      final res = await http.put(
-        Uri.parse('$baseUrl/services/$serviceId'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'price': price, 'duration': duration}),
-      ).timeout(const Duration(seconds: 3));
+      final res = await http
+          .put(
+            Uri.parse('$baseUrl/services/$serviceId'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'price': price, 'duration': duration}),
+          )
+          .timeout(const Duration(seconds: 3));
       return res.statusCode == 200;
     } catch (_) {
       return true;
@@ -845,28 +1084,9 @@ class ApiService {
   // 22. LẤY DANH SÁCH MÃ KHUYẾN MÃI & VOUCHERS, GET /api/promotions
   static Future<List<Map<String, dynamic>>> fetchPromotions() async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/promotions')).timeout(const Duration(seconds: 4));
-      if (res.statusCode == 200) {
-        final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data.cast<Map<String, dynamic>>();
-      }
-    } catch (_) {}
-    return [
-      {'MaKhuyenMai': 'KM_CHAOMUNG', 'TenKhuyenMai': 'Ưu đãi thành viên mới', 'GiaTriGiam': 20, 'HinhThuc': 'Phần trăm'},
-      {'MaKhuyenMai': 'KM_VIPBARBER', 'TenKhuyenMai': 'Tri ân khách hàng thân thiết', 'GiaTriGiam': 50000, 'HinhThuc': 'Số tiền cố định'},
-    ];
-  }
-
-  // 23. LẤY ĐÁNH GIÁ 5 SAO & PHẢN HỒI, GET /api/reviews
-  static Future<List<Map<String, dynamic>>> fetchReviews({String? orderId, String? customerId}) async {
-    try {
-      String url = '$baseUrl/reviews';
-      if (orderId != null) {
-        url += '?order_id=$orderId';
-      } else if (customerId != null) {
-        url += '?customer_id=$customerId';
-      }
-      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(Uri.parse('$baseUrl/promotions'))
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data.cast<Map<String, dynamic>>();
@@ -874,30 +1094,30 @@ class ApiService {
     } catch (_) {}
     return [
       {
-        'id': 'DG01',
-        'customerName': 'Nguyễn Văn Hùng',
-        'rating': 5,
-        'comment': 'Thợ Fade tay nghề rất cao, không gian sang trọng và chuẩn chỉ!',
-        'date': '2026-03-28 14:30:00'
+        'MaKhuyenMai': 'KM_CHAOMUNG',
+        'TenKhuyenMai': 'Ưu đãi thành viên mới',
+        'GiaTriGiam': 20,
+        'HinhThuc': 'Phần trăm'
       },
       {
-        'id': 'DG02',
-        'customerName': 'Trần Minh Đức',
-        'rating': 5,
-        'comment': 'Dịch vụ gội đầu dưỡng sinh và cắt tóc rất ưng ý, sẽ quay lại!',
-        'date': '2026-03-29 16:45:00'
-      }
+        'MaKhuyenMai': 'KM_VIPBARBER',
+        'TenKhuyenMai': 'Tri ân khách hàng thân thiết',
+        'GiaTriGiam': 50000,
+        'HinhThuc': 'Số tiền cố định'
+      },
     ];
   }
 
   // 24. GỬI ĐÁNH GIÁ MỚI CHO LỊCH HẸN HOẶC ĐƠN HÀNG, POST /api/reviews
   static Future<bool> createReview(Map<String, dynamic> reviewData) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/reviews'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(reviewData),
-      ).timeout(const Duration(seconds: 4));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/reviews'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(reviewData),
+          )
+          .timeout(const Duration(seconds: 4));
       return res.statusCode == 200 || res.statusCode == 201;
     } catch (_) {
       return true;
@@ -907,7 +1127,9 @@ class ApiService {
   // 25. LẤY DANH SÁCH THÔNG BÁO HỆ THỐNG, GET /api/notifications
   static Future<List<Map<String, dynamic>>> fetchNotifications() async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/notifications')).timeout(const Duration(seconds: 4));
+      final res = await http
+          .get(Uri.parse('$baseUrl/notifications'))
+          .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data.cast<Map<String, dynamic>>();
@@ -917,14 +1139,16 @@ class ApiService {
       {
         'MaThongBao': 'TB01',
         'TieuDe': 'Đặt lịch thành công',
-        'NoiDung': 'Lịch hẹn chăm sóc tóc của bạn đã được xác nhận tại Omni Salon Q1.',
+        'NoiDung':
+            'Lịch hẹn chăm sóc tóc của bạn đã được xác nhận tại Omni Salon Q1.',
         'ThoiGianGui': '2026-03-29 09:00:00',
         'TrangThaiDoc': 0,
       },
       {
         'MaThongBao': 'TB02',
         'TieuDe': 'Ưu đãi thành viên VIP',
-        'NoiDung': 'Tặng voucher giảm 20% cho lần ghé cắt tiếp theo trong tuần.',
+        'NoiDung':
+            'Tặng voucher giảm 20% cho lần ghé cắt tiếp theo trong tuần.',
         'ThoiGianGui': '2026-03-28 15:30:00',
         'TrangThaiDoc': 1,
       }
@@ -945,13 +1169,16 @@ class ApiService {
   }
 
   // 27. REAL AI BARBER VISION: PHÂN TÍCH NGŨ QUAN & DÁNG MẶT, POST /api/ai/analyze-face
-  static Future<Map<String, dynamic>?> analyzeFace(String imageBase64OrUrl) async {
+  static Future<Map<String, dynamic>?> analyzeFace(
+      String imageBase64OrUrl) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/ai/analyze-face'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'image': imageBase64OrUrl}),
-      ).timeout(const Duration(seconds: 5));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/ai/analyze-face'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'image': imageBase64OrUrl}),
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
@@ -963,13 +1190,16 @@ class ApiService {
   }
 
   // 27b. REAL AI BARBER VISION: TIỀN XỬ LÝ ẢNH, CẮT ẢNH, XÓA NỀN & XÓA TÓC CŨ
-  static Future<Map<String, dynamic>?> preprocessCustomerPhoto(String imageBase64OrUrl) async {
+  static Future<Map<String, dynamic>?> preprocessCustomerPhoto(
+      String imageBase64OrUrl) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/ai/preprocess-customer-photo'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'image': imageBase64OrUrl}),
-      ).timeout(const Duration(seconds: 8));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/ai/preprocess-customer-photo'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'image': imageBase64OrUrl}),
+          )
+          .timeout(const Duration(seconds: 8));
 
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
@@ -987,15 +1217,17 @@ class ApiService {
     required String colorId,
   }) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/ai/restyle-hair'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'image': imageBase64OrUrl,
-          'hairstyleId': hairstyleId,
-          'colorId': colorId,
-        }),
-      ).timeout(const Duration(seconds: 12));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/ai/restyle-hair'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'image': imageBase64OrUrl,
+              'hairstyleId': hairstyleId,
+              'colorId': colorId,
+            }),
+          )
+          .timeout(const Duration(seconds: 12));
 
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
@@ -1009,11 +1241,13 @@ class ApiService {
   // 29. TƯ VẤN TRỰC TIẾP VỚI MASTER BARBER AI, POST /api/ai/consultation
   static Future<String> askBarberAi(String message) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/ai/consultation'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'message': message}),
-      ).timeout(const Duration(seconds: 8));
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/ai/consultation'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'message': message}),
+          )
+          .timeout(const Duration(seconds: 8));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(utf8.decode(res.bodyBytes));
@@ -1025,19 +1259,115 @@ class ApiService {
 
   // Dữ liệu mẫu dự phòng khi chưa kết nối mạng
   static final List<Branch> _seedBranches = [
-    Branch(id: 'CN01', name: 'Omni Salon Barber Q1 - Bến Thành', address: '120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM', phone: '0901111001', hours: '08:30 - 21:30', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN1.jpg')),
-    Branch(id: 'CN02', name: 'Omni Salon Barber Tân Bình - Cộng Hòa', address: '45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM', phone: '0901111002', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN2.jpg')),
-    Branch(id: 'CN03', name: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ', address: '88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM', phone: '0901111003', hours: '09:00 - 22:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN3.jpg')),
-    Branch(id: 'CN04', name: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa', address: '215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM', phone: '0901111004', hours: '08:30 - 21:30', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN4.jpg')),
+    Branch(
+        id: 'CN01',
+        name: 'Omni Salon Barber Q1 - Bến Thành',
+        address: '120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM',
+        phone: '0901111001',
+        hours: '08:30 - 21:30',
+        city: 'TP. Hồ Chí Minh',
+        image: getImageUrl('ChiNhanh_Omni/CN1.jpg')),
+    Branch(
+        id: 'CN02',
+        name: 'Omni Salon Barber Tân Bình - Cộng Hòa',
+        address: '45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM',
+        phone: '0901111002',
+        hours: '08:30 - 21:00',
+        city: 'TP. Hồ Chí Minh',
+        image: getImageUrl('ChiNhanh_Omni/CN2.jpg')),
+    Branch(
+        id: 'CN03',
+        name: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ',
+        address: '88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM',
+        phone: '0901111003',
+        hours: '09:00 - 22:00',
+        city: 'TP. Hồ Chí Minh',
+        image: getImageUrl('ChiNhanh_Omni/CN3.jpg')),
+    Branch(
+        id: 'CN04',
+        name: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa',
+        address: '215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM',
+        phone: '0901111004',
+        hours: '08:30 - 21:30',
+        city: 'TP. Hồ Chí Minh',
+        image: getImageUrl('ChiNhanh_Omni/CN4.jpg')),
   ];
 
   static final List<SalonService> _seedServices = [
-    SalonService(id: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', description: 'Tư vấn dáng mặt, cắt fade hiện đại, cạo viền sắc nét và vuốt sáp/pomade cao cấp', price: 120000, duration: 45, category: 'Cắt & Tạo Kiểu', image: getImageUrl('DichVu_Men/DV1.jpg')),
-    SalonService(id: 'DV02', name: 'Cắt & Ép Side tóc nam (Down Perm)', description: 'Cắt form chuẩn kết hợp ép xẹp tóc mai và gáy bị vểnh chỉa, giữ nếp 1-2 tháng', price: 250000, duration: 60, category: 'Cắt & Tạo Kiểu', image: getImageUrl('DichVu_Men/DV2.jpg')),
-    SalonService(id: 'DV03', name: 'Uốn tóc xoăn Texture / Ziczac phồng', description: 'Uốn lạnh tạo lọn sóng phồng tự nhiên, giúp tóc bồng bềnh dễ sấy tạo kiểu', price: 650000, duration: 90, category: 'Uốn & Nhuộm', image: getImageUrl('DichVu_Men/DV3.jpg')),
-    SalonService(id: 'DV04', name: 'Nhuộm màu thời trang nam (Khói / Rêu)', description: 'Tẩy khử ánh sắc và nhuộm tông màu thời trang cao cấp bảo vệ sợi tóc', price: 950000, duration: 120, category: 'Uốn & Nhuộm', image: getImageUrl('DichVu_Men/DV4.jpg')),
-    SalonService(id: 'CB01', name: 'Combo Quý Tộc Barber (Cắt + Gội + Cạo râu)', description: 'Gói dịch vụ hoàn chỉnh từ cắt tóc fade, gội dưỡng sinh đến cạo mặt khăn nóng', price: 300000, duration: 90, category: 'Combo VIP', isCombo: true, image: getImageUrl('DichVu_Men/CBDV1.jpg')),
-    SalonService(id: 'CB02', name: 'Combo Đẹp Trai Toàn Diện (Cắt + Ép Side)', description: 'Cắt form chuẩn kết hợp ép xẹp 2 bên mai giúp đầu vuông vức, nam tính', price: 330000, duration: 80, category: 'Combo VIP', isCombo: true, image: getImageUrl('DichVu_Men/CBDV2.jpg')),
+    SalonService(
+        id: 'DV01',
+        name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade',
+        description:
+            'Tư vấn dáng mặt, cắt fade hiện đại, cạo viền sắc nét và vuốt sáp/pomade cao cấp',
+        price: 120000,
+        duration: 45,
+        category: 'Cắt & Tạo Kiểu',
+        image: getImageUrl('DichVu_Men/DV1.jpg')),
+    SalonService(
+        id: 'DV02',
+        name: 'Cắt & Ép Side tóc nam (Down Perm)',
+        description:
+            'Cắt form chuẩn kết hợp ép xẹp tóc mai và gáy bị vểnh chỉa, giữ nếp 1-2 tháng',
+        price: 250000,
+        duration: 60,
+        category: 'Cắt & Tạo Kiểu',
+        image: getImageUrl('DichVu_Men/DV2.jpg')),
+    SalonService(
+        id: 'DV03',
+        name: 'Uốn tóc xoăn Texture / Ziczac phồng',
+        description:
+            'Uốn lạnh tạo lọn sóng phồng tự nhiên, giúp tóc bồng bềnh dễ sấy tạo kiểu',
+        price: 650000,
+        duration: 90,
+        category: 'Uốn & Nhuộm',
+        image: getImageUrl('DichVu_Men/DV3.jpg')),
+    SalonService(
+        id: 'DV04',
+        name: 'Nhuộm màu thời trang nam (Khói / Rêu)',
+        description:
+            'Tẩy khử ánh sắc và nhuộm tông màu thời trang cao cấp bảo vệ sợi tóc',
+        price: 950000,
+        duration: 120,
+        category: 'Uốn & Nhuộm',
+        image: getImageUrl('DichVu_Men/DV4.jpg')),
+    SalonService(
+        id: 'DV07',
+        name: 'Cạo mặt, tỉa râu truyền thống & Khăn nóng',
+        description:
+            'Cạo râu bằng dao cạo bọt kem Proraso, chườm khăn nóng làm sạch lỗ chân lông',
+        price: 80000,
+        duration: 30,
+        category: 'Dưỡng Sinh & Râu',
+        image: getImageUrl('DichVu_Men/DV7.jpg')),
+    SalonService(
+        id: 'DV10',
+        name: 'Lấy ráy tai êm ái Barber & Chăm sóc da mặt Facial',
+        description:
+            'Dụng cụ chuyên dụng khử trùng, vệ sinh tai êm ái và đắp mặt nạ dưỡng ẩm thư giãn',
+        price: 150000,
+        duration: 40,
+        category: 'Dưỡng Sinh & Râu',
+        image: getImageUrl('DichVu_Men/DV10.jpg')),
+    SalonService(
+        id: 'CB01',
+        name: 'Combo Quý Tộc Barber (Cắt + Gội + Cạo râu)',
+        description:
+            'Gói dịch vụ hoàn chỉnh từ cắt tóc fade, gội dưỡng sinh đến cạo mặt khăn nóng',
+        price: 300000,
+        duration: 90,
+        category: 'Combo VIP',
+        isCombo: true,
+        image: getImageUrl('DichVu_Men/CBDV1.jpg')),
+    SalonService(
+        id: 'CB02',
+        name: 'Combo Đẹp Trai Toàn Diện (Cắt + Ép Side)',
+        description:
+            'Cắt form chuẩn kết hợp ép xẹp 2 bên mai giúp đầu vuông vức, nam tính',
+        price: 330000,
+        duration: 80,
+        category: 'Combo VIP',
+        isCombo: true,
+        image: getImageUrl('DichVu_Men/CBDV2.jpg')),
   ];
 
   static final List<Stylist> _seedStylists = [
@@ -1047,11 +1377,16 @@ class ApiService {
       level: 'Art Director',
       branchId: 'CN01',
       branchName: 'Omni Salon Barber Q1 - Bến Thành',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      avatar:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
       rating: 5.0,
       reviewCount: 312,
       experienceYears: 9,
-      specialties: ['Fade Kỹ Thuật Cao', 'Tạo Phom Pompadour', 'Uốn Texture Layer'],
+      specialties: [
+        'Fade Kỹ Thuật Cao',
+        'Tạo Phom Pompadour',
+        'Uốn Texture Layer'
+      ],
     ),
     Stylist(
       id: 'NV04',
@@ -1059,11 +1394,16 @@ class ApiService {
       level: 'Master Stylist',
       branchId: 'CN02',
       branchName: 'Omni Salon Barber Tân Bình - Cộng Hòa',
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      avatar:
+          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
       rating: 4.9,
       reviewCount: 228,
       experienceYears: 7,
-      specialties: ['Side Part 7/3 Quý Ông', 'Ép Side Down Perm', 'Cạo Mặt Khăn Nóng'],
+      specialties: [
+        'Side Part 7/3 Quý Ông',
+        'Ép Side Down Perm',
+        'Cạo Mặt Khăn Nóng'
+      ],
     ),
     Stylist(
       id: 'NV05',
@@ -1071,11 +1411,16 @@ class ApiService {
       level: 'Master Stylist',
       branchId: 'CN03',
       branchName: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+      avatar:
+          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
       rating: 5.0,
       reviewCount: 265,
       experienceYears: 8,
-      specialties: ['Modern Mullet Cá Tính', 'Tẩy Nhuộm Khói Titan', 'Gội Dưỡng Sinh'],
+      specialties: [
+        'Modern Mullet Cá Tính',
+        'Tẩy Nhuộm Khói Titan',
+        'Gội Dưỡng Sinh'
+      ],
     ),
     Stylist(
       id: 'NV06',
@@ -1083,11 +1428,16 @@ class ApiService {
       level: 'Art Director',
       branchId: 'CN04',
       branchName: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa',
-      avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400',
+      avatar:
+          'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400',
       rating: 4.9,
       reviewCount: 340,
       experienceYears: 10,
-      specialties: ['Cắt Kéo Phom Cổ Điển', 'Uốn Ziczac Bồng Bềnh', 'Chăm Sóc Râu Cổ Điển'],
+      specialties: [
+        'Cắt Kéo Phom Cổ Điển',
+        'Uốn Ziczac Bồng Bềnh',
+        'Chăm Sóc Râu Cổ Điển'
+      ],
     ),
     Stylist(
       id: 'NV07',
@@ -1095,7 +1445,8 @@ class ApiService {
       level: 'Master Stylist',
       branchId: 'CN01',
       branchName: 'Omni Salon Barber Q1 - Bến Thành',
-      avatar: 'https://images.unsplash.com/photo-1517832606589-7629c3395907?w=400',
+      avatar:
+          'https://images.unsplash.com/photo-1517832606589-7629c3395907?w=400',
       rating: 4.9,
       reviewCount: 184,
       experienceYears: 6,
@@ -1103,13 +1454,86 @@ class ApiService {
     ),
   ];
 
+  static List<Product> get seedProducts => _seedProducts;
+
   static final List<Product> _seedProducts = [
-    Product(id: 'SP01', name: 'Apestomen Volcanic Clay 80g', brand: 'Apestomen', originalPrice: 480000, actualPrice: 480000, discountPercent: 0, description: 'Giữ nếp cực đỉnh trên 14 tiếng, kiểm soát dầu thừa tốt', image: getImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg'), categoryId: 'DM01', categoryName: 'Sáp vuốt tóc'),
-    Product(id: 'SP30', name: 'Reuzel Green Medium Hold Grease 95g', brand: 'Reuzel', originalPrice: 692000, actualPrice: 549000, discountPercent: 20, description: 'Pomade gốc dầu cổ điển, tạo độ bóng vừa và tạo nếp chuẩn barber', image: getImageUrl('Men_Grooming_Products/02_Pomade_Co_Dien_Va_Hien_Dai/Reuzel_Pomade/Reuzel_Green_Medium_Hold_Grease.jpg'), categoryId: 'DM02', categoryName: 'Pomade cổ điển'),
-    Product(id: 'SP51', name: 'Reuzel Grooming Tonic 100ml', brand: 'Reuzel', originalPrice: 692000, actualPrice: 415000, discountPercent: 40, description: 'Xịt pre-styling dưỡng tóc, bảo vệ tóc khi sấy và tạo độ phồng tối đa', image: getImageUrl('Men_Grooming_Products/03_Xit_Tao_Phong_Pre_Styling/Reuzel_Grooming_Tonic/Reuzel_Grooming_Tonic.jpg'), categoryId: 'DM03', categoryName: 'Pre-Styling'),
-    Product(id: 'SP61', name: 'L’Oréal Infinium Pure Strong 500ml', brand: 'L’Oréal Professionnel', originalPrice: 503000, actualPrice: 150000, discountPercent: 70, description: 'Gôm xịt khóa form tóc chuẩn salon quốc tế, khô tức thì không để lại bụi trắng', image: getImageUrl('Men_Grooming_Products/04_Gom_Xit_Giu_Nep_Toc_Nam/LOreal_Infinium/L\'Oréal_Professionnel_Infinium_Pure_Strong.jpg'), categoryId: 'DM04', categoryName: 'Gôm xịt giữ nếp'),
-    Product(id: 'SP72', name: 'Hanz de Fuko Quicksand 56g', brand: 'Hanz de Fuko', originalPrice: 580000, actualPrice: 464000, discountPercent: 20, description: 'Công nghệ hạt hút dầu siêu việt, tạo phồng cực đại và hoàn thiện mờ tự nhiên', image: getImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Quicksand.jpg'), categoryId: 'DM01', categoryName: 'Sáp vuốt tóc'),
-    Product(id: 'SP85', name: 'By Vilain Gold Digger 65ml', brand: 'By Vilain', originalPrice: 490000, actualPrice: 343000, discountPercent: 30, description: 'Độ giữ nếp Extreme Hold chuẩn Đan Mạch, định hình cả ngày bất chấp mũ bảo hiểm', image: getImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/By_Vilain/By_Vilain_Gold_Digger.jpg'), categoryId: 'DM01', categoryName: 'Sáp vuốt tóc'),
+    Product(
+        id: 'SP01',
+        name: 'Apestomen Volcanic Clay 80g',
+        brand: 'Apestomen',
+        originalPrice: 480000,
+        actualPrice: 480000,
+        discountPercent: 0,
+        description: 'Giữ nếp cực đỉnh trên 14 tiếng, kiểm soát dầu thừa tốt',
+        image: getImageUrl(
+            'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg'),
+        categoryId: 'DM01',
+        categoryName: 'Sáp vuốt tóc'),
+    Product(
+        id: 'SP30',
+        name: 'Reuzel Green Medium Hold Grease 95g',
+        brand: 'Reuzel',
+        originalPrice: 692000,
+        actualPrice: 549000,
+        discountPercent: 20,
+        description:
+            'Pomade gốc dầu cổ điển, tạo độ bóng vừa và tạo nếp chuẩn barber',
+        image: getImageUrl(
+            'Men_Grooming_Products/02_Pomade_Co_Dien_Va_Hien_Dai/Reuzel_Pomade/Reuzel_Green_Medium_Hold_Grease.jpg'),
+        categoryId: 'DM02',
+        categoryName: 'Pomade cổ điển'),
+    Product(
+        id: 'SP51',
+        name: 'Reuzel Grooming Tonic 100ml',
+        brand: 'Reuzel',
+        originalPrice: 692000,
+        actualPrice: 415000,
+        discountPercent: 40,
+        description:
+            'Xịt pre-styling dưỡng tóc, bảo vệ tóc khi sấy và tạo độ phồng tối đa',
+        image: getImageUrl(
+            'Men_Grooming_Products/03_Xit_Tao_Phong_Pre_Styling/Reuzel_Grooming_Tonic/Reuzel_Grooming_Tonic.jpg'),
+        categoryId: 'DM03',
+        categoryName: 'Pre-Styling'),
+    Product(
+        id: 'SP61',
+        name: 'L’Oréal Infinium Pure Strong 500ml',
+        brand: 'L’Oréal Professionnel',
+        originalPrice: 503000,
+        actualPrice: 150000,
+        discountPercent: 70,
+        description:
+            'Gôm xịt khóa form tóc chuẩn salon quốc tế, khô tức thì không để lại bụi trắng',
+        image: getImageUrl(
+            'Men_Grooming_Products/04_Gom_Xit_Giu_Nep_Toc_Nam/LOreal_Infinium/L\'Oréal_Professionnel_Infinium_Pure_Strong.jpg'),
+        categoryId: 'DM04',
+        categoryName: 'Gôm xịt giữ nếp'),
+    Product(
+        id: 'SP72',
+        name: 'Hanz de Fuko Quicksand 56g',
+        brand: 'Hanz de Fuko',
+        originalPrice: 580000,
+        actualPrice: 464000,
+        discountPercent: 20,
+        description:
+            'Công nghệ hạt hút dầu siêu việt, tạo phồng cực đại và hoàn thiện mờ tự nhiên',
+        image: getImageUrl(
+            'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Quicksand.jpg'),
+        categoryId: 'DM01',
+        categoryName: 'Sáp vuốt tóc'),
+    Product(
+        id: 'SP85',
+        name: 'By Vilain Gold Digger 65ml',
+        brand: 'By Vilain',
+        originalPrice: 490000,
+        actualPrice: 343000,
+        discountPercent: 30,
+        description:
+            'Độ giữ nếp Extreme Hold chuẩn Đan Mạch, định hình cả ngày bất chấp mũ bảo hiểm',
+        image: getImageUrl(
+            'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/By_Vilain/By_Vilain_Gold_Digger.jpg'),
+        categoryId: 'DM01',
+        categoryName: 'Sáp vuốt tóc'),
   ];
 
   static final List<Booking> _localBookings = [
@@ -1177,7 +1601,13 @@ class ApiService {
       customerPhone: '0988000003',
       shippingAddress: '158 An Dương Vương, Quận 5, TP.HCM',
       items: [
-        OrderItem(productId: 'SP01', name: 'Apestomen Volcanic Clay 80g', price: 480000, quantity: 1, image: getImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg')),
+        OrderItem(
+            productId: 'SP01',
+            name: 'Apestomen Volcanic Clay 80g',
+            price: 480000,
+            quantity: 1,
+            image: getImageUrl(
+                'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg')),
       ],
       totalAmount: 480000,
       discountAmount: 0,
@@ -1189,32 +1619,220 @@ class ApiService {
   ];
 
   static final List<InventoryItem> _seedInventory = [
-    InventoryItem(productId: 'SP01', productName: 'Apestomen Volcanic Clay 80g', branchId: 'CN01', branchName: 'Omni Salon Q1', stock: 18, warningThreshold: 5, price: 480000, image: getImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg'), categoryName: 'Sáp vuốt tóc'),
-    InventoryItem(productId: 'SP30', productName: 'Reuzel Green Grease 95g', branchId: 'CN01', branchName: 'Omni Salon Q1', stock: 4, warningThreshold: 5, price: 549000, image: getImageUrl('Men_Grooming_Products/02_Pomade_Co_Dien_Va_Hien_Dai/Reuzel_Pomade/Reuzel_Green_Medium_Hold_Grease.jpg'), categoryName: 'Pomade cổ điển'),
-    InventoryItem(productId: 'SP51', productName: 'Reuzel Grooming Tonic 100ml', branchId: 'CN02', branchName: 'Omni Tân Bình', stock: 12, warningThreshold: 6, price: 415000, image: getImageUrl('Men_Grooming_Products/03_Xit_Tao_Phong_Pre_Styling/Reuzel_Grooming_Tonic/Reuzel_Grooming_Tonic.jpg'), categoryName: 'Pre-Styling'),
-    InventoryItem(productId: 'SP61', productName: 'L’Oréal Infinium Pure Strong 500ml', branchId: 'CN01', branchName: 'Omni Salon Q1', stock: 3, warningThreshold: 5, price: 150000, image: getImageUrl('Men_Grooming_Products/04_Gom_Xit_Giu_Nep_Toc_Nam/LOreal_Infinium/L\'Oréal_Professionnel_Infinium_Pure_Strong.jpg'), categoryName: 'Gôm xịt giữ nếp'),
-    InventoryItem(productId: 'SP72', productName: 'Hanz de Fuko Quicksand 56g', branchId: 'CN03', branchName: 'Omni Bình Thạnh', stock: 15, warningThreshold: 4, price: 464000, image: getImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Quicksand.jpg'), categoryName: 'Sáp vuốt tóc'),
+    InventoryItem(
+        productId: 'SP01',
+        productName: 'Apestomen Volcanic Clay 80g',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        stock: 18,
+        warningThreshold: 5,
+        price: 480000,
+        image: getImageUrl(
+            'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg'),
+        categoryName: 'Sáp vuốt tóc'),
+    InventoryItem(
+        productId: 'SP30',
+        productName: 'Reuzel Green Grease 95g',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        stock: 4,
+        warningThreshold: 5,
+        price: 549000,
+        image: getImageUrl(
+            'Men_Grooming_Products/02_Pomade_Co_Dien_Va_Hien_Dai/Reuzel_Pomade/Reuzel_Green_Medium_Hold_Grease.jpg'),
+        categoryName: 'Pomade cổ điển'),
+    InventoryItem(
+        productId: 'SP51',
+        productName: 'Reuzel Grooming Tonic 100ml',
+        branchId: 'CN02',
+        branchName: 'Omni Tân Bình',
+        stock: 12,
+        warningThreshold: 6,
+        price: 415000,
+        image: getImageUrl(
+            'Men_Grooming_Products/03_Xit_Tao_Phong_Pre_Styling/Reuzel_Grooming_Tonic/Reuzel_Grooming_Tonic.jpg'),
+        categoryName: 'Pre-Styling'),
+    InventoryItem(
+        productId: 'SP61',
+        productName: 'L’Oréal Infinium Pure Strong 500ml',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        stock: 3,
+        warningThreshold: 5,
+        price: 150000,
+        image: getImageUrl(
+            'Men_Grooming_Products/04_Gom_Xit_Giu_Nep_Toc_Nam/LOreal_Infinium/L\'Oréal_Professionnel_Infinium_Pure_Strong.jpg'),
+        categoryName: 'Gôm xịt giữ nếp'),
+    InventoryItem(
+        productId: 'SP72',
+        productName: 'Hanz de Fuko Quicksand 56g',
+        branchId: 'CN03',
+        branchName: 'Omni Bình Thạnh',
+        stock: 15,
+        warningThreshold: 4,
+        price: 464000,
+        image: getImageUrl(
+            'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Quicksand.jpg'),
+        categoryName: 'Sáp vuốt tóc'),
   ];
 
   static final List<FefoLot> _seedFefoLots = [
-    FefoLot(id: 'CT01', lotNumber: 'LO-2026-L01', productId: 'SP61', productName: 'L’Oréal Infinium Pure Strong 500ml', branchId: 'CN01', branchName: 'Omni Salon Q1', originalPrice: 503000, actualPrice: 150000, discountPercent: 70, expiryDate: '2026-11-20', remainingQuantity: 8, daysLeft: 31, statusNote: 'Cận hạn 30 ngày (Giảm 70%)'),
-    FefoLot(id: 'CT02', lotNumber: 'LO-2026-R02', productId: 'SP51', productName: 'Reuzel Grooming Tonic 100ml', branchId: 'CN02', branchName: 'Omni Tân Bình', originalPrice: 692000, actualPrice: 415000, discountPercent: 40, expiryDate: '2026-12-30', remainingQuantity: 12, daysLeft: 71, statusNote: 'Cận hạn 90 ngày (Giảm 40%)'),
-    FefoLot(id: 'CT03', lotNumber: 'LO-2026-R03', productId: 'SP30', productName: 'Reuzel Green Medium Hold Grease', branchId: 'CN01', branchName: 'Omni Salon Q1', originalPrice: 692000, actualPrice: 549000, discountPercent: 20, expiryDate: '2027-02-15', remainingQuantity: 6, daysLeft: 118, statusNote: 'Cận hạn 120 ngày (Giảm 20%)'),
+    FefoLot(
+        id: 'CT01',
+        lotNumber: 'LO-2026-L01',
+        productId: 'SP61',
+        productName: 'L’Oréal Infinium Pure Strong 500ml',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        originalPrice: 503000,
+        actualPrice: 150000,
+        discountPercent: 70,
+        expiryDate: '2026-11-20',
+        remainingQuantity: 8,
+        daysLeft: 31,
+        statusNote: 'Cận hạn 30 ngày (Giảm 70%)'),
+    FefoLot(
+        id: 'CT02',
+        lotNumber: 'LO-2026-R02',
+        productId: 'SP51',
+        productName: 'Reuzel Grooming Tonic 100ml',
+        branchId: 'CN02',
+        branchName: 'Omni Tân Bình',
+        originalPrice: 692000,
+        actualPrice: 415000,
+        discountPercent: 40,
+        expiryDate: '2026-12-30',
+        remainingQuantity: 12,
+        daysLeft: 71,
+        statusNote: 'Cận hạn 90 ngày (Giảm 40%)'),
+    FefoLot(
+        id: 'CT03',
+        lotNumber: 'LO-2026-R03',
+        productId: 'SP30',
+        productName: 'Reuzel Green Medium Hold Grease',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        originalPrice: 692000,
+        actualPrice: 549000,
+        discountPercent: 20,
+        expiryDate: '2027-02-15',
+        remainingQuantity: 6,
+        daysLeft: 118,
+        statusNote: 'Cận hạn 120 ngày (Giảm 20%)'),
   ];
 
   static final List<Invoice> _seedInvoices = [
-    Invoice(id: 'HD01', invoiceNumber: 'HD-2026-001', customerId: 'KH01', customerName: 'Ngô Văn Tuấn', customerPhone: '0988000001', branchId: 'CN01', branchName: 'Omni Salon Q1', createdDate: '2026-10-20 09:45:00', total: 600000, status: 'Đã thanh toán', paymentMethod: 'VietQR', serviceOrProductName: 'Combo Quý Tộc + Apestomen Volcanic Clay'),
-    Invoice(id: 'HD02', invoiceNumber: 'HD-2026-002', customerId: 'KH02', customerName: 'Trần Đình Trọng', customerPhone: '0912345678', branchId: 'CN01', branchName: 'Omni Salon Q1', createdDate: '2026-10-20 11:15:00', total: 300000, status: 'Đã thanh toán', paymentMethod: 'Tiền mặt', serviceOrProductName: 'Combo Quý Tộc Barber'),
-    Invoice(id: 'HD03', invoiceNumber: 'HD-2026-003', customerId: 'KH03', customerName: 'Vũ Đức Đam', customerPhone: '0909887766', branchId: 'CN02', branchName: 'Omni Tân Bình', createdDate: '2026-10-19 16:30:00', total: 650000, status: 'Đã thanh toán', paymentMethod: 'VietQR', serviceOrProductName: 'Uốn tóc xoăn Texture'),
+    Invoice(
+        id: 'HD01',
+        invoiceNumber: 'HD-2026-001',
+        customerId: 'KH01',
+        customerName: 'Ngô Văn Tuấn',
+        customerPhone: '0988000001',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        createdDate: '2026-10-20 09:45:00',
+        total: 600000,
+        status: 'Đã thanh toán',
+        paymentMethod: 'VietQR',
+        serviceOrProductName: 'Combo Quý Tộc + Apestomen Volcanic Clay'),
+    Invoice(
+        id: 'HD02',
+        invoiceNumber: 'HD-2026-002',
+        customerId: 'KH02',
+        customerName: 'Trần Đình Trọng',
+        customerPhone: '0912345678',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        createdDate: '2026-10-20 11:15:00',
+        total: 300000,
+        status: 'Đã thanh toán',
+        paymentMethod: 'Tiền mặt',
+        serviceOrProductName: 'Combo Quý Tộc Barber'),
+    Invoice(
+        id: 'HD03',
+        invoiceNumber: 'HD-2026-003',
+        customerId: 'KH03',
+        customerName: 'Vũ Đức Đam',
+        customerPhone: '0909887766',
+        branchId: 'CN02',
+        branchName: 'Omni Tân Bình',
+        createdDate: '2026-10-19 16:30:00',
+        total: 650000,
+        status: 'Đã thanh toán',
+        paymentMethod: 'VietQR',
+        serviceOrProductName: 'Uốn tóc xoăn Texture'),
   ];
 
   static final List<StaffMember> _seedStaff = [
-    StaffMember(id: 'NV01', name: 'Nguyễn Văn Quản', phone: '0901234567', email: 'manager.q1@omnisalon.vn', role: 'Quản lý chi nhánh', level: 'Branch Manager', branchId: 'CN01', branchName: 'Omni Salon Q1', status: 'Đang làm việc'),
-    StaffMember(id: 'NV02', name: 'Lê Đình Hải', phone: '0902345678', email: 'hai.le@omnisalon.vn', role: 'Thợ tạo mẫu chính', level: 'Art Director', branchId: 'CN01', branchName: 'Omni Salon Q1', status: 'Đang làm việc'),
-    StaffMember(id: 'NV03', name: 'Trần Thị Thu', phone: '0903456789', email: 'thu.cashier@omnisalon.vn', role: 'Thu ngân', level: 'Head Cashier', branchId: 'CN01', branchName: 'Omni Salon Q1', status: 'Đang làm việc'),
-    StaffMember(id: 'NV04', name: 'Phạm Tuấn Khang', phone: '0904567890', email: 'khang.pham@omnisalon.vn', role: 'Thợ tạo mẫu chính', level: 'Master Stylist', branchId: 'CN02', branchName: 'Omni Tân Bình', status: 'Đang làm việc'),
-    StaffMember(id: 'NV05', name: 'Võ Quốc Bảo', phone: '0905678901', email: 'bao.vo@omnisalon.vn', role: 'Thợ tạo mẫu', level: 'Master Stylist', branchId: 'CN03', branchName: 'Omni Bình Thạnh', status: 'Đang làm việc'),
-    StaffMember(id: 'NV06', name: 'Trần Minh Quân', phone: '0906789012', email: 'quan.tran@omnisalon.vn', role: 'Thợ tạo mẫu chính', level: 'Art Director', branchId: 'CN04', branchName: 'Omni Q3', status: 'Tạm nghỉ'),
-    StaffMember(id: 'NV07', name: 'Nguyễn Hoàng Nam', phone: '0907890123', email: 'nam.nguyen@omnisalon.vn', role: 'Thợ tạo mẫu', level: 'Master Stylist', branchId: 'CN01', branchName: 'Omni Salon Q1', status: 'Đang làm việc'),
+    StaffMember(
+        id: 'NV01',
+        name: 'Nguyễn Văn Quản',
+        phone: '0901234567',
+        email: 'manager.q1@omnisalon.vn',
+        role: 'Quản lý chi nhánh',
+        level: 'Branch Manager',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        status: 'Đang làm việc'),
+    StaffMember(
+        id: 'NV02',
+        name: 'Lê Đình Hải',
+        phone: '0902345678',
+        email: 'hai.le@omnisalon.vn',
+        role: 'Thợ tạo mẫu chính',
+        level: 'Art Director',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        status: 'Đang làm việc'),
+    StaffMember(
+        id: 'NV03',
+        name: 'Trần Thị Thu',
+        phone: '0903456789',
+        email: 'thu.cashier@omnisalon.vn',
+        role: 'Thu ngân',
+        level: 'Head Cashier',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        status: 'Đang làm việc'),
+    StaffMember(
+        id: 'NV04',
+        name: 'Phạm Tuấn Khang',
+        phone: '0904567890',
+        email: 'khang.pham@omnisalon.vn',
+        role: 'Thợ tạo mẫu chính',
+        level: 'Master Stylist',
+        branchId: 'CN02',
+        branchName: 'Omni Tân Bình',
+        status: 'Đang làm việc'),
+    StaffMember(
+        id: 'NV05',
+        name: 'Võ Quốc Bảo',
+        phone: '0905678901',
+        email: 'bao.vo@omnisalon.vn',
+        role: 'Thợ tạo mẫu',
+        level: 'Master Stylist',
+        branchId: 'CN03',
+        branchName: 'Omni Bình Thạnh',
+        status: 'Đang làm việc'),
+    StaffMember(
+        id: 'NV06',
+        name: 'Trần Minh Quân',
+        phone: '0906789012',
+        email: 'quan.tran@omnisalon.vn',
+        role: 'Thợ tạo mẫu chính',
+        level: 'Art Director',
+        branchId: 'CN04',
+        branchName: 'Omni Q3',
+        status: 'Tạm nghỉ'),
+    StaffMember(
+        id: 'NV07',
+        name: 'Nguyễn Hoàng Nam',
+        phone: '0907890123',
+        email: 'nam.nguyen@omnisalon.vn',
+        role: 'Thợ tạo mẫu',
+        level: 'Master Stylist',
+        branchId: 'CN01',
+        branchName: 'Omni Salon Q1',
+        status: 'Đang làm việc'),
   ];
 }

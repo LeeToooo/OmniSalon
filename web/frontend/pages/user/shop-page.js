@@ -1151,11 +1151,7 @@
 
                   <!-- Khung Ảnh Lớn Chính -->
                   <div class="pdp-main-stage">
-                    <!-- Badge Góc chụp sản phẩm thực tế -->
-                    <div class="pdp-angle-stage-badge" id="pdpAngleStageBadge">
-                      <span class="pdp-angle-icon">${(angleList[0] && angleList[0].icon) || '📷'}</span>
-                      <span id="pdpAngleText">${(angleList[0] && angleList[0].badge) || 'Góc 1 • Chính Diện'}</span>
-                    </div>
+                    
 
                     <img id="pdpMainImg"
                          src="${SalonUtils.formatImageUrl(detailImages[0])}"
@@ -1796,16 +1792,7 @@
             <div style="font-size: 36px; margin-bottom: 10px;">⭐</div>
             <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Chưa có đánh giá nào cho sản phẩm này</h4>
             <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0 0 18px;">Hãy là người đầu tiên trải nghiệm chất lượng sản phẩm và chia sẻ cảm nhận của bạn!</p>
-            ${(window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function' && window.CustomerWeb.getCurrentUser()) ? `
-              <button type="button" class="btn-submit-terracotta" style="padding: 8px 22px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="ShopPage.openWriteProductReviewModal('${product.id || product.MaSanPham}', '${this.escapeHtml(product.name || product.TenSanPham)}')">
-                ⭐ Viết Đánh Giá Đầu Tiên
-              </button>
-            ` : `
-              <button type="button" class="btn-submit-terracotta" style="padding: 8px 22px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="if(window.UICommon && typeof window.UICommon.openAuthModal === 'function') window.UICommon.openAuthModal('login');">
-                🔑 Đăng Nhập Để Đánh Giá
-              </button>
-            `}
-          </div>
+</div>
         `;
       }
 
@@ -1832,16 +1819,7 @@
             <div class="pdp-reviews-big-num" style="font-size: 42px; font-weight: 900; color: #F59E0B; line-height: 1;">${avgScore}</div>
             <div style="color: #F59E0B; font-size: 20px; margin: 6px 0;">${'★'.repeat(fullStars)}${'☆'.repeat(5 - fullStars)}</div>
             <div style="font-size: 13px; color: var(--text-secondary);">Dựa trên ${totalReviews} đánh giá thực tế</div>
-            ${(window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function' && window.CustomerWeb.getCurrentUser()) ? `
-              <button type="button" class="btn-submit-terracotta" style="margin-top: 14px; padding: 7px 16px; font-size: 12px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="ShopPage.openWriteProductReviewModal('${product.id || product.MaSanPham}', '${this.escapeHtml(product.name || product.TenSanPham)}')">
-                ⭐ Viết Đánh Giá
-              </button>
-            ` : `
-              <button type="button" class="btn-submit-terracotta" style="margin-top: 14px; padding: 7px 16px; font-size: 12px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="if(window.UICommon && typeof window.UICommon.openAuthModal === 'function') window.UICommon.openAuthModal('login');">
-                🔑 Đăng Nhập Để Đánh Giá
-              </button>
-            `}
-          </div>
+</div>
           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 240px;">
             ${[
               { star: 5, count: count5, percent: p5 },

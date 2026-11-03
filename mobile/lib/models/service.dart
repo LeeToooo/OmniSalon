@@ -37,13 +37,41 @@ class SalonService {
     final rawDur = json['duration'] ?? json['durationMinutes'] ?? json['ThoiLuong'] ?? 45;
     final num durNum = rawDur is num ? rawDur : (num.tryParse(rawDur.toString()) ?? 45);
 
+    final rawCat = (json['category'] ?? json['LoaiDichVu'] ?? json['TenLoai'] ?? '').toString().trim();
+    final nameStr = (json['name'] ?? json['TenDichVu'] ?? json['TenCombo'] ?? '').toString();
+    final descStr = (json['description'] ?? json['MoTa'] ?? '').toString();
+
+    String resolvedCat = rawCat;
+    if (resolvedCat.isEmpty || resolvedCat == 'Cắt & Tạo Kiểu') {
+      final combined = '$nameStr $descStr'.toLowerCase();
+      if (isVipCombo) {
+        resolvedCat = 'Combo VIP';
+      } else if (combined.contains('uốn') ||
+          combined.contains('nhuộm') ||
+          combined.contains('tẩy')) {
+        resolvedCat = 'Uốn & Nhuộm';
+      } else if (combined.contains('râu') ||
+          combined.contains('cạo mặt') ||
+          combined.contains('ráy tai') ||
+          combined.contains('facial') ||
+          combined.contains('dưỡng sinh') ||
+          combined.contains('gội') ||
+          combined.contains('massage') ||
+          combined.contains('phục hồi') ||
+          combined.contains('chăm sóc')) {
+        resolvedCat = 'Dưỡng Sinh & Râu';
+      } else {
+        resolvedCat = 'Cắt & Tạo Kiểu';
+      }
+    }
+
     return SalonService(
       id: json['id'] ?? json['MaDichVu'] ?? json['MaCombo'] ?? '',
-      name: json['name'] ?? json['TenDichVu'] ?? json['TenCombo'] ?? '',
-      description: json['description'] ?? json['MoTa'] ?? '',
+      name: nameStr,
+      description: descStr,
       price: priceNum.toInt(),
       duration: durNum.toInt(),
-      category: json['category'] ?? (isVipCombo ? 'Combo VIP' : 'Cắt & Tạo Kiểu'),
+      category: resolvedCat,
       image: formattedImg,
       isCombo: isVipCombo,
     );

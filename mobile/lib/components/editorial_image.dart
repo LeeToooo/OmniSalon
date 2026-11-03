@@ -141,7 +141,7 @@ class EditorialImage extends StatelessWidget {
         color: AppTheme.surfaceElevated,
         borderRadius: borderRadius,
         border: Border.all(color: AppTheme.borderColorSubtle),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [

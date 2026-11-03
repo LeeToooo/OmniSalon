@@ -11,15 +11,18 @@ import 'package:omni_salon_mobile/components/marquee_banner.dart';
 import 'package:omni_salon_mobile/pages/user/stylists_page.dart';
 import 'package:omni_salon_mobile/pages/user/booking_page.dart';
 import 'package:omni_salon_mobile/pages/user/branches_page.dart';
+import 'package:omni_salon_mobile/pages/user/services_page.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int)? onNavigateToTab;
   final Branch? selectedBranch;
+  final void Function({String? serviceId, String? stylistId, String? branchId})? onNavigateToBooking;
 
   const HomeScreen({
     super.key,
     this.onNavigateToTab,
     this.selectedBranch,
+    this.onNavigateToBooking,
   });
 
   @override
@@ -282,14 +285,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAiStudioBanner() {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.charcoal,
+        color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.5), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.accentGold.withValues(alpha: 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: AppTheme.accentGold.withValues(alpha: 0.12),
+            blurRadius: 14,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -326,9 +329,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 3),
-                  Text('Thử Kiểu Tóc 3D Trên Khuôn Mặt', style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.textLight)),
+                  Text('Thử Kiểu Tóc 3D Trên Khuôn Mặt', style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.textPrimary)),
                   const SizedBox(height: 2),
-                  Text('Tự động nhận diện ngũ quan & phối màu nhuộm thời thượng', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textLightSecondary), maxLines: 1),
+                  Text('Tự động nhận diện ngũ quan & phối màu nhuộm thời thượng', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary), maxLines: 1),
                 ],
               ),
             ),
@@ -340,11 +343,13 @@ class _HomeScreenState extends State<HomeScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.accentGold,
                 foregroundColor: AppTheme.charcoal,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('Trải Nghiệm', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+              child: Text('Trải Nghiệm', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: AppTheme.charcoal)),
             ),
           ],
         ),
@@ -431,7 +436,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => BookingScreen(preselectedBranchId: s.branchId),
+                          builder: (_) => BookingScreen(
+                            preselectedBranchId: s.branchId,
+                            preselectedStylistId: s.id,
+                          ),
                         ),
                       );
                     },
@@ -710,74 +718,85 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildServiceCard(SalonService s) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppTheme.borderColor),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 76,
-                height: 76,
-                child: EditorialImage(
-                  imageUrl: s.image,
-                  fit: BoxFit.cover,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () {
+            ServicesScreen.showServiceDetailModal(
+              context,
+              service: s,
+              onNavigateToBooking: widget.onNavigateToBooking ??
+                  ({String? serviceId, String? stylistId, String? branchId}) {
+                    if (widget.onNavigateToTab != null) {
+                      widget.onNavigateToTab!(2);
+                    }
+                  },
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: EditorialImage(
+                      imageUrl: s.image,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    s.category.toUpperCase(),
-                    style: AppTheme.labelUppercase(fontSize: 9.5, color: AppTheme.accentGold),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    s.name,
-                    style: AppTheme.headingSmall(fontSize: 15),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    s.description,
-                    style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        currencyFormat.format(s.price),
-                        style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.accentGold),
+                        s.category.toUpperCase(),
+                        style: AppTheme.labelUppercase(fontSize: 9.5, color: AppTheme.accentGold),
                       ),
+                      const SizedBox(height: 2),
+                      Text(
+                        s.name,
+                        style: AppTheme.headingSmall(fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 5),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(Icons.schedule_rounded, size: 13, color: AppTheme.textSecondary),
-                          const SizedBox(width: 3),
                           Text(
-                            '${s.duration} phút',
-                            style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                            currencyFormat.format(s.price),
+                            style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.accentGold),
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.schedule_rounded, size: 13, color: AppTheme.textSecondary),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${s.duration} phút',
+                                style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -831,7 +850,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.access_time_rounded, size: 14, color: AppTheme.textSecondary),
+                    Icon(Icons.access_time_rounded, size: 14, color: AppTheme.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       b.hours,

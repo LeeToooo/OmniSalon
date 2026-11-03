@@ -13,6 +13,7 @@ void main() async {
     debugPrint('DateFormatting init error: $e');
   }
   await AuthService.init();
+  await AppTheme.initTheme();
   runApp(const OmniSalonApp());
 }
 
@@ -21,19 +22,26 @@ class OmniSalonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Omni Salon Authentic Barber',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        dragDevices: {
-          PointerDeviceKind.mouse,
-          PointerDeviceKind.touch,
-          PointerDeviceKind.trackpad,
-          PointerDeviceKind.stylus,
-        },
-      ),
-      home: const MainScaffold(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        return MaterialApp(
+          title: 'Omni Salon Authentic Barber',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            dragDevices: {
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.touch,
+              PointerDeviceKind.trackpad,
+              PointerDeviceKind.stylus,
+            },
+          ),
+          home: const MainScaffold(),
+        );
+      },
     );
   }
 }

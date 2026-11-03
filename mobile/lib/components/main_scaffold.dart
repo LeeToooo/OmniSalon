@@ -33,6 +33,9 @@ class MainScaffoldState extends State<MainScaffold> {
   Branch? _selectedBranch;
   Branch? get selectedBranch => _selectedBranch;
   String? _lastUserId;
+  String? _preselectedServiceId;
+  String? _preselectedStylistId;
+  String? _preselectedBranchId;
 
   @override
   void initState() {
@@ -117,6 +120,15 @@ class MainScaffoldState extends State<MainScaffold> {
     }
   }
 
+  void navigateToBooking({String? serviceId, String? stylistId, String? branchId}) {
+    setState(() {
+      _preselectedServiceId = serviceId;
+      _preselectedStylistId = stylistId;
+      _preselectedBranchId = branchId;
+      _currentIndex = 2; // Chuyển sang Tab Đặt lịch
+    });
+  }
+
   void addToCart(OrderItem item) {
     setState(() {
       final idx = _sharedCart.indexWhere((i) => i.productId == item.productId);
@@ -146,6 +158,20 @@ class MainScaffoldState extends State<MainScaffold> {
 
   int get cartCount => _sharedCart.fold(0, (sum, i) => sum + i.quantity);
 
+  void openCart() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CartScreen(
+          cart: _sharedCart,
+          onUpdateCart: () {
+            _saveCartForUser(AuthService.currentUser?.id);
+            setState(() {});
+          },
+          onNavigateToShop: () => switchTab(4),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,14 +179,16 @@ class MainScaffoldState extends State<MainScaffold> {
       HomeScreen(
         onNavigateToTab: switchTab,
         selectedBranch: _selectedBranch,
+        onNavigateToBooking: navigateToBooking,
       ),
       ServicesScreen(
-        onNavigateToBooking: (serviceId) {
-          switchTab(2); // Chuyển sang Tab Đặt lịch
-        },
+        onNavigateToBooking: navigateToBooking,
       ),
       BookingScreen(
         initialBranch: _selectedBranch,
+        preselectedBranchId: _preselectedBranchId,
+        preselectedServiceId: _preselectedServiceId,
+        preselectedStylistId: _preselectedStylistId,
       ),
       const AiStylingScreen(),
       ShopScreen(
@@ -203,21 +231,8 @@ class MainScaffoldState extends State<MainScaffold> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined, size: 23, color: AppTheme.textPrimary),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => CartScreen(
-                        cart: _sharedCart,
-                        onUpdateCart: () {
-                          _saveCartForUser(AuthService.currentUser?.id);
-                          setState(() {});
-                        },
-                        onNavigateToShop: () => switchTab(4),
-                      ),
-                    ),
-                  );
-                },
+                icon: Icon(Icons.shopping_bag_outlined, size: 23, color: AppTheme.textPrimary),
+                onPressed: openCart,
               ),
               if (cartCount > 0)
                 Positioned(
@@ -232,7 +247,7 @@ class MainScaffoldState extends State<MainScaffold> {
                     constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
                       '$cartCount',
-                      style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: AppTheme.charcoal),
+                      style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: AppTheme.charcoal),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -252,15 +267,28 @@ class MainScaffoldState extends State<MainScaffold> {
               child: ValueListenableBuilder(
                 valueListenable: AuthService.userNotifier,
                 builder: (context, user, _) {
-                  return CircleAvatar(
-                    radius: 17,
-                    backgroundColor: AppTheme.charcoal,
-                    child: user != null && user.fullName.isNotEmpty
-                        ? Text(
-                            user.fullName.substring(0, 1).toUpperCase(),
-                            style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w800),
-                          )
-                        : const Icon(Icons.person_outline_rounded, size: 18, color: AppTheme.accentGold),
+                  return Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.accentGold, width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.accentGold.withValues(alpha: 0.15),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 17,
+                      backgroundColor: AppTheme.surfaceElevated,
+                      child: user != null && user.fullName.isNotEmpty
+                          ? Text(
+                              user.fullName.substring(0, 1).toUpperCase(),
+                              style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w900),
+                            )
+                          : const Icon(Icons.person_outline_rounded, size: 18, color: AppTheme.accentGold),
+                    ),
                   );
                 },
               ),
@@ -273,9 +301,16 @@ class MainScaffoldState extends State<MainScaffold> {
         children: screens,
       ),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppTheme.charcoal,
-          border: Border(top: BorderSide(color: AppTheme.charcoalBorder, width: 1)),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceCard,
+          border: Border(top: BorderSide(color: AppTheme.borderColor, width: 1)),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.charcoal.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, -3),
+            ),
+          ],
         ),
         child: SafeArea(
           child: Padding(
@@ -298,7 +333,7 @@ class MainScaffoldState extends State<MainScaffold> {
 
   Widget _buildNavItem(int index, IconData outlineIcon, IconData filledIcon, String label) {
     final isSelected = _currentIndex == index;
-    final color = isSelected ? AppTheme.accentGold : AppTheme.textLightSecondary;
+    final color = isSelected ? AppTheme.accentGold : AppTheme.textSecondary;
 
     return Expanded(
       child: GestureDetector(
@@ -336,20 +371,24 @@ class MainScaffoldState extends State<MainScaffold> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppTheme.accentGold,
+              color: isSelected ? AppTheme.accentGold.withValues(alpha: 0.2) : AppTheme.surfaceElevated,
               shape: BoxShape.circle,
+              border: Border.all(
+                color: AppTheme.accentGold,
+                width: isSelected ? 2.0 : 1.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.accentGold.withValues(alpha: 0.35),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
+                  color: AppTheme.accentGold.withValues(alpha: isSelected ? 0.3 : 0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: const Icon(
               Icons.calendar_month_rounded,
-              color: AppTheme.charcoal,
-              size: 24,
+              color: AppTheme.accentGold,
+              size: 23,
             ),
           ),
           const SizedBox(height: 3),
@@ -358,7 +397,7 @@ class MainScaffoldState extends State<MainScaffold> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w800,
-              color: isSelected ? AppTheme.accentGold : AppTheme.textLight,
+              color: isSelected ? AppTheme.accentGold : AppTheme.textPrimary,
             ),
           ),
         ],

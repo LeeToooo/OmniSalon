@@ -655,16 +655,7 @@
                 <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">Đánh Giá Từ Khách Hàng</h3>
                 <div style="font-size: 12.5px; color: var(--text-secondary);">Trải nghiệm thực tế của khách hàng khi sử dụng dịch vụ</div>
               </div>
-              ${currentUser ? `
-                <button type="button" class="btn-submit-terracotta" style="padding: 7px 16px; font-size: 12px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="ServicesPage.openWriteServiceReviewModal('${item.id}', '${this.escapeHtml(title)}')">
-                  ⭐ Viết Đánh Giá
-                </button>
-              ` : `
-                <button type="button" class="btn-submit-terracotta" style="padding: 7px 16px; font-size: 12px; font-weight: 800; border-radius: 8px; background: #d97706;" onclick="if(window.UICommon && typeof window.UICommon.openAuthModal === 'function') window.UICommon.openAuthModal('login');">
-                  🔑 Đăng Nhập Để Đánh Giá
-                </button>
-              `}
-            </div>
+</div>
 
             <div id="serviceReviewsContainer">
               ${reviews.length === 0 ? `

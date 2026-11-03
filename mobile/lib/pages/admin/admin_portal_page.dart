@@ -442,9 +442,9 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
             child: Column(
               children: [
                 _buildBranchProgressRow('Omni Q1 - Bến Thành', 0.85, '4.200.000₫ (14 khách)'),
-                const Divider(color: AppTheme.charcoalBorder, height: 18),
+                Divider(color: AppTheme.charcoalBorder, height: 18),
                 _buildBranchProgressRow('Omni Tân Bình - Cộng Hòa', 0.65, '2.850.000₫ (9 khách)'),
-                const Divider(color: AppTheme.charcoalBorder, height: 18),
+                Divider(color: AppTheme.charcoalBorder, height: 18),
                 _buildBranchProgressRow('Omni Bình Thạnh - Điện Biên Phủ', 0.45, '1.400.000₫ (5 khách)'),
               ],
             ),
@@ -604,7 +604,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
             ],
           ),
         ),
-        const Divider(color: AppTheme.charcoalBorder, height: 1),
+        Divider(color: AppTheme.charcoalBorder, height: 1),
 
         // Thanh bộ lọc trạng thái nhanh
         Container(
@@ -768,7 +768,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(color: AppTheme.charcoalBorder, height: 1),
+          Divider(color: AppTheme.charcoalBorder, height: 1),
           const SizedBox(height: 10),
 
           // Các nút thao tác điều phối
@@ -1026,7 +1026,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
                     ],
                   ),
                 ],
-                const Divider(color: AppTheme.charcoalBorder, height: 18),
+                Divider(color: AppTheme.charcoalBorder, height: 18),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

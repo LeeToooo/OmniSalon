@@ -1,3 +1,4 @@
+import 'package:omni_salon_mobile/core/theme/app_theme.dart';
 import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:omni_salon_mobile/core/api/api_service.dart';
 import 'package:flutter/material.dart';
@@ -84,7 +85,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
       final rawList = await ApiService.lookupBookings(queryParam);
       fetchedBookings = rawList.where((b) {
         final bPhone = b.customerPhone.replaceAll(RegExp(r'\D'), '');
-        final matchPhone = userPhone.isNotEmpty && bPhone.isNotEmpty && bPhone == userPhone;
+        final matchPhone = userPhone.isNotEmpty && bPhone.isNotEmpty && (
+          bPhone == userPhone ||
+          (userPhone.length >= 9 && bPhone.length >= 9 && bPhone.endsWith(userPhone.substring(userPhone.length - 9)))
+        );
         final matchUserId = (b.userId != null && b.userId!.isNotEmpty && (b.userId == userId || b.userId == user.maKhachHang));
         return matchPhone || matchUserId;
       }).toList();
@@ -103,29 +107,36 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     // 2. TẢI ĐƠN HÀNG MỸ PHẨM
     List<SalonOrder> fetchedOrders = await ApiService.fetchOrders();
     if (!isStaffOrAdmin) {
+      // BẢO MẬT BẮT BUỘC: Khách hàng thường TUYỆT ĐỐI CHỈ xem đơn hàng của chính mình
+      final isMyOrder = (SalonOrder o) {
+        final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
+        final matchPhone = userPhone.isNotEmpty && oPhone.isNotEmpty && (
+          oPhone == userPhone ||
+          (userPhone.length >= 9 && oPhone.length >= 9 && oPhone.endsWith(userPhone.substring(userPhone.length - 9)))
+        );
+        final matchUserId = (o.userId != null && o.userId!.isNotEmpty && (
+          o.userId == userId ||
+          (user.maKhachHang != null && user.maKhachHang!.isNotEmpty && o.userId == user.maKhachHang)
+        ));
+        return matchPhone || matchUserId;
+      };
+
+      // 1. Luôn luôn lọc để CHỈ giữ lại đơn hàng của chính tài khoản này
+      fetchedOrders = fetchedOrders.where(isMyOrder).toList();
+
+      // 2. Nếu người dùng có nhập từ khóa tìm kiếm (q), chỉ tìm kiếm TRONG CÁC ĐƠN HÀNG CỦA CHÍNH MÌNH
       if (q.isNotEmpty) {
         final qClean = q.replaceAll('#', '').trim().toLowerCase();
-        final directMatch = (SalonOrder o) => o.orderCode.replaceAll('#', '').toLowerCase().contains(qClean) || o.id.replaceAll('#', '').toLowerCase().contains(qClean);
-        fetchedOrders = fetchedOrders.where((o) {
-          if (directMatch(o)) return true;
-          final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
-          final matchPhone = userPhone.isNotEmpty && oPhone.isNotEmpty && oPhone == userPhone;
-          final matchUserId = (o.userId != null && o.userId!.isNotEmpty && (o.userId == userId || o.userId == user.maKhachHang));
-          return (matchPhone || matchUserId) && (
-            o.items.any((it) => it.name.toLowerCase().contains(qClean)) ||
-            o.paymentStatus.toLowerCase().contains(qClean) ||
-            o.orderStatus.toLowerCase().contains(qClean)
-          );
-        }).toList();
-      } else {
-        fetchedOrders = fetchedOrders.where((o) {
-          final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
-          final matchPhone = userPhone.isNotEmpty && oPhone.isNotEmpty && oPhone == userPhone;
-          final matchUserId = (o.userId != null && o.userId!.isNotEmpty && (o.userId == userId || o.userId == user.maKhachHang));
-          return matchPhone || matchUserId;
-        }).toList();
+        fetchedOrders = fetchedOrders.where((o) =>
+          o.orderCode.replaceAll('#', '').toLowerCase().contains(qClean) ||
+          o.id.replaceAll('#', '').toLowerCase().contains(qClean) ||
+          o.items.any((it) => it.name.toLowerCase().contains(qClean)) ||
+          o.paymentStatus.toLowerCase().contains(qClean) ||
+          o.orderStatus.toLowerCase().contains(qClean)
+        ).toList();
       }
     } else if (q.isNotEmpty) {
+      // Quản lý hoặc Nhân viên: Cho phép tra cứu đơn hàng toàn hệ thống
       final qLower = q.replaceAll('#', '').trim().toLowerCase();
       fetchedOrders = fetchedOrders.where((o) =>
         o.orderCode.toLowerCase().contains(qLower) ||
@@ -134,6 +145,22 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
         o.customerName.toLowerCase().contains(qLower)
       ).toList();
     }
+    // Sắp xếp lịch hẹn từ mới nhất đến cũ nhất từ trên xuống dưới
+    fetchedBookings.sort((a, b) {
+      final numA = int.tryParse(a.bookingCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+      final numB = int.tryParse(b.bookingCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+      if (numA != numB) return numB.compareTo(numA);
+      final dComp = b.date.compareTo(a.date);
+      if (dComp != 0) return dComp;
+      return b.timeSlot.compareTo(a.timeSlot);
+    });
+
+    fetchedOrders.sort((a, b) {
+      final numA = int.tryParse(a.orderCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+      final numB = int.tryParse(b.orderCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+      if (numA != numB) return numB.compareTo(numA);
+      return b.createdAt.compareTo(a.createdAt);
+    });
 
     if (!mounted) return;
     setState(() {
@@ -147,10 +174,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1C1917),
+        backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFFC59B27), width: 1.5),
+          side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
         ),
         titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
         contentPadding: const EdgeInsets.all(20),
@@ -165,10 +192,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
               child: const Icon(Icons.check, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 10),
-            const Expanded(
+            Expanded(
               child: Text(
                 'VÉ ĐIỆN TỬ CHECK-IN',
-                style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
+                style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 16),
               ),
             ),
           ],
@@ -180,13 +207,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFC59B27).withValues(alpha: 0.15),
+                  color: AppTheme.accentGold.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFC59B27)),
+                  border: Border.all(color: AppTheme.accentGold),
                 ),
                 child: Text(
                   '#${b.bookingCode}',
-                  style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC59B27), fontSize: 20, letterSpacing: 1),
+                  style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 20, letterSpacing: 1),
                 ),
               ),
               const SizedBox(height: 14),
@@ -209,13 +236,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
               const SizedBox(height: 14),
               Text(
                 'Khách hàng: ${b.customerName}',
-                style: const TextStyle(color: Color(0xFFFAF8F5), fontWeight: FontWeight.w800, fontSize: 14),
+                style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w800, fontSize: 14),
               ),
               Text(
                 'Số điện thoại: ${b.customerPhone}',
-                style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12.5),
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
               ),
-              const Divider(height: 18, color: Color(0xFF2E2C29)),
+              Divider(height: 18, color: AppTheme.borderColor),
               _buildTicketRow('Dịch vụ:', b.serviceName),
               _buildTicketRow('Thợ tạo mẫu:', b.stylistName),
               _buildTicketRow('Chi nhánh:', b.branchName),
@@ -225,14 +252,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF141413),
+                  color: AppTheme.surfaceElevated,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF2E2C29)),
+                  border: Border.all(color: AppTheme.borderColor),
                 ),
-                child: const Text(
+                child: Text(
                   'Quý khách vui lòng xuất trình mã QR này tại quầy thu ngân chi nhánh để nhân viên quét xác nhận vào làm dịch vụ nhanh chóng!',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 11, height: 1.4),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, height: 1.4),
                 ),
               ),
             ],
@@ -243,8 +270,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFC59B27),
-                foregroundColor: const Color(0xFF141413),
+                backgroundColor: AppTheme.accentGold,
+                foregroundColor: AppTheme.charcoal,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () => Navigator.of(ctx).pop(),
@@ -263,14 +290,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12)),
+          Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: isPrice ? const Color(0xFFC59B27) : const Color(0xFFFAF8F5),
+                color: isPrice ? AppTheme.accentGold : const Color(0xFFFAF8F5),
                 fontWeight: isPrice ? FontWeight.w900 : FontWeight.w700,
                 fontSize: isPrice ? 14 : 12,
               ),
@@ -303,10 +330,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1C1917),
+        backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: Color(0xFFC59B27), width: 1.5),
+          side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
         ),
         titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
         contentPadding: const EdgeInsets.all(20),
@@ -315,16 +342,16 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
             Container(
               padding: const EdgeInsets.all(6),
               decoration: const BoxDecoration(
-                color: Color(0xFFC59B27),
+                color: AppTheme.accentGold,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.qr_code_scanner_rounded, color: Color(0xFF141413), size: 20),
+              child: Icon(Icons.qr_code_scanner_rounded, color: AppTheme.charcoal, size: 20),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 'THANH TOÁN VIETQR #${b.bookingCode}',
-                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
+                style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 16),
               ),
             ),
           ],
@@ -371,14 +398,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF141413),
+                  color: AppTheme.surfaceElevated,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF2E2C29)),
+                  border: Border.all(color: AppTheme.borderColor),
                 ),
-                child: const Text(
+                child: Text(
                   'Quét mã VietQR bằng ứng dụng ngân hàng bất kỳ để thanh toán tức thì.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 11),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                 ),
               ),
             ],
@@ -387,12 +414,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Đóng', style: TextStyle(color: Color(0xFFA8A29E))),
+            child: Text('Đóng', style: TextStyle(color: AppTheme.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFC59B27),
-              foregroundColor: const Color(0xFF141413),
+              backgroundColor: AppTheme.accentGold,
+              foregroundColor: AppTheme.charcoal,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () {
@@ -417,10 +444,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1C1917),
+        backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: Color(0xFFC59B27), width: 1.5),
+          side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
         ),
         titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
         contentPadding: const EdgeInsets.all(20),
@@ -429,16 +456,16 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
             Container(
               padding: const EdgeInsets.all(6),
               decoration: const BoxDecoration(
-                color: Color(0xFFC59B27),
+                color: AppTheme.accentGold,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.qr_code_scanner_rounded, color: Color(0xFF141413), size: 20),
+              child: Icon(Icons.qr_code_scanner_rounded, color: AppTheme.charcoal, size: 20),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 'THANH TOÁN ĐƠN HÀNG #${o.orderCode}',
-                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
+                style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 16),
               ),
             ),
           ],
@@ -485,14 +512,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF141413),
+                  color: AppTheme.surfaceElevated,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF2E2C29)),
+                  border: Border.all(color: AppTheme.borderColor),
                 ),
-                child: const Text(
+                child: Text(
                   'Quét mã VietQR bằng ứng dụng ngân hàng bất kỳ để thanh toán tức thì.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 11),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                 ),
               ),
             ],
@@ -501,12 +528,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Đóng', style: TextStyle(color: Color(0xFFA8A29E))),
+            child: Text('Đóng', style: TextStyle(color: AppTheme.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFC59B27),
-              foregroundColor: const Color(0xFF141413),
+              backgroundColor: AppTheme.accentGold,
+              foregroundColor: AppTheme.charcoal,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () {
@@ -534,10 +561,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
       context: context,
       builder: (dialogCtx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1C1917),
+          backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
-            side: const BorderSide(color: Color(0xFF2E2C29)),
+            side: BorderSide(color: AppTheme.borderColor),
           ),
           title: Row(
             children: [
@@ -556,11 +583,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   children: [
                     Text(
                       'Đánh Giá Lịch Hẹn #${b.bookingCode}',
-                      style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
+                      style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 16),
                     ),
                     Text(
                       '${b.serviceName} • Barber ${b.stylistName}',
-                      style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12),
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                     ),
                   ],
                 ),
@@ -571,9 +598,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Mức độ hài lòng của bạn:',
-                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -598,23 +625,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                 TextField(
                   controller: commentCtrl,
                   maxLines: 3,
-                  style: const TextStyle(color: Color(0xFFFAF8F5), fontSize: 13),
+                  style: TextStyle(color: AppTheme.textPrimary, fontSize: 13),
                   decoration: InputDecoration(
                     hintText: 'Nhận xét về tay nghề thợ cắt, không gian phục vụ...',
-                    hintStyle: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12),
+                    hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                     filled: true,
-                    fillColor: const Color(0xFF141413),
+                    fillColor: AppTheme.surfaceElevated,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF2E2C29)),
+                      borderSide: BorderSide(color: AppTheme.borderColor),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF2E2C29)),
+                      borderSide: BorderSide(color: AppTheme.borderColor),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFC59B27)),
+                      borderSide: const BorderSide(color: AppTheme.accentGold),
                     ),
                   ),
                 ),
@@ -624,12 +651,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogCtx).pop(),
-              child: const Text('Hủy Bỏ', style: TextStyle(color: Color(0xFFA8A29E))),
+              child: Text('Hủy Bỏ', style: TextStyle(color: AppTheme.textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFC59B27),
-                foregroundColor: const Color(0xFF141413),
+                backgroundColor: AppTheme.accentGold,
+                foregroundColor: AppTheme.charcoal,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: isSubmitting
@@ -670,23 +697,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1C1917),
+        backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFF2E2C29)),
+          side: BorderSide(color: AppTheme.borderColor),
         ),
         title: Text(
           'Hủy Đơn Hàng #${o.orderCode}?',
-          style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
+          style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 16),
         ),
-        content: const Text(
+        content: Text(
           'Bạn có chắc chắn muốn hủy đơn hàng này? Số lượng sản phẩm sẽ được tự động hoàn lại kho khả dụng.',
-          style: TextStyle(color: Color(0xFFA8A29E), fontSize: 13),
+          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Giữ Lại Đơn', style: TextStyle(color: Color(0xFFA8A29E))),
+            child: Text('Giữ Lại Đơn', style: TextStyle(color: AppTheme.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -724,10 +751,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
       context: context,
       builder: (dialogCtx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1C1917),
+          backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
-            side: const BorderSide(color: Color(0xFF2E2C29)),
+            side: BorderSide(color: AppTheme.borderColor),
           ),
           title: Row(
             children: [
@@ -746,11 +773,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   children: [
                     Text(
                       'Đánh Giá Đơn Hàng #${o.orderCode}',
-                      style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 16),
+                      style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 16),
                     ),
                     Text(
                       'Người nhận: ${o.customerName}',
-                      style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12),
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                     ),
                   ],
                 ),
@@ -761,9 +788,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Mức độ hài lòng của bạn:',
-                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -788,23 +815,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                 TextField(
                   controller: commentCtrl,
                   maxLines: 3,
-                  style: const TextStyle(color: Color(0xFFFAF8F5), fontSize: 13),
+                  style: TextStyle(color: AppTheme.textPrimary, fontSize: 13),
                   decoration: InputDecoration(
                     hintText: 'Nhận xét về chất lượng sản phẩm mỹ phẩm, bao bì...',
-                    hintStyle: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12),
+                    hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                     filled: true,
-                    fillColor: const Color(0xFF141413),
+                    fillColor: AppTheme.surfaceElevated,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF2E2C29)),
+                      borderSide: BorderSide(color: AppTheme.borderColor),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF2E2C29)),
+                      borderSide: BorderSide(color: AppTheme.borderColor),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFC59B27)),
+                      borderSide: const BorderSide(color: AppTheme.accentGold),
                     ),
                   ),
                 ),
@@ -814,12 +841,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogCtx).pop(),
-              child: const Text('Hủy Bỏ', style: TextStyle(color: Color(0xFFA8A29E))),
+              child: Text('Hủy Bỏ', style: TextStyle(color: AppTheme.textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFC59B27),
-                foregroundColor: const Color(0xFF141413),
+                backgroundColor: AppTheme.accentGold,
+                foregroundColor: AppTheme.charcoal,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: isSubmitting
@@ -860,26 +887,26 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1C1917),
+        backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: Color(0xFF2E2C29)),
+          side: BorderSide(color: AppTheme.borderColor),
         ),
-        title: const Row(
+        title: Row(
           children: [
             Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626)),
             SizedBox(width: 8),
-            Text('Xác Nhận Hủy Lịch?', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5))),
+            Text('Xác Nhận Hủy Lịch?', style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
           ],
         ),
         content: Text(
           'Bạn có chắc chắn muốn hủy lịch hẹn #${booking.bookingCode} vào lúc ${booking.timeSlot} ngày ${booking.date} không?',
-          style: const TextStyle(color: Color(0xFFA8A29E)),
+          style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Không Hủy', style: TextStyle(color: Color(0xFFA8A29E))),
+            child: Text('Không Hủy', style: TextStyle(color: AppTheme.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -906,23 +933,31 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    final filteredBookings = bookings.where((b) {
+    final filteredBookings = (bookings.where((b) {
       if (currentFilter == 'all') return true;
       if (currentFilter == 'active') return !b.isCancelled && !b.isCompleted;
       if (currentFilter == 'cancelled') return b.isCancelled;
       if (currentFilter == 'completed') return b.isCompleted;
       return true;
-    }).toList();
+    }).toList())
+      ..sort((a, b) {
+        final numA = int.tryParse(a.bookingCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+        final numB = int.tryParse(b.bookingCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+        if (numA != numB) return numB.compareTo(numA);
+        final dComp = b.date.compareTo(a.date);
+        if (dComp != 0) return dComp;
+        return b.timeSlot.compareTo(a.timeSlot);
+      });
 
     final user = AuthService.currentUser;
     if (user == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF141413),
+        backgroundColor: AppTheme.bgPrimary,
         appBar: AppBar(
-          title: const Text('Lịch Hẹn & Đơn Hàng', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 18)),
-          backgroundColor: const Color(0xFF141413),
+          title: Text('Lịch Hẹn & Đơn Hàng', style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 18)),
+          backgroundColor: AppTheme.bgPrimary,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Color(0xFFFAF8F5)),
+          iconTheme: IconThemeData(color: AppTheme.textPrimary),
         ),
         body: Center(
           child: Padding(
@@ -934,22 +969,22 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFC59B27).withValues(alpha: 0.15),
+                    color: AppTheme.accentGold.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFC59B27), width: 1.5),
+                    border: Border.all(color: AppTheme.accentGold, width: 1.5),
                   ),
-                  child: const Icon(Icons.lock_person_outlined, size: 36, color: Color(0xFFC59B27)),
+                  child: const Icon(Icons.lock_person_outlined, size: 36, color: AppTheme.accentGold),
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Yêu Cầu Đăng Nhập',
-                  style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 20),
+                  style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 20),
                 ),
                 const SizedBox(height: 10),
-                const Text(
+                Text(
                   'Quý khách vui lòng đăng nhập tài khoản để tra cứu lịch hẹn và xem chi tiết các đơn hàng mỹ phẩm của riêng mình.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFFA8A29E), fontSize: 13.5, height: 1.5),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 13.5, height: 1.5),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -957,8 +992,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   height: 48,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC59B27),
-                      foregroundColor: const Color(0xFF141413),
+                      backgroundColor: AppTheme.accentGold,
+                      foregroundColor: AppTheme.charcoal,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: () async {
@@ -985,27 +1020,27 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
         user.role.toUpperCase() == 'QUANLY';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF141413),
+      backgroundColor: AppTheme.bgPrimary,
       appBar: AppBar(
         title: Text(
           isStaffOrAdmin ? 'Tra Cứu & Lịch Hẹn' : 'Lịch Hẹn & Đơn Hàng Của Tôi',
-          style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFAF8F5), fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 18),
         ),
-        backgroundColor: const Color(0xFF141413),
+        backgroundColor: AppTheme.bgPrimary,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFFFAF8F5)),
+        iconTheme: IconThemeData(color: AppTheme.textPrimary),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFFC59B27)),
+            icon: const Icon(Icons.refresh, color: AppTheme.accentGold),
             onPressed: _loadData,
             tooltip: 'Làm mới',
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFFC59B27),
-          labelColor: const Color(0xFFC59B27),
-          unselectedLabelColor: const Color(0xFFA8A29E),
+          indicatorColor: AppTheme.accentGold,
+          labelColor: AppTheme.accentGold,
+          unselectedLabelColor: AppTheme.textSecondary,
           labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
           tabs: const [
             Tab(text: 'Lịch Hẹn Cắt Tóc (LH)'),
@@ -1018,23 +1053,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
           // THANH TÌM KIẾM THEO SĐT / MÃ LỊCH HẸN
           Container(
             padding: const EdgeInsets.all(14),
-            color: const Color(0xFF171614),
+            color: AppTheme.bgPrimary,
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: searchController,
                     onSubmitted: (_) => _loadData(),
-                    style: const TextStyle(color: Color(0xFFFAF8F5)),
+                    style: TextStyle(color: AppTheme.textPrimary),
                     decoration: InputDecoration(
                       hintText: isStaffOrAdmin
                           ? 'Nhập SĐT hoặc Mã (VD: 0988... / LH01 / DH01)'
                           : 'Tìm theo mã #LH, dịch vụ hoặc sản phẩm...',
-                      hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFFA8A29E)),
-                      prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFFC59B27)),
+                      hintStyle: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
+                      prefixIcon: const Icon(Icons.search, size: 20, color: AppTheme.accentGold),
                       suffixIcon: searchController.text.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, size: 18, color: Color(0xFFA8A29E)),
+                              icon: Icon(Icons.clear, size: 18, color: AppTheme.textSecondary),
                               onPressed: () {
                                 searchController.clear();
                                 _loadData();
@@ -1042,19 +1077,19 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                             )
                           : null,
                       filled: true,
-                      fillColor: const Color(0xFF1C1917),
+                      fillColor: AppTheme.surfaceCard,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2E2C29))),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2E2C29))),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFC59B27))),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.borderColor)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.borderColor)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppTheme.accentGold)),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFC59B27),
-                    foregroundColor: const Color(0xFF141413),
+                    backgroundColor: AppTheme.accentGold,
+                    foregroundColor: AppTheme.charcoal,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   ),
@@ -1088,7 +1123,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
       children: [
         // FILTER TABS
         Container(
-          color: const Color(0xFF171614),
+          color: AppTheme.bgPrimary,
           padding: const EdgeInsets.only(bottom: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1100,27 +1135,27 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
             ],
           ),
         ),
-        const Divider(height: 1, color: Color(0xFF2E2C29)),
+        Divider(height: 1, color: AppTheme.borderColor),
 
         Expanded(
           child: isLoading
-              ? const Center(child: CircularProgressIndicator(color: Color(0xFFC59B27)))
+              ? const Center(child: CircularProgressIndicator(color: AppTheme.accentGold))
               : filtered.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.calendar_month_outlined, size: 64, color: Color(0xFFA8A29E)),
+                          Icon(Icons.calendar_month_outlined, size: 64, color: AppTheme.textSecondary),
                           const SizedBox(height: 12),
-                          const Text(
+                          Text(
                             'Không tìm thấy lịch hẹn nào.',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFFA8A29E)),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFC59B27),
-                              foregroundColor: const Color(0xFF141413),
+                              backgroundColor: AppTheme.accentGold,
+                              foregroundColor: AppTheme.charcoal,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () {
@@ -1154,10 +1189,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                         return Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1C1917),
+                            color: AppTheme.surfaceCard,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFF2E2C29)),
-                            boxShadow: const [BoxShadow(color: Color(0x1F000000), blurRadius: 8, offset: Offset(0, 3))],
+                            border: Border.all(color: AppTheme.borderColor),
+                            boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2))],
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
@@ -1172,19 +1207,19 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFC59B27).withValues(alpha: 0.15),
+                                            color: AppTheme.accentGold.withValues(alpha: 0.15),
                                             borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(color: const Color(0xFFC59B27).withValues(alpha: 0.4)),
+                                            border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
                                           ),
                                           child: Text(
                                             '#${b.bookingCode}',
-                                            style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC59B27), fontSize: 13),
+                                            style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 13),
                                           ),
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
                                           b.customerName,
-                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFFFAF8F5)),
+                                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
                                         ),
                                       ],
                                     ),
@@ -1201,7 +1236,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                                     ),
                                   ],
                                 ),
-                                const Divider(height: 16, color: Color(0xFF2E2C29)),
+                                Divider(height: 16, color: AppTheme.borderColor),
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -1217,11 +1252,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(b.serviceName, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Color(0xFFFAF8F5))),
+                                          Text(b.serviceName, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: AppTheme.textPrimary)),
                                           const SizedBox(height: 4),
-                                          Text('Thợ tạo mẫu: ${b.stylistName}', style: const TextStyle(fontSize: 12.5, color: Color(0xFFA8A29E))),
-                                          Text('Giờ hẹn: ${b.timeSlot} • Ngày ${b.date}', style: const TextStyle(fontSize: 12.5, color: Color(0xFFC59B27), fontWeight: FontWeight.w800)),
-                                          Text('Chi nhánh: ${b.branchName}', style: const TextStyle(fontSize: 12, color: Color(0xFFA8A29E))),
+                                          Text('Thợ tạo mẫu: ${b.stylistName}', style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
+                                          Text('Giờ hẹn: ${b.timeSlot} • Ngày ${b.date}', style: const TextStyle(fontSize: 12.5, color: AppTheme.accentGold, fontWeight: FontWeight.w800)),
+                                          Text('Chi nhánh: ${b.branchName}', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                                         ],
                                       ),
                                     ),
@@ -1231,29 +1266,29 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text('Chi phí dự kiến:', style: TextStyle(fontSize: 12.5, color: Color(0xFFA8A29E))),
-                                    Text(currencyFormat.format(b.totalPrice), style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC59B27), fontSize: 16)),
+                                    Text('Chi phí dự kiến:', style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
+                                    Text(currencyFormat.format(b.totalPrice), style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 16)),
                                   ],
                                 ),
-                                const Divider(height: 20, color: Color(0xFF2E2C29)),
+                                Divider(height: 20, color: AppTheme.borderColor),
                                 Wrap(
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: [
                                     OutlinedButton.icon(
                                       style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: Color(0xFFC59B27)),
+                                        side: const BorderSide(color: AppTheme.accentGold),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                       ),
-                                      icon: const Icon(Icons.qr_code_2, size: 16, color: Color(0xFFC59B27)),
-                                      label: const Text('Xem Vé QR', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFFC59B27))),
+                                      icon: const Icon(Icons.qr_code_2, size: 16, color: AppTheme.accentGold),
+                                      label: const Text('Xem Vé QR', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.accentGold)),
                                       onPressed: () => _showQrCheckInModal(b),
                                     ),
                                     ElevatedButton.icon(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFFC59B27),
-                                        foregroundColor: const Color(0xFF141413),
+                                        backgroundColor: AppTheme.accentGold,
+                                        foregroundColor: AppTheme.charcoal,
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                       ),
@@ -1261,16 +1296,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                                       label: const Text('Thanh Toán Ngay', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                                       onPressed: () => _showBookingPaymentModal(b),
                                     ),
-                                    OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: Color(0xFFFAF8F5)),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                    if (!isCancelled)
+                                      OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          side: BorderSide(color: AppTheme.borderColor),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                        ),
+                                        icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
+                                        label: Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary)),
+                                        onPressed: () => _showBookingRatingDialog(b),
                                       ),
-                                      icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
-                                      label: const Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFFFAF8F5))),
-                                      onPressed: () => _showBookingRatingDialog(b),
-                                    ),
                                     if (!isCancelled && !isCompleted)
                                       OutlinedButton(
                                         style: OutlinedButton.styleFrom(
@@ -1296,18 +1332,18 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
 
   Widget _buildOrdersTab(List<SalonOrder> orderList) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFC59B27)));
+      return const Center(child: CircularProgressIndicator(color: AppTheme.accentGold));
     }
     if (orderList.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 64, color: Color(0xFFA8A29E)),
+            Icon(Icons.inventory_2_outlined, size: 64, color: AppTheme.textSecondary),
             SizedBox(height: 12),
             Text(
               'Không tìm thấy đơn hàng mỹ phẩm nào.',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFFA8A29E)),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -1325,10 +1361,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1917),
+            color: AppTheme.surfaceCard,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF2E2C29)),
-            boxShadow: const [BoxShadow(color: Color(0x1F000000), blurRadius: 8, offset: Offset(0, 3))],
+            border: Border.all(color: AppTheme.borderColor),
+            boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2))],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1339,13 +1375,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFC59B27).withValues(alpha: 0.15),
+                      color: AppTheme.accentGold.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFFC59B27).withValues(alpha: 0.4)),
+                      border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
                     ),
                     child: Text(
                       '#' + o.orderCode,
-                      style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC59B27), fontSize: 13),
+                      style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 13),
                     ),
                   ),
                   Container(
@@ -1361,24 +1397,24 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   ),
                 ],
               ),
-              const Divider(height: 16, color: Color(0xFF2E2C29)),
-              Text('Người nhận: ' + o.customerName + ' • ' + o.customerPhone, style: const TextStyle(color: Color(0xFFFAF8F5), fontWeight: FontWeight.w700, fontSize: 13)),
+              Divider(height: 16, color: AppTheme.borderColor),
+              Text('Người nhận: ' + o.customerName + ' • ' + o.customerPhone, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 13)),
               const SizedBox(height: 4),
-              Text('Địa chỉ: ' + o.shippingAddress, style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12)),
+              Text('Địa chỉ: ' + o.shippingAddress, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
               const SizedBox(height: 4),
-              Text('Thanh toán: ' + o.paymentMethod + ' (' + o.paymentStatus + ')', style: const TextStyle(color: Color(0xFFA8A29E), fontSize: 12)),
+              Text('Thanh toán: ' + o.paymentMethod + ' (' + o.paymentStatus + ')', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Tổng tiền đơn hàng:', style: TextStyle(color: Color(0xFFA8A29E), fontSize: 12.5)),
+                  Text('Tổng tiền đơn hàng:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                   Text(
                     currencyFormat.format(o.totalAmount),
-                    style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC59B27), fontSize: 16),
+                    style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 16),
                   ),
                 ],
               ),
-              const Divider(height: 18, color: Color(0xFF2E2C29)),
+              Divider(height: 18, color: AppTheme.borderColor),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -1386,8 +1422,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   if (!isCancelled && !isPaid)
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFC59B27),
-                        foregroundColor: const Color(0xFF141413),
+                        backgroundColor: AppTheme.accentGold,
+                        foregroundColor: AppTheme.charcoal,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
@@ -1398,12 +1434,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   if (!isCancelled)
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFFAF8F5)),
+                        side: BorderSide(color: AppTheme.borderColor),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                       icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
-                      label: const Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFFFAF8F5))),
+                      label: Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary)),
                       onPressed: () => _showOrderRatingDialog(o),
                     ),
                   if (!isCancelled)
@@ -1434,7 +1470,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSel ? const Color(0xFFC59B27) : Colors.transparent,
+              color: isSel ? AppTheme.accentGold : Colors.transparent,
               width: 2.5,
             ),
           ),
@@ -1444,7 +1480,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
           style: TextStyle(
             fontSize: 12.5,
             fontWeight: isSel ? FontWeight.w900 : FontWeight.w600,
-            color: isSel ? const Color(0xFFC59B27) : const Color(0xFFA8A29E),
+            color: isSel ? AppTheme.accentGold : AppTheme.textSecondary,
           ),
         ),
       ),

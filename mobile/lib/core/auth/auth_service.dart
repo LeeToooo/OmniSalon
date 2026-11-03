@@ -107,7 +107,7 @@ class AuthService {
         final userData = data['user'] as Map<String, dynamic>;
         final user = UserModel.fromJson(userData);
         currentUser = user;
-        currentToken = 'TOKEN_${DateTime.now().millisecondsSinceEpoch}';
+        currentToken = data['token']?.toString() ?? 'TOKEN_${DateTime.now().millisecondsSinceEpoch}';
         userNotifier.value = user;
 
         final prefs = await SharedPreferences.getInstance();
@@ -163,29 +163,85 @@ class AuthService {
     required String otp,
     required String newPassword,
   }) async {
-    if (newPassword.trim().length < 6) {
+    final cleanEmail = email.trim();
+    final cleanOtp = otp.trim();
+    final cleanPass = newPassword.trim();
+
+    if (cleanPass.length < 6) {
       return {'success': false, 'message': 'Mật khẩu mới phải có ít nhất 6 ký tự.'};
     }
-    final isValid = await verifyGmailOtp(email, otp);
+    final isValid = await verifyGmailOtp(cleanEmail, cleanOtp);
     if (!isValid) {
       return {'success': false, 'message': 'Mã OTP không chính xác hoặc đã hết hạn.'};
     }
     try {
       final res = await http.post(
         Uri.parse('${ApiService.baseUrl}/auth/reset-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'newPassword': newPassword}),
-      ).timeout(const Duration(seconds: 4));
-      if (res.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(res.bodyBytes));
-        return {'success': true, 'message': data['message'] ?? 'Đặt lại mật khẩu thành công!'};
-      }
-    } catch (_) {}
+        headers: {'Content-Type': 'application/json; charset=utf-8'},
+        body: jsonEncode({
+          'email': cleanEmail,
+          'otp': cleanOtp,
+          'newPassword': cleanPass,
+        }),
+      ).timeout(const Duration(seconds: 8));
 
-    return {
-      'success': true,
-      'message': 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.'
-    };
+      final data = jsonDecode(utf8.decode(res.bodyBytes));
+      if (res.statusCode == 200 && data['success'] == true) {
+        return {'success': true, 'message': data['message'] ?? 'Đặt lại mật khẩu thành công!'};
+      } else {
+        return {'success': false, 'message': data['message'] ?? 'Đặt lại mật khẩu thất bại.'};
+      }
+    } catch (e) {
+      debugPrint('[AuthService] Reset password error: $e');
+      return {'success': false, 'message': 'Không thể kết nối đến máy chủ. Vui lòng thử lại.'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    if (currentUser == null) {
+      return {'success': false, 'message': 'Vui lòng đăng nhập để đổi mật khẩu.'};
+    }
+    final cleanOld = oldPassword.trim();
+    final cleanNew = newPassword.trim();
+
+    if (cleanOld.isEmpty || cleanNew.isEmpty) {
+      return {'success': false, 'message': 'Vui lòng điền đầy đủ mật khẩu hiện tại và mật khẩu mới.'};
+    }
+    if (cleanNew.length < 6) {
+      return {'success': false, 'message': 'Mật khẩu mới phải có ít nhất 6 ký tự.'};
+    }
+    if (cleanOld == cleanNew) {
+      return {'success': false, 'message': 'Mật khẩu mới không được trùng với mật khẩu hiện tại.'};
+    }
+
+    try {
+      final res = await http.post(
+        Uri.parse('${ApiService.baseUrl}/auth/change-password'),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          if (currentToken != null) 'Authorization': 'Bearer $currentToken',
+        },
+        body: jsonEncode({
+          'userId': currentUser!.id,
+          'username': currentUser!.username,
+          'phone': currentUser!.phone,
+          'oldPassword': cleanOld,
+          'newPassword': cleanNew,
+        }),
+      ).timeout(const Duration(seconds: 8));
+
+      final data = jsonDecode(utf8.decode(res.bodyBytes));
+      return {
+        'success': data['success'] == true,
+        'message': data['message'] ?? (data['success'] == true ? 'Đổi mật khẩu thành công!' : 'Đổi mật khẩu thất bại.'),
+      };
+    } catch (e) {
+      debugPrint('[AuthService] Change password error: $e');
+      return {'success': false, 'message': 'Không thể kết nối đến máy chủ. Vui lòng thử lại.'};
+    }
   }
 
   static Future<Map<String, dynamic>> updateProfile({

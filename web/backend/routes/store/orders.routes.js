@@ -7,7 +7,8 @@ const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 const {
   resolveOrCreateCustomer,
-  generateNextOrderId
+  generateNextOrderId,
+  generateNextCtdhId
 } = require('../../services/helper_service');
 
 async function handleOrderRoutes(req, res, ctx) {
@@ -198,13 +199,7 @@ async function handleOrderRoutes(req, res, ctx) {
             if (errMsg.includes('Tồn kho') || errMsg.includes('không đủ')) {
               throw spErr;
             }
-            const maxCtdh = await querySql(`SELECT TOP 1 MaChiTietDonHang FROM ChiTietDonHang WHERE MaChiTietDonHang LIKE 'CTDH%' AND LEN(MaChiTietDonHang) <= 10 ORDER BY LEN(MaChiTietDonHang) DESC, MaChiTietDonHang DESC`);
-            let nextCtdh = 11;
-            if (maxCtdh && maxCtdh[0]) {
-              const m = maxCtdh[0].MaChiTietDonHang.match(/CTDH(\d+)/i);
-              if (m) nextCtdh = parseInt(m[1], 10) + 1;
-            }
-            const ctdhId = 'CTDH' + (nextCtdh < 10 ? '0' + nextCtdh : nextCtdh);
+                        const ctdhId = await generateNextCtdhId();
             const unitPrice = parseFloat(it.price || it.actualPrice || it.GiaBan || 250000);
             
             // Phân bổ lô hàng thực tế theo nguyên tắc FEFO

@@ -1,7 +1,6 @@
 import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
-import 'package:omni_salon_mobile/pages/auth/login_page.dart';
 import 'package:omni_salon_mobile/pages/auth/otp_verification_page.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -47,7 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
+            colorScheme: ColorScheme.light(
               primary: AppTheme.accentGold,
               onPrimary: AppTheme.charcoal,
               surface: AppTheme.surfaceCard,
@@ -92,21 +91,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
 
       // Điều hướng tới màn hình OTP Verification, có nút Bỏ qua test nhanh
-      Navigator.of(context).push(
+      final verified = await Navigator.of(context).push<bool>(
         MaterialPageRoute(
           builder: (_) => OtpVerificationScreen(
             email: _emailController.text.trim(),
             onVerificationSuccess: () {
-              Navigator.of(context).pop(); // Đóng OTP screen
-              if (widget.onRegisterSuccess != null) {
-                widget.onRegisterSuccess!();
-              } else {
-                Navigator.of(context).pop(true);
-              }
+              Navigator.of(context).pop(true); // Đóng OTP screen và trả về true
             },
           ),
         ),
       );
+
+      if (verified == true && mounted) {
+        if (widget.onRegisterSuccess != null) {
+          widget.onRegisterSuccess!();
+        }
+        Navigator.of(context).pop(true); // Đóng Register screen và quay về màn hình trước
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -161,7 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _nameController,
                   textCapitalization: TextCapitalization.words,
                   style: AppTheme.bodyMedium(),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Ví dụ: Nguyễn Văn An',
                     prefixIcon: Icon(Icons.person_outline_rounded, size: 20, color: AppTheme.textSecondary),
                   ),
@@ -176,7 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   style: AppTheme.bodyMedium(),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Ví dụ: 0901 234 567',
                     prefixIcon: Icon(Icons.phone_outlined, size: 20, color: AppTheme.textSecondary),
                   ),
@@ -195,7 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: AppTheme.bodyMedium(),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Ví dụ: quyong@gmail.com',
                     prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppTheme.textSecondary),
                   ),
@@ -217,7 +218,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: AppTheme.bodyMedium(),
                   decoration: InputDecoration(
                     hintText: 'Chọn ngày sinh (YYYY-MM-DD)...',
-                    prefixIcon: const Icon(Icons.cake_outlined, size: 20, color: AppTheme.textSecondary),
+                    prefixIcon: Icon(Icons.cake_outlined, size: 20, color: AppTheme.textSecondary),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.calendar_month_outlined, size: 20, color: AppTheme.accentGold),
                       onPressed: _selectBirthday,
@@ -235,7 +236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: AppTheme.bodyMedium(),
                   decoration: InputDecoration(
                     hintText: 'Tối thiểu 6 ký tự...',
-                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                    prefixIcon: Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -262,7 +263,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: AppTheme.bodyMedium(),
                   decoration: InputDecoration(
                     hintText: 'Nhập lại mật khẩu vừa đặt...',
-                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                    prefixIcon: Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -290,7 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       foregroundColor: AppTheme.charcoal,
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),
@@ -314,11 +315,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) => LoginScreen(onLoginSuccess: widget.onRegisterSuccess),
-                            ),
-                          );
+                          Navigator.of(context).pop();
                         },
                         child: Text(
                           'Đăng nhập tại đây',

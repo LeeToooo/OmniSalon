@@ -106,23 +106,95 @@ async function resolveStaffMember(staffId, branchId) {
 }
 
 async function generateNextBookingId() {
-  const rows = await querySql("SELECT TOP 1 MaLichHen FROM LichHen WHERE MaLichHen LIKE 'LH%' AND LEN(MaLichHen) <= 6 ORDER BY LEN(MaLichHen) DESC, MaLichHen DESC");
-  let nextNum = 11;
+  const rows = await querySql("SELECT MaLichHen FROM LichHen WHERE MaLichHen LIKE 'LH%'");
+  let maxNum = 10;
   if (rows && rows.length > 0) {
-    const m = rows[0].MaLichHen.match(/LH(\d+)/i);
-    if (m) nextNum = parseInt(m[1], 10) + 1;
+    for (const r of rows) {
+      const m = (r.MaLichHen || '').match(/LH0*(\d+)/i);
+      if (m) {
+        const val = parseInt(m[1], 10);
+        if (val > maxNum) maxNum = val;
+      }
+    }
   }
-  return 'LH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+  let nextNum = maxNum;
+  while (true) {
+    nextNum++;
+    const candidate = 'LH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+    const exists = await querySql("SELECT TOP 1 MaLichHen FROM LichHen WHERE MaLichHen = ?", [candidate]);
+    if (!exists || exists.length === 0) {
+      return candidate;
+    }
+  }
+}
+
+async function generateNextCtlhId() {
+  const rows = await querySql("SELECT MaChiTietLichHen FROM ChiTietLichHen WHERE MaChiTietLichHen LIKE 'CTLH%'");
+  let maxNum = 10;
+  if (rows && rows.length > 0) {
+    for (const r of rows) {
+      const m = (r.MaChiTietLichHen || '').match(/CTLH0*(\d+)/i);
+      if (m) {
+        const val = parseInt(m[1], 10);
+        if (val > maxNum) maxNum = val;
+      }
+    }
+  }
+  let nextNum = maxNum;
+  while (true) {
+    nextNum++;
+    const candidate = 'CTLH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+    const exists = await querySql("SELECT TOP 1 MaChiTietLichHen FROM ChiTietLichHen WHERE MaChiTietLichHen = ?", [candidate]);
+    if (!exists || exists.length === 0) {
+      return candidate;
+    }
+  }
 }
 
 async function generateNextOrderId() {
-  const rows = await querySql("SELECT TOP 1 MaDonHang FROM DonHang WHERE MaDonHang LIKE 'DH%' AND LEN(MaDonHang) <= 6 ORDER BY LEN(MaDonHang) DESC, MaDonHang DESC");
-  let nextNum = 11;
+  const rows = await querySql("SELECT MaDonHang FROM DonHang WHERE MaDonHang LIKE 'DH%'");
+  let maxNum = 10;
   if (rows && rows.length > 0) {
-    const m = rows[0].MaDonHang.match(/DH(\d+)/i);
-    if (m) nextNum = parseInt(m[1], 10) + 1;
+    for (const r of rows) {
+      const m = (r.MaDonHang || '').match(/DH0*(\d+)/i);
+      if (m) {
+        const val = parseInt(m[1], 10);
+        if (val > maxNum) maxNum = val;
+      }
+    }
   }
-  return 'DH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+  let nextNum = maxNum;
+  while (true) {
+    nextNum++;
+    const candidate = 'DH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+    const exists = await querySql("SELECT TOP 1 MaDonHang FROM DonHang WHERE MaDonHang = ?", [candidate]);
+    if (!exists || exists.length === 0) {
+      return candidate;
+    }
+  }
+}
+
+async function generateNextCtdhId() {
+  const rows = await querySql("SELECT MaChiTietDonHang FROM ChiTietDonHang WHERE MaChiTietDonHang LIKE 'CTDH%'");
+  let maxNum = 10;
+  if (rows && rows.length > 0) {
+    for (const r of rows) {
+      const m = (r.MaChiTietDonHang || '').match(/CTDH0*(\d+)/i);
+      if (m) {
+        const val = parseInt(m[1], 10);
+        if (val > maxNum) maxNum = val;
+      }
+    }
+  }
+  let nextNum = maxNum;
+  while (true) {
+    nextNum++;
+    const candidate = 'CTDH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+    const exists = await querySql("SELECT TOP 1 MaChiTietDonHang FROM ChiTietDonHang WHERE MaChiTietDonHang = ?", [candidate]);
+    if (!exists || exists.length === 0) {
+      return candidate;
+    }
+  }
 }
 
 async function resolveServiceInfo(serviceId, serviceName) {
@@ -772,7 +844,9 @@ module.exports = {
   resolveOrCreateCustomer,
   resolveStaffMember,
   generateNextBookingId,
+  generateNextCtlhId,
   generateNextOrderId,
+  generateNextCtdhId,
   resolveServiceInfo,
   getFullSqlDatabase
 };

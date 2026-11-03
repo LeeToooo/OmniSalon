@@ -4,8 +4,8 @@ import 'package:omni_salon_mobile/core/theme/app_theme.dart';
 
 class MarqueeBanner extends StatefulWidget {
   final List<String> items;
-  final Color backgroundColor;
-  final Color textColor;
+  final Color? backgroundColor;
+  final Color? textColor;
   final double height;
 
   const MarqueeBanner({
@@ -18,8 +18,8 @@ class MarqueeBanner extends StatefulWidget {
       'MASTER BARBER GIÀU KINH NGHIỆM',
       'DƯỢC LIỆU CAO CẤP',
     ],
-    this.backgroundColor = AppTheme.charcoal,
-    this.textColor = AppTheme.textLight,
+    this.backgroundColor,
+    this.textColor,
     this.height = 36,
   });
 
@@ -72,7 +72,12 @@ class _MarqueeBannerState extends State<MarqueeBanner> {
 
     return Container(
       height: widget.height,
-      color: widget.backgroundColor,
+      decoration: BoxDecoration(
+        color: widget.backgroundColor ?? AppTheme.surfaceElevated,
+        border: Border.symmetric(
+          horizontal: BorderSide(color: AppTheme.borderColor, width: 0.8),
+        ),
+      ),
       alignment: Alignment.center,
       child: ListView.builder(
         controller: _scrollController,
@@ -90,7 +95,7 @@ class _MarqueeBannerState extends State<MarqueeBanner> {
                   text,
                   style: AppTheme.labelUppercase(
                     fontSize: 10.5,
-                    color: widget.textColor,
+                    color: widget.textColor ?? AppTheme.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

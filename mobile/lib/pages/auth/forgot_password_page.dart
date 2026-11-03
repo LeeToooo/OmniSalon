@@ -152,7 +152,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 enabled: !_codeSent,
                 keyboardType: TextInputType.emailAddress,
                 style: AppTheme.bodyMedium(),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Nhập email đã đăng ký...',
                   prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppTheme.textSecondary),
                 ),
@@ -170,7 +170,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       foregroundColor: AppTheme.charcoal,
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),
@@ -193,7 +193,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   decoration: InputDecoration(
                     hintText: 'Ví dụ: 888999',
                     counterText: '',
-                    prefixIcon: const Icon(Icons.pin_outlined, size: 20, color: AppTheme.textSecondary),
+                    prefixIcon: Icon(Icons.pin_outlined, size: 20, color: AppTheme.textSecondary),
                     suffixIcon: TextButton(
                       onPressed: _isLoading ? null : _handleSendCode,
                       child: Text('Gửi lại', style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
@@ -211,7 +211,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: AppTheme.bodyMedium(),
                   decoration: InputDecoration(
                     hintText: 'Nhập mật khẩu mới...',
-                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                    prefixIcon: Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -234,7 +234,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       foregroundColor: AppTheme.charcoal,
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),

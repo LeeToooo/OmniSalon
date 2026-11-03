@@ -181,7 +181,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         contentPadding: EdgeInsets.zero,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: AppTheme.borderColor),
+                          borderSide: BorderSide(color: AppTheme.borderColor),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -210,7 +210,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.timer_outlined, size: 16, color: AppTheme.textSecondary),
+                          Icon(Icons.timer_outlined, size: 16, color: AppTheme.textSecondary),
                           const SizedBox(width: 6),
                           Text(
                             'Gửi lại mã sau $_resendCountdown giây',
@@ -240,7 +240,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     foregroundColor: AppTheme.charcoal,
                   ),
                   child: _isVerifying
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),

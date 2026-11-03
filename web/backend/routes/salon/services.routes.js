@@ -56,6 +56,17 @@ async function handleServiceRoutes(req, res, ctx) {
       const ratings = ratingMap.get(r.MaDichVu) || [];
       const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 5.0;
 
+      // Phân loại danh mục dịch vụ chuẩn Salon Barber
+      let category = 'Cắt & Tạo Kiểu';
+      const textToClassify = ((r.TenDichVu || '') + ' ' + (r.MoTa || '')).toLowerCase();
+      if (textToClassify.includes('uốn') || textToClassify.includes('nhuộm') || textToClassify.includes('tẩy')) {
+        category = 'Uốn & Nhuộm';
+      } else if (textToClassify.includes('râu') || textToClassify.includes('cạo mặt') || textToClassify.includes('ráy tai') || textToClassify.includes('facial') || textToClassify.includes('dưỡng sinh') || textToClassify.includes('gội') || textToClassify.includes('massage') || textToClassify.includes('phục hồi') || textToClassify.includes('chăm sóc')) {
+        category = 'Dưỡng Sinh & Râu';
+      } else {
+        category = 'Cắt & Tạo Kiểu';
+      }
+
       return {
         id: r.MaDichVu,
         MaDichVu: r.MaDichVu,
@@ -63,6 +74,8 @@ async function handleServiceRoutes(req, res, ctx) {
         TenDichVu: r.TenDichVu,
         description: r.MoTa,
         MoTa: r.MoTa,
+        category,
+        LoaiDichVu: category,
         duration: r.ThoiLuong ? `${r.ThoiLuong} phút` : '45 phút',
         durationMinutes: r.ThoiLuong || 45,
         ThoiLuong: r.ThoiLuong || 45,
@@ -206,6 +219,9 @@ async function handleServiceRoutes(req, res, ctx) {
         TenCombo: r.TenCombo,
         description: r.MoTa,
         MoTa: r.MoTa,
+        category: 'Combo VIP',
+        LoaiDichVu: 'Combo VIP',
+        isCombo: true,
         price: parseFloat(r.GiaCombo || 0),
         GiaCombo: parseFloat(r.GiaCombo || 0),
         duration: r.ThoiLuong ? `${r.ThoiLuong} phút` : '60 phút',

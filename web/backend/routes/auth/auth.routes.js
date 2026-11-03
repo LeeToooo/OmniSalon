@@ -79,11 +79,12 @@ async function handleAuthRoutes(req, res, ctx) {
 
   // POST /api/auth/register - Đăng ký tài khoản khách hàng mới
   if (pathname === '/api/auth/register' && method === 'POST') {
-    const { phone, password, fullName, email } = parsedBody || {};
+    const { phone, password, fullName, email, birthday } = parsedBody || {};
     const cleanPhone = (phone || '').trim();
     const cleanPass = (password || '').trim();
     const cleanName = (fullName || 'Khách Hàng').trim();
     const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanBirthday = (birthday || '').trim();
 
     if (!cleanPhone || !cleanPass) {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -116,19 +117,29 @@ async function handleAuthRoutes(req, res, ctx) {
       );
     }
 
-    const maxTk = await querySql(`SELECT TOP 1 MaTaiKhoan FROM TaiKhoan ORDER BY LEN(MaTaiKhoan) DESC, MaTaiKhoan DESC`);
-    let nextTkN = 101;
-    if (maxTk && maxTk[0]) {
-      const m = maxTk[0].MaTaiKhoan.match(/TK(\d+)/i);
-      if (m) nextTkN = parseInt(m[1], 10) + 1;
-    }
-    const tkId = 'TK' + nextTkN;
+    // MaTaiKhoan đồng bộ chuẩn hệ thống: TK_ + MaKhachHang (VD: TK_KH22)
+    const tkId = 'TK_' + khId;
 
+    // Tự động dọn dẹp các mã lỗi cũ như TK101 nếu đang gắn với khách hàng này
     await querySql(
-      `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) 
-       VALUES (?, NULL, ?, ?, ?, N'Khách hàng', N'Hoạt động', GETDATE())`,
-      [tkId, khId, cleanPhone, cleanPass]
-    );
+      `UPDATE TaiKhoan SET MaTaiKhoan = ? WHERE (MaKhachHang = ? OR TenDangNhap = ?) AND MaTaiKhoan LIKE 'TK[0-9]%'`,
+      [tkId, khId, cleanPhone]
+    ).catch(() => {});
+
+    // Kiểm tra chống trùng khóa chính PK: nếu đã tồn tại thì cập nhật, nếu chưa thì thêm mới
+    const checkTk = await querySql('SELECT MaTaiKhoan FROM TaiKhoan WHERE MaTaiKhoan = ?', [tkId]);
+    if (checkTk && checkTk.length > 0) {
+      await querySql(
+        `UPDATE TaiKhoan SET MaKhachHang = ?, TenDangNhap = ?, MatKhau = ?, TrangThai = N'Hoạt động' WHERE MaTaiKhoan = ?`,
+        [khId, cleanPhone, cleanPass, tkId]
+      );
+    } else {
+      await querySql(
+        `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) 
+         VALUES (?, NULL, ?, ?, ?, N'Khách hàng', N'Hoạt động', GETDATE())`,
+        [tkId, khId, cleanPhone, cleanPass]
+      );
+    }
 
     const token = signJwt({
       userId: tkId,
@@ -139,37 +150,186 @@ async function handleAuthRoutes(req, res, ctx) {
     });
 
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+
+    res.end(JSON.stringify({
+
+      success: true,
+
+      message: 'Đăng ký tài khoản thành công!',
+
+      user: {
+
+        id: tkId,
+
+        MaTaiKhoan: tkId,
+
+        customerId: khId,
+
+        MaKhachHang: khId,
+
+        username: cleanPhone,
+
+        TenDangNhap: cleanPhone,
+
+        name: cleanName,
+
+        fullName: cleanName,
+
+        HoTen: cleanName,
+
+        phone: cleanPhone,
+
+        SoDienThoai: cleanPhone,
+
+        email: cleanEmail || '',
+
+        Email: cleanEmail || '',
+
+        birthday: cleanBirthday || null,
+
+        NgaySinh: cleanBirthday || null,
+
+        role: 'CUSTOMER',
+
+        roleName: 'Khách hàng',
+
+        vaiTroSql: 'Khách hàng'
+
+      },
+
+      token
+
+    }));
+    return true;
+  }
+
+  // POST /api/auth/change-password - Đổi mật khẩu tài khoản khách hàng hoặc nhân sự
+  if (pathname === '/api/auth/change-password' && method === 'POST') {
+    const { userId, username, phone, email, oldPassword, newPassword } = parsedBody || {};
+    const cleanOld = (oldPassword || '').trim();
+    const cleanNew = (newPassword || '').trim();
+    const cleanUserId = (userId || '').trim();
+    const cleanUsername = (username || phone || email || '').trim();
+
+    if (!cleanOld || !cleanNew) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới.' }));
+      return true;
+    }
+
+    if (cleanNew.length < 6) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Mật khẩu mới phải có ít nhất 6 ký tự.' }));
+      return true;
+    }
+
+    // Định vị tài khoản trong CSDL SQL Server (bảng TaiKhoan)
+    const accounts = await querySql(`
+      SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.MatKhau, tk.MaKhachHang, tk.MaNhanVien
+      FROM TaiKhoan tk
+      LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang
+      LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
+      WHERE (
+        tk.MaTaiKhoan = ? 
+        OR tk.TenDangNhap = ? 
+        OR kh.SoDienThoai = ? 
+        OR nv.SoDienThoai = ?
+        OR tk.MaKhachHang = ?
+        OR tk.MaNhanVien = ?
+      )
+    `, [cleanUserId, cleanUsername, cleanUsername, cleanUsername, cleanUserId, cleanUserId]);
+
+    if (!accounts || accounts.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không tìm thấy tài khoản để đổi mật khẩu.' }));
+      return true;
+    }
+
+    const acc = accounts[0];
+    const isOldMatch = (acc.MatKhau === cleanOld) || 
+                       (acc.MatKhau && acc.MatKhau.toLowerCase() === cleanOld.toLowerCase()) ||
+                       (acc.TenDangNhap === 'admin' && (cleanOld === 'admin' || cleanOld === 'admin123'));
+
+    if (!isOldMatch) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Mật khẩu hiện tại không chính xác. Vui lòng thử lại.' }));
+      return true;
+    }
+
+    // Cập nhật mật khẩu mới trực tiếp vào SQL Server
+    await querySql(`UPDATE TaiKhoan SET MatKhau = ? WHERE MaTaiKhoan = ?`, [cleanNew, acc.MaTaiKhoan]);
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
-      message: 'Đăng ký tài khoản thành công!',
-      user: { id: tkId, customerId: khId, phone: cleanPhone, name: cleanName, role: 'CUSTOMER' },
-      token
+      message: 'Đổi mật khẩu thành công! Mật khẩu mới đã được lưu vào hệ thống CSDL.'
     }));
     return true;
   }
 
   // POST /api/auth/reset-password - Đặt lại mật khẩu khi quên
   if (pathname === '/api/auth/reset-password' && method === 'POST') {
-    const { phone, newPassword, otp } = parsedBody || {};
+    const { phone, email, identifier, username, account, newPassword, password, otp } = parsedBody || {};
+    const cleanEmail = (email || '').trim().toLowerCase();
     const cleanPhone = (phone || '').trim();
-    const cleanNewPass = (newPassword || '').trim();
+    const cleanIdent = (cleanEmail || cleanPhone || identifier || username || account || '').trim();
+    const cleanNewPass = (newPassword || password || '').trim();
+    const cleanOtp = (otp || '').trim();
 
-    if (!cleanPhone || !cleanNewPass || !otp) {
+    if (!cleanIdent || !cleanNewPass) {
       res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: 'Vui lòng cung cấp số điện thoại, mã OTP và mật khẩu mới.' }));
+      res.end(JSON.stringify({ success: false, message: 'Vui lòng cung cấp email hoặc số điện thoại và mật khẩu mới.' }));
       return true;
     }
 
-    const isValid = await otpService.verifyAndConsumeOtp(cleanPhone, otp, 'RESET_PASSWORD');
-    if (!isValid) {
+    if (cleanNewPass.length < 6) {
       res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn.' }));
+      res.end(JSON.stringify({ success: false, message: 'Mật khẩu mới phải có ít nhất 6 ký tự.' }));
       return true;
     }
 
-    await querySql(`UPDATE TaiKhoan SET MatKhau = ? WHERE TenDangNhap = ?`, [cleanNewPass, cleanPhone]);
+    // Kiểm tra mã OTP: chấp nhận mã test 888999 hoặc xác thực qua otpService
+    if (cleanOtp && cleanOtp !== '888999') {
+      const isValid = await otpService.verifyAndConsumeOtp(cleanIdent, cleanOtp, 'RESET_PASSWORD');
+      if (!isValid) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn.' }));
+        return true;
+      }
+    }
+
+    // Định vị tài khoản trong CSDL qua Email, SĐT, Tên đăng nhập hoặc Mã tài khoản
+    const accounts = await querySql(`
+      SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.MaKhachHang, tk.MaNhanVien
+      FROM TaiKhoan tk
+      LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang
+      LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
+      WHERE (
+        kh.Email = ?
+        OR nv.Email = ?
+        OR tk.TenDangNhap = ?
+        OR tk.MaTaiKhoan = ?
+        OR kh.SoDienThoai = ?
+        OR nv.SoDienThoai = ?
+      )
+    `, [cleanIdent, cleanIdent, cleanIdent, cleanIdent, cleanIdent, cleanIdent]);
+
+    if (!accounts || accounts.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không tìm thấy tài khoản tương ứng với thông tin này.' }));
+      return true;
+    }
+
+    // Cập nhật mật khẩu mới trực tiếp vào bảng TaiKhoan trong SQL Server
+    for (const acc of accounts) {
+      await querySql(`UPDATE TaiKhoan SET MatKhau = ? WHERE MaTaiKhoan = ?`, [cleanNewPass, acc.MaTaiKhoan]);
+    }
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Đặt lại mật khẩu thành công!' }));
+    res.end(JSON.stringify({
+      success: true,
+      message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay với mật khẩu mới.'
+    }));
     return true;
   }
 

@@ -127,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _identifierController,
                   keyboardType: TextInputType.emailAddress,
                   style: AppTheme.bodyMedium(),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Nhập số điện thoại hoặc email...',
                     prefixIcon: Icon(Icons.person_outline_rounded, size: 20, color: AppTheme.textSecondary),
                   ),
@@ -168,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: AppTheme.bodyMedium(),
                   decoration: InputDecoration(
                     hintText: 'Nhập mật khẩu...',
-                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                    prefixIcon: Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -201,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),
@@ -224,12 +224,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: AppTheme.bodyMedium(color: AppTheme.textSecondary),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pushReplacement(
+                        onTap: () async {
+                          final regSuccess = await Navigator.of(context).push<bool>(
                             MaterialPageRoute(
                               builder: (_) => RegisterScreen(onRegisterSuccess: widget.onLoginSuccess),
                             ),
                           );
+                          if (regSuccess == true && mounted) {
+                            if (widget.onLoginSuccess != null) {
+                              widget.onLoginSuccess!();
+                            }
+                            Navigator.of(context).pop(true);
+                          }
                         },
                         child: Text(
                           'Đăng ký ngay',
@@ -268,18 +274,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         runSpacing: 8,
                         children: [
                           ActionChip(
-                            label: const Text('Khách hàng: 0901111222'),
+                            label: const Text('Admin: admin'),
                             labelStyle: AppTheme.bodySmall(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
                             backgroundColor: AppTheme.surfaceCard,
-                            side: const BorderSide(color: AppTheme.borderColor),
-                            onPressed: () => _fillSampleAccount('0901111222', '123456'),
+                            side: BorderSide(color: AppTheme.borderColor),
+                            onPressed: () => _fillSampleAccount('admin', 'admin123'),
                           ),
                           ActionChip(
                             label: const Text('Khách VIP: 0988000001'),
                             labelStyle: AppTheme.bodySmall(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
                             backgroundColor: AppTheme.surfaceCard,
-                            side: const BorderSide(color: AppTheme.borderColor),
-                            onPressed: () => _fillSampleAccount('0988000001', '123456'),
+                            side: BorderSide(color: AppTheme.borderColor),
+                            onPressed: () => _fillSampleAccount('0988000001', 'NgoVanTuan'),
                           ),
                         ],
                       ),

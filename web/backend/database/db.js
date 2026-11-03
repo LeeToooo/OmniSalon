@@ -27,10 +27,10 @@ function getDynamicServerInstances() {
       'powershell -NoProfile -Command "Get-Service -Name *MSSQL* | Select-Object -ExpandProperty Name"',
       { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', timeout: 3000 }
     );
-    if (scOut.includes('MSSQL$SQLEXPRESS')) instances.push('.\\SQLEXPRESS', 'localhost\\SQLEXPRESS');
     if (scOut.includes('MSSQLSERVER')) instances.push('.', 'localhost');
+    if (scOut.includes('MSSQL$SQLEXPRESS')) instances.push('.\\SQLEXPRESS', 'localhost\\SQLEXPRESS');
   } catch (_) { }
-  instances.push('.\\SQLEXPRESS', 'localhost\\SQLEXPRESS', '.', 'localhost', '(local)\\SQLEXPRESS');
+  instances.push('.', 'localhost', '.\\SQLEXPRESS', 'localhost\\SQLEXPRESS', '(local)\\SQLEXPRESS');
   return [...new Set(instances)];
 }
 
@@ -113,6 +113,15 @@ async function applyPerformanceOptimizations() {
         INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao)
         VALUES ('TK_ADMIN', 'NV00', NULL, 'admin', 'admin123', N'Quản trị viên', N'Hoạt động', GETDATE());
       END;
+    `);
+
+    // Chuẩn hóa MaTaiKhoan khách hàng theo định dạng TK_ + MaKhachHang (sửa tự động các mã cũ như TK101 -> TK_KH22)
+    await querySql(`
+      UPDATE TaiKhoan
+      SET MaTaiKhoan = 'TK_' + MaKhachHang
+      WHERE MaKhachHang IS NOT NULL
+        AND (MaTaiKhoan LIKE 'TK[0-9]%' OR MaTaiKhoan NOT LIKE 'TK_KH%')
+        AND NOT EXISTS (SELECT 1 FROM TaiKhoan tk2 WHERE tk2.MaTaiKhoan = 'TK_' + TaiKhoan.MaKhachHang);
     `);
 
     // Views tối ưu truy vấn Lịch hẹn hôm nay và Doanh thu

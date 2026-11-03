@@ -509,46 +509,7 @@ class _CartScreenState extends State<CartScreen> {
                                     child: Text(item.name, style: AppTheme.bodyMedium(fontWeight: FontWeight.w700), maxLines: 1),
                                   ),
                                   const SizedBox(height: 3),
-                                  Row(
-                                    children: [
-                                      Text(currencyFormat.format(item.price), style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.accentGold)),
-                                      const SizedBox(width: 8),
-                                      GestureDetector(
-                                        onTap: () {
-                                          ShopScreen.showProductDetailModal(
-                                            context,
-                                                                                    product: Product(
-                                          id: item.productId,
-                                          name: item.name,
-                                          brand: 'OMNI SALON',
-                                          originalPrice: item.price,
-                                          actualPrice: item.price,
-                                          discountPercent: 0,
-                                          description: 'Sản phẩm chăm sóc và tạo kiểu tóc chuyên nghiệp chính hãng Omni Salon.',
-                                          image: item.image,
-                                          categoryId: 'DM01',
-                                        ),
-                                          );
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: AppTheme.accentGold.withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(4),
-                                            border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.3)),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(Icons.camera_alt_outlined, size: 10, color: AppTheme.accentGold),
-                                              const SizedBox(width: 3),
-                                              Text('4 góc nhìn', style: AppTheme.labelUppercase(fontSize: 9, color: AppTheme.accentGold)),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  Text(currencyFormat.format(item.price), style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.accentGold)),
                                   const SizedBox(height: 6),
                                   Row(
                                     children: [
@@ -588,7 +549,7 @@ class _CartScreenState extends State<CartScreen> {
                                       }),
                                       const Spacer(),
                                       IconButton(
-                                        icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.textMuted, size: 20),
+                                        icon: Icon(Icons.delete_outline_rounded, color: AppTheme.textMuted, size: 20),
                                         onPressed: () {
                                           setState(() => widget.cart.remove(item));
                                           if (widget.onUpdateCart != null) widget.onUpdateCart!();
@@ -700,7 +661,7 @@ class _CartScreenState extends State<CartScreen> {
                           ],
                           const SizedBox(height: 6),
                           _buildPriceRow('Phí vận chuyển:', 'Miễn phí'),
-                          const Divider(color: AppTheme.borderColorSubtle),
+                          Divider(color: AppTheme.borderColorSubtle),
                           _buildPriceRow('Tổng thanh toán:', currencyFormat.format(_finalTotal), isTotal: true),
                         ],
                       ),
@@ -714,7 +675,7 @@ class _CartScreenState extends State<CartScreen> {
                       child: ElevatedButton(
                         onPressed: _isCheckingOut ? null : _processCheckout,
                         child: _isCheckingOut
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),

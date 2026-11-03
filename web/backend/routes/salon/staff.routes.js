@@ -44,7 +44,13 @@ async function handleStaffRoutes(req, res, ctx) {
     const params = [];
     // Muc 24: Loai bo Quan tri toi cao khoi danh sach nhan su tai backend
     q += ` AND nv.MaNhanVien <> 'NV00' AND nv.ChucVu NOT LIKE N'%Quản trị%' AND nv.ChucVu NOT LIKE N'%Chủ tịch%'`;
-    q += ` AND (nv.ChucVu LIKE N'%Quản lý%' OR nv.ChucVu LIKE N'%Thợ chính%' OR nv.ChucVu LIKE N'%Thợ phụ%' OR nv.ChucVu LIKE N'%Thu ngân%')`;
+    if (isPublicStylists) {
+      // Đội ngũ Stylist công khai: Loại bỏ thu ngân có cấp bậc nhân viên ở tất cả chi nhánh
+      q += ` AND nv.ChucVu NOT LIKE N'%Thu ngân%' AND nv.CapBac NOT LIKE N'%Nhân viên%'`;
+      q += ` AND (nv.ChucVu LIKE N'%Thợ chính%' OR nv.ChucVu LIKE N'%Thợ phụ%' OR nv.ChucVu LIKE N'%Quản lý%')`;
+    } else {
+      q += ` AND (nv.ChucVu LIKE N'%Quản lý%' OR nv.ChucVu LIKE N'%Thợ chính%' OR nv.ChucVu LIKE N'%Thợ phụ%' OR nv.ChucVu LIKE N'%Thu ngân%')`;
+    }
         const authUserStaff = extractAuthUser(req);
     if (authUserStaff) {
       const roleUpper = String(authUserStaff.role || authUserStaff.vaiTroSql || '').toUpperCase();
