@@ -579,7 +579,7 @@ const UICommon = {
 
   bindBookingSlotEvents() { },
 
-  submitBooking() {
+  async submitBooking() {
     // Yêu cầu bắt buộc đăng nhập tài khoản trước khi đặt lịch  như nghiệp vụ Hasaki 
     const user = window.store.getCurrentUser();
     if (!user) {
@@ -635,7 +635,7 @@ const UICommon = {
     const finalPrice = Number(this.bookingData.totalPrice !== undefined ? this.bookingData.totalPrice : (service ? service.price : 180000));
 
     try {
-      const newBooking = window.store.addBooking({
+      const newBooking = await window.store.addBooking({
         userId: user ? user.id : null,
         serviceId: this.bookingData.serviceId,
         serviceIds: this.bookingData.serviceIds || [this.bookingData.serviceId],

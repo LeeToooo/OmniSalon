@@ -72,11 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _fillSampleAccount(String user, String pass) {
-    _identifierController.text = user;
-    _passwordController.text = pass;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,18 +99,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 6),
 
-                // Tiêu đề Playfair Display
+                // Tiêu đề
                 Text(
-                  'Đăng Nhập Hội Viên',
+                  'Đăng Nhập',
                   style: AppTheme.headingLarge(fontSize: 30),
                 ),
-                const SizedBox(height: 8),
-
-                Text(
-                  'Đăng nhập để đặt lịch hẹn ưu tiên, tích lũy điểm và theo dõi các kiểu tóc đã cắt tại Omni Salon.',
-                  style: AppTheme.bodyMedium(color: AppTheme.textSecondary),
-                ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
                 // Ô nhập Số điện thoại / Email / Tên đăng nhập
                 Text(
@@ -245,54 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
-
-                // Tài khoản thử nghiệm nhanh, Tiện ích hỗ trợ thẩm định và kiểm thử
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceElevated,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.borderColor),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.flash_on_rounded, size: 16, color: AppTheme.accentGold),
-                          const SizedBox(width: 6),
-                          Text(
-                            'TÀI KHOẢN MẪU ĐỂ TEST NHANH:',
-                            style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.textSecondary),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          ActionChip(
-                            label: const Text('Admin: admin'),
-                            labelStyle: AppTheme.bodySmall(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
-                            backgroundColor: AppTheme.surfaceCard,
-                            side: BorderSide(color: AppTheme.borderColor),
-                            onPressed: () => _fillSampleAccount('admin', 'admin123'),
-                          ),
-                          ActionChip(
-                            label: const Text('Khách VIP: 0988000001'),
-                            labelStyle: AppTheme.bodySmall(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
-                            backgroundColor: AppTheme.surfaceCard,
-                            side: BorderSide(color: AppTheme.borderColor),
-                            onPressed: () => _fillSampleAccount('0988000001', 'NgoVanTuan'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
               ],
             ),
           ),

@@ -43,6 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadData();
   }
 
+  @override
+  void reassemble() {
+    super.reassemble();
+    _loadData();
+  }
+
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     final services = await ApiService.fetchServices();
@@ -52,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     setState(() {
       _featuredServices = services.take(4).toList();
-      _featuredStylists = stylists.take(3).toList();
+      _featuredStylists = stylists.take(6).toList();
       _branches = branches.take(3).toList();
       _isLoading = false;
     });
@@ -99,12 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Trải Nghiệm Chuẩn Mực Barber',
                     style: AppTheme.headingMedium(fontSize: 24),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Không gian chăm sóc tóc và thư giãn đỉnh đạc dành riêng cho phái mạnh.',
-                    style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   _buildAsymmetricBentoGrid(),
                 ],
               ),
@@ -208,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 275,
+              height: 248,
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
@@ -264,12 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Hiện diện tại các trục đường trung tâm, không gian đỗ xe thông thoáng.',
-                    style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   ..._branches.map((b) => _buildBranchCard(b)),
                   const SizedBox(height: 24),
                 ],
@@ -412,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -602,7 +598,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildBentoCard(
           height: 160,
           title: 'Không Gian Authentic Barbershop',
-          subtitle: 'Kiến trúc cổ điển kết hợp ánh sáng tự nhiên và hương gỗ đàn hương thư giãn.',
           tag: 'KHÔNG GIAN ĐẶC QUYỀN',
           imageUrl: ApiService.getImageUrl('Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg'),
         ),
@@ -636,8 +631,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 10),
         _buildBentoCard(
           height: 140,
-          title: 'Gội Dưỡng Sinh & Bấm Huyệt Đỉnh Cao',
-          subtitle: 'Khai thông kinh lạc vùng cổ vai gáy, xua tan căng thẳng mệt mỏi.',
+          title: 'Gội dưỡng sinh & Bấm huyệt đỉnh cao',
           tag: 'THƯ GIÃN CHUYÊN SÂU',
           imageUrl: ApiService.getImageUrl('Men_Grooming_Products/DichVu_Men/DV7.jpg'),
         ),
@@ -648,7 +642,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBentoCard({
     required double height,
     required String title,
-    required String subtitle,
+    String? subtitle,
     required String tag,
     required String imageUrl,
     BoxFit fit = BoxFit.cover,
@@ -700,13 +694,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textLightSecondary),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  if (subtitle != null && subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textLightSecondary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
               ),
             ),

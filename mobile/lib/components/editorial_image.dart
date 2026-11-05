@@ -37,7 +37,8 @@ class EditorialImage extends StatelessWidget {
     } else if (cleanUrl.startsWith('data:image/')) {
       try {
         final commaIdx = cleanUrl.indexOf(',');
-        final b64Str = commaIdx != -1 ? cleanUrl.substring(commaIdx + 1) : cleanUrl;
+        final b64Str =
+            commaIdx != -1 ? cleanUrl.substring(commaIdx + 1) : cleanUrl;
         final bytes = base64Decode(b64Str);
         imageWidget = Image.memory(
           bytes,
@@ -50,9 +51,10 @@ class EditorialImage extends StatelessWidget {
         imageWidget = _buildPlaceholder();
       }
     } else {
-      final int? targetCacheWidth = (!kIsWeb && width != null && width!.isFinite && width! > 0)
-          ? (width! * 2).clamp(160, 1200).toInt()
-          : (!kIsWeb ? 800 : null);
+      final int? targetCacheWidth =
+          (!kIsWeb && width != null && width!.isFinite && width! > 0)
+              ? (width! * 2).clamp(160, 1200).toInt()
+              : (!kIsWeb ? 800 : null);
 
       imageWidget = Image.network(
         cleanUrl,
@@ -126,7 +128,8 @@ class EditorialImage extends StatelessWidget {
           child: CircularProgressIndicator(
             strokeWidth: 2,
             value: progress,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentGold),
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(AppTheme.accentGold),
           ),
         ),
       ),
@@ -154,7 +157,8 @@ class EditorialImage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(fallbackIcon, size: 26, color: AppTheme.accentGold.withValues(alpha: 0.7)),
+            Icon(fallbackIcon,
+                size: 26, color: AppTheme.accentGold.withValues(alpha: 0.7)),
             const SizedBox(height: 4),
             Text(
               'OMNI SALON',

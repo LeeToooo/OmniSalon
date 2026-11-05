@@ -90,27 +90,10 @@
           }
         }
 
-        // Đồng bộ danh sách đặt lịch từ SQL
+        // Đồng bộ danh sách đặt lịch từ SQL: Lấy chuẩn CSDL SQL Server làm nguồn sự thật duy nhất
         if (Array.isArray(db.bookings) && db.bookings.length > 0) {
-          const currentMap = new Map((this.state.bookings || []).map(b => [
-            (b.id || b.MaLichHen || b.bookingCode || '').toString().toLowerCase(),
-            b
-          ]));
-          for (const serverBooking of db.bookings) {
-            const sid = (serverBooking.id || serverBooking.MaLichHen || serverBooking.bookingCode || '').toString().toLowerCase();
-            if (!sid) continue;
-            if (!currentMap.has(sid)) {
-              if (!this.state.bookings) this.state.bookings = [];
-              this.state.bookings.unshift(serverBooking);
-              changed = true;
-            } else {
-              const local = currentMap.get(sid);
-              if (local.status !== serverBooking.status || local.timeSlot !== serverBooking.timeSlot || local.date !== serverBooking.date) {
-                Object.assign(local, serverBooking);
-                changed = true;
-              }
-            }
-          }
+          this.state.bookings = db.bookings;
+          changed = true;
         }
 
         // Đồng bộ danh sách đơn hàng từ SQL
@@ -238,7 +221,7 @@
     }
 
     async syncBookingToLiveServer(booking) {
-      if (typeof fetch === 'undefined') return;
+      if (typeof fetch === 'undefined') return { success: true };
       try {
         const res = await fetch(`${this.liveServerUrl}/bookings`, {
           method: 'POST',
@@ -247,14 +230,18 @@
         });
         if (res && res.ok) {
           const data = await res.json();
-          if (data && data.booking && data.booking.id) {
-            booking.id = data.booking.id;
-            booking.MaLichHen = data.booking.id;
-            booking.bookingCode = data.booking.id;
+          const serverBooking = data && data.booking ? data.booking : data;
+          const assignedId = serverBooking.id || serverBooking.bookingCode || serverBooking.MaLichHen;
+          if (assignedId) {
+            booking.id = assignedId;
+            booking.MaLichHen = assignedId;
+            booking.bookingCode = assignedId;
             this.saveState();
           }
+          return { success: true, booking: serverBooking };
         }
       } catch (_) { }
+      return { success: false };
     }
 
     async syncOrderToLiveServer(order) {
@@ -1545,7 +1532,7 @@
       });
     }
 
-    addBooking(bookingData) {
+    async addBooking(bookingData) {
       if (!bookingData || !bookingData.date || !bookingData.timeSlot) {
         throw new Error('Vui lòng chọn ngày, giờ và Barber phục vụ.');
       }
@@ -1635,7 +1622,7 @@
 
       this.logAudit('CREATE_BOOKING', `Lịch: ${newBooking.bookingCode}`, `Khách: ${newBooking.customerName} - Barber: ${newBooking.stylistName}`);
       this.saveState();
-      this.syncBookingToLiveServer(newBooking);
+      await this.syncBookingToLiveServer(newBooking);
       return newBooking;
     }
 

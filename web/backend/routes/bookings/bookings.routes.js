@@ -223,15 +223,9 @@ async function handleBookingRoutes(req, res, ctx) {
   if (pathname === '/api/bookings' && method === 'POST') {
     const booking = parsedBody || {};
 
-    let id = booking.id || booking.bookingCode;
-    if (!id || !id.startsWith('LH') || id.includes('-') || id.length > 20) {
-      id = await generateNextBookingId();
-    } else {
-      const existing = await querySql('SELECT MaLichHen FROM LichHen WHERE MaLichHen = ?', [id]);
-      if (existing && existing.length > 0) {
-        id = await generateNextBookingId();
-      }
-    }
+    // Backend luôn là Single Source of Truth cho mã lịch hẹn (LH01 -> LH23 -> LH24...)
+    // Tự sinh mã tăng dần chuẩn từ CSDL SQL Server để Web và Mobile luôn đồng đều, không nhảy cóc
+    const id = await generateNextBookingId();
 
     const custName = (booking.customerName || 'Khách Hàng').trim();
     const custPhone = (booking.customerPhone || '').replace(/\s+/g, '').trim();

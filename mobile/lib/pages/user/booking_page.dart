@@ -365,7 +365,7 @@ class _BookingScreenState extends State<BookingScreen> {
       _loadAvailableSlots();
 
       // Lấy mã chuẩn CSDL từ backend trả về nếu có, LH...
-      String finalCode = bookingCode;
+      String finalCode = res['bookingCode']?.toString() ?? bookingCode;
       if (res['booking'] is Map) {
         final bMap = res['booking'] as Map;
         final innerBooking = bMap['booking'] is Map ? bMap['booking'] : bMap;

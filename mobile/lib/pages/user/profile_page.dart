@@ -100,21 +100,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(width: 14),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isLoggedIn ? user!.fullName : 'Quý Khách Hàng',
-                                style: AppTheme.headingSmall(color: AppTheme.textPrimary, fontSize: 18),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                isLoggedIn
-                                    ? (user!.phone.isNotEmpty ? user.phone : user.email)
-                                    : 'Chưa đăng nhập tài khoản',
-                                style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-                              ),
-                            ],
+                          child: Text(
+                            isLoggedIn ? user!.fullName : 'Quý Khách Hàng',
+                            style: AppTheme.headingSmall(color: AppTheme.textPrimary, fontSize: 18),
                           ),
                         ),
                         Container(

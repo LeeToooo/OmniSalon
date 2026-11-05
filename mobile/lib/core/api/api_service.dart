@@ -409,7 +409,7 @@ class ApiService {
           createdAt: booking.createdAt,
         );
         _localBookings.insert(0, updatedBooking);
-        return {'success': true, 'booking': data};
+        return {'success': true, 'booking': data, 'bookingCode': finalCode};
       } else {
         try {
           final errData = jsonDecode(utf8.decode(res.bodyBytes));
@@ -1439,6 +1439,19 @@ Branch(id: 'CN01', name: 'Omni Salon Barber Q1 - Bến Thành', address: '120 L�
       reviewCount: 184,
       experienceYears: 6,
       specialties: ['Buzz Cut & High Fade', 'Taper Fade Sắc Nét', 'Ép Mai Gáy'],
+    ),
+    Stylist(
+      id: 'NV08',
+      name: 'Đặng Hoài Nam',
+      level: 'Senior Barber',
+      branchId: 'CN03',
+      branchName: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ',
+      avatar:
+          'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400',
+      rating: 5.0,
+      reviewCount: 156,
+      experienceYears: 5,
+      specialties: ['French Crop', 'Two Block Hàn Quốc', 'Tỉa Râu Định Hình'],
     ),
   ];
 
