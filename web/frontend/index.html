@@ -21,7 +21,7 @@
     rel="stylesheet">
 
   <link rel="stylesheet" href="styles.css?v=20261029_pos_dark_bg">
-  <link rel="stylesheet" href="js/components/components.css?v=20261103_v19">
+  <link rel="stylesheet" href="js/components/components.css?v=20261103_v21">
 
   <!-- Xử lý giao diện sáng tối -->
   <script src="js/core/theme.js?v=20261016_02"></script>
@@ -131,7 +131,7 @@
   <script src="js/core/validation.js?v=20261026_ghfix1"></script>
   <script src="js/core/pricing.js?v=20261026_ghfix1"></script>
   <script src="js/core/auth.js?v=20261026_ghfix1"></script>
-  <script src="js/core/store.js?v=20261026_ghfix1"></script>
+  <script src="js/core/store.js?v=20261103_v22"></script>
   <script src="js/core/api.js?v=20261026_ghfix1"></script>
   <script src="js/core/ai-hair-engine.js?v=20261026_ghfix1"></script>
   <script src="js/widgets/widgets-bundle.js?v=20261026_ghfix1"></script>
@@ -139,7 +139,42 @@
   <script src="js/components/ProductCard.js?v=20261026_ghfix1"></script>
   <script src="js/components/BranchCard.js?v=20261103_v18"></script>
   <script src="js/modules/customer-web.js?v=20261026_ghfix1"></script>
-  <script src="js/modules/admin-web.js?v=20261103_v19"></script>
+  <!-- Phân hệ Khách hàng (Customer Web) tách nhỏ độc lập chống lag và tăng tốc độ tải -->
+  <script src="js/modules/customer/common/customer-utils.js?v=20261105"></script>
+  <script src="js/modules/customer/layout/customer-header.js?v=20261105"></script>
+  <script src="js/modules/customer/layout/customer-navigation.js?v=20261105"></script>
+  <script src="js/modules/customer/layout/customer-mega-menu.js?v=20261105"></script>
+  <script src="js/modules/customer/layout/customer-cart-popup.js?v=20261105"></script>
+  <script src="js/modules/customer/layout/customer-live-search.js?v=20261105"></script>
+  <script src="js/modules/customer/layout/customer-stylist-drawer.js?v=20261105"></script>
+  <script src="js/modules/customer/layout/customer-services-grid.js?v=20261105"></script>
+  <script src="js/modules/customer/layout/customer-main-content.js?v=20261105"></script>
+  <script src="js/modules/customer/booking/customer-booking-search.js?v=20261105"></script>
+  <script src="js/modules/customer/booking/booking-payment.js?v=20261105"></script>
+  <script src="js/modules/customer/booking/booking-review.js?v=20261105"></script>
+  <script src="js/modules/customer/booking/booking-cancel.js?v=20261105"></script>
+  <script src="js/modules/customer/booking/customer-ticket-qr.js?v=20261105"></script>
+  <script src="js/modules/customer/order/customer-order-lookup.js?v=20261105"></script>
+  <script src="js/modules/customer/order/customer-order-search.js?v=20261105"></script>
+  <script src="js/modules/customer/order/order-payment.js?v=20261105"></script>
+  <script src="js/modules/customer/order/order-review.js?v=20261105"></script>
+  <script src="js/modules/customer/order/order-cancel.js?v=20261105"></script>
+  <script src="js/modules/customer/portal/customer-portal.js?v=20261105"></script>
+  <script src="js/modules/customer/staff/customer-staff-shift.js?v=20261105"></script>
+  <script src="js/modules/customer/ai/customer-ai-studio.js?v=20261105"></script>
+  <script src="js/modules/admin-web.js?v=20261104_v30"></script>
+  <!-- Phân hệ Quản trị (Admin Web) tách nhỏ độc lập theo Clean Architecture -->
+  <script src="js/modules/admin/common/admin-utils.js?v=20261105"></script>
+  <script src="js/modules/admin/common/admin-modal-delete.js?v=20261105"></script>
+  <script src="js/modules/admin/layout/admin-shell.js?v=20261105"></script>
+  <script src="js/modules/admin/overview/admin-overview.js?v=20261105"></script>
+  <script src="js/modules/admin/branches/admin-branches.js?v=20261105"></script>
+  <script src="js/modules/admin/booking/admin-bookings.js?v=20261105"></script>
+  <script src="js/modules/admin/staff/admin-stylists.js?v=20261105"></script>
+  <script src="js/modules/admin/catalog/admin-catalog.js?v=20261105"></script>
+  <script src="js/modules/admin/inventory/admin-inventory.js?v=20261105"></script>
+  <script src="js/modules/admin/pos/admin-pos.js?v=20261105"></script>
+  <script src="js/modules/admin/audit/admin-audit.js?v=20261105"></script>
   <script src="js/modules/ui-web.js?v=20261026_ghfix1"></script>
 
   <!-- Các trang giao diện người dùng -->

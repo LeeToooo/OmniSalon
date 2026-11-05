@@ -1257,41 +1257,29 @@ class ApiService {
     return 'Master Barber khuyên bạn nên chọn kiểu tóc tôn góc cạnh xương hàm và sấy phồng chân tóc nhẹ!';
   }
 
-  // Dữ liệu mẫu dự phòng khi chưa kết nối mạng
+  // Danh sach 20 chi nhanh hat giong du phong
   static final List<Branch> _seedBranches = [
-    Branch(
-        id: 'CN01',
-        name: 'Omni Salon Barber Q1 - Bến Thành',
-        address: '120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM',
-        phone: '0901111001',
-        hours: '08:30 - 21:30',
-        city: 'TP. Hồ Chí Minh',
-        image: getImageUrl('ChiNhanh_Omni/CN1.jpg')),
-    Branch(
-        id: 'CN02',
-        name: 'Omni Salon Barber Tân Bình - Cộng Hòa',
-        address: '45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM',
-        phone: '0901111002',
-        hours: '08:30 - 21:00',
-        city: 'TP. Hồ Chí Minh',
-        image: getImageUrl('ChiNhanh_Omni/CN2.jpg')),
-    Branch(
-        id: 'CN03',
-        name: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ',
-        address: '88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM',
-        phone: '0901111003',
-        hours: '09:00 - 22:00',
-        city: 'TP. Hồ Chí Minh',
-        image: getImageUrl('ChiNhanh_Omni/CN3.jpg')),
-    Branch(
-        id: 'CN04',
-        name: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa',
-        address: '215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM',
-        phone: '0901111004',
-        hours: '08:30 - 21:30',
-        city: 'TP. Hồ Chí Minh',
-        image: getImageUrl('ChiNhanh_Omni/CN4.jpg')),
-  ];
+Branch(id: 'CN01', name: 'Omni Salon Barber Q1 - Bến Thành', address: '120 Lê Lợi, P. Bến Thành, Q.1, TP.HCM', phone: '0901111001', hours: '08:30 - 21:30', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN1.jpg')),
+    Branch(id: 'CN02', name: 'Omni Salon Barber Tân Bình - Cộng Hòa', address: '45 Cộng Hòa, P.4, Q.Tân Bình, TP.HCM', phone: '0901111002', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN2.jpg')),
+    Branch(id: 'CN03', name: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ', address: '88 Điện Biên Phủ, P.15, Q.Bình Thạnh, TP.HCM', phone: '0901111003', hours: '09:00 - 22:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN3.jpg')),
+    Branch(id: 'CN04', name: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa', address: '215 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM', phone: '0901111004', hours: '08:30 - 21:30', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN4.jpg')),
+    Branch(id: 'CN05', name: 'Omni Salon Barber Q5 - Trần Hưng Đạo', address: '105 Trần Hưng Đạo, P.6, Q.5, TP.HCM', phone: '0901111005', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN5.jpg')),
+    Branch(id: 'CN06', name: 'Omni Salon Barber Q7 - Nguyễn Thị Thập', address: '480 Nguyễn Thị Thập, P.Tân Quy, Q.7, TP.HCM', phone: '0901111006', hours: '08:30 - 21:30', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN6.jpg')),
+    Branch(id: 'CN07', name: 'Omni Salon Barber Q10 - Ba Tháng Hai', address: '352 Ba Tháng Hai, P.12, Q.10, TP.HCM', phone: '0901111007', hours: '08:30 - 21:30', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN7.jpg')),
+    Branch(id: 'CN08', name: 'Omni Salon Barber Gò Vấp - Quang Trung', address: '688 Quang Trung, P.11, Q.Gò Vấp, TP.HCM', phone: '0901111008', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN8.jpg')),
+    Branch(id: 'CN09', name: 'Omni Salon Barber Phú Nhuận - Phan Xích Long', address: '128 Phan Xích Long, P.2, Q.Phú Nhuận, TP.HCM', phone: '0901111009', hours: '08:30 - 21:30', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN9.jpg')),
+    Branch(id: 'CN10', name: 'Omni Salon Barber Thủ Đức - Võ Văn Ngân', address: '85 Võ Văn Ngân, P.Linh Chiểu, TP.Thủ Đức, TP.HCM', phone: '0901111010', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN10.jpg')),
+    Branch(id: 'CN11', name: 'Omni Salon Barber Q2 - Thảo Điền', address: '12 Quốc Hương, P.Thảo Điền, TP.Thủ Đức, TP.HCM', phone: '0901111011', hours: '08:30 - 21:30', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN11.jpg')),
+    Branch(id: 'CN12', name: 'Omni Salon Barber Q4 - Hoàng Diệu', address: '180 Hoàng Diệu, P.9, Q.4, TP.HCM', phone: '0901111012', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN12.jpg')),
+    Branch(id: 'CN13', name: 'Omni Salon Barber Q6 - Hậu Giang', address: '240 Hậu Giang, P.5, Q.6, TP.HCM', phone: '0901111013', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN13.jpg')),
+    Branch(id: 'CN14', name: 'Omni Salon Barber Q8 - Phạm Hùng', address: '150 Phạm Hùng, P.5, Q.8, TP.HCM', phone: '0901111014', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN14.jpg')),
+    Branch(id: 'CN15', name: 'Omni Salon Barber Q11 - Lê Đại Hành', address: '220 Lê Đại Hành, P.15, Q.11, TP.HCM', phone: '0901111015', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN15.jpg')),
+    Branch(id: 'CN16', name: 'Omni Salon Barber Q12 - Lê Văn Khương', address: '45 Lê Văn Khương, P.Thới An, Q.12, TP.HCM', phone: '0901111016', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN16.jpg')),
+    Branch(id: 'CN17', name: 'Omni Salon Barber Tân Phú - Lũy Bán Bích', address: '72 Lũy Bán Bích, P.Tân Thới Hòa, Q.Tân Phú, TP.HCM', phone: '0901111017', hours: '08:30 - 21:30', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN17.jpg')),
+    Branch(id: 'CN18', name: 'Omni Salon Barber Bình Tân - Tên Lửa', address: '110 Tên Lửa, P.Bình Trị Đông B, Q.Bình Tân, TP.HCM', phone: '0901111018', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN18.jpg')),
+    Branch(id: 'CN19', name: 'Omni Salon Barber Bình Chánh - Quốc Lộ 50', address: '35 Quốc lộ 50, X.Bình Hưng, H.Bình Chánh, TP.HCM', phone: '0901111019', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN19.jpg')),
+    Branch(id: 'CN20', name: 'Omni Salon Barber Hóc Môn - Lý Thường Kiệt', address: '52 Lý Thường Kiệt, TT.Hóc Môn, H.Hóc Môn, TP.HCM', phone: '0901111020', hours: '08:30 - 21:00', city: 'TP. Hồ Chí Minh', image: getImageUrl('ChiNhanh_Omni/CN20.jpg')),
+];
 
   static final List<SalonService> _seedServices = [
     SalonService(

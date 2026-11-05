@@ -63,27 +63,44 @@ class _BranchesScreenState extends State<BranchesScreen> {
     });
   }
 
+  static String getBranchDistrict(Branch b) {
+    final text = '${b.address} ${b.name}';
+    if (RegExp(r'Thủ\s*Đức|Thảo\s*Điền', caseSensitive: false).hasMatch(text)) return 'Thủ Đức';
+    if (RegExp(r'Bình\s*Thạnh', caseSensitive: false).hasMatch(text)) return 'Bình Thạnh';
+    if (RegExp(r'Tân\s*Bình', caseSensitive: false).hasMatch(text)) return 'Tân Bình';
+    if (RegExp(r'Phú\s*Nhuận', caseSensitive: false).hasMatch(text)) return 'Phú Nhuận';
+    if (RegExp(r'Gò\s*Vấp', caseSensitive: false).hasMatch(text)) return 'Gò Vấp';
+    if (RegExp(r'Tân\s*Phú', caseSensitive: false).hasMatch(text)) return 'Tân Phú';
+    if (RegExp(r'Bình\s*Tân', caseSensitive: false).hasMatch(text)) return 'Bình Tân';
+    if (RegExp(r'Bình\s*Chánh', caseSensitive: false).hasMatch(text)) return 'Bình Chánh';
+    if (RegExp(r'Hóc\s*Môn', caseSensitive: false).hasMatch(text)) return 'Hóc Môn';
+    if (RegExp(r'Q\.?\s*10\b|Quận\s*10\b', caseSensitive: false).hasMatch(text)) return 'Quận 10';
+    if (RegExp(r'Q\.?\s*11\b|Quận\s*11\b', caseSensitive: false).hasMatch(text)) return 'Quận 11';
+    if (RegExp(r'Q\.?\s*12\b|Quận\s*12\b', caseSensitive: false).hasMatch(text)) return 'Quận 12';
+    if (RegExp(r'Q\.?\s*1\b|Quận\s*1\b|Bến\s*Thành', caseSensitive: false).hasMatch(text)) return 'Quận 1';
+    if (RegExp(r'Q\.?\s*3\b|Quận\s*3\b', caseSensitive: false).hasMatch(text)) return 'Quận 3';
+    if (RegExp(r'Q\.?\s*4\b|Quận\s*4\b', caseSensitive: false).hasMatch(text)) return 'Quận 4';
+    if (RegExp(r'Q\.?\s*5\b|Quận\s*5\b', caseSensitive: false).hasMatch(text)) return 'Quận 5';
+    if (RegExp(r'Q\.?\s*6\b|Quận\s*6\b', caseSensitive: false).hasMatch(text)) return 'Quận 6';
+    if (RegExp(r'Q\.?\s*7\b|Quận\s*7\b', caseSensitive: false).hasMatch(text)) return 'Quận 7';
+    if (RegExp(r'Q\.?\s*8\b|Quận\s*8\b', caseSensitive: false).hasMatch(text)) return 'Quận 8';
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final query = _searchController.text.trim().toLowerCase();
 
     final filtered = allBranches.where((b) {
-      // 1. Loc theo quan voi bieu thuc regex chinh xac
       if (selectedDistrict != 'all') {
-        final text = '${b.name} ${b.address}'.toLowerCase();
-        final dist = selectedDistrict.toLowerCase();
-        final matchNum = RegExp(r'quận\s*(\d+)').firstMatch(dist);
-        if (matchNum != null) {
-          final n = matchNum.group(1);
-          final numStr = n ?? '';
-          final reg = RegExp(r'(^|[^a-z0-9])(q\.?\s*' + numStr + r'|quận\s*' + numStr + r')([^a-z0-9]|$)', caseSensitive: false);
-          if (!reg.hasMatch(text)) return false;
-        } else {
-          if (!text.contains(dist)) return false;
+        final dist = getBranchDistrict(b);
+        if (dist != selectedDistrict) {
+          final text = '${b.name} ${b.address}'.toLowerCase();
+          final q = selectedDistrict.toLowerCase();
+          if (!text.contains(q)) return false;
         }
       }
 
-      // 2. Lọc theo ô tìm kiếm
       if (query.isNotEmpty) {
         final text = '${b.name} ${b.address} ${b.phone}'.toLowerCase();
         if (!text.contains(query)) {

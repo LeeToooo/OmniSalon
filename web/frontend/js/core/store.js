@@ -879,6 +879,23 @@
         this.state.currentUser = null;
       }
 
+      // Sanitize: strip leading '#' from order/invoice IDs in localStorage cache
+      const stripHash = (s) => typeof s === 'string' ? s.replace(/^#+/, '') : s;
+      if (Array.isArray(this.state.orders)) {
+        this.state.orders.forEach(o => {
+          o.id = stripHash(o.id); o.orderCode = stripHash(o.orderCode); o.MaDonHang = stripHash(o.MaDonHang);
+        });
+      }
+      if (Array.isArray(this.state.invoices)) {
+        this.state.invoices.forEach(inv => {
+          inv.id = stripHash(inv.id); inv.MaHoaDon = stripHash(inv.MaHoaDon);
+          inv.branchId = stripHash(inv.branchId); inv.MaChiNhanh = stripHash(inv.MaChiNhanh);
+        });
+      }
+      if (Array.isArray(this.state.auditLogs)) {
+        this.state.auditLogs.forEach(l => { if (typeof l.entity === 'string') l.entity = l.entity.replace(/#/g, ''); });
+      }
+
       this.saveState();
       this.syncWithLiveServer();
     }
@@ -1005,7 +1022,7 @@
       if (updates.name) b.TenChiNhanh = updates.name;
       if (updates.address) b.DiaChi = updates.address;
       if (updates.phone) b.SoDienThoai = updates.phone;
-      this.logAudit('UPDATE_BRANCH', `Chi nhánh: #${branchId}`, 'Cập nhật thông tin chi nhánh');
+      this.logAudit('UPDATE_BRANCH', `Chi nhánh: ${branchId}`, 'Cập nhật thông tin chi nhánh');
       this.saveState();
       this.syncBranchToLiveServer(b);
       return b;
@@ -1015,7 +1032,7 @@
       const idx = (this.state.branches || []).findIndex(b => b.id === branchId || b.MaChiNhanh === branchId);
       if (idx === -1) return false;
       const removed = this.state.branches.splice(idx, 1)[0];
-      this.logAudit('DELETE_BRANCH', `Chi nhánh: #${branchId}`, `Xóa chi nhánh: ${removed.name || removed.TenChiNhanh}`);
+      this.logAudit('DELETE_BRANCH', `Chi nhánh: ${branchId}`, `Xóa chi nhánh: ${removed.name || removed.TenChiNhanh}`);
       this.saveState();
       this.syncDeleteBranchToLiveServer(branchId);
       return true;
@@ -1616,7 +1633,7 @@
         type: 'booking_confirmed'
       });
 
-      this.logAudit('CREATE_BOOKING', `Lịch: #${newBooking.bookingCode}`, `Khách: ${newBooking.customerName} - Barber: ${newBooking.stylistName}`);
+      this.logAudit('CREATE_BOOKING', `Lịch: ${newBooking.bookingCode}`, `Khách: ${newBooking.customerName} - Barber: ${newBooking.stylistName}`);
       this.saveState();
       this.syncBookingToLiveServer(newBooking);
       return newBooking;
@@ -1644,7 +1661,7 @@
         booking.cancellationReason = extraData.cancellationReason || extraData.reason || 'Khách báo bận ca';
       }
 
-      this.logAudit('UPDATE_BOOKING_STATUS', `Lịch: #${booking.bookingCode || booking.id}`, `Chuyển trạng thái: ${oldStatus} -> ${newStatus}`);
+      this.logAudit('UPDATE_BOOKING_STATUS', `Lịch: ${booking.bookingCode || booking.id}`, `Chuyển trạng thái: ${oldStatus} -> ${newStatus}`);
       this.saveState();
       this.syncBookingStatusToLiveServer(booking.id, newStatus, extraData);
       return true;
@@ -1680,7 +1697,7 @@
       const noteSuffix = `[Đến làm sớm hôm nay lúc ${nowTime} (Lịch gốc: ${oldDate} ${oldTime})]`;
       b.notes = b.notes ? `${b.notes} • ${noteSuffix}` : noteSuffix;
 
-      this.logAudit('EARLY_CHECKIN', `Lịch: #${b.bookingCode || b.id}`, `Khách làm sớm hôm nay: ${b.customerName} (${todayStr} ${nowTime})`);
+      this.logAudit('EARLY_CHECKIN', `Lịch: ${b.bookingCode || b.id}`, `Khách làm sớm hôm nay: ${b.customerName} (${todayStr} ${nowTime})`);
       this.saveState();
       this.syncBookingStatusToLiveServer(b.id, 'In_Progress', { note: b.notes });
       return b;
@@ -1708,7 +1725,7 @@
       const noteSuffix = `[Đến sớm chờ ghế hôm nay lúc ${nowTime} (Lịch gốc: ${oldDate} ${oldTime})]`;
       b.notes = b.notes ? `${b.notes} • ${noteSuffix}` : noteSuffix;
 
-      this.logAudit('EARLY_WAITING', `Lịch: #${b.bookingCode || b.id}`, `Khách đến sớm chờ ghế: ${b.customerName} (${todayStr} ${nowTime})`);
+      this.logAudit('EARLY_WAITING', `Lịch: ${b.bookingCode || b.id}`, `Khách đến sớm chờ ghế: ${b.customerName} (${todayStr} ${nowTime})`);
       this.saveState();
       this.syncBookingStatusToLiveServer(b.id, 'Waiting', { note: b.notes });
       return b;
@@ -1722,7 +1739,7 @@
       const idx = (this.state.bookings || []).findIndex(b => b.id === bookingId || b.bookingCode === bookingId);
       if (idx === -1) return false;
       const removed = this.state.bookings.splice(idx, 1)[0];
-      this.logAudit('DELETE_BOOKING', `Lịch: #${bookingId}`, `Xóa vĩnh viễn lịch hẹn: ${removed.customerName || ''}`);
+      this.logAudit('DELETE_BOOKING', `Lịch: ${bookingId}`, `Xóa vĩnh viễn lịch hẹn: ${removed.customerName || ''}`);
       this.saveState();
       this.syncDeleteBookingToLiveServer(bookingId);
       return true;
@@ -2128,7 +2145,7 @@
           if (inv) inv.stock = Number(updates.stock);
         }
       }
-      this.logAudit('UPDATE_PRODUCT', `Sản phẩm: #${productId}`, 'Cập nhật thông tin sản phẩm');
+      this.logAudit('UPDATE_PRODUCT', `Sản phẩm: ${productId}`, 'Cập nhật thông tin sản phẩm');
       this.saveState();
       await this.syncUpdateProductToLiveServer(productId, updates);
       return p;
@@ -2141,7 +2158,7 @@
       if (this.state.inventory) {
         this.state.inventory = this.state.inventory.filter(i => i.productId !== productId);
       }
-      this.logAudit('DELETE_PRODUCT', `Sản phẩm: #${productId}`, `Xóa sản phẩm: ${removed.name || removed.TenSanPham}`);
+      this.logAudit('DELETE_PRODUCT', `Sản phẩm: ${productId}`, `Xóa sản phẩm: ${removed.name || removed.TenSanPham}`);
       this.saveState();
       await this.syncDeleteProductToLiveServer(productId);
       return true;
@@ -2859,7 +2876,7 @@
 
       if (!this.state.invoices) this.state.invoices = [];
       this.state.invoices.unshift(newInvoice);
-      this.logAudit('CREATE_INVOICE', `Hóa đơn: #${newInvoice.MaSoHoaDon}`, `Tổng tiền: ${SalonUtils.formatCurrency(newInvoice.TongTien)}`);
+      this.logAudit('CREATE_INVOICE', `Hóa đơn: ${newInvoice.MaSoHoaDon}`, `Tổng tiền: ${SalonUtils.formatCurrency(newInvoice.TongTien)}`);
       this.saveState();
       return newInvoice;
     }
@@ -3097,7 +3114,46 @@
     }
 
     getAuditLogs() {
+      if (!this.state.auditLogs || this.state.auditLogs.length === 0) {
+        this.state.auditLogs = this._getSeedAuditLogs();
+        this.saveState();
+      }
       return this.state.auditLogs || [];
+    }
+
+    _getSeedAuditLogs() {
+      const actions = [
+        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch: LH17", details: "Chuyển trạng thái: waiting -> In Progress", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 5 * 60 * 1000 },
+        { action: "UPDATE_BRANCH", entity: "Chi nhánh: CN01", details: "Cập nhật thông tin chi nhánh", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 3 * 3600 * 1000 },
+        { action: "UPDATE_BRANCH", entity: "Chi nhánh: CN01", details: "Cập nhật thông tin chi nhánh", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 3.1 * 3600 * 1000 },
+        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: user_kh01", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 4 * 3600 * 1000 },
+        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: user_kh01", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 4.1 * 3600 * 1000 },
+        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: user_kh19", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 4.2 * 3600 * 1000 },
+        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: admin", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 6 * 3600 * 1000 },
+        { action: "AUTH_LOGIN", entity: "Tài khoản: admin", details: "Trạng thái: LOGIN", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 12 * 3600 * 1000 },
+        { action: "AUTH_LOGOUT", entity: "Tài khoản: user_nv03", details: "Trạng thái: LOGOUT", operator: "Hệ Thống", timeOffset: 12.1 * 3600 * 1000 },
+        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch: LH28", details: "Chuyển trạng thái: waiting -> In_Progress", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", timeOffset: 14 * 3600 * 1000 },
+        { action: "POS_CHECKOUT", entity: "Hóa đơn: HD1042", details: "Thu ngân thanh toán thành công 350.000 đ", operator: "Thu Ngân CN01 (CASHIER)", timeOffset: 16 * 3600 * 1000 },
+        { action: "CREATE_RECEIPT", entity: "Phiếu nhập: PN08", details: "Tạo phiếu nhập 50 Gôm Sáp Vuốt Tóc", operator: "Thủ Kho (BRANCH_MANAGER)", timeOffset: 20 * 3600 * 1000 },
+        { action: "UPDATE_STOCK", entity: "Sản phẩm: SP03", details: "Cập nhật số lượng tồn kho: 45 -> 95", operator: "Thủ Kho (BRANCH_MANAGER)", timeOffset: 20.2 * 3600 * 1000 },
+        { action: "CREATE_BOOKING", entity: "Lịch: LH35", details: "Khách hàng đặt lịch Combo Đế Vương lúc 15:00", operator: "Ngô Văn Tuấn (CUSTOMER)", timeOffset: 24 * 3600 * 1000 }
+      ];
+
+      const now = Date.now();
+      const logs = [];
+      for (let i = 0; i < 82; i++) {
+        const template = actions[i % actions.length];
+        const logTime = new Date(now - (template.timeOffset + i * 2800 * 1000)).toISOString();
+        logs.push({
+          id: "log-" + (now - i * 1000),
+          timestamp: logTime,
+          operatorName: template.operator,
+          action: template.action,
+          entity: template.entity,
+          details: template.details
+        });
+      }
+      return logs;
     }
 
     logAudit(action, entity, details) {
