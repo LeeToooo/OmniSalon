@@ -32,16 +32,16 @@ class _CartScreenState extends State<CartScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  final _voucherController = TextEditingController();
 
   String _selectedPayment = 'VietQR Chuyển Khoản';
-  int _discountAmount = 0;
+  final int _discountAmount = 0;
   String? _appliedVoucher;
   bool _isCheckingOut = false;
 
   @override
   void initState() {
     super.initState();
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     final user = AuthService.currentUser;
     if (user != null) {
       _nameController.text = user.fullName;
@@ -49,42 +49,23 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     _nameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
-    _voucherController.dispose();
     super.dispose();
   }
 
-  int get _subtotal => widget.cart.fold<int>(0, (sum, i) => sum + (i.price * i.quantity));
-  int get _finalTotal => (_subtotal - _discountAmount) > 0 ? (_subtotal - _discountAmount) : 0;
+  static const int _shippingFee = 30000;
 
-  void _applyVoucher() {
-    final code = _voucherController.text.trim().toUpperCase();
-    if (code == 'OMNIWELCOME') {
-      setState(() {
-        _discountAmount = 50000;
-        _appliedVoucher = code;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Áp dụng mã OMNIWELCOME: Giảm 50.000₫')),
-      );
-    } else if (code == 'QUYONG20') {
-      setState(() {
-        _discountAmount = (_subtotal * 0.2).round();
-        _appliedVoucher = code;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Áp dụng mã QUYONG20: Giảm 20%')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mã voucher không hợp lệ hoặc đã hết hạn')),
-      );
-    }
-  }
+  int get _subtotal => widget.cart.fold<int>(0, (sum, i) => sum + (i.price * i.quantity));
+  int get _finalTotal => widget.cart.isEmpty ? 0 : ((_subtotal - _discountAmount + _shippingFee) > 0 ? (_subtotal - _discountAmount + _shippingFee) : 0);
 
   void _showRequireLoginDialog() {
     showDialog(
@@ -287,6 +268,7 @@ class _CartScreenState extends State<CartScreen> {
       items: List.from(widget.cart),
       totalAmount: _finalTotal,
       discountAmount: _discountAmount,
+      shippingFee: _shippingFee,
       voucherCode: _appliedVoucher,
       paymentMethod: _selectedPayment,
       paymentStatus: _selectedPayment.contains('VietQR') ? 'Đã thanh toán' : 'Chưa thanh toán (COD)',
@@ -566,32 +548,6 @@ class _CartScreenState extends State<CartScreen> {
                     }),
                     const SizedBox(height: 16),
 
-                    // Mã giảm giá Voucher
-                    Text('MÃ ƯU ĐÃI HỘI VIÊN', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _voucherController,
-                            style: AppTheme.bodyMedium(),
-                            textCapitalization: TextCapitalization.characters,
-                            decoration: const InputDecoration(
-                              hintText: 'Nhập mã OMNIWELCOME hoặc QUYONG20...',
-                              prefixIcon: Icon(Icons.confirmation_number_outlined, size: 20),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: _applyVoucher,
-                          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
-                          child: const Text('ÁP DỤNG'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
                     // Thông tin giao hàng
                     Text('THÔNG TIN GIAO HÀNG', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
                     const SizedBox(height: 8),
@@ -660,7 +616,7 @@ class _CartScreenState extends State<CartScreen> {
                             _buildPriceRow('Giảm giá ($_appliedVoucher):', '-${currencyFormat.format(_discountAmount)}', isDiscount: true),
                           ],
                           const SizedBox(height: 6),
-                          _buildPriceRow('Phí vận chuyển:', 'Miễn phí'),
+                          _buildPriceRow('Phí vận chuyển:', currencyFormat.format(_shippingFee)),
                           Divider(color: AppTheme.borderColorSubtle),
                           _buildPriceRow('Tổng thanh toán:', currencyFormat.format(_finalTotal), isTotal: true),
                         ],

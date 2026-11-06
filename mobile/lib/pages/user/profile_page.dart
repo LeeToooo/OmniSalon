@@ -63,21 +63,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Thẻ thông tin khách hàng, Editorial Member Card (Phiên bản màu sáng tinh tế)
+              // Thẻ thông tin khách hàng, Member Card
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceCard,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.45), width: 1.2),
+                  border: Border.all(color: AppTheme.borderColor),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.accentGold.withValues(alpha: 0.12),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
-                    BoxShadow(
-                      color: AppTheme.charcoal.withValues(alpha: 0.04),
+                      color: AppTheme.charcoal.withValues(alpha: AppTheme.isDarkMode ? 0.2 : 0.04),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -628,7 +623,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          res['message'] ?? 'Đổi mật khẩu thành công! Mật khẩu mới đã được lưu vào hệ thống.',
+                                          res['message'] ?? 'Đổi mật khẩu thành công',
                                           style: AppTheme.bodyMedium(color: Colors.white, fontWeight: FontWeight.w600),
                                         ),
                                         backgroundColor: const Color(0xFF16A34A),

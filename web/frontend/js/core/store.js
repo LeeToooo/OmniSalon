@@ -96,17 +96,10 @@
           changed = true;
         }
 
-        // Đồng bộ danh sách đơn hàng từ SQL
+        // Đồng bộ danh sách đơn hàng từ SQL: Lấy chuẩn CSDL SQL Server làm nguồn sự thật duy nhất
         if (Array.isArray(db.orders) && db.orders.length > 0) {
-          const currentOrderMap = new Map((this.state.orders || []).map(o => [o.id || o.orderCode, o]));
-          for (const serverOrder of db.orders) {
-            const oid = serverOrder.id || serverOrder.orderCode;
-            if (!currentOrderMap.has(oid)) {
-              if (!this.state.orders) this.state.orders = [];
-              this.state.orders.unshift(serverOrder);
-              changed = true;
-            }
-          }
+          this.state.orders = db.orders;
+          changed = true;
         }
 
         // Đồng bộ Combos từ SQL
@@ -694,10 +687,9 @@
         { id: 'SP125', name: 'Y.S. Park Dragon Air Vent Styler', brand: 'Y.S. Park', categoryId: 'DM09', price: 862000, originalPrice: 862000, costPrice: 663000, stock: 24, image: 'Men_Grooming_Products/09_Dung_Cu_Tao_Kieu_Nam/Luoc_Ban_Nguyet/Luoc_Ban_Nguyet_YS_Park_Dragon_Air_Vent_Styler.jpg', description: 'Lược sấy tạo kiểu thoáng khí đẳng cấp Nhật Bản.' }
       ];
 
-      // 2 Khuyến Mãi Chuẩn từ CSDL QL_SALON.sql, KM01 - 10%, KM02 - 15%
+      // Khuyến Mãi Chuẩn từ CSDL QL_SALON.sql, KM01 - 10%
       const promotions = [
-        { id: 'KM01', MaKhuyenMai: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', TenKhuyenMai: 'Chào Thu Rực Rỡ', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 10, GiaTriGiam: 10, target: 'Tất cả khách hàng', DoiTuongApDung: 'Tất cả khách hàng', startDate: '2026-09-01', NgayBatDau: '2026-09-01', endDate: '2026-10-31', NgayKetThuc: '2026-10-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV03', 'DV04'], productIds: ['SP01'] },
-        { id: 'KM02', MaKhuyenMai: 'KM02', code: 'KM02', name: 'Đặc quyền Salon VIP', TenKhuyenMai: 'Đặc quyền Salon VIP', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 15, GiaTriGiam: 15, target: 'Hội viên thân thiết', DoiTuongApDung: 'Hội viên thân thiết', startDate: '2026-01-01', NgayBatDau: '2026-01-01', endDate: '2026-12-31', NgayKetThuc: '2026-12-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV05'], productIds: ['SP06'] }
+        { id: 'KM01', MaKhuyenMai: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', TenKhuyenMai: 'Chào Thu Rực Rỡ', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 10, GiaTriGiam: 10, target: 'Tất cả khách hàng', DoiTuongApDung: 'Tất cả khách hàng', startDate: '2026-09-01', NgayBatDau: '2026-09-01', endDate: '2026-12-31', NgayKetThuc: '2026-12-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV03', 'DV04'], productIds: ['SP01'] }
       ];
 
       // Tồn Kho Khởi Tạo
@@ -2426,20 +2418,6 @@
     async createOrder(orderData) {
       const branch = this.getBranchById(orderData.branchId) || this.getCurrentBranch();
 
-      // Sinh mã đơn hàng chuẩn định dạng CSDL SQL Server, DH01 -> DH11 -> DH12...
-      let orderCode = orderData.orderCode || orderData.id;
-      if (!orderCode || !orderCode.startsWith('DH')) {
-        const existingDh = (this.state.orders || [])
-          .map(o => (o.id || o.orderCode || o.MaDonHang || ''))
-          .filter(code => /^DH\d+$/i.test(code));
-        let maxDhNum = 10;
-        existingDh.forEach(code => {
-          const num = parseInt(code.replace(/^DH/i, ''), 10);
-          if (num > maxDhNum) maxDhNum = num;
-        });
-        orderCode = 'DH' + (maxDhNum + 1 < 10 ? '0' + (maxDhNum + 1) : (maxDhNum + 1));
-      }
-
       let discountAmount = Number(orderData.discountAmount || 0);
       let totalAmount = Number(orderData.totalAmount || 0);
 
@@ -2458,9 +2436,9 @@
                        (orderData.deliveryAddress && orderData.deliveryAddress.toLowerCase().includes('chi nhánh'));
 
       const newOrder = {
-        id: orderCode,
-        orderCode,
-        MaDonHang: orderCode,
+        id: '',
+        orderCode: '',
+        MaDonHang: '',
         userId: orderData.userId || this.getCurrentUser()?.id || null,
         branchId: branch ? branch.id : 'CN01',
         branchName: branch ? branch.name : 'Omni Salon HQ',
@@ -2479,10 +2457,31 @@
         createdAt: new Date().toISOString()
       };
 
-      // Gửi lên live server xác thực tồn kho trước
+      // Gửi lên live server xác thực tồn kho và cấp mã đơn hàng chuẩn CSDL SQL Server (DH01, DH14, DH15...)
       const syncResult = await this.syncOrderToLiveServer(newOrder);
       if (syncResult && syncResult.success === false) {
         return { error: syncResult.error || 'Tồn kho không đủ đáp ứng số lượng yêu cầu!' };
+      }
+
+      if (syncResult && syncResult.order && syncResult.order.id) {
+        const assignedId = syncResult.order.id;
+        newOrder.id = assignedId;
+        newOrder.orderCode = assignedId;
+        newOrder.MaDonHang = assignedId;
+      } else if (!newOrder.id) {
+        // Fallback offline nếu mất kết nối mạng
+        const existingDh = (this.state.orders || [])
+          .map(o => (o.id || o.orderCode || o.MaDonHang || ''))
+          .filter(code => /^DH\d+$/i.test(code));
+        let maxDhNum = 10;
+        existingDh.forEach(code => {
+          const num = parseInt(code.replace(/^DH/i, ''), 10);
+          if (num > maxDhNum) maxDhNum = num;
+        });
+        const fallbackCode = 'DH' + (maxDhNum + 1 < 10 ? '0' + (maxDhNum + 1) : (maxDhNum + 1));
+        newOrder.id = fallbackCode;
+        newOrder.orderCode = fallbackCode;
+        newOrder.MaDonHang = fallbackCode;
       }
 
       // Trừ kho từng sản phẩm sau khi server chấp thuận

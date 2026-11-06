@@ -278,12 +278,18 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     _tabController = TabController(length: 2, vsync: this);
     _loadData();
   }
 
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     _tabController.dispose();
     _stylistSearchController.dispose();
     _serviceSearchController.dispose();
@@ -313,71 +319,76 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.bgPrimary,
-      body: SafeArea(
-        child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'BẢNG GIÁ & ĐỘI NGŨ',
-                      style: AppTheme.labelUppercase(fontSize: 11, color: AppTheme.accentGold),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Dịch Vụ & Thợ Tạo Mẫu',
-                      style: AppTheme.headingLarge(fontSize: 28),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Minh bạch bảng giá dịch vụ và tuyển chọn các Master Barber giàu trải nghiệm.',
-                      style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Segmented Control 2 Tab
-                    Container(
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceElevated,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.borderColor),
-                      ),
-                      child: TabBar(
-                        controller: _tabController,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        indicator: BoxDecoration(
-                          color: AppTheme.accentGold,
-                          borderRadius: BorderRadius.circular(7),
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        return Scaffold(
+          backgroundColor: AppTheme.bgPrimary,
+          body: SafeArea(
+            child: NestedScrollView(
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'BẢNG GIÁ & ĐỘI NGŨ',
+                          style: AppTheme.labelUppercase(fontSize: 11, color: AppTheme.accentGold),
                         ),
-                        labelColor: AppTheme.charcoal,
-                        unselectedLabelColor: AppTheme.textSecondary,
-                        labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                        tabs: const [
-                          Tab(text: 'Bảng Giá Dịch Vụ'),
-                          Tab(text: 'Đội Ngũ Stylist'),
-                        ],
-                      ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Dịch Vụ & Thợ Tạo Mẫu',
+                          style: AppTheme.headingLarge(fontSize: 28),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Minh bạch bảng giá dịch vụ và tuyển chọn các Master Barber giàu trải nghiệm.',
+                          style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Segmented Control 2 Tab
+                        Container(
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceElevated,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppTheme.borderColor),
+                          ),
+                          child: TabBar(
+                            controller: _tabController,
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            indicator: BoxDecoration(
+                              color: AppTheme.accentGold,
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            labelColor: AppTheme.charcoal,
+                            unselectedLabelColor: AppTheme.textSecondary,
+                            labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                            tabs: const [
+                              Tab(text: 'Bảng Giá Dịch Vụ'),
+                              Tab(text: 'Đội Ngũ Stylist'),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
+              ],
+              body: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildServicesTab(),
+                  _buildStylistsTab(),
+                ],
               ),
             ),
-          ],
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildServicesTab(),
-              _buildStylistsTab(),
-            ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

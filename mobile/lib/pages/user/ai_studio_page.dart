@@ -101,14 +101,20 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
   @override
   void initState() {
     super.initState();
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     _rawOriginalPhotoUrl = _currentPhotoUrl;
     _triggerFaceAnalysis();
   }
 
   @override
   void dispose() {
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     _chatController.dispose();
     super.dispose();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
   }
 
   void _switchViewMode(String mode) {
@@ -241,9 +247,12 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     final barberAdvice = _faceAnalysis?['barberAdvice']?.toString() ??
         'Master Barber khuyên bạn nên sấy phồng chân tóc tạo volume và dùng sáp Apestomen Volcanic Clay để kiểm soát nếp suốt cả ngày.';
 
-    return Scaffold(
-      backgroundColor: AppTheme.bgPrimary,
-      body: SafeArea(
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        return Scaffold(
+          backgroundColor: AppTheme.bgPrimary,
+          body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           child: Column(
@@ -798,6 +807,8 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
           ),
         ),
       ),
+    );
+      },
     );
   }
 

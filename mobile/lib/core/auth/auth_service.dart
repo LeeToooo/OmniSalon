@@ -12,7 +12,8 @@ class AuthService {
   static UserModel? currentUser;
   static String? currentToken;
 
-  static final ValueNotifier<UserModel?> userNotifier = ValueNotifier<UserModel?>(null);
+  static final ValueNotifier<UserModel?> userNotifier =
+      ValueNotifier<UserModel?>(null);
 
   static bool get isLoggedIn => currentUser != null;
 
@@ -32,43 +33,61 @@ class AuthService {
     }
   }
 
-  static Future<Map<String, dynamic>> login(String identifier, String password) async {
+  static Future<Map<String, dynamic>> login(
+      String identifier, String password) async {
     final cleanId = identifier.trim();
     final cleanPass = password.trim();
 
     if (cleanId.isEmpty || cleanPass.isEmpty) {
-      return {'success': false, 'message': 'Vui lòng nhập tài khoản và mật khẩu.'};
+      return {
+        'success': false,
+        'message': 'Vui lòng nhập tài khoản và mật khẩu.'
+      };
     }
 
     try {
-      final res = await http.post(
-        Uri.parse('${ApiService.baseUrl}/auth/login'),
-        headers: {'Content-Type': 'application/json; charset=utf-8'},
-        body: jsonEncode({
-          'identifier': cleanId,
-          'password': cleanPass,
-        }),
-      ).timeout(const Duration(seconds: 10));
+      final res = await http
+          .post(
+            Uri.parse('${ApiService.baseUrl}/auth/login'),
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'identifier': cleanId,
+              'password': cleanPass,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
       final data = jsonDecode(utf8.decode(res.bodyBytes));
       if (res.statusCode == 200 && data['success'] == true) {
         final userData = data['user'] as Map<String, dynamic>;
         final user = UserModel.fromJson(userData);
         currentUser = user;
-        currentToken = data['token']?.toString() ?? 'TOKEN_${DateTime.now().millisecondsSinceEpoch}';
+        currentToken = data['token']?.toString() ??
+            'TOKEN_${DateTime.now().millisecondsSinceEpoch}';
         userNotifier.value = user;
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_userKey, jsonEncode(user.toJson()));
         await prefs.setString(_tokenKey, currentToken!);
 
-        return {'success': true, 'message': data['message'] ?? 'Đăng nhập thành công!', 'user': user};
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Đăng nhập thành công!',
+          'user': user
+        };
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Đăng nhập thất bại.'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Đăng nhập thất bại.'
+        };
       }
     } catch (e) {
       debugPrint('[AuthService] Login error: $e');
-      return {'success': false, 'message': 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.'};
+      return {
+        'success': false,
+        'message':
+            'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.'
+      };
     }
   }
 
@@ -84,43 +103,81 @@ class AuthService {
     final cleanEmail = email.trim();
     final cleanPass = password.trim();
     final cleanBirthday = (birthday ?? '').trim();
+    String? normalizedBirthday;
+    if (cleanBirthday.isNotEmpty) {
+      if (cleanBirthday.contains('/')) {
+        final p = cleanBirthday.split('/');
+        if (p.length == 3) {
+          int y = int.tryParse(p[2]) ?? 2000;
+          if (y < 100) y = y <= 30 ? 2000 + y : 1900 + y;
+          final m = p[1].padLeft(2, '0');
+          final d = p[0].padLeft(2, '0');
+          normalizedBirthday = '$y-$m-$d';
+        } else {
+          normalizedBirthday = cleanBirthday;
+        }
+      } else {
+        normalizedBirthday = cleanBirthday;
+      }
+    }
 
-    if (cleanName.isEmpty || cleanPhone.isEmpty || cleanEmail.isEmpty || cleanPass.isEmpty) {
-      return {'success': false, 'message': 'Vui lòng điền đầy đủ các thông tin.'};
+    if (cleanName.isEmpty ||
+        cleanPhone.isEmpty ||
+        cleanEmail.isEmpty ||
+        cleanPass.isEmpty) {
+      return {
+        'success': false,
+        'message': 'Vui lòng điền đầy đủ các thông tin.'
+      };
     }
 
     try {
-      final res = await http.post(
-        Uri.parse('${ApiService.baseUrl}/auth/register'),
-        headers: {'Content-Type': 'application/json; charset=utf-8'},
-        body: jsonEncode({
-          'fullName': cleanName,
-          'phone': cleanPhone,
-          'email': cleanEmail,
-          'birthday': cleanBirthday.isNotEmpty ? cleanBirthday : null,
-          'password': cleanPass,
-        }),
-      ).timeout(const Duration(seconds: 10));
+      final res = await http
+          .post(
+            Uri.parse('${ApiService.baseUrl}/auth/register'),
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'fullName': cleanName,
+              'phone': cleanPhone,
+              'email': cleanEmail,
+              'birthday': normalizedBirthday,
+              'password': cleanPass,
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
 
       final data = jsonDecode(utf8.decode(res.bodyBytes));
-      if ((res.statusCode == 200 || res.statusCode == 201) && data['success'] == true) {
+      if ((res.statusCode == 200 || res.statusCode == 201) &&
+          data['success'] == true) {
         final userData = data['user'] as Map<String, dynamic>;
         final user = UserModel.fromJson(userData);
         currentUser = user;
-        currentToken = data['token']?.toString() ?? 'TOKEN_${DateTime.now().millisecondsSinceEpoch}';
+        currentToken = data['token']?.toString() ??
+            'TOKEN_${DateTime.now().millisecondsSinceEpoch}';
         userNotifier.value = user;
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_userKey, jsonEncode(user.toJson()));
         await prefs.setString(_tokenKey, currentToken!);
 
-        return {'success': true, 'message': data['message'] ?? 'Đăng ký thành công!', 'user': user};
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Đăng ký thành công!',
+          'user': user
+        };
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Đăng ký thất bại.'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Đăng ký thất bại.'
+        };
       }
     } catch (e) {
       debugPrint('[AuthService] Register error: $e');
-      return {'success': false, 'message': 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.'};
+      return {
+        'success': false,
+        'message':
+            'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.'
+      };
     }
   }
 
@@ -134,7 +191,8 @@ class AuthService {
     // Ở chế độ chờ, mock: Giả lập gửi thành công và in ra console để test
     const mockOtp = '888999';
     lastGeneratedOtp = mockOtp;
-    debugPrint('[AuthService] 📧 Đã chuẩn bị mã OTP xác thực Gmail cho: $email -> Mã OTP: $mockOtp (enableGmailOtpVerification: $enableGmailOtpVerification)');
+    debugPrint(
+        '[AuthService] 📧 Đã chuẩn bị mã OTP xác thực Gmail cho: $email -> Mã OTP: $mockOtp (enableGmailOtpVerification: $enableGmailOtpVerification)');
     await Future.delayed(const Duration(milliseconds: 600));
     return true;
   }
@@ -149,7 +207,10 @@ class AuthService {
   static Future<Map<String, dynamic>> forgotPassword(String email) async {
     final cleanEmail = email.trim();
     if (cleanEmail.isEmpty) {
-      return {'success': false, 'message': 'Vui lòng nhập địa chỉ email đã đăng ký.'};
+      return {
+        'success': false,
+        'message': 'Vui lòng nhập địa chỉ email đã đăng ký.'
+      };
     }
     await sendGmailOtp(cleanEmail);
     return {
@@ -168,32 +229,49 @@ class AuthService {
     final cleanPass = newPassword.trim();
 
     if (cleanPass.length < 6) {
-      return {'success': false, 'message': 'Mật khẩu mới phải có ít nhất 6 ký tự.'};
+      return {
+        'success': false,
+        'message': 'Mật khẩu mới phải có ít nhất 6 ký tự.'
+      };
     }
     final isValid = await verifyGmailOtp(cleanEmail, cleanOtp);
     if (!isValid) {
-      return {'success': false, 'message': 'Mã OTP không chính xác hoặc đã hết hạn.'};
+      return {
+        'success': false,
+        'message': 'Mã OTP không chính xác hoặc đã hết hạn.'
+      };
     }
     try {
-      final res = await http.post(
-        Uri.parse('${ApiService.baseUrl}/auth/reset-password'),
-        headers: {'Content-Type': 'application/json; charset=utf-8'},
-        body: jsonEncode({
-          'email': cleanEmail,
-          'otp': cleanOtp,
-          'newPassword': cleanPass,
-        }),
-      ).timeout(const Duration(seconds: 8));
+      final res = await http
+          .post(
+            Uri.parse('${ApiService.baseUrl}/auth/reset-password'),
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'email': cleanEmail,
+              'otp': cleanOtp,
+              'newPassword': cleanPass,
+            }),
+          )
+          .timeout(const Duration(seconds: 8));
 
       final data = jsonDecode(utf8.decode(res.bodyBytes));
       if (res.statusCode == 200 && data['success'] == true) {
-        return {'success': true, 'message': data['message'] ?? 'Đặt lại mật khẩu thành công!'};
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Đặt lại mật khẩu thành công!'
+        };
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Đặt lại mật khẩu thất bại.'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Đặt lại mật khẩu thất bại.'
+        };
       }
     } catch (e) {
       debugPrint('[AuthService] Reset password error: $e');
-      return {'success': false, 'message': 'Không thể kết nối đến máy chủ. Vui lòng thử lại.'};
+      return {
+        'success': false,
+        'message': 'Không thể kết nối đến máy chủ. Vui lòng thử lại.'
+      };
     }
   }
 
@@ -202,45 +280,65 @@ class AuthService {
     required String newPassword,
   }) async {
     if (currentUser == null) {
-      return {'success': false, 'message': 'Vui lòng đăng nhập để đổi mật khẩu.'};
+      return {
+        'success': false,
+        'message': 'Vui lòng đăng nhập để đổi mật khẩu.'
+      };
     }
     final cleanOld = oldPassword.trim();
     final cleanNew = newPassword.trim();
 
     if (cleanOld.isEmpty || cleanNew.isEmpty) {
-      return {'success': false, 'message': 'Vui lòng điền đầy đủ mật khẩu hiện tại và mật khẩu mới.'};
+      return {
+        'success': false,
+        'message': 'Vui lòng điền đầy đủ mật khẩu hiện tại và mật khẩu mới.'
+      };
     }
     if (cleanNew.length < 6) {
-      return {'success': false, 'message': 'Mật khẩu mới phải có ít nhất 6 ký tự.'};
+      return {
+        'success': false,
+        'message': 'Mật khẩu mới phải có ít nhất 6 ký tự.'
+      };
     }
     if (cleanOld == cleanNew) {
-      return {'success': false, 'message': 'Mật khẩu mới không được trùng với mật khẩu hiện tại.'};
+      return {
+        'success': false,
+        'message': 'Mật khẩu mới không được trùng với mật khẩu hiện tại.'
+      };
     }
 
     try {
-      final res = await http.post(
-        Uri.parse('${ApiService.baseUrl}/auth/change-password'),
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          if (currentToken != null) 'Authorization': 'Bearer $currentToken',
-        },
-        body: jsonEncode({
-          'userId': currentUser!.id,
-          'username': currentUser!.username,
-          'phone': currentUser!.phone,
-          'oldPassword': cleanOld,
-          'newPassword': cleanNew,
-        }),
-      ).timeout(const Duration(seconds: 8));
+      final res = await http
+          .post(
+            Uri.parse('${ApiService.baseUrl}/auth/change-password'),
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              if (currentToken != null) 'Authorization': 'Bearer $currentToken',
+            },
+            body: jsonEncode({
+              'userId': currentUser!.id,
+              'username': currentUser!.username,
+              'phone': currentUser!.phone,
+              'oldPassword': cleanOld,
+              'newPassword': cleanNew,
+            }),
+          )
+          .timeout(const Duration(seconds: 8));
 
       final data = jsonDecode(utf8.decode(res.bodyBytes));
       return {
         'success': data['success'] == true,
-        'message': data['message'] ?? (data['success'] == true ? 'Đổi mật khẩu thành công!' : 'Đổi mật khẩu thất bại.'),
+        'message': data['message'] ??
+            (data['success'] == true
+                ? 'Đổi mật khẩu thành công'
+                : 'Đổi mật khẩu thất bại.'),
       };
     } catch (e) {
       debugPrint('[AuthService] Change password error: $e');
-      return {'success': false, 'message': 'Không thể kết nối đến máy chủ. Vui lòng thử lại.'};
+      return {
+        'success': false,
+        'message': 'Không thể kết nối đến máy chủ. Vui lòng thử lại.'
+      };
     }
   }
 
@@ -258,9 +356,12 @@ class AuthService {
       maKhachHang: currentUser!.maKhachHang,
       maNhanVien: currentUser!.maNhanVien,
       username: currentUser!.username,
-      fullName: fullName.trim().isNotEmpty ? fullName.trim() : currentUser!.fullName,
+      fullName:
+          fullName.trim().isNotEmpty ? fullName.trim() : currentUser!.fullName,
       phone: phone.trim().isNotEmpty ? phone.trim() : currentUser!.phone,
-      email: (email != null && email.trim().isNotEmpty) ? email.trim() : currentUser!.email,
+      email: (email != null && email.trim().isNotEmpty)
+          ? email.trim()
+          : currentUser!.email,
       birthday: birthday ?? currentUser!.birthday,
       role: currentUser!.role,
       roleName: currentUser!.roleName,
@@ -271,20 +372,26 @@ class AuthService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_userKey, jsonEncode(updatedUser.toJson()));
-      await http.put(
-        Uri.parse('${ApiService.baseUrl}/auth/profile'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'userId': updatedUser.id,
-          'fullName': updatedUser.fullName,
-          'phone': updatedUser.phone,
-          'email': updatedUser.email,
-          'birthday': birthday,
-        }),
-      ).timeout(const Duration(seconds: 4));
+      await http
+          .put(
+            Uri.parse('${ApiService.baseUrl}/auth/profile'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'userId': updatedUser.id,
+              'fullName': updatedUser.fullName,
+              'phone': updatedUser.phone,
+              'email': updatedUser.email,
+              'birthday': birthday,
+            }),
+          )
+          .timeout(const Duration(seconds: 4));
     } catch (_) {}
 
-    return {'success': true, 'message': 'Cập nhật thông tin thành công!', 'user': updatedUser};
+    return {
+      'success': true,
+      'message': 'Cập nhật thông tin thành công!',
+      'user': updatedUser
+    };
   }
 
   static Future<void> logout() async {
@@ -298,4 +405,3 @@ class AuthService {
     } catch (_) {}
   }
 }
-

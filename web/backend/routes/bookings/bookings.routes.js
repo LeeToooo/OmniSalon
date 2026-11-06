@@ -116,8 +116,66 @@ async function handleBookingRoutes(req, res, ctx) {
          lh.NgayHen DESC, lh.GioBatDau DESC`,
       [`%${q}%`, `%${q}%`, `%${q}%`]
     );
+
+    const allBookingItems = await querySql(`
+      SELECT ctlh.MaChiTietLichHen, ctlh.MaLichHen, ctlh.MaDichVu, ctlh.MaCombo, ctlh.SoLuong, ctlh.DonGia, ctlh.ThanhTien,
+             ISNULL(dv.TenDichVu, cb.TenCombo) AS TenDichVu,
+             ISNULL(dv.HinhAnh, cb.HinhAnh) AS HinhAnh,
+             ISNULL(dv.ThoiLuong, cb.ThoiLuong) AS ThoiLuong,
+             ISNULL(dv.Gia, cb.GiaCombo) AS Gia
+      FROM ChiTietLichHen ctlh
+      LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu
+      LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo
+    `);
+
+    const mapped = (rows || []).map(r => {
+      const items = (allBookingItems || [])
+        .filter(it => it.MaLichHen === r.MaLichHen)
+        .map(it => ({
+          id: it.MaChiTietLichHen,
+          serviceId: it.MaDichVu || it.MaCombo,
+          serviceName: it.TenDichVu || 'Dịch vụ Salon',
+          name: it.TenDichVu || 'Dịch vụ Salon',
+          price: parseFloat(it.ThanhTien || it.DonGia || it.Gia || 0),
+          quantity: it.SoLuong || 1,
+          duration: it.ThoiLuong || 30,
+          image: it.HinhAnh || ''
+        }));
+
+      const isProgress = (r.TrangThai === 'Đang phục vụ' || r.TrangThai === 'In_Progress' || r.TrangThai === 'in_progress');
+      const uiStatus = (r.TrangThai === 'Hoàn thành' || r.TrangThai === 'Completed') ? 'Completed' :
+        ((r.TrangThai === 'Đã hủy' || r.TrangThai === 'Cancelled') ? 'Cancelled' :
+        (isProgress ? 'in_progress' :
+        ((r.TrangThai === 'Chờ vào ghế' || r.TrangThai === 'Waiting' || r.TrangThai === 'waiting') ? 'waiting' : 'Confirmed')));
+
+      return {
+        ...r,
+        id: r.MaLichHen,
+        bookingCode: r.MaLichHen,
+        customerId: r.MaKhachHang,
+        userId: r.MaKhachHang,
+        customerName: r.TenKhachHang || 'Khách Hàng',
+        customerPhone: r.SdtKhachHang || '',
+        stylistId: r.MaNhanVien,
+        stylistName: r.TenNhanVien || 'Master Stylist',
+        branchId: r.MaChiNhanh,
+        branchName: r.TenChiNhanh || 'Omni Salon Chi Nhánh',
+        bookingDate: formatDate(r.NgayHen),
+        date: formatDate(r.NgayHen),
+        timeSlot: formatTime(r.GioBatDau),
+        endTime: formatTime(r.GioKetThuc),
+        status: uiStatus,
+        serviceId: (items[0] && items[0].serviceId) || 'DV01',
+        serviceName: (items[0] && items[0].serviceName) || r.TenDichVu || 'Dịch vụ Salon',
+        serviceImage: (items[0] && items[0].image) || '',
+        totalPrice: parseFloat(r.TongTien || 0),
+        servicesList: items,
+        items
+      };
+    });
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify(rows));
+    res.end(JSON.stringify(mapped));
     return true;
   }
 
@@ -178,10 +236,34 @@ async function handleBookingRoutes(req, res, ctx) {
          lh.NgayHen DESC, lh.GioBatDau DESC`;
     const rows = await querySql(q, params);
 
+    const allBookingItems = await querySql(`
+      SELECT ctlh.MaChiTietLichHen, ctlh.MaLichHen, ctlh.MaDichVu, ctlh.MaCombo, ctlh.SoLuong, ctlh.DonGia, ctlh.ThanhTien,
+             ISNULL(dv.TenDichVu, cb.TenCombo) AS TenDichVu,
+             ISNULL(dv.HinhAnh, cb.HinhAnh) AS HinhAnh,
+             ISNULL(dv.ThoiLuong, cb.ThoiLuong) AS ThoiLuong,
+             ISNULL(dv.Gia, cb.GiaCombo) AS Gia
+      FROM ChiTietLichHen ctlh
+      LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu
+      LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo
+    `);
+
     const bookings = rows.map(r => {
       const cName = r.TenKhachHang || 'Khách Hàng';
       const cPhone = r.SdtKhachHang || '';
-      const sName = r.TenDichVu || 'Dịch vụ Salon';
+      const items = (allBookingItems || [])
+        .filter(it => it.MaLichHen === r.MaLichHen)
+        .map(it => ({
+          id: it.MaChiTietLichHen,
+          serviceId: it.MaDichVu || it.MaCombo,
+          serviceName: it.TenDichVu || 'Dịch vụ Salon',
+          name: it.TenDichVu || 'Dịch vụ Salon',
+          price: parseFloat(it.ThanhTien || it.DonGia || it.Gia || 0),
+          quantity: it.SoLuong || 1,
+          duration: it.ThoiLuong || 30,
+          image: it.HinhAnh || ''
+        }));
+
+      const sName = (items[0] && items[0].serviceName) || r.TenDichVu || 'Dịch vụ Salon';
       const isProgress = (r.TrangThai === 'Đang phục vụ' || r.TrangThai === 'In_Progress' || r.TrangThai === 'in_progress');
       const uiStatus = (r.TrangThai === 'Hoàn thành' || r.TrangThai === 'Completed') ? 'Completed' :
         ((r.TrangThai === 'Đã hủy' || r.TrangThai === 'Cancelled') ? 'Cancelled' :
@@ -193,6 +275,7 @@ async function handleBookingRoutes(req, res, ctx) {
         MaLichHen: r.MaLichHen,
         bookingCode: r.MaLichHen,
         customerId: r.MaKhachHang,
+        userId: r.MaKhachHang,
         customerName: cName,
         customerPhone: cPhone,
         stylistId: r.MaNhanVien,
@@ -205,11 +288,14 @@ async function handleBookingRoutes(req, res, ctx) {
         endTime: formatTime(r.GioKetThuc),
         status: uiStatus,
         TrangThai: r.TrangThai,
-        serviceId: r.MaDichVu || 'DV01',
+        serviceId: (items[0] && items[0].serviceId) || r.MaDichVu || 'DV01',
         serviceName: sName,
+        serviceImage: (items[0] && items[0].image) || '',
         totalPrice: parseFloat(r.TongTien || 0),
         notes: r.GhiChu || '',
-        LyDoHuy: r.LyDoHuy
+        LyDoHuy: r.LyDoHuy,
+        servicesList: items,
+        items
       };
     });
 

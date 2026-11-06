@@ -156,7 +156,7 @@ async function generateNextOrderId() {
   let maxNum = 10;
   if (rows && rows.length > 0) {
     for (const r of rows) {
-      const m = (r.MaDonHang || '').match(/DH0*(\d+)/i);
+      const m = (r.MaDonHang || '').match(/^DH0*(\d+)$/i);
       if (m) {
         const val = parseInt(m[1], 10);
         if (val > maxNum) maxNum = val;

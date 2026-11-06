@@ -326,7 +326,12 @@ async function applyPerformanceOptimizations() {
           DEALLOCATE cur_FEFO;
 
           UPDATE DonHang 
-          SET TongTien = (SELECT ISNULL(SUM(ThanhTien), 0) FROM ChiTietDonHang WHERE MaDonHang = @MaDonHang)
+          SET TongTien = (
+              SELECT ISNULL(SUM(ThanhTien), 0) FROM ChiTietDonHang WHERE MaDonHang = @MaDonHang
+          ) + CASE 
+              WHEN HinhThucNhan = N'Tại quầy' OR DiaChiGiaoHang LIKE N'%Nhận tại quầy%' THEN 0 
+              ELSE 30000 
+          END
           WHERE MaDonHang = @MaDonHang;
       END;
     `);

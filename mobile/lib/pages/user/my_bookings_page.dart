@@ -25,10 +25,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
   List<SalonOrder> orders = [];
   bool isLoading = true;
   String currentFilter = 'all';
+  String currentOrderFilter = 'all';
 
   @override
   void initState() {
     super.initState();
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (mounted) setState(() {});
@@ -46,8 +48,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
     _loadData();
   }
 
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     _tabController.dispose();
     searchController.dispose();
     super.dispose();
@@ -297,7 +304,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
               value,
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: isPrice ? AppTheme.accentGold : const Color(0xFFFAF8F5),
+                color: isPrice ? AppTheme.accentGold : AppTheme.textPrimary,
                 fontWeight: isPrice ? FontWeight.w900 : FontWeight.w700,
                 fontSize: isPrice ? 14 : 12,
               ),
@@ -386,7 +393,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   color: const Color(0xFF0284C7).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('VIETQR 24/7 CHUYỂN NHANH NAPAS', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.w800)),
+                child: Text(
+                  'VIETQR 24/7 CHUYỂN NHANH NAPAS',
+                  style: TextStyle(
+                    color: AppTheme.isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               _buildTicketRow('Ngân hàng:', 'MBBank (Quân Đội)'),
@@ -412,26 +426,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Đóng', style: TextStyle(color: AppTheme.textSecondary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.accentGold,
-              foregroundColor: AppTheme.charcoal,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentGold,
+                foregroundColor: AppTheme.charcoal,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Đóng', style: TextStyle(fontWeight: FontWeight.w900)),
             ),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Đã xác nhận thanh toán VietQR cho lịch hẹn #${b.bookingCode}!'),
-                  backgroundColor: const Color(0xFF10B981),
-                ),
-              );
-            },
-            child: const Text('Đã Chuyển Khoản', style: TextStyle(fontWeight: FontWeight.w900)),
           ),
         ],
       ),
@@ -500,7 +505,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                   color: const Color(0xFF0284C7).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('VIETQR 24/7 CHUYỂN NHANH NAPAS', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.w800)),
+                child: Text(
+                  'VIETQR 24/7 CHUYỂN NHANH NAPAS',
+                  style: TextStyle(
+                    color: AppTheme.isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               _buildTicketRow('Ngân hàng:', 'MBBank (Quân Đội)'),
@@ -526,26 +538,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Đóng', style: TextStyle(color: AppTheme.textSecondary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.accentGold,
-              foregroundColor: AppTheme.charcoal,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentGold,
+                foregroundColor: AppTheme.charcoal,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Đóng', style: TextStyle(fontWeight: FontWeight.w900)),
             ),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Đã ghi nhận thanh toán VietQR cho đơn hàng #${o.orderCode}!'),
-                  backgroundColor: const Color(0xFF10B981),
-                ),
-              );
-            },
-            child: const Text('Đã Chuyển Khoản', style: TextStyle(fontWeight: FontWeight.w900)),
           ),
         ],
       ),
@@ -949,6 +952,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
         return b.timeSlot.compareTo(a.timeSlot);
       });
 
+    final filteredOrders = (orders.where((o) {
+      if (currentOrderFilter == 'all') return true;
+      final low = o.orderStatus.toLowerCase();
+      final isCancelled = low.contains('hủy') || low == 'cancelled';
+      final isCompleted = low.contains('hoàn tất') || low.contains('đã giao') || low == 'completed' || low == 'delivered';
+      if (currentOrderFilter == 'delivering') return !isCancelled && !isCompleted;
+      if (currentOrderFilter == 'cancelled') return isCancelled;
+      if (currentOrderFilter == 'completed') return isCompleted;
+      return true;
+    }).toList())
+      ..sort((a, b) {
+        final numA = int.tryParse(a.orderCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+        final numB = int.tryParse(b.orderCode.replaceAll(RegExp(r'\D'), '')) ?? 0;
+        if (numA != numB) return numB.compareTo(numA);
+        return b.createdAt.compareTo(a.createdAt);
+      });
+
     final user = AuthService.currentUser;
     if (user == null) {
       return Scaffold(
@@ -1109,7 +1129,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                 _buildBookingsTab(filteredBookings),
 
                 // TAB 2: ĐƠN HÀNG MỸ PHẨM
-                _buildOrdersTab(orders),
+                _buildOrdersTab(filteredOrders),
               ],
             ),
           ),
@@ -1173,155 +1193,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
                       itemCount: filtered.length,
                       itemBuilder: (context, idx) {
                         final b = filtered[idx];
-                        final isCancelled = b.isCancelled;
-                        final isCompleted = b.isCompleted;
-
-                        Color badgeBg = const Color(0xFF10B981).withValues(alpha: 0.15);
-                        Color badgeText = const Color(0xFF10B981);
-                        if (isCancelled) {
-                          badgeBg = const Color(0xFFEF4444).withValues(alpha: 0.15);
-                          badgeText = const Color(0xFFEF4444);
-                        } else if (isCompleted) {
-                          badgeBg = const Color(0xFF3B82F6).withValues(alpha: 0.15);
-                          badgeText = const Color(0xFF60A5FA);
-                        }
-
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surfaceCard,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppTheme.borderColor),
-                            boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2))],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: AppTheme.accentGold.withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
-                                          ),
-                                          child: Text(
-                                            '#${b.bookingCode}',
-                                            style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 13),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          b.customerName,
-                                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: badgeBg,
-                                        borderRadius: BorderRadius.circular(9999),
-                                      ),
-                                      child: Text(
-                                        b.displayStatus,
-                                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: badgeText),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Divider(height: 16, color: AppTheme.borderColor),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    OmniImage(
-                                      imageUrl: b.serviceImage,
-                                      width: 60,
-                                      height: 60,
-                                      borderRadius: BorderRadius.circular(10),
-                                      fallbackIcon: Icons.content_cut,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(b.serviceName, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: AppTheme.textPrimary)),
-                                          const SizedBox(height: 4),
-                                          Text('Thợ tạo mẫu: ${b.stylistName}', style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
-                                          Text('Giờ hẹn: ${b.timeSlot} • Ngày ${b.date}', style: const TextStyle(fontSize: 12.5, color: AppTheme.accentGold, fontWeight: FontWeight.w800)),
-                                          Text('Chi nhánh: ${b.branchName}', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Chi phí dự kiến:', style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
-                                    Text(currencyFormat.format(b.totalPrice), style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 16)),
-                                  ],
-                                ),
-                                Divider(height: 20, color: AppTheme.borderColor),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: AppTheme.accentGold),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                      ),
-                                      icon: const Icon(Icons.qr_code_2, size: 16, color: AppTheme.accentGold),
-                                      label: const Text('Xem Vé QR', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.accentGold)),
-                                      onPressed: () => _showQrCheckInModal(b),
-                                    ),
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppTheme.accentGold,
-                                        foregroundColor: AppTheme.charcoal,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                      ),
-                                      icon: const Icon(Icons.payment_rounded, size: 16),
-                                      label: const Text('Thanh Toán Ngay', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                                      onPressed: () => _showBookingPaymentModal(b),
-                                    ),
-                                    if (!isCancelled)
-                                      OutlinedButton.icon(
-                                        style: OutlinedButton.styleFrom(
-                                          side: BorderSide(color: AppTheme.borderColor),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                        ),
-                                        icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
-                                        label: Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary)),
-                                        onPressed: () => _showBookingRatingDialog(b),
-                                      ),
-                                    if (!isCancelled && !isCompleted)
-                                      OutlinedButton(
-                                        style: OutlinedButton.styleFrom(
-                                          side: const BorderSide(color: Color(0xFFDC2626)),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                        ),
-                                        onPressed: () => _confirmCancelBooking(b),
-                                        child: const Text('Hủy', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w800, fontSize: 12)),
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                        return _BookingCardItem(
+                          key: ValueKey(b.id),
+                          booking: b,
+                          currencyFormat: currencyFormat,
+                          onShowQr: () => _showQrCheckInModal(b),
+                          onPay: () => _showBookingPaymentModal(b),
+                          onRate: () => _showBookingRatingDialog(b),
+                          onCancel: () => _confirmCancelBooking(b),
                         );
                       },
                     ),
@@ -1331,140 +1210,71 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
   }
 
   Widget _buildOrdersTab(List<SalonOrder> orderList) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppTheme.accentGold));
-    }
-    if (orderList.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inventory_2_outlined, size: 64, color: AppTheme.textSecondary),
-            SizedBox(height: 12),
-            Text(
-              'Không tìm thấy đơn hàng mỹ phẩm nào.',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: orderList.length,
-      itemBuilder: (context, idx) {
-        final o = orderList[idx];
-        final isCancelled = o.orderStatus.toLowerCase().contains('hủy') || o.orderStatus.toLowerCase() == 'cancelled';
-        final isPaid = o.paymentStatus.toLowerCase().contains('đã thanh toán') || o.paymentStatus.toLowerCase() == 'paid';
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceCard,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.borderColor),
-            boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2))],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      children: [
+        // FILTER TABS CHO ĐƠN HÀNG
+        Container(
+          color: AppTheme.bgPrimary,
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentGold.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
-                    ),
-                    child: Text(
-                      '#' + o.orderCode,
-                      style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 13),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isCancelled ? const Color(0xFFEF4444).withValues(alpha: 0.15) : const Color(0xFF10B981).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(9999),
-                    ),
-                    child: Text(
-                      o.orderStatus,
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: isCancelled ? const Color(0xFFEF4444) : const Color(0xFF10B981)),
-                    ),
-                  ),
-                ],
-              ),
-              Divider(height: 16, color: AppTheme.borderColor),
-              Text('Người nhận: ' + o.customerName + ' • ' + o.customerPhone, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 13)),
-              const SizedBox(height: 4),
-              Text('Địa chỉ: ' + o.shippingAddress, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-              const SizedBox(height: 4),
-              Text('Thanh toán: ' + o.paymentMethod + ' (' + o.paymentStatus + ')', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Tổng tiền đơn hàng:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
-                  Text(
-                    currencyFormat.format(o.totalAmount),
-                    style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 16),
-                  ),
-                ],
-              ),
-              Divider(height: 18, color: AppTheme.borderColor),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (!isCancelled && !isPaid)
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentGold,
-                        foregroundColor: AppTheme.charcoal,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      icon: const Icon(Icons.payment_rounded, size: 16),
-                      label: const Text('Thanh Toán Ngay', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                      onPressed: () => _showOrderPaymentModal(o),
-                    ),
-                  if (!isCancelled)
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppTheme.borderColor),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
-                      label: Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary)),
-                      onPressed: () => _showOrderRatingDialog(o),
-                    ),
-                  if (!isCancelled)
-                    OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFDC2626)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      onPressed: () => _confirmCancelOrder(o),
-                      child: const Text('Hủy Đơn', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w800, fontSize: 12)),
-                    ),
-                ],
-              ),
+              _buildFilterTab('all', 'Tất Cả', isOrder: true),
+              _buildFilterTab('delivering', 'Đang Giao', isOrder: true),
+              _buildFilterTab('completed', 'Hoàn Thành', isOrder: true),
+              _buildFilterTab('cancelled', 'Đã Hủy', isOrder: true),
             ],
           ),
-        );
-      },
+        ),
+        Divider(height: 1, color: AppTheme.borderColor),
+
+        Expanded(
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator(color: AppTheme.accentGold))
+              : orderList.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.inventory_2_outlined, size: 64, color: AppTheme.textSecondary),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Không tìm thấy đơn hàng mỹ phẩm nào.',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: orderList.length,
+                      itemBuilder: (context, idx) {
+                        final o = orderList[idx];
+                        return _OrderCardItem(
+                          key: ValueKey(o.id),
+                          order: o,
+                          currencyFormat: currencyFormat,
+                          onPay: () => _showOrderPaymentModal(o),
+                          onRate: () => _showOrderRatingDialog(o),
+                          onCancel: () => _confirmCancelOrder(o),
+                        );
+                      },
+                    ),
+        ),
+      ],
     );
   }
 
-  Widget _buildFilterTab(String id, String label) {
-    final isSel = currentFilter == id;
+  Widget _buildFilterTab(String id, String label, {bool isOrder = false}) {
+    final isSel = isOrder ? (currentOrderFilter == id) : (currentFilter == id);
     return InkWell(
-      onTap: () => setState(() => currentFilter = id),
+      onTap: () => setState(() {
+        if (isOrder) {
+          currentOrderFilter = id;
+        } else {
+          currentFilter = id;
+        }
+      }),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
@@ -1489,3 +1299,505 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
 }
 
 typedef MyBookingsPage = MyBookingsScreen;
+
+class _OrderCardItem extends StatefulWidget {
+  final SalonOrder order;
+  final NumberFormat currencyFormat;
+  final VoidCallback onPay;
+  final VoidCallback onRate;
+  final VoidCallback onCancel;
+
+  const _OrderCardItem({
+    super.key,
+    required this.order,
+    required this.currencyFormat,
+    required this.onPay,
+    required this.onRate,
+    required this.onCancel,
+  });
+
+  @override
+  State<_OrderCardItem> createState() => _OrderCardItemState();
+}
+
+class _OrderCardItemState extends State<_OrderCardItem> {
+  bool _isExpanded = false;
+
+  int _calculateShippingFee(SalonOrder o) {
+    try {
+      if (o.shippingFee != null && o.shippingFee! > 0) {
+        return o.shippingFee!;
+      }
+    } catch (_) {}
+    final isPickup = o.shippingAddress.toLowerCase().contains('quầy');
+    if (isPickup) return 0;
+    final itemsSum = o.items.fold<int>(0, (sum, i) => sum + (i.price * i.quantity));
+    if (itemsSum > 0 && o.totalAmount > itemsSum) {
+      return o.totalAmount - itemsSum;
+    }
+    return 30000;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final o = widget.order;
+    final shippingFee = _calculateShippingFee(o);
+    final isCancelled = o.orderStatus.toLowerCase().contains('hủy') || o.orderStatus.toLowerCase() == 'cancelled';
+    final isPaid = o.paymentStatus.toLowerCase().contains('đã thanh toán') || o.paymentStatus.toLowerCase() == 'paid';
+    final hasMoreThanTwo = o.items.length > 2;
+    final visibleItems = (hasMoreThanTwo && !_isExpanded) ? o.items.take(2).toList() : o.items;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor),
+        boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentGold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  '#' + o.orderCode,
+                  style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 13),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isCancelled ? const Color(0xFFEF4444).withValues(alpha: 0.15) : const Color(0xFF10B981).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(9999),
+                ),
+                child: Text(
+                  o.orderStatus,
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: isCancelled ? const Color(0xFFEF4444) : const Color(0xFF10B981)),
+                ),
+              ),
+            ],
+          ),
+          Divider(height: 16, color: AppTheme.borderColor),
+          if (o.items.isNotEmpty) ...[
+            ...visibleItems.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  OmniImage(
+                    imageUrl: item.image,
+                    width: 48,
+                    height: 48,
+                    borderRadius: BorderRadius.circular(8),
+                    fallbackIcon: Icons.shopping_bag_outlined,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name.isNotEmpty ? item.name : 'Sản phẩm mỹ phẩm',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
+                            color: AppTheme.textPrimary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Số lượng: ${item.quantity} • ${widget.currencyFormat.format(item.price)}',
+                          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.currencyFormat.format(item.price * item.quantity),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: AppTheme.accentGold,
+                    ),
+                  ),
+                ],
+              ),
+            )),
+            if (hasMoreThanTwo) ...[
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentGold.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.25)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isExpanded
+                            ? 'Thu gọn'
+                            : 'Hiển thị tất cả (${o.items.length} sản phẩm)',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.accentGold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: AppTheme.accentGold,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+            ],
+            Divider(height: 14, color: AppTheme.borderColor),
+          ],
+          Text('Người nhận: ' + o.customerName + ' • ' + o.customerPhone, style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 13)),
+          const SizedBox(height: 4),
+          Text('Địa chỉ: ' + o.shippingAddress, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text('Thanh toán: ' + o.paymentMethod + ' (' + o.paymentStatus + ')', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Phí vận chuyển:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+              Text(
+                shippingFee == 0 ? 'Miễn phí' : widget.currencyFormat.format(shippingFee),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                  color: AppTheme.accentGold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Tổng tiền đơn hàng:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+              Text(
+                widget.currencyFormat.format(o.totalAmount),
+                style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 16),
+              ),
+            ],
+          ),
+          Divider(height: 18, color: AppTheme.borderColor),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (!isCancelled && !isPaid)
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accentGold,
+                    foregroundColor: AppTheme.charcoal,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  icon: const Icon(Icons.payment_rounded, size: 16),
+                  label: const Text('Thanh Toán Ngay', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                  onPressed: widget.onPay,
+                ),
+              if (!isCancelled)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppTheme.borderColor),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
+                  label: Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary)),
+                  onPressed: widget.onRate,
+                ),
+              if (!isCancelled)
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFDC2626)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  onPressed: widget.onCancel,
+                  child: const Text('Hủy Đơn', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w800, fontSize: 12)),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BookingCardItem extends StatefulWidget {
+  final Booking booking;
+  final NumberFormat currencyFormat;
+  final VoidCallback onShowQr;
+  final VoidCallback onPay;
+  final VoidCallback onRate;
+  final VoidCallback onCancel;
+
+  const _BookingCardItem({
+    super.key,
+    required this.booking,
+    required this.currencyFormat,
+    required this.onShowQr,
+    required this.onPay,
+    required this.onRate,
+    required this.onCancel,
+  });
+
+  @override
+  State<_BookingCardItem> createState() => _BookingCardItemState();
+}
+
+class _BookingCardItemState extends State<_BookingCardItem> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final b = widget.booking;
+    final isCancelled = b.isCancelled;
+    final isCompleted = b.isCompleted;
+
+    Color badgeBg = const Color(0xFF10B981).withValues(alpha: 0.15);
+    Color badgeText = const Color(0xFF10B981);
+    if (isCancelled) {
+      badgeBg = const Color(0xFFEF4444).withValues(alpha: 0.15);
+      badgeText = const Color(0xFFEF4444);
+    } else if (b.status.toLowerCase().contains('chờ') || b.status.toLowerCase() == 'pending') {
+      badgeBg = const Color(0xFFF59E0B).withValues(alpha: 0.15);
+      badgeText = const Color(0xFFF59E0B);
+    }
+
+    final services = b.services;
+    final hasMoreThanTwo = services.length > 2;
+    final visibleServices = (hasMoreThanTwo && !_isExpanded) ? services.take(2).toList() : services;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor),
+        boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentGold.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
+                    ),
+                    child: Text(
+                      '#' + b.bookingCode,
+                      style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 13),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    b.customerName,
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: badgeBg,
+                  borderRadius: BorderRadius.circular(9999),
+                ),
+                child: Text(
+                  b.displayStatus,
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: badgeText),
+                ),
+              ),
+            ],
+          ),
+          Divider(height: 16, color: AppTheme.borderColor),
+          if (services.isNotEmpty) ...[
+            ...visibleServices.map((s) {
+              final imgUrl = s['image']?.toString() ?? b.serviceImage;
+              final sName = s['serviceName']?.toString() ?? b.serviceName;
+              final sPrice = (s['price'] is num) ? (s['price'] as num).toInt() : (int.tryParse(s['price']?.toString() ?? '') ?? 0);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    OmniImage(
+                      imageUrl: imgUrl,
+                      width: 48,
+                      height: 48,
+                      borderRadius: BorderRadius.circular(8),
+                      fallbackIcon: Icons.content_cut,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        sName,
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppTheme.textPrimary),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (sPrice > 0) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.currencyFormat.format(sPrice),
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.accentGold),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }),
+            if (hasMoreThanTwo) ...[
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentGold.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.25)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isExpanded
+                            ? 'Thu gọn'
+                            : 'Hiển thị tất cả (${services.length} dịch vụ)',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.accentGold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: AppTheme.accentGold,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+            ],
+            Divider(height: 14, color: AppTheme.borderColor),
+          ],
+          Text('Thợ tạo mẫu: ' + b.stylistName, style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
+          const SizedBox(height: 4),
+          Text('Giờ hẹn: ' + b.timeSlot + ' • Ngày ' + b.date, style: const TextStyle(fontSize: 12.5, color: AppTheme.accentGold, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          Text('Chi nhánh: ' + b.branchName, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Tổng tiền:', style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
+              Text(
+                widget.currencyFormat.format(b.totalPrice),
+                style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.accentGold, fontSize: 16),
+              ),
+            ],
+          ),
+          Divider(height: 18, color: AppTheme.borderColor),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.accentGold),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                ),
+                icon: const Icon(Icons.qr_code_2, size: 16, color: AppTheme.accentGold),
+                label: const Text('Xem Vé QR', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.accentGold)),
+                onPressed: widget.onShowQr,
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentGold,
+                  foregroundColor: AppTheme.charcoal,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                ),
+                icon: const Icon(Icons.payment_rounded, size: 16),
+                label: const Text('Thanh Toán Ngay', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                onPressed: widget.onPay,
+              ),
+              if (!isCancelled)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppTheme.borderColor),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  ),
+                  icon: const Icon(Icons.star_rate_rounded, size: 16, color: Color(0xFFF59E0B)),
+                  label: Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary)),
+                  onPressed: widget.onRate,
+                ),
+              if (!isCancelled && !isCompleted)
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFDC2626)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  ),
+                  onPressed: widget.onCancel,
+                  child: const Text('Hủy', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w800, fontSize: 12)),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

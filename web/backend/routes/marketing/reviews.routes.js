@@ -246,12 +246,12 @@ async function handleReviewRoutes(req, res, ctx) {
         }
       }
 
-      // Tạo mã đánh giá tự tăng
+      // Tạo mã đánh giá tự tăng chuẩn DG01, DG02...
       const allDg = await querySql(`SELECT MaDanhGia FROM DanhGia WHERE MaDanhGia LIKE 'DG%'`);
       let maxNum = 10;
       if (allDg && allDg.length > 0) {
         allDg.forEach(row => {
-          const m = (row.MaDanhGia || '').match(/DG(\d+)/i);
+          const m = (row.MaDanhGia || '').match(/^DG0*(\d+)$/i);
           if (m) {
             const num = parseInt(m[1], 10);
             if (num > maxNum) maxNum = num;

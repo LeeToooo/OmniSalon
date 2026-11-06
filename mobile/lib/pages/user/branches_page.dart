@@ -44,11 +44,17 @@ class _BranchesScreenState extends State<BranchesScreen> {
   @override
   void initState() {
     super.initState();
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     _loadBranches();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     _searchController.dispose();
     super.dispose();
   }

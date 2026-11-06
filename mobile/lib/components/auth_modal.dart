@@ -1,6 +1,7 @@
 import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:omni_salon_mobile/components/birthday_wheel_picker.dart';
 
 class AuthModal extends StatefulWidget {
   final VoidCallback? onSuccess;
@@ -57,34 +58,15 @@ class _AuthModalState extends State<AuthModal> {
   }
 
   Future<void> _pickBirthday() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedBirthday ?? DateTime(2000, 1, 1),
-      firstDate: DateTime(1940),
-      lastDate: DateTime(now.year - 5),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFC59B27),
-              onPrimary: Color(0xFF141413),
-              surface: Color(0xFF1C1917),
-              onSurface: Color(0xFFFAF8F5),
-            ),
-            dialogTheme: const DialogThemeData(
-              backgroundColor: Color(0xFF1C1917),
-            ),
-          ),
-          child: child!,
-        );
-      },
+    final picked = await showBirthdayWheelPicker(
+      context,
+      initialDate: _selectedBirthday,
     );
 
     if (picked != null) {
       setState(() {
         _selectedBirthday = picked;
-        _regBirthdayCtrl.text = DateFormat('yyyy-MM-dd').format(picked);
+        _regBirthdayCtrl.text = DateFormat('dd/MM/yyyy').format(picked);
       });
     }
   }
@@ -379,9 +361,9 @@ class _AuthModalState extends State<AuthModal> {
                 child: AbsorbPointer(
                   child: _buildInputField(
                     controller: _regBirthdayCtrl,
-                    hintText: 'Chọn ngày sinh (VD: 1998-05-20)',
+                    hintText: 'Chọn ngày sinh (VD: 20/05/1998)',
                     prefixIcon: Icons.cake_outlined,
-                    suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFFC59B27), size: 18),
+                    suffixIcon: const Icon(Icons.calendar_today, color: Colors.black, size: 18),
                   ),
                 ),
               ),

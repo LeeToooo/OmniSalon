@@ -1,5 +1,6 @@
 import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:omni_salon_mobile/components/birthday_wheel_picker.dart';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
 import 'package:omni_salon_mobile/pages/auth/otp_verification_page.dart';
 
@@ -37,25 +38,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _selectBirthday() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime(now.year - 20, 1, 1),
-      firstDate: DateTime(1940),
-      lastDate: DateTime(now.year - 10),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppTheme.accentGold,
-              onPrimary: AppTheme.charcoal,
-              surface: AppTheme.surfaceCard,
-              onSurface: AppTheme.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
+    DateTime? initial;
+    if (_birthdayController.text.trim().isNotEmpty) {
+      final text = _birthdayController.text.trim();
+      try {
+        if (text.contains('/')) {
+          final parts = text.split('/');
+          if (parts.length == 3) {
+            int y = int.parse(parts[2]);
+            if (y < 100) y = y <= 30 ? 2000 + y : 1900 + y;
+            initial = DateTime(y, int.parse(parts[1]), int.parse(parts[0]));
+          }
+        } else if (text.contains('-')) {
+          final parts = text.split('-');
+          if (parts.length == 3) {
+            initial = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+          }
+        }
+      } catch (_) {}
+    }
+
+    final picked = await showBirthdayWheelPicker(
+      context,
+      initialDate: initial,
     );
 
     if (picked != null) {
@@ -63,12 +68,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final mm = picked.month.toString().padLeft(2, '0');
       final dd = picked.day.toString().padLeft(2, '0');
       setState(() {
-        _birthdayController.text = '$yyyy-$mm-$dd';
+        _birthdayController.text = '$dd/$mm/$yyyy';
       });
     }
   }
 
   Future<void> _handleRegister() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -217,10 +223,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onTap: _selectBirthday,
                   style: AppTheme.bodyMedium(),
                   decoration: InputDecoration(
-                    hintText: 'Chọn ngày sinh (YYYY-MM-DD)...',
+                    hintText: 'Chọn ngày sinh (DD/MM/YYYY)...',
                     prefixIcon: Icon(Icons.cake_outlined, size: 20, color: AppTheme.textSecondary),
                     suffixIcon: IconButton(
-                      icon: const Icon(Icons.calendar_month_outlined, size: 20, color: AppTheme.accentGold),
+                      icon: Icon(
+                        Icons.calendar_month_outlined,
+                        size: 20,
+                        color: AppTheme.isDarkMode ? Colors.white70 : Colors.black,
+                      ),
                       onPressed: _selectBirthday,
                     ),
                   ),

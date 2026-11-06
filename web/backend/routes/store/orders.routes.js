@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // QUẢN LÝ ĐƠN HÀNG ONLINE
 // Bảng CSDL chính: DonHang, ChiTietDonHang, ChiTietPhieuNhap, HoaDon, ThanhToan
 // =========================================================================
@@ -78,6 +78,21 @@ async function handleOrderRoutes(req, res, ctx) {
         }));
 
       const isPaid = (r.TrangThaiHoaDon === 'Đã thanh toán' || r.TrangThai === 'Đã thanh toán' || (r.GhiChu && r.GhiChu.includes('Đã thanh toán')));
+      const isPickup = (
+        (r.HinhThucNhan && r.HinhThucNhan.toLowerCase().includes('quầy')) ||
+        (r.DiaChiGiaoHang && r.DiaChiGiaoHang.toLowerCase().includes('quầy')) ||
+        (r.GhiChu && r.GhiChu.toLowerCase().includes('quầy'))
+      );
+      const itemsTotal = items.reduce((sum, it) => sum + (parseFloat(it.price || it.GiaBan || 0) * parseInt(it.quantity || it.SoLuong || 1, 10)), 0);
+      let shippingFee = 0;
+      if (!isPickup) {
+        const total = parseFloat(r.TongTien || 0);
+        if (itemsTotal > 0 && total > itemsTotal) {
+          shippingFee = total - itemsTotal;
+        } else {
+          shippingFee = 30000;
+        }
+      }
 
       return {
         id: r.MaDonHang,
@@ -94,10 +109,12 @@ async function handleOrderRoutes(req, res, ctx) {
         orderDate: r.NgayDat,
         totalAmount: parseFloat(r.TongTien || 0),
         TongTien: parseFloat(r.TongTien || 0),
+        shippingFee: shippingFee,
+        PhiVanChuyen: shippingFee,
         shippingAddress: r.DiaChiGiaoHang,
         receiveMethod: r.HinhThucNhan,
-        deliveryType: (r.HinhThucNhan === 'Nhận tại quầy' || (r.DiaChiGiaoHang && r.DiaChiGiaoHang.includes('quầy'))) ? 'PICKUP_BRANCH' : 'DELIVERY',
-        paymentMethod: r.HinhThucNhan === 'Nhận tại quầy' ? 'Thanh toán tại quầy' : 'VietQR',
+        deliveryType: isPickup ? 'PICKUP_BRANCH' : 'DELIVERY',
+        paymentMethod: isPickup ? 'Thanh toán tại quầy' : 'VietQR',
         paymentStatus: isPaid ? 'Paid' : 'Unpaid',
         orderStatus: oStatus,
         TrangThai: r.TrangThai,
@@ -158,15 +175,9 @@ async function handleOrderRoutes(req, res, ctx) {
       }
     }
 
-    let id = order.id || order.orderCode;
-    if (!id || !id.startsWith('DH') || id.length > 6 || isNaN(parseInt(id.replace('DH', ''), 10))) {
-      id = await generateNextOrderId();
-    } else {
-      const existing = await querySql('SELECT MaDonHang FROM DonHang WHERE MaDonHang = ?', [id]);
-      if (existing && existing.length > 0) {
-        id = await generateNextOrderId();
-      }
-    }
+    // Backend luôn là Single Source of Truth cho mã đơn hàng (DH01 -> DH13 -> DH14 -> DH15...)
+    // Tự sinh mã tăng dần chuẩn từ CSDL SQL Server để Web và Mobile luôn đồng đều, không nhảy cóc
+    const id = await generateNextOrderId();
 
     const khId = await resolveOrCreateCustomer({
       customerId: order.customerId || order.userId,
@@ -228,6 +239,9 @@ async function handleOrderRoutes(req, res, ctx) {
           }
         }
       }
+
+      // Cập nhật lại chính xác tổng tiền đơn hàng vào CSDL (bảo toàn phí vận chuyển 30.000 đ và giảm giá)
+      await querySql('UPDATE DonHang SET TongTien = ? WHERE MaDonHang = ?', [total, id]);
     } catch (detailErr) {
       await querySql('DELETE FROM DonHang WHERE MaDonHang = ?', [id]);
       res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });

@@ -66,8 +66,28 @@ class Booking {
     }
 
     List<Map<String, dynamic>> sList = [];
-    if (json['servicesList'] is List) {
-      sList = (json['servicesList'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    final rawList = json['servicesList'] ?? json['items'] ?? json['danhSachDichVu'];
+    if (rawList is List && rawList.isNotEmpty) {
+      sList = rawList.map((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        final rawItemImg = map['image'] ?? map['HinhAnh'] ?? map['serviceImage'] ?? '';
+        map['image'] = ApiService.getImageUrl(rawItemImg.toString(), fallback: 'DichVu_Men/DV1.jpg');
+        map['serviceName'] = map['serviceName'] ?? map['name'] ?? map['TenDichVu'] ?? '';
+        final rawP = map['price'] ?? map['total'] ?? map['DonGia'] ?? map['ThanhTien'] ?? 0;
+        final num pNum = rawP is num ? rawP : (num.tryParse(rawP.toString()) ?? 0);
+        map['price'] = pNum.toInt();
+        return map;
+      }).toList();
+    }
+    if (sList.isEmpty && (json['serviceName'] != null || json['TenDichVu'] != null)) {
+      sList = [
+        {
+          'serviceId': json['serviceId'] ?? json['MaDichVu'] ?? '',
+          'serviceName': json['serviceName'] ?? json['TenDichVu'] ?? '',
+          'price': priceNum.toInt(),
+          'image': formattedImg,
+        }
+      ];
     }
 
     return Booking(
@@ -122,6 +142,17 @@ class Booking {
       'paymentMethod': paymentMethod,
     };
   }
+
+  List<Map<String, dynamic>> get services => servicesList.isNotEmpty
+      ? servicesList
+      : [
+          {
+            'serviceId': serviceId,
+            'serviceName': serviceName,
+            'price': totalPrice,
+            'image': serviceImage,
+          }
+        ];
 
   bool get isCancelled =>
       status.toLowerCase() == 'cancelled' ||

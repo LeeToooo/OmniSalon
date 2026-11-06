@@ -793,7 +793,12 @@ BEGIN
     DEALLOCATE cur_FEFO;
 
     UPDATE DonHang 
-    SET TongTien = (SELECT ISNULL(SUM(ThanhTien), 0) FROM ChiTietDonHang WHERE MaDonHang = @MaDonHang)
+    SET TongTien = (
+        SELECT ISNULL(SUM(ThanhTien), 0) FROM ChiTietDonHang WHERE MaDonHang = @MaDonHang
+    ) + CASE 
+        WHEN HinhThucNhan = N'Tại quầy' OR DiaChiGiaoHang LIKE N'%Nhận tại quầy%' THEN 0 
+        ELSE 30000 
+    END
     WHERE MaDonHang = @MaDonHang;
 END;
 GO
@@ -1475,17 +1480,11 @@ INSERT INTO CaLamViec (MaCa, MaNhanVien, NgayLam, GioBatDau, GioKetThuc, TrangTh
 ('CA20', 'NV59', '2026-10-08', '08:30:00', '17:30:00', N'Đang diễn ra');
 
 INSERT INTO KhuyenMai (MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, DoiTuongApDung, NgayBatDau, NgayKetThuc, TrangThai) VALUES
-('KM01', N'Chào Thu Rực Rỡ', N'Giảm giá %', 10.00, N'Tất cả khách hàng', '2026-09-01', '2026-10-31', N'Đang áp dụng'),
-('KM02', N'Đặc quyền Salon VIP', N'Giảm giá %', 15.00, N'Hội viên thân thiết', '2026-01-01', '2026-12-31', N'Đang áp dụng');
+('KM01', N'Chào Thu Rực Rỡ', N'Giảm giá %', 10.00, N'Tất cả khách hàng', '2026-09-01', '2026-12-31', N'Đang áp dụng');
 
 INSERT INTO KhuyenMai_DichVu (MaKhuyenMai, MaDichVu) VALUES
 ('KM01', 'DV03'),
-('KM01', 'DV04'),
-('KM02', 'DV05');
-
-INSERT INTO KhuyenMai_SanPham (MaKhuyenMai, MaSanPham) VALUES
-('KM01', 'SP01'),
-('KM02', 'SP06');
+('KM01', 'DV04');
 
 -- =========================================================================
 -- 9. PHIẾU NHẬP KHO & 2.600 CHI TIẾT NHẬP (130 SẢN PHẨM PHỦ ĐỦ 20 CHI NHÁNH)
@@ -1557,9 +1556,9 @@ SELECT
     GiaNhap * SoLuongTinhToan
 FROM MatHangChiNhanh;
 
--- Rút hạn sử dụng lô CTPN01001 (SP01 tại CN01) về ngày 20/11/2026 để kiểm thử quy tắc giảm 40% QT03
+-- Điều chỉnh hạn sử dụng lô CTPN01001 (SP01 tại CN01) còn 60 ngày để áp dụng chuẩn quy tắc giảm 40% QT03 (Còn từ 1 đến 3 tháng)
 UPDATE ChiTietPhieuNhap
-SET HanSuDung = '2026-11-20'
+SET HanSuDung = DATEADD(DAY, 60, CAST(GETDATE() AS DATE))
 WHERE MaChiTietPhieuNhap = 'CTPN01001';
 
 -- Cập nhật tổng tiền sổ sách cho 20 phiếu nhập kho

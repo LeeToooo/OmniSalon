@@ -40,7 +40,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     _loadData();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
+    super.dispose();
   }
 
   @override
@@ -66,17 +77,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
-      );
-    }
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        if (_isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
+          );
+        }
 
-    return RefreshIndicator(
-      color: AppTheme.accentGold,
-      backgroundColor: AppTheme.surfaceCard,
-      onRefresh: _loadData,
-      child: CustomScrollView(
+        return RefreshIndicator(
+          color: AppTheme.accentGold,
+          backgroundColor: AppTheme.surfaceCard,
+          onRefresh: _loadData,
+          child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           // 1. HERO BANNER
@@ -274,6 +288,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+      },
     );
   }
 

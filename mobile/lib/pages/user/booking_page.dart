@@ -70,10 +70,15 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     _lastUserId = AuthService.currentUser?.id;
     AuthService.userNotifier.addListener(_onAuthUserChanged);
     _initCustomerInfo();
     _loadData();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onAuthUserChanged() {
@@ -99,6 +104,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   void dispose() {
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     AuthService.userNotifier.removeListener(_onAuthUserChanged);
     _nameController.dispose();
     _phoneController.dispose();
@@ -542,36 +548,41 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: AppTheme.bgPrimary,
-        body: Center(
-          child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: AppTheme.bgPrimary,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header Stepper Indicator
-            _buildStepperHeader(),
-
-            // Nội dung theo từng bước
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                child: _buildCurrentStepContent(),
-              ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        if (_isLoading) {
+          return Scaffold(
+            backgroundColor: AppTheme.bgPrimary,
+            body: Center(
+              child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
             ),
+          );
+        }
 
-            // Thanh điều hướng tiến/lùi bước phía dưới
-            _buildBottomNavControl(),
-          ],
-        ),
-      ),
+        return Scaffold(
+          backgroundColor: AppTheme.bgPrimary,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Header Stepper Indicator
+                _buildStepperHeader(),
+
+                // Nội dung theo từng bước
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: _buildCurrentStepContent(),
+                  ),
+                ),
+
+                // Thanh điều hướng tiến/lùi bước phía dưới
+                _buildBottomNavControl(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

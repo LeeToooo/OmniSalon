@@ -70,45 +70,54 @@ class _MarqueeBannerState extends State<MarqueeBanner> {
       ...widget.items,
     ];
 
-    return Container(
-      height: widget.height,
-      decoration: BoxDecoration(
-        color: widget.backgroundColor ?? AppTheme.surfaceElevated,
-        border: Border.symmetric(
-          horizontal: BorderSide(color: AppTheme.borderColor, width: 0.8),
-        ),
-      ),
-      alignment: Alignment.center,
-      child: ListView.builder(
-        controller: _scrollController,
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: repeatedItems.length,
-        itemBuilder: (context, index) {
-          final text = repeatedItems[index];
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Text(
-                  text,
-                  style: AppTheme.labelUppercase(
-                    fontSize: 10.5,
-                    color: widget.textColor ?? AppTheme.textPrimary,
-                    fontWeight: FontWeight.w700,
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        final bgColor = widget.backgroundColor ?? AppTheme.surfaceElevated;
+        final txtColor = widget.textColor ?? AppTheme.textPrimary;
+        final borderCol = AppTheme.borderColor;
+
+        return Container(
+          height: widget.height,
+          decoration: BoxDecoration(
+            color: bgColor,
+            border: Border.symmetric(
+              horizontal: BorderSide(color: borderCol, width: 0.8),
+            ),
+          ),
+          alignment: Alignment.center,
+          child: ListView.builder(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: repeatedItems.length,
+            itemBuilder: (context, index) {
+              final text = repeatedItems[index];
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      text,
+                      style: AppTheme.labelUppercase(
+                        fontSize: 10.5,
+                        color: txtColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const Icon(
-                Icons.circle,
-                size: 4,
-                color: AppTheme.accentGold,
-              ),
-            ],
-          );
-        },
-      ),
+                  const Icon(
+                    Icons.circle,
+                    size: 4,
+                    color: AppTheme.accentGold,
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

@@ -2076,7 +2076,7 @@ const UICommon = {
     }
 
     if (res && res.success) {
-      this.showToast('Đổi mật khẩu thành công! Mật khẩu mới đã được lưu trực tiếp vào cơ sở dữ liệu SQL.', 'success');
+      this.showToast('Đổi mật khẩu thành công', 'success');
       if (this.resetOtpTimer) {
         clearInterval(this.resetOtpTimer);
         this.resetOtpTimer = null;

@@ -732,11 +732,17 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   void initState() {
     super.initState();
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     _loadProducts();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     _searchController.dispose();
     _categoryScrollController.dispose();
     super.dispose();
@@ -1439,9 +1445,12 @@ class _ShopScreenState extends State<ShopScreen> {
   Widget build(BuildContext context) {
     final filtered = _getFilteredProducts();
 
-    return Scaffold(
-      backgroundColor: AppTheme.bgPrimary,
-      body: SafeArea(
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        return Scaffold(
+          backgroundColor: AppTheme.bgPrimary,
+          body: SafeArea(
         child: Column(
           children: [
             // 1. THANH TÌM KIẾM & BỘ LỌC
@@ -1545,6 +1554,8 @@ class _ShopScreenState extends State<ShopScreen> {
           ],
         ),
       ),
+    );
+      },
     );
   }
 

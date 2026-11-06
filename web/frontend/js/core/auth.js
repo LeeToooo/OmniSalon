@@ -1141,7 +1141,7 @@
 
       return {
         success: true,
-        message: 'Đổi mật khẩu thành công! Mật khẩu mới đã được lưu và cập nhật vào SQL Server.'
+        message: 'Đổi mật khẩu thành công'
       };
     }
 

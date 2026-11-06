@@ -24,10 +24,21 @@ class _StylistsScreenState extends State<StylistsScreen> {
   @override
   void initState() {
     super.initState();
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     if (widget.initialBranchId != null && widget.initialBranchId!.isNotEmpty) {
       _selectedBranchId = widget.initialBranchId!;
     }
     _loadData();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
+    super.dispose();
   }
 
   Future<void> _loadData() async {

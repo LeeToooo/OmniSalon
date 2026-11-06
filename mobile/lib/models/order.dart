@@ -57,6 +57,7 @@ class SalonOrder {
   final List<OrderItem> items;
   final int totalAmount;
   final int discountAmount;
+  final int? shippingFee;
   final String? voucherCode;
   final String paymentMethod;
   final String paymentStatus;
@@ -75,12 +76,24 @@ class SalonOrder {
     required this.items,
     required this.totalAmount,
     required this.discountAmount,
+    this.shippingFee,
     this.voucherCode,
     required this.paymentMethod,
     required this.paymentStatus,
     required this.orderStatus,
     required this.createdAt,
   });
+
+  int get actualShippingFee {
+    if (shippingFee != null && shippingFee! > 0) return shippingFee!;
+    final isPickup = shippingAddress.toLowerCase().contains('quầy');
+    if (isPickup) return 0;
+    final itemsSum = items.fold<int>(0, (sum, i) => sum + (i.price * i.quantity));
+    if (itemsSum > 0 && totalAmount > itemsSum) {
+      return totalAmount - itemsSum;
+    }
+    return 30000;
+  }
 
   String get orderDate => createdAt;
 
@@ -96,6 +109,23 @@ class SalonOrder {
 
     final rawDiscount = json['discountAmount'] ?? json['TongGiamGia'] ?? 0;
     final num discountNum = rawDiscount is num ? rawDiscount : (num.tryParse(rawDiscount.toString()) ?? 0);
+
+    final rawShipping = json['shippingFee'] ?? json['PhiVanChuyen'] ?? 0;
+    final num shippingNum = rawShipping is num ? rawShipping : (num.tryParse(rawShipping.toString()) ?? 0);
+    int resolvedShippingFee = shippingNum.toInt();
+    if (resolvedShippingFee == 0) {
+      final isPickup = (json['receiveMethod']?.toString().toLowerCase().contains('quầy') ?? false) ||
+          (json['shippingAddress']?.toString().toLowerCase().contains('quầy') ?? false) ||
+          (json['DiaChiGiaoHang']?.toString().toLowerCase().contains('quầy') ?? false);
+      if (!isPickup) {
+        final itemsSum = itemsList.fold<int>(0, (sum, i) => sum + (i.price * i.quantity));
+        if (itemsSum > 0 && totalNum > itemsSum) {
+          resolvedShippingFee = (totalNum - itemsSum).toInt();
+        } else {
+          resolvedShippingFee = 30000;
+        }
+      }
+    }
 
     final rawStatus = json['orderStatus'] ?? json['TrangThai'] ?? 'Đang xử lý';
     String normStatus = rawStatus.toString();
@@ -124,6 +154,7 @@ class SalonOrder {
       items: itemsList,
       totalAmount: totalNum.toInt(),
       discountAmount: discountNum.toInt(),
+      shippingFee: resolvedShippingFee,
       voucherCode: json['voucherCode'],
       paymentMethod: json['paymentMethod'] ?? 'Tiền mặt',
       paymentStatus: json['paymentStatus'] ?? 'Chưa thanh toán',
@@ -145,6 +176,7 @@ class SalonOrder {
       'items': items.map((i) => i.toJson()).toList(),
       'totalAmount': totalAmount,
       'discountAmount': discountAmount,
+      'shippingFee': shippingFee,
       'voucherCode': voucherCode,
       'paymentMethod': paymentMethod,
       'paymentStatus': paymentStatus,

@@ -7,6 +7,43 @@ const { querySql, getActiveDbConfig, DB_NAME } = require('../../database/db');
 const { signJwt, extractAuthUser } = require('../../middlewares/auth_middleware');
 const otpService = require('../../services/otp_service');
 
+/**
+ * Chuẩn hóa ngày sinh từ các định dạng dd/mm/yyyy, dd/mm/yy hoặc yyyy-mm-dd
+ * sang chuẩn ISO yyyy-mm-dd để lưu an toàn vào SQL Server (cột DATE).
+ */
+function normalizeDateToIso(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  const clean = dateStr.trim();
+  if (!clean) return null;
+
+  // Dạng dd/MM/yyyy hoặc dd-MM-yyyy hoặc dd/MM/yy
+  const dmyMatch = clean.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+  if (dmyMatch) {
+    let day = parseInt(dmyMatch[1], 10);
+    let month = parseInt(dmyMatch[2], 10);
+    let year = parseInt(dmyMatch[3], 10);
+    if (year < 100) {
+      year = year <= 30 ? 2000 + year : 1900 + year;
+    }
+    const dd = day < 10 ? '0' + day : day;
+    const mm = month < 10 ? '0' + month : month;
+    return `${year}-${mm}-${dd}`;
+  }
+
+  // Dạng yyyy-MM-dd hoặc yyyy/MM/dd
+  const ymdMatch = clean.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+  if (ymdMatch) {
+    const year = ymdMatch[1];
+    const month = parseInt(ymdMatch[2], 10);
+    const day = parseInt(ymdMatch[3], 10);
+    const dd = day < 10 ? '0' + day : day;
+    const mm = month < 10 ? '0' + month : month;
+    return `${year}-${mm}-${dd}`;
+  }
+
+  return clean;
+}
+
 async function handleAuthRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
 
@@ -79,128 +116,123 @@ async function handleAuthRoutes(req, res, ctx) {
 
   // POST /api/auth/register - Đăng ký tài khoản khách hàng mới
   if (pathname === '/api/auth/register' && method === 'POST') {
-    const { phone, password, fullName, email, birthday } = parsedBody || {};
-    const cleanPhone = (phone || '').trim();
-    const cleanPass = (password || '').trim();
-    const cleanName = (fullName || 'Khách Hàng').trim();
-    const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanBirthday = (birthday || '').trim();
+    try {
+      const { phone, password, fullName, email, birthday } = parsedBody || {};
+      const cleanPhone = (phone || '').trim();
+      const cleanPass = (password || '').trim();
+      const cleanName = (fullName || 'Khách Hàng').trim();
+      const cleanEmail = (email || '').trim().toLowerCase();
+      const cleanBirthday = normalizeDateToIso(birthday);
 
-    if (!cleanPhone || !cleanPass) {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: 'Số điện thoại và mật khẩu không được để trống.' }));
-      return true;
-    }
-
-    const existingTk = await querySql('SELECT MaTaiKhoan FROM TaiKhoan WHERE TenDangNhap = ?', [cleanPhone]);
-    if (existingTk && existingTk.length > 0) {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: 'Số điện thoại này đã được đăng ký tài khoản.' }));
-      return true;
-    }
-
-    let khId = null;
-    const existingKh = await querySql('SELECT MaKhachHang FROM KhachHang WHERE SoDienThoai = ?', [cleanPhone]);
-    if (existingKh && existingKh.length > 0) {
-      khId = existingKh[0].MaKhachHang;
-    } else {
-      const maxKh = await querySql(`SELECT TOP 1 MaKhachHang FROM KhachHang ORDER BY LEN(MaKhachHang) DESC, MaKhachHang DESC`);
-      let nextN = 21;
-      if (maxKh && maxKh[0]) {
-        const m = maxKh[0].MaKhachHang.match(/KH(\d+)/i);
-        if (m) nextN = parseInt(m[1], 10) + 1;
+      if (!cleanPhone || !cleanPass) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Số điện thoại và mật khẩu không được để trống.' }));
+        return true;
       }
-      khId = 'KH' + (nextN < 10 ? '0' + nextN : nextN);
-      await querySql(
-        `INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email) VALUES (?, ?, ?, ?)`,
-        [khId, cleanName, cleanPhone, cleanEmail || null]
-      );
-    }
 
-    // MaTaiKhoan đồng bộ chuẩn hệ thống: TK_ + MaKhachHang (VD: TK_KH22)
-    const tkId = 'TK_' + khId;
+      // 1. Kiểm tra tài khoản đã tồn tại theo số điện thoại
+      const existingTk = await querySql('SELECT MaTaiKhoan FROM TaiKhoan WHERE TenDangNhap = ?', [cleanPhone]);
+      if (existingTk && existingTk.length > 0) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Số điện thoại này đã được đăng ký tài khoản.' }));
+        return true;
+      }
 
-    // Tự động dọn dẹp các mã lỗi cũ như TK101 nếu đang gắn với khách hàng này
-    await querySql(
-      `UPDATE TaiKhoan SET MaTaiKhoan = ? WHERE (MaKhachHang = ? OR TenDangNhap = ?) AND MaTaiKhoan LIKE 'TK[0-9]%'`,
-      [tkId, khId, cleanPhone]
-    ).catch(() => {});
+      // 2. Tìm hoặc sinh mã khách hàng an toàn tuyệt đối chống trùng khóa chính
+      let khId = null;
+      const existingKh = await querySql('SELECT MaKhachHang FROM KhachHang WHERE SoDienThoai = ?', [cleanPhone]);
+      if (existingKh && existingKh.length > 0) {
+        khId = existingKh[0].MaKhachHang;
+        await querySql(
+          'UPDATE KhachHang SET HoTen = ?, Email = ISNULL(?, Email), NgaySinh = ISNULL(?, NgaySinh) WHERE MaKhachHang = ?',
+          [cleanName, cleanEmail || null, cleanBirthday || null, khId]
+        );
+      } else {
+        const maxKh = await querySql(`
+          SELECT ISNULL(MAX(CAST(SUBSTRING(MaKhachHang, 3, 10) AS INT)), 20) AS maxId 
+          FROM KhachHang 
+          WHERE MaKhachHang LIKE 'KH[0-9]%'
+        `);
+        let nextN = ((maxKh && maxKh[0] && maxKh[0].maxId) ? parseInt(maxKh[0].maxId, 10) : 20) + 1;
+        khId = 'KH' + (nextN < 10 ? '0' + nextN : nextN);
 
-    // Kiểm tra chống trùng khóa chính PK: nếu đã tồn tại thì cập nhật, nếu chưa thì thêm mới
-    const checkTk = await querySql('SELECT MaTaiKhoan FROM TaiKhoan WHERE MaTaiKhoan = ?', [tkId]);
-    if (checkTk && checkTk.length > 0) {
-      await querySql(
-        `UPDATE TaiKhoan SET MaKhachHang = ?, TenDangNhap = ?, MatKhau = ?, TrangThai = N'Hoạt động' WHERE MaTaiKhoan = ?`,
-        [khId, cleanPhone, cleanPass, tkId]
-      );
-    } else {
-      await querySql(
-        `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) 
-         VALUES (?, NULL, ?, ?, ?, N'Khách hàng', N'Hoạt động', GETDATE())`,
-        [tkId, khId, cleanPhone, cleanPass]
-      );
-    }
+        // Vòng lặp kiểm tra chống trùng khóa chính PK nếu có tiến trình khác vừa tạo
+        while (true) {
+          const checkExists = await querySql('SELECT MaKhachHang FROM KhachHang WHERE MaKhachHang = ?', [khId]);
+          if (!checkExists || checkExists.length === 0) break;
+          nextN++;
+          khId = 'KH' + (nextN < 10 ? '0' + nextN : nextN);
+        }
 
-    const token = signJwt({
-      userId: tkId,
-      customerId: khId,
-      phone: cleanPhone,
-      name: cleanName,
-      role: 'CUSTOMER'
-    });
+        await querySql(
+          `INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh) VALUES (?, ?, ?, ?, ?)`,
+          [khId, cleanName, cleanPhone, cleanEmail || null, cleanBirthday || null]
+        );
+      }
 
-    res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+      // 3. Tạo tài khoản đăng nhập tương ứng: TK_ + MaKhachHang
+      const tkId = 'TK_' + khId;
 
-    res.end(JSON.stringify({
+      const checkTk = await querySql('SELECT MaTaiKhoan FROM TaiKhoan WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [tkId, cleanPhone]);
+      if (checkTk && checkTk.length > 0) {
+        await querySql(
+          `UPDATE TaiKhoan SET MaKhachHang = ?, TenDangNhap = ?, MatKhau = ?, TrangThai = N'Hoạt động' WHERE MaTaiKhoan = ? OR TenDangNhap = ?`,
+          [khId, cleanPhone, cleanPass, tkId, cleanPhone]
+        );
+      } else {
+        await querySql(
+          `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) 
+           VALUES (?, NULL, ?, ?, ?, N'Khách hàng', N'Hoạt động', GETDATE())`,
+          [tkId, khId, cleanPhone, cleanPass]
+        );
+      }
 
-      success: true,
-
-      message: 'Đăng ký tài khoản thành công!',
-
-      user: {
-
-        id: tkId,
-
-        MaTaiKhoan: tkId,
-
+      const token = signJwt({
+        userId: tkId,
         customerId: khId,
-
-        MaKhachHang: khId,
-
-        username: cleanPhone,
-
-        TenDangNhap: cleanPhone,
-
-        name: cleanName,
-
-        fullName: cleanName,
-
-        HoTen: cleanName,
-
         phone: cleanPhone,
+        name: cleanName,
+        role: 'CUSTOMER'
+      });
 
-        SoDienThoai: cleanPhone,
-
-        email: cleanEmail || '',
-
-        Email: cleanEmail || '',
-
-        birthday: cleanBirthday || null,
-
-        NgaySinh: cleanBirthday || null,
-
-        role: 'CUSTOMER',
-
-        roleName: 'Khách hàng',
-
-        vaiTroSql: 'Khách hàng'
-
-      },
-
-      token
-
-    }));
-    return true;
+      res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        success: true,
+        message: 'Đăng ký tài khoản thành công!',
+        user: {
+          id: tkId,
+          MaTaiKhoan: tkId,
+          customerId: khId,
+          MaKhachHang: khId,
+          username: cleanPhone,
+          TenDangNhap: cleanPhone,
+          name: cleanName,
+          fullName: cleanName,
+          HoTen: cleanName,
+          phone: cleanPhone,
+          SoDienThoai: cleanPhone,
+          email: cleanEmail || '',
+          Email: cleanEmail || '',
+          birthday: cleanBirthday || null,
+          NgaySinh: cleanBirthday || null,
+          role: 'CUSTOMER',
+          roleName: 'Khách hàng',
+          vaiTroSql: 'Khách hàng'
+        },
+        token
+      }));
+      return true;
+    } catch (err) {
+      console.error('[Auth Register Error]:', err);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        success: false,
+        message: err.message?.includes('duplicate key')
+          ? 'Số điện thoại này đã được đăng ký tài khoản.'
+          : 'Không thể đăng ký tài khoản vào lúc này. Vui lòng thử lại.'
+      }));
+      return true;
+    }
   }
 
   // POST /api/auth/change-password - Đổi mật khẩu tài khoản khách hàng hoặc nhân sự
@@ -262,7 +294,7 @@ async function handleAuthRoutes(req, res, ctx) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
-      message: 'Đổi mật khẩu thành công! Mật khẩu mới đã được lưu vào hệ thống CSDL.'
+      message: 'Đổi mật khẩu thành công'
     }));
     return true;
   }
@@ -452,7 +484,7 @@ async function handleAuthRoutes(req, res, ctx) {
   // PUT /api/auth/profile - Cập nhật hồ sơ cá nhân, họ tên, email, ngày sinh
   if (pathname === '/api/auth/profile' && method === 'PUT') {
     const { id, fullName, phone, email, birthday, ngaySinh } = parsedBody || {};
-    const bday = (birthday || ngaySinh || '').trim();
+    const bday = normalizeDateToIso(birthday || ngaySinh);
     const cleanPhone = (phone || '').trim();
     const cleanEmail = (email || '').trim().toLowerCase();
 

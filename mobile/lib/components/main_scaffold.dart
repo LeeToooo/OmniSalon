@@ -44,7 +44,12 @@ class MainScaffoldState extends State<MainScaffold> {
     _lastUserId = AuthService.currentUser?.id;
     _loadCartForUser(_lastUserId);
     AuthService.userNotifier.addListener(_onAuthChanged);
+    AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
     _loadBranches();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _saveCartForUser(String? userId) async {
@@ -101,6 +106,7 @@ class MainScaffoldState extends State<MainScaffold> {
   @override
   void dispose() {
     AuthService.userNotifier.removeListener(_onAuthChanged);
+    AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     super.dispose();
   }
 
@@ -175,7 +181,10 @@ class MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final screens = [
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.isDarkModeNotifier,
+      builder: (context, isDark, _) {
+        final screens = [
       HomeScreen(
         onNavigateToTab: switchTab,
         selectedBranch: _selectedBranch,
@@ -190,7 +199,7 @@ class MainScaffoldState extends State<MainScaffold> {
         preselectedServiceId: _preselectedServiceId,
         preselectedStylistId: _preselectedStylistId,
       ),
-      const AiStylingScreen(),
+      AiStylingScreen(),
       ShopScreen(
         cartItems: _sharedCart,
         onAddToCart: addToCart,
@@ -259,10 +268,11 @@ class MainScaffoldState extends State<MainScaffold> {
           Padding(
             padding: const EdgeInsets.only(right: 14, left: 2),
             child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
+              onTap: () async {
+                await Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const ProfileScreen()),
                 );
+                if (mounted) setState(() {});
               },
               child: ValueListenableBuilder(
                 valueListenable: AuthService.userNotifier,
@@ -328,6 +338,8 @@ class MainScaffoldState extends State<MainScaffold> {
           ),
         ),
       ),
+    );
+      },
     );
   }
 
