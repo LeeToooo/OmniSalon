@@ -59,7 +59,7 @@
           <td>
             <div style="display: flex; gap: 4px;">
               <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px;" 
-                      onclick="AdminWeb.openCatalogModal('${type}', '${itemId}')">
+                      onclick="AdminWeb.editCatalogItemBottom('${type}', '${itemId}')">
                 Sửa
               </button>
               <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; color: #b91c1c; border-color: #fca5a5;" 
@@ -69,7 +69,7 @@
             </div>
           </td>
         </tr>
-      `}).join('');
+      `;}).join('');
     },
 
     renderCatalogTab(services, combos, products) {
@@ -98,38 +98,49 @@
       const pagedItems = items.slice((this.catalogPage - 1) * this.pageSize, this.catalogPage * this.pageSize);
 
       return `
-        <div class="admin-table-container">
-          <!-- Toolbar Phân Loại Catalog & Thêm Mới -->
-          <div class="admin-table-toolbar">
-            <div class="table-filter-group">
-              <button type="button" class="admin-tab-btn ${type === 'services' ? 'active' : ''}" 
-                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchCatalogTabType('services')">
-                Dịch Vụ Cắt Tóc (${services.length})
-              </button>
-              <button type="button" class="admin-tab-btn ${type === 'combos' ? 'active' : ''}" 
-                      style="padding: 6px 14px; font-size: 12px;" onclick="AdminWeb.switchCatalogTabType('combos')">
-                Gói Combo VIP (${combos.length})
-              </button>
-              <div class="search-input-wrapper" style="position: relative; display: inline-flex; align-items: center;">
-                <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; color: var(--text-muted, #94a3b8); pointer-events: none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" class="table-search-input" id="adminCatalogSearchInput" placeholder="${type === 'combos' ? 'Tìm theo tên gói combo VIP...' : 'Tìm theo tên dịch vụ...'}" 
-                       style="padding-left: 36px; padding-right: 32px;"
-                       autocomplete="off"
-                       value="${this.escapeHtml(this.catalogSearchQuery || '')}" 
-                       oninput="AdminWeb.handleCatalogSearch(this.value)">
-                <button type="button" id="adminCatalogSearchClear" onclick="AdminWeb.clearCatalogSearch()" 
-                        style="position: absolute; right: 8px; border: none; background: transparent; cursor: pointer; color: var(--text-muted, #94a3b8); display: ${this.catalogSearchQuery ? 'inline-flex' : 'none'}; align-items: center; justify-content: center; width: 20px; height: 20px; font-size: 14px; font-weight: bold; border-radius: 50%;" title="Xóa tìm kiếm">✕</button>
-              </div>
-            </div>
+        <!-- Thanh Subtabs Catalog Tinh Gọn (Đồng Bộ Chuẩn Ảnh 5) -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+          <button type="button" class="admin-tab-btn ${type === 'services' ? 'active' : ''}" 
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${type === 'services' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
+                  onclick="AdminWeb.switchCatalogTabType('services')">
+            Dịch Vụ Cắt Tóc
+          </button>
+          <button type="button" class="admin-tab-btn ${type === 'combos' ? 'active' : ''}" 
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${type === 'combos' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
+                  onclick="AdminWeb.switchCatalogTabType('combos')">
+            Gói Combo VIP
+          </button>
+        </div>
 
-            <div>
-              <button class="btn-submit-terracotta" style="padding: 7px 16px; font-size: 12px;" onclick="AdminWeb.openCatalogModal('${type}')">
-                + Thêm ${type === 'services' ? 'Dịch Vụ' : 'Gói Combo'} Mới
-              </button>
+        <!-- Toolbar Filter & Actions Độc Lập Chuẩn Enterprise (Ảnh 3) -->
+        <div class="admin-filter-bar" style="border-radius: 12px; padding: 12px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: var(--surface-card); border: 1px solid var(--border-color); box-shadow: 0 4px 14px rgba(0,0,0,0.05);">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1;">
+            <!-- Ô tìm kiếm dịch vụ / combo có icon kính lúp và nút X rõ ràng -->
+            <div style="position: relative; min-width: 260px; max-width: 380px; flex: 1;">
+              <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; display: flex; align-items: center; color: var(--text-secondary);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </span>
+              <input type="text" id="adminCatalogSearchInput" class="form-control-custom"
+                     style="padding-left: 38px !important; padding-right: 32px !important; height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated);"
+                     placeholder="${type === 'combos' ? 'Tìm theo tên gói combo VIP...' : 'Tìm theo tên dịch vụ, phân loại...'}"
+                     value="${this.escapeHtml(this.catalogSearchQuery || '')}"
+                     oninput="AdminWeb.handleCatalogSearch(this.value)">
+              <button type="button" id="adminCatalogSearchClear" onclick="AdminWeb.clearCatalogSearch()" 
+                      style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 14px; padding: 4px; display: ${this.catalogSearchQuery ? 'inline-flex' : 'none'}; align-items: center; justify-content: center; z-index: 2;"
+                      title="Xóa tìm kiếm">✕</button>
             </div>
           </div>
 
-          <!-- Bảng Dữ Liệu Catalog -->
+          <div>
+            <button class="btn-submit-terracotta" style="height: 38px; padding: 0 18px; font-size: 12.5px; font-weight: 800; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: 0 3px 10px rgba(245, 158, 11, 0.25);"
+                    onclick="AdminWeb.prepareAddCatalogBottom('${type}')">
+              <span>+ Thêm ${type === 'services' ? 'Dịch Vụ' : 'Gói Combo'} Mới</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bảng Dữ Liệu Catalog Chuẩn Enterprise -->
+        <div class="admin-table-container" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 26px;">
           <div style="overflow-x: auto;">
             <table class="admin-enterprise-table">
               <thead>
@@ -153,6 +164,9 @@
             ${this._renderPaginationControls(this.catalogPage, catTotalPages, items.length, 'AdminWeb.setCatalogPage', 'dịch vụ / combo')}
           </div>
         </div>
+
+        <!-- FORM THÊM / CHỈNH SỬA MẶT HÀNG NẰM DƯỚI BẢNG GIỐNG TRANG CHI NHÁNH & KHO -->
+        ${this._renderCatalogBottomEditor(type)}
       `;
     },
 
@@ -160,6 +174,14 @@
       this.catalogTabType = type;
       this.catalogSearchQuery = '';
       this.catalogPage = 1;
+      const content = document.getElementById('adminSubTabContent');
+      if (content && this.adminSubTab === 'catalog') {
+        const services = window.store.getServices();
+        const combos = window.store.getCombos();
+        const products = window.store.getProducts();
+        content.innerHTML = this.renderCatalogTab(services, combos, products);
+        return;
+      }
       this.refreshCatalogView();
     },
 
@@ -197,183 +219,484 @@
         type = 'services';
         this.catalogTabType = 'services';
       }
-      const q = (this.catalogSearchQuery || '').toLowerCase().trim();
 
-      let items = [];
-      if (type === 'services') {
-        items = services.filter(s => !q || (s.name && s.name.toLowerCase().includes(q)) || (s.category && s.category.toLowerCase().includes(q)) || (s.id && s.id.toLowerCase().includes(q)));
-      } else {
-        items = combos.filter(c => {
-          const cName = (c.name || c.TenCombo || '').toLowerCase();
-          const cDesc = (c.description || c.MoTa || '').toLowerCase();
-          const cId = (c.id || c.MaCombo || '').toLowerCase();
-          return !q || cName.includes(q) || cDesc.includes(q) || cId.includes(q);
-        });
-      }
+      const searchInput = document.getElementById('adminCatalogSearchInput');
+      const isSearchFocused = (document.activeElement === searchInput);
+      const selStart = searchInput ? searchInput.selectionStart : null;
+      const selEnd = searchInput ? searchInput.selectionEnd : null;
 
-      this.catalogPage = this.catalogPage || 1;
-      const catTotalPages = Math.max(1, Math.ceil(items.length / this.pageSize));
-      if (this.catalogPage > catTotalPages) this.catalogPage = catTotalPages;
-      const pagedItems = items.slice((this.catalogPage - 1) * this.pageSize, this.catalogPage * this.pageSize);
+      content.innerHTML = this.renderCatalogTab(services, combos, products);
 
-      const tableBody = document.getElementById('adminCatalogTableBody');
-      const paginationContainer = document.getElementById('adminCatalogPaginationContainer');
-
-      if (tableBody && paginationContainer) {
-        tableBody.innerHTML = this._renderCatalogTableRows(pagedItems, type);
-        paginationContainer.innerHTML = this._renderPaginationControls(this.catalogPage, catTotalPages, items.length, 'AdminWeb.setCatalogPage', 'dịch vụ / combo');
-        const priceHeader = document.getElementById('adminCatalogPriceHeader');
-        if (priceHeader) {
-          priceHeader.textContent = (type === 'combos' ? 'Giá Gói Combo' : 'Giá Dịch Vụ');
+      if (isSearchFocused) {
+        const newSearchInput = document.getElementById('adminCatalogSearchInput');
+        if (newSearchInput) {
+          newSearchInput.focus();
+          if (selStart !== null && selEnd !== null) {
+            newSearchInput.setSelectionRange(selStart, selEnd);
+          }
         }
-      } else {
-        content.innerHTML = this.renderCatalogTab(services, combos, products);
       }
     },
 
-    openCatalogModal(type, itemId = null) {
-      let item = null;
-      if (itemId) {
-        if (type === 'services') item = window.store.getServiceById(itemId);
-        else if (type === 'combos') item = window.store.getComboById(itemId);
-        else item = window.store.getProductById(itemId);
-      }
+    setCatalogPage(p) {
+      this.catalogPage = p;
+      this.refreshCatalogView();
+    },
 
-      const isEdit = !!item;
-      const isProduct = type === 'products';
+    // -----------------------------------------------------------------------
+    // INLINE BOTTOM CATALOG EDITOR (CHỈNH SỬA & THÊM MỚI Ở ĐÁY TRANG GIỐNG CHI NHÁNH)
+    // -----------------------------------------------------------------------
+    _renderCatalogBottomEditor(type = 'services') {
       const isCombo = type === 'combos';
-      const typeLabel = isProduct ? 'Sản Phẩm' : isCombo ? 'Gói Combo VIP' : 'Dịch Vụ';
-      const nameLabel = isProduct ? 'Tên Mặt Hàng / Sản Phẩm:' : isCombo ? 'Tên Gói Combo VIP:' : 'Tên Dịch Vụ:';
+      const defaultImg = isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg';
+      const defaultName = isCombo ? 'Combo Cắt Tóc & Gội VIP' : 'Cắt Tóc Nam Chuyên Nghiệp';
+      const defaultCat = isCombo ? 'Combo VIP' : 'Cắt & Tạo Kiểu';
+      const defaultPrice = isCombo ? 300000 : 120000;
+      const defaultDur = isCombo ? 60 : 45;
+      const allServices = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
 
-      // Chuẩn hóa ảnh: Tuyệt đối không dùng ảnh Unsplash cho Dịch Vụ và Combo salon
-      let itemImage = item?.image || item?.HinhAnh || '';
-      if (type === 'services') {
-        const dvNum = (item?.id || itemId || item?.MaDichVu || '').match(/\d+/);
-        const num = dvNum ? parseInt(dvNum[0], 10) : 1;
-        const defaultPath = `DichVu_Men/DV${num}.jpg`;
-        if (!itemImage || itemImage.includes('unsplash.com') || !itemImage.includes('DichVu_Men')) {
-          itemImage = defaultPath;
-        }
-      } else if (type === 'combos') {
-        const cbNum = (item?.id || itemId || item?.MaCombo || '').match(/\d+/);
-        const num = cbNum ? parseInt(cbNum[0], 10) : 1;
-        const defaultPath = `DichVu_Men/CBDV${num}.jpg`;
-        if (!itemImage || itemImage.includes('unsplash.com') || !itemImage.includes('DichVu_Men')) {
-          itemImage = defaultPath;
-        }
-      }
-
-      this._openModal(`
-        <div style="max-width: ${isCombo ? '600px' : '520px'}; margin: 0 auto;">
-          <div class="badge-terracotta">QUẢN LÝ CATALOG SALON</div>
-          <h2 style="font-size: 20px; font-weight: 800; margin: 8px 0 16px;">${isEdit ? 'CHỈNH SỬA' : 'THÊM MỚI'} ${typeLabel.toUpperCase()}</h2>
-          <form onsubmit="event.preventDefault(); AdminWeb.submitCatalogForm('${type}', '${itemId || ''}');">
-            <div style="margin-bottom: 12px;">
-              <label class="sub-label">${nameLabel}</label>
-              <input type="text" id="catName" class="form-control-custom" placeholder="${isProduct ? 'VD: Sáp Brosh Matte / Pomade Reuzel...' : isCombo ? 'VD: Combo Quý Tộc Barber...' : 'VD: Cắt tóc nam Fade & Tạo kiểu...'}" value="${this.escapeHtml(item?.name || item?.TenCombo || item?.TenDichVu || item?.TenSanPham || '')}" required>
+      return `
+        <div id="adminCatalogBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
+              <h3 id="catalogEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
+                Thêm ${isCombo ? 'Gói Combo VIP' : 'Dịch Vụ'} Mới
+              </h3>
             </div>
-            ${isProduct ? `
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                <div>
-                  <label class="sub-label">Giá Bán (VNĐ):</label>
-                  <input type="number" id="catPrice" class="form-control-custom" placeholder="250000" value="${item?.price !== undefined ? item.price : (item?.GiaCombo !== undefined ? item.GiaCombo : (item?.Gia || ''))}" required min="1000">
-                </div>
-                <div>
-                  <label class="sub-label">Giá Gốc / So Sánh (VNĐ):</label>
-                  <input type="number" id="catOldPrice" class="form-control-custom" placeholder="320000" value="${item?.oldPrice || item?.originalPrice || item?.GiaBan || item?.price || ''}">
-                </div>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                <div>
-                  <label class="sub-label">Thương Hiệu:</label>
-                  <input type="text" id="catCategory" class="form-control-custom" value="${this.escapeHtml(item?.brand || 'Brosh Japan')}" required>
-                </div>
-                <div>
-                  <label class="sub-label">Số Lượng Tồn Kho:</label>
-                  <input type="number" id="catDurationOrStock" class="form-control-custom" value="${item?.stock || 30}" required min="1">
-                </div>
-              </div>
-            ` : `
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                <div>
-                  <label class="sub-label">${isCombo ? 'Giá Gói Combo (VNĐ):' : 'Giá Dịch Vụ (VNĐ):'}</label>
-                  <input type="number" id="catPrice" class="form-control-custom" placeholder="250000" value="${item?.price || ''}" required min="1000">
-                </div>
-                <div>
-                  <label class="sub-label">Thời Lượng Thực Hiện (Phút): ${isCombo ? '<span style="font-size: 11px; color: #f59e0b; font-weight: normal;">(Tự động tính)</span>' : ''}</label>
-                  <input type="number" id="catDurationOrStock" class="form-control-custom" value="${item?.durationMinutes || parseInt(item?.duration || item?.ThoiLuong || (isCombo ? 0 : 45), 10) || (isCombo ? 0 : 45)}" ${isCombo ? 'readonly style="background: rgba(255,255,255,0.06); cursor: not-allowed; color: #f59e0b; font-weight: 700;"' : ''} required min="1">
-                </div>
-              </div>
-              <div style="margin-bottom: 12px;">
-                <label class="sub-label">Phân Loại (Category):</label>
-                <input type="text" id="catCategory" class="form-control-custom" value="${this.escapeHtml(item?.category || (isCombo ? 'Combo VIP' : 'Cắt & Tạo Kiểu'))}" required>
-              </div>
-            `}
-            ${isCombo ? `
-              <div style="margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 8px; padding: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <label class="sub-label" style="display: block; margin: 0; font-weight: 700; color: #f59e0b;">
-                    Dịch Vụ Cấu Thành Combo VIP:
-                  </label>
-                  <span id="comboSelectedCountBadge" style="background: rgba(245,158,11,0.18); color: #f59e0b; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(245,158,11,0.3);">
-                    Đã chọn: 0 dịch vụ
-                  </span>
-                </div>
-                <div style="margin-bottom: 8px;">
-                  <input type="text" id="comboServiceSearch" class="form-control-custom" placeholder="Tìm nhanh dịch vụ theo tên hoặc mã..." style="padding: 6px 10px; font-size: 12px;" oninput="AdminWeb.filterComboServices(this.value)">
-                </div>
-                <div id="comboServicesList" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px;">
-                  ${((window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : []).map(s => {
-                    const sId = String(s.id || s.MaDichVu || '').trim();
-                    const rawCurIds = item?.serviceIds || (Array.isArray(item?.services) ? item.services.map(x => typeof x === 'object' ? (x.id || x.MaDichVu) : x) : []);
-                    const curIds = (Array.isArray(rawCurIds) ? rawCurIds : []).map(x => String(x).trim());
-                    const isChecked = curIds.includes(sId);
-                    const sDur = parseInt(s.durationMinutes || s.duration || s.ThoiLuong || 30, 10);
-                    const sPrice = parseFloat(s.price || s.Gia || 0);
-                    const sName = s.name || s.TenDichVu || sId;
-                    return `
-                      <label class="combo-service-row" data-search="${this.escapeHtml((sId + ' ' + sName).toLowerCase())}" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 6px; background: rgba(255,255,255,0.02); cursor: pointer; transition: background 0.15s ease;">
-                        <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
-                          <input type="checkbox" class="combo-service-checkbox" value="${sId}" data-duration="${sDur}" data-name="${this.escapeHtml(sName)}" data-price="${sPrice}" ${isChecked ? 'checked' : ''} onchange="AdminWeb.onComboServiceToggle()" style="accent-color: #f59e0b; cursor: pointer; width: 15px; height: 15px;">
-                          <span style="font-size: 13px; font-weight: 600; color: #f3f4f6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${this.escapeHtml(sName)} <span style="font-size: 11px; color: #9ca3af; font-weight: normal;">#${sId}</span>
-                          </span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; flex-shrink: 0; margin-left: 8px;">
-                          <span style="color: #f59e0b; font-weight: 700;">${sDur} phút</span>
-                          <span style="color: #6b7280;">•</span>
-                          <span style="color: #10b981; font-weight: 600;">${SalonUtils.formatCurrency(sPrice)}</span>
-                        </div>
+            <div>
+              <button type="button" class="pill-btn-outline" style="padding: 5px 14px; font-size: 12px; font-weight: 600;" onclick="AdminWeb.resetCatalogBottomEditor()">
+                Đặt Lại / Làm Trống
+              </button>
+            </div>
+          </div>
+
+          <form id="catalogBottomForm" onsubmit="event.preventDefault(); AdminWeb.submitCatalogBottomEditor();">
+            <input type="hidden" id="catEditorId" value="">
+            <input type="hidden" id="catEditorType" value="${type}">
+
+            <div style="display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(320px, 360px); gap: 28px; align-items: start;">
+              
+              <!-- CỘT TRÁI: FORM LIỀN MẠCH -->
+              <div style="display: flex; flex-direction: column;">
+                
+                <!-- PHẦN 1: THÔNG TIN DỊCH VỤ / COMBO -->
+                <div style="margin-bottom: 6px;">
+                  <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--brand-accent, #C59B27); margin-bottom: 14px;">
+                    Thông tin mặt hàng
+                  </div>
+
+                  <!-- Hàng 1: Tên mặt hàng -->
+                  <div style="margin-bottom: 14px;">
+                    <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                      ${isCombo ? 'Tên Gói Combo VIP' : 'Tên Dịch Vụ'} <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="text" id="catEditorName" class="form-control-custom" 
+                           style="height: 38px; font-size: 13.5px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px; font-weight: 600;" 
+                           placeholder="${isCombo ? 'VD: Combo Đẹp Trai Toàn Diện...' : 'VD: Cắt tóc nam Fade & Tạo kiểu sáp...'}"
+                           oninput="AdminWeb.syncCatalogPreviewCard()" required>
+                  </div>
+
+                  <!-- Hàng 2: Giá & Thời lượng -->
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div>
+                      <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                        Giá Niêm Yết (VNĐ) <span style="color: #ef4444;">*</span>
                       </label>
-                    `;
-                  }).join('')}
+                      <input type="number" id="catEditorPrice" class="form-control-custom" 
+                             style="height: 38px; font-size: 13.5px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: #f59e0b; font-weight: 700; padding: 0 12px;" 
+                             placeholder="250000" min="1000" step="5000"
+                             oninput="AdminWeb.syncCatalogPreviewCard()" required>
+                    </div>
+                    <div>
+                      <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                        Thời Lượng Thực Hiện (Phút) ${isCombo ? '<span style="font-size: 11px; color: #f59e0b; font-weight: normal;">(Tự động tính)</span>' : ''}
+                      </label>
+                      <input type="number" id="catEditorDuration" class="form-control-custom" 
+                             style="height: 38px; font-size: 13.5px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px; ${isCombo ? 'background: rgba(255,255,255,0.06); cursor: not-allowed; color: #f59e0b; font-weight: 700;' : ''}" 
+                             value="${defaultDur}" min="5" step="5"
+                             ${isCombo ? 'readonly' : ''}
+                             oninput="AdminWeb.syncCatalogPreviewCard()" required>
+                    </div>
+                  </div>
+
+                  <!-- Hàng 3: Phân loại & Ảnh URL -->
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div>
+                      <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                        Phân Loại (Category)
+                      </label>
+                      <input type="text" id="catEditorCategory" class="form-control-custom" 
+                             style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
+                             value="${defaultCat}"
+                             oninput="AdminWeb.syncCatalogPreviewCard()">
+                    </div>
+                    <div>
+                      <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                        Đường Dẫn Ảnh (Image Path)
+                      </label>
+                      <input type="text" id="catEditorImage" class="form-control-custom" 
+                             style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
+                             value="${defaultImg}"
+                             oninput="AdminWeb.syncCatalogPreviewCard()">
+                    </div>
+                  </div>
+
+                  ${isCombo ? `
+                    <!-- Khối chọn dịch vụ cấu thành gói Combo VIP -->
+                    <div style="margin-bottom: 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <label class="sub-label" style="margin: 0; font-weight: 700; color: var(--brand-accent, #C59B27); font-size: 12.5px;">
+                          Dịch Vụ Cấu Thành Gói Combo VIP:
+                        </label>
+                        <span id="comboSelectedCountBadge" style="background: rgba(197, 155, 39, 0.15); color: #C59B27; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(197, 155, 39, 0.3);">
+                          Đã chọn: 0 dịch vụ
+                        </span>
+                      </div>
+                      <div style="margin-bottom: 8px;">
+                        <input type="text" id="comboServiceSearch" class="form-control-custom" placeholder="Tìm nhanh dịch vụ theo tên hoặc mã..." style="padding: 6px 10px; font-size: 12px; height: 32px;" oninput="AdminWeb.filterComboServices(this.value)">
+                      </div>
+                      <div id="comboServicesList" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px;">
+                        ${allServices.map(s => {
+                          const sId = String(s.id || s.MaDichVu || '').trim();
+                          const sDur = parseInt(s.durationMinutes || s.duration || s.ThoiLuong || 30, 10);
+                          const sPrice = parseFloat(s.price || s.Gia || 0);
+                          const sName = s.name || s.TenDichVu || sId;
+                          return `
+                            <label class="combo-service-row" data-search="${this.escapeHtml((sId + ' ' + sName).toLowerCase())}" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 6px; background: rgba(255,255,255,0.02); cursor: pointer; transition: background 0.15s ease;">
+                              <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                                <input type="checkbox" class="combo-service-checkbox" value="${sId}" data-duration="${sDur}" data-name="${this.escapeHtml(sName)}" data-price="${sPrice}" onchange="AdminWeb.onComboServiceToggle()" style="accent-color: #f59e0b; cursor: pointer; width: 15px; height: 15px;">
+                                <span style="font-size: 12.5px; font-weight: 600; color: #f3f4f6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                  ${this.escapeHtml(sName)} <span style="font-size: 11px; color: #9ca3af; font-weight: normal;">#${sId}</span>
+                                </span>
+                              </div>
+                              <div style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; flex-shrink: 0; margin-left: 8px;">
+                                <span style="color: #f59e0b; font-weight: 700;">${sDur} phút</span>
+                                <span style="color: #6b7280;">•</span>
+                                <span style="color: #10b981; font-weight: 600;">${SalonUtils.formatCurrency(sPrice)}</span>
+                              </div>
+                            </label>
+                          `;
+                        }).join('')}
+                      </div>
+                      <div id="comboSelectedSummary" style="margin-top: 10px; padding: 8px 10px; border-radius: 6px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(197, 155, 39, 0.3); font-size: 12px;">
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  <!-- Hàng 4: Mô tả tóm tắt -->
+                  <div style="margin-bottom: 10px;">
+                    <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                      Mô Tả Tóm Tắt &amp; Công Dụng
+                    </label>
+                    <textarea id="catEditorDescription" class="form-control-custom" rows="2" 
+                              style="font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 8px 12px; box-sizing: border-box;" 
+                              placeholder="Mô tả công dụng và các bước phục vụ..."
+                              oninput="AdminWeb.syncCatalogPreviewCard()"></textarea>
+                  </div>
                 </div>
-                <div id="comboSelectedSummary" style="margin-top: 10px; padding: 8px 10px; border-radius: 6px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(245,158,11,0.3); font-size: 12px;">
+
+              </div>
+
+              <!-- CỘT PHẢI: DEMO THỰC TẾ TRÊN MENU ĐẶT LỊCH (LIVE PREVIEW CARD 1:1) -->
+              <div style="position: sticky; top: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--brand-accent, #C59B27);">
+                    Xem trước thực tế (Live Card)
+                  </span>
+                  <span style="font-size: 11px; color: var(--text-secondary);">Giao diện khách hàng</span>
+                </div>
+
+                <div class="catalog-preview-card" style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--surface-card, #181816); width: 100%; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);">
+                  <div style="position: relative; height: 160px; overflow: hidden; background: #000;">
+                    <img id="catPreviewImg" src="${SalonUtils.formatImageUrl(defaultImg)}" 
+                         alt="Preview" 
+                         style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;"
+                         onerror="this.src='/DichVu_Men/DV1.jpg';">
+                    <span id="catPreviewBadge" class="badge-terracotta" style="position: absolute; top: 10px; left: 10px; font-size: 10.5px; padding: 3px 8px;">
+                      ${defaultCat}
+                    </span>
+                    <span id="catPreviewDuration" style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">
+                      ${defaultDur} phút
+                    </span>
+                  </div>
+
+                  <div style="padding: 14px 16px;">
+                    <h4 id="catPreviewName" style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px 0; line-height: 1.35;">
+                      ${defaultName}
+                    </h4>
+                    <p id="catPreviewDesc" style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                      Chất lượng tiêu chuẩn Omni Salon Suite
+                    </p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                      <span style="font-size: 11px; color: var(--text-secondary);">Giá niêm yết:</span>
+                      <strong id="catPreviewPrice" style="font-size: 16px; font-weight: 900; color: #f59e0b;">
+                        ${SalonUtils.formatCurrency(defaultPrice)}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="margin-top: 10px; font-size: 11.5px; color: var(--text-secondary); line-height: 1.4; text-align: center;">
+                  Thẻ hiển thị tức thì trên menu chọn dịch vụ &amp; đặt lịch hẹn
                 </div>
               </div>
-            ` : ''}
-            <div style="margin-bottom: 12px;">
-              <label class="sub-label">Đường Dẫn Ảnh (Image URL):</label>
-              <input type="text" id="catImage" class="form-control-custom" value="${this.escapeHtml(itemImage || (type === 'combos' ? 'DichVu_Men/CBDV1.jpg' : type === 'services' ? 'DichVu_Men/DV1.jpg' : 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg'))}">
+
             </div>
-            <div style="margin-bottom: 16px;">
-              <label class="sub-label">Mô Tả Chi Tiết:</label>
-              <textarea id="catDescription" class="form-control-custom" rows="2" placeholder="Mô tả công dụng và các bước phục vụ...">${this.escapeHtml(item?.description || item?.MoTa || '')}</textarea>
+
+            <!-- NÚT HÀNH ĐỘNG DƯỚI ĐÁY FORM -->
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.08));">
+              <button type="button" class="pill-btn-outline" style="height: 38px; padding: 0 18px; font-weight: 600; font-size: 13px;" onclick="AdminWeb.resetCatalogBottomEditor()">
+                Hủy Bỏ / Làm Mới
+              </button>
+              <button type="submit" id="catEditorSubmitBtn"
+                      style="height: 38px; padding: 0 28px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; border: none; background: var(--brand-accent, #C59B27); color: #141413; transition: opacity 0.15s ease;"
+                      onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
+                <span>Lưu</span>
+              </button>
             </div>
-            <div style="display: flex; gap: 10px;">
-              <button type="button" class="btn-cancel" style="flex: 1;" onclick="AdminWeb._closeModal()">Hủy Bỏ</button>
-              <button type="submit" class="btn-submit-terracotta" style="flex: 1;">${isEdit ? 'Cập Nhật' : 'Lưu Mặt Hàng'}</button>
-            </div>
+
           </form>
         </div>
-      `);
+      `;
+    },
+
+    prepareAddCatalogBottom(type) {
+      if (type && type !== this.catalogTabType) {
+        this.catalogTabType = type;
+        this.refreshCatalogView();
+      }
+      this.resetCatalogBottomEditor();
+      const editor = document.getElementById('adminCatalogBottomEditor');
+      if (editor) {
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => {
+          const nameInput = document.getElementById('catEditorName');
+          if (nameInput) nameInput.focus();
+        }, 300);
+      }
+    },
+
+    editCatalogItemBottom(type, itemId) {
+      let item = null;
+      if (type === 'services') item = window.store.getServiceById(itemId);
+      else if (type === 'combos') item = window.store.getComboById(itemId);
+      else item = window.store.getProductById(itemId);
+
+      if (!item) {
+        if (window.UICommon) window.UICommon.showToast('Không tìm thấy thông tin mặt hàng #' + itemId, 'warning');
+        return;
+      }
+
+      // Đổi subtab nếu khác type hiện tại
+      if (type !== this.catalogTabType) {
+        this.catalogTabType = type;
+        this.refreshCatalogView();
+      }
+
+      const idInput = document.getElementById('catEditorId');
+      const typeInput = document.getElementById('catEditorType');
+      const nameInput = document.getElementById('catEditorName');
+      const priceInput = document.getElementById('catEditorPrice');
+      const durInput = document.getElementById('catEditorDuration');
+      const catInput = document.getElementById('catEditorCategory');
+      const imgInput = document.getElementById('catEditorImage');
+      const descInput = document.getElementById('catEditorDescription');
+      const titleEl = document.getElementById('catalogEditorTitle');
+      const submitBtn = document.getElementById('catEditorSubmitBtn');
+
+      if (idInput) idInput.value = itemId;
+      if (typeInput) typeInput.value = type;
+      if (nameInput) nameInput.value = item.name || item.TenCombo || item.TenDichVu || item.TenSanPham || '';
+      if (priceInput) priceInput.value = item.price !== undefined ? item.price : (item.GiaCombo !== undefined ? item.GiaCombo : (item.GiaBan || item.Gia || ''));
+      if (durInput) durInput.value = item.durationMinutes || parseInt(item.duration || item.ThoiLuong || (type === 'combos' ? 60 : 45), 10) || 45;
+      if (catInput) catInput.value = item.category || (type === 'combos' ? 'Combo VIP' : 'Dịch Vụ');
+      if (imgInput) imgInput.value = item.image || item.HinhAnh || (type === 'combos' ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg');
+      if (descInput) descInput.value = item.description || item.MoTa || '';
+
+      if (titleEl) {
+        titleEl.textContent = 'Chỉnh Sửa ' + (type === 'combos' ? 'Gói Combo' : 'Dịch Vụ') + ': ' + (item.name || item.TenCombo || item.TenDichVu) + ' (#' + itemId + ')';
+      }
+      if (submitBtn) {
+        submitBtn.innerHTML = '<span>Lưu</span>';
+      }
+
+      // Nếu là combo, tích chọn các dịch vụ cấu thành
+      if (type === 'combos') {
+        const rawCurIds = item.serviceIds || (Array.isArray(item.services) ? item.services.map(x => typeof x === 'object' ? (x.id || x.MaDichVu) : x) : []);
+        const curIds = (Array.isArray(rawCurIds) ? rawCurIds : []).map(x => String(x).trim());
+        const checkboxes = document.querySelectorAll('.combo-service-checkbox');
+        checkboxes.forEach(cb => {
+          cb.checked = curIds.includes(String(cb.value).trim());
+        });
+        if (typeof this.onComboServiceToggle === 'function') {
+          this.onComboServiceToggle();
+        }
+      }
+
+      this.syncCatalogPreviewCard();
+
+      const editor = document.getElementById('adminCatalogBottomEditor');
+      if (editor) {
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => {
+          if (nameInput) nameInput.focus();
+        }, 300);
+      }
+    },
+
+    resetCatalogBottomEditor() {
+      const type = this.catalogTabType || 'services';
+      const isCombo = type === 'combos';
+
+      const idInput = document.getElementById('catEditorId');
+      const typeInput = document.getElementById('catEditorType');
+      const nameInput = document.getElementById('catEditorName');
+      const priceInput = document.getElementById('catEditorPrice');
+      const durInput = document.getElementById('catEditorDuration');
+      const catInput = document.getElementById('catEditorCategory');
+      const imgInput = document.getElementById('catEditorImage');
+      const descInput = document.getElementById('catEditorDescription');
+      const titleEl = document.getElementById('catalogEditorTitle');
+      const submitBtn = document.getElementById('catEditorSubmitBtn');
+
+      if (idInput) idInput.value = '';
+      if (typeInput) typeInput.value = type;
+      if (nameInput) nameInput.value = '';
+      if (priceInput) priceInput.value = '';
+      if (durInput) durInput.value = isCombo ? 0 : 45;
+      if (catInput) catInput.value = isCombo ? 'Combo VIP' : 'Cắt & Tạo Kiểu';
+      if (imgInput) imgInput.value = isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg';
+      if (descInput) descInput.value = '';
+
+      if (titleEl) {
+        titleEl.textContent = 'Thêm ' + (isCombo ? 'Gói Combo VIP' : 'Dịch Vụ') + ' Mới';
+      }
+      if (submitBtn) {
+        submitBtn.innerHTML = '<span>Lưu</span>';
+      }
 
       if (isCombo) {
-        setTimeout(() => {
-          if (typeof AdminWeb.onComboServiceToggle === 'function') {
-            AdminWeb.onComboServiceToggle();
-          }
-        }, 40);
+        const checkboxes = document.querySelectorAll('.combo-service-checkbox');
+        checkboxes.forEach(cb => { cb.checked = false; });
+        if (typeof this.onComboServiceToggle === 'function') {
+          this.onComboServiceToggle();
+        }
+      }
+
+      this.syncCatalogPreviewCard();
+    },
+
+    syncCatalogPreviewCard() {
+      const nameVal = document.getElementById('catEditorName')?.value?.trim();
+      const priceVal = parseFloat(document.getElementById('catEditorPrice')?.value) || 0;
+      const durVal = parseInt(document.getElementById('catEditorDuration')?.value, 10) || 0;
+      const catVal = document.getElementById('catEditorCategory')?.value?.trim();
+      const imgVal = document.getElementById('catEditorImage')?.value?.trim();
+      const descVal = document.getElementById('catEditorDescription')?.value?.trim();
+      const type = document.getElementById('catEditorType')?.value || this.catalogTabType || 'services';
+      const isCombo = type === 'combos';
+
+      const previewImg = document.getElementById('catPreviewImg');
+      const previewBadge = document.getElementById('catPreviewBadge');
+      const previewDuration = document.getElementById('catPreviewDuration');
+      const previewName = document.getElementById('catPreviewName');
+      const previewDesc = document.getElementById('catPreviewDesc');
+      const previewPrice = document.getElementById('catPreviewPrice');
+
+      if (previewImg) {
+        const fallback = isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg';
+        previewImg.src = SalonUtils.formatImageUrl(imgVal || fallback);
+      }
+      if (previewBadge) {
+        previewBadge.textContent = catVal || (isCombo ? 'Combo VIP' : 'Dịch Vụ');
+      }
+      if (previewDuration) {
+        previewDuration.textContent = (durVal || (isCombo ? 60 : 45)) + ' phút';
+      }
+      if (previewName) {
+        previewName.textContent = nameVal || (isCombo ? 'Combo Cắt Tóc & Gội VIP' : 'Cắt Tóc Nam Chuyên Nghiệp');
+      }
+      if (previewDesc) {
+        previewDesc.textContent = descVal || 'Chất lượng tiêu chuẩn Omni Salon Suite';
+      }
+      if (previewPrice) {
+        previewPrice.textContent = SalonUtils.formatCurrency(priceVal || (isCombo ? 300000 : 120000));
+      }
+    },
+
+    submitCatalogBottomEditor() {
+      const id = document.getElementById('catEditorId')?.value?.trim() || null;
+      const type = document.getElementById('catEditorType')?.value || this.catalogTabType || 'services';
+      const name = document.getElementById('catEditorName')?.value?.trim();
+      const price = parseFloat(document.getElementById('catEditorPrice')?.value) || 0;
+      const duration = parseInt(document.getElementById('catEditorDuration')?.value, 10) || 45;
+      const category = document.getElementById('catEditorCategory')?.value?.trim() || (type === 'combos' ? 'Combo VIP' : 'Dịch Vụ');
+      let image = document.getElementById('catEditorImage')?.value?.trim();
+      const description = document.getElementById('catEditorDescription')?.value?.trim() || '';
+
+      if (!name || price <= 0) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập tên và giá bán hợp lệ!', 'warning');
+        return;
+      }
+
+      let serviceIds = [];
+      if (type === 'combos') {
+        const checkedCbs = document.querySelectorAll('.combo-service-checkbox:checked');
+        serviceIds = Array.from(checkedCbs).map(cb => cb.value);
+        if (serviceIds.length === 0) {
+          if (window.UICommon) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ cấu thành gói combo!', 'warning');
+          return;
+        }
+      }
+
+      if (type === 'services' && (!image || image.includes('unsplash.com'))) {
+        const dvNum = (id || '').match(/\d+/);
+        image = dvNum ? `DichVu_Men/DV${parseInt(dvNum[0], 10)}.jpg` : 'DichVu_Men/DV1.jpg';
+      } else if (type === 'combos' && (!image || image.includes('unsplash.com'))) {
+        const cbNum = (id || '').match(/\d+/);
+        image = cbNum ? `DichVu_Men/CBDV${parseInt(cbNum[0], 10)}.jpg` : 'DichVu_Men/CBDV1.jpg';
+      } else if (!image) {
+        image = isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg';
+      }
+
+      if (id) {
+        // Cập nhật mặt hàng hiện có
+        if (type === 'services') {
+          window.store.updateService(id, { name, price, category, duration, image, description });
+        } else if (type === 'combos') {
+          window.store.updateCombo(id, { name, price, duration, durationMinutes: duration, image, description, serviceIds, services: serviceIds });
+        }
+        if (window.UICommon) window.UICommon.showToast(`Đã cập nhật [${name}] thành công!`, 'success');
+      } else {
+        // Thêm mặt hàng mới
+        if (type === 'services') {
+          window.store.addService({ name, price, category, duration, image, description });
+        } else if (type === 'combos') {
+          window.store.addCombo({ name, price, duration, durationMinutes: duration, image, description, serviceIds, services: serviceIds });
+        }
+        if (window.UICommon) window.UICommon.showToast(`Đã thêm [${name}] vào danh mục!`, 'success');
+      }
+
+      this.resetCatalogBottomEditor();
+      this.refreshCatalogView();
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        window.store.syncWithLiveServer();
+      }
+
+      // Cuộn nhẹ lên bảng
+      const table = document.querySelector('.admin-table-container');
+      if (table) {
+        table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+
+    // Giữ lại để tương thích ngược nếu có sự kiện gọi openCatalogModal
+    openCatalogModal(type, itemId = null) {
+      if (itemId) {
+        this.editCatalogItemBottom(type, itemId);
+      } else {
+        this.prepareAddCatalogBottom(type);
       }
     },
 
@@ -390,7 +713,7 @@
         selected.push({ id, name, duration: dur, price });
       });
 
-      const durInput = document.getElementById('catDurationOrStock');
+      const durInput = document.getElementById('catEditorDuration') || document.getElementById('catDurationOrStock');
       if (durInput) {
         durInput.value = totalDuration;
       }
@@ -406,7 +729,7 @@
           summaryBox.innerHTML = '<span style="color: #ef4444; font-size: 12px; font-weight: 500;">Chưa chọn dịch vụ nào. Vui lòng chọn ít nhất 1 dịch vụ cho combo.</span>';
         } else {
           const chipsHtml = selected.map(s => `
-            <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; border-radius: 4px; padding: 3px 8px; font-size: 11px; margin: 2px;">
+            <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(197,155,39,0.15); border: 1px solid rgba(197,155,39,0.3); color: #fbbf24; border-radius: 4px; padding: 3px 8px; font-size: 11px; margin: 2px;">
               <span><strong>#${this.escapeHtml(s.id)}</strong> ${this.escapeHtml(s.name)}</span>
               <span style="background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; color: #fff; font-weight: 700;">${s.duration}p</span>
               <button type="button" onclick="AdminWeb.removeComboService('${s.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 2px; font-size: 13px; font-weight: bold; line-height: 1;" title="Bỏ dịch vụ này">&times;</button>
@@ -423,6 +746,7 @@
           `;
         }
       }
+      this.syncCatalogPreviewCard();
     },
 
     removeComboService(serviceId) {
@@ -444,74 +768,6 @@
           r.style.display = 'none';
         }
       });
-    },
-
-    submitCatalogForm(type, itemId) {
-      const name = (document.getElementById('catName')?.value || '').trim();
-      const price = Number(document.getElementById('catPrice')?.value) || 0;
-      const oldPrice = document.getElementById('catOldPrice') ? (Number(document.getElementById('catOldPrice').value) || price) : price;
-      const catOrBrand = (document.getElementById('catCategory')?.value || '').trim();
-      const durOrStock = Number(document.getElementById('catDurationOrStock')?.value) || 45;
-      let image = (document.getElementById('catImage')?.value || '').trim();
-      const description = (document.getElementById('catDescription')?.value || '').trim();
-
-      if (!name || price <= 0) {
-        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập tên và giá bán hợp lệ!', 'warning');
-        else alert('Vui lòng nhập tên và giá bán hợp lệ!');
-        return;
-      }
-
-      let serviceIds = [];
-      if (type === 'combos') {
-        const checkedCbs = document.querySelectorAll('.combo-service-checkbox:checked');
-        serviceIds = Array.from(checkedCbs).map(cb => cb.value);
-        if (serviceIds.length === 0) {
-          if (window.UICommon) window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ cấu thành gói combo!', 'warning');
-          else alert('Vui lòng chọn ít nhất 1 dịch vụ cấu thành gói combo!');
-          return;
-        }
-      }
-
-      if (type === 'services' && (!image || image.includes('unsplash.com'))) {
-        const dvNum = (itemId || '').match(/\d+/);
-        image = dvNum ? `DichVu_Men/DV${parseInt(dvNum[0], 10)}.jpg` : 'DichVu_Men/DV1.jpg';
-      } else if (type === 'combos' && (!image || image.includes('unsplash.com'))) {
-        const cbNum = (itemId || '').match(/\d+/);
-        image = cbNum ? `DichVu_Men/CBDV${parseInt(cbNum[0], 10)}.jpg` : 'DichVu_Men/CBDV1.jpg';
-      } else if (!image) {
-        if (itemId) {
-          const existing = window.store.getProductById(itemId);
-          image = existing?.image || existing?.HinhAnh || 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
-        } else {
-          image = 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
-        }
-      }
-
-      if (itemId) {
-        if (type === 'services') {
-          window.store.updateService(itemId, { name, price, oldPrice, category: catOrBrand, duration: durOrStock, image, description });
-        } else if (type === 'combos') {
-          window.store.updateCombo(itemId, { name, price, oldPrice, duration: durOrStock, durationMinutes: durOrStock, image, description, serviceIds, services: serviceIds });
-        } else {
-          window.store.updateProduct(itemId, { name, price, oldPrice, originalPrice: oldPrice, GiaBan: oldPrice, brand: catOrBrand, stock: durOrStock, image, description });
-        }
-        if (window.UICommon) window.UICommon.showToast(`Đã cập nhật [${name}] thành công!`);
-      } else {
-        if (type === 'services') {
-          window.store.addService({ name, price, oldPrice, category: catOrBrand, duration: durOrStock, image, description });
-        } else if (type === 'combos') {
-          window.store.addCombo({ name, price, oldPrice, duration: durOrStock, durationMinutes: durOrStock, image, description, serviceIds, services: serviceIds });
-        } else {
-          window.store.addProduct({ name, price, oldPrice, brand: catOrBrand, stock: durOrStock, image, description });
-        }
-        if (window.UICommon) window.UICommon.showToast(`Đã thêm [${name}] vào danh mục!`);
-      }
-
-      this._closeModal();
-      this.refreshCatalogView();
-      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
-        window.store.syncWithLiveServer();
-      }
     },
 
     deleteCatalogItem(type, id) {

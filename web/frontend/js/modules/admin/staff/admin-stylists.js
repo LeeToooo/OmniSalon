@@ -94,7 +94,7 @@
           </div>
 
           <div style="display: flex; align-items: center; gap: 10px;">
-            <button class="btn-submit-terracotta" style="height: 38px; padding: 0 18px; font-size: 12.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; box-shadow: 0 3px 10px rgba(245, 158, 11, 0.25);" onclick="AdminWeb.openAddStylistModal()">
+            <button class="btn-submit-terracotta" style="height: 38px; padding: 0 18px; font-size: 12.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; box-shadow: 0 3px 10px rgba(245, 158, 11, 0.25);" onclick="AdminWeb.prepareAddStylistBottom()">
               <span>+ Thêm Nhân Viên Mới</span>
             </button>
           </div>
@@ -103,6 +103,9 @@
         <div id="adminStylistsContentContainer">
           ${this._renderStylistsCardsContent(filteredStylists, user, bMap, allBookings)}
         </div>
+
+        <!-- FORM THÊM / CHỈNH SỬA NHÂN VIÊN NẰM DƯỚI BẢNG -->
+        ${this._renderStylistBottomEditor(user, branches)}
       `;
     },
 
@@ -206,7 +209,7 @@
                     </div>
                   `}
                   <div style="display: flex; gap: 8px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
-                    <button class="pill-btn-outline" style="flex: 1; padding: 6px; font-size: 12px; font-weight: 700;" onclick="AdminWeb.openAddStylistModal('${st.id}')">
+                    <button class="pill-btn-outline" style="flex: 1; padding: 6px; font-size: 12px; font-weight: 700;" onclick="AdminWeb.editStylistBottom('${st.id}')">
                       Sửa Thông Tin
                     </button>
                     <button class="pill-btn-outline" style="flex: 1; padding: 6px; font-size: 12px; font-weight: 700; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="AdminWeb.openUniversalDeleteModal('stylists', '${st.id}')">
@@ -378,7 +381,349 @@
       `, 'queue');
     },
 
+    
+    // -----------------------------------------------------------------------
+    // INLINE BOTTOM STYLIST EDITOR (FORM THÊM & SỬA NHÂN SỰ NẰM DƯỚI BẢNG)
+    // -----------------------------------------------------------------------
+    _renderStylistBottomEditor(user, branches) {
+      const isSuper = this.isSuperAdmin(user);
+      const isManager = this.isBranchManager(user);
+      const defaultBranchId = (isManager && user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01';
+
+      const avatarPresets = [
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80'
+      ];
+
+      return `
+        <div id="adminStylistBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
+              <h3 id="stylistEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
+                Thêm Nhân Viên / Thợ Mới
+              </h3>
+            </div>
+            <div>
+              <button type="button" class="pill-btn-outline" style="padding: 5px 14px; font-size: 12px; font-weight: 600;" onclick="AdminWeb.resetStylistBottomEditor()">
+                Đặt Lại / Làm Trống
+              </button>
+            </div>
+          </div>
+
+          <form id="stylistBottomForm" onsubmit="event.preventDefault(); AdminWeb.submitStylistBottomEditor();">
+            <input type="hidden" id="stylistEditorId" value="">
+
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Hàng 1: Họ tên & Vai trò -->
+              <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px;">
+                <div>
+                  <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                    Họ và Tên Nhân Sự <span style="color: #ef4444;">*</span>
+                  </label>
+                  <input type="text" id="stEditorName" class="form-control-custom" 
+                         style="height: 38px; font-size: 13.5px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px; font-weight: 600;" 
+                         placeholder="VD: Nguyễn Tuấn Kiệt" required>
+                </div>
+                <div>
+                  <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                    Phân Loại Thợ / Vai Trò <span style="color: #ef4444;">*</span>
+                  </label>
+                  <select id="stEditorRole" class="admin-select-filter" 
+                          style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
+                          onchange="AdminWeb.onStylistBottomRoleChange(this.value)" required>
+                    <option value="Thợ chính">Thợ chính (Lead Barber)</option>
+                    <option value="Thợ phụ">Thợ phụ (Assistant Barber)</option>
+                    <option value="Thu ngân">Thu Ngân (Cashier)</option>
+                    ${isSuper ? '<option value="Quản lý chi nhánh">Quản lý (Branch Manager)</option>' : ''}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Hàng 2: Cấp bậc & Chi nhánh -->
+              <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: 14px;">
+                <div>
+                  <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                    Cấp Bậc Chuyên Môn <span style="color: #ef4444;">*</span>
+                  </label>
+                  <select id="stEditorLevel" class="admin-select-filter" 
+                          style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" required>
+                    <option value="Master Barber">Master Barber</option>
+                    <option value="Senior Barber">Senior Barber</option>
+                    <option value="Junior Barber">Junior Barber</option>
+                    <option value="Chuyên viên thu ngân">Chuyên viên thu ngân</option>
+                    <option value="Quản lý">Quản lý</option>
+                    <option value="Nhân viên">Nhân Viên</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                    Chi Nhánh / Cơ Sở Làm Việc <span style="color: #ef4444;">*</span>
+                  </label>
+                  <select id="stEditorBranch" class="admin-select-filter" 
+                          style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
+                          ${!isSuper && isManager ? 'disabled style="opacity: 0.75; cursor: not-allowed;"' : ''} required>
+                    ${branches.map(b => `<option value="${b.id}" ${defaultBranchId === b.id ? 'selected' : ''}>${this.escapeHtml(this._getBranchShortName(b))}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Hàng 3: Điện thoại & Email -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div>
+                  <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                    Số Điện Thoại Hotline / Zalo <span style="color: #ef4444;">*</span>
+                  </label>
+                  <input type="tel" id="stEditorPhone" class="form-control-custom" 
+                         style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
+                         placeholder="0912xxxxxx" required>
+                </div>
+                <div>
+                  <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                    Email Nhân Sự
+                  </label>
+                  <input type="email" id="stEditorEmail" class="form-control-custom" 
+                         style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
+                         placeholder="nhansu@omnisalon.vn">
+                </div>
+              </div>
+
+              <!-- Hàng 4: Kỹ thuật & Sở trường -->
+              <div>
+                <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  Kỹ Thuật &amp; Sở Trường Nổi Bật
+                </label>
+                <input type="text" id="stEditorSpecialty" class="form-control-custom" 
+                       style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
+                       placeholder="VD: Undercut &amp; Fade sắc nét, Uốn Texture Hàn Quốc, Cắt Layer Pompadour...">
+              </div>
+
+              <!-- Hàng 5: Avatar URL & Mẫu nhanh -->
+              <div>
+                <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  Đường Dẫn Ảnh Đại Diện (Avatar URL)
+                </label>
+                <input type="url" id="stEditorAvatar" class="form-control-custom" 
+                       style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
+                       placeholder="https://..." value="${avatarPresets[0]}">
+                <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap;">
+                  <span style="font-size: 11.5px; color: var(--text-secondary);">Chọn nhanh ảnh đại diện mẫu:</span>
+                  ${avatarPresets.map((av, idx) => `
+                    <img src="${av}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1px solid var(--border-color);" 
+                         onclick="document.getElementById('stEditorAvatar').value='${av}';" title="Mẫu ${idx + 1}">
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- NÚT HÀNH ĐỘNG DƯỚI ĐÁY FORM: LUỒNG LƯU ĐƠN GIẢN -->
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.08));">
+              <button type="button" class="pill-btn-outline" style="height: 38px; padding: 0 18px; font-weight: 600; font-size: 13px;" onclick="AdminWeb.resetStylistBottomEditor()">
+                Hủy Bỏ / Làm Mới
+              </button>
+              <button type="submit" id="btnSubmitStylistBottom" 
+                      style="height: 38px; padding: 0 28px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; border: none; background: var(--brand-accent, #C59B27); color: #141413; transition: opacity 0.15s ease;"
+                      onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
+                <span>Lưu</span>
+              </button>
+            </div>
+
+          </form>
+        </div>
+      `;
+    },
+
+    prepareAddStylistBottom() {
+      this.resetStylistBottomEditor();
+      const editor = document.getElementById('adminStylistBottomEditor');
+      if (editor) {
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => {
+          const nameInput = document.getElementById('stEditorName');
+          if (nameInput) nameInput.focus();
+        }, 300);
+      }
+    },
+
+    editStylistBottom(stylistId) {
+      const st = window.store ? window.store.getStylistById(stylistId) : null;
+      if (!st) {
+        if (window.UICommon) window.UICommon.showToast('Không tìm thấy thông tin nhân viên #' + stylistId, 'warning');
+        return;
+      }
+
+      const idInput = document.getElementById('stylistEditorId');
+      const nameInput = document.getElementById('stEditorName');
+      const roleSelect = document.getElementById('stEditorRole');
+      const levelSelect = document.getElementById('stEditorLevel');
+      const branchSelect = document.getElementById('stEditorBranch');
+      const phoneInput = document.getElementById('stEditorPhone');
+      const emailInput = document.getElementById('stEditorEmail');
+      const specialtyInput = document.getElementById('stEditorSpecialty');
+      const avatarInput = document.getElementById('stEditorAvatar');
+      const titleEl = document.getElementById('stylistEditorTitle');
+
+      if (idInput) idInput.value = stylistId;
+      if (nameInput) nameInput.value = st.name || st.HoTen || '';
+
+      const rawRole = (st.role || st.ChucVu || '').toLowerCase();
+      let roleVal = 'Thợ chính';
+      if (rawRole.includes('phụ')) roleVal = 'Thợ phụ';
+      else if (rawRole.includes('ngân')) roleVal = 'Thu ngân';
+      else if (rawRole.includes('quản lý')) roleVal = 'Quản lý chi nhánh';
+      else if (st.role) roleVal = st.role;
+      if (roleSelect) roleSelect.value = roleVal;
+
+      if (levelSelect) {
+        levelSelect.value = (st.CapBac || st.level || (roleVal === 'Thợ phụ' ? 'Junior Barber' : roleVal === 'Thu ngân' ? 'Chuyên viên thu ngân' : 'Master Barber')).trim();
+      }
+
+      if (branchSelect) {
+        branchSelect.value = st.branchId || st.MaChiNhanh || 'CN01';
+      }
+
+      if (phoneInput) phoneInput.value = st.phone || st.SoDienThoai || '';
+      if (emailInput) emailInput.value = st.email || '';
+      if (specialtyInput) specialtyInput.value = st.specialty || '';
+      if (avatarInput) avatarInput.value = st.avatar || '';
+
+      if (titleEl) {
+        titleEl.textContent = 'Chỉnh Sửa Nhân Sự: ' + (st.name || st.HoTen) + ' (#' + stylistId + ')';
+      }
+
+      const editor = document.getElementById('adminStylistBottomEditor');
+      if (editor) {
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => {
+          if (nameInput) nameInput.focus();
+        }, 300);
+      }
+    },
+
+    resetStylistBottomEditor() {
+      const idInput = document.getElementById('stylistEditorId');
+      const nameInput = document.getElementById('stEditorName');
+      const roleSelect = document.getElementById('stEditorRole');
+      const levelSelect = document.getElementById('stEditorLevel');
+      const phoneInput = document.getElementById('stEditorPhone');
+      const emailInput = document.getElementById('stEditorEmail');
+      const specialtyInput = document.getElementById('stEditorSpecialty');
+      const avatarInput = document.getElementById('stEditorAvatar');
+      const titleEl = document.getElementById('stylistEditorTitle');
+
+      if (idInput) idInput.value = '';
+      if (nameInput) nameInput.value = '';
+      if (roleSelect) roleSelect.value = 'Thợ chính';
+      if (levelSelect) levelSelect.value = 'Master Barber';
+      if (phoneInput) phoneInput.value = '';
+      if (emailInput) emailInput.value = '';
+      if (specialtyInput) specialtyInput.value = '';
+      if (avatarInput) avatarInput.value = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80';
+
+      if (titleEl) {
+        titleEl.textContent = 'Thêm Nhân Viên / Thợ Mới';
+      }
+    },
+
+    onStylistBottomRoleChange(role) {
+      const levelSelect = document.getElementById('stEditorLevel');
+      if (!levelSelect) return;
+      if (role === 'Thợ phụ') {
+        levelSelect.value = 'Junior Barber';
+      } else if (role === 'Thợ chính') {
+        levelSelect.value = 'Master Barber';
+      } else if (role === 'Thu ngân') {
+        levelSelect.value = 'Chuyên viên thu ngân';
+      } else if (role === 'Quản lý chi nhánh' || role === 'Quản lý') {
+        levelSelect.value = 'Quản lý';
+      }
+    },
+
+    async submitStylistBottomEditor() {
+      const user = this.getCurrentUser();
+      const isSuper = this.isSuperAdmin(user);
+      const isManager = this.isBranchManager(user);
+
+      const stylistId = document.getElementById('stylistEditorId')?.value?.trim() || '';
+      const name = (document.getElementById('stEditorName')?.value || '').trim();
+      const roleElem = document.getElementById('stEditorRole');
+      let role = roleElem ? roleElem.value : 'Thợ chính';
+      const level = document.getElementById('stEditorLevel')?.value || 'Master Barber';
+      let branchId = document.getElementById('stEditorBranch')?.value || 'CN01';
+      if (!isSuper && isManager && user?.branchId && user.branchId !== 'ALL') {
+        branchId = user.branchId;
+      }
+      const phone = (document.getElementById('stEditorPhone')?.value || '').trim();
+      const email = (document.getElementById('stEditorEmail')?.value || '').trim();
+      const specialty = (document.getElementById('stEditorSpecialty')?.value || '').trim();
+      const avatar = (document.getElementById('stEditorAvatar')?.value || '').trim();
+
+      if (!name) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập họ và tên của nhân sự!', 'warning');
+        return;
+      }
+
+      if (!isSuper) {
+        if (stylistId) {
+          const curSt = window.store.getStylistById(stylistId);
+          const oldRole = curSt?.role || curSt?.ChucVu || '';
+          if (oldRole.includes('Quản lý')) {
+            role = oldRole;
+          } else if (role.includes('Quản lý')) {
+            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị tối cao mới có quyền bổ nhiệm Quản lý chi nhánh!', 'error');
+            return;
+          }
+        } else {
+          if (role.includes('Quản lý')) {
+            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị tối cao mới có quyền tạo Quản lý chi nhánh!', 'error');
+            return;
+          }
+        }
+      }
+
+      const payload = {
+        name,
+        role,
+        level,
+        branchId,
+        phone,
+        email,
+        specialty,
+        avatar,
+        requestUserRole: isSuper ? 'SUPER_ADMIN' : (isManager ? 'BRANCH_MANAGER' : 'STAFF')
+      };
+
+      if (stylistId) {
+        await window.store.updateStylist(stylistId, payload);
+        if (window.UICommon) window.UICommon.showToast(`Đã cập nhật ${role} [${name}] thành công!`, 'success');
+      } else {
+        const created = await window.store.addStylist(payload);
+        if (window.UICommon) window.UICommon.showToast(`Đã thêm mới ${role} [${name}] (#${created?.id || ''}) thành công!`, 'success');
+      }
+
+      this.resetStylistBottomEditor();
+      this._updateStylistsContentOnly();
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        window.store.syncWithLiveServer();
+      }
+
+      // Cuộn nhẹ lên danh sách thợ
+      const container = document.getElementById('adminStylistsContentContainer');
+      if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+
     openAddStylistModal(stylistId = null) {
+      if (stylistId) {
+        this.editStylistBottom(stylistId);
+      } else {
+        this.prepareAddStylistBottom();
+      }
+      return;
       const branches = window.store.getBranches() || [];
       const st = stylistId ? window.store.getStylistById(stylistId) : null;
       const isEdit = !!st;

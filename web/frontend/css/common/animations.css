@@ -1,0 +1,141 @@
+/* ==========================================================================
+   COMMON ANIMATIONS, KEYFRAMES & MOTION SYSTEM
+   OmniSalon Design System - Global Keyframes & Transitions
+   ========================================================================== */
+
+[data-theme="light"] .shimmer-wave,
+[data-theme="light"] .md3-shimmer {
+  background: linear-gradient(90deg, #E2E8F0 20%, #CBD5E1 50%, #E2E8F0 80%) !important;
+  background-size: 200% 100% !important;
+}
+
+/* Hiệu ứng nhịp đập */
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(200, 90, 68, 0.5);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(200, 90, 68, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(200, 90, 68, 0);
+  }
+}
+
+.pulse-animation {
+  animation: pulseGlow 2s infinite;
+}
+
+/* Hiệu ứng mô phỏng quét tóc */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes laserScan {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+
+  50% {
+    top: 96%;
+    opacity: 1;
+  }
+
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+.ai-laser-line {
+  animation: laserScan 2.4s ease-in-out infinite;
+  box-shadow: 0 0 16px #10B981, 0 0 32px #F59E0B;
+}
+
+.ai-radar-ring {
+  animation: spin 1.2s linear infinite;
+}
+
+/* Hiệu ứng khung xương khi tải dữ liệu */
+.skeleton-card {
+  pointer-events: none;
+}
+
+.skeleton-box {
+  background: linear-gradient(90deg,
+      var(--surface-elevated, #181d2a) 25%,
+      rgba(255, 255, 255, 0.05) 50%,
+      var(--surface-elevated, #181d2a) 75%);
+  background-size: 200% 100%;
+  animation: skeletonCleanShimmer 1.5s infinite ease-in-out;
+}
+
+@keyframes skeletonCleanShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ========================================================
+   TASTE-SKILL MOTION LAYER (Transform & Opacity Only)
+   Choreographed entrances + reduced-motion fallback
+   ======================================================== */
+@keyframes tasteEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-main-title {
+    animation: tasteEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .hero-tagline {
+    animation: tasteEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+  }
+
+  .nordic-cta-group {
+    animation: tasteEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both;
+  }
+
+  .nordic-hero-visual-col {
+    animation: tasteEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+  }
+
+  .feature-experience-card {
+    animation: tasteEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+  }
+
+  .card-pillar {
+    animation: tasteEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.26s both;
+  }
+
+  .stylist-clean-card {
+    animation: tasteEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+  }
+
+  .product-clean-card {
+    animation: tasteEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both;
+  }
+}
+

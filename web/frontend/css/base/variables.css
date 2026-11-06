@@ -1,0 +1,149 @@
+/* ==========================================================================
+   Omni Salon - Design Tokens & Variables (css/base/variables.css)
+   - Font Open Sans Import
+   - Design System Tokens (:root)
+   - Color Palette, Spacing, Typography & Shadows
+   - Core Animation Keyframes
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
+:root {
+  /* Bảng màu tối đương đại (Charcoal Black & Burnished Gold) */
+  --color-bg-obsidian: #141413;
+  --color-bg-onyx: #141413;
+  --color-bg-deep-slate: #141413;
+  --color-surface-navy: #1C1C1A;
+  --color-surface-card: #1C1C1A;
+  --color-surface-card-hover: #242422;
+  --color-surface-container-high: #242422;
+
+  /* Viền mỏng tối giản */
+  --color-border-glass: #2A2A28;
+  --color-border-thin: #2A2A28;
+  --color-border-hover: #3E3E3A;
+  --color-border-gold-glow: #2A2A28;
+
+  /* Màu điểm nhấn vàng đồng trầm */
+  --color-accent-gold: #C59B27;
+  --color-accent-champagne: #C59B27;
+  --color-accent-silver: #A1A1AA;
+  --color-accent-gold-hover: #D4AF37;
+  --color-accent-gold-subtle: rgba(197, 155, 39, 0.12);
+  --color-accent-gold-border: rgba(197, 155, 39, 0.3);
+
+  /* Màu trạng thái phụ */
+  --color-status-emerald: #10B981;
+  --color-status-rose: #EF4444;
+  --color-success: #10B981;
+  --color-danger: #EF4444;
+
+  /* Màu chữ tương phản cao */
+  --color-text-white: #FAF8F5;
+  --color-text-muted: #8E8E8A;
+  --color-text-secondary: #A6A6A0;
+
+  /* Tương thích ngược các biến màu */
+  --color-terracotta: var(--color-accent-gold);
+  --color-terracotta-dark: #A27B1C;
+  --color-brown-leather: #1C1C1A;
+  --color-brown-dark: #141413;
+  --color-ink-black: #FAF8F5;
+  --color-pure-white: #FAF8F5;
+  --color-bg-gray: #141413;
+  --color-border-faint: var(--color-border-thin);
+  --color-branch-pill: #1C1C1A;
+  --color-branch-pill-hover: #C59B27;
+  --color-collab-gray: #242422;
+  --color-footer-bg: #141413;
+
+  /* Phông chữ tiêu chuẩn: Open Sans đồng bộ toàn diện (Nội dung & Tiêu đề) */
+  --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Bo góc thẻ và nút bấm */
+  --radius-sm: 4px;
+  --radius-btn: 6px;
+  --radius-input: 6px;
+  --radius-card: 8px;
+  --radius-card-lg: 10px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* Đổ bóng phẳng dứt khoát */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.18);
+  --shadow-gold: none;
+  --shadow-gold-glow: none;
+
+  /* Hiệu ứng chuyển động mượt */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Hiệu ứng chuyển động dùng chung (Keyframe Animations) --- */
+
+/* Hiệu ứng sóng khi tải dữ liệu */
+@keyframes shimmerWave {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-wave,
+.md3-shimmer {
+  background: linear-gradient(90deg, #14171F 20%, #222838 50%, #14171F 80%) !important;
+  background-size: 200% 100% !important;
+  animation: shimmerWave 1.6s var(--ease-smooth) infinite !important;
+}
+
+/* Chuyển trang ngang mượt mà */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.wizard-step-panel {
+  animation: fadeSlideIn 0.3s var(--ease-spring) forwards;
+}
+
+/* Hiệu ứng phóng to khung giờ */
+@keyframes slotPopSelect {
+  0% {
+    transform: scale(0.96);
+  }
+
+  50% {
+    transform: scale(1.04);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Hiệu ứng đàn hồi cửa sổ bật lên */
+@keyframes modalSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

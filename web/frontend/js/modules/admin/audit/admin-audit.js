@@ -333,35 +333,31 @@
 
       return `
         <!-- THANH CHUYỂN PHÂN HỆ TINH GỌN (BỎ HẲN SỐ ĐẾM ĐẰNG SAU, CHỮ TO RÕ NHẤT QUÁN 13PX) -->
-        <div class="admin-subtabs-nav" style="display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 10px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
           <button type="button" class="admin-tab-btn ${subType === 'logs' ? 'active' : ''}" 
-                  style="padding: 8px 16px; font-size: 13px; font-weight: ${subType === 'logs' ? '600' : '500'}; border-radius: 6px; border: ${subType === 'logs' ? '1px solid rgba(255, 255, 255, 0.16)' : '1px solid transparent'}; background: ${subType === 'logs' ? 'rgba(255, 255, 255, 0.08)' : 'transparent'}; color: ${subType === 'logs' ? 'var(--text-primary)' : 'var(--text-secondary)'}; cursor: pointer; display: inline-flex; align-items: center; transition: all 0.15s ease;"
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${subType === 'logs' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                   onclick="AdminWeb.switchAuditSubTab('logs')">
-            <span>Sự Kiện Kiểm Toán</span>
+            Sự Kiện Kiểm Toán
           </button>
-
           <button type="button" class="admin-tab-btn ${subType === 'users' ? 'active' : ''}" 
-                  style="padding: 8px 16px; font-size: 13px; font-weight: ${subType === 'users' ? '600' : '500'}; border-radius: 6px; border: ${subType === 'users' ? '1px solid rgba(255, 255, 255, 0.16)' : '1px solid transparent'}; background: ${subType === 'users' ? 'rgba(255, 255, 255, 0.08)' : 'transparent'}; color: ${subType === 'users' ? 'var(--text-primary)' : 'var(--text-secondary)'}; cursor: pointer; display: inline-flex; align-items: center; transition: all 0.15s ease;"
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${subType === 'users' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                   onclick="AdminWeb.switchAuditSubTab('users')">
-            <span>Tài Khoản &amp; Phân Quyền</span>
+            Tài Khoản &amp; Phân Quyền
           </button>
-
           <button type="button" class="admin-tab-btn ${subType === 'invoices' ? 'active' : ''}" 
-                  style="padding: 8px 16px; font-size: 13px; font-weight: ${subType === 'invoices' ? '600' : '500'}; border-radius: 6px; border: ${subType === 'invoices' ? '1px solid rgba(255, 255, 255, 0.16)' : '1px solid transparent'}; background: ${subType === 'invoices' ? 'rgba(255, 255, 255, 0.08)' : 'transparent'}; color: ${subType === 'invoices' ? 'var(--text-primary)' : 'var(--text-secondary)'}; cursor: pointer; display: inline-flex; align-items: center; transition: all 0.15s ease;"
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${subType === 'invoices' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                   onclick="AdminWeb.switchAuditSubTab('invoices')">
-            <span>Hóa Đơn &amp; Thu Tiền</span>
+            Hóa Đơn &amp; Thu Tiền
           </button>
-
           <button type="button" class="admin-tab-btn ${subType === 'orders' ? 'active' : ''}" 
-                  style="padding: 8px 16px; font-size: 13px; font-weight: ${subType === 'orders' ? '600' : '500'}; border-radius: 6px; border: ${subType === 'orders' ? '1px solid rgba(255, 255, 255, 0.16)' : '1px solid transparent'}; background: ${subType === 'orders' ? 'rgba(255, 255, 255, 0.08)' : 'transparent'}; color: ${subType === 'orders' ? 'var(--text-primary)' : 'var(--text-secondary)'}; cursor: pointer; display: inline-flex; align-items: center; transition: all 0.15s ease;"
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${subType === 'orders' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                   onclick="AdminWeb.switchAuditSubTab('orders')">
-            <span>Đơn Hàng &amp; Thanh Toán</span>
+            Đơn Hàng &amp; Thanh Toán
           </button>
-
           <button type="button" class="admin-tab-btn ${subType === 'notifications' ? 'active' : ''}" 
-                  style="padding: 8px 16px; font-size: 13px; font-weight: ${subType === 'notifications' ? '600' : '500'}; border-radius: 6px; border: ${subType === 'notifications' ? '1px solid rgba(255, 255, 255, 0.16)' : '1px solid transparent'}; background: ${subType === 'notifications' ? 'rgba(255, 255, 255, 0.08)' : 'transparent'}; color: ${subType === 'notifications' ? 'var(--text-primary)' : 'var(--text-secondary)'}; cursor: pointer; display: inline-flex; align-items: center; transition: all 0.15s ease;"
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${subType === 'notifications' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                   onclick="AdminWeb.switchAuditSubTab('notifications')">
-            <span>Thông Báo Hệ Thống</span>
+            Thông Báo Hệ Thống
           </button>
         </div>
 

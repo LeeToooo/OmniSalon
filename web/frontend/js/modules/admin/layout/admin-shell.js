@@ -144,9 +144,17 @@
 
       document.body.classList.add('admin-mode');
       container.innerHTML = `
-        <div class="admin-dashboard-layout">
+        <div class="admin-dashboard-layout ${this.isSidebarCollapsed ? 'sidebar-collapsed' : ''}">
           <!-- Lớp phủ mờ khi mở menu trên di động -->
           <div class="admin-sidebar-overlay" id="adminSidebarOverlay" onclick="AdminWeb.closeSidebar()"></div>
+
+          <!-- Nút tab cạnh mép trái khi thu gọn menu (Thòi ra) -->
+          <button type="button" class="admin-sidebar-edge-toggle" id="adminSidebarEdgeToggle" onclick="AdminWeb.toggleSidebarCollapse()" title="Mở rộng menu (Thòi ra)" aria-label="Mở rộng menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="13 17 18 12 13 7"></polyline>
+              <polyline points="6 17 11 12 6 7"></polyline>
+            </svg>
+          </button>
 
           <!-- Menu dọc bảng quản trị chính thức -->
           <aside class="admin-sidebar" id="adminSidebar">
@@ -158,6 +166,13 @@
                   <div class="admin-brand-desc">Bảng Quản Trị Hệ Thống</div>
                 </div>
               </div>
+              <!-- Nút thu gọn menu (Thụt vào) nằm bên phải chữ OMNI SALON -->
+              <button type="button" class="admin-sidebar-collapse-btn" id="adminSidebarCollapseBtn" onclick="AdminWeb.toggleSidebarCollapse()" title="Thu gọn menu (Thụt vào)" aria-label="Thu gọn menu">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="11 17 6 12 11 7"></polyline>
+                  <polyline points="18 17 13 12 18 7"></polyline>
+                </svg>
+              </button>
               <button type="button" class="admin-sidebar-close-btn" onclick="AdminWeb.closeSidebar()" title="Đóng menu">✕</button>
             </div>
 
@@ -225,8 +240,8 @@
             <!-- Thanh đầu trang vùng nội dung -->
             <header class="admin-topbar">
               <div class="admin-topbar-left">
-                <button type="button" class="admin-mobile-menu-toggle" onclick="AdminWeb.toggleSidebar()" title="Mở danh mục quản trị">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                <button type="button" class="admin-topbar-sidebar-toggle admin-mobile-menu-toggle" id="adminTopbarSidebarToggle" onclick="AdminWeb.toggleSidebarCollapse()" title="Mở rộng menu (Thòi ra)" aria-label="Mở rộng menu">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
                 <div class="admin-topbar-title-cluster">
                   <div class="admin-topbar-breadcrumbs">
@@ -284,6 +299,30 @@
           this.initBranchImageInteractions();
           this.syncBranchPreviewCard();
         }, 60);
+      }
+    },
+
+    isSidebarCollapsed: (typeof localStorage !== 'undefined' && localStorage.getItem('omni_admin_sidebar_collapsed') === 'true'),
+
+    toggleSidebarCollapse() {
+      if (typeof window !== 'undefined' && window.innerWidth <= 1024) {
+        this.toggleSidebar();
+        return;
+      }
+      this.isSidebarCollapsed = !this.isSidebarCollapsed;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('omni_admin_sidebar_collapsed', this.isSidebarCollapsed ? 'true' : 'false');
+        }
+      } catch (e) {}
+
+      const layout = document.querySelector('.admin-dashboard-layout');
+      if (layout) {
+        if (this.isSidebarCollapsed) {
+          layout.classList.add('sidebar-collapsed');
+        } else {
+          layout.classList.remove('sidebar-collapsed');
+        }
       }
     },
 

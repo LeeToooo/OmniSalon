@@ -1,0 +1,380 @@
+/* ==========================================================================
+   Omni Salon - Phân Hệ Quản Trị: Quản Lý Mặt Hàng & Dịch Vụ / Bảng Giá (Catalog)
+   File: web/frontend/css/admin/pages/catalog.css
+   
+   - Thanh Subtabs phân loại (Dịch Vụ Cắt Tóc / Gói Combo VIP)
+   - Thanh công cụ tìm kiếm và lọc mặt hàng
+   - Bảng quản lý dịch vụ / combo & niêm yết giá
+   - Bố cục Split Layout (Form thông tin & Xem trước trực tiếp)
+   - Khung chỉnh sửa đáy trang (Inline Bottom Editor)
+   - Bộ chọn dịch vụ cấu thành gói Combo VIP
+   - Thẻ xem trước thực tế (Catalog Live Preview Card)
+   - Trạng thái rỗng (Empty State) & Báo cáo dữ liệu
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. BỐ CỤC CHUNG & SPLIT LAYOUT FORM CATALOG
+   -------------------------------------------------------------------------- */
+.catalog-page-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Split Layout cho Form Dịch Vụ / Catalog Admin */
+.catalog-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 360px);
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .catalog-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. THANH SUBTABS & THANH LỌC TÌM KIẾM CATALOG
+   -------------------------------------------------------------------------- */
+.catalog-subtabs-wrap {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  padding-bottom: 8px;
+}
+
+.catalog-subtabs-wrap .admin-tab-btn {
+  padding: 8px 18px;
+  font-size: 13.5px;
+  cursor: pointer;
+  font-weight: 700;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary, #A6A6A0);
+  transition: all 0.2s ease;
+}
+
+.catalog-subtabs-wrap .admin-tab-btn.active {
+  color: var(--brand-accent, #C59B27) !important;
+  border-bottom: 2px solid var(--brand-accent, #C59B27) !important;
+  font-weight: 800;
+}
+
+.catalog-filter-bar {
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--surface-card, #1C1C1A);
+  border: 1px solid var(--border-color, #2A2A28);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+#adminCatalogSearchInput:focus {
+  border-color: var(--brand-accent, #C59B27) !important;
+  box-shadow: 0 0 0 2px rgba(197, 155, 39, 0.25) !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. BẢNG DỮ LIỆU DANH MỤC DỊCH VỤ & GIÁ MẶT HÀNG
+   -------------------------------------------------------------------------- */
+.admin-catalog-table img {
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+.catalog-price-highlight {
+  font-weight: 900;
+  color: var(--brand-accent, #C59B27);
+  font-family: var(--font-sans);
+}
+
+.catalog-effective-date {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #8E8E8A);
+  margin-top: 2px;
+}
+
+.catalog-desc-cell {
+  font-size: 12px;
+  color: var(--text-secondary, #8E8E8A);
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --------------------------------------------------------------------------
+   4. FORM CHỈNH SỬA / THÊM MỚI Ở ĐÁY TRANG (BOTTOM EDITOR)
+   -------------------------------------------------------------------------- */
+#adminCatalogBottomEditor {
+  background: var(--surface-card, #1C1C1A);
+  border: 1px solid var(--border-color, #2A2A28);
+  border-radius: 14px;
+  padding: 24px 26px;
+  margin-top: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transition: all 0.25s ease;
+}
+
+.catalog-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  padding-bottom: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.catalog-editor-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.catalog-editor-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-accent, #C59B27);
+  box-shadow: 0 0 8px rgba(197, 155, 39, 0.5);
+}
+
+#catalogEditorTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary, #FAF8F5);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.catalog-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-accent, #C59B27);
+  margin-bottom: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   5. BỘ CHỌN DỊCH VỤ CẤU THÀNH GÓI COMBO VIP
+   -------------------------------------------------------------------------- */
+.combo-services-selection-box {
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.combo-services-list {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+  border-radius: 8px;
+  background: var(--surface-card, #141413);
+  padding: 6px;
+}
+
+.combo-service-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.combo-service-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.combo-service-checkbox {
+  accent-color: var(--brand-accent, #C59B27);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   6. THẺ XEM TRƯỚC THỰC TẾ (CATALOG LIVE PREVIEW CARD)
+   -------------------------------------------------------------------------- */
+.catalog-preview-card {
+  background: var(--surface-card, #1C1C1A);
+  border: 1px solid var(--border-color, #2A2A28);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.catalog-preview-card:hover {
+  border-color: var(--brand-accent, #C59B27);
+  transform: translateY(-2px);
+}
+
+.catalog-preview-media {
+  width: 100%;
+  aspect-ratio: 16/9;
+  position: relative;
+  overflow: hidden;
+  background: #000000;
+}
+
+.catalog-preview-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.catalog-preview-card:hover .catalog-preview-media img {
+  transform: scale(1.04);
+}
+
+.catalog-preview-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.catalog-preview-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary, #FAF8F5);
+  line-height: 1.3;
+}
+
+.catalog-preview-desc {
+  font-size: 12px;
+  color: var(--text-secondary, #8E8E8A);
+  line-height: 1.45;
+}
+
+.catalog-preview-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  margin-top: 4px;
+}
+
+.catalog-preview-price {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--brand-accent, #C59B27);
+}
+
+/* --------------------------------------------------------------------------
+   7. TRẠNG THÁI TRỐNG & BÁO LỖI (EMPTY STATE)
+   -------------------------------------------------------------------------- */
+.catalog-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 56px 20px;
+  background: var(--surface-card, #121622);
+  border-radius: 12px;
+  border: 1px dashed var(--border-color, rgba(255, 255, 255, 0.12));
+}
+
+.catalog-empty-state .empty-state-icon-box {
+  width: 68px;
+  height: 68px;
+  border-radius: 12px;
+  background: var(--surface-elevated, #181d2a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.catalog-empty-state .empty-state-icon-box.error {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.catalog-empty-state .empty-state-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary, #ffffff);
+  margin: 0 0 8px;
+}
+
+.catalog-empty-state .empty-state-desc {
+  font-size: 14px;
+  color: var(--text-secondary, #94a3b8);
+  max-width: 480px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+/* --------------------------------------------------------------------------
+   8. TƯƠNG THÍCH CHẾ ĐỘ SÁNG (LIGHT THEME SUPPORT)
+   -------------------------------------------------------------------------- */
+html.light #adminCatalogBottomEditor,
+body.light #adminCatalogBottomEditor,
+[data-theme="light"] #adminCatalogBottomEditor {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light .catalog-preview-card,
+body.light .catalog-preview-card,
+[data-theme="light"] .catalog-preview-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+html.light .catalog-empty-state,
+body.light .catalog-empty-state,
+[data-theme="light"] .catalog-empty-state {
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+}
+
+html.light .catalog-empty-state .empty-state-icon-box,
+body.light .catalog-empty-state .empty-state-icon-box,
+[data-theme="light"] .catalog-empty-state .empty-state-icon-box {
+  background: #F1F5F9 !important;
+}
+
+html.light .combo-services-selection-box,
+body.light .combo-services-selection-box,
+[data-theme="light"] .combo-services-selection-box {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+html.light .combo-services-list,
+body.light .combo-services-list,
+[data-theme="light"] .combo-services-list {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}

@@ -1,0 +1,345 @@
+/* ==========================================================================
+   COMMON RESPONSIVE & MEDIA QUERIES CSS
+   OmniSalon Design System - Breakpoints (Mobile, Tablet, Desktop, Reduced Motion)
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  .admin-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .admin-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .announcement-inner {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 992px) {
+  .web-search-box-wrap {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .services-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .services-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nordic-editorial-hero {
+    padding: 48px 0 40px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stylists-3col-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 24px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .stylists-3col-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .nordic-footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .nordic-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  .ai-studio-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+
+  /* Ẩn menu ngang khi ở trên điện thoại */
+  .web-nav-links {
+    display: none !important;
+  }
+
+  /* Bù khoảng cách đáy cho thanh điều hướng */
+  #webMainContainer,
+  main#webMainContainer {
+    padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Bật thanh điều hướng đáy di động */
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 64px !important;
+    background: rgba(18, 22, 34, 0.96) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: none !important;
+    z-index: 9999 !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    box-sizing: border-box !important;
+  }
+
+  html.light .mobile-bottom-nav,
+  [data-theme="light"] .mobile-bottom-nav {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  .mobile-bottom-nav a {
+    flex: 1;
+    min-width: 0;
+    padding: 2px 1px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    color: var(--text-secondary, #94a3b8) !important;
+    text-decoration: none !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    height: 100% !important;
+    transition: color 0.15s ease, transform 0.15s ease !important;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .mobile-bottom-nav a span:last-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .mobile-bottom-nav a .nav-icon {
+    font-size: 19px !important;
+    line-height: 1 !important;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  }
+
+  .mobile-bottom-nav a.active {
+    color: #b48312 !important;
+    font-weight: 800 !important;
+  }
+
+  .mobile-bottom-nav a.active .nav-icon {
+    transform: scale(1.15) translateY(-2px) !important;
+  }
+
+  /* Nút đặt lịch nổi bật ở giữa */
+  .mobile-bottom-nav a.highlight-action,
+  .mobile-bottom-nav a#mNavBooking {
+    color: #b48312 !important;
+    font-weight: 800 !important;
+  }
+
+  /* Tối ưu cho màn hình nhỏ */
+  .brand-logo-wrap {
+    min-width: auto !important;
+  }
+
+  .logo-text-omni {
+    font-size: 19px !important;
+  }
+
+  .logo-sub-text {
+    font-size: 8px !important;
+  }
+
+  .web-search-box-wrap {
+    max-width: 130px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+
+  .services-catalog-grid,
+  #servicesCatalogGrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 860px) {
+
+  .services-catalog-grid,
+  #servicesCatalogGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 560px) {
+
+  .services-catalog-grid,
+  #servicesCatalogGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 6. Mobile heading scale & bottom clearance */
+@media (max-width: 768px) {
+  .hero-main-title {
+    font-size: clamp(34px, 8vw, 44px) !important;
+    line-height: 1.15 !important;
+  }
+
+  h2,
+  .section-heading-lg,
+  .web-section h2,
+  .section-title-wrap h2 {
+    font-size: 21px !important;
+    line-height: 1.25 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .mega-menu-content-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    padding: 24px;
+  }
+}
+
+@media (max-width: 540px) {
+  .mega-menu-content-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .header-mega-menu,
+  .header-mega-menu.open,
+  .shop-slider-track,
+  .bento-card,
+  .campaign-banner-card,
+  .product-clean-card {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Stepwise Responsive Scaling across zoom levels and window widths */
+@media (max-width: 1400px) {
+  .web-header-inner {
+    padding: 10px clamp(12px, 1.8vw, 32px) !important;
+    gap: 10px !important;
+  }
+
+  .web-nav-links {
+    gap: 6px !important;
+  }
+
+  .web-nav-links .nav-link {
+    font-size: 13px !important;
+    padding: 6px 8px !important;
+  }
+
+  .web-search-box-wrap {
+    width: 145px !important;
+  }
+}
+
+@media (max-width: 1260px) {
+  .user-info-text-wrap {
+    display: none !important;
+  }
+
+  .header-user-btn {
+    padding: 0 6px !important;
+  }
+
+  .web-nav-links {
+    gap: 4px !important;
+  }
+
+  .web-nav-links .nav-link {
+    font-size: 12px !important;
+    padding: 5px 6px !important;
+  }
+
+  .web-search-box-wrap {
+    width: 125px !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .web-header-inner {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .web-nav-links {
+    display: flex !important;
+    justify-content: flex-start !important;
+    gap: 3px !important;
+  }
+
+  .web-nav-links .nav-link {
+    font-size: 11.5px !important;
+    padding: 5px 6px !important;
+  }
+
+  .web-search-box-wrap {
+    width: clamp(90px, 9vw, 130px) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .web-search-box-wrap {
+    width: 38px !important;
+    overflow: hidden !important;
+    transition: width 0.25s ease !important;
+  }
+
+  .web-search-box-wrap:focus-within {
+    width: 180px !important;
+    position: absolute !important;
+    right: 140px !important;
+    z-index: 100 !important;
+  }
+
+  .web-search-input {
+    padding-left: 32px !important;
+  }
+}
+

@@ -1,0 +1,87 @@
+/* ==========================================================================
+   COMMON UTILITIES & HELPERS CSS
+   OmniSalon Design System - Utility Classes & Layout Helpers
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+
+  .omni-container,
+  .nordic-container,
+  .web-container,
+  .max-w-7xl {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .omni-container,
+  .nordic-container,
+  .web-container,
+  .max-w-7xl {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
+/* Tiện ích khoảng cách và căn chỉnh */
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+
+
+
+/* Tiện ích Flexbox & Display bổ sung */
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+.d-block { display: block !important; }
+.d-inline-block { display: inline-block !important; }
+.d-none { display: none !important; }
+.flex-row { flex-direction: row !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.justify-center { justify-content: center !important; }
+.justify-start { justify-content: flex-start !important; }
+.justify-end { justify-content: flex-end !important; }
+.items-start { align-items: flex-start !important; }
+.items-end { align-items: flex-end !important; }
+
+/* Tiện ích Khoảng cách & Căn lề */
+.gap-1 { gap: 4px !important; }
+.gap-2 { gap: 8px !important; }
+.gap-3 { gap: 12px !important; }
+.gap-4 { gap: 16px !important; }
+.gap-6 { gap: 24px !important; }
+.m-0 { margin: 0 !important; }
+.p-0 { padding: 0 !important; }
+
+/* Tiện ích Kiểu chữ & Trạng thái */
+.text-center { text-align: center !important; }
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+.text-truncate { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+.is-hidden { display: none !important; }
+.is-active { display: block !important; }
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; border: 0 !important; }

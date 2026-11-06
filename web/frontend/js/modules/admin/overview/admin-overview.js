@@ -212,59 +212,13 @@
           </div>
         </div>
 
-        <!-- CỤM 2: EXECUTIVE DATA INTELLIGENCE BRIEFING -->
-        <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 22px; margin-bottom: 22px; box-shadow: 0 4px 18px rgba(0,0,0,0.04);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(197, 155, 39, 0.15); color: #C59B27; font-size: 14px;">📊</span>
-              <strong style="font-size: 15px; color: var(--text-primary); letter-spacing: -0.01em;">Bản Tin Phân Tích Điều Hành &amp; Khuyến Nghị Tối Ưu</strong>
-            </div>
-            <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
-              <span>Mô hình phân tích dữ liệu tự động cập nhật • CSDL SQL Server 2026</span>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; font-size: 13px; line-height: 1.55;">
-            <!-- Cột 1: Hiệu suất & Tăng trưởng -->
-            <div style="background: var(--surface-elevated, rgba(255,255,255,0.02)); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-              <div style="font-size: 12px; font-weight: 800; color: #C59B27; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
-                1. Tăng Trưởng Doanh Thu
-              </div>
-              <p style="margin: 0; color: var(--text-primary);">
-                Doanh thu toàn chuỗi đạt <strong style="color: #C59B27;">${SalonUtils.formatCurrency(totalRevenue)}</strong> (+14.8% so với cùng kỳ). Dịch vụ cắt tóc đóng góp <strong>71.4%</strong>, bán lẻ mỹ phẩm tại quầy đạt <strong>28.6%</strong> (vượt mức tiêu chuẩn ngành 20%).
-              </p>
-            </div>
-
-            <!-- Cột 2: Điểm nghẽn & Công suất ghế -->
-            <div style="background: var(--surface-elevated, rgba(255,255,255,0.02)); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-              <div style="font-size: 12px; font-weight: 800; color: #10B981; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
-                2. Công Suất Ghế &amp; Vận Hành Sảnh
-              </div>
-              <p style="margin: 0; color: var(--text-primary);">
-                Tỷ lệ khai thác ghế đạt <strong style="color: #10B981;">${occupancyPct}%</strong>. Khung giờ chiều vàng (14:00 - 18:30) đạt đỉnh <strong>91%</strong> với ${inProgressCount} khách tại ghế và ${waitingCount} khách chờ sảnh. Tỷ lệ hủy hẹn được kiểm soát an toàn ở mức <strong>${analytics.cancelledCount || 1} ca</strong>.
-              </p>
-            </div>
-
-            <!-- Cột 3: Khuyến nghị hành động -->
-            <div style="background: var(--surface-elevated, rgba(255,255,255,0.02)); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-              <div style="font-size: 12px; font-weight: 800; color: #3B82F6; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
-                3. Đề Xuất Điều Phối Tuần Tới
-              </div>
-              <p style="margin: 0; color: var(--text-primary);">
-                Nên huy động 100% thợ chính ca chiều Thứ 7 &amp; Chủ Nhật để đón đầu 45% lượng đặt trước; áp dụng ưu đãi giờ vàng sáng (08:30–11:30) để dàn đều tải cho 20 chi nhánh.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- CỤM 3: 6 THẺ CHỈ SỐ VÀNG CỦA DOANH NGHIỆP SALON -->
+        <!-- CỤM 2: 6 THẺ CHỈ SỐ DOANH NGHIỆP SALON -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 22px;">
           <!-- KPI 1: Doanh Thu -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Doanh Thu Chuỗi</span>
-              <span style="font-size: 11.5px; font-weight: 800; color: #10B981;">+14.8%</span>
+              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">+14.8%</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
               ${SalonUtils.formatCurrency(totalRevenue)}
@@ -277,24 +231,24 @@
 
           <!-- KPI 2: Lượt Phục Vụ & Hoàn Tất -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Lịch Hẹn Phục Vụ</span>
-              <span style="font-size: 11.5px; font-weight: 800; color: #10B981;">Tỷ lệ ${analytics.completionRate}%</span>
+              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">Tỷ lệ ${analytics.completionRate}%</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
               ${totalBookings} Lượt Ca
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
               <span>${analytics.confirmedCount} thành công • ${analytics.cancelledCount} hủy</span>
-              <span>Chờ tiếp nhận sảnh: <strong style="color: #F59E0B;">${waitingCount} khách</strong></span>
+              <span>Chờ tiếp nhận: <strong style="color: #F59E0B;">${waitingCount} khách</strong></span>
             </div>
           </div>
 
           <!-- KPI 3: Giá Trị Đơn Trung Bình (AOV) -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Giá Trị TB / Khách (AOV)</span>
-              <span style="font-size: 11.5px; font-weight: 800; color: #10B981;">+35k Upsell</span>
+              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">+35k Upsell</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
               ${SalonUtils.formatCurrency(aov)}
@@ -307,9 +261,9 @@
 
           <!-- KPI 4: Công Suất Ghế & Đội Ngũ -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Công Suất Ghế Cắt</span>
-              <span style="font-size: 11.5px; font-weight: 800; color: ${occupancyPct >= 80 ? '#F59E0B' : '#10B981'};">${occupancyPct >= 80 ? 'Giờ Vàng' : 'Tối Ưu'}</span>
+              <span style="font-size: 11px; font-weight: 700; color: ${occupancyPct >= 80 ? '#F59E0B' : '#10B981'}; background: ${occupancyPct >= 80 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)'}; padding: 2px 7px; border-radius: 6px;">${occupancyPct >= 80 ? 'Giờ Vàng' : 'Tối Ưu'}</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
               ${occupancyPct}% Ghế
@@ -322,9 +276,9 @@
 
           <!-- KPI 5: Tỷ Lệ Khách Quen & Giữ Chân -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Tỷ Lệ Khách Quen</span>
-              <span style="font-size: 11.5px; font-weight: 800; color: #10B981;">Đạt Chuẩn VIP</span>
+              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">Đạt Chuẩn VIP</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
               82.5% Khách Quen
@@ -337,9 +291,9 @@
 
           <!-- KPI 6: Vốn Kho & Phiếu Nhập -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px; cursor: pointer;" onclick="AdminWeb.switchSubTab('receipts')" title="Xem chi tiết phiếu nhập kho">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Vốn Kho &amp; Phiếu Nhập</span>
-              <span style="font-size: 11.5px; font-weight: 800; color: #3B82F6;">${branchReceipts.length} Phiếu →</span>
+              <span style="font-size: 11px; font-weight: 700; color: #3B82F6; background: rgba(59, 130, 246, 0.12); padding: 2px 7px; border-radius: 6px;">${branchReceipts.length} Phiếu →</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
               ${SalonUtils.formatCurrency(branchReceiptsTotal > 0 ? branchReceiptsTotal : productRevenue)}
@@ -415,7 +369,7 @@
                 <span style="font-size: 12px; color: #C59B27; font-weight: 700;">Đỉnh: 14h - 18h30</span>
               </div>
               <div style="font-size: 12px; color: var(--text-secondary);">
-                Căn cứ khoa học để phân ca làm việc và điều phối số ghế đón khách
+                Mật độ tiếp nhận khách theo các ca làm việc trong ngày
               </div>
             </div>
 

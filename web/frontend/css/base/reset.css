@@ -1,0 +1,193 @@
+/* ==========================================================================
+   Omni Salon - CSS Reset & Base Elements (css/base/reset.css)
+   - Reset Box Sizing, Margin & Padding
+   - Base HTML, Body & Container Layouts
+   - Typography Headings (H1 - H4) & Utilities
+   - Image & Link Reset
+   - Form Controls & Button Interaction Reset
+   - Glass Panel & Scrollbar
+   ========================================================================== */
+
+/* Đặt lại định dạng cơ bản */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-primary, #FAF8F5);
+}
+
+body,
+#webPlatformSection,
+#webMainContainer,
+.page-perspective-wrapper,
+.page-view {
+  background-color: var(--bg-primary, #FAF8F5);
+  color: var(--text-primary, #141413);
+  font-family: var(--font-sans) !important;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+/* Áp dụng font Open Sans cho toàn bộ thẻ tiêu đề */
+h1,
+h2,
+h3,
+.hero-title,
+.hero-editorial-title,
+.section-title,
+.section-title-clean,
+.booking-title {
+  font-family: var(--font-serif) !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.18 !important;
+}
+
+h4,
+.admin-topbar-heading,
+.brand-logo-text {
+  font-family: var(--font-heading) !important;
+  letter-spacing: -0.015em;
+}
+
+/* Typography Utility Classes */
+.font-serif {
+  font-family: var(--font-serif) !important;
+}
+
+.tracking-tight {
+  letter-spacing: -0.025em !important;
+}
+
+.tracking-widest {
+  letter-spacing: 0.15em !important;
+}
+
+.hero-eyebrow {
+  font-family: var(--font-sans) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  font-size: clamp(16.5px, 1.4vw, 19px) !important;
+  font-weight: 800 !important;
+  color: #8A6208 !important;
+  display: inline-block !important;
+  line-height: 1.35 !important;
+  margin-bottom: 2px !important;
+}
+
+.leading-tight {
+  line-height: 1.18 !important;
+}
+
+/* Bộ lọc hình ảnh đồng nhất tông màu ấm chuẩn Editorial */
+img {
+  max-width: 100%;
+  display: block;
+  filter: brightness(0.95) contrast(1.05) sepia(0.08);
+  transition: filter 0.3s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s var(--ease-smooth);
+}
+
+/* Tương tác nút bấm, nhập liệu và thẻ */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: transform 0.15s var(--ease-smooth), background-color 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+}
+
+button:active,
+.interactive-card:active,
+.btn-submit-terracotta:active,
+.time-slot-btn:active {
+  transform: scale(0.98);
+}
+
+/* Hiệu ứng kính mờ */
+.glass-panel {
+  background: rgba(20, 23, 31, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border-glass);
+  border-radius: var(--radius-card);
+}
+
+/* Thanh cuộn tối màu điểm nhấn */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-onyx);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #202533;
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-gold);
+}
+
+/* Khung chứa căn giữa toàn màn hình */
+.omni-container,
+.nordic-container,
+.web-container,
+.max-w-7xl {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: clamp(20px, 3vw, 56px) !important;
+  padding-right: clamp(20px, 3vw, 56px) !important;
+  box-sizing: border-box !important;
+}
+
+
+/* ==========================================================================
+   GLOBAL SCROLLBAR CLEANUP & SMOOTH BEHAVIOR
+   ========================================================================== */
+/* Ẩn hoàn toàn thanh cuộn (scrollbar) để giao diện phẳng, tinh gọn, không rác thị giác */
+.admin-dashboard-layout,
+.admin-dashboard-layout *,
+.admin-main-viewport,
+.admin-table-container,
+.admin-table-container>div,
+.admin-subnav-bar,
+.admin-sidebar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.admin-dashboard-layout::-webkit-scrollbar,
+.admin-dashboard-layout *::-webkit-scrollbar,
+.admin-main-viewport::-webkit-scrollbar,
+.admin-table-container::-webkit-scrollbar,
+.admin-table-container>div::-webkit-scrollbar,
+.admin-subnav-bar::-webkit-scrollbar,
+.admin-sidebar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}

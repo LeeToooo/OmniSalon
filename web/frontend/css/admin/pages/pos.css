@@ -1,0 +1,482 @@
+/* ==========================================================================
+   MODULE: ADMIN POS & CASHIER (QUẦY THU NGÂN, BÁN HÀNG & HÓA ĐƠN)
+   ========================================================================== */
+
+/* Quầy thu ngân và quản lý danh mục */
+
+/* Bố cục quầy thu ngân hai cột */
+.pos-cashier-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .pos-cashier-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pos-panel {
+  background: var(--bg-primary, #141413) !important;
+  border: 1px solid var(--border-color, #2A2A28) !important;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  padding: 18px;
+  color: var(--text-primary, #FAF8F5);
+}
+
+.pos-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.pos-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  max-height: 580px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pos-item-card {
+  background: var(--surface-card, #1C1C1A);
+  border: 1px solid var(--border-color, #2A2A28);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  color: var(--text-primary, #FAF8F5);
+}
+
+.pos-item-card:hover {
+  border-color: var(--brand-accent, #F59E0B);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px);
+}
+
+.pos-item-card:active {
+  transform: scale(0.98);
+}
+
+.pos-item-card-img {
+  width: 100%;
+  height: 95px;
+  object-fit: cover;
+  background: var(--surface-elevated, #161A26);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  padding: 2px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.pos-item-add-btn {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 12px !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, #F59E0B, #D97706) !important;
+  color: #ffffff !important;
+  border: none !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.pos-item-add-btn:hover {
+  filter: brightness(1.08) !important;
+  transform: translateY(-1px) !important;
+}
+
+.pos-bill-list {
+  max-height: 320px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+  border: 1px solid var(--border-color, #2A2A28);
+  border-radius: 10px;
+  padding: 8px;
+  background: var(--bg-primary, #141413) !important;
+  color: var(--text-primary, #FAF8F5);
+}
+
+.pos-bill-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-bottom: 1px dashed var(--border-color, rgba(0, 0, 0, 0.08));
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+  margin-bottom: 3px;
+}
+
+.pos-bill-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.pos-bill-row:hover {
+  background: rgba(200, 90, 68, 0.07);
+}
+
+.pos-summary-table {
+  background: var(--bg-primary, #141413) !important;
+  border: 1px solid var(--border-color, #2A2A28) !important;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  color: var(--text-primary, #FAF8F5);
+}
+
+.pos-summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: var(--text-secondary, #CBD5E1);
+}
+
+.pos-summary-row.total-row {
+  border-top: 1px dashed var(--border-color, rgba(255, 255, 255, 0.15));
+  padding-top: 10px;
+  margin-top: 8px;
+  font-size: 15.5px;
+  font-weight: 900;
+  color: var(--brand-accent, #F59E0B);
+}
+
+.pos-pay-btn {
+  flex: 1;
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--surface-elevated, #161A26);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+  color: var(--text-secondary, #CBD5E1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pos-pay-btn:hover {
+  border-color: var(--brand-accent, #F59E0B);
+  color: var(--text-primary, #FFFFFF);
+}
+
+.pos-pay-btn.active {
+  background: rgba(245, 158, 11, 0.18) !important;
+  border: 1.5px solid var(--brand-accent, #F59E0B) !important;
+  color: var(--brand-accent, #F59E0B) !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+}
+
+/* Hóa đơn điện tử dạng kính mờ */
+.glass-digital-receipt {
+  background: rgba(15, 18, 28, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 28px rgba(245, 158, 11, 0.2);
+}
+
+.digital-receipt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.16);
+  margin-bottom: 20px;
+}
+
+.digital-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+.digital-receipt-row .label {
+  color: #CBD5E1;
+}
+
+.digital-receipt-row .value {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.digital-receipt-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 16px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.digital-receipt-total .total-amount {
+  font-size: 26px;
+  font-weight: 900;
+  color: #F59E0B;
+}
+
+/* Quầy thu ngân ở chế độ sáng */
+html.light .pos-panel,
+[data-theme="light"] .pos-panel {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+html.light .pos-panel-header,
+[data-theme="light"] .pos-panel-header {
+  border-bottom: none !important;
+  color: #0F172A !important;
+}
+
+html.light .pos-item-card,
+[data-theme="light"] .pos-item-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+html.light .pos-item-card:hover,
+[data-theme="light"] .pos-item-card:hover {
+  border-color: #F59E0B !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15) !important;
+}
+
+html.light .pos-item-card-img,
+[data-theme="light"] .pos-item-card-img {
+  background-color: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+}
+
+html.light .pos-bill-list,
+[data-theme="light"] .pos-bill-list {
+  background-color: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+html.light .pos-bill-row,
+[data-theme="light"] .pos-bill-row {
+  border-bottom: 1px dashed #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+html.light .pos-bill-row:hover,
+[data-theme="light"] .pos-bill-row:hover {
+  background-color: rgba(200, 90, 68, 0.07) !important;
+}
+
+html.light .pos-summary-table,
+[data-theme="light"] .pos-summary-table {
+  background-color: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+html.light .pos-summary-row,
+[data-theme="light"] .pos-summary-row {
+  color: #64748B !important;
+}
+
+html.light .pos-summary-row.total-row,
+[data-theme="light"] .pos-summary-row.total-row {
+  color: #B45309 !important;
+  border-top: 1px dashed #CBD5E1 !important;
+}
+
+html.light .pos-pay-btn,
+[data-theme="light"] .pos-pay-btn {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #475569 !important;
+}
+
+html.light .pos-pay-btn.active,
+[data-theme="light"] .pos-pay-btn.active {
+  background-color: #FFF7ED !important;
+  border: 1.5px solid #F59E0B !important;
+  color: #C2410C !important;
+}
+
+/* Áp dụng nền tối cho quầy thu ngân */
+html.dark .pos-panel,
+body.dark .pos-panel,
+[data-theme="dark"] .pos-panel {
+  background-color: var(--bg-primary, #141413) !important;
+  border: 1px solid var(--border-color, #2A2A28) !important;
+  color: var(--text-primary, #FAF8F5) !important;
+}
+
+html.dark .pos-panel-header,
+body.dark .pos-panel-header,
+[data-theme="dark"] .pos-panel-header-header {
+  border-bottom: 1px solid var(--border-color, #2A2A28) !important;
+  color: var(--text-primary, #FAF8F5) !important;
+}
+
+html.dark .pos-item-card,
+body.dark .pos-item-card,
+[data-theme="dark"] .pos-item-card {
+  background-color: var(--surface-card, #1C1C1A) !important;
+  border: 1px solid var(--border-color, #2A2A28) !important;
+  color: var(--text-primary, #FAF8F5) !important;
+}
+
+html.dark .pos-item-card:hover,
+body.dark .pos-item-card:hover,
+[data-theme="dark"] .pos-item-card:hover:hover {
+  background-color: var(--surface-card-hover, #242422) !important;
+  border-color: var(--color-accent-gold, #C59B27) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
+}
+
+html.dark .pos-item-card-img,
+body.dark .pos-item-card-img,
+[data-theme="dark"] .pos-item-card-img-img {
+  background-color: var(--bg-primary, #141413) !important;
+  border: 1px solid var(--border-color, #2A2A28) !important;
+}
+
+html.dark .pos-bill-list,
+body.dark .pos-bill-list,
+[data-theme="dark"] .pos-bill-list {
+  background-color: var(--bg-primary, #141413) !important;
+  border: 1px solid var(--border-color, #2A2A28) !important;
+  color: var(--text-primary, #FAF8F5) !important;
+}
+
+html.dark .pos-bill-row,
+body.dark .pos-bill-row,
+[data-theme="dark"] .pos-bill-row {
+  background-color: var(--surface-card, #1C1C1A) !important;
+  border-bottom: 1px solid var(--border-color, #2A2A28) !important;
+  color: var(--text-primary, #FAF8F5) !important;
+}
+
+html.dark .pos-bill-row:hover,
+body.dark .pos-bill-row:hover,
+[data-theme="dark"] .pos-bill-row:hover:hover {
+  background-color: var(--surface-card-hover, #242422) !important;
+}
+
+html.dark .pos-summary-table,
+body.dark .pos-summary-table,
+[data-theme="dark"] .pos-summary-table {
+  background-color: var(--bg-primary, #141413) !important;
+  border: 1px solid var(--border-color, #2A2A28) !important;
+  color: var(--text-primary, #FAF8F5) !important;
+}
+
+html.dark .pos-summary-row,
+body.dark .pos-summary-row,
+[data-theme="dark"] .pos-summary-row {
+  color: var(--text-secondary, #A6A6A0) !important;
+}
+
+html.dark .pos-summary-row.total-row,
+body.dark .pos-summary-row.total-row,
+[data-theme="dark"] .pos-summary-row.total-row.total-row {
+  color: var(--color-accent-gold, #C59B27) !important;
+  border-top: 1px dashed var(--border-color, #2A2A28) !important;
+}
+
+html.dark .pos-pay-btn,
+body.dark .pos-pay-btn,
+[data-theme="dark"] .pos-pay-btn {
+  background-color: var(--surface-card, #1C1C1A) !important;
+  border: 1px solid var(--border-color, #2A2A28) !important;
+  color: var(--text-secondary, #A6A6A0) !important;
+}
+
+html.dark .pos-pay-btn.active,
+body.dark .pos-pay-btn.active,
+[data-theme="dark"] .pos-pay-btn.active.active {
+  background-color: rgba(197, 155, 39, 0.18) !important;
+  border: 1.5px solid var(--color-accent-gold, #C59B27) !important;
+  color: var(--color-accent-gold, #C59B27) !important;
+  box-shadow: 0 0 14px rgba(197, 155, 39, 0.25) !important;
+}
+
+/* Khung hóa đơn đặt lịch thành công */
+[data-theme="dark"] .booking-invoice-card,
+html.dark .booking-invoice-card,
+body.dark .booking-invoice-card {
+  background-color: var(--surface-elevated, #1a1f2e) !important;
+  color: #ffffff !important;
+  border-color: rgba(212, 175, 55, 0.3) !important;
+}
+
+[data-theme="dark"] .booking-invoice-card .invoice-item span,
+html.dark .booking-invoice-card .invoice-item span,
+body.dark .booking-invoice-card .invoice-item span {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .booking-invoice-card .invoice-item strong,
+html.dark .booking-invoice-card .invoice-item strong,
+body.dark .booking-invoice-card .invoice-item strong {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .booking-invoice-card .invoice-item.price-row strong,
+html.dark .booking-invoice-card .invoice-item.price-row strong,
+body.dark .booking-invoice-card .invoice-item.price-row strong {
+  color: #f59e0b !important;
+}
+
+[data-theme="light"] .booking-invoice-card,
+html.light .booking-invoice-card,
+body.light .booking-invoice-card {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .booking-invoice-card .invoice-item span,
+html.light .booking-invoice-card .invoice-item span,
+body.light .booking-invoice-card .invoice-item span {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .booking-invoice-card .invoice-item strong,
+html.light .booking-invoice-card .invoice-item strong,
+body.light .booking-invoice-card .invoice-item strong {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .booking-invoice-card .invoice-item.price-row strong,
+html.light .booking-invoice-card .invoice-item.price-row strong,
+body.light .booking-invoice-card .invoice-item.price-row strong {
+  color: #b48312 !important;
+}
+

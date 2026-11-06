@@ -1,0 +1,592 @@
+/* ==========================================================================
+   Omni Salon - Common UI Components (css/components/common-components.css)
+   - Modal / Dialog / Popup Shells (.modal-overlay, .modal-content-shell, .modal-wide)
+   - Product Preview Card & Image Wrapper in Modal
+   - Form Controls & Labels (.sub-label, .form-control-custom, textarea)
+   - Common Action Buttons (.btn-submit-terracotta, .btn-cancel, .btn-delete-confirm-danger, .pill-btn-outline)
+   - Common Badges & Status Pills (.badge-terracotta, .status-pill-pulse, .pulse-dot, .header-role-badge)
+   - Toast & Alert Notifications (.toast-container, .toast-pill-message, .toast-card-icon, variants)
+   ========================================================================== */
+
+/* --- 1. MODAL / DIALOG / POPUP & FORM CONTROLS & COMMON BUTTONS --- */
+
+/* Thành phần dùng chung */
+/* Cửa sổ bật lên các bước đặt lịch và thông báo nhanh */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-content-shell {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-thin);
+  border-radius: var(--radius-card);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+  color: var(--color-text-white);
+  transition: max-width 0.25s ease, width 0.25s ease;
+}
+
+.modal-content-shell.modal-wide,
+.modal-overlay.modal-wide .modal-content-shell {
+  max-width: 960px !important;
+  width: 95vw !important;
+  padding: 28px !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+.product-modal-grid {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.product-modal-preview-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.product-modal-img-wrapper {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 14px;
+}
+
+.product-modal-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 10px;
+  transition: transform 0.3s ease;
+}
+
+.product-modal-img-wrapper img:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .product-modal-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px;
+  }
+
+  .modal-content-shell.modal-wide {
+    padding: 18px !important;
+  }
+}
+
+.modal-close-icon-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--color-border-thin);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+}
+
+.modal-close-icon-btn:hover {
+  background: var(--color-accent-gold);
+  color: #0F1015;
+}
+
+.badge-terracotta {
+  display: inline-block;
+  background: var(--color-accent-gold-subtle);
+  color: var(--color-accent-gold);
+  border: 1px solid var(--color-accent-gold-border);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.sub-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #E2E8F0;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.form-control-custom {
+  width: 100%;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 16px;
+  background: var(--surface-card, #1C1C1A) !important;
+  color: var(--text-primary, #FAF8F5) !important;
+  border: 1px solid var(--border-color, #2A2A28) !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+textarea.form-control-custom {
+  height: auto !important;
+  min-height: 160px !important;
+  padding: 14px 16px !important;
+  line-height: 1.6 !important;
+  font-size: 14.5px !important;
+  resize: vertical !important;
+}
+
+.form-control-custom:focus {
+  border-color: #F59E0B !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25) !important;
+}
+
+.btn-delete-confirm-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 18px rgba(239, 68, 68, 0.45) !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.btn-delete-confirm-danger:hover {
+  filter: brightness(1.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.65) !important;
+}
+
+.btn-submit-terracotta {
+  background: linear-gradient(180deg, #F59E0B, #D97706) !important;
+  color: #FFFFFF !important;
+  min-height: 48px !important;
+  height: auto !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.22) !important;
+  transition: all 0.2s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+}
+
+.btn-submit-terracotta:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.35) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
+}
+
+.btn-cancel {
+  background: var(--surface-elevated, #27272a) !important;
+  color: var(--text-primary, #f4f4f5) !important;
+  border: 1px solid var(--border-color, #3f3f46) !important;
+  min-height: 48px !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  transition: all 0.2s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+}
+
+[data-theme="light"] .btn-cancel,
+html.light .btn-cancel,
+body.light .btn-cancel {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.btn-cancel:hover {
+  background: #3f3f46 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .btn-cancel:hover,
+html.light .btn-cancel:hover,
+body.light .btn-cancel:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.pill-btn-outline {
+  border: 1px solid var(--color-accent-gold-border);
+  background: transparent;
+  color: var(--color-accent-gold);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.pill-btn-outline:hover {
+  background: var(--color-accent-gold);
+  color: #0F1015;
+}
+
+/* --- 2. COMMON BADGES & STATUS PILLS --- */
+
+/* Huy hiệu vai trò tài khoản */
+.header-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-top: 2px;
+}
+
+.header-role-badge.role-super_admin {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+  color: #fef2f2;
+  box-shadow: 0 1px 4px rgba(185, 28, 28, 0.35);
+}
+
+.header-role-badge.role-branch_manager {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  color: #eff6ff;
+  box-shadow: 0 1px 4px rgba(29, 78, 216, 0.35);
+}
+
+.header-role-badge.role-stylist {
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  color: #f0fdfa;
+  box-shadow: 0 1px 4px rgba(13, 148, 136, 0.35);
+}
+
+.header-role-badge.role-cashier {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #fffbeb;
+  box-shadow: 0 1px 4px rgba(217, 119, 6, 0.35);
+}
+
+.header-role-badge.role-customer {
+  background: linear-gradient(135deg, #D4AF37, #B48D20);
+  color: #0B0D13;
+}
+
+/* Huy hiệu trạng thái có chấm nhấp nháy - Luôn thẳng hàng 1 dòng */
+.status-pill-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-confirmed {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.status-confirmed .pulse-dot {
+  background: #2563eb;
+  box-shadow: 0 0 6px #2563eb;
+}
+
+.status-in_progress {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.status-in_progress .pulse-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+.status-waiting {
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #f59e0b !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+.status-waiting .pulse-dot {
+  background: #f59e0b !important;
+  box-shadow: 0 0 6px #f59e0b !important;
+}
+
+.booking-row-waiting {
+  background: rgba(245, 158, 11, 0.06) !important;
+}
+
+.kanban-booking-card.booking-waiting {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.18) !important;
+}
+
+.status-completed {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.status-completed .pulse-dot {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.status-cancelled {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.status-cancelled .pulse-dot {
+  background: #ef4444;
+}
+
+/* --- 3. TOAST & ALERT NOTIFICATIONS --- */
+
+/* Thông báo toast giữa màn hình */
+.toast-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  width: min(480px, calc(100vw - 32px));
+  max-width: 480px;
+}
+
+.toast-pill-message {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-radius: 14px;
+  background: #18191e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  color: #f3f4f6;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  animation: toastCenterPop 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.toast-pill-message:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.toast-pill-message.fade-out {
+  opacity: 0;
+  transform: scale(0.96) translateY(-8px);
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+@keyframes toastCenterPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Biểu tượng trạng thái */
+.toast-card-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+/* Khối nội dung thông báo */
+.toast-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  min-width: 0;
+}
+
+.toast-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--toast-title-color, #9ca3af);
+  line-height: 1.2;
+}
+
+.toast-card-text {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #ffffff;
+  word-break: break-word;
+}
+
+/* Nút X đóng thông báo */
+.toast-close-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  padding: 0;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.toast-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Phân loại màu sắc tinh tế - chỉ viền nhẹ & màu icon, không phát sáng LED */
+.toast-pill-message.toast-warning {
+  --toast-title-color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+.toast-pill-message.toast-warning .toast-card-icon {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.toast-pill-message.toast-error {
+  --toast-title-color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+.toast-pill-message.toast-error .toast-card-icon {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.toast-pill-message.toast-success {
+  --toast-title-color: #10b981;
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+.toast-pill-message.toast-success .toast-card-icon {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.toast-pill-message.toast-info {
+  --toast-title-color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+.toast-pill-message.toast-info .toast-card-icon {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    width: calc(100vw - 28px);
+  }
+
+  .toast-pill-message {
+    padding: 16px 16px;
+    gap: 12px;
+  }
+
+  .toast-card-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .toast-card-text {
+    font-size: 14.5px;
+  }
+}

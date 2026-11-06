@@ -1,0 +1,10 @@
+/* ==========================================================================
+   MODULE: ADMIN CUSTOMERS & CRM (QUẢN LÝ KHÁCH HÀNG & HỒ SƠ)
+   ========================================================================== */
+
+/* Khung quản lý khách hàng kế thừa hệ thống enterprise table và modal chung */
+.admin-customer-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}

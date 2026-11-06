@@ -177,31 +177,37 @@
       const pagedWorkstations = scopedStylists.slice((this.dispatchPage - 1) * this.pageSize, this.dispatchPage * this.pageSize);
 
       const customerSearchHtml = `
-        <div class="quick-booking-search-panel" style="background: var(--surface-card); border: 2px solid #C59B27; border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(197, 155, 39, 0.08);">
+        <div class="quick-booking-search-panel" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-            <div>
-              <strong style="font-size: 16px; color: var(--text-primary); display: block;">Bàn Tiếp Nhận &amp; Check-in Khách Hàng Đặt Lịch</strong>
-              <span style="font-size: 13px; color: var(--text-secondary);">Gõ Tên, SĐT hoặc Mã vé để kiểm tra ca hẹn và check-in vào ghế làm ngay hoặc xếp vào sảnh chờ</span>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <strong style="font-size: 15px; color: var(--text-primary);">Bàn Tiếp Nhận &amp; Check-in Khách Hàng Đặt Lịch</strong>
+              <span style="font-size: 12.5px; color: var(--text-secondary);">Gõ Tên, SĐT hoặc Mã vé để kiểm tra ca hẹn</span>
             </div>
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <span style="font-size: 12px; font-weight: 700; color: #C59B27; background: rgba(197, 155, 39, 0.12); padding: 5px 12px; border-radius: 6px;">
+              <span style="font-size: 12px; font-weight: 600; color: var(--brand-accent, #C59B27); background: rgba(197, 155, 39, 0.1); border: 1px solid rgba(197, 155, 39, 0.25); padding: 4px 10px; border-radius: 6px;">
                 Hiện tại: ${nowTime} • Hôm Nay: ${SalonUtils.formatDate(todayStr)}
               </span>
+              <button type="button" class="btn-submit-terracotta" style="padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer;" onclick="AdminWeb.openQuickWalkinModal()">
+                + Tiếp Nhận Khách Vãng Lai
+              </button>
             </div>
           </div>
 
-          <div class="quick-search-input-wrap">
-            <input type="text" id="adminCustomerLookupInput" placeholder="Nhập Tên khách hàng, Số điện thoại hoặc Mã lịch hẹn để tiếp nhận..." 
+          <div class="quick-search-input-wrap" style="position: relative; display: flex; align-items: center;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 14px; color: var(--text-muted, #94a3b8); pointer-events: none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="adminCustomerLookupInput" placeholder="Nhập tên khách hàng, số điện thoại hoặc mã lịch hẹn để tiếp nhận..." 
                    value="${this.escapeHtml(this.customerLookupQuery || '')}"
                    oninput="AdminWeb.handleCustomerLookup(this.value);"
-                   style="width: 100%; height: 46px; padding: 0 16px; border-radius: 10px; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 14.5px; font-weight: 600; outline: none; box-sizing: border-box;">
+                   style="width: 100%; height: 40px; padding: 0 38px 0 38px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; font-weight: 500; outline: none; box-sizing: border-box;">
+            <button type="button" onclick="AdminWeb.handleCustomerLookup(''); const el = document.getElementById('adminCustomerLookupInput'); if (el) { el.value = ''; el.focus(); }" 
+                    style="position: absolute; right: 12px; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 16px; line-height: 1; display: ${this.customerLookupQuery ? 'block' : 'none'};" title="Xóa tìm kiếm">&times;</button>
           </div>
 
           <div id="quickBookingSearchResultsContainer">
             ${this.renderLookupResultsHtml(lookupQ, lookupResults, todayStr)}
           </div>
 
-          <div id="waitingLoungeContainer" style="margin-top: 18px; border-top: 1px dashed var(--border-color); padding-top: 16px;">
+          <div id="waitingLoungeContainer" style="margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 14px;">
             ${this.renderWaitingLoungeHtml(waitingBookings, todayStr, nowTime)}
           </div>
         </div>
@@ -209,26 +215,25 @@
 
       const timelineHtml = `
         <div style="margin-bottom: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <span class="quick-booking-badge" style="background: #f59e0b; color: #000; font-weight: 900;">OMNI WORKSTATIONS</span>
-              <span style="font-size: 16px; font-weight: 800; color: var(--text-primary, #FFFFFF);">Bàn Điều Phối Ghế Cắt Theo Ca Hẹn</span>
-              <span class="badge-terracotta" style="font-size: 11px;">
+              <span style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Bàn Điều Phối Ghế Cắt Theo Ca Hẹn</span>
+              <span style="font-size: 12px; font-weight: 600; color: var(--brand-accent, #C59B27); background: rgba(197, 155, 39, 0.1); border: 1px solid rgba(197, 155, 39, 0.25); padding: 4px 10px; border-radius: 6px;">
                 Ngày: ${workstationDate === todayStr ? 'Hôm Nay (' + SalonUtils.formatDate(todayStr) + ')' : SalonUtils.formatDate(workstationDate)}
               </span>
 
               ${this.isBranchManager(user) ? `
-                <span class="badge-terracotta" style="font-size: 11px;">${this.escapeHtml(this._getBranchShortName(user.branchId, bMap))}</span>
+                <span class="badge-terracotta" style="font-size: 11.5px;">${this.escapeHtml(this._getBranchShortName(user.branchId, bMap))}</span>
               ` : `
-                <select class="admin-select-filter" style="height: 32px; font-size: 12px; border-radius: 8px; padding: 2px 10px;"
+                <select class="admin-select-filter" style="height: 32px; font-size: 12px; border-radius: 6px; padding: 2px 10px;"
                         onchange="AdminWeb.dispatchBranchFilter = this.value; AdminWeb.dispatchPage = 1; AdminWeb.refreshBookingsTable();">
                   <option value="all" ${(!this.dispatchBranchFilter || this.dispatchBranchFilter === 'all') ? 'selected' : ''}>Toàn Bộ Chi Nhánh</option>
                   ${branches.map(b => `<option value="${b.id}" ${this.dispatchBranchFilter === b.id ? 'selected' : ''}>${this.escapeHtml(this._getBranchShortName(b))}</option>`).join('')}
                 </select>
               `}
             </div>
-            <div style="font-size: 12.5px; color: var(--text-secondary);">
-              Hiển thị ca hẹn ngày <strong style="color: #f59e0b;">${SalonUtils.formatDate(workstationDate)}</strong> • Tự động highlight ca gần nhất
+            <div style="font-size: 12px; color: var(--text-secondary);">
+              Ca hẹn ngày <strong style="color: var(--brand-accent, #C59B27);">${SalonUtils.formatDate(workstationDate)}</strong> • Tự động highlight ca gần nhất
             </div>
           </div>
 
@@ -284,7 +289,7 @@
                               ${isToday && !isNearest ? `<span style="font-size: 10px; font-weight: 800; background: #f59e0b; color: #000; padding: 2px 5px; border-radius: 4px;">HÔM NAY</span>` : ''}
                             </div>
                             <span style="font-size: 11px; font-weight: 800; color: ${isInProg ? '#f59e0b' : (isDone ? '#10B981' : (isWaiting ? '#f59e0b' : '#94A3B8'))};">
-                              ${isDone ? 'Hoàn tất' : (isInProg ? 'Đang cắt' : (isWaiting ? '⏳ Chờ ghế' : 'Chờ đến'))}
+                              ${isDone ? 'Hoàn tất' : (isInProg ? 'Đang cắt' : (isWaiting ? 'Chờ ghế' : 'Chờ đến'))}
                             </span>
                           </div>
                           <div class="timeline-card-customer" style="font-size: ${isToday ? '15px' : '14px'}; font-weight: 800; color: var(--text-primary, #FFFFFF); margin-bottom: 4px;">
@@ -308,7 +313,7 @@
                             ${isWaiting ? `
                               <button type="button" class="btn-submit-terracotta" style="padding: 6px 12px; font-size: 11.5px; flex: 1; background: #10B981; border-color: #10B981; color: #fff; font-weight: 700;" 
                                       onclick="AdminWeb.updateBookingStatus('${b.id}', 'In_Progress')" title="Đưa khách từ sảnh chờ vào ghế cắt">
-                                ✂ Vào Ghế Làm Ngay
+                                Vào Ghế Làm Ngay
                               </button>
                             ` : ''}
                             ${isInProg ? `
@@ -344,16 +349,16 @@
 
       return `
         <!-- Thanh Chuyển Đổi Phân Hệ Tiếp Nhận & Lịch Hẹn -->
-        <div style="display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 2px solid rgba(0,0,0,0.06); padding-bottom: 8px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
           <button type="button" class="admin-tab-btn ${activeBookingSubTab === 'dispatcher' ? 'active' : ''}" 
-                  style="padding: 8px 18px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer;" 
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${activeBookingSubTab === 'dispatcher' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                   onclick="AdminWeb.switchBookingSubTab('dispatcher')">
-            🪑 Sơ Đồ Ghế &amp; Tiếp Nhận Sảnh
+            Sơ Đồ Ghế &amp; Tiếp Nhận Sảnh
           </button>
           <button type="button" class="admin-tab-btn ${activeBookingSubTab === 'list' ? 'active' : ''}" 
-                  style="padding: 8px 18px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer;" 
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${activeBookingSubTab === 'list' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                   onclick="AdminWeb.switchBookingSubTab('list')">
-            📋 Danh Sách Lịch Hẹn (${filtered.length})
+            Danh Sách Lịch Hẹn (${filtered.length})
           </button>
         </div>
 
@@ -493,7 +498,7 @@
                           ${isWaiting ? `
                             <button class="btn-submit-terracotta" style="padding: 3px 8px; font-size: 10.5px; background: #10B981; border-color: #10B981; color: #fff; font-weight: 800; white-space: nowrap;" 
                                     onclick="AdminWeb.updateBookingStatus('${b.id}', 'In_Progress')" title="Đưa khách từ sảnh chờ vào ghế cắt">
-                              ✂ Vào Ghế
+                              Vào Ghế
                             </button>
                           ` : ''}
 
@@ -581,7 +586,7 @@
                         ${!isToday && !isDone && !isInProg && !isWaiting ? `
                           <button class="btn-submit-terracotta" style="padding: 5px 10px; font-size: 11px; background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: 700;" 
                                   onclick="AdminWeb.checkinWaitingEarlyToday('${b.id}')" title="Khách đặt ngày ${SalonUtils.formatDate(bDate)} nhưng tới sớm hôm nay, đưa vào danh sách chờ">
-                            ⏳ Chờ Hôm Nay
+                            Chờ Hôm Nay
                           </button>
                           <button class="btn-submit-terracotta" style="padding: 5px 10px; font-size: 11px; background: #d97706;" 
                                   onclick="AdminWeb.checkinEarlyToday('${b.id}')" title="Khách đặt ngày ${SalonUtils.formatDate(bDate)} nhưng hôm nay tới làm luôn">
@@ -592,21 +597,21 @@
                         ${isToday && !isInProg && !isDone && !isWaiting ? `
                           <button class="btn-submit-terracotta" style="padding: 5px 10px; font-size: 11px; background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: 700;" 
                                   onclick="AdminWeb.checkinBookingWaiting('${b.id}')" title="Khách đã có mặt tại sảnh, xếp vào danh sách chờ ghế">
-                            ⏳ Chờ Vào Ghế
+                            Chờ Vào Ghế
                           </button>
                           <button class="btn-submit-terracotta" style="padding: 5px 10px; font-size: 11px;" 
                                   onclick="AdminWeb.updateBookingStatus('${b.id}', 'In_Progress')" title="Đưa khách thẳng vào ghế cắt">
-                            ✂ Vào Ghế Cắt
+                            Vào Ghế Cắt
                           </button>
                         ` : ''}
 
                         ${isWaiting ? `
                           <span style="font-size: 11px; font-weight: 800; color: #f59e0b; padding: 4px 8px; background: rgba(245, 158, 11, 0.15); border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                            ⏳ ĐANG CHỜ GHẾ
+                            ĐANG CHỜ GHẾ
                           </span>
                           <button class="btn-submit-terracotta" style="padding: 5px 12px; font-size: 11px; background: #10b981; border-color: #10b981; color: #fff; font-weight: 700;" 
                                   onclick="AdminWeb.updateBookingStatus('${b.id}', 'In_Progress')" title="Gọi khách vào ghế cắt">
-                            ✂ Vào Ghế Làm Ngay
+                            Vào Ghế Làm Ngay
                           </button>
                         ` : ''}
 
@@ -888,7 +893,6 @@
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 16px;">🛋️</span>
               <strong style="font-size: 15px; color: var(--text-primary);">Khu Vực Khách Đang Chờ Sảnh Tiếp Nhận &amp; Check-in</strong>
               <span class="status-pill-pulse status-waiting" style="font-size: 11px; padding: 2px 8px;">
                 <span class="pulse-dot"></span> ${waitingBookings.length} Khách Đang Chờ
@@ -900,13 +904,13 @@
           </div>
 
           ${waitingBookings.length === 0 ? `
-            <div style="background: rgba(245, 158, 11, 0.03); border: 1.5px dashed rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 18px; text-align: center;">
-              <div style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">
-                Sảnh Chờ Hiện Đang Trống
-              </div>
-              <div style="font-size: 12px; color: var(--text-secondary);">
-                Chưa có khách nào đang chờ tại sảnh. Tiếp nhận khách bằng cách tìm kiếm khách hàng hoặc lịch hẹn ở trên.
-              </div>
+            <div style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border-color); border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <span style="font-size: 12.5px; color: var(--text-secondary);">
+                Sảnh chờ hiện đang trống. Chưa có khách nào đang chờ tại sảnh.
+              </span>
+              <span style="font-size: 12px; color: var(--text-muted, #71717a);">
+                Tìm kiếm ở ô trên hoặc bấm "Tiếp Nhận Khách Vãng Lai" để check-in
+              </span>
             </div>
           ` : `
             <div class="waiting-lounge-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 12px;">
@@ -944,7 +948,7 @@
                     <div style="display: gap: 8px; align-items: center; display: flex;">
                       <button type="button" class="btn-submit-terracotta" style="padding: 7px 12px; font-size: 11.5px; flex: 1; background: #10B981; border-color: #10B981; color: #fff; font-weight: 800; border-radius: 8px; cursor: pointer;" 
                               onclick="AdminWeb.updateBookingStatus('${b.id}', 'In_Progress')" title="Đưa khách từ sảnh chờ vào ghế cắt">
-                        ✂ Vào Ghế Làm Ngay
+                        Vào Ghế Làm Ngay
                       </button>
                       <button type="button" class="pill-btn-outline" style="padding: 7px 10px; font-size: 11.5px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); border-radius: 8px; cursor: pointer;" 
                               onclick="AdminWeb.openCancelBookingModal('${b.id}')" title="Hủy ca / Khách rời khỏi sảnh">

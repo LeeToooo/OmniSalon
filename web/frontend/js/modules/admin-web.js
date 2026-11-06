@@ -12,6 +12,7 @@
     // -----------------------------------------------------------------------
     // STATE MANAGEMENT
     // -----------------------------------------------------------------------
+    isSidebarCollapsed: (typeof localStorage !== 'undefined' && localStorage.getItem('omni_admin_sidebar_collapsed') === 'true'),
     adminSubTab: 'overview', // 'overview' | 'bookings' | 'stylists' | 'catalog' | 'inventory' | 'pos' | 'audit'
     filterBranch: 'all',
     filterStatus: 'all',

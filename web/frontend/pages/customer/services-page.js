@@ -457,7 +457,7 @@
                   </button>
                   <button onclick="ServicesPage.selectAndBook('${item.id}')"
                           class="service-card-btn service-card-btn-book"
-                          style="min-height: clamp(36px, 2.2vw, 42px); height: clamp(36px, 2.2vw, 42px); padding: 0 clamp(14px, 1vw, 20px); border-radius: 6px; background: #141413; border: 1px solid #C59B27; color: #FAF8F5; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease; white-space: nowrap;">
+                          style="min-height: clamp(36px, 2.2vw, 42px); height: clamp(36px, 2.2vw, 42px); padding: 0 clamp(14px, 1vw, 20px); border-radius: 6px; background: #C59B27; border: 1.5px solid #C59B27; color: #141413; font-size: 14px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease; white-space: nowrap;">
                     Đặt Lịch →
                   </button>
                 </div>

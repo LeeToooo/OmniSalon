@@ -1,0 +1,91 @@
+/* ==========================================================================
+   Omni Salon - Customer Specific Components (css/components/customer-components.css)
+   - Cổng thông tin khách hàng: Thanh tab điều hướng (.portal-nav-tabs, .portal-tab-btn)
+   - Thẻ bộ sưu tập ảnh tạo kiểu (.portal-ai-card)
+   - Dòng thời gian trạng thái đơn hàng (.order-status-timeline, .order-status-timeline-large)
+   - Thẻ đơn hàng cao cấp & Nút thao tác (.order-card-premium, .btn-order-action)
+   ========================================================================== */
+
+/* Thanh tab cổng thông tin khách hàng */
+.portal-nav-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.portal-nav-tabs::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.portal-tab-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.portal-tab-btn:hover {
+  color: var(--color-terracotta);
+  background: rgba(200, 90, 68, 0.05);
+}
+
+.portal-tab-btn.active {
+  color: var(--color-terracotta);
+  font-weight: 800;
+  background: #ffffff;
+}
+
+.portal-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-terracotta);
+  border-radius: 3px 3px 0 0;
+}
+
+/* Thẻ bộ sưu tập ảnh tạo kiểu */
+.portal-ai-card {
+  transition: all 0.25s ease;
+}
+
+.portal-ai-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-terracotta);
+}
+
+/* Dòng thời gian trạng thái đơn hàng */
+.order-status-timeline {
+  user-select: none;
+}
+
+.order-status-timeline-large {
+  user-select: none;
+}
+
+.order-card-premium {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-card-premium:hover {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5) !important;
+}
+
+.btn-order-action {
+  transition: all 0.2s ease;
+}
+
+.btn-order-action:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+}

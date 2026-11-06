@@ -132,15 +132,12 @@
                   </p>
                   <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary, #141413); background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); padding: 6px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
-                      <span style="width: 6px; height: 6px; border-radius: 50%; background: #C59B27; display: inline-block;"></span>
                       Định Form Chuẩn Tỉ Lệ
                     </span>
                     <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary, #141413); background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); padding: 6px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
-                      <span style="width: 6px; height: 6px; border-radius: 50%; background: #C59B27; display: inline-block;"></span>
                       100% Pomade Chính Hãng
                     </span>
                     <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary, #141413); background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); padding: 6px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
-                      <span style="width: 6px; height: 6px; border-radius: 50%; background: #C59B27; display: inline-block;"></span>
                       Bảo Hành Kiểu Tóc 7 Ngày
                     </span>
                   </div>
@@ -148,7 +145,7 @@
                 
                 <!-- CTA tinh gọn: 1 Nút chính nổi bật + 1 Text Link có mũi tên -->
                 <div class="nordic-cta-group" style="display: flex; align-items: center; flex-wrap: wrap; gap: 18px; margin-top: 4px;">
-                  <button class="btn-hero-primary" onclick="AppRouter.navigate('/booking')" style="padding: 16px 42px; border-radius: 6px; font-weight: 700; font-size: 16px; min-width: 210px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none; transition: all 0.2s ease;">
+                  <button class="btn-hero-primary" onclick="AppRouter.navigate('/booking')" style="padding: 16px 42px; border-radius: 6px; font-weight: 800; font-size: 16px; min-width: 210px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none; transition: all 0.2s ease; background: #C59B27; color: #141413; border: 1.5px solid #C59B27;">
                     <span>Đặt Lịch Hẹn Ngay</span>
                   </button>
                   <a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" class="hero-link-secondary" style="font-family: var(--font-sans); font-size: 16px; font-weight: 700; color: var(--brand-accent); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--brand-accent); padding-bottom: 2px; transition: gap 0.2s ease;">

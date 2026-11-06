@@ -1,0 +1,94 @@
+/* ==========================================================================
+   CUSTOMER REVIEWS, RATINGS & FEEDBACK CSS
+   OmniSalon Design System - Reviews & Ratings
+   ========================================================================== */
+
+/* Tab đánh giá của khách hàng */
+.pdp-reviews-summary {
+  display: flex;
+  gap: 40px;
+  padding-bottom: 32px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  flex-wrap: wrap;
+}
+
+.pdp-reviews-score {
+  text-align: center;
+  padding: 20px 32px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 12px;
+}
+
+.pdp-reviews-big-num {
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--brand-accent, #F59E0B);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.pdp-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pdp-review-item {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+  border-radius: 12px;
+}
+
+[data-theme="light"] .pdp-review-item,
+.light .pdp-review-item {
+  background: #F8FAFC;
+}
+
+.pdp-review-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.pdp-review-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.pdp-review-meta h4 {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--text-primary, #F8FAFC);
+  margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdp-verified-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  font-weight: 700;
+}
+
+.pdp-review-date {
+  font-size: 12px;
+  color: var(--text-secondary, #64748B);
+}
+
+.pdp-review-comment {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary, #CBD5E1);
+  margin: 0;
+}
+

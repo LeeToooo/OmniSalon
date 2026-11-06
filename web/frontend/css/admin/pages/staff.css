@@ -1,0 +1,836 @@
+/* ==========================================================================
+   MODULE: ADMIN STAFF (QUẢN LÝ NHÂN SỰ, THỢ TẠO MẪU & PHÂN CA)
+   ========================================================================== */
+
+/* Thẻ thợ tạo mẫu */
+.md3-stylist-card,
+.luxury-stylist-card {
+  background: var(--color-surface-card, #1A1D26) !important;
+  border: 1px solid var(--color-border-thin, #2A2F3D) !important;
+  border-radius: var(--radius-card, 16px) !important;
+  padding: 16px 12px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  color: var(--color-text-white, #FFFFFF);
+}
+
+.md3-stylist-card:hover,
+.luxury-stylist-card:hover {
+  border-color: var(--color-accent-gold, #D4AF37) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.15);
+}
+
+.md3-stylist-card.active,
+.luxury-stylist-card.active {
+  border-color: var(--color-accent-gold, #D4AF37) !important;
+  background: rgba(212, 175, 55, 0.08) !important;
+  box-shadow: 0 0 0 1px var(--color-accent-gold, #D4AF37), 0 8px 25px rgba(212, 175, 55, 0.2) !important;
+}
+
+.md3-stylist-avatar-wrap {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 10px;
+}
+
+.md3-stylist-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50% !important;
+  object-fit: cover;
+  border: 2px solid var(--color-accent-gold, #D4AF37) !important;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.3) !important;
+}
+
+.md3-stylist-status-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-success, #10B981);
+  border: 2px solid #1A1D26;
+}
+
+.md3-stylist-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.md3-stylist-level-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-accent-gold, #D4AF37);
+  background: rgba(212, 175, 55, 0.12);
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.md3-stylist-rating-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-accent-gold, #D4AF37);
+}
+
+.md3-stylist-served-metric {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-muted, #9CA3AF);
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+
+.md3-stylist-specialty-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.stylist-tag-pill {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: #242938;
+  color: #CBD5E1;
+  border: 1px solid var(--color-border-thin, #2A2F3D);
+}
+
+/* Card thợ cắt tóc cao cấp tái thiết kế cân đối tuyệt đối */
+.stylist-nordic-card {
+  background: var(--surface-card, #14171F);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  box-sizing: border-box;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+}
+
+.stylist-nordic-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(217, 119, 6, 0.45);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+}
+
+html.light .stylist-nordic-card,
+body.light .stylist-nordic-card,
+[data-theme="light"] .stylist-nordic-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: none !important;
+}
+
+html.light .stylist-nordic-card:hover,
+body.light .stylist-nordic-card:hover,
+[data-theme="light"] .stylist-nordic-card:hover {
+  border-color: #D97706 !important;
+  box-shadow: 0 16px 36px rgba(217, 119, 6, 0.12) !important;
+}
+
+.stylist-card-avatar-wrap {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 12px;
+}
+
+.stylist-card-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #D97706;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);
+  display: block;
+}
+
+.stylist-card-rating-float {
+  position: absolute;
+  bottom: -4px;
+  right: -6px;
+  background: #D97706;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 12px;
+  border: 2px solid var(--surface-card, #14171F);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+html.light .stylist-card-rating-float,
+body.light .stylist-card-rating-float,
+[data-theme="light"] .stylist-card-rating-float {
+  border-color: #FFFFFF !important;
+}
+
+.stylist-card-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary, #FFFFFF);
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+html.light .stylist-card-name,
+body.light .stylist-card-name,
+[data-theme="light"] .stylist-card-name {
+  color: #0F172A !important;
+}
+
+.stylist-card-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.stylist-card-role-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(217, 119, 6, 0.12);
+  color: #D97706;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+.stylist-card-level-pill {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--surface-elevated, #1A1E29);
+  color: var(--text-secondary, #94A3B8);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+html.light .stylist-card-level-pill,
+body.light .stylist-card-level-pill,
+[data-theme="light"] .stylist-card-level-pill {
+  background: #F1F5F9 !important;
+  color: #475569 !important;
+  border-color: #CBD5E1 !important;
+}
+
+.stylist-card-branch {
+  font-size: 12.5px;
+  color: var(--text-secondary, #94A3B8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+html.light .stylist-card-branch,
+body.light .stylist-card-branch,
+[data-theme="light"] .stylist-card-branch {
+  color: #64748B !important;
+}
+
+.stylist-card-metrics-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #D97706;
+}
+
+.stylist-card-metrics-pill .metric-sep {
+  opacity: 0.4;
+}
+
+.stylist-card-tags-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.stylist-card-tag-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #94A3B8);
+  background: var(--surface-elevated, #1A1E29);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+html.light .stylist-card-tag-pill,
+body.light .stylist-card-tag-pill,
+[data-theme="light"] .stylist-card-tag-pill {
+  background: #F8FAFC !important;
+  color: #334155 !important;
+  border-color: #E2E8F0 !important;
+}
+
+.stylist-card-portfolio-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 4px 0 10px;
+}
+
+.stylist-card-portfolio-header .portfolio-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+html.light .stylist-card-portfolio-header .portfolio-line,
+body.light .stylist-card-portfolio-header .portfolio-line,
+[data-theme="light"] .stylist-card-portfolio-header .portfolio-line {
+  background: #E2E8F0 !important;
+}
+
+.stylist-card-portfolio-header .portfolio-title {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--text-secondary, #94A3B8);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+html.light .stylist-card-portfolio-header .portfolio-title,
+body.light .stylist-card-portfolio-header .portfolio-title,
+[data-theme="light"] .stylist-card-portfolio-header .portfolio-title {
+  color: #64748B !important;
+}
+
+.stylist-card-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.stylist-card-gallery-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  transition: transform 0.2s ease;
+}
+
+.stylist-card-gallery-img:hover {
+  transform: scale(1.05);
+}
+
+html.light .stylist-card-gallery-img,
+body.light .stylist-card-gallery-img,
+[data-theme="light"] .stylist-card-gallery-img {
+  border-color: #E2E8F0 !important;
+}
+
+.stylist-card-cta-btn {
+  width: 100%;
+  min-height: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #F59E0B, #D97706);
+  border: none;
+  color: #09090B;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);
+  margin-top: auto;
+  transition: all 0.2s ease;
+}
+
+.stylist-card-cta-btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.35);
+  transform: translateY(-1px);
+}
+
+.stylist-active-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-accent-gold, #D4AF37);
+  color: #0F1015;
+  font-weight: 900;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Danh sách thợ tạo mẫu */
+.stylists-clean-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 24px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 860px) {
+  .stylists-clean-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+.stylist-clean-card {
+  background: var(--surface-card, #FFFFFF);
+  border: 1px solid var(--border-color, rgba(20, 20, 19, 0.08));
+  border-radius: 10px;
+  padding: 22px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  box-sizing: border-box;
+}
+
+.stylist-clean-card:hover {
+  transform: translateY(-4px);
+  border-color: #C59B27;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .stylist-clean-card,
+body.dark .stylist-clean-card {
+  background: var(--surface-card, #14171F);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .stylist-clean-card:hover,
+body.dark .stylist-clean-card:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  border-color: rgba(197, 155, 39, 0.5);
+}
+
+.stylist-clean-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stylist-avatar-box {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 14px;
+}
+
+.stylist-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #C59B27;
+  box-shadow: 0 4px 12px rgba(197, 155, 39, 0.2);
+  display: block;
+}
+
+.stylist-avatar-rating {
+  position: absolute;
+  bottom: -3px;
+  right: -5px;
+  background: #C59B27;
+  color: #141413;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 2px solid var(--surface-card, #FFFFFF);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  line-height: 1.2;
+}
+
+[data-theme="dark"] .stylist-avatar-rating,
+body.dark .stylist-avatar-rating {
+  border-color: #14171F;
+}
+
+.stylist-clean-name {
+  font-size: 17.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.stylist-clean-badge-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stylist-role-tag {
+  display: inline-block;
+  background: rgba(197, 155, 39, 0.12);
+  color: #C59B27;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(197, 155, 39, 0.25);
+}
+
+.stylist-branch-tag {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.stylist-stats-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-elevated, #F8FAFC);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color, rgba(20, 20, 19, 0.08));
+  margin-bottom: 16px;
+}
+
+.stylist-stats-pill .stats-dot {
+  opacity: 0.35;
+}
+
+.stylist-book-action-btn {
+  width: 100%;
+  background: #C59B27;
+  color: #141413;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13.5px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stylist-book-action-btn:hover {
+  background: #B48B20;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(197, 155, 39, 0.25);
+}
+
+.stylist-book-action-btn .btn-arrow {
+  transition: transform 0.2s ease;
+}
+
+.stylist-book-action-btn:hover .btn-arrow {
+  transform: translateX(3px);
+}
+
+/* Lưới thợ tạo mẫu tiêu biểu trang chủ */
+.bento-grid.stylists-3col-grid,
+#homeStylistsGrid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 24px !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1024px) {
+
+  .bento-grid.stylists-3col-grid,
+  #homeStylistsGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .bento-grid.stylists-3col-grid,
+  #homeStylistsGrid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+.stylist-nordic-card {
+  padding: 28px 24px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center;
+  text-align: center;
+  height: 100% !important;
+  justify-content: space-between !important;
+  box-sizing: border-box !important;
+  background: var(--surface-card, #11141D) !important;
+  border: 1px solid var(--border-color, rgba(212, 175, 55, 0.15)) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
+  transform: none !important;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.stylist-nordic-card:hover {
+  transform: none !important;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.25) !important;
+  border-color: #FBBF24 !important;
+}
+
+.product-nordic-card,
+.shop-nordic-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.stylist-avatar-frame {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin-bottom: 18px;
+}
+
+.stylist-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #F59E0B;
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.4);
+  transition: transform 0.3s ease;
+}
+
+.card-3d-tilt:hover .stylist-avatar-img {
+  transform: scale(1.05);
+  box-shadow: 0 0 32px rgba(245, 158, 11, 0.6);
+}
+
+.stylist-exp-badge {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #07080B;
+  color: #F59E0B;
+  border: 1px solid #F59E0B;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 12px;
+  white-space: nowrap;
+}
+
+.stylist-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary, #FFFFFF);
+  margin-bottom: 4px;
+}
+
+.stylist-role {
+  font-size: 14px;
+  font-weight: 700;
+  color: #F59E0B;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.stylist-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stylist-rating-star {
+  color: #F59E0B;
+}
+
+.stylist-tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.stylist-pill-tag {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #CBD5E1;
+}
+
+/* Thư viện ảnh mẫu tóc của thợ */
+.stylist-portfolio-mini {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.stylist-portfolio-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.stylist-portfolio-thumb:hover {
+  transform: scale(1.08);
+  border-color: #F59E0B;
+  z-index: 2;
+}
+
+.stylist-book-btn {
+  width: 100%;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+  color: #000000 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  border: none !important;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.stylist-book-btn:hover {
+  filter: brightness(1.1) !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5) !important;
+  transform: translateY(-1px) !important;
+}
+
+.stylist-book-btn:active {
+  transform: scale(0.98) !important;
+}
+
+/* Lưới Thợ cắt tóc 4 cột đồng bộ trên Desktop, tự kéo giãn theo độ phân giải */
+#stylistsProfilesGrid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: clamp(18px, 1.4vw, 32px) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1200px) {
+  #stylistsProfilesGrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 860px) {
+  #stylistsProfilesGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  #stylistsProfilesGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Split Layout cho Form Nhan Su Admin */
+.stylist-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 390px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .stylist-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+

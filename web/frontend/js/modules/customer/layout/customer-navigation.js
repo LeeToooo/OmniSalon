@@ -139,19 +139,20 @@
       return `
         <button type="button" class="dropdown-admin-card-btn ${currentTab === 'admin' ? 'active' : ''}" 
                 onclick="CustomerWeb.closeUserMenu(); CustomerWeb.switchTab('${currentTab === 'admin' ? 'home' : 'admin'}');" 
-                title="Vào khu vực làm việc phân hệ">
+                title="Vào khu vực làm việc phân hệ"
+                style="background: #C59B27 !important; border: 1.5px solid #A27B1C !important;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <div class="admin-card-icon-box">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C59B27" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <div class="admin-card-icon-box" style="background: rgba(0, 0, 0, 0.12) !important;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#141413" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
               </svg>
             </div>
             <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.25;">
-              <span style="font-size: 13.5px; font-weight: 800; color: #FFFFFF;">${currentTab === 'admin' ? 'Xem Giao Diện Khách' : label}</span>
-              <span style="font-size: 11px; color: #94A3B8; font-weight: 600;">${sub}</span>
+              <span style="font-size: 13.5px; font-weight: 800; color: #141413 !important;">${currentTab === 'admin' ? 'Xem Giao Diện Khách' : label}</span>
+              <span style="font-size: 11px; color: #3E320D !important; font-weight: 700;">${sub}</span>
             </div>
           </div>
-          <span style="color: #C59B27; font-size: 14px; font-weight: 800;">→</span>
+          <span style="color: #141413 !important; font-size: 14px; font-weight: 800;">→</span>
         </button>
       `;
     },

@@ -1,0 +1,118 @@
+/* ==========================================================================
+   COMMON PROMOTIONS, VOUCHERS & COUPONS CSS
+   OmniSalon Design System - Promotions & Discount System
+   ========================================================================== */
+
+.cart-drawer-voucher-card {
+  margin: 12px 0;
+  padding: 12px;
+  background: #151822;
+  border-radius: 10px;
+  border: 1px dashed rgba(245, 158, 11, 0.35);
+}
+
+.cart-drawer-voucher-row {
+  display: flex;
+  gap: 8px;
+}
+
+.cart-drawer-voucher-inp {
+  flex: 1;
+  height: 42px;
+  padding: 0 12px;
+  background: #10131b;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.cart-drawer-voucher-btn {
+  height: 42px;
+  padding: 0 18px;
+  background: #d97706;
+  color: #000000;
+  font-weight: 800;
+  font-size: 13.5px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.cart-drawer-voucher-btn:hover {
+  background: #f59e0b;
+}
+
+/* Mã giảm giá và tóm tắt đơn hàng */
+.cart-coupon-form {
+  display: flex;
+  gap: 8px;
+}
+
+.cart-coupon-input {
+  flex: 1;
+  height: 42px;
+  padding: 0 12px;
+  background: var(--surface-elevated, #10131a);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+  border-radius: 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.cart-coupon-apply-btn {
+  height: 42px;
+  padding: 0 18px;
+  background: #3b82f6;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13.5px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.cart-coupon-apply-btn:hover {
+  opacity: 0.9;
+}
+
+.cart-applied-voucher-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+}
+
+.voucher-badge-code {
+  font-weight: 800;
+  color: #10b981;
+  font-size: 13px;
+}
+
+.voucher-badge-val {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 13px;
+  margin-left: 6px;
+}
+
+.voucher-remove-link {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+

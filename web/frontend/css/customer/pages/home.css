@@ -1,0 +1,1498 @@
+/* ==========================================================================
+   MODULE: CUSTOMER HOME (TRANG CHỦ KHÁCH HÀNG)
+   ========================================================================== */
+
+/* Lưới bento trang chủ */
+.bento-asymmetric-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.bento-col-7 {
+  grid-column: span 7;
+}
+
+.bento-col-5 {
+  grid-column: span 5;
+}
+
+@media (max-width: 900px) {
+
+  .bento-col-7,
+  .bento-col-5 {
+    grid-column: span 12;
+  }
+}
+
+.bento-editorial-card {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(20, 20, 19, 0.08);
+  background: #141413;
+  min-height: 290px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  cursor: pointer;
+  group: bento;
+}
+
+.bento-editorial-card .bento-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: brightness(0.92) contrast(1.05) sepia(0.08);
+}
+
+.bento-editorial-card:hover .bento-bg-img {
+  transform: scale(1.05);
+}
+
+.bento-editorial-card .bento-scrim {
+  position: relative;
+  z-index: 2;
+  padding: 24px;
+  background: linear-gradient(to top, rgba(12, 13, 16, 0.96) 0%, rgba(12, 13, 16, 0.70) 55%, rgba(12, 13, 16, 0.20) 100%) !important;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bento-editorial-card h3,
+.bento-editorial-card .font-serif,
+.bento-editorial-card .bento-scrim h3,
+html.light .bento-editorial-card h3,
+body.light .bento-editorial-card h3,
+[data-theme="light"] .bento-editorial-card h3 {
+  color: #FFFFFF !important;
+  text-shadow: none !important;
+}
+
+.bento-editorial-card p,
+.bento-editorial-card .bento-scrim p,
+html.light .bento-editorial-card p,
+body.light .bento-editorial-card p,
+[data-theme="light"] .bento-editorial-card p {
+  color: #E2E8F0 !important;
+  text-shadow: none !important;
+}
+
+html.light .bento-editorial-card,
+body.light .bento-editorial-card,
+[data-theme="light"] .bento-editorial-card {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Khối mở đầu trang chủ có nút đặt lịch và mua sắm */
+.web-hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 560px;
+  background-image: url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1920&q=85');
+  background-size: cover;
+  background-position: center 25%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+.hero-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(14, 14, 18, 0.45) 0%, rgba(14, 14, 18, 0.78) 100%);
+}
+
+.hero-content-center {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.hero-brand-tag {
+  display: inline-block;
+  background: rgba(200, 90, 68, 0.25);
+  color: #ff9d88;
+  border: 1px solid rgba(200, 90, 68, 0.5);
+  padding: 6px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  backdrop-filter: blur(8px);
+}
+
+.hero-big-title {
+  font-size: 40px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  margin: 0 auto 14px;
+  text-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .hero-big-title {
+    font-size: 26px;
+  }
+}
+
+.hero-description {
+  font-size: 15px;
+  color: #e5e5e7;
+  max-width: 680px;
+  margin: 0 auto 28px;
+  line-height: 1.6;
+  text-shadow: none;
+}
+
+.hero-cta-group {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-hero-terracotta {
+  background: linear-gradient(135deg, #D4AF37 0%, #E5C158 100%);
+  color: #0B0D13;
+  padding: 14px 38px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-hero-terracotta:hover {
+  background: #E5C158;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
+}
+
+.btn-hero-brown {
+  background: #2b231f;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 14px 38px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-hero-brown:hover {
+  background: #3d322c;
+  transform: translateY(-2px);
+}
+
+.btn-hero-glass {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 14px 32px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+}
+
+.btn-hero-glass:hover {
+  background: #ffffff;
+  color: #111114;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.25);
+}
+
+/* Khung chứa và tiêu đề chung cho các phần */
+.section-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 28px !important;
+  box-sizing: border-box !important;
+}
+
+.section-title-clean {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-black);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.section-subtitle-clean {
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+
+/* Thư viện hình ảnh khoảnh khắc khách hàng */
+.moments-horizontal-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scroll-snap-type: x mandatory;
+}
+
+.moments-horizontal-scroll::-webkit-scrollbar {
+  height: 5px;
+}
+
+.moment-card {
+  flex: 0 0 230px;
+  height: 320px;
+  border-radius: 4px;
+  overflow: hidden;
+  scroll-snap-align: start;
+}
+
+.moment-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.moment-card:hover .moment-img {
+  transform: scale(1.05);
+}
+
+
+/* Lưới sản phẩm mới và bán chạy năm cột */
+.products-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .products-grid-5 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .products-grid-5 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.product-item-card {
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-item-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.product-img-box {
+  width: 100%;
+  height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.product-thumb {
+  max-height: 160px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.quick-add-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.product-item-card:hover .quick-add-btn {
+  opacity: 1;
+}
+
+.quick-add-btn:hover {
+  background: var(--color-terracotta);
+  color: #fff;
+}
+
+.product-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #111;
+  min-height: 32px;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.product-price-red {
+  color: var(--color-terracotta);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+
+/* Tin tức xu hướng tóc */
+.underground-top-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 868px) {
+  .underground-top-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.underground-feature-card {
+  cursor: pointer;
+}
+
+.feature-img-wrapper {
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.feature-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.underground-feature-card:hover .feature-img {
+  transform: scale(1.03);
+}
+
+.feature-title {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 6px;
+  color: #111;
+}
+
+.feature-excerpt {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.underground-right-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.underground-side-card {
+  padding: 14px 0;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.underground-side-card:first-child {
+  padding-top: 0;
+}
+
+.underground-side-card:last-child {
+  border-bottom: none;
+}
+
+.side-article-title {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #111;
+  margin-bottom: 6px;
+  transition: color 0.2s;
+}
+
+.underground-side-card:hover .side-article-title {
+  color: var(--color-terracotta);
+}
+
+.side-article-excerpt {
+  font-size: 12px;
+  color: #777;
+  line-height: 1.5;
+}
+
+.underground-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 868px) {
+  .underground-bottom-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.underground-grid-card {
+  padding: 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #fff;
+  transition: box-shadow 0.2s;
+}
+
+.underground-grid-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.grid-article-title {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 6px;
+  color: #111;
+}
+
+.grid-article-excerpt {
+  font-size: 12px;
+  color: #777;
+  line-height: 1.4;
+}
+
+.btn-black-solid {
+  background: #000000;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 10px 32px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.btn-black-solid:hover {
+  background: #222;
+}
+
+
+/* Khám phá hệ thống chi nhánh salon */
+.branches-split-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 48px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .branches-split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.branches-main-title {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+.branches-sub-text {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+}
+
+.branch-group-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.group-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #444;
+}
+
+.group-count {
+  font-size: 10px;
+  color: #888;
+}
+
+.branch-pills-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 800px) {
+  .branch-pills-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .branch-pills-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.branch-pill-button {
+  background: #f8f8fa;
+  border: 1px solid #e5e5e8;
+  color: #1a1a1e;
+  padding: 10px 14px;
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.branch-pill-button:hover {
+  background: #ffffff;
+  border-color: var(--color-terracotta);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(200, 90, 68, 0.12);
+}
+
+.branch-pill-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.branch-pill-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.branch-pill-text-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.branch-pill-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #111;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+
+.branch-pill-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+  margin-top: 1px;
+}
+
+.branch-pill-button:hover .branch-pill-title {
+  color: var(--color-terracotta);
+}
+
+
+/* Bộ sưu tập mẫu tóc nổi bật trong tháng */
+.hairstyles-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 868px) {
+  .hairstyles-showcase-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.hairstyle-card {
+  border: 1px solid #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.hs-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.hs-info {
+  padding: 12px;
+}
+
+.hs-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.hs-desc {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+
+/* Dòng chữ chạy giới thiệu dịch vụ */
+.services-ticker-container {
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ticker-row {
+  display: flex;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-track {
+  display: flex;
+  gap: 10px;
+  animation: tickerScroll 30s linear infinite;
+}
+
+.ticker-track.reverse {
+  animation: tickerScrollReverse 30s linear infinite;
+}
+
+@keyframes tickerScroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes tickerScrollReverse {
+  0% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.service-tag {
+  background: #ffffff;
+  border: 1px solid #111;
+  color: #111;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 18px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+
+/* Video ngắn nổi bật */
+.videos-preview-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.video-item-card {
+  width: 280px;
+  height: 180px;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.video-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.video-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+
+
+/* Các đối tác thương hiệu hợp tác */
+.collab-boxes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .collab-boxes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.collab-box-card {
+  background: var(--color-collab-gray);
+  color: #ffffff;
+  padding: 30px 20px;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.collab-box-card:hover {
+  background: #777777;
+  transform: translateY(-2px);
+}
+
+.collab-title {
+  font-size: 16px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.collab-link {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: underline;
+}
+
+
+/* Chân trang trang web (Web Footer Component) */
+.web-footer {
+  background: var(--color-footer-bg) !important;
+  color: var(--color-footer-text) !important;
+  border-top: none !important;
+  padding: 52px 20px 28px !important;
+  margin-top: 56px !important;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+body.light .web-footer,
+[data-theme="light"] .web-footer,
+html.light .web-footer {
+  background: #F3EFEA !important;
+  border-top: none !important;
+  color: #575752 !important;
+}
+
+body.dark .web-footer,
+[data-theme="dark"] .web-footer,
+html.dark .web-footer {
+  background: #141413 !important;
+  border-top: none !important;
+  color: #A6A6A0 !important;
+}
+
+.footer-inner {
+  max-width: 1640px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3.5vw, 48px);
+  display: grid;
+  grid-template-columns: 1.2fr 2fr 2fr;
+  gap: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--color-footer-border);
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.web-footer .footer-logo-OMNI,
+.web-footer .footer-brand-title {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+body.light .web-footer .footer-logo-OMNI,
+body.light .web-footer .footer-brand-title,
+[data-theme="light"] .web-footer .footer-logo-OMNI,
+[data-theme="light"] .web-footer .footer-brand-title {
+  color: #141413 !important;
+}
+
+body.dark .web-footer .footer-logo-OMNI,
+body.dark .web-footer .footer-brand-title,
+[data-theme="dark"] .web-footer .footer-logo-OMNI,
+[data-theme="dark"] .web-footer .footer-brand-title {
+  color: #FAF8F5 !important;
+}
+
+.web-footer h4,
+.web-footer .footer-col-title,
+.web-footer .footer-col-heading {
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
+body.light .web-footer h4,
+body.light .web-footer .footer-col-title,
+body.light .web-footer .footer-col-heading,
+[data-theme="light"] .web-footer h4,
+[data-theme="light"] .web-footer .footer-col-title,
+[data-theme="light"] .web-footer .footer-col-heading {
+  color: #141413 !important;
+}
+
+body.dark .web-footer h4,
+body.dark .web-footer .footer-col-title,
+body.dark .web-footer .footer-col-heading,
+[data-theme="dark"] .web-footer h4,
+[data-theme="dark"] .web-footer .footer-col-title,
+[data-theme="dark"] .web-footer .footer-col-heading {
+  color: #FAF8F5 !important;
+}
+
+.web-footer p,
+.web-footer .footer-desc,
+.web-footer .footer-info-list,
+.web-footer .footer-policy-list,
+.web-footer .footer-nav-list {
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+body.light .web-footer p,
+body.light .web-footer .footer-desc,
+body.light .web-footer .footer-info-list,
+body.light .web-footer .footer-policy-list,
+body.light .web-footer .footer-nav-list,
+body.light .web-footer li,
+[data-theme="light"] .web-footer p,
+[data-theme="light"] .web-footer .footer-desc,
+[data-theme="light"] .web-footer .footer-info-list,
+[data-theme="light"] .web-footer .footer-policy-list,
+[data-theme="light"] .web-footer .footer-nav-list,
+[data-theme="light"] .web-footer li {
+  color: #575752 !important;
+}
+
+body.dark .web-footer p,
+body.dark .web-footer .footer-desc,
+body.dark .web-footer .footer-info-list,
+body.dark .web-footer .footer-policy-list,
+body.dark .web-footer .footer-nav-list,
+body.dark .web-footer li,
+[data-theme="dark"] .web-footer p,
+[data-theme="dark"] .web-footer .footer-desc,
+[data-theme="dark"] .web-footer .footer-info-list,
+[data-theme="dark"] .web-footer .footer-policy-list,
+[data-theme="dark"] .web-footer .footer-nav-list,
+[data-theme="dark"] .web-footer li {
+  color: #A6A6A0 !important;
+}
+
+.web-footer a {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+body.light .web-footer a:not([style*="color: #C59B27"]):not([style*="color: rgb(197, 155, 39)"]):not(.btn-hero-primary),
+[data-theme="light"] .web-footer a:not([style*="color: #C59B27"]):not([style*="color: rgb(197, 155, 39)"]):not(.btn-hero-primary) {
+  color: #575752 !important;
+}
+
+body.dark .web-footer a:not([style*="color: #C59B27"]):not([style*="color: rgb(197, 155, 39)"]):not(.btn-hero-primary),
+[data-theme="dark"] .web-footer a:not([style*="color: #C59B27"]):not([style*="color: rgb(197, 155, 39)"]):not(.btn-hero-primary) {
+  color: #A6A6A0 !important;
+}
+
+.web-footer a:hover {
+  color: #8A6208 !important;
+}
+
+.web-footer .footer-bottom-bar,
+.web-footer .footer-copyright {
+  text-align: center;
+  font-size: 13px;
+  padding-top: 22px;
+  border-top: none !important;
+}
+
+body.light .web-footer .footer-bottom-bar,
+body.light .web-footer .footer-copyright,
+[data-theme="light"] .web-footer .footer-bottom-bar,
+[data-theme="light"] .web-footer .footer-copyright {
+  border-top: none !important;
+  color: #8E8E8A !important;
+}
+
+body.dark .web-footer .footer-bottom-bar,
+body.dark .web-footer .footer-copyright,
+[data-theme="dark"] .web-footer .footer-bottom-bar,
+[data-theme="dark"] .web-footer .footer-copyright {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  color: #8E8E8A !important;
+}
+
+/* 1. Hero Headline Focal Point (> 4.5vw, Med 8.4vw) */
+.hero-main-title {
+  font-size: clamp(48px, 4.8vw, 72px) !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.025em !important;
+  max-width: 100% !important;
+}
+
+@media (min-width: 1200px) {
+  .hero-main-title {
+    white-space: normal !important;
+    word-break: normal !important;
+  }
+}
+
+@media (max-width: 1199px) {
+  .hero-main-title {
+    white-space: normal !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .hero-main-title {
+    white-space: normal !important;
+    font-size: clamp(34px, 7vw, 44px) !important;
+    line-height: 1.2 !important;
+  }
+}
+
+.hero-tagline {
+  font-size: 18.5px !important;
+  line-height: 1.7 !important;
+  max-width: 100% !important;
+}
+
+.btn-hero-primary {
+  min-width: 210px !important;
+  padding: 15px 42px !important;
+}
+
+.nordic-hero-split-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 520px) !important;
+  gap: clamp(24px, 3vw, 48px) !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 clamp(20px, 3vw, 56px) !important;
+  box-sizing: border-box !important;
+}
+
+.hero-main-title {
+  font-size: clamp(48px, 5.5vw, 76px) !important;
+  line-height: 1.08 !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  letter-spacing: -0.03em !important;
+}
+
+.nordic-hero-content-col {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.nordic-hero-tagline,
+.hero-tagline {
+  max-width: 100% !important;
+  width: 100% !important;
+  font-size: clamp(15px, 1.15vw, 19px) !important;
+  line-height: 1.75 !important;
+}
+
+@media (max-width: 1180px) {
+  .nordic-hero-split-grid {
+    grid-template-columns: 1fr !important;
+    gap: 36px !important;
+  }
+
+  .nordic-hero-visual-col {
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-main-title {
+    font-size: clamp(34px, 8vw, 44px) !important;
+    line-height: 1.15 !important;
+  }
+
+  .hero-tagline {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+  }
+
+  /* On mobile screens, keep section h2 cleanly under 32px so no covered-text occurs */
+  h2,
+  .section-heading-lg,
+  .web-section h2 {
+    font-size: 21px !important;
+    line-height: 1.25 !important;
+  }
+}
+
+/* 2. Hero CTA Button - Adaptive Contextual High-Contrast */
+html.light .btn-hero-primary,
+body.light .btn-hero-primary,
+[data-theme="light"] .btn-hero-primary {
+  background: #C59B27 !important;
+  color: #141413 !important;
+  border: 1.5px solid #C59B27 !important;
+  box-shadow: none !important;
+  font-weight: 800 !important;
+}
+
+html.light .btn-hero-primary:hover,
+body.light .btn-hero-primary:hover,
+[data-theme="light"] .btn-hero-primary:hover {
+  background: #A27B1C !important;
+  color: #FFFFFF !important;
+  border-color: #A27B1C !important;
+}
+
+html.dark .btn-hero-primary,
+body.dark .btn-hero-primary,
+[data-theme="dark"] .btn-hero-primary {
+  background: var(--brand-accent, #C59B27) !important;
+  color: #141413 !important;
+  border: 1px solid var(--brand-accent, #C59B27) !important;
+  box-shadow: none !important;
+}
+
+html.dark .btn-hero-primary:hover,
+body.dark .btn-hero-primary:hover,
+[data-theme="dark"] .btn-hero-primary:hover {
+  background: #D4AF37 !important;
+  color: #000000 !important;
+}
+
+/* 3. Bento Banner 1 (3 Artistic Banners) */
+.shop-bento-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 20px;
+  margin: 16px 0 24px;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .shop-bento-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bento-col-stacked {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 20px;
+}
+
+.bento-card {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  min-height: 200px;
+  display: flex;
+  align-items: flex-end;
+  padding: 28px;
+  box-sizing: border-box;
+  border: 1px solid var(--border-color, #2E2E2C);
+  box-shadow: none !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.bento-card:hover {
+  transform: translateY(-3px);
+  border-color: #C59B27;
+}
+
+.bento-card-large {
+  min-height: 440px;
+}
+
+.bento-card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.5s ease;
+}
+
+.bento-card:hover .bento-card-bg {
+  transform: scale(1.04);
+}
+
+.bento-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.88) 100%);
+}
+
+.bento-overlay-sale {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.3) 0%, rgba(185, 28, 28, 0.85) 100%);
+}
+
+.bento-card-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #FFFFFF;
+}
+
+.bento-tag {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #C59B27;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.bento-tag-sale {
+  background: #DC2626 !important;
+  color: #FFFFFF !important;
+}
+
+.bento-title {
+  font-size: clamp(24px, 2.5vw, 32px);
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.bento-title-small {
+  font-size: clamp(18px, 1.8vw, 22px);
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.bento-desc {
+  font-size: 14px;
+  color: #E2E8F0;
+  line-height: 1.5;
+  margin: 0 0 8px;
+  max-width: 480px;
+}
+
+.bento-btn {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #C59B27;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bento-btn-small {
+  font-size: 13px;
+  font-weight: 800;
+  color: #C59B27;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.bento-btn-sale {
+  color: #FCA5A5 !important;
+}
+
+/* 4. Campaign Strip Banner 2 (2 Wide Side-by-Side Banners) */
+.shop-campaign-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 16px 0 24px;
+  width: 100%;
+}
+
+@media (max-width: 800px) {
+  .shop-campaign-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.campaign-banner-card {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  min-height: 280px;
+  display: flex;
+  align-items: flex-end;
+  padding: 28px;
+  box-sizing: border-box;
+  border: 1px solid var(--border-color, #2E2E2C);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.campaign-banner-card:hover {
+  transform: translateY(-3px);
+  border-color: #C59B27;
+}
+
+.campaign-banner-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.5s ease;
+}
+
+.campaign-banner-card:hover .campaign-banner-bg {
+  transform: scale(1.04);
+}
+
+.campaign-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+
+.campaign-banner-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #FFFFFF;
+}
+
+.campaign-tag {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #C59B27;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.campaign-title {
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.campaign-desc {
+  font-size: 13.5px;
+  color: #E2E8F0;
+  line-height: 1.5;
+  margin: 0 0 8px;
+  max-width: 440px;
+}
+
+.campaign-btn {
+  font-size: 13px;
+  font-weight: 800;
+  color: #C59B27;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Feature Experience Card Hover Micro-Interactions */
+.feature-experience-card {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.feature-experience-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: rgba(197, 155, 39, 0.6) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08) !important;
+}
+
+.feature-experience-card:hover img {
+  transform: scale(1.05) !important;
+}
+
+.feature-experience-card:hover h3 {
+  color: var(--brand-accent, #C59B27) !important;
+}
+
+.feature-experience-card:hover .experience-card-arrow {
+  transform: translateX(4px) !important;
+}
+
+/* Bento and Campaign card text must ALWAYS be brilliant white and gold on dark photo overlays */
+.bento-card,
+.bento-card-content,
+.bento-card-content h3,
+.bento-card-content h4,
+.bento-card-content p,
+.bento-title,
+.bento-title-small,
+.campaign-banner-card,
+.campaign-banner-content,
+.campaign-banner-content h3,
+.campaign-title,
+html.light .bento-card-content h3,
+html.light .bento-card-content h4,
+body.light .bento-card-content h3,
+body.light .bento-card-content h4,
+[data-theme="light"] .bento-card-content h3,
+[data-theme="light"] .bento-card-content h4,
+html.light .campaign-banner-content h3,
+html.light .campaign-title,
+body.light .campaign-banner-content h3,
+body.light .campaign-title,
+[data-theme="light"] .campaign-banner-content h3,
+[data-theme="light"] .campaign-title {
+  color: #FFFFFF !important;
+}
+
+.bento-card-content .bento-desc,
+.campaign-desc,
+html.light .bento-card-content .bento-desc,
+body.light .bento-card-content .bento-desc,
+[data-theme="light"] .bento-card-content .bento-desc,
+html.light .campaign-desc,
+body.light .campaign-desc,
+[data-theme="light"] .campaign-desc {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.bento-card-content .bento-tag,
+.campaign-tag,
+html.light .campaign-tag {
+  color: #FBBF24 !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  border: 1px solid rgba(251, 191, 36, 0.4) !important;
+}
+
+.bento-card-content .bento-btn,
+.bento-card-content .bento-btn-small,
+.campaign-btn,
+html.light .campaign-btn {
+  color: #FBBF24 !important;
+  font-weight: 800 !important;
+}
+

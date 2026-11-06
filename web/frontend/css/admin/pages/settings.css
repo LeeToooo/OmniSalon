@@ -1,0 +1,493 @@
+/* ==========================================================================
+   ADMIN SETTINGS & BRANCH MANAGEMENT CSS
+   OmniSalon Design System - Settings & Branches
+   ========================================================================== */
+
+/* Hàng nút chuyển đổi giao diện trong cài đặt */
+.theme-switcher-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--theme-shadow-card);
+}
+
+.theme-switcher-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* Thẻ và địa chỉ chi nhánh */
+[data-theme="light"] .branch-card-item,
+html.light .branch-card-item,
+body.light .branch-card-item,
+[data-theme="light"] .branch-card,
+html.light .branch-card,
+body.light .branch-card {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .branch-address-text,
+html.light .branch-address-text,
+body.light .branch-address-text {
+  color: var(--text-secondary) !important;
+}
+
+/* Thanh thông báo đầu trang */
+.web-top-announcement-bar,
+.announcement-inner {
+  background: var(--bg-primary) !important;
+  color: var(--text-secondary) !important;
+}
+
+.web-top-announcement-bar a,
+.link-open-mobile-app,
+.link-dev-docs {
+  color: var(--brand-accent-gold) !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+/* Xem trước chi nhánh và khu vực chụp ảnh */
+.home-branch-card {
+  background: #10131C;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.home-ai-card {
+  background: #10131C;
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+.home-ai-upload-box {
+  background: #0B0D13;
+  border: 1.5px dashed rgba(245, 158, 11, 0.4);
+}
+
+.home-ai-file-name {
+  color: #CBD5E1;
+}
+
+.branch-card-title {
+  color: var(--brand-accent-gold) !important;
+}
+
+.branch-hours-text {
+  color: #94A3B8;
+/* Bong bóng chọn nhanh chi nhánh */
+.branch-bubble-item {
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease !important;
+  user-select: none;
+}
+
+.branch-bubble-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-accent, #b48312) !important;
+  box-shadow: 0 4px 14px rgba(180, 131, 18, 0.25) !important;
+}
+
+.branch-bubble-item:active {
+  transform: scale(0.98);
+}
+
+.btn-bubble-trigger {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.btn-bubble-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(180, 131, 18, 0.3);
+}
+
+/* Thanh điều hướng đáy trên điện thoại */
+/* Cửa sổ chọn chi nhánh toàn màn hình */
+#branchBubblesModal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 999999 !important;
+  display: none;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0, 0, 0, 0.65) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  overflow: hidden !important;
+}
+
+html.light #branchBubblesModal>div,
+[data-theme="light"] #branchBubblesModal>div {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.light #branchBubblesModal h3,
+[data-theme="light"] #branchBubblesModal h3 {
+  color: #0f172a !important;
+}
+
+html.light #branchBubblesModal p,
+[data-theme="light"] #branchBubblesModal p {
+  color: #475569 !important;
+}
+
+/* Giao diện salon thực tế rõ ràng và nam tính */
+
+/* Toàn bộ giao diện tràn viền không bị khoảng trống hai bên */
+.admin-full-wrapper,
+.booking-page-shell,
+.page-view,
+.services-page-shell,
+.stylists-page-shell,
+.shop-page-shell,
+.branches-page-shell {
+/* Thẻ chi nhánh */
+.branch-clean-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-card, #181816);
+  border: 1px solid var(--border-color, #2B2B28);
+  border-radius: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.branch-clean-card:hover {
+  transform: translateY(-3px);
+  border-color: #4A4A42;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+}
+
+.branch-media-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  height: auto;
+  min-height: 200px;
+  background: var(--surface-elevated, #141412);
+  overflow: hidden;
+}
+
+.branch-media-box::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.branch-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.branch-clean-card:hover .branch-cover-img {
+  filter: brightness(1.02);
+}
+
+#branchWebDemoCardContainer .branch-cover-img {
+  transition: transform 0.12s ease-out, object-position 0.12s ease-out !important;
+}
+
+/* Split Layout cho Form Chi Nhanh Admin */
+.branch-crud-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 420px);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .branch-crud-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+.branch-badges-top {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  z-index: 2;
+}
+
+.branch-district-tag {
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(20, 20, 19, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #C59B27;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(197, 155, 39, 0.35);
+  letter-spacing: 0.02em;
+}
+
+.branch-flagship-tag {
+  font-size: 13px;
+  font-weight: 700;
+  background: #C59B27;
+  color: #141413;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* Trạng thái hoạt động */
+.branch-status-floating {
+  position: absolute;
+  bottom: 13px;
+  left: 12px;
+  right: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(20, 20, 19, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-sizing: border-box;
+  max-width: calc(100% - 24px);
+  z-index: 2;
+}
+
+.branch-status-floating.status-open {
+  color: #10B981;
+}
+
+.branch-status-floating.status-open .status-indicator-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  flex-shrink: 0;
+}
+
+.branch-status-floating.status-closed {
+  color: #94A3B8;
+}
+
+.branch-status-floating.status-closed .status-indicator-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #64748B;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Thân thẻ chi nhánh */
+.branch-content-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  gap: 14px;
+}
+
+.branch-eyebrow-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 13.5px;
+}
+
+.branch-sub-label {
+  font-weight: 800;
+  color: var(--brand-accent, #f59e0b);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.branch-chair-count {
+  font-weight: 700;
+  color: var(--text-secondary, #94a3b8);
+  background: var(--surface-elevated, #181d2a);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.branch-name-title {
+  font-size: 17.5px;
+  font-weight: 700;
+  color: var(--text-primary, #FAF8F5);
+  line-height: 1.35;
+  margin: 0 0 10px;
+}
+
+.branch-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--text-secondary, #A1A1AA);
+  margin-bottom: 4px;
+}
+
+.branch-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.45;
+}
+
+.branch-info-row .info-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--brand-accent, #C59B27);
+}
+
+.branch-address-val {
+  color: var(--text-primary, #E2E2DC);
+  font-weight: 500;
+}
+
+.branch-phone-link {
+  color: var(--brand-accent, #C59B27);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.branch-phone-link:hover {
+  text-decoration: underline;
+}
+
+/* Nút hành động của chi nhánh */
+.branch-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: none !important;
+  margin-top: auto;
+}
+
+.branch-map-btn {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  height: 42px;
+  background: #242422;
+  color: #FAF8F5;
+  border: 1px solid #363633;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+/* Lưới Chi nhánh 3 cột đồng bộ trên Desktop, tràn viền 2 bên toàn diện */
+#branchesCardsGrid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: clamp(18px, 1.6vw, 30px) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1080px) {
+  #branchesCardsGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  #branchesCardsGrid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+#branchesPaginationContainer {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 36px 0 0 !important;
+  box-sizing: border-box !important;
+
+/* Leftover branch action buttons */
+
+  text-decoration: none;
+  box-shadow: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.branch-map-btn:hover {
+  background: #2E2E2A;
+  color: #FFFFFF;
+  border-color: #4A4A45;
+}
+
+.branch-book-btn {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  height: 42px;
+  background: #C59B27;
+  color: #141413;
+  border: none;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  padding: 0 10px;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.branch-book-btn:hover {
+  background: #D4AF37;
+  color: #000000;
+  transform: translateY(-1px);
+}
+

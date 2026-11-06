@@ -1,0 +1,548 @@
+/* ==========================================================================
+   MODULE: CUSTOMER ACCOUNT (TÀI KHOẢN KHÁCH HÀNG & LỊCH SỬ)
+   ========================================================================== */
+
+[data-theme="light"] .member-vip-card {
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  color: #FFFFFF;
+}
+
+/* Menu tài khoản người dùng chế độ sáng */
+[data-theme="light"] .header-user-btn,
+html.light .header-user-btn,
+body.light .header-user-btn {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: none !important;
+}
+
+[data-theme="light"] .header-user-btn:hover,
+html.light .header-user-btn:hover,
+body.light .header-user-btn:hover,
+[data-theme="light"] .header-user-menu-wrapper.open .header-user-btn,
+html.light .header-user-menu-wrapper.open .header-user-btn,
+body.light .header-user-menu-wrapper.open .header-user-btn {
+  background: var(--surface-elevated) !important;
+  border-color: #D4AF37 !important;
+}
+
+[data-theme="light"] .user-name-text,
+html.light .user-name-text,
+body.light .user-name-text {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+
+/* Cửa sổ cổng thông tin khách hàng */
+.portal-profile-hero {
+  background: linear-gradient(135deg, #1c1b18 0%, #2e2825 100%);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.portal-tier-pill {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.portal-card-history {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+
+.portal-card-history:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Khung menu tài khoản người dùng */
+.header-user-menu-wrapper {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.header-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-card, #121622);
+  padding: 4px 12px 4px 5px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary, #FFFFFF);
+  white-space: nowrap;
+  height: 42px;
+  transition: all 0.2s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.header-user-btn:hover,
+.header-user-menu-wrapper.open .header-user-btn {
+  background: #181D2A;
+  border-color: #F59E0B;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+}
+
+.user-avatar-text {
+  background: linear-gradient(135deg, #FFF0C2 0%, #D4AF37 50%, #F59E0B 100%);
+  color: #000000;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.user-info-text-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.user-name-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary, #FFFFFF);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-dropdown-arrow {
+  font-size: 12px;
+  color: #F59E0B;
+  margin-left: 4px;
+  transition: transform 0.2s ease;
+}
+
+.header-user-menu-wrapper.open .user-dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Bảng tùy chọn tài khoản người dùng */
+.header-user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0 !important;
+  left: auto !important;
+  width: 320px;
+  max-width: min(320px, calc(100vw - 24px));
+  height: auto;
+  max-height: none !important;
+  overflow: visible !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px;
+  box-shadow: var(--theme-shadow-elevated, 0 20px 40px rgba(0, 0, 0, 0.4)) !important;
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: userDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.header-user-dropdown.open {
+  display: flex !important;
+}
+
+/* Phần đầu menu tài khoản */
+.dropdown-user-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dropdown-user-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mục chọn trong menu tài khoản */
+.dropdown-item-btn {
+  width: 100% !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+.dropdown-item-btn:hover {
+  border-color: var(--brand-accent) !important;
+  transform: translateY(-1px);
+}
+
+/* Thẻ chọn chi nhánh */
+.dropdown-branch-pill {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.branch-pill-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand-accent);
+}
+
+/* Nút đăng nhập hoặc đăng ký */
+.dropdown-primary-btn {
+  width: 100% !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  padding: 0 16px !important;
+  border-radius: 6px !important;
+  background: #C59B27 !important;
+  border: none !important;
+  color: #141413 !important;
+  font-weight: 800 !important;
+  font-size: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.dropdown-primary-btn:hover {
+  background: #B3891C !important;
+  box-shadow: none !important;
+}
+
+/* Nút trang quản trị */
+.dropdown-admin-btn {
+  width: 100% !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border: none !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  font-size: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.dropdown-admin-btn:hover {
+  transform: translateY(-1px);
+}
+
+.dropdown-admin-btn.admin-guest {
+  background: var(--surface-elevated) !important;
+  border: 1.5px solid var(--brand-accent) !important;
+  color: var(--brand-accent) !important;
+  box-shadow: none !important;
+}
+
+.dropdown-admin-btn.admin-guest:hover {
+  background: var(--brand-accent-subtle) !important;
+}
+
+.dropdown-admin-btn.admin-locked {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  opacity: 0.7 !important;
+}
+
+/* Nút đăng xuất */
+.dropdown-logout-btn {
+  width: 100% !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  border-radius: 12px !important;
+  background: rgba(220, 38, 38, 0.12) !important;
+  border: 1px solid rgba(220, 38, 38, 0.3) !important;
+  color: #ef4444 !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+}
+
+.dropdown-logout-btn:hover {
+  background: rgba(220, 38, 38, 0.22) !important;
+  border-color: #ef4444 !important;
+}
+
+@keyframes userDropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Lớp hỗ trợ menu người dùng */
+.bg-\[\#11141D\] {
+  background-color: #11141D !important;
+}
+
+.bg-\[\#181D2A\] {
+  background-color: #181D2A !important;
+}
+
+.bg-\[\#1E2435\] {
+  background-color: #1E2435 !important;
+}
+
+.bg-\[\#202738\]:hover {
+  background-color: #202738 !important;
+}
+
+.bg-\[\#262E44\]:hover {
+  background-color: #262E44 !important;
+}
+
+.border-amber-500\/20 {
+  border-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+.border-amber-500\/40 {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.shadow-amber-500\/20 {
+  box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.2) !important;
+}
+
+.dropdown-user-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 2px;
+}
+
+.dropdown-user-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dropdown-user-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #FFFFFF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-user-phone {
+  font-size: 13px;
+  color: #CBD5E1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-item-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #E2E8F0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  gap: 10px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.dropdown-item-btn:hover {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #F59E0B;
+  color: #FFFFFF;
+  transform: translateX(2px);
+}
+
+.dropdown-item-btn.highlight-btn {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2));
+  border-color: #F59E0B;
+  color: #F59E0B;
+}
+
+.dropdown-item-btn.highlight-btn:hover {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #000000;
+}
+
+.dropdown-item-btn.danger-btn {
+  color: #F87171;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.dropdown-item-btn.danger-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #EF4444;
+  color: #FFFFFF;
+}
+
+.dropdown-branch-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dropdown-branch-pill .header-branch-select {
+  width: 100%;
+  max-width: 100%;
+  height: auto !important;
+  background: #161A26;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 10px !important;
+  font-size: 12px;
+  line-height: 1.5 !important;
+  color: #FFFFFF;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.header-user-dropdown * {
+  box-sizing: border-box;
+}
+
+.header-user-dropdown>* {
+  position: static !important;
+  flex-shrink: 0 !important;
+}
+
+.header-user-dropdown .header-admin-pill-btn {
+  width: 100% !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  border-radius: 12px !important;
+}
+
+.header-user-dropdown .header-lookup-btn {
+  width: 100% !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: 10px !important;
+}
+
+/* Nút tra cứu ngoài thanh đầu trang */
+.header-lookup-btn {
+  background: var(--surface-card, #10131C);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  color: #CBD5E1;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.header-lookup-btn:hover {
+  border-color: #D4AF37;
+  color: #FFFFFF;
+  background: #161A26;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+
