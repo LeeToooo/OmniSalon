@@ -117,7 +117,7 @@
         case 'branches':
           return this.renderBranchesTab(user, branches, stylists, bookings, bMap);
         case 'bookings':
-          return this.renderBookingsTab(user, bookings, branches, stylists, bMap);
+          return this.renderBookingsTab(user, bookings, branches, stylists, bMap, services);
         case 'stylists':
           return this.renderStylistsTab(user, stylists, branches, bookings, bMap);
         case 'catalog':

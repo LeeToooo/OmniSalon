@@ -24,9 +24,12 @@
       if (window.store && typeof window.store.subscribe === 'function' && !this._subscribed) {
         this._subscribed = true;
         window.store.subscribe((state, event) => {
-          const container = document.getElementById('webMainContainer');
-          if (container && (window.location.hash.includes('/stylists') || window.location.pathname.includes('/stylists'))) {
-            StylistsPage.render(container);
+          // Bỏ qua LIVE_SERVER_SYNC định kỳ để chống chớp tắt re-render vòng lặp
+          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED' || event === 'STYLISTS_UPDATED') {
+            const container = document.getElementById('webMainContainer');
+            if (container && (window.location.hash.includes('/stylists') || window.location.pathname.includes('/stylists'))) {
+              StylistsPage.render(container);
+            }
           }
         });
       }

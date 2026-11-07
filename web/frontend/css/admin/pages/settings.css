@@ -155,6 +155,10 @@ html.light #branchBubblesModal p,
 .stylists-page-shell,
 .shop-page-shell,
 .branches-page-shell {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Thẻ chi nhánh */
 .branch-clean-card {
   position: relative;
@@ -162,13 +166,13 @@ html.light #branchBubblesModal p,
   flex-direction: column;
   background: var(--surface-card, #181816);
   border: 1px solid var(--border-color, #2B2B28);
-  border-radius: 12px;
-  overflow: hidden;
+  border-radius: 14px !important;
+  overflow: hidden !important;
   box-sizing: border-box;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.25s ease,
     box-shadow 0.25s ease;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 
 .branch-clean-card:hover {
@@ -180,9 +184,8 @@ html.light #branchBubblesModal p,
 .branch-media-box {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
-  height: auto;
-  min-height: 200px;
+  height: 190px !important;
+  max-height: 200px !important;
   background: var(--surface-elevated, #141412);
   overflow: hidden;
 }
@@ -199,11 +202,14 @@ html.light #branchBubblesModal p,
   z-index: 1;
 }
 
-.branch-cover-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.branch-cover-img,
+.branch-img,
+.branch-banner img {
+  width: 100% !important;
+  height: 190px !important;
+  max-height: 200px !important;
+  object-fit: cover !important;
+  display: block !important;
   transition: transform 0.4s ease;
 }
 
@@ -218,7 +224,7 @@ html.light #branchBubblesModal p,
 /* Split Layout cho Form Chi Nhanh Admin */
 .branch-crud-split-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 420px);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
   gap: 32px;
   align-items: start;
 }
@@ -415,43 +421,50 @@ html.light #branchBubblesModal p,
   align-items: center;
   justify-content: center;
   gap: 6px;
-/* Lưới Chi nhánh 3 cột đồng bộ trên Desktop, tràn viền 2 bên toàn diện */
-#branchesCardsGrid {
+  text-decoration: none;
+  box-shadow: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+/* Lưới Chi nhánh chuẩn theo yêu cầu: repeat(3, 1fr) tràn viền 2 bên */
+#branchesCardsGrid,
+.branches-grid,
+.branches-grid-container {
   display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: clamp(18px, 1.6vw, 30px) !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: clamp(14px, 1.4vw, 22px) !important;
   width: 100% !important;
   max-width: 100% !important;
-  margin: 0 !important;
+  margin: 0 auto 36px auto !important;
+  padding: 0 !important;
   box-sizing: border-box !important;
 }
 
-@media (max-width: 1080px) {
-  #branchesCardsGrid {
+@media (max-width: 1024px) {
+  #branchesCardsGrid,
+  .branches-grid,
+  .branches-grid-container {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 20px !important;
   }
 }
 
 @media (max-width: 640px) {
-  #branchesCardsGrid {
+  #branchesCardsGrid,
+  .branches-grid,
+  .branches-grid-container {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
   }
 }
 
-#branchesPaginationContainer {
+#branchesPaginationContainer,
+#branchesPagination {
   width: 100% !important;
   max-width: 100% !important;
-  margin: 36px 0 0 !important;
+  margin: 0 auto 40px auto !important;
   box-sizing: border-box !important;
-
-/* Leftover branch action buttons */
-
-  text-decoration: none;
-  box-shadow: none;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
 }
 
 .branch-map-btn:hover {

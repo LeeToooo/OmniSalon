@@ -402,7 +402,6 @@
         <div id="adminStylistBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="stylistEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Thêm Nhân Viên / Thợ Mới
               </h3>
@@ -591,7 +590,7 @@
       if (avatarInput) avatarInput.value = st.avatar || '';
 
       if (titleEl) {
-        titleEl.textContent = 'Chỉnh Sửa Nhân Sự: ' + (st.name || st.HoTen) + ' (#' + stylistId + ')';
+        titleEl.textContent = 'Chỉnh Sửa Nhân Sự: ' + (st.name || st.HoTen);
       }
 
       const editor = document.getElementById('adminStylistBottomEditor');

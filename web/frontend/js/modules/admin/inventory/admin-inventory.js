@@ -1333,7 +1333,6 @@
         <div id="adminProductBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="productEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Thêm Sản Phẩm Mới
               </h3>
@@ -1599,7 +1598,7 @@
         editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       const titleEl = document.getElementById('productEditorTitle');
-      if (titleEl) titleEl.textContent = `Chỉnh Sửa Sản Phẩm #${product.id || productId}`;
+      if (titleEl) titleEl.textContent = `Chỉnh Sửa Sản Phẩm ${product.name || product.TenSanPham || product.id || productId}`;
 
       const idEl = document.getElementById('prodEditorId');
       if (idEl) idEl.value = product.id || productId;
@@ -1633,7 +1632,7 @@
       if (descEl) descEl.value = product.description || product.MoTa || '';
 
       const btnSubmitText = document.getElementById('btnSubmitProductBottomText');
-      if (btnSubmitText) btnSubmitText.textContent = `Cập Nhật Sản Phẩm #${product.id || productId}`;
+      if (btnSubmitText) btnSubmitText.textContent = `Cập Nhật Sản Phẩm`;
 
       this.syncProductPreviewCard();
     },
@@ -1791,7 +1790,6 @@
         <div id="adminReceiptBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="receiptEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Lập Phiếu Nhập Kho Mới
               </h3>
@@ -1955,7 +1953,6 @@
         <div id="adminSupplierBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="supplierEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Thêm Nhà Cung Cấp Mới
               </h3>
@@ -2097,7 +2094,7 @@
       }
 
       const titleEl = document.getElementById('supplierEditorTitle');
-      if (titleEl) titleEl.textContent = `Chỉnh Sửa Nhà Cung Cấp #${s.id || s.MaNhaCungCap || supplierId}`;
+      if (titleEl) titleEl.textContent = `Chỉnh Sửa Nhà Cung Cấp ${s.name || s.TenNhaCungCap || s.id || supplierId}`;
 
       const idEl = document.getElementById('supEditorId');
       if (idEl) idEl.value = s.id || s.MaNhaCungCap || supplierId;

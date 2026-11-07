@@ -76,8 +76,11 @@
     // -----------------------------------------------------------------------
     // SUB-TAB 2: ĐIỀU PHỐI LỊCH HẸN, BOOKINGS DISPATCHER REALTIME 4RAU
     // -----------------------------------------------------------------------
-    renderBookingsTab(user, bookings, branches, stylists, branchMap = null) {
+    renderBookingsTab(user, bookings, branches, stylists, branchMap = null, services = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
+      const allServices = (Array.isArray(services) && services.length > 0)
+        ? services
+        : ((window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : []);
 
       const now = new Date();
       const yyyy = now.getFullYear();
@@ -546,6 +549,7 @@
           ${this._renderPaginationControls(this.bookingsPage, bookingsTotalPages, filtered.length, 'AdminWeb.setBookingsPage', 'lịch hẹn')}
         </div>
         `}
+        ${this._renderWalkinBottomEditor(user, branches, stylists, allServices)}
       `;
     },
 
@@ -964,7 +968,100 @@
       `;
     },
 
+    // -----------------------------------------------------------------------
+    // INLINE BOTTOM WALKIN EDITOR (ĐẶT NGAY DƯỚI ĐÁY TRANG GIỐNG CÁC PHÂN HỆ KHÁC)
+    // -----------------------------------------------------------------------
+    _renderWalkinBottomEditor(user, branches, stylists, services = []) {
+      const activeBranchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (branches[0]?.id || 'CN01');
+      const filteredStylists = stylists.filter(s => s.branchId === activeBranchId || !s.branchId);
+      const sList = (Array.isArray(services) && services.length > 0)
+        ? services
+        : ((window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : []);
+
+      return `
+        <div id="adminWalkinBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <h3 id="walkinEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
+                Tiếp Nhận Khách Vãng Lai Vào Sảnh Chờ
+              </h3>
+            </div>
+            <div>
+              <button type="button" class="pill-btn-outline" style="padding: 5px 14px; font-size: 12px; font-weight: 600;" onclick="const f = document.getElementById('quickWalkinForm'); if(f) f.reset();">
+                Đặt Lại / Làm Trống
+              </button>
+            </div>
+          </div>
+
+          <form id="quickWalkinForm" onsubmit="AdminWeb.submitQuickWalkin(event);" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div>
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Tên Khách Hàng <span style="color:#ef4444;">*</span></label>
+                <input type="text" id="walkinCustomerName" required placeholder="Ví dụ: Anh Hoàng Nam" 
+                       style="width: 100%; height: 40px; padding: 0 12px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; box-sizing: border-box;">
+              </div>
+
+              <div>
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Số Điện Thoại <span style="color:#ef4444;">*</span></label>
+                <input type="tel" id="walkinCustomerPhone" required placeholder="Ví dụ: 0912345678" 
+                       style="width: 100%; height: 40px; padding: 0 12px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; box-sizing: border-box;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div>
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Chi Nhánh</label>
+                <select id="walkinBranchId" style="width: 100%; height: 40px; padding: 0 10px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; box-sizing: border-box;"
+                        ${this.isBranchManager(user) ? 'disabled' : ''}>
+                  ${branches.map(b => `<option value="${b.id}" ${b.id === activeBranchId ? 'selected' : ''}>${this.escapeHtml(this._getBranchShortName(b))}</option>`).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Barber Phục Vụ</label>
+                <select id="walkinStylistId" style="width: 100%; height: 40px; padding: 0 10px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; box-sizing: border-box;">
+                  <option value="">-- Tự Động Xếp Barber --</option>
+                  ${filteredStylists.map(s => `<option value="${s.id}">${this.escapeHtml(s.name)}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px;">
+              <div>
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Dịch Vụ Chọn Nhanh</label>
+                <select id="walkinServiceId" style="width: 100%; height: 40px; padding: 0 10px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; box-sizing: border-box;">
+                  ${sList.map(s => `<option value="${s.id}" data-price="${s.price || 0}" data-name="${this.escapeHtml(s.name)}">${this.escapeHtml(s.name)} - ${SalonUtils.formatCurrency(s.price || 0)}</option>`).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Ghi Chú Đón Tiếp</label>
+                <input type="text" id="walkinNotes" placeholder="Ví dụ: Khách vãng lai, muốn cắt fade gọn gàng..." 
+                       style="width: 100%; height: 40px; padding: 0 12px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; box-sizing: border-box;">
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 10px; padding-top: 16px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.08));">
+              <button type="button" class="pill-btn-outline" style="height: 38px; padding: 0 18px; font-weight: 600; font-size: 13px;" onclick="const f = document.getElementById('quickWalkinForm'); if(f) f.reset();">
+                Hủy Bỏ / Làm Mới
+              </button>
+              <button type="submit" class="btn-submit-terracotta" style="height: 38px; padding: 0 24px; background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: 800; font-size: 13px; border-radius: 8px;">
+                Xếp Vào Sảnh Chờ Ngay
+              </button>
+            </div>
+          </form>
+        </div>
+      `;
+    },
+
     openQuickWalkinModal() {
+      const editor = document.getElementById('adminWalkinBottomEditor');
+      if (editor) {
+        editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const nameInp = document.getElementById('walkinCustomerName');
+        if (nameInp) nameInp.focus();
+        return;
+      }
       const user = this.getCurrentUser();
       const branches = (window.store && window.store.getBranches()) || [];
       const services = (window.store && window.store.getServices()) || [];
@@ -974,13 +1071,10 @@
 
       this._openModal(`
         <div class="booking-wizard-wrapper" style="max-width: 520px; margin: 0 auto; text-align: left;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div>
-              <span class="badge-terracotta" style="background: #f59e0b; color: #000; font-weight: 900;">WALK-IN CHECK-IN</span>
-              <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 6px 0 2px 0;">Tiếp Nhận Khách Vãng Lai Vào Sảnh Chờ</h2>
-              <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0;">Khách đến trực tiếp salon chưa đặt lịch trước</p>
-            </div>
-            <button type="button" class="modal-close-btn" onclick="AdminWeb._closeModal()" style="background: transparent; border: none; font-size: 20px; color: var(--text-secondary); cursor: pointer;">&times;</button>
+          <div style="margin-bottom: 16px;">
+            <div class="badge-terracotta" style="background: #f59e0b; color: #000; font-weight: 900; margin-bottom: 6px;">WALK-IN CHECK-IN</div>
+            <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">Tiếp Nhận Khách Vãng Lai Vào Sảnh Chờ</h2>
+            <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0;">Khách đến trực tiếp salon chưa đặt lịch trước</p>
           </div>
 
           <form id="quickWalkinForm" onsubmit="AdminWeb.submitQuickWalkin(event);" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">

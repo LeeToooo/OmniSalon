@@ -5,7 +5,7 @@
   const BranchesPage = {
     selectedFilter: 'all',
     searchQuery: '',
-    pageSize: 6,
+    pageSize: 8,
     currentPage: 1,
 
     // Danh sách 19 quận / huyện chính thức của 20 chi nhánh
@@ -189,7 +189,7 @@
               <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
                 HỆ THỐNG CHI NHÁNH TOÀN THÀNH PHỐ
               </span>
-              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4.2vw, 44px); font-weight: 700; margin: 0 0 12px; color: var(--text-primary);">
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; margin: 0 0 12px; color: var(--text-primary); word-break: break-word; overflow-wrap: break-word; max-width: 100%;">
                 Không Gian Barbershop &amp; Vị Trí Chi Nhánh
               </h1>
               <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; margin: 0 auto 28px; line-height: 1.6;">
@@ -223,13 +223,13 @@
               </div>
             </div>
 
-            <!-- LƯỚI CHI NHÁNH EDITORIAL (3 CỘT ĐỒNG BỘ TỰ KÉO GIÃN THEO MÀN HÌNH) -->
-            <div id="branchesCardsGrid" style="width: 100%; max-width: 100%; margin: 0; box-sizing: border-box;">
+            <!-- LƯỚI CHI NHÁNH EDITORIAL (4 CỘT TRÀN VIỀN 2 BÊN, HIỂN THỊ 8 CHI NHÁNH/TRANG) -->
+            <div id="branchesCardsGrid" class="branches-grid-container" style="display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: clamp(14px, 1.4vw, 22px) !important; width: 100% !important; max-width: 100% !important; margin: 0 auto 36px auto !important; padding: 0 !important; box-sizing: border-box !important;">
               ${this.renderBranchCardsHTML(branches)}
             </div>
 
             <!-- THANH PHÂN TRANG CHUẨN CỬA HÀNG -->
-            <div id="branchesPaginationContainer" style="width: 100%; max-width: 100%; margin: 36px 0 0; box-sizing: border-box;">
+            <div id="branchesPaginationContainer" style="width: 100% !important; max-width: 100% !important; margin: 0 auto 40px auto !important; box-sizing: border-box !important;">
               ${this.renderPagination(filtered)}
             </div>
 
@@ -464,7 +464,8 @@
     const attachSyncListener = () => {
       if (window.store && typeof window.store.subscribe === 'function') {
         window.store.subscribe((state, event) => {
-          if (event === 'LIVE_SERVER_SYNC' || event === 'STATE_CHANGE') {
+          // Bỏ qua LIVE_SERVER_SYNC và STATE_CHANGE định kỳ để chống vòng lặp re-render chớp tắt
+          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED' || event === 'BRANCHES_UPDATED') {
             const container = document.getElementById('webMainContainer');
             if (container && window.AppRouter && window.AppRouter.currentRoute === '/branches') {
               BranchesPage.render(container);

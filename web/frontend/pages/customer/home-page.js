@@ -98,6 +98,7 @@
 
     render(container, params = {}) {
       if (!container) return;
+      window._isHomeRendered = true;
 
       const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
       const stylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : [];
@@ -598,11 +599,13 @@
     const attachHomeSync = () => {
       if (window.store && typeof window.store.subscribe === 'function') {
         window.store.subscribe((state, event) => {
-          if (event === 'LIVE_SERVER_SYNC' || event === 'STATE_CHANGE') {
+          // Bỏ qua LIVE_SERVER_SYNC định kỳ để chống chớp tắt re-render vòng lặp
+          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED') {
             const container = document.getElementById('webMainContainer');
-            if (container && window.AppRouter && window.AppRouter.currentRoute === '/') {
+            if (container && window.AppRouter && window.AppRouter.currentRoute === '/' && !window._isHomeRendered) {
               const currentView = container.querySelector('.page-view') || container;
               HomePage.render(currentView);
+              window._isHomeRendered = true;
             }
           }
         });

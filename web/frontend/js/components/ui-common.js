@@ -781,13 +781,40 @@ const UICommon = {
 
   showAddToCartSuccessModal(prod) {
     const prodName = prod ? (prod.name || prod.TenSanPham || 'Sản phẩm') : 'Sản phẩm';
-    this.showToast(`✓ Đã thêm "${prodName}" vào giỏ hàng thành công!`, 'success');
+    const modal = document.getElementById('addToCartModal');
+    if (modal) {
+      const msgEl = modal.querySelector('.add-cart-modal-message');
+      if (msgEl) {
+        msgEl.innerHTML = `Đã thêm <strong>${this.escapeHtml ? this.escapeHtml(prodName) : prodName}</strong> vào giỏ hàng`;
+      }
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('visibility', 'visible', 'important');
+      modal.style.setProperty('opacity', '1', 'important');
+      modal.style.setProperty('pointer-events', 'auto', 'important');
+      modal.classList.add('active');
+
+      // Tự động đóng popup sau 4 giây nếu người dùng không thao tác
+      if (this._cartModalTimer) clearTimeout(this._cartModalTimer);
+      this._cartModalTimer = setTimeout(() => {
+        this.closeAddToCartModal();
+      }, 4000);
+    } else {
+      this.showToast(`✓ Đã thêm "${prodName}" vào giỏ hàng thành công!`, 'success');
+    }
   },
 
   closeAddToCartModal() {
+    if (this._cartModalTimer) {
+      clearTimeout(this._cartModalTimer);
+      this._cartModalTimer = null;
+    }
     const modal = document.getElementById('addToCartModal');
     if (modal) {
-      modal.classList.remove('active');
+      modal.style.setProperty('display', 'none', 'important');
+      modal.style.setProperty('visibility', 'hidden', 'important');
+      modal.style.setProperty('opacity', '0', 'important');
+      modal.style.setProperty('pointer-events', 'none', 'important');
+      modal.classList.remove('active', 'show', 'is-visible');
     }
   },
 

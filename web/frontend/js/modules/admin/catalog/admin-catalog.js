@@ -259,7 +259,6 @@
         <div id="adminCatalogBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="catalogEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Thêm ${isCombo ? 'Gói Combo VIP' : 'Dịch Vụ'} Mới
               </h3>
@@ -344,7 +343,7 @@
 
                   ${isCombo ? `
                     <!-- Khối chọn dịch vụ cấu thành gói Combo VIP -->
-                    <div style="margin-bottom: 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
+                    <div class="combo-services-selection-box" style="margin-bottom: 14px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
                       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <label class="sub-label" style="margin: 0; font-weight: 700; color: var(--brand-accent, #C59B27); font-size: 12.5px;">
                           Dịch Vụ Cấu Thành Gói Combo VIP:
@@ -356,30 +355,30 @@
                       <div style="margin-bottom: 8px;">
                         <input type="text" id="comboServiceSearch" class="form-control-custom" placeholder="Tìm nhanh dịch vụ theo tên hoặc mã..." style="padding: 6px 10px; font-size: 12px; height: 32px;" oninput="AdminWeb.filterComboServices(this.value)">
                       </div>
-                      <div id="comboServicesList" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px;">
+                      <div id="comboServicesList" class="combo-services-list" style="max-height: 170px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px;">
                         ${allServices.map(s => {
                           const sId = String(s.id || s.MaDichVu || '').trim();
                           const sDur = parseInt(s.durationMinutes || s.duration || s.ThoiLuong || 30, 10);
                           const sPrice = parseFloat(s.price || s.Gia || 0);
                           const sName = s.name || s.TenDichVu || sId;
                           return `
-                            <label class="combo-service-row" data-search="${this.escapeHtml((sId + ' ' + sName).toLowerCase())}" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 6px; background: rgba(255,255,255,0.02); cursor: pointer; transition: background 0.15s ease;">
+                            <label class="combo-service-row" data-search="${this.escapeHtml((sId + ' ' + sName).toLowerCase())}" style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 6px; cursor: pointer; transition: background 0.15s ease;">
                               <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
                                 <input type="checkbox" class="combo-service-checkbox" value="${sId}" data-duration="${sDur}" data-name="${this.escapeHtml(sName)}" data-price="${sPrice}" onchange="AdminWeb.onComboServiceToggle()" style="accent-color: #f59e0b; cursor: pointer; width: 15px; height: 15px;">
-                                <span style="font-size: 12.5px; font-weight: 600; color: #f3f4f6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                  ${this.escapeHtml(sName)} <span style="font-size: 11px; color: #9ca3af; font-weight: normal;">#${sId}</span>
+                                <span class="combo-service-name" style="font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                  ${this.escapeHtml(sName)}
                                 </span>
                               </div>
-                              <div style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; flex-shrink: 0; margin-left: 8px;">
+                              <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; flex-shrink: 0; margin-left: 8px;">
                                 <span style="color: #f59e0b; font-weight: 700;">${sDur} phút</span>
-                                <span style="color: #6b7280;">•</span>
-                                <span style="color: #10b981; font-weight: 600;">${SalonUtils.formatCurrency(sPrice)}</span>
+                                <span style="color: var(--text-secondary); opacity: 0.5;">•</span>
+                                <span style="color: #10b981; font-weight: 700;">${SalonUtils.formatCurrency(sPrice)}</span>
                               </div>
                             </label>
                           `;
                         }).join('')}
                       </div>
-                      <div id="comboSelectedSummary" style="margin-top: 10px; padding: 8px 10px; border-radius: 6px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(197, 155, 39, 0.3); font-size: 12px;">
+                      <div id="comboSelectedSummary" style="margin-top: 10px; padding: 10px 12px; border-radius: 8px; font-size: 12px;">
                       </div>
                     </div>
                   ` : ''}
@@ -515,7 +514,7 @@
       if (descInput) descInput.value = item.description || item.MoTa || '';
 
       if (titleEl) {
-        titleEl.textContent = 'Chỉnh Sửa ' + (type === 'combos' ? 'Gói Combo' : 'Dịch Vụ') + ': ' + (item.name || item.TenCombo || item.TenDichVu) + ' (#' + itemId + ')';
+        titleEl.textContent = 'Chỉnh Sửa ' + (type === 'combos' ? 'Gói Combo' : 'Dịch Vụ') + ': ' + (item.name || item.TenCombo || item.TenDichVu);
       }
       if (submitBtn) {
         submitBtn.innerHTML = '<span>Lưu</span>';
@@ -729,18 +728,18 @@
           summaryBox.innerHTML = '<span style="color: #ef4444; font-size: 12px; font-weight: 500;">Chưa chọn dịch vụ nào. Vui lòng chọn ít nhất 1 dịch vụ cho combo.</span>';
         } else {
           const chipsHtml = selected.map(s => `
-            <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(197,155,39,0.15); border: 1px solid rgba(197,155,39,0.3); color: #fbbf24; border-radius: 4px; padding: 3px 8px; font-size: 11px; margin: 2px;">
-              <span><strong>#${this.escapeHtml(s.id)}</strong> ${this.escapeHtml(s.name)}</span>
-              <span style="background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; color: #fff; font-weight: 700;">${s.duration}p</span>
-              <button type="button" onclick="AdminWeb.removeComboService('${s.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 2px; font-size: 13px; font-weight: bold; line-height: 1;" title="Bỏ dịch vụ này">&times;</button>
+            <span class="combo-chip-item" style="display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 4px 10px; font-size: 12px; margin: 2px;">
+              <span class="combo-chip-title" style="font-weight: 600;">${this.escapeHtml(s.name)}</span>
+              <span class="combo-chip-badge" style="padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 700;">${s.duration}p</span>
+              <button type="button" onclick="AdminWeb.removeComboService('${s.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 2px; font-size: 14px; font-weight: bold; line-height: 1;" title="Bỏ dịch vụ này">&times;</button>
             </span>
           `).join('');
           summaryBox.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; color: #d1d5db; font-size: 11px;">
-              <span>Dịch vụ đã chọn (${selected.length}):</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
+              <span style="font-weight: 600; color: var(--text-primary);">Dịch vụ đã chọn (${selected.length}):</span>
               <span style="color: #f59e0b; font-weight: 700;">Tổng thời lượng: ${totalDuration} phút</span>
             </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
               ${chipsHtml}
             </div>
           `;

@@ -91,9 +91,10 @@
 
       // Lắng nghe Reactive Store thay đổi
       if (window.store && typeof window.store.subscribe === 'function') {
-        window.store.subscribe(() => {
+        window.store.subscribe((state, event) => {
           this.updateCartBadge();
-          if (this.currentTab === 'home') {
+          // Tránh gọi renderServicesCards liên tục gây chớp tắt giao diện trang chủ
+          if (this.currentTab === 'home' && (event === 'SERVICES_UPDATED' || event === 'ADMIN_CATALOG_CHANGED')) {
             const grid = document.getElementById('servicesGridContainer');
             if (grid) grid.innerHTML = this.renderServicesCards(true);
           }
