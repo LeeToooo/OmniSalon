@@ -128,7 +128,7 @@
                 
                 <!-- Dong chu nho gioi thieu cach dieu diem nhan cao cap dam net khong chim -->
                 <div class="hero-editorial-lead" style="position: relative; margin: 6px 0 28px; padding-left: 20px; border-left: 3.5px solid var(--brand-accent, #C59B27); max-width: 580px;">
-                  <p class="hero-tagline" style="margin: 0 0 14px; font-family: var(--font-sans); font-size: clamp(18px, 1.3vw, 21px); font-weight: 800 !important; color: #141413 !important; line-height: 1.45; letter-spacing: -0.015em;">
+                  <p class="hero-tagline" style="margin: 0 0 14px; font-family: var(--font-sans); font-size: clamp(18px, 1.3vw, 21px); font-weight: 800 !important; color: var(--hero-tagline-color, #000000) !important; line-height: 1.45; letter-spacing: -0.015em;">
                     Chăm sóc tóc &amp; râu chuyên biệt, định hình phom tóc góc cạnh nam tính.
                   </p>
                   <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">

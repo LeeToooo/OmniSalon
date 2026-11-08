@@ -1066,9 +1066,27 @@ body.dark .web-footer .footer-copyright,
 }
 
 .hero-tagline {
+  color: var(--hero-tagline-color, var(--text-primary));
   font-size: 18.5px !important;
   line-height: 1.7 !important;
   max-width: 100% !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .hero-tagline,
+[data-theme="light"] p.hero-tagline,
+html.light .hero-tagline,
+body.light .hero-tagline {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="dark"] .hero-tagline,
+[data-theme="dark"] p.hero-tagline,
+html.dark .hero-tagline,
+body.dark .hero-tagline {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
 }
 
 .btn-hero-primary {

@@ -1490,8 +1490,17 @@ body.dark .pdp-dot-4rau {
 
 @media (max-width: 600px) {
   .pdp-related-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
+}
+
+.pdp-recommendation-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 40px 0 24px;
 }
 
 .pdp-related-card {

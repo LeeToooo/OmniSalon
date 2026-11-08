@@ -307,8 +307,8 @@
       branchId: null,
       branchName: 'Khách Hàng',
       avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
-      rewardPoints: 500,
-      tier: 'Khách Hàng VIP',
+      rewardPoints: 0,
+      tier: 'Khách Hàng',
       isActive: true
     }))
   ];
@@ -1074,7 +1074,7 @@
 
       return {
         success: true,
-        message: 'Đăng ký tài khoản thành viên thành công! Bạn nhận được 100 điểm thưởng chào mừng.',
+        message: 'Đăng ký tài khoản thành công! Chào mừng bạn đến với Omni Salon.',
         user: this.currentUser,
         token: accessToken
       };

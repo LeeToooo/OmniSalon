@@ -112,22 +112,12 @@
             </div>
           </div>
 
-          <!-- Thông báo hệ thống tự động xác nhận -->
-          <div style="background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; color: #0284c7; line-height: 1.5; text-align: left;">
-            ℹ️ <strong>Hệ thống tự động xác nhận:</strong> Sau khi quý khách quét mã chuyển khoản thành công, hệ thống / thu ngân sẽ tự động kiểm tra giao dịch và cập nhật trạng thái "Đã Thanh Toán" cho đơn hàng. Quý khách không cần tự xác nhận.
-          </div>
-
           <!-- Nút hành động -->
-          <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; justify-content: center;">
             <button type="button" class="btn-cancel" 
-                    style="min-height: 42px; min-width: 120px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
+                    style="min-height: 42px; min-width: 140px; padding: 0 24px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
                     onclick="CustomerWeb.closeOrderPaymentModal()">
               Đóng Cửa Sổ
-            </button>
-            <button type="button" class="btn-submit-terracotta" 
-                    style="min-height: 42px; padding: 0 20px; border-radius: 10px; font-size: 13.5px; font-weight: 800; background: #16a34a; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
-                    onclick="CustomerWeb.confirmOrderPaidMock('${escapeFn(oCode)}')">
-              ✓ Tôi Đã Chuyển Khoản Thành Công
             </button>
           </div>
         </div>

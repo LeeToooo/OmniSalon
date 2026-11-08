@@ -513,7 +513,7 @@
         <div class="shop-bento-grid">
           <!-- Card Lớn Trái: Pomade Cao Cấp -->
           <div class="bento-card bento-card-large" onclick="ShopPage.setCategory('DM02')" title="Khám phá dòng Pomade quý ông">
-            <div class="bento-card-bg" style="background-image: url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80');"></div>
+            <div class="bento-card-bg" style="background-image: url('Men_Grooming_Products/DichVu_Men/CBDV1.jpg');"></div>
             <div class="bento-card-overlay"></div>
             <div class="bento-card-content">
               <span class="bento-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important;">BỘ SƯU TẬP QUÝ ÔNG</span>
@@ -527,7 +527,7 @@
           <div class="bento-col-stacked">
             <!-- Card Phải Trên: Clay & Fiber -->
             <div class="bento-card bento-card-small" onclick="ShopPage.setCategory('DM01')" title="Xem các dòng Clay &amp; Wax tạo phồng">
-              <div class="bento-card-bg" style="background-image: url('https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=700&q=80');"></div>
+              <div class="bento-card-bg" style="background-image: url('Men_Grooming_Products/DichVu_Men/CBDV3.jpg');"></div>
               <div class="bento-card-overlay"></div>
               <div class="bento-card-content">
                 <span class="bento-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important;">VOLUME &amp; TEXTURE</span>
@@ -538,7 +538,7 @@
 
             <!-- Card Phải Dưới: Ưu Đãi Đang Sale -->
             <div class="bento-card bento-card-small" onclick="ShopPage.setCategory('fefo_expiry')" title="Săn ưu đãi Flash Sale">
-              <div class="bento-card-bg" style="background-image: url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=700&q=80');"></div>
+              <div class="bento-card-bg" style="background-image: url('Men_Grooming_Products/DichVu_Men/CBDV4.jpg');"></div>
               <div class="bento-card-overlay bento-overlay-sale"></div>
               <div class="bento-card-content">
                 <span class="bento-tag bento-tag-sale">ƯU ĐÃI GIỚI HẠN</span>
@@ -555,7 +555,7 @@
         <!-- CAMPAIGN STRIP BANNER 2 (CHUẨN ẢNH 1: 2 BANNERS SONG SONG) -->
         <div class="shop-campaign-strip">
           <div class="campaign-banner-card" onclick="ShopPage.setCategory('DM03')" title="Xem các dòng Pre-styling và xịt muối biển">
-            <div class="campaign-banner-bg" style="background-image: url('https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=800&q=80');"></div>
+            <div class="campaign-banner-bg" style="background-image: url('Men_Grooming_Products/DichVu_Men/CBDV2.jpg');"></div>
             <div class="campaign-banner-overlay"></div>
             <div class="campaign-banner-content">
               <span class="campaign-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important; border: 1px solid rgba(251, 191, 36, 0.4) !important;">PRE-STYLING &amp; BẢO VỆ NHIỆT</span>
@@ -566,7 +566,7 @@
           </div>
 
           <div class="campaign-banner-card" onclick="ShopPage.setCategory('DM05')" title="Xem các dòng dầu gội phục hồi">
-            <div class="campaign-banner-bg" style="background-image: url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80');"></div>
+            <div class="campaign-banner-bg" style="background-image: url('Men_Grooming_Products/DichVu_Men/DV10.jpg');"></div>
             <div class="campaign-banner-overlay"></div>
             <div class="campaign-banner-content">
               <span class="campaign-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important; border: 1px solid rgba(251, 191, 36, 0.4) !important;">CHĂM SÓC CHUYÊN SÂU</span>
@@ -873,9 +873,10 @@
 
           <div style="display: inline-flex; align-items: center; gap: 8px;">
             <button id="shopPrevPageBtn"
+                    class="shop-page-nav-btn customer-page-nav-btn"
                     onclick="ShopPage.changePage(${this.currentPage - 1})"
                     ${prevDisabled ? 'disabled' : ''}
-                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'}; opacity: ${prevDisabled ? '0.35' : '1'}; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); transition: all 0.2s ease;">
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'}; opacity: ${prevDisabled ? '0.35' : '1'}; background: var(--pagination-nav-bg, #FFFFFF); border: 1px solid var(--border-color); color: var(--pagination-nav-color, #000000); box-shadow: none; transition: all 0.2s ease;">
               <span style="font-size: 16px; line-height: 1;">←</span>
               <span>Trước</span>
             </button>
@@ -887,10 +888,11 @@
         }
         const isActive = p === this.currentPage;
         return `
-                  <button onclick="ShopPage.changePage(${p})"
+                  <button class="shop-page-num-btn ${isActive ? 'active' : ''}"
+                          onclick="ShopPage.changePage(${p})"
                           style="min-width: 42px; height: 42px; padding: 0 10px; border-radius: 10px; font-size: 13px; font-weight: ${isActive ? '800' : '600'}; cursor: pointer; transition: all 0.2s ease; ${isActive
             ? 'background: var(--brand-accent); color: #ffffff; border: 1.5px solid var(--brand-accent); box-shadow: 0 2px 10px rgba(180,131,18,0.3);'
-            : 'background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color);'
+            : 'background: var(--pagination-nav-bg, #FFFFFF); color: var(--pagination-nav-color, #000000); border: 1px solid var(--border-color);'
           }">
                     ${p}
                   </button>
@@ -899,9 +901,10 @@
             </div>
 
             <button id="shopNextPageBtn"
+                    class="shop-page-nav-btn customer-page-nav-btn"
                     onclick="ShopPage.changePage(${this.currentPage + 1})"
                     ${nextDisabled ? 'disabled' : ''}
-                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'}; opacity: ${nextDisabled ? '0.35' : '1'}; background: var(--brand-accent); border: none; color: #ffffff; box-shadow: 0 4px 14px rgba(180,131,18,0.25); transition: all 0.2s ease;">
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'}; opacity: ${nextDisabled ? '0.35' : '1'}; background: var(--pagination-nav-bg, #FFFFFF); border: 1px solid var(--border-color); color: var(--pagination-nav-color, #000000); box-shadow: none; transition: all 0.2s ease;">
               <span>Sau</span>
               <span style="font-size: 16px; line-height: 1;">→</span>
             </button>
@@ -1077,8 +1080,8 @@
       }
 
       this.selectedVariant = (variants && variants.length > 0) ? variants[0] : '';
-      // Loc ra 4 san pham lien quan khac
-      const relatedProducts = allProducts.filter(p => (p.id !== prod.id && p.MaSanPham !== prod.id)).slice(0, 4);
+      // Gợi ý thông minh: Sản phẩm cùng loại (sáp, pomade...) và cùng thương hiệu
+      const relatedProducts = this.getRelatedProducts(prod, allProducts, 8);
 
       // Xác định Danh mục chuẩn xác theo bộ lọc của Shop
       let categories = (window.store && typeof window.store.getCategories === 'function')
@@ -1437,39 +1440,58 @@
               </div>
             </div>
 
-            <!-- 4. SECTION SẢN PHẨM KHUYÊN DÙNG (EDITORIAL RELATED PRODUCTS) -->
-            <div class="pdp-related-section">
-              <div class="pdp-section-header">
-                <div class="pdp-section-title-wrap">
-                  <h2 class="font-serif tracking-tight leading-tight" style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px;">SẢN PHẨM CÙNG BỘ SƯU TẬP</h2>
-                  <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Gợi ý các dòng sáp và pomade kết hợp hoàn hảo cho phom tóc của bạn</p>
-                </div>
-                <button type="button" class="pdp-back-btn" onclick="CustomerWeb.switchTab('shop')" style="font-size: 13.5px; font-weight: 700; color: #C59B27;">
-                  Xem Tất Cả Mỹ Phẩm →
-                </button>
+            <!-- 4. CÓ THỂ BẠN CŨNG THÍCH (SHOPEE STYLE RECOMMENDATIONS) -->
+            <div class="pdp-related-section" style="margin-top: 54px; margin-bottom: 64px;">
+              <div class="pdp-recommendation-divider" style="display: flex; align-items: center; justify-content: center; gap: 18px; margin: 0 0 28px; width: 100%;">
+                <span style="flex: 1; max-width: 140px; height: 1.5px; background: var(--border-color, rgba(255,255,255,0.12));"></span>
+                <span style="font-size: 16px; font-weight: 700; color: var(--text-secondary, #71717A); letter-spacing: 0.02em; text-transform: uppercase;">
+                  Có thể bạn cũng thích
+                </span>
+                <span style="flex: 1; max-width: 140px; height: 1.5px; background: var(--border-color, rgba(255,255,255,0.12));"></span>
               </div>
 
               <div class="pdp-related-grid">
                 ${relatedProducts.map(rel => {
         const relPrice = Number(rel.GiaBanThucTe || rel.price || 0);
+        const relOrigPrice = Number(rel.originalPrice || rel.GiaNiemYetGoc || rel.GiaBan || relPrice);
+        const relDiscountPercent = Number(rel.discountPercent || rel.PhanTramGiam || 0) || (relOrigPrice > relPrice ? Math.round(((relOrigPrice - relPrice) / relOrigPrice) * 100) : 0);
+        const relHasDiscount = relDiscountPercent > 0;
+        const relRating = Number(rel.rating || 4.9);
+        const relSalesCount = Number(rel.salesCount || rel.DaBan || (50 + (parseInt(String(rel.id).replace(/\D/g, '') || '1', 10) * 17) % 250));
         const relImg = rel.image || rel.HinhAnh || 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
+        const relName = rel.name || rel.TenSanPham || '';
+        const relBrand = rel.brand || rel.ThuongHieu || 'OMNI SALON';
         return `
-                    <div class="pdp-related-card" onclick="if(window.AppRouter) window.AppRouter.navigate('/product?id=${rel.id}');" style="border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-card);">
-                      <div class="pdp-related-img-wrap" style="background: #FFFFFF; padding: 12px;">
-                        <img src="${SalonUtils.formatImageUrl(relImg)}" alt="${rel.name || rel.TenSanPham}" class="pdp-related-img" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : null">
+                    <div class="pdp-related-card" onclick="if(window.AppRouter) window.AppRouter.navigate('/product?id=${rel.id}');" style="border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-card); position: relative; display: flex; flex-direction: column;">
+                      <div class="pdp-related-img-wrap" style="position: relative; background: #FFFFFF; padding: 12px; display: flex; align-items: center; justify-content: center; aspect-ratio: 1/1; overflow: hidden; border-radius: 8px 8px 0 0;">
+                        ${relHasDiscount ? `
+                          <span style="position: absolute; top: 8px; right: 8px; background: #EF4444; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; z-index: 2;">
+                            -${relDiscountPercent}%
+                          </span>
+                        ` : ''}
+                        <img src="${SalonUtils.formatImageUrl(relImg)}" alt="${relName}" class="pdp-related-img" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : null" style="max-height: 100%; max-width: 100%; object-fit: contain;">
                       </div>
-                      <div class="pdp-related-info">
-                        <div class="pdp-related-brand" style="color: #C59B27; font-weight: 700; font-size: 11px;">${rel.brand || 'OMNI SALON'}</div>
-                        <div class="pdp-related-title font-serif tracking-tight leading-tight" style="font-size: 15px; font-weight: 700;" title="${rel.name || rel.TenSanPham}">${rel.name || rel.TenSanPham}</div>
-                        <div class="pdp-related-price-row">
-                          <span class="pdp-related-price" style="color: #C59B27; font-weight: 800;">${SalonUtils.formatCurrency(relPrice)}</span>
+                      <div class="pdp-related-info" style="padding: 14px; display: flex; flex-direction: column; flex: 1;">
+                        <div class="pdp-related-brand" style="color: #C59B27; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 3px;">${relBrand}</div>
+                        <div class="pdp-related-title font-serif tracking-tight leading-tight" style="font-size: 14.5px; font-weight: 700; color: var(--text-primary); line-height: 1.35; margin-bottom: 8px; min-height: 38px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${relName}">${relName}</div>
+                        <div class="pdp-related-price-row" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
+                          <span class="pdp-related-price" style="color: #C59B27; font-weight: 800; font-size: 16px;">${SalonUtils.formatCurrency(relPrice)}</span>
+                          ${relHasDiscount && relOrigPrice > relPrice ? `
+                            <span style="font-size: 12px; text-decoration: line-through; color: var(--text-secondary); opacity: 0.7;">${SalonUtils.formatCurrency(relOrigPrice)}</span>
+                          ` : ''}
                         </div>
-                        <div class="pdp-related-btns" onclick="event.stopPropagation();">
-                          <button type="button" class="pdp-related-view-btn" onclick="if(window.AppRouter) window.AppRouter.navigate('/product?id=${rel.id}');" style="font-weight: 700;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; margin-top: auto;">
+                          <span style="display: inline-flex; align-items: center; gap: 3px; color: #F59E0B; font-weight: 700;">
+                            ★ <span>${relRating.toFixed(1)}</span>
+                          </span>
+                          <span style="opacity: 0.85;">Đã bán ${relSalesCount}</span>
+                        </div>
+                        <div class="pdp-related-btns" onclick="event.stopPropagation();" style="display: grid; grid-template-columns: 1fr 42px; gap: 8px;">
+                          <button type="button" class="pdp-related-view-btn" onclick="if(window.AppRouter) window.AppRouter.navigate('/product?id=${rel.id}');" style="font-weight: 700; padding: 8px; border-radius: 6px; background: var(--surface-elevated, #F3EFEA); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; font-size: 12.5px;">
                             Chi Tiết →
                           </button>
-                          <button type="button" class="pdp-related-add-btn" onclick="ShopPage.handleDetailAddToCart('${rel.id}')" title="Thêm vào giỏ">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                          <button type="button" class="pdp-related-add-btn" onclick="ShopPage.handleDetailAddToCart('${rel.id}')" title="Thêm vào giỏ" style="height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: var(--brand-accent); border: none; color: #FFFFFF; cursor: pointer;">
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
                               <line x1="3" y1="6" x2="21" y2="6"></line>
                               <path d="M16 10a4 4 0 0 1-8 0"></path>
@@ -1779,6 +1801,63 @@
         (r.MaSanPham && String(r.MaSanPham).trim() === prodId) ||
         (r.orderId && r.productName && r.productName.toLowerCase() === prodName.toLowerCase())
       );
+    },
+
+    getRelatedProducts(prod, allProducts, limit = 8) {
+      if (!prod || !Array.isArray(allProducts)) return [];
+      const prodId = String(prod.id || prod.MaSanPham || '').trim();
+      const currentBrand = String(prod.brand || prod.ThuongHieu || '').trim().toLowerCase();
+      const currentCat = String(prod.categoryId || prod.MaDanhMuc || '').trim().toLowerCase();
+      const currentName = String(prod.name || prod.TenSanPham || '').toLowerCase();
+      const stylingCats = ['dm01', 'dm02', 'dm03', 'dm04'];
+      const careCats = ['dm05', 'dm06'];
+      const keywords = ['clay', 'wax', 'pomade', 'paste', 'fiber', 'gôm', 'xịt', 'dầu gội', 'tinh dầu', 'serum', 'râu', 'shave', 'beard'];
+
+      const scored = allProducts
+        .filter(p => {
+          const pId = String(p.id || p.MaSanPham || '').trim();
+          return pId && pId !== prodId && pId !== 'SP_TOTE';
+        })
+        .map(p => {
+          const pBrand = String(p.brand || p.ThuongHieu || '').trim().toLowerCase();
+          const pCat = String(p.categoryId || p.MaDanhMuc || '').trim().toLowerCase();
+          const pName = String(p.name || p.TenSanPham || '').toLowerCase();
+          let score = 0;
+
+          // 1. Cùng thương hiệu: ưu tiên cực cao
+          const isSameBrand = pBrand && currentBrand && (pBrand === currentBrand || currentBrand.includes(pBrand) || pBrand.includes(currentBrand));
+          if (isSameBrand) score += 15;
+
+          // 2. Cùng danh mục: ưu tiên rất cao
+          const isSameCategory = pCat && currentCat && (pCat === currentCat);
+          if (isSameCategory) score += 12;
+
+          // 3. Cùng nhóm danh mục (ví dụ cùng nhóm tạo kiểu nam)
+          if (stylingCats.includes(currentCat) && stylingCats.includes(pCat)) score += 6;
+          if (careCats.includes(currentCat) && careCats.includes(pCat)) score += 6;
+
+          // 4. Từ khóa liên quan trong tên
+          for (const kw of keywords) {
+            if (currentName.includes(kw) && pName.includes(kw)) {
+              score += 4;
+              break;
+            }
+          }
+
+          // 5. Cùng cả thương hiệu VÀ cùng danh mục
+          if (isSameBrand && isSameCategory) score += 10;
+
+          return { p, score };
+        });
+
+      scored.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        const bRating = Number(b.p.rating || 0);
+        const aRating = Number(a.p.rating || 0);
+        return bRating - aRating;
+      });
+
+      return scored.slice(0, limit).map(item => item.p);
     },
 
     renderDynamicProductReviews(product, providedList) {

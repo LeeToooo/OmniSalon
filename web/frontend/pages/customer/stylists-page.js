@@ -385,9 +385,10 @@
 
           <div style="display: inline-flex; align-items: center; gap: 8px;">
             <button id="stylistPrevPageBtn"
+                    class="stylist-page-nav-btn"
                     onclick="StylistsPage.changePage(${this.currentPage - 1})"
                     ${prevDisabled ? 'disabled' : ''}
-                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'}; opacity: ${prevDisabled ? '0.35' : '1'}; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); transition: all 0.2s ease;">
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'}; opacity: ${prevDisabled ? '0.35' : '1'}; background: var(--pagination-nav-bg, #FFFFFF); border: 1px solid var(--border-color); color: var(--pagination-nav-color, #000000); box-shadow: none; transition: all 0.2s ease;">
               <span style="font-size: 16px; line-height: 1;">←</span>
               <span>Trước</span>
             </button>
@@ -399,10 +400,11 @@
         }
         const isActive = p === this.currentPage;
         return `
-                  <button onclick="StylistsPage.changePage(${p})"
+                  <button class="stylist-page-num-btn ${isActive ? 'active' : ''}"
+                          onclick="StylistsPage.changePage(${p})"
                           style="min-width: 42px; height: 42px; padding: 0 10px; border-radius: 10px; font-size: 13px; font-weight: ${isActive ? '800' : '600'}; cursor: pointer; transition: all 0.2s ease; ${isActive
             ? 'background: var(--brand-accent); color: #ffffff; border: 1.5px solid var(--brand-accent); box-shadow: 0 2px 10px rgba(180,131,18,0.3);'
-            : 'background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color);'
+            : 'background: var(--pagination-nav-bg, #FFFFFF); color: var(--pagination-nav-color, #000000); border: 1px solid var(--border-color);'
           }">
                     ${p}
                   </button>
@@ -411,9 +413,10 @@
             </div>
 
             <button id="stylistNextPageBtn"
+                    class="stylist-page-nav-btn"
                     onclick="StylistsPage.changePage(${this.currentPage + 1})"
                     ${nextDisabled ? 'disabled' : ''}
-                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'}; opacity: ${nextDisabled ? '0.35' : '1'}; background: var(--brand-accent); border: none; color: #ffffff; box-shadow: 0 4px 14px rgba(180,131,18,0.25); transition: all 0.2s ease;">
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'}; opacity: ${nextDisabled ? '0.35' : '1'}; background: var(--pagination-nav-bg, #FFFFFF); border: 1px solid var(--border-color); color: var(--pagination-nav-color, #000000); box-shadow: none; transition: all 0.2s ease;">
               <span>Sau</span>
               <span style="font-size: 16px; line-height: 1;">→</span>
             </button>

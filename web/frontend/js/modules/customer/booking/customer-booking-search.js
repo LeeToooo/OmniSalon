@@ -231,18 +231,18 @@
                   Xem Vé QR
                 </button>
                 ${(!isPaid) ? `
-                  <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #10b981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                  <button type="button" class="pill-btn-outline btn-pay" style="font-size: 11px; padding: 4px 10px; color: #10b981 !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingPaymentModal('${escapeFn(bCode)}')">
                     💳 Thanh Toán VietQR
                   </button>
                 ` : ''}
                 ${bReview ? `
-                  <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                  <button type="button" class="pill-btn-outline btn-review" style="font-size: 11px; padding: 4px 10px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
                     ⭐ Sửa Đánh Giá
                   </button>
                 ` : `
-                  <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                  <button type="button" class="pill-btn-outline btn-review" style="font-size: 11px; padding: 4px 10px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
                     ⭐ Đánh Giá Lịch Hẹn
                   </button>
@@ -290,25 +290,25 @@
                     Xem Vé QR
                   </button>
                   ${(!isPaid && !isCancelled) ? `
-                    <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #10b981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                    <button type="button" class="pill-btn-outline btn-pay" style="font-size: 11px; padding: 5px 12px; color: #10b981 !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                             onclick="CustomerWeb.openBookingPaymentModal('${escapeFn(bCode)}')">
                       💳 Thanh Toán VietQR
                     </button>
                   ` : ''}
                   ${(!isCancelled) ? (bReview ? `
-                    <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                    <button type="button" class="pill-btn-outline btn-review" style="font-size: 11px; padding: 5px 12px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                             onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
                       ⭐ Sửa Đánh Giá
                     </button>
                   ` : `
-                    <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                    <button type="button" class="pill-btn-outline btn-review" style="font-size: 11px; padding: 5px 12px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                             onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
                       ⭐ Đánh Giá Lịch Hẹn
                     </button>
                   `) : ''}
                   ${isCancellable ? (
             isUserLoggedIn ? `
-                      <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
+                      <button type="button" class="pill-btn-outline btn-danger" style="font-size: 11px; padding: 5px 12px; color: #ef4444 !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                               onclick="CustomerWeb.openBookingCancelModal('${b.id}')">
                         ✕ Hủy Lịch Hẹn
                       </button>

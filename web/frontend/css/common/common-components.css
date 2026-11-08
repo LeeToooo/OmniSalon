@@ -282,6 +282,209 @@ body.light .btn-cancel:hover {
   color: #0F1015;
 }
 
+/* Nút hủy/danger outline - Ở chế độ sáng viền giống hệt xem vé QR (1.5px solid #CBD5E1), nền thẻ trắng, chỉ có chữ đỏ */
+.pill-btn-outline.btn-danger {
+  color: #ef4444 !important;
+  border: 1px solid var(--border-color) !important;
+  background: transparent !important;
+}
+
+html.light .pill-btn-outline.btn-danger,
+body.light .pill-btn-outline.btn-danger {
+  color: #ef4444 !important;
+  border: 1.5px solid #CBD5E1 !important;
+  background-color: var(--surface-card) !important;
+}
+
+.pill-btn-outline.btn-danger:hover {
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+html.light .pill-btn-outline.btn-danger:hover,
+body.light .pill-btn-outline.btn-danger:hover {
+  background-color: var(--surface-elevated) !important;
+  border-color: #94A3B8 !important;
+  color: #dc2626 !important;
+}
+
+/* Nút hủy đơn hàng - Đồng bộ chế độ sáng viền xám như nút outline xem vé QR, chỉ có chữ đỏ */
+.btn-order-action.btn-cancel-order {
+  color: #ef4444 !important;
+  border: 1px solid var(--border-color) !important;
+  background: transparent !important;
+}
+
+html.light .btn-order-action.btn-cancel-order,
+body.light .btn-order-action.btn-cancel-order {
+  color: #ef4444 !important;
+  border: 1.5px solid #CBD5E1 !important;
+  background-color: var(--surface-card) !important;
+}
+
+html.light .btn-order-action.btn-cancel-order:hover,
+body.light .btn-order-action.btn-cancel-order:hover {
+  background-color: var(--surface-elevated) !important;
+  border-color: #94A3B8 !important;
+  color: #dc2626 !important;
+}
+
+/* Nút thanh toán VietQR - Đồng bộ viền xám như xem vé QR / hủy đơn, nền thẻ, chỉ có chữ xanh */
+.pill-btn-outline.btn-pay,
+.btn-order-action.btn-pay {
+  color: #10b981 !important;
+  border: 1px solid var(--border-color) !important;
+  background: transparent !important;
+}
+
+html.light .pill-btn-outline.btn-pay,
+body.light .pill-btn-outline.btn-pay,
+html.light .btn-order-action.btn-pay,
+body.light .btn-order-action.btn-pay {
+  color: #10b981 !important;
+  border: 1.5px solid #CBD5E1 !important;
+  background-color: var(--surface-card) !important;
+}
+
+html.light .pill-btn-outline.btn-pay:hover,
+body.light .pill-btn-outline.btn-pay:hover,
+html.light .btn-order-action.btn-pay:hover,
+body.light .btn-order-action.btn-pay:hover {
+  background-color: var(--surface-elevated) !important;
+  border-color: #94A3B8 !important;
+  color: #059669 !important;
+}
+
+/* Nút đánh giá dịch vụ/đơn hàng - Đồng bộ viền xám như xem vé QR / hủy đơn, nền thẻ, chỉ có chữ vàng cam */
+.pill-btn-outline.btn-review,
+.btn-order-action.btn-review {
+  color: #f59e0b !important;
+  border: 1px solid var(--border-color) !important;
+  background: transparent !important;
+}
+
+html.light .pill-btn-outline.btn-review,
+body.light .pill-btn-outline.btn-review,
+html.light .btn-order-action.btn-review,
+body.light .btn-order-action.btn-review {
+  color: #f59e0b !important;
+  border: 1.5px solid #CBD5E1 !important;
+  background-color: var(--surface-card) !important;
+}
+
+html.light .pill-btn-outline.btn-review:hover,
+body.light .pill-btn-outline.btn-review:hover,
+html.light .btn-order-action.btn-review:hover,
+body.light .btn-order-action.btn-review:hover {
+  background-color: var(--surface-elevated) !important;
+  border-color: #94A3B8 !important;
+  color: #d97706 !important;
+}
+
+/* Dropdown Bàn Làm Việc Phân Hệ: Quản trị tối cao / Quản lý chi nhánh / Thu ngân POS */
+.dropdown-admin-card-btn {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+  background: #C59B27 !important;
+  border: 1.5px solid #A27B1C !important;
+  color: #141413 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  margin: 3px 0 !important;
+}
+
+.dropdown-admin-card-btn:hover {
+  background: #A27B1C !important;
+  border-color: #8A6208 !important;
+  transform: translateY(-1px);
+}
+
+.dropdown-admin-card-btn .admin-card-icon-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.12) !important;
+  color: #141413 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dropdown-admin-card-btn .admin-card-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #141413 !important;
+}
+
+.dropdown-admin-card-btn .admin-card-sub {
+  font-size: 11px;
+  color: #3E320D !important;
+  font-weight: 700;
+}
+
+.dropdown-admin-card-btn .admin-card-arrow {
+  color: #141413 !important;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Chế độ sáng: Khung bàn làm việc quản lý / admin / thu ngân sáng sủa, trang nhã, viền vàng ấm */
+html.light .dropdown-admin-card-btn,
+body.light .dropdown-admin-card-btn,
+[data-theme="light"] .dropdown-admin-card-btn {
+  background: linear-gradient(135deg, #FFFDF5 0%, #FEF3C7 100%) !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.12) !important;
+  color: #78350F !important;
+}
+
+html.light .dropdown-admin-card-btn:hover,
+body.light .dropdown-admin-card-btn:hover,
+[data-theme="light"] .dropdown-admin-card-btn:hover {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%) !important;
+  border-color: #D97706 !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+html.light .dropdown-admin-card-btn .admin-card-icon-box,
+body.light .dropdown-admin-card-btn .admin-card-icon-box,
+[data-theme="light"] .dropdown-admin-card-btn .admin-card-icon-box {
+  background: rgba(245, 158, 11, 0.22) !important;
+  color: #B45309 !important;
+}
+
+html.light .dropdown-admin-card-btn .admin-card-icon-box svg,
+body.light .dropdown-admin-card-btn .admin-card-icon-box svg,
+[data-theme="light"] .dropdown-admin-card-btn .admin-card-icon-box svg {
+  stroke: #B45309 !important;
+}
+
+html.light .dropdown-admin-card-btn .admin-card-title,
+body.light .dropdown-admin-card-btn .admin-card-title,
+[data-theme="light"] .dropdown-admin-card-btn .admin-card-title {
+  color: #78350F !important;
+}
+
+html.light .dropdown-admin-card-btn .admin-card-sub,
+body.light .dropdown-admin-card-btn .admin-card-sub,
+[data-theme="light"] .dropdown-admin-card-btn .admin-card-sub {
+  color: #B45309 !important;
+}
+
+html.light .dropdown-admin-card-btn .admin-card-arrow,
+body.light .dropdown-admin-card-btn .admin-card-arrow,
+[data-theme="light"] .dropdown-admin-card-btn .admin-card-arrow {
+  color: #92400E !important;
+}
+
 /* --- 2. COMMON BADGES & STATUS PILLS --- */
 
 /* Huy hiệu vai trò tài khoản */

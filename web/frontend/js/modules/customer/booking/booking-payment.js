@@ -78,8 +78,13 @@
 
           <!-- VietQR Box -->
           <div style="background: #ffffff; padding: 16px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 16px; border: 1px solid #e2e8f0;">
-            <img src="${vietQrUrl}" alt="Mã VietQR" style="width: 190px; height: 190px; border-radius: 8px; margin: 0 auto; display: block; object-fit: contain;"
-                 onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:190px;height:190px;margin:0 auto;\\'>' + '${qrSvg ? qrSvg.replace(/'/g, "\\'") : 'VIETQR CODE'}' + '</div><div style=\\'font-size: 11px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;\\'>VIETQR 24/7 CHUYỂN NHANH NAPAS</div>';">
+            ${qrSvg ? `
+              <div style="width: 190px; height: 190px; margin: 0 auto;">${qrSvg}</div>
+            ` : `
+              <div style="width: 190px; height: 190px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px; font-weight: 800; color: #0284c7;">
+                VIETQR CODE
+              </div>
+            `}
             <div style="font-size: 11px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
           </div>
 
@@ -105,11 +110,6 @@
               <span style="color: var(--text-secondary);">Nội dung chuyển khoản:</span>
               <strong style="color: #b48312;">THANHTOAN ${escapeFn(bCode)}</strong>
             </div>
-          </div>
-
-          <!-- Thông báo hệ thống tự động xác nhận -->
-          <div style="background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; color: #0284c7; line-height: 1.5; text-align: left;">
-            ℹ️ <strong>Hệ thống tự động xác nhận:</strong> Sau khi quý khách quét mã chuyển khoản thành công, hệ thống / thu ngân sẽ tự động kiểm tra giao dịch và cập nhật trạng thái &quot;Đã Thanh Toán&quot; cho lịch hẹn. Quý khách không cần tự xác nhận.
           </div>
 
           <!-- Nút hành động -->

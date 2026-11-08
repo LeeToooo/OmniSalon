@@ -125,7 +125,7 @@
       if (role === 'STYLIST' || role === 'STAFF' || role === 'NHÂN VIÊN' || chucVu === 'THỢ CHÍNH' || chucVu === 'THỢ PHỤ' || chucVu.includes('THỢ') || chucVu.includes('BARBER')) {
         return user.CapBac ? `${user.CapBac} (${user.ChucVu || 'Thợ Tóc'})` : (user.ChucVu || 'Thợ Barber Chuyên Nghiệp');
       }
-      return `${user.tier && !user.tier.includes('OMNI') ? user.tier : 'Khách Hàng VIP'}`;
+      return 'Khách Hàng';
     },
 
     isAdminUser(user) {

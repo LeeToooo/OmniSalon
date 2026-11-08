@@ -1,4 +1,4 @@
-// Trang thông tin cá nhân khách hàng /profile, 5 tab: lịch hẹn, đơn hàng, tóc AI, điểm thưởng, cài đặt
+// Trang thông tin cá nhân khách hàng /profile: lịch hẹn, đơn hàng, tóc AI, cài đặt
 
 (function (window) {
   'use strict';
@@ -7,7 +7,7 @@
     activeTab: 'bookings',
 
     setTab(tab) {
-      this.activeTab = tab;
+      this.activeTab = (tab === 'rewards') ? 'bookings' : tab;
       const container = document.getElementById('webMainContainer');
       if (container) {
         this.render(container);
@@ -18,7 +18,10 @@
       if (!container) return;
 
       if (params && params.tab) {
-        this.activeTab = params.tab;
+        this.activeTab = (params.tab === 'rewards') ? 'bookings' : params.tab;
+      }
+      if (this.activeTab === 'rewards') {
+        this.activeTab = 'bookings';
       }
 
       const user = (window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function')
@@ -35,7 +38,7 @@
               </div>
               <h2 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">Tài Khoản Omni Salon</h2>
               <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
-                Đăng nhập để theo dõi trạng thái lịch hẹn cắt tóc, quản lý đơn hàng mỹ phẩm, xem bộ sưu tập tóc AI và tích lũy điểm thưởng thành viên.
+                Đăng nhập để theo dõi trạng thái lịch hẹn cắt tóc, quản lý đơn hàng mỹ phẩm và xem bộ sưu tập tóc AI.
               </p>
               <div style="display: flex; flex-direction: column; gap: 12px;">
                 <button type="button" class="btn-submit-terracotta" style="width: 100%; height: 46px; font-size: 14.5px; font-weight: 800; border-radius: 10px; background: #C59B27; color: #000;" onclick="UICommon.openAuthModal('login')">
@@ -77,21 +80,6 @@
         ? window.store.getAiHairHistory()
         : [];
 
-      // Tính điểm thưởng và hạng
-      const points = user.points || user.loyaltyPoints || 100;
-      let tierName = 'Thành Viên Bạc';
-      let tierColor = '#94a3b8';
-      let tierBadgeBg = 'rgba(148, 163, 184, 0.15)';
-      if (points >= 500) {
-        tierName = 'Thành Viên Kim Cương';
-        tierColor = '#38bdf8';
-        tierBadgeBg = 'rgba(56, 189, 248, 0.15)';
-      } else if (points >= 200) {
-        tierName = 'Thành Viên Vàng VIP';
-        tierColor = '#C59B27';
-        tierBadgeBg = 'rgba(197, 155, 39, 0.15)';
-      }
-
       const isAdmin = (window.CustomerWeb && typeof window.CustomerWeb.isAdminUser === 'function')
         ? window.CustomerWeb.isAdminUser(user)
         : (user && ['SUPER_ADMIN', 'ADMIN'].includes(String(user.role).toUpperCase()));
@@ -116,9 +104,11 @@
                       <h1 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 0;">
                         ${window.SalonUtils ? window.SalonUtils.escapeHtml(user.fullName || user.name || user.username) : (user.fullName || user.name)}
                       </h1>
-                      <span style="font-size: 11.5px; font-weight: 700; color: ${tierColor}; background: ${tierBadgeBg}; border: 1px solid ${tierColor}; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">
-                        ${tierName}
-                      </span>
+                      ${isAdmin ? `
+                        <span style="font-size: 11.5px; font-weight: 700; color: #f59e0b; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">
+                          Quản Trị Viên
+                        </span>
+                      ` : ''}
                     </div>
                     <div style="font-size: 13.5px; color: var(--text-secondary); display: flex; gap: 16px; flex-wrap: wrap;">
                       <span>📞 ${user.phone || 'Chưa cập nhật SĐT'}</span>
@@ -130,11 +120,6 @@
                 <!-- Thống kê nhanh & Nút thao tác -->
                 <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
                   <div style="display: flex; gap: 20px; text-align: center; background: var(--surface-elevated); padding: 12px 20px; border-radius: 14px; border: 1px solid var(--border-color);">
-                    <div>
-                      <div style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Điểm Thưởng</div>
-                      <div style="font-size: 20px; font-weight: 900; color: #f59e0b; margin-top: 2px;">${points} pts</div>
-                    </div>
-                    <div style="width: 1px; background: var(--border-color);"></div>
                     <div>
                       <div style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Lịch Hẹn</div>
                       <div style="font-size: 20px; font-weight: 900; color: var(--text-primary); margin-top: 2px;">${userBookings.length}</div>
@@ -164,9 +149,6 @@
               <button class="profile-tab-btn ${this.activeTab === 'gallery' ? 'active' : ''}" onclick="ProfilePage.setTab('gallery')" style="padding: 12px 20px; font-size: 14.5px; font-weight: 700; border: none; background: ${this.activeTab === 'gallery' ? '#f59e0b' : 'transparent'}; color: ${this.activeTab === 'gallery' ? '#000000' : 'var(--text-secondary)'}; border-radius: 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
                 ✂️ Thư Viện Tóc AI (${galleryItems.length})
               </button>
-              <button class="profile-tab-btn ${this.activeTab === 'rewards' ? 'active' : ''}" onclick="ProfilePage.setTab('rewards')" style="padding: 12px 20px; font-size: 14.5px; font-weight: 700; border: none; background: ${this.activeTab === 'rewards' ? '#f59e0b' : 'transparent'}; color: ${this.activeTab === 'rewards' ? '#000000' : 'var(--text-secondary)'}; border-radius: 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
-                🎁 Điểm &amp; Hạng Thành Viên
-              </button>
               <button class="profile-tab-btn ${this.activeTab === 'account' ? 'active' : ''}" onclick="ProfilePage.setTab('account')" style="padding: 12px 20px; font-size: 14.5px; font-weight: 700; border: none; background: ${this.activeTab === 'account' ? '#f59e0b' : 'transparent'}; color: ${this.activeTab === 'account' ? '#000000' : 'var(--text-secondary)'}; border-radius: 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
                 ⚙️ Cài Đặt Tài Khoản
               </button>
@@ -174,7 +156,7 @@
 
             <!-- 3. NỘI DUNG TỪNG TAB -->
             <div class="profile-tab-panel-container">
-              ${this.renderTabBody(this.activeTab, user, userBookings, userOrders, galleryItems, points, tierName)}
+              ${this.renderTabBody(this.activeTab, user, userBookings, userOrders, galleryItems)}
             </div>
 
           </div>
@@ -182,7 +164,7 @@
       `;
     },
 
-    renderTabBody(tab, user, bookings, orders, gallery, points, tierName) {
+    renderTabBody(tab, user, bookings, orders, gallery) {
       switch (tab) {
         case 'bookings':
           return this.renderBookingsTab(bookings);
@@ -190,8 +172,6 @@
           return this.renderOrdersTab(orders);
         case 'gallery':
           return this.renderGalleryTab(gallery);
-        case 'rewards':
-          return this.renderRewardsTab(user, points, tierName);
         case 'account':
           return this.renderAccountTab(user);
         default:
@@ -288,21 +268,21 @@
                       Xem Vé QR
                     </button>
                     ${(!isPaid && !isCancelled) ? `
-                      <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #10B981; border-color: rgba(16, 185, 129, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openBookingPaymentModal('${bCode}')">
+                      <button type="button" class="pill-btn-outline btn-pay" style="font-size: 12px; padding: 5px 12px; color: #10B981 !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openBookingPaymentModal('${bCode}')">
                         💳 Thanh Toán VietQR
                       </button>
                     ` : ''}
                     ${(!isCancelled) ? (bReview ? `
-                      <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" onclick="CustomerWeb.openBookingReviewModal('${bCode}')">
+                      <button type="button" class="pill-btn-outline btn-review" style="font-size: 12px; padding: 5px 12px; color: #f59e0b !important; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openBookingReviewModal('${bCode}')">
                         Sửa Đánh Giá
                       </button>
                     ` : `
-                      <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openBookingReviewModal('${bCode}')">
+                      <button type="button" class="pill-btn-outline btn-review" style="font-size: 12px; padding: 5px 12px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openBookingReviewModal('${bCode}')">
                         ⭐ Đánh Giá
                       </button>
                     `) : ''}
                     ${isCancellable ? `
-                      <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="CustomerWeb.cancelBookingByCustomer('${b.id}')">
+                      <button type="button" class="pill-btn-outline btn-danger" style="font-size: 12px; padding: 5px 12px; color: #ef4444 !important; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.cancelBookingByCustomer('${b.id}')">
                         Hủy Lịch Hẹn
                       </button>
                     ` : ''}
@@ -379,19 +359,23 @@
               const isCancelled = (step === 0);
 
               const items = Array.isArray(o.items) ? o.items : [];
+              const hasMoreThanTwo = items.length > 2;
+              const visibleItems = hasMoreThanTwo ? items.slice(0, 2) : items;
+              const hiddenItems = hasMoreThanTwo ? items.slice(2) : [];
+              const orderSafeId = String(oCode).replace(/[^a-zA-Z0-9_-]/g, '_');
               const rawDate = o.createdAt || o.orderDate || o.NgayDat;
               const formattedDate = rawDate ? (window.SalonUtils ? window.SalonUtils.formatDateTime(rawDate) : String(rawDate).split('T')[0]) : 'Hôm nay';
               const isPaid = (o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán' || o.paymentStatus === 'PAID');
               const oReview = (window.store && window.store.getReviewByOrderId) ? window.store.getReviewByOrderId(oCode) : null;
 
               return `
-                <div class="profile-item-card order-card-premium" style="background: var(--surface-card, #1c1c1a); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 18px; padding: 26px 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); margin-bottom: 22px;">
+                <div class="profile-item-card order-card-premium" style="background: var(--surface-card, #1c1c1a); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)); border-radius: 18px; padding: 26px 30px; box-shadow: var(--theme-shadow-elevated, 0 10px 30px rgba(0, 0, 0, 0.15)); margin-bottom: 22px;">
                   
                   <!-- Header don hang -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 16px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); padding-bottom: 16px;">
                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                       <span style="font-size: 18px; font-weight: 900; color: #f59e0b; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.35); padding: 6px 14px; border-radius: 8px; font-family: monospace; letter-spacing: 0.5px;">#${oCode}</span>
-                      <span style="font-size: 14.5px; color: var(--text-secondary, #a1a1aa);">Đặt ngày: <strong style="color: #FAF8F5;">${formattedDate}</strong></span>
+                      <span style="font-size: 14.5px; color: var(--text-secondary, #575752);">Đặt ngày: <strong style="color: var(--text-primary, #141413);">${formattedDate}</strong></span>
                     </div>
                     <div style="display: flex; align-items: baseline; gap: 8px;">
                       <span style="font-size: 14px; color: var(--text-secondary, #a1a1aa); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Tổng tiền:</span>
@@ -405,72 +389,105 @@
                       <span style="font-size: 20px;">❌</span> <span>Đơn hàng đã được hủy bỏ.</span>
                     </div>
                   ` : `
-                    <div class="order-status-timeline-large" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; padding: 18px 24px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px;">
+                    <div class="order-status-timeline-large" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; padding: 18px 24px; background: var(--surface-elevated, rgba(255, 255, 255, 0.03)); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); border-radius: 14px;">
                       
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 1 ? 'background: #10B981; color: #000;' : (step === 1 ? 'background: #f59e0b; color: #000; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);' : 'background: rgba(255,255,255,0.1); color: #71717a;')}">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 1 ? 'background: #10B981; color: #000;' : (step === 1 ? 'background: #f59e0b; color: #000; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);')}">
                           ${step > 1 ? '✓' : '1'}
                         </div>
-                        <span style="font-size: 14.5px; font-weight: ${step >= 1 ? '800' : '600'}; color: ${step === 1 ? '#f59e0b' : (step > 1 ? '#10B981' : '#71717a')};">Chờ Xác Nhận</span>
+                        <span style="font-size: 14.5px; font-weight: ${step >= 1 ? '800' : '600'}; color: ${step === 1 ? '#f59e0b' : (step > 1 ? '#10B981' : 'var(--text-secondary, #71717a)')};">Chờ Xác Nhận</span>
                       </div>
 
-                      <div style="font-size: 18px; font-weight: 900; color: ${step > 1 ? '#10B981' : 'rgba(255,255,255,0.15)'};">→</div>
+                      <div style="font-size: 18px; font-weight: 900; color: ${step > 1 ? '#10B981' : 'var(--border-color, rgba(255,255,255,0.2))'};">→</div>
 
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 2 ? 'background: #10B981; color: #000;' : (step === 2 ? 'background: #f59e0b; color: #000; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);' : 'background: rgba(255,255,255,0.1); color: #71717a;')}">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 2 ? 'background: #10B981; color: #000;' : (step === 2 ? 'background: #f59e0b; color: #000; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);')}">
                           ${step > 2 ? '✓' : '2'}
                         </div>
-                        <span style="font-size: 14.5px; font-weight: ${step >= 2 ? '800' : '600'}; color: ${step === 2 ? '#f59e0b' : (step > 2 ? '#10B981' : '#71717a')};">Đang Đóng Gói</span>
+                        <span style="font-size: 14.5px; font-weight: ${step >= 2 ? '800' : '600'}; color: ${step === 2 ? '#f59e0b' : (step > 2 ? '#10B981' : 'var(--text-secondary, #71717a)')};">Đang Đóng Gói</span>
                       </div>
 
-                      <div style="font-size: 18px; font-weight: 900; color: ${step > 2 ? '#10B981' : 'rgba(255,255,255,0.15)'};">→</div>
+                      <div style="font-size: 18px; font-weight: 900; color: ${step > 2 ? '#10B981' : 'var(--border-color, rgba(255,255,255,0.2))'};">→</div>
 
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 3 ? 'background: #10B981; color: #000;' : (step === 3 ? 'background: #0284c7; color: #fff; box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);' : 'background: rgba(255,255,255,0.1); color: #71717a;')}">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 3 ? 'background: #10B981; color: #000;' : (step === 3 ? 'background: #0284c7; color: #fff; box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);')}">
                           ${step > 3 ? '✓' : '3'}
                         </div>
-                        <span style="font-size: 14.5px; font-weight: ${step >= 3 ? '800' : '600'}; color: ${step === 3 ? '#0284c7' : (step > 3 ? '#10B981' : '#71717a')};">Đang Giao Hàng</span>
+                        <span style="font-size: 14.5px; font-weight: ${step >= 3 ? '800' : '600'}; color: ${step === 3 ? '#0284c7' : (step > 3 ? '#10B981' : 'var(--text-secondary, #71717a)')};">Đang Giao Hàng</span>
                       </div>
 
-                      <div style="font-size: 18px; font-weight: 900; color: ${step === 4 ? '#10B981' : 'rgba(255,255,255,0.15)'};">→</div>
+                      <div style="font-size: 18px; font-weight: 900; color: ${step === 4 ? '#10B981' : 'var(--border-color, rgba(255,255,255,0.2))'};">→</div>
 
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step === 4 ? 'background: #10B981; color: #000; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);' : 'background: rgba(255,255,255,0.1); color: #71717a;'}">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step === 4 ? 'background: #10B981; color: #000; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);'}">
                           ${step === 4 ? '✓' : '4'}
                         </div>
-                        <span style="font-size: 14.5px; font-weight: ${step === 4 ? '800' : '600'}; color: ${step === 4 ? '#10B981' : '#71717a'};">Hoàn Tất</span>
+                        <span style="font-size: 14.5px; font-weight: ${step === 4 ? '800' : '600'}; color: ${step === 4 ? '#10B981' : 'var(--text-secondary, #71717a)'};">Hoàn Tất</span>
                       </div>
 
                     </div>
                   `}
 
                   <!-- Danh sach mon hang -->
-                  <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 20px 24px; margin-bottom: 20px;">
-                    <div style="font-size: 13.5px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                  <div style="background: var(--surface-elevated, rgba(255, 255, 255, 0.02)); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); border-radius: 14px; padding: 20px 24px; margin-bottom: 20px;">
+                    <div style="font-size: 13.5px; font-weight: 800; color: var(--text-secondary, #575752); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
                       <span>📦</span> SẢN PHẨM TRONG ĐƠN:
                     </div>
                     
                     <div style="display: flex; flex-direction: column; gap: 10px;">
-                      ${items.map((it, idx) => {
+                      ${visibleItems.map((it, idx) => {
                         const prod = productMap.get(String(it.productId || it.id)) || {};
                         const itName = it.name || prod.name || it.TenSanPham || 'Mỹ phẩm';
                         const itQty = it.qty || it.quantity || 1;
                         const itPrice = it.price || it.unitPrice || prod.price || 0;
+                        const showBorder = hasMoreThanTwo || (idx < visibleItems.length - 1);
                         return `
-                          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; ${idx < items.length - 1 ? 'border-bottom: 1px solid rgba(255, 255, 255, 0.05);' : ''}">
+                          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; ${showBorder ? 'border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));' : ''}">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                              <span style="font-size: 16px; font-weight: 700; color: #FAF8F5;">• ${window.SalonUtils ? window.SalonUtils.escapeHtml(itName) : itName}</span>
+                              <span style="font-size: 16px; font-weight: 700; color: var(--text-primary, #141413);">• ${window.SalonUtils ? window.SalonUtils.escapeHtml(itName) : itName}</span>
                               <span style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 800;">× ${itQty}</span>
                             </div>
                             <strong style="font-size: 16.5px; font-weight: 800; color: #f59e0b;">${window.SalonUtils ? window.SalonUtils.formatCurrency(itPrice * itQty) : (itPrice * itQty)}</strong>
                           </div>
                         `;
                       }).join('')}
+
+                      ${hasMoreThanTwo ? `
+                        <div id="orderItemsExtra_${orderSafeId}" style="display: none; flex-direction: column; gap: 10px;">
+                          ${hiddenItems.map((it, idx) => {
+                            const prod = productMap.get(String(it.productId || it.id)) || {};
+                            const itName = it.name || prod.name || it.TenSanPham || 'Mỹ phẩm';
+                            const itQty = it.qty || it.quantity || 1;
+                            const itPrice = it.price || it.unitPrice || prod.price || 0;
+                            const showBorder = idx < hiddenItems.length - 1;
+                            return `
+                              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; ${showBorder ? 'border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));' : ''}">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                  <span style="font-size: 16px; font-weight: 700; color: var(--text-primary, #141413);">• ${window.SalonUtils ? window.SalonUtils.escapeHtml(itName) : itName}</span>
+                                  <span style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 800;">× ${itQty}</span>
+                                </div>
+                                <strong style="font-size: 16.5px; font-weight: 800; color: #f59e0b;">${window.SalonUtils ? window.SalonUtils.formatCurrency(itPrice * itQty) : (itPrice * itQty)}</strong>
+                              </div>
+                            `;
+                          }).join('')}
+                        </div>
+
+                        <div style="text-align: center; margin-top: 10px; padding-top: 6px;">
+                          <button type="button" 
+                                  id="btnToggleOrder_${orderSafeId}" 
+                                  class="btn-order-toggle-items"
+                                  onclick="if(window.ProfilePage && window.ProfilePage.toggleOrderItems) window.ProfilePage.toggleOrderItems('${orderSafeId}', ${items.length}); else if(window.CustomerWeb && window.CustomerWeb.toggleOrderItems) window.CustomerWeb.toggleOrderItems('${orderSafeId}', ${items.length});"
+                                  style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b; font-size: 13.5px; font-weight: 700; border-radius: 8px; padding: 7px 18px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                            <span id="btnToggleOrderText_${orderSafeId}">Hiển thị tất cả (${items.length} sản phẩm)</span>
+                            <span id="btnToggleOrderArrow_${orderSafeId}" style="font-size: 11px;">▼</span>
+                          </button>
+                        </div>
+                      ` : ''}
                     </div>
 
-                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(255, 255, 255, 0.12); font-size: 14.5px; color: var(--text-secondary, #a1a1aa); display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center;">
+                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-color, rgba(255, 255, 255, 0.12)); font-size: 14.5px; color: var(--text-secondary, #575752); display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center;">
                       <div>
-                        <span>📍 Hình thức:</span> <strong style="color: #FAF8F5; margin-left: 4px;">${o.shippingAddress || (o.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nơi')}</strong>
+                        <span>📍 Hình thức:</span> <strong style="color: var(--text-primary, #141413); margin-left: 4px;">${o.shippingAddress || (o.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nơi')}</strong>
                       </div>
                       <div>
                         <span>💳 Thanh toán:</span> <strong style="color: ${isPaid ? '#10B981' : '#f59e0b'}; margin-left: 4px;">${isPaid ? 'Đã thanh toán (VietQR)' : 'Chưa thanh toán'}</strong>
@@ -480,14 +497,14 @@
 
                   <!-- Danh gia neu co -->
                   ${oReview ? `
-                    <div style="font-size: 14.5px; color: #FAF8F5; padding: 12px 18px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 14.5px; color: var(--text-primary, #141413); padding: 12px 18px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                       <span style="color: #f59e0b; font-size: 17px; letter-spacing: 2px;">${'★'.repeat(oReview.rating || 5)}${'☆'.repeat(5 - (oReview.rating || 5))}</span>
-                      <span style="font-style: italic; color: #e4e4e7;">"${window.SalonUtils ? window.SalonUtils.escapeHtml(oReview.comment || 'Rất hài lòng') : (oReview.comment || 'Rất hài lòng')}"</span>
+                      <span style="font-style: italic; color: var(--text-primary, #141413); font-weight: 500;">"${window.SalonUtils ? window.SalonUtils.escapeHtml(oReview.comment || 'Rất hài lòng') : (oReview.comment || 'Rất hài lòng')}"</span>
                     </div>
                   ` : ''}
 
                   <!-- Hang nut thao tac: to, ro rang, dong bo -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 18px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); padding-top: 18px;">
                     <div>
                       ${isDelivering ? `
                         <span style="font-size: 13.5px; color: #0284c7; background: rgba(2, 132, 199, 0.12); border: 1px solid rgba(2, 132, 199, 0.35); padding: 8px 16px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
@@ -502,23 +519,23 @@
 
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                       ${(!isPaid && !isCancelled) ? `
-                        <button type="button" class="btn-order-action" style="font-size: 13.5px; padding: 9px 20px; color: #10B981; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
+                        <button type="button" class="btn-order-action btn-pay" style="font-size: 13.5px; padding: 9px 20px; color: #10B981 !important; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
                           💳 Thanh Toán VietQR
                         </button>
                       ` : ''}
 
                       ${(!isCancelled) ? (oReview ? `
-                        <button type="button" class="btn-order-action" style="font-size: 13.5px; padding: 9px 20px; color: #f59e0b; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
+                        <button type="button" class="btn-order-action btn-review" style="font-size: 13.5px; padding: 9px 20px; color: #f59e0b !important; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
                           ⭐ Sửa Đánh Giá
                         </button>
                       ` : `
-                        <button type="button" class="btn-order-action" style="font-size: 13.5px; padding: 9px 20px; color: #f59e0b; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
+                        <button type="button" class="btn-order-action btn-review" style="font-size: 13.5px; padding: 9px 20px; color: #f59e0b !important; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
                           ⭐ Đánh Giá Đơn Hàng
                         </button>
                       `) : ''}
 
                       ${isCancellable ? `
-                        <button type="button" class="btn-order-action" style="font-size: 13.5px; padding: 9px 20px; color: #ef4444; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="ProfilePage.cancelOrder('${oCode}')">
+                        <button type="button" class="btn-order-action btn-cancel-order" style="font-size: 13.5px; padding: 9px 20px; color: #ef4444 !important; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="ProfilePage.cancelOrder('${oCode}')">
                           ✕ Hủy Đơn Hàng
                         </button>
                       ` : `
@@ -593,53 +610,7 @@
     },
 
     // -------------------------------------------------------------
-    // 4. Tích điểm và hạng thành viên
-    // -------------------------------------------------------------
-    renderRewardsTab(user, points, tierName) {
-      return `
-        <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 28px;">
-          <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0 0 8px;">Chính Sách Khách Hàng Thân Thiết (Omni Loyalty)</h3>
-          <p style="font-size: 14px; color: var(--text-secondary); margin: 0 0 24px; line-height: 1.6;">
-            Tích lũy điểm thưởng với mỗi lần đặt lịch cắt tóc (50 điểm/lần) hoặc mua sản phẩm mỹ phẩm chính hãng (10 điểm trên mỗi 100.000đ).
-          </p>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 28px;">
-            <div style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
-              <span style="font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Hạng Bạc (0 - 199 pts)</span>
-              <h4 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 6px 0 10px;">Ưu Đãi Cơ Bản</h4>
-              <ul style="font-size: 13px; color: var(--text-secondary); margin: 0; padding-left: 18px; line-height: 1.8;">
-                <li>Tích điểm 5% giá trị mỗi hóa đơn</li>
-                <li>Tặng suất sấy tạo kiểu miễn phí vào tháng sinh nhật</li>
-                <li>Được ưu tiên giữ chỗ trước 15 phút</li>
-              </ul>
-            </div>
-
-            <div style="background: var(--surface-elevated); border: 2px solid #C59B27; border-radius: 12px; padding: 20px;">
-              <span style="font-size: 12px; font-weight: 800; color: #C59B27; text-transform: uppercase;">Hạng Vàng VIP (200 - 499 pts)</span>
-              <h4 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 6px 0 10px;">Đặc Quyền Hội Viên Vàng</h4>
-              <ul style="font-size: 13px; color: var(--text-secondary); margin: 0; padding-left: 18px; line-height: 1.8;">
-                <li>Giảm ngay 10% cho mọi dòng sáp vuốt và mỹ phẩm</li>
-                <li>Tặng gói gội massage thư giãn da đầu mỗi lần cắt tóc</li>
-                <li>Phục vụ nước uống welcome drink cao cấp</li>
-              </ul>
-            </div>
-
-            <div style="background: var(--surface-elevated); border: 1px solid #38bdf8; border-radius: 12px; padding: 20px;">
-              <span style="font-size: 12px; font-weight: 800; color: #38bdf8; text-transform: uppercase;">Hạng Kim Cương (500+ pts)</span>
-              <h4 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 6px 0 10px;">Đẳng Cấp Thượng Lưu</h4>
-              <ul style="font-size: 13px; color: var(--text-secondary); margin: 0; padding-left: 18px; line-height: 1.8;">
-                <li>Giảm 15% trọn đời dịch vụ và sản phẩm</li>
-                <li>Chỉ định Master Stylist / Top Stylist không phụ phí</li>
-                <li>Hộp quà tri ân mỹ phẩm độc quyền cuối năm</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      `;
-    },
-
-    // -------------------------------------------------------------
-    // 5. Cài đặt thông tin cá nhân
+    // 4. Cài đặt thông tin cá nhân
     // -------------------------------------------------------------
     renderAccountTab(user) {
       return `
@@ -699,6 +670,24 @@
       if (container) this.render(container);
     },
 
+    toggleOrderItems(orderSafeId, totalCount) {
+      const extraContainer = document.getElementById('orderItemsExtra_' + orderSafeId) || document.getElementById('portalOrderItemsExtra_' + orderSafeId);
+      const btnText = document.getElementById('btnToggleOrderText_' + orderSafeId) || document.getElementById('btnPortalToggleOrderText_' + orderSafeId);
+      const btnArrow = document.getElementById('btnToggleOrderArrow_' + orderSafeId) || document.getElementById('btnPortalToggleOrderArrow_' + orderSafeId);
+      if (!extraContainer) return;
+
+      const isHidden = (extraContainer.style.display === 'none' || !extraContainer.style.display);
+      if (isHidden) {
+        extraContainer.style.display = 'flex';
+        if (btnText) btnText.textContent = 'Thu gọn';
+        if (btnArrow) btnArrow.textContent = '▲';
+      } else {
+        extraContainer.style.display = 'none';
+        if (btnText) btnText.textContent = `Hiển thị tất cả (${totalCount} sản phẩm)`;
+        if (btnArrow) btnArrow.textContent = '▼';
+      }
+    },
+
     cancelOrder(orderId) {
       if (!orderId) return;
       if (window.CustomerWeb && typeof window.CustomerWeb.openOrderCancelModal === 'function') {
@@ -728,6 +717,9 @@
   };
 
   window.ProfilePage = ProfilePage;
+  if (typeof window.CustomerWeb !== 'undefined') {
+    window.CustomerWeb.toggleOrderItems = ProfilePage.toggleOrderItems;
+  }
 
 })(window);
 

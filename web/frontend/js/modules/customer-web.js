@@ -14,7 +14,7 @@
     currentTab: 'home', // 'home' | 'admin'
     selectedCategory: 'all', // 'all' | 'haircut' | 'perm' | 'color' | 'shave' | 'combo'
     openFaqIndex: 0,
-    portalActiveTab: 'bookings', // 'bookings' | 'orders' | 'gallery' | 'rewards' | 'profile'
+    portalActiveTab: 'bookings', // 'bookings' | 'orders' | 'gallery' | 'profile'
 
     // Trạng thái AI Studio Inline
     aiState: {
