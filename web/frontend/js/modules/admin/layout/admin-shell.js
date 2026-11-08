@@ -74,7 +74,8 @@
         catalog: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
         inventory: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
         receipts: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
-        audit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`
+        audit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+        chat: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
       };
 
       let visibleTabs = [];
@@ -84,15 +85,16 @@
         visibleTabs = [
           { id: 'receipts', icon: tabIcons.receipts, label: 'Lập Phiếu Nhập Kho' },
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' }
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
+          { id: 'chat', icon: tabIcons.chat, label: 'Chat Tư Vấn Khách Hàng' }
         ];
         tabGroups = [
           {
             groupLabel: 'NGHIỆP VỤ THU NGÂN & TIẾP ĐÓN',
-            ids: ['receipts', 'pos', 'bookings']
+            ids: ['receipts', 'pos', 'bookings', 'chat']
           }
         ];
-        if (!['receipts', 'pos', 'bookings'].includes(this.adminSubTab)) {
+        if (!['receipts', 'pos', 'bookings', 'chat'].includes(this.adminSubTab)) {
           this.adminSubTab = 'pos';
         }
       } else if (activeRole === 'BRANCH_MANAGER') {
@@ -103,7 +105,8 @@
           { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' }
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' },
+          { id: 'chat', icon: tabIcons.chat, label: 'Chat Tư Vấn Khách Hàng' }
         ];
         tabGroups = [
           {
@@ -111,11 +114,11 @@
             ids: ['overview', 'stylists', 'inventory', 'receipts', 'catalog']
           },
           {
-            groupLabel: 'QUYỀN THU NGÂN',
-            ids: ['pos', 'bookings']
+            groupLabel: 'QUYỀN THU NGÂN & CSKH',
+            ids: ['pos', 'bookings', 'chat']
           }
         ];
-        if (!['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings'].includes(this.adminSubTab)) {
+        if (!['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'chat'].includes(this.adminSubTab)) {
           this.adminSubTab = 'overview';
         }
       } else {
@@ -128,7 +131,8 @@
           { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
           { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
           { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Điều Phối Lịch Hẹn' }
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Điều Phối Lịch Hẹn' },
+          { id: 'chat', icon: tabIcons.chat, label: 'CSKH & Live Chat Trực Tuyến' }
         ];
         tabGroups = [
           {
@@ -141,7 +145,7 @@
           },
           {
             groupLabel: 'QUYỀN THU NGÂN & TIẾP NHẬN',
-            ids: ['pos', 'bookings']
+            ids: ['pos', 'bookings', 'chat']
           }
         ];
       }

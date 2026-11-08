@@ -13,6 +13,7 @@ import 'package:omni_salon_mobile/pages/user/shop_page.dart';
 import 'package:omni_salon_mobile/pages/user/cart_page.dart';
 import 'package:omni_salon_mobile/pages/user/profile_page.dart';
 import 'package:omni_salon_mobile/pages/user/ai_studio_page.dart';
+import 'package:omni_salon_mobile/pages/user/chat_page.dart';
 
 class MainScaffold extends StatefulWidget {
   final int initialIndex;
@@ -235,6 +236,17 @@ class MainScaffoldState extends State<MainScaffold> {
           ],
         ),
         actions: [
+          // Nút Chat CSKH trực tuyến đồng bộ với Web Admin
+          IconButton(
+            icon: const Icon(Icons.chat_outlined, size: 22, color: AppTheme.accentGold),
+            tooltip: 'Hỗ trợ trực tuyến',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ChatPage()),
+              );
+            },
+          ),
+
           // Nút Giỏ hàng
           Stack(
             alignment: Alignment.center,
