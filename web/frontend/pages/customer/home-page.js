@@ -42,7 +42,7 @@
         return `
           <div style="grid-column: 1 / -1; padding: 36px 20px; text-align: center; background: #121214; border: 1px solid #222225; border-radius: 8px;">
             <p style="color: #A1A1AA; font-size: 14px; margin: 0 0 14px;">Chưa có chi nhánh hiển thị tại khu vực ${district}.</p>
-            <button type="button" class="clean-tab-btn" onclick="HomePage.setDistrict('all')">Xem Tất Cả Chi Nhánh</button>
+            <button type="button" class="clean-tab-btn" onclick="HomePage.setDistrict('all')">Xem tất cả chi nhánh</button>
           </div>
         `;
       }
@@ -123,7 +123,7 @@
               <div class="nordic-hero-content-col" style="display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 100%;">
                 
                 <h1 class="font-serif tracking-tight leading-tight hero-main-title" style="font-weight: 800; color: var(--text-primary); margin: 0 0 16px; letter-spacing: -0.025em; line-height: 1.08; max-width: 100%;">
-                  Bản Lĩnh Phái Mạnh
+                  BẢN LĨNH PHÁI MẠNH
                 </h1>
                 
                 <!-- Dong chu nho gioi thieu cach dieu diem nhan cao cap dam net khong chim -->
@@ -133,13 +133,13 @@
                   </p>
                   <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary, #141413); background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); padding: 6px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
-                      Định Form Chuẩn Tỉ Lệ
+                      Định form chuẩn tỉ lệ
                     </span>
                     <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary, #141413); background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); padding: 6px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
-                      100% Pomade Chính Hãng
+                      100% Pomade chính hãng
                     </span>
                     <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary, #141413); background: var(--surface-card, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); padding: 6px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
-                      Bảo Hành Kiểu Tóc 7 Ngày
+                      Bảo hành kiểu tóc 7 ngày
                     </span>
                   </div>
                 </div>
@@ -147,7 +147,7 @@
                 <!-- CTA tinh gọn: 1 Nút chính nổi bật + 1 Text Link có mũi tên -->
                 <div class="nordic-cta-group" style="display: flex; align-items: center; flex-wrap: wrap; gap: 18px; margin-top: 4px;">
                   <button class="btn-hero-primary" onclick="AppRouter.navigate('/booking')" style="padding: 16px 42px; border-radius: 6px; font-weight: 800; font-size: 16px; min-width: 210px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none; transition: all 0.2s ease; background: #C59B27; color: #141413; border: 1.5px solid #C59B27;">
-                    <span>Đặt Lịch Hẹn Ngay</span>
+                    <span>Đặt lịch hẹn ngay</span>
                   </button>
                   <a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" class="hero-link-secondary" style="font-family: var(--font-sans); font-size: 16px; font-weight: 700; color: var(--brand-accent); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--brand-accent); padding-bottom: 2px; transition: gap 0.2s ease;">
                     <span>Khám phá bảng giá</span>
@@ -179,7 +179,7 @@
                   <div class="hero-floating-badge" style="position: absolute; left: 14px; bottom: 28px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 20px; color: var(--text-primary); z-index: 5; box-shadow: none;">
                     <div style="display: flex; align-items: center; gap: 6px; font-size: 14.5px; font-weight: 800; color: var(--brand-accent);">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                      <span>4.9 (2,500+ Đánh giá)</span>
+                      <span>4.9 (2.500+ đánh giá)</span>
                     </div>
                     <div style="font-size: 13.5px; color: var(--text-primary); margin-top: 4px; font-weight: 600;">
                       Bảo hành kiểu tóc 7 ngày
@@ -198,7 +198,7 @@
                   <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg')}" alt="Không gian chi nhánh OmniSalon" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
-                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Không Gian Barbershop Đương Đại</h3>
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Không gian Barbershop đương đại</h3>
                   <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
               </a>
@@ -209,7 +209,7 @@
                   <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV1.jpg')}" alt="Dịch vụ tạo mẫu chuẩn mực uy tín" style="width: 100%; height: 100%; object-fit: cover; object-position: center top; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
-                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Kỹ Thuật Kéo &amp; Fade Tỉ Mỉ</h3>
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Kỹ thuật kéo &amp; Fade tỉ mỉ</h3>
                   <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
               </a>
@@ -220,7 +220,7 @@
                   <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg')}" alt="Sáp vuốt &amp; Pomade chính hãng" style="width: 100%; height: 100%; object-fit: contain; padding: 22px; display: block; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
-                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Sáp Vuốt &amp; Pomade Chính Hãng</h3>
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Sáp vuốt &amp; Pomade chính hãng</h3>
                   <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
               </a>
@@ -231,7 +231,7 @@
                   <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV7.jpg')}" alt="Gội đầu dưỡng sinh thư giãn" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
-                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Gội Thảo Mộc &amp; Cạo Mặt Khăn Nóng</h3>
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Gội thảo mộc &amp; Cạo mặt khăn nóng</h3>
                   <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
               </a>
@@ -244,29 +244,29 @@
                ======================================================== -->
           <div class="kinetic-marquee-wrapper">
             <div class="kinetic-marquee-track">
-              <span>Tay Kéo Barber Chuyên Nghiệp</span>
+              <span>Tay kéo barber chuyên nghiệp</span>
               <span class="marquee-dot">•</span>
-              <span>Uốn Textured Nam Tự Nhiên</span>
+              <span>Uốn textured nam tự nhiên</span>
               <span class="marquee-dot">•</span>
-              <span>Sáp &amp; Pomade Nhập Khẩu</span>
+              <span>Sáp &amp; pomade nhập khẩu</span>
               <span class="marquee-dot">•</span>
-              <span>Cạo Râu Khăn Nóng</span>
+              <span>Cạo râu khăn nóng</span>
               <span class="marquee-dot">•</span>
-              <span>Thử Kiểu Tóc AI 3D</span>
+              <span>Thử kiểu tóc AI 3D</span>
               <span class="marquee-dot">•</span>
-              <span>20 Cơ Sở Toàn Thành Phố</span>
+              <span>20 cơ sở toàn thành phố</span>
               <span class="marquee-dot">•</span>
-              <span>Tay Kéo Barber Chuyên Nghiệp</span>
+              <span>Tay kéo barber chuyên nghiệp</span>
               <span class="marquee-dot">•</span>
-              <span>Uốn Textured Nam Tự Nhiên</span>
+              <span>Uốn textured nam tự nhiên</span>
               <span class="marquee-dot">•</span>
-              <span>Sáp &amp; Pomade Nhập Khẩu</span>
+              <span>Sáp &amp; pomade nhập khẩu</span>
               <span class="marquee-dot">•</span>
-              <span>Cạo Râu Khăn Nóng</span>
+              <span>Cạo râu khăn nóng</span>
               <span class="marquee-dot">•</span>
-              <span>Thử Kiểu Tóc AI 3D</span>
+              <span>Thử kiểu tóc AI 3D</span>
               <span class="marquee-dot">•</span>
-              <span>20 Cơ Sở Toàn Thành Phố</span>
+              <span>20 cơ sở toàn thành phố</span>
               <span class="marquee-dot">•</span>
             </div>
           </div>
@@ -279,11 +279,10 @@
           <section class="web-section omni-container" id="serviceSection" style="max-width: 1640px; margin: 0 auto; padding: 40px clamp(16px, 3.5vw, 48px);">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
               <div>
-                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Dịch Vụ &amp; Bảng Giá Chăm Sóc Tóc</h2>
-                <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Quy trình bài bản với tay kéo barber chuyên nghiệp và mỹ phẩm lành tính.</p>
+                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Dịch vụ &amp; Bảng giá chăm sóc tóc</h2>
               </div>
               <button class="nordic-btn-secondary" onclick="AppRouter.navigate('/services')" style="background: var(--surface-card); color: var(--text-primary); border: 1px solid var(--border-color); font-size: 13.5px; font-weight: 700; padding: 10px 18px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                <span>Xem Toàn Bộ Menu Dịch Vụ</span>
+                <span>Xem toàn bộ menu dịch vụ</span>
                 <span>→</span>
               </button>
             </div>
@@ -300,11 +299,10 @@
           <section class="web-section omni-container" style="max-width: 1640px; margin: 0 auto; padding: 40px clamp(16px, 3.5vw, 48px);">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
               <div>
-                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Đội Ngũ Thợ Cắt Tóc Tiêu Biểu</h2>
-                <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Am hiểu chất tóc phái mạnh, làm việc bằng sự tỉ mỉ và trách nhiệm cao.</p>
+                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Đội ngũ thợ cắt tóc tiêu biểu</h2>
               </div>
               <button class="nordic-btn-secondary" onclick="AppRouter.navigate('/stylists')" style="background: var(--surface-card); color: var(--text-primary); border: 1px solid var(--border-color); font-size: 13.5px; font-weight: 700; padding: 10px 18px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                <span>Xem Toàn Bộ Đội Ngũ Thợ</span>
+                <span>Xem toàn bộ đội ngũ thợ</span>
                 <span>→</span>
               </button>
             </div>
@@ -373,7 +371,7 @@
                         </div>
                       </div>
                       <button type="button" class="stylist-book-action-btn" onclick="AppRouter.navigate('/booking?stylist=${s.id}&branch=${s.branchId || s.MaChiNhanh || 'CN01'}')">
-                        <span>Đặt Lịch Với ${shortLastName}</span>
+                        <span>Đặt lịch với ${shortLastName}</span>
                         <span class="btn-arrow">→</span>
                       </button>
                     </div>
@@ -389,11 +387,10 @@
           <section class="web-section omni-container" id="newProductsSection" style="max-width: 1640px; margin: 0 auto; padding: 40px clamp(16px, 3.5vw, 48px);">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
               <div>
-                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Sáp Vuốt Tóc &amp; Mỹ Phẩm Nam Chọn Lọc</h2>
-                <p style="color: var(--text-secondary); font-size: 14px; margin: 0; line-height: 1.5;">Cam kết 100% sáp vuốt, pomade, gôm xịt chính hãng nhập khẩu nguyên hộp.</p>
+                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Sáp vuốt tóc &amp; Mỹ phẩm nam chọn lọc</h2>
               </div>
               <button class="nordic-btn-secondary" onclick="AppRouter.navigate('/shop')" style="background: var(--surface-card); color: var(--text-primary); border: 1px solid var(--border-color); font-size: 13.5px; font-weight: 700; padding: 10px 18px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                <span>Vào Cửa Hàng Mỹ Phẩm</span>
+                <span>Vào cửa hàng mỹ phẩm</span>
                 <span>→</span>
               </button>
             </div>
@@ -438,13 +435,10 @@
           <section class="web-section omni-container" id="branchesSection" style="max-width: 1640px; margin: 0 auto; padding: 40px clamp(16px, 3.5vw, 48px);">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
               <div>
-                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Mạng Lưới Chi Nhánh Barbershop</h2>
-                <p style="color: var(--text-secondary); font-size: 14px; margin: 0; line-height: 1.5; max-width: 720px;">
-                  Không gian ấm cúng, sạch sẽ thoáng mát và đồng bộ chất lượng phục vụ trên toàn thành phố.
-                </p>
+                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Mạng lưới chi nhánh Barbershop</h2>
               </div>
               <button class="nordic-btn-secondary" onclick="AppRouter.navigate('/branches')" style="background: var(--surface-card); color: var(--text-primary); border: 1px solid var(--border-color); font-size: 13.5px; font-weight: 700; padding: 10px 18px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                <span>Xem Toàn Bộ Chi Nhánh</span>
+                <span>Xem toàn bộ chi nhánh</span>
                 <span>→</span>
               </button>
             </div>
@@ -460,47 +454,44 @@
           <section class="web-section omni-container" id="aiStudioSection" style="max-width: 1640px; margin: 0 auto; padding: 40px clamp(16px, 3.5vw, 48px);">
             <div style="background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; padding: 36px 28px;">
               <div style="text-align: center; max-width: 680px; margin: 0 auto 28px;">
-                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">Omni AI Hair Vision Studio</h2>
-                <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;">
-                  Mô phỏng phom tóc thực tế theo từng đường nét khuôn mặt với trí tuệ nhân tạo. Giúp bạn tự tin chọn kiểu tóc ưng ý nhất trước khi cắt.
-                </p>
+                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">OMNI AI HAIR VISION STUDIO</h2>
               </div>
 
               <div style="max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;">
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                   <label style="font-size: 13px; font-weight: 700; color: var(--text-primary); text-transform: none;">
-                    1. Tải Lên Ảnh Chân Dung (Góc Thẳng):
+                    1. Tải lên ảnh chân dung (góc thẳng):
                   </label>
                   <div style="position: relative; border-radius: 8px; padding: 12px 18px; border: none; background: var(--surface-elevated); display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
                     <input type="file" id="homeAiFileInput" accept="image/*" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 5;" onchange="const f = this.files[0]; if(f){ document.getElementById('homeAiFileName').textContent = 'Đã chọn: ' + f.name; }" />
                     <span id="homeAiFileName" style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">Chọn ảnh chân dung từ thiết bị (JPG, PNG, WebP)...</span>
-                    <span style="background: #C59B27; color: #141413; font-size: 13.5px; font-weight: 700; padding: 6px 14px; border-radius: 6px; pointer-events: none;">Chọn Tệp</span>
+                    <span style="background: #C59B27; color: #141413; font-size: 13.5px; font-weight: 700; padding: 6px 14px; border-radius: 6px; pointer-events: none;">Chọn tệp</span>
                   </div>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                   <label style="font-size: 13px; font-weight: 700; color: var(--text-primary); text-transform: none;">
-                    2. Chọn Kiểu Tóc Thịnh Hành:
+                    2. Chọn kiểu tóc thịnh hành:
                   </label>
                   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
                     <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
-                      Tỉa Lớp Tự Nhiên
+                      Tỉa lớp tự nhiên
                     </button>
                     <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
-                      Vuốt Ngược Quý Ông
+                      Vuốt ngược quý ông
                     </button>
                     <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
-                      Đuôi Dài Cá Tính
+                      Đuôi dài cá tính
                     </button>
                     <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
-                      Rẽ Ngôi Lịch Lãm
+                      Rẽ ngôi lịch lãm
                     </button>
                   </div>
                 </div>
 
                 <div style="margin-top: 6px;">
                   <button type="button" class="nordic-btn-primary" style="width: 100%; height: 46px; background: #C59B27; color: #141413; font-weight: 800; font-size: 14.5px; border-radius: 6px; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none;" onclick="HomePage.startAiStudio()">
-                    <span>Thử Kiểu Tóc Ngay Bằng AI</span>
+                    <span>Thử kiểu tóc ngay bằng AI</span>
                     <span>→</span>
                   </button>
                 </div>
@@ -523,18 +514,18 @@
                 <span class="footer-phone-text" style="font-size: 14px; font-weight: 700;">Tổng đài đặt lịch: 1900 8899</span>
               </div>
               <div>
-                <h4 class="footer-col-heading" style="font-size: 13.5px; font-weight: 700; text-transform: none; margin: 0 0 14px; letter-spacing: 0.05em;">Điều Hướng Trang</h4>
+                <h4 class="footer-col-heading" style="font-size: 13.5px; font-weight: 700; text-transform: none; margin: 0 0 14px; letter-spacing: 0.05em;">Điều hướng trang</h4>
                 <ul class="footer-nav-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
-                  <li><a href="/" onclick="event.preventDefault(); AppRouter.navigate('/')" style="font-weight: 500;">Trang Chủ</a></li>
-                  <li><a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" style="font-weight: 500;">Bảng Giá Dịch Vụ</a></li>
-                  <li><a href="/stylists" onclick="event.preventDefault(); AppRouter.navigate('/stylists')" style="font-weight: 500;">Đội Ngũ Thợ Tạo Mẫu</a></li>
-                  <li><a href="/booking" onclick="event.preventDefault(); AppRouter.navigate('/booking')" style="font-weight: 500;">Đặt Lịch Hẹn</a></li>
-                  <li><a href="/shop" onclick="event.preventDefault(); AppRouter.navigate('/shop')" style="font-weight: 500;">Cửa Hàng Mỹ Phẩm</a></li>
-                  <li><a href="/branches" onclick="event.preventDefault(); AppRouter.navigate('/branches')" style="font-weight: 500;">Hệ Thống Chi Nhánh</a></li>
+                  <li><a href="/" onclick="event.preventDefault(); AppRouter.navigate('/')" style="font-weight: 500;">Trang chủ</a></li>
+                  <li><a href="/services" onclick="event.preventDefault(); AppRouter.navigate('/services')" style="font-weight: 500;">Bảng giá dịch vụ</a></li>
+                  <li><a href="/stylists" onclick="event.preventDefault(); AppRouter.navigate('/stylists')" style="font-weight: 500;">Đội ngũ thợ tạo mẫu</a></li>
+                  <li><a href="/booking" onclick="event.preventDefault(); AppRouter.navigate('/booking')" style="font-weight: 500;">Đặt lịch hẹn</a></li>
+                  <li><a href="/shop" onclick="event.preventDefault(); AppRouter.navigate('/shop')" style="font-weight: 500;">Cửa hàng mỹ phẩm</a></li>
+                  <li><a href="/branches" onclick="event.preventDefault(); AppRouter.navigate('/branches')" style="font-weight: 500;">Hệ thống chi nhánh</a></li>
                 </ul>
               </div>
               <div>
-                <h4 class="footer-col-heading" style="font-size: 13.5px; font-weight: 700; text-transform: none; margin: 0 0 14px; letter-spacing: 0.05em;">Giờ Mở Cửa</h4>
+                <h4 class="footer-col-heading" style="font-size: 13.5px; font-weight: 700; text-transform: none; margin: 0 0 14px; letter-spacing: 0.05em;">Giờ mở cửa</h4>
                 <p class="footer-desc" style="font-size: 14px; line-height: 1.8; margin: 0;">
                   Thứ 2 - Thứ 6: 09:00 - 21:00<br>
                   Thứ 7 - Chủ Nhật: 08:30 - 21:30<br>
@@ -542,7 +533,7 @@
                 </p>
               </div>
               <div>
-                <h4 class="footer-col-heading" style="font-size: 13.5px; font-weight: 700; text-transform: none; margin: 0 0 14px; letter-spacing: 0.05em;">Kết Nối Với Chúng Tôi</h4>
+                <h4 class="footer-col-heading" style="font-size: 13.5px; font-weight: 700; text-transform: none; margin: 0 0 14px; letter-spacing: 0.05em;">Kết nối với chúng tôi</h4>
                 <p class="footer-desc" style="font-size: 14px; margin: 0 0 14px;">Theo dõi các mẫu tóc mới nhất và khuyến mãi hấp dẫn:</p>
                 <div style="display: flex; gap: 16px; font-size: 14px; font-weight: 700;">
                   <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style="color: var(--brand-accent); text-decoration: none;">Facebook</a>

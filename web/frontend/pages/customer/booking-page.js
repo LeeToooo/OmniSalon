@@ -168,12 +168,9 @@
             <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
               ĐẶT LỊCH TRỰC TUYẾN 24/7
             </span>
-            <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4.2vw, 44px); font-weight: 700; color: var(--text-primary); margin: 0 0 12px;">
-              Đặt Lịch Cắt Tóc &amp; Tạo Mẫu Chuyên Nghiệp
+            <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4.2vw, 44px); font-weight: 700; color: var(--text-primary); margin: 0;">
+              ĐẶT LỊCH CẮT TÓC &amp; TẠO MẪU CHUYÊN NGHIỆP
             </h1>
-            <p style="color: var(--text-secondary); font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
-              Quý khách có thể <strong style="color: #C59B27;">chọn nhiều dịch vụ cùng lúc</strong> (Cắt fade, gội dưỡng sinh, cạo khăn nóng, uốn định hình) để thợ sắp xếp trọn gói phục vụ chu đáo nhất.
-            </p>
           </div>
 
           <!-- CHỌN CHI NHÁNH PHỤC VỤ (FULL-WIDTH) -->
@@ -841,7 +838,6 @@
                   </span>
                   <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">${s.level || 'Chính Hiệu'}</span>
                 </div>
-                <span style="font-size: 12px; color: var(--text-secondary);">${s.rating || '5.0'} / 5 • Sẵn sàng đón tiếp</span>
               </div>
             `).join('')}
           </div>

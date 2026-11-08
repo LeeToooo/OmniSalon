@@ -57,12 +57,9 @@
               <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
                 ĐỘI NGŨ THỢ BARBER LÀNH NGHỀ
               </span>
-              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4.2vw, 44px); font-weight: 700; color: var(--text-primary); margin: 0 0 12px;">
-                Thợ Cắt Tóc &amp; Chuyên Gia Tạo Mẫu
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4.2vw, 44px); font-weight: 700; color: var(--text-primary); margin: 0 0 28px;">
+                THỢ CẮT TÓC &amp; CHUYÊN GIA TẠO MẪU
               </h1>
-              <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; margin: 0 auto 28px; line-height: 1.6;">
-                Tập hợp những tay kéo vững tay nghề, sắc sảo trong từng đường fade và thấu hiểu cấu trúc gương mặt để định hình phong cách riêng cho bạn.
-              </p>
 
               <!-- NÚT MỞ BONG BÓNG CHỌN CHI NHÁNH (POPUP BUBBLE SELECTOR) -->
               <div style="display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap;">

@@ -104,10 +104,7 @@
           <div class="services-fluid-container" style="width: 100%; max-width: 100%; margin: 0; padding: 0 clamp(20px, 3vw, 56px); box-sizing: border-box;">
             <!-- Header Banner -->
             <div style="text-align: center; margin-bottom: 40px;">
-              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(48px, 6vw, 76px); font-weight: 800; color: var(--text-primary); margin: 0 0 14px;">Bảng Giá & Dịch Vụ</h1>
-              <p style="font-size: clamp(14px, 1vw, 16px); color: var(--text-secondary); max-width: min(800px, 65vw); margin: 0 auto 28px; line-height: 1.6;">
-                Từng đường kéo, từng đường cạo khăn nóng và kỹ thuật fade chuẩn xác mang lại diện mạo đĩnh đạc và phong độ vững vàng cho quý ông.
-              </p>
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(48px, 6vw, 76px); font-weight: 800; color: var(--text-primary); margin: 0 0 28px;">BẢNG GIÁ &amp; DỊCH VỤ</h1>
 
               <!-- Clean Tabs Category Filters -->
               <div class="clean-filter-tabs" style="justify-content: center; gap: 8px; flex-wrap: wrap;">

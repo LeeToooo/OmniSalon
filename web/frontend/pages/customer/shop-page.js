@@ -218,12 +218,9 @@
               <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
                 BỘ SƯU TẬP CHĂM SÓC TÓC NAM GIỚI
               </span>
-              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; color: var(--text-primary); margin: 0 0 10px; word-break: break-word; overflow-wrap: break-word; max-width: 100%;">
-                Sản Phẩm Grooming &amp; Pomade Chính Hãng
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; color: var(--text-primary); margin: 0; word-break: break-word; overflow-wrap: break-word; max-width: 100%;">
+                SẢN PHẨM GROOMING &amp; POMADE CHÍNH HÃNG
               </h1>
-              <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; line-height: 1.6; margin: 0;">
-                Các dòng sản phẩm tạo kiểu và dưỡng tóc chuyên dụng: Sáp vuốt tóc, Pomade gốc dầu và nước, Gôm xịt khóa nếp, Dầu gội phục hồi và Dưỡng râu.
-              </p>
             </div>
 
             <!-- BẢNG TÌM KIẾM & BỘ LỌC BUTTON DROPDOWN EDITORIAL -->
@@ -507,7 +504,7 @@
 
       return `
         <!-- DÒNG 1: SẢN PHẨM BÁN CHẠY NHẤT -->
-        ${this.renderShowcaseRow('bestsellers', 'OMNI SIGNATURE GROOMING', 'Sản Phẩm Bán Chạy Nhất', "ShopPage.setCategory('bestsellers')", bestSellers)}
+        ${this.renderShowcaseRow('bestsellers', 'OMNI SIGNATURE GROOMING', 'Sản phẩm bán chạy nhất', "ShopPage.setCategory('bestsellers')", bestSellers)}
 
         <!-- BENTO BANNER 1 (CHUẨN ẢNH 1: 3 BANNERS NGHỆ THUẬT) -->
         <div class="shop-bento-grid">
@@ -517,8 +514,7 @@
             <div class="bento-card-overlay"></div>
             <div class="bento-card-content">
               <span class="bento-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important;">BỘ SƯU TẬP QUÝ ÔNG</span>
-              <h3 class="bento-title font-serif" style="color: #FFFFFF !important; ">Pomade Cao Cấp</h3>
-              <p class="bento-desc" style="color: rgba(255, 255, 255, 0.95) !important;">Độ bóng bẩy chuẩn mực, tạo phom Pompadour lịch lãm.</p>
+              <h3 class="bento-title font-serif" style="color: #FFFFFF !important; ">Pomade cao cấp</h3>
               <div class="bento-btn" style="color: #FBBF24 !important; font-weight: 800;">KHÁM PHÁ NGAY &rarr;</div>
             </div>
           </div>
@@ -531,7 +527,7 @@
               <div class="bento-card-overlay"></div>
               <div class="bento-card-content">
                 <span class="bento-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important;">VOLUME &amp; TEXTURE</span>
-                <h4 class="bento-title-small" style="color: #FFFFFF !important; ">Clay &amp; Fiber Tạo Phồng</h4>
+                <h4 class="bento-title-small" style="color: #FFFFFF !important; ">Clay &amp; Fiber tạo phồng</h4>
                 <div class="bento-btn-small" style="color: #FBBF24 !important; font-weight: 800;">MUA NGAY &rarr;</div>
               </div>
             </div>
@@ -542,7 +538,7 @@
               <div class="bento-card-overlay bento-overlay-sale"></div>
               <div class="bento-card-content">
                 <span class="bento-tag bento-tag-sale">ƯU ĐÃI GIỚI HẠN</span>
-                <h4 class="bento-title-small" style="color: #FFFFFF !important; ">Flash Sale Giảm Đến 40%</h4>
+                <h4 class="bento-title-small" style="color: #FFFFFF !important; ">Flash sale giảm đến 40%</h4>
                 <div class="bento-btn-small bento-btn-sale" style="color: #FCA5A5 !important; font-weight: 800;">SĂN DEAL NGAY &rarr;</div>
               </div>
             </div>
@@ -559,8 +555,7 @@
             <div class="campaign-banner-overlay"></div>
             <div class="campaign-banner-content">
               <span class="campaign-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important; border: 1px solid rgba(251, 191, 36, 0.4) !important;">PRE-STYLING &amp; BẢO VỆ NHIỆT</span>
-              <h3 class="campaign-title font-serif" style="color: #FFFFFF !important; ">Xịt Muối Biển &amp; Pre-Styling</h3>
-              <p class="campaign-desc" style="color: rgba(255, 255, 255, 0.95) !important;">Bảo vệ tóc khỏi nhiệt sấy, tăng volume bồng bềnh.</p>
+              <h3 class="campaign-title font-serif" style="color: #FFFFFF !important; ">Xịt muối biển &amp; Pre-styling</h3>
               <div class="campaign-btn" style="color: #FBBF24 !important; font-weight: 800;">KHÁM PHÁ NGAY &rarr;</div>
             </div>
           </div>
@@ -570,8 +565,7 @@
             <div class="campaign-banner-overlay"></div>
             <div class="campaign-banner-content">
               <span class="campaign-tag" style="color: #FBBF24 !important; background: rgba(0, 0, 0, 0.75) !important; border: 1px solid rgba(251, 191, 36, 0.4) !important;">CHĂM SÓC CHUYÊN SÂU</span>
-              <h3 class="campaign-title font-serif" style="color: #FFFFFF !important; ">Dầu Gội &amp; Dưỡng Phục Hồi</h3>
-              <p class="campaign-desc" style="color: rgba(255, 255, 255, 0.95) !important;">Cân bằng dầu da đầu, ngăn gàu và phục hồi chân tóc.</p>
+              <h3 class="campaign-title font-serif" style="color: #FFFFFF !important; ">Dầu gội &amp; Dưỡng phục hồi</h3>
               <div class="campaign-btn" style="color: #FBBF24 !important; font-weight: 800;">MUA NGAY &rarr;</div>
             </div>
           </div>
@@ -590,13 +584,13 @@
         ${this.renderShowcaseRow('kevin_uppercut', 'PREMIUM BARBERSHOP STYLING', 'Kevin Murphy &amp; Uppercut Deluxe', "ShopPage.setBrand('kevin-uppercut')", kevinUppercut)}
 
         <!-- DÒNG 7: DAVINES PHỤC HỒI TÓC -->
-        ${this.renderShowcaseRow('davines', 'ITALY SALON FORMULA', 'Davines Hair Care &amp; Phục Hồi Tóc', "ShopPage.setBrand('davines')", davines)}
+        ${this.renderShowcaseRow('davines', 'ITALY SALON FORMULA', 'Davines hair care &amp; Phục hồi tóc', "ShopPage.setBrand('davines')", davines)}
 
         <!-- DÒNG 8: PRORASO CẠO RÂU & DƯỠNG RÂU Ý -->
-        ${this.renderShowcaseRow('proraso', 'AUTHENTIC BARBERSHOP SHAVING & BEARD CARE', 'Proraso Firenze Chăm Sóc Râu &amp; Cạo Mặt', "ShopPage.setBrand('proraso')", proraso)}
+        ${this.renderShowcaseRow('proraso', 'AUTHENTIC BARBERSHOP SHAVING & BEARD CARE', 'Proraso firenze chăm sóc râu &amp; Cạo mặt', "ShopPage.setBrand('proraso')", proraso)}
 
         <!-- DÒNG 9: DỤNG CỤ TẠO KIỂU NAM -->
-        ${this.renderShowcaseRow('tools', 'BARBER ESSENTIALS & EQUIPMENT', 'Dụng Cụ Tạo Kiểu &amp; Thiết Bị Sấy Vuốt', "ShopPage.setCategory('DM09')", tools)}
+        ${this.renderShowcaseRow('tools', 'BARBER ESSENTIALS & EQUIPMENT', 'Dụng cụ tạo kiểu &amp; Thiết bị sấy vuốt', "ShopPage.setCategory('DM09')", tools)}
       `;
     },
 

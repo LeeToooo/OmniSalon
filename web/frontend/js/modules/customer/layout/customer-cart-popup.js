@@ -50,11 +50,6 @@
                 <div class="mini-cart-item-name" title="${item.name}" onclick="CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;">${item.name}</div>
                 <div class="mini-cart-item-meta">${(item.brand || 'OMNI SALON').toUpperCase()}</div>
                 <div class="mini-cart-item-price">${typeof SalonUtils !== 'undefined' && SalonUtils.formatCurrency ? SalonUtils.formatCurrency(item.price) : (Number(item.price || 0).toLocaleString('vi-VN') + ' đ')}</div>
-                <div style="margin-top: 4px;">
-                  <a href="/product?id=${item.productId}" onclick="event.preventDefault(); CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="font-size: 11px; color: #C59B27; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;" title="Xem các góc chụp thực tế">
-                    📷 Xem 4 góc nhìn →
-                  </a>
-                </div>
               </div>
               <button type="button" class="mini-cart-trash-btn" onclick="CustomerWeb.removeMiniCartItem('${item.productId}', event)" title="Xóa khỏi giỏ hàng" aria-label="Xóa">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

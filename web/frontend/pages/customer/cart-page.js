@@ -138,8 +138,7 @@
               <path d="M16 10a4 4 0 0 1-8 0"></path>
             </svg>
           </div>
-          <h2 class="cart-empty-title font-serif tracking-tight leading-tight" style="font-size: 26px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px;">Giỏ hàng của bạn đang trống</h2>
-          <p class="cart-empty-desc" style="font-size: 14.5px; color: var(--text-secondary); max-width: 540px; margin: 0 auto 24px; line-height: 1.6;">Khám phá bộ sưu tập Pomade, Clay, Sáp vuốt tóc và các sản phẩm grooming nam chính hãng tại Omni Salon.</p>
+          <h2 class="cart-empty-title font-serif tracking-tight leading-tight" style="font-size: 26px; font-weight: 700; color: var(--text-primary); margin: 0 0 24px;">Giỏ hàng của bạn đang trống</h2>
           <button type="button" class="cart-primary-action-btn" onclick="if(window.AppRouter) window.AppRouter.navigate('/shop');"
                   style="border-radius: 6px; background: #141413; border: 1px solid #141413; color: #FAF8F5; font-size: 14px; font-weight: 700; padding: 12px 24px; cursor: pointer;">
             ← Khám Phá Cửa Hàng Ngay

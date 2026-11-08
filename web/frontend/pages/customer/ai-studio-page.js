@@ -111,17 +111,13 @@
           <!-- Header Hero -->
           <div style="text-align: center; margin-bottom: 32px;">
             <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(197, 155, 39, 0.12); border: 1px solid rgba(197, 155, 39, 0.3); border-radius: 20px; margin-bottom: 10px;">
-              <span style="font-size: 13px;">✨</span>
               <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
                 CÔNG NGHỆ REAL AI BARBER VISION
               </span>
             </div>
-            <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(28px, 4vw, 42px); font-weight: 700; color: var(--text-primary); margin: 0 0 10px;">
-              Thử Kiểu Tóc Thật &amp; Chẩn Đoán Dáng Mặt AI
+            <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(28px, 4vw, 42px); font-weight: 700; color: var(--text-primary); margin: 0;">
+              THỬ KIỂU TÓC THẬT &amp; CHẨN ĐOÁN DÁNG MẶT AI
             </h1>
-            <p style="color: var(--text-secondary); font-size: 14.5px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
-              Tự động cắt góc chân dung, tách phông nền &amp; xóa tóc cũ để ghép mọi kiểu tóc chuẩn xác 100% trước khi thợ barber cắt kéo.
-            </p>
           </div>
 
           <!-- Studio Main Grid: 2 Cột Đối Xứng -->

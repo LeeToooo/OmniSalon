@@ -311,12 +311,9 @@
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
               <div>
-                <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
+                <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0;">
                   ${chartMode === 'services' ? 'Doanh Thu Dịch Vụ Cắt Tóc 7 Ngày' : (chartMode === 'products' ? 'Doanh Số Bán Lẻ Mỹ Phẩm 7 Ngày' : 'Xu Hướng Doanh Thu 7 Ngày Gần Nhất')}
                 </h4>
-                <div style="font-size: 12px; color: var(--text-secondary);">
-                  Đường nét đứt thể hiện mức chỉ tiêu trung bình ngày (${SalonUtils.formatCurrency(avgVal)}/ngày)
-                </div>
               </div>
 
               <!-- Filter tabs cho biểu đồ -->
@@ -362,14 +359,11 @@
           <!-- Biểu đồ 2: Khung Giờ Vàng & Mật Độ Khách Trong Ngày -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
             <div style="margin-bottom: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0;">
                   Phân Bổ Mật Độ Khách Theo Khung Giờ (Giờ Vàng)
                 </h4>
                 <span style="font-size: 12px; color: #C59B27; font-weight: 700;">Đỉnh: 14h - 18h30</span>
-              </div>
-              <div style="font-size: 12px; color: var(--text-secondary);">
-                Mật độ tiếp nhận khách theo các ca làm việc trong ngày
               </div>
             </div>
 
@@ -422,12 +416,9 @@
           <div class="admin-table-container" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden;">
             <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0 0 2px 0;">
+                <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0;">
                   Bảng Xếp Hạng Năng Suất Barber
                 </h4>
-                <div style="font-size: 12px; color: var(--text-secondary);">
-                  Top thợ có doanh thu và tỷ lệ hài lòng cao nhất toàn chuỗi
-                </div>
               </div>
               <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px;" onclick="AdminWeb.switchSubTab('stylists')">
                 Tất Cả Thợ →
@@ -489,12 +480,9 @@
           <div class="admin-table-container" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden;">
             <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0 0 2px 0;">
+                <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0;">
                   Hiệu Suất Mạng Lưới Chi Nhánh
                 </h4>
-                <div style="font-size: 12px; color: var(--text-secondary);">
-                  Đo lường doanh thu, công suất ghế và tình trạng vận hành
-                </div>
               </div>
               <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px;" onclick="AdminWeb.switchSubTab('branches')">
                 Tất Cả Cơ Sở →

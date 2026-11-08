@@ -189,12 +189,9 @@
               <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
                 HỆ THỐNG CHI NHÁNH TOÀN THÀNH PHỐ
               </span>
-              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; margin: 0 0 12px; color: var(--text-primary); word-break: break-word; overflow-wrap: break-word; max-width: 100%;">
-                Không Gian Barbershop &amp; Vị Trí Chi Nhánh
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; margin: 0 0 28px; color: var(--text-primary); word-break: break-word; overflow-wrap: break-word; max-width: 100%;">
+                KHÔNG GIAN BARBERSHOP &amp; VỊ TRÍ CHI NHÁNH
               </h1>
-              <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; margin: 0 auto 28px; line-height: 1.6;">
-                Không gian thiết kế đĩnh đạc, ghế cắt bọc da cao cấp và đội ngũ barber luôn sẵn sàng phục vụ tại 20 chi nhánh khắp các quận.
-              </p>
 
               <!-- Ô TÌM KIẾM THEO QUẬN & DROPDOWN LỰA CHỌN -->
               <div style="display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; max-width: 780px; margin-left: auto; margin-right: auto;">
