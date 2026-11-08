@@ -450,11 +450,11 @@
                   </label>
                   <select id="stEditorLevel" class="admin-select-filter" 
                           style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" required>
-                    <option value="Master Barber">Master Barber</option>
-                    <option value="Senior Barber">Senior Barber</option>
-                    <option value="Junior Barber">Junior Barber</option>
-                    <option value="Quản lý">Quản lý</option>
-                    <option value="Nhân viên">Nhân Viên</option>
+                    <option value="Master Barber">Master Barber (Thợ chính)</option>
+                    <option value="Senior Barber">Senior Barber (Thợ chính)</option>
+                    <option value="Junior Barber">Junior Barber (Thợ phụ)</option>
+                    <option value="Nhân viên">Nhân Viên (Thu ngân)</option>
+                    ${isSuper ? '<option value="Quản lý">Quản lý (Branch Manager)</option>' : ''}
                   </select>
                 </div>
                 <div>
@@ -594,6 +594,19 @@
       }
 
       if (levelSelect) {
+        let managerLvlOpt = levelSelect.querySelector('option[value="Quản lý"]');
+        if (roleVal === 'Quản lý chi nhánh' || (st.CapBac || st.level) === 'Quản lý') {
+          if (!managerLvlOpt) {
+            managerLvlOpt = document.createElement('option');
+            managerLvlOpt.value = 'Quản lý';
+            managerLvlOpt.textContent = 'Quản lý (Branch Manager) - [Hiện tại]';
+            managerLvlOpt.id = 'tempCurrentManagerLvlOpt';
+            levelSelect.appendChild(managerLvlOpt);
+          }
+        } else {
+          const tempLvlOpt = document.getElementById('tempCurrentManagerLvlOpt');
+          if (tempLvlOpt) tempLvlOpt.remove();
+        }
         levelSelect.value = (st.CapBac || st.level || (roleVal === 'Thợ phụ' ? 'Junior Barber' : roleVal === 'Thu ngân' ? 'Nhân viên' : 'Master Barber')).trim();
       }
 
@@ -622,6 +635,8 @@
     resetStylistBottomEditor() {
       const tempOpt = document.getElementById('tempCurrentManagerOpt');
       if (tempOpt) tempOpt.remove();
+      const tempLvlOpt = document.getElementById('tempCurrentManagerLvlOpt');
+      if (tempLvlOpt) tempLvlOpt.remove();
 
       const idInput = document.getElementById('stylistEditorId');
       const nameInput = document.getElementById('stEditorName');
@@ -802,11 +817,11 @@
               <div>
                 <label class="sub-label">Cấp Bậc Chuyên Môn: <span style="color:#ef4444;">*</span></label>
                 <select id="stLevel" class="form-control-custom" required>
-                  <option value="Quản lý" ${level === 'Quản lý' ? 'selected' : ''}>Quản lý</option>
-                  <option value="Master Barber" ${level === 'Master Barber' ? 'selected' : ''}>Master Barber</option>
-                  <option value="Senior Barber" ${level === 'Senior Barber' ? 'selected' : ''}>Senior Barber</option>
-                  <option value="Junior Barber" ${level === 'Junior Barber' ? 'selected' : ''}>Junior Barber</option>
-                  <option value="Nhân viên" ${level === 'Nhân viên' ? 'selected' : ''}>Nhân Viên</option>
+                  <option value="Master Barber" ${level === 'Master Barber' ? 'selected' : ''}>Master Barber (Thợ chính)</option>
+                  <option value="Senior Barber" ${level === 'Senior Barber' ? 'selected' : ''}>Senior Barber (Thợ chính)</option>
+                  <option value="Junior Barber" ${level === 'Junior Barber' ? 'selected' : ''}>Junior Barber (Thợ phụ)</option>
+                  <option value="Nhân viên" ${level === 'Nhân viên' ? 'selected' : ''}>Nhân Viên (Thu ngân)</option>
+                  ${isSuper ? `<option value="Quản lý" ${level === 'Quản lý' ? 'selected' : ''}>Quản lý (Branch Manager)</option>` : ''}
                 </select>
               </div>
             </div>
