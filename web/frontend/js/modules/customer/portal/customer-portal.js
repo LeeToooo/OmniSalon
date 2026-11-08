@@ -129,7 +129,7 @@
       const uid = String(user.id || user.MaNhanVien || user.staffId || '').toUpperCase();
 
       if (uid === 'NV00' || role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'QUẢN TRỊ VIÊN' || chucVu === 'QUẢN TRỊ VIÊN' || user.username === 'admin') {
-        return 'Quản Trị Tối Cao';
+        return 'Quản Trị Viên';
       }
       if (role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || chucVu === 'QUẢN LÝ CHI NHÁNH' || chucVu.includes('QUẢN LÝ')) {
         return 'Quản Lý Chi Nhánh';

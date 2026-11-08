@@ -164,30 +164,40 @@ body.light .auth-segmented-nav-btn.active {
 
 /* Modal thong bao da them san pham vao gio hang chuan 4RAU */
 .add-cart-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 10005;
-  padding: 16px;
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.65) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10005 !important;
+  padding: 16px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
-.add-cart-modal-overlay.active {
-  display: flex;
+.add-cart-modal-overlay.active,
+.add-cart-modal-overlay.show,
+.add-cart-modal-overlay.is-visible {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
 }
 
 .add-cart-modal-card {
   background: #FFFFFF;
   color: #1E293B;
-  border-radius: 10px;
+  border-radius: 12px !important;
   max-width: 440px;
   width: 100%;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4) !important;
   overflow: hidden;
   animation: modalEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 [data-theme="dark"] .add-cart-modal-card {

@@ -31,8 +31,12 @@
       });
       const el = document.getElementById(type === 'shop' ? 'headerShopMegaDropdown' : 'headerBranchesMegaDropdown');
       const wrap = document.getElementById(type === 'shop' ? 'navShopMegaWrap' : 'navBranchesMegaWrap');
-      if (el) el.classList.add('open');
-      if (wrap) wrap.classList.add('active');
+      if (el) {
+        el.classList.add('open', 'is-open', 'show', 'active');
+      }
+      if (wrap) {
+        wrap.classList.add('active', 'is-open');
+      }
     },
 
     /**
@@ -61,8 +65,12 @@
     closeMegaMenu(type) {
       const el = document.getElementById(type === 'shop' ? 'headerShopMegaDropdown' : 'headerBranchesMegaDropdown');
       const wrap = document.getElementById(type === 'shop' ? 'navShopMegaWrap' : 'navBranchesMegaWrap');
-      if (el) el.classList.remove('open');
-      if (wrap) wrap.classList.remove('active');
+      if (el) {
+        el.classList.remove('open', 'is-open', 'show', 'active');
+      }
+      if (wrap) {
+        wrap.classList.remove('active', 'is-open');
+      }
     },
 
     /**
@@ -84,36 +92,21 @@
      * @param {Event} event 
      */
     handleNavMegaClick(type, event) {
-      const isMobile = window.innerWidth <= 992;
+      if (event) event.preventDefault();
       const dropdown = document.getElementById(type === 'shop' ? 'headerShopMegaDropdown' : 'headerBranchesMegaDropdown');
-      const isOpen = dropdown && dropdown.classList.contains('open');
+      const isOpen = dropdown && (dropdown.classList.contains('open') || dropdown.classList.contains('is-open') || dropdown.classList.contains('show'));
 
-      if (isMobile) {
-        if (event) event.preventDefault();
-        if (isOpen) {
-          if (typeof this.closeMegaMenu === 'function') {
-            this.closeMegaMenu(type);
-          } else if (window.CustomerWeb && typeof window.CustomerWeb.closeMegaMenu === 'function') {
-            window.CustomerWeb.closeMegaMenu(type);
-          }
-        } else {
-          if (typeof this.handleMegaEnter === 'function') {
-            this.handleMegaEnter(type);
-          } else if (window.CustomerWeb && typeof window.CustomerWeb.handleMegaEnter === 'function') {
-            window.CustomerWeb.handleMegaEnter(type);
-          }
+      if (isOpen) {
+        if (typeof this.closeMegaMenu === 'function') {
+          this.closeMegaMenu(type);
+        } else if (window.CustomerWeb && typeof window.CustomerWeb.closeMegaMenu === 'function') {
+          window.CustomerWeb.closeMegaMenu(type);
         }
       } else {
-        if (typeof this.closeAllMegaMenus === 'function') {
-          this.closeAllMegaMenus();
-        } else if (window.CustomerWeb && typeof window.CustomerWeb.closeAllMegaMenus === 'function') {
-          window.CustomerWeb.closeAllMegaMenus();
-        }
-
-        if (typeof this.switchTab === 'function') {
-          this.switchTab(type);
-        } else if (window.CustomerWeb && typeof window.CustomerWeb.switchTab === 'function') {
-          window.CustomerWeb.switchTab(type);
+        if (typeof this.handleMegaEnter === 'function') {
+          this.handleMegaEnter(type);
+        } else if (window.CustomerWeb && typeof window.CustomerWeb.handleMegaEnter === 'function') {
+          window.CustomerWeb.handleMegaEnter(type);
         }
       }
     },
@@ -349,6 +342,19 @@
   // 2. Đồng bộ ngược với CustomerWeb nếu đã được nạp
   if (typeof window.CustomerWeb !== 'undefined') {
     Object.assign(window.CustomerWeb, CustomerMegaMenu);
+  }
+
+  // 3. Tự động đóng dropdown khi click ra bên ngoài (Outside Click Listener)
+  if (typeof document !== 'undefined') {
+    document.addEventListener('click', function (e) {
+      const isInsideMega = e.target.closest('#navShopMegaWrap') ||
+        e.target.closest('#navBranchesMegaWrap') ||
+        e.target.closest('#headerShopMegaDropdown') ||
+        e.target.closest('#headerBranchesMegaDropdown');
+      if (!isInsideMega) {
+        CustomerMegaMenu.closeAllMegaMenus();
+      }
+    });
   }
 
 })(typeof window !== 'undefined' ? window : this);

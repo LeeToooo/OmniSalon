@@ -781,13 +781,40 @@ const UICommon = {
 
   showAddToCartSuccessModal(prod) {
     const prodName = prod ? (prod.name || prod.TenSanPham || 'Sản phẩm') : 'Sản phẩm';
-    this.showToast(`✓ Đã thêm "${prodName}" vào giỏ hàng thành công!`, 'success');
+    const modal = document.getElementById('addToCartModal');
+    if (modal) {
+      const msgEl = modal.querySelector('.add-cart-modal-message');
+      if (msgEl) {
+        msgEl.innerHTML = `Đã thêm <strong>${this.escapeHtml ? this.escapeHtml(prodName) : prodName}</strong> vào giỏ hàng`;
+      }
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('visibility', 'visible', 'important');
+      modal.style.setProperty('opacity', '1', 'important');
+      modal.style.setProperty('pointer-events', 'auto', 'important');
+      modal.classList.add('active');
+
+      // Tự động đóng popup sau 4 giây nếu người dùng không thao tác
+      if (this._cartModalTimer) clearTimeout(this._cartModalTimer);
+      this._cartModalTimer = setTimeout(() => {
+        this.closeAddToCartModal();
+      }, 4000);
+    } else {
+      this.showToast(`✓ Đã thêm "${prodName}" vào giỏ hàng thành công!`, 'success');
+    }
   },
 
   closeAddToCartModal() {
+    if (this._cartModalTimer) {
+      clearTimeout(this._cartModalTimer);
+      this._cartModalTimer = null;
+    }
     const modal = document.getElementById('addToCartModal');
     if (modal) {
-      modal.classList.remove('active');
+      modal.style.setProperty('display', 'none', 'important');
+      modal.style.setProperty('visibility', 'hidden', 'important');
+      modal.style.setProperty('opacity', '0', 'important');
+      modal.style.setProperty('pointer-events', 'none', 'important');
+      modal.classList.remove('active', 'show', 'is-visible');
     }
   },
 
@@ -1563,27 +1590,6 @@ const UICommon = {
               Đăng Nhập Ngay →
             </button>
           </form>
-
-          <!-- Quick Demo Switcher cho Hoi dong va khao sat nhanh -->
-          <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-            <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; text-align: center;">
-              Đăng Nhập Nhanh Trải Nghiệm:
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-              <button type="button" onclick="UICommon.quickDemoLogin('admin', 'admin123')" style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;">
-                <span>👑 Quản Trị Tối Cao</span>
-              </button>
-              <button type="button" onclick="UICommon.quickDemoLogin('user_nv01', 'LeHoangHai')" style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;">
-                <span>👔 Quản Lý Q1</span>
-              </button>
-              <button type="button" onclick="UICommon.quickDemoLogin('user_nv02', 'DoDinhDo')" style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;">
-                <span>✂️ Thợ Barber NV01</span>
-              </button>
-              <button type="button" onclick="UICommon.quickDemoLogin('user_kh01', 'NgoVanTuan')" style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;">
-                <span>👤 Khách Hàng VIP</span>
-              </button>
-            </div>
-          </div>
         ` : this.authTab === 'reset' ? `
           <!-- Tab quen mat khau va nhan ma xac thuc -->
           <form onsubmit="event.preventDefault(); UICommon.handleResetPassword();">

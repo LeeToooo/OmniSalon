@@ -255,7 +255,7 @@
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
               <span>Biên độ: <strong>150k – 650k</strong></span>
-              <span>Đòn bẩy: <strong>Combo Grooming VIP</strong></span>
+              
             </div>
           </div>
 

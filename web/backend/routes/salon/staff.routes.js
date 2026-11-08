@@ -127,14 +127,12 @@ async function handleStaffRoutes(req, res, ctx) {
     const st = parsedBody || {};
     const role = st.role || st.ChucVu || 'Thợ chính';
     const authUser = extractAuthUser(req);
-    const bodyRole = String(st.requestUserRole || '').toUpperCase();
-    const isSuper = (authUser && (authUser.role === 'SUPER_ADMIN' || authUser.isSuperAdmin || String(authUser.vaiTroSql || '').includes('Quản trị'))) ||
-                    bodyRole === 'SUPER_ADMIN';
+    const isSuper = (authUser && (authUser.role === 'SUPER_ADMIN' || authUser.isSuperAdmin || String(authUser.id || '').toUpperCase() === 'TK_ADMIN' || String(authUser.vaiTroSql || '').includes('Quản trị')));
 
-    // Chỉ Quản trị tối cao mới có quyền phân quyền Quản lý chi nhánh
+    // Chỉ Quản trị viên mới có quyền phân quyền Quản lý chi nhánh
     if (role.includes('Quản lý') && !isSuper) {
       res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: 'Chỉ Quản trị tối cao mới có quyền phân quyền Quản lý chi nhánh.' }));
+      res.end(JSON.stringify({ success: false, message: 'Chỉ Quản trị viên mới có quyền phân quyền Quản lý chi nhánh.' }));
       return true;
     }
     if (!isSuper && authUser && authUser.branchId) {
@@ -184,9 +182,7 @@ async function handleStaffRoutes(req, res, ctx) {
     const id = pathname.replace('/api/stylists/', '').replace('/api/admin/staff/', '').trim();
     const st = parsedBody || {};
     const authUser = extractAuthUser(req);
-    const bodyRole = String(st.requestUserRole || '').toUpperCase();
-    const isSuper = (authUser && (authUser.role === 'SUPER_ADMIN' || authUser.isSuperAdmin || String(authUser.vaiTroSql || '').includes('Quản trị'))) ||
-                    bodyRole === 'SUPER_ADMIN';
+    const isSuper = (authUser && (authUser.role === 'SUPER_ADMIN' || authUser.isSuperAdmin || String(authUser.id || '').toUpperCase() === 'TK_ADMIN' || String(authUser.vaiTroSql || '').includes('Quản trị')));
 
     // Kiểm tra quyền đối với vai trò Quản lý chi nhánh
     const currentRows = await querySql(`SELECT MaNhanVien, MaChiNhanh, ChucVu, CapBac FROM NhanVien WHERE MaNhanVien = ?`, [id]);
@@ -205,19 +201,15 @@ async function handleStaffRoutes(req, res, ctx) {
       const reqBranch = st.branchId || st.MaChiNhanh;
       if (reqBranch && currentEmp && reqBranch !== currentEmp.MaChiNhanh) {
         res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ success: false, message: 'Chỉ Quản trị tối cao mới có quyền chuyển chi nhánh công tác của nhân sự.' }));
+        res.end(JSON.stringify({ success: false, message: 'Chỉ Quản trị viên mới có quyền chuyển chi nhánh công tác của nhân sự.' }));
         return true;
       }
       if (newRole && newRole.includes('Quản lý') && !oldRole.includes('Quản lý')) {
         res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ success: false, message: 'Chỉ Quản trị tối cao mới có quyền phân quyền Quản lý chi nhánh.' }));
+        res.end(JSON.stringify({ success: false, message: 'Chỉ Quản trị viên mới có quyền phân quyền Quản lý chi nhánh.' }));
         return true;
       }
-      if (oldRole.includes('Quản lý') && newRole && newRole !== oldRole) {
-        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ success: false, message: 'Quản lý chi nhánh không có quyền thay đổi vai trò của Quản lý.' }));
-        return true;
-      }
+      // Quản lý chi nhánh được phép hạ/bỏ chức Quản lý của nhân sự xuống Thợ chính/Thợ phụ/Thu ngân, chỉ không được tự nâng thợ lên Quản lý
     }
 
     await querySql(

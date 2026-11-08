@@ -10,10 +10,14 @@ h1,
 .nordic-hero-title,
 .section-heading-lg,
 .page-main-title {
-  font-size: clamp(34px, 4.2vw, 56px) !important;
+  font-size: clamp(1.75rem, 4vw, 2.75rem) !important;
   font-weight: 900 !important;
   line-height: 1.2 !important;
   letter-spacing: -0.02em !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Tiêu đề cấp hai */
@@ -23,10 +27,14 @@ h2,
 .portal-section-title,
 .auth-title,
 .admin-hub-title {
-  font-size: clamp(30px, 3.5vw, 44px) !important;
-  font-weight: 900 !important;
+  font-size: clamp(1.4rem, 3vw, 2.15rem) !important;
+  font-weight: 800 !important;
   line-height: 1.25 !important;
   letter-spacing: -0.015em !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Tiêu đề cấp ba bốn và tên dịch vụ sản phẩm */

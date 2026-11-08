@@ -76,8 +76,11 @@
     // -----------------------------------------------------------------------
     // SUB-TAB 2: ĐIỀU PHỐI LỊCH HẸN, BOOKINGS DISPATCHER REALTIME 4RAU
     // -----------------------------------------------------------------------
-    renderBookingsTab(user, bookings, branches, stylists, branchMap = null) {
+    renderBookingsTab(user, bookings, branches, stylists, branchMap = null, services = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
+      const allServices = (Array.isArray(services) && services.length > 0)
+        ? services
+        : ((window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : []);
 
       const now = new Date();
       const yyyy = now.getFullYear();
@@ -187,9 +190,6 @@
               <span style="font-size: 12px; font-weight: 600; color: var(--brand-accent, #C59B27); background: rgba(197, 155, 39, 0.1); border: 1px solid rgba(197, 155, 39, 0.25); padding: 4px 10px; border-radius: 6px;">
                 Hiện tại: ${nowTime} • Hôm Nay: ${SalonUtils.formatDate(todayStr)}
               </span>
-              <button type="button" class="btn-submit-terracotta" style="padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer;" onclick="AdminWeb.openQuickWalkinModal()">
-                + Tiếp Nhận Khách Vãng Lai
-              </button>
             </div>
           </div>
 
@@ -909,7 +909,7 @@
                 Sảnh chờ hiện đang trống. Chưa có khách nào đang chờ tại sảnh.
               </span>
               <span style="font-size: 12px; color: var(--text-muted, #71717a);">
-                Tìm kiếm ở ô trên hoặc bấm "Tiếp Nhận Khách Vãng Lai" để check-in
+                Khách đến quầy thanh toán hoặc đặt lịch tại tab "Thu Ngân POS & Hóa Đơn"
               </span>
             </div>
           ` : `
@@ -964,78 +964,18 @@
       `;
     },
 
+    // -----------------------------------------------------------------------
+    // INLINE BOTTOM WALKIN EDITOR (ĐẶT NGAY DƯỚI ĐÁY TRANG GIỐNG CÁC PHÂN HỆ KHÁC)
+    // -----------------------------------------------------------------------
+    _renderWalkinBottomEditor(user, branches, stylists, services = []) {
+      return '';
+    },
+
     openQuickWalkinModal() {
-      const user = this.getCurrentUser();
-      const branches = (window.store && window.store.getBranches()) || [];
-      const services = (window.store && window.store.getServices()) || [];
-      const stylists = (window.store && window.store.getStylists()) || [];
-      const activeBranchId = (this.isBranchManager(user) && user.branchId) ? user.branchId : (branches[0]?.id || 'CN01');
-      const filteredStylists = stylists.filter(s => s.branchId === activeBranchId || !s.branchId);
-
-      this._openModal(`
-        <div class="booking-wizard-wrapper" style="max-width: 520px; margin: 0 auto; text-align: left;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div>
-              <span class="badge-terracotta" style="background: #f59e0b; color: #000; font-weight: 900;">WALK-IN CHECK-IN</span>
-              <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 6px 0 2px 0;">Tiếp Nhận Khách Vãng Lai Vào Sảnh Chờ</h2>
-              <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0;">Khách đến trực tiếp salon chưa đặt lịch trước</p>
-            </div>
-            <button type="button" class="modal-close-btn" onclick="AdminWeb._closeModal()" style="background: transparent; border: none; font-size: 20px; color: var(--text-secondary); cursor: pointer;">&times;</button>
-          </div>
-
-          <form id="quickWalkinForm" onsubmit="AdminWeb.submitQuickWalkin(event);" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-            <div>
-              <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Tên Khách Hàng <span style="color:#ef4444;">*</span></label>
-              <input type="text" id="walkinCustomerName" required placeholder="Ví dụ: Anh Hoàng Nam" 
-                     style="width: 100%; height: 40px; padding: 0 12px; border-radius: 8px; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; box-sizing: border-box;">
-            </div>
-
-            <div>
-              <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Số Điện Thoại <span style="color:#ef4444;">*</span></label>
-              <input type="tel" id="walkinCustomerPhone" required placeholder="Ví dụ: 0912345678" 
-                     style="width: 100%; height: 40px; padding: 0 12px; border-radius: 8px; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; box-sizing: border-box;">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <div>
-                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Chi Nhánh</label>
-                <select id="walkinBranchId" style="width: 100%; height: 40px; padding: 0 10px; border-radius: 8px; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 13px; box-sizing: border-box;"
-                        ${this.isBranchManager(user) ? 'disabled' : ''}>
-                  ${branches.map(b => `<option value="${b.id}" ${b.id === activeBranchId ? 'selected' : ''}>${this.escapeHtml(this._getBranchShortName(b))}</option>`).join('')}
-                </select>
-              </div>
-
-              <div>
-                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Barber Phục Vụ</label>
-                <select id="walkinStylistId" style="width: 100%; height: 40px; padding: 0 10px; border-radius: 8px; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 13px; box-sizing: border-box;">
-                  <option value="">-- Tự Động Xếp Barber --</option>
-                  ${filteredStylists.map(s => `<option value="${s.id}">${this.escapeHtml(s.name)}</option>`).join('')}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Dịch Vụ Chọn Nhanh</label>
-              <select id="walkinServiceId" style="width: 100%; height: 40px; padding: 0 10px; border-radius: 8px; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 13px; box-sizing: border-box;">
-                ${services.map(s => `<option value="${s.id}" data-price="${s.price || 0}" data-name="${this.escapeHtml(s.name)}">${this.escapeHtml(s.name)} - ${SalonUtils.formatCurrency(s.price || 0)}</option>`).join('')}
-              </select>
-            </div>
-
-            <div>
-              <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Ghi Chú Đón Tiếp</label>
-              <input type="text" id="walkinNotes" placeholder="Ví dụ: Khách vãng lai, muốn cắt fade gọn gàng..." 
-                     style="width: 100%; height: 38px; padding: 0 12px; border-radius: 8px; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 13px; box-sizing: border-box;">
-            </div>
-
-            <div style="display: flex; gap: 10px; margin-top: 8px;">
-              <button type="button" class="pill-btn-outline" style="flex: 1; padding: 10px;" onclick="AdminWeb._closeModal()">Hủy Bỏ</button>
-              <button type="submit" class="btn-submit-terracotta" style="flex: 2; padding: 10px; background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: 800;">
-                ✓ Xếp Vào Sảnh Chờ Ngay
-              </button>
-            </div>
-          </form>
-        </div>
-      `);
+      // Đã chuyển tính năng đặt lịch và bán hàng sang Quầy thu ngân POS
+      if (typeof AdminWeb.switchTab === 'function') {
+        AdminWeb.switchTab('pos');
+      }
     },
 
     submitQuickWalkin(e) {

@@ -133,7 +133,7 @@
       }
 
       const currentTab = this.currentTab !== undefined ? this.currentTab : (window.CustomerWeb?.currentTab || 'home');
-      const label = isCashier ? 'Quầy Thu Ngân POS' : (isManager ? 'Bàn Làm Việc Quản Lý' : 'Bảng Quản Trị Tối Cao');
+      const label = isCashier ? 'Quầy Thu Ngân POS' : (isManager ? 'Bàn Làm Việc Quản Lý' : 'Bảng Quản Trị Viên');
       const sub = isCashier ? 'Thanh toán & Đơn hàng' : (isManager ? 'Vận hành chi nhánh' : 'Toàn quyền hệ thống salon');
 
       return `

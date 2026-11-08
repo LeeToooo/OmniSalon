@@ -218,7 +218,7 @@
               <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
                 BỘ SƯU TẬP CHĂM SÓC TÓC NAM GIỚI
               </span>
-              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4vw, 42px); font-weight: 700; color: var(--text-primary); margin: 0 0 10px;">
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; color: var(--text-primary); margin: 0 0 10px; word-break: break-word; overflow-wrap: break-word; max-width: 100%;">
                 Sản Phẩm Grooming &amp; Pomade Chính Hãng
               </h1>
               <p style="font-size: 15px; color: var(--text-secondary); max-width: 680px; line-height: 1.6; margin: 0;">
@@ -2061,7 +2061,8 @@
     const attachShopSync = () => {
       if (window.store && typeof window.store.subscribe === 'function') {
         window.store.subscribe((state, event) => {
-          if (event === 'LIVE_SERVER_SYNC' || event === 'STATE_CHANGE') {
+          // Bỏ qua LIVE_SERVER_SYNC định kỳ để chống chớp tắt re-render vòng lặp
+          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED' || event === 'PRODUCTS_UPDATED') {
             const container = document.getElementById('webMainContainer');
             if (container && window.AppRouter && window.AppRouter.currentRoute === '/shop') {
               ShopPage.render(container);

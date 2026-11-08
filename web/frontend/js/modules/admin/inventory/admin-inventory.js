@@ -847,12 +847,12 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                   <div>
                     <label class="sub-label">Đơn Giá Bán Ra VNĐ <span style="color: #ef4444;">*</span>:</label>
-                    <input type="number" id="prodPrice" class="form-control-custom" style="font-weight: 700; color: #fbbf24 !important;" placeholder="350000" value="${product?.originalPrice || product?.GiaBan || product?.price || ''}" required min="1000">
+                    <input type="number" id="prodPrice" class="form-control-custom" style="font-weight: 700; color: #fbbf24 !important;" placeholder="350000" value="${product?.originalPrice || product?.GiaBan || product?.price || ''}" required min="0">
                     <span style="font-size: 11px; color: #94a3b8;">Giá niêm yết bán cho khách</span>
                   </div>
                   <div>
                     <label class="sub-label">Giá Gốc / Giá Nhập Kho VNĐ <span style="color: #ef4444;">*</span>:</label>
-                    <input type="number" id="prodCostPrice" class="form-control-custom" style="font-weight: 700; color: #10b981 !important;" placeholder="245000" value="${product?.costPrice || product?.GiaNhap || (product?.price ? Math.round(product.price * 0.7) : 245000)}" required min="1000">
+                    <input type="number" id="prodCostPrice" class="form-control-custom" style="font-weight: 700; color: #10b981 !important;" placeholder="245000" value="${product?.costPrice || product?.GiaNhap || (product?.price ? Math.round(product.price * 0.7) : 245000)}" required min="0">
                     <span style="font-size: 11px; color: #10b981;">Giá vốn thực tế khi nhập hàng</span>
                   </div>
                 </div>
@@ -1059,7 +1059,7 @@
               <input type="number" class="form-control-custom" style="padding: 6px 8px; font-size: 12.5px; text-align: center;" min="1" value="${row.quantity}" oninput="AdminWeb._onReceiptRowQtyChange(${idx}, this.value)">
             </td>
             <td>
-              <input type="number" class="form-control-custom" style="padding: 6px 8px; font-size: 12.5px;" min="1000" step="1000" value="${row.costPrice}" oninput="AdminWeb._onReceiptRowCostChange(${idx}, this.value)">
+              <input type="number" class="form-control-custom" style="padding: 6px 8px; font-size: 12.5px;" min="0" step="any" value="${row.costPrice}" oninput="AdminWeb._onReceiptRowCostChange(${idx}, this.value)">
             </td>
             <td>
               <input type="text" class="form-control-custom" style="padding: 6px 8px; font-size: 12px; font-family: monospace;" value="${this.escapeHtml(row.lotNumber)}" oninput="AdminWeb._receiptItems[${idx}].lotNumber = this.value">
@@ -1333,7 +1333,6 @@
         <div id="adminProductBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="productEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Thêm Sản Phẩm Mới
               </h3>
@@ -1420,7 +1419,7 @@
                       </label>
                       <input type="number" id="prodEditorPrice" class="form-control-custom" 
                              style="height: 38px; font-size: 13px; font-weight: 700; color: #f59e0b !important; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); padding: 0 10px;" 
-                             placeholder="350000" min="1000" step="1000"
+                             placeholder="350000" min="0" step="any"
                              oninput="AdminWeb.syncProductPreviewCard();" required>
                     </div>
                     <div>
@@ -1429,7 +1428,7 @@
                       </label>
                       <input type="number" id="prodEditorCostPrice" class="form-control-custom" 
                              style="height: 38px; font-size: 13px; font-weight: 700; color: #10b981 !important; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); padding: 0 10px;" 
-                             placeholder="245000" min="1000" step="1000"
+                             placeholder="245000" min="0" step="any"
                              oninput="AdminWeb.syncProductPreviewCard();" required>
                     </div>
                     <div>
@@ -1599,7 +1598,7 @@
         editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       const titleEl = document.getElementById('productEditorTitle');
-      if (titleEl) titleEl.textContent = `Chỉnh Sửa Sản Phẩm #${product.id || productId}`;
+      if (titleEl) titleEl.textContent = `Chỉnh Sửa Sản Phẩm ${product.name || product.TenSanPham || product.id || productId}`;
 
       const idEl = document.getElementById('prodEditorId');
       if (idEl) idEl.value = product.id || productId;
@@ -1633,7 +1632,7 @@
       if (descEl) descEl.value = product.description || product.MoTa || '';
 
       const btnSubmitText = document.getElementById('btnSubmitProductBottomText');
-      if (btnSubmitText) btnSubmitText.textContent = `Cập Nhật Sản Phẩm #${product.id || productId}`;
+      if (btnSubmitText) btnSubmitText.textContent = `Cập Nhật Sản Phẩm`;
 
       this.syncProductPreviewCard();
     },
@@ -1791,7 +1790,6 @@
         <div id="adminReceiptBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="receiptEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Lập Phiếu Nhập Kho Mới
               </h3>
@@ -1955,7 +1953,6 @@
         <div id="adminSupplierBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="supplierEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Thêm Nhà Cung Cấp Mới
               </h3>
@@ -2097,7 +2094,7 @@
       }
 
       const titleEl = document.getElementById('supplierEditorTitle');
-      if (titleEl) titleEl.textContent = `Chỉnh Sửa Nhà Cung Cấp #${s.id || s.MaNhaCungCap || supplierId}`;
+      if (titleEl) titleEl.textContent = `Chỉnh Sửa Nhà Cung Cấp ${s.name || s.TenNhaCungCap || s.id || supplierId}`;
 
       const idEl = document.getElementById('supEditorId');
       if (idEl) idEl.value = s.id || s.MaNhaCungCap || supplierId;

@@ -581,7 +581,7 @@ body.dark .branch-media-box {
 /* Split Layout cho Form Chi Nhanh Admin */
 .branch-crud-split-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 420px);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
   gap: 32px;
   align-items: start;
 }

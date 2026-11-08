@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // QUẢN LÝ BÁN HÀNG TẠI QUẦY POS, HÓA ĐƠN & LỊCH SỬ THANH TOÁN
 // Bảng CSDL chính: HoaDon, ChiTietHoaDon_DichVu, ChiTietHoaDon_SanPham,
 //                  ThanhToan, ChiTietPhieuNhap, LichHen
@@ -7,7 +7,11 @@
 const { querySql } = require('../../database/db');
 const {
   resolveOrCreateCustomer,
-  resolveStaffMember
+  resolveStaffMember,
+  generateNextBookingId,
+  generateNextCtlhId,
+  generateNextOrderId,
+  generateNextCtdhId
 } = require('../../services/helper_service');
 
 async function handlePosRoutes(req, res, ctx) {
@@ -32,20 +36,122 @@ async function handlePosRoutes(req, res, ctx) {
       customerName: pos.customerName,
       customerPhone: pos.customerPhone
     });
-    const lhId = pos.bookingId || null;
+    let lhId = pos.bookingId || null;
+    let dhId = pos.orderId || null;
     const cnId = pos.branchId || 'CN01';
     const staffId = await resolveStaffMember(pos.staffId || pos.cashierId || pos.stylistId, cnId);
     const total = parseFloat(pos.total || pos.totalAmount || 300000);
     const methodPay = pos.paymentMethod || 'Tiền mặt';
     const invoiceNo = `HD-${Date.now().toString().slice(-8)}`;
 
+    const posServices = Array.isArray(pos.services) ? pos.services : (pos.serviceId ? [{ id: pos.serviceId, price: total }] : []);
+    const posProducts = Array.isArray(pos.products) ? pos.products : (Array.isArray(pos.items) ? pos.items : []);
+
+    // Tự động tạo Lịch Hẹn (LichHen & ChiTietLichHen) nếu POS có dịch vụ mà chưa có mã lịch hẹn
+    if (posServices.length > 0 && !lhId) {
+      lhId = await generateNextBookingId();
+      let servicesTotal = 0;
+      posServices.forEach(s => {
+        servicesTotal += parseFloat(s.price || s.Gia || 0);
+      });
+      try {
+        await querySql(
+          `INSERT INTO LichHen (MaLichHen, MaKhachHang, MaNhanVien, MaChiNhanh, NgayHen, GioBatDau, GioKetThuc, TrangThai, TongTien, TienCoc, GhiChu) 
+           VALUES (?, ?, ?, ?, CAST(GETDATE() AS DATE), CONVERT(VARCHAR(5), GETDATE(), 108), CONVERT(VARCHAR(5), DATEADD(minute, 60, GETDATE()), 108), N'Hoàn thành', ?, 0, N'Tạo từ Quầy thu ngân POS')`,
+          [lhId, khId, staffId, cnId, servicesTotal || total]
+        );
+
+        for (let i = 0; i < posServices.length; i++) {
+          const s = posServices[i];
+          const rawId = s.id || s.serviceId || s.MaDichVu || s.MaCombo;
+          let sPrice = parseFloat(s.price || s.Gia || 0);
+          const ctlhId = await generateNextCtlhId();
+          let sId = null;
+          let comboId = null;
+          if (rawId && rawId.startsWith('CB')) {
+            comboId = rawId;
+          } else if (rawId && rawId.startsWith('DV')) {
+            sId = rawId;
+          } else if (rawId) {
+            const dvRows = await querySql('SELECT TOP 1 MaDichVu, Gia FROM DichVu WHERE MaDichVu = ? OR TenDichVu LIKE ?', [rawId, `%${s.name || rawId}%`]);
+            if (dvRows && dvRows[0]) {
+              sId = dvRows[0].MaDichVu;
+              if (!sPrice) sPrice = parseFloat(dvRows[0].Gia || 0);
+            } else {
+              sId = 'DV01';
+            }
+          }
+          await querySql(
+            `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien) 
+             VALUES (?, ?, ?, ?, 1, ?, ?)`,
+            [ctlhId, lhId, sId, comboId, sPrice, sPrice]
+          );
+        }
+      } catch (errLh) {
+        console.error('[POS] Lỗi tạo LichHen tự động:', errLh.message);
+      }
+    }
+
+    // Nếu POS chỉ có sản phẩm bán lẻ (không có dịch vụ) và chưa có đơn hàng: tự động tạo DonHang & ChiTietDonHang
+    if (posServices.length === 0 && posProducts.length > 0 && !dhId) {
+      dhId = await generateNextOrderId();
+      let productsTotal = 0;
+      posProducts.forEach(p => {
+        const qty = parseInt(p.quantity || p.qty || 1, 10);
+        const pr = parseFloat(p.price || p.GiaBan || 0);
+        productsTotal += (pr * qty);
+      });
+      try {
+        await querySql(
+          `INSERT INTO DonHang (MaDonHang, MaKhachHang, MaChiNhanh, NgayDat, TongTien, DiaChiGiaoHang, HinhThucNhan, TrangThai, GhiChu) 
+           VALUES (?, ?, ?, GETDATE(), ?, N'Nhận tại quầy chi nhánh', N'Tại quầy', N'Đã giao', N'Bán trực tiếp tại Quầy thu ngân POS')`,
+          [dhId, khId, cnId, productsTotal || total]
+        );
+
+        for (let i = 0; i < posProducts.length; i++) {
+          const p = posProducts[i];
+          const rawPId = p.id || p.productId || p.MaSanPham;
+          const pQty = parseInt(p.quantity || p.qty || 1, 10);
+          const pPrice = parseFloat(p.price || p.GiaBan || 0);
+          if (rawPId && pQty > 0) {
+            let pId = rawPId;
+            if (!pId.startsWith('SP')) {
+              const spRows = await querySql('SELECT TOP 1 MaSanPham FROM SanPham WHERE MaSanPham = ? OR TenSanPham LIKE ?', [pId, `%${p.name || pId}%`]);
+              pId = spRows && spRows[0] ? spRows[0].MaSanPham : 'SP01';
+            }
+            const ctdhId = await generateNextCtdhId();
+            // Lấy lô tồn tại chi nhánh nếu có
+            const ctpnRow = await querySql(`
+              SELECT TOP 1 ctpn.MaChiTietPhieuNhap 
+              FROM ChiTietPhieuNhap ctpn
+              INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
+              WHERE ctpn.MaSanPham = ? AND pnk.MaChiNhanh = ? AND ctpn.SoLuongConLai > 0
+              ORDER BY ctpn.HanSuDung ASC
+            `, [pId, cnId]);
+            const loId = ctpnRow && ctpnRow[0] ? ctpnRow[0].MaChiTietPhieuNhap : null;
+
+            await querySql(
+              `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) 
+               VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+              [ctdhId, dhId, pId, loId, pQty, pPrice, pPrice, pPrice * pQty]
+            );
+          }
+        }
+      } catch (errDh) {
+        console.error('[POS] Lỗi tạo DonHang tự động:', errDh.message);
+      }
+    }
+
+    // Đảm bảo tuân thủ ràng buộc toàn vẹn CK_HoaDon_Nguon: chỉ MaLichHen HOẶC MaDonHang được có giá trị (không đồng thời cả 2)
+    const finalLhId = lhId || null;
+    const finalDhId = (!lhId && dhId) ? dhId : null;
+
     await querySql(
-      `INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, NgayLap, TongTien, TrangThai, MaSoHoaDon) VALUES (?, ?, ?, NULL, ?, GETDATE(), ?, N'Đã thanh toán', ?)`,
-      [hdId, khId, lhId, cnId, total, invoiceNo]
+      `INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, NgayLap, TongTien, TrangThai, MaSoHoaDon) VALUES (?, ?, ?, ?, ?, GETDATE(), ?, N'Đã thanh toán', ?)`,
+      [hdId, khId, finalLhId, finalDhId, cnId, total, invoiceNo]
     );
 
     // Lưu chi tiết dịch vụ vào ChiTietHoaDon_DichVu
-    const posServices = Array.isArray(pos.services) ? pos.services : (pos.serviceId ? [{ id: pos.serviceId, price: total }] : []);
     const existingCtdv = await querySql(`SELECT MaChiTietHDDV FROM ChiTietHoaDon_DichVu`);
     let nextCtdv = 0;
     (existingCtdv || []).forEach(row => {
@@ -99,7 +205,6 @@ async function handlePosRoutes(req, res, ctx) {
     }
 
     // Lưu chi tiết sản phẩm vào ChiTietHoaDon_SanPham
-    const posProducts = Array.isArray(pos.products) ? pos.products : (Array.isArray(pos.items) ? pos.items : []);
     for (let i = 0; i < posProducts.length; i++) {
       const p = posProducts[i];
       const rawPId = p.id || p.productId || p.MaSanPham;
@@ -161,8 +266,8 @@ async function handlePosRoutes(req, res, ctx) {
       [ttId, hdId, staffId, total, methodPay, `PAY-${Date.now().toString().slice(-6)}`]
     );
 
-    if (lhId) {
-      await querySql(`UPDATE LichHen SET TrangThai = N'Hoàn thành' WHERE MaLichHen = ?`, [lhId]);
+    if (finalLhId) {
+      await querySql(`UPDATE LichHen SET TrangThai = N'Hoàn thành' WHERE MaLichHen = ?`, [finalLhId]);
     }
 
     try {

@@ -376,5 +376,63 @@ html.light .combo-services-list,
 body.light .combo-services-list,
 [data-theme="light"] .combo-services-list {
   background: #FFFFFF !important;
-  border-color: #E2E8F0 !important;
+  border: 1px solid #E2E8F0 !important;
+}
+
+html.light .combo-service-row,
+body.light .combo-service-row,
+[data-theme="light"] .combo-service-row {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+}
+
+html.light .combo-service-row:hover,
+body.light .combo-service-row:hover,
+[data-theme="light"] .combo-service-row:hover {
+  background: #F1F5F9 !important;
+}
+
+html.light .combo-service-name,
+body.light .combo-service-name,
+[data-theme="light"] .combo-service-name {
+  color: #0F172A !important;
+}
+
+/* Hộp tổng kết dịch vụ đã chọn (comboSelectedSummary) */
+#comboSelectedSummary {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(197, 155, 39, 0.35);
+}
+
+html.light #comboSelectedSummary,
+body.light #comboSelectedSummary,
+[data-theme="light"] #comboSelectedSummary {
+  background: #F8FAFC !important;
+  border: 1.5px dashed #F59E0B !important;
+}
+
+.combo-chip-item {
+  background: rgba(197, 155, 39, 0.15);
+  border: 1px solid rgba(197, 155, 39, 0.35);
+  color: #FBBF24;
+}
+
+.combo-chip-badge {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+html.light .combo-chip-item,
+body.light .combo-chip-item,
+[data-theme="light"] .combo-chip-item {
+  background: #FEF3C7 !important;
+  border: 1px solid #FCD34D !important;
+  color: #92400E !important;
+}
+
+html.light .combo-chip-badge,
+body.light .combo-chip-badge,
+[data-theme="light"] .combo-chip-badge {
+  background: #F59E0B !important;
+  color: #FFFFFF !important;
 }

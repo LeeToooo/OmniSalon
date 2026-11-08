@@ -21,7 +21,7 @@
   });
 
   const ROLE_NAMES = Object.freeze({
-    SUPER_ADMIN: 'Quản Trị Tối Cao',
+    SUPER_ADMIN: 'Quản Trị Viên',
     BRANCH_MANAGER: 'Quản Lý Chi Nhánh',
     STYLIST: 'Thợ Barber Chuyên Nghiệp',
     CASHIER: 'Thu Ngân / Tiếp Tân',
@@ -242,7 +242,7 @@
       email: 'admin@omnisalon.vn',
       phone: '19008899',
       role: ROLES.SUPER_ADMIN,
-      roleName: 'Quản Trị Tối Cao',
+      roleName: 'Quản Trị Viên',
       vaiTroSql: 'Quản trị viên',
       chucVuSql: 'Quản trị viên',
       capBacSql: 'Chủ Tịch HĐQT',
@@ -550,7 +550,7 @@
       const cleanStripNoSpace = cleanStrip.replace(/\s+/g, '');
       const all = this.getAll();
 
-      // Hỗ trợ alias quản trị tối cao, admin, user_admin, admin@omnisalon.vn
+      // Hỗ trợ alias quản trị viên, admin, user_admin, admin@omnisalon.vn
       if (clean === 'admin' || clean === 'admin@omnisalon.vn' || clean === 'user_admin' || clean === 'executive@omnisalon.vn' || clean === 'hahien_master') {
         const adminUser = all.find(u => u.username === 'admin' || u.role === ROLES.SUPER_ADMIN || u.id === 'TK_ADMIN')
                        || SEED_USERS.find(u => u.username === 'admin');

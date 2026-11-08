@@ -155,7 +155,7 @@
                         ` : `
                           <span style="background: rgba(168, 85, 247, 0.15); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 800;">Quản lý</span>
                         `}
-                        <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${this.escapeHtml(st.CapBac || st.level || (isCashier ? 'Chuyên viên thu ngân • POS' : (st.role?.toLowerCase().includes('quản lý') ? 'Quản lý' : (isAssis ? 'Junior Barber' : 'Master Barber'))))}</span>
+                        <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${this.escapeHtml(st.CapBac || st.level || (isCashier ? 'Nhân viên • POS' : (st.role?.toLowerCase().includes('quản lý') ? 'Quản lý' : (isAssis ? 'Junior Barber' : 'Master Barber'))))}</span>
                       </div>
                       <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Cơ sở: <strong>${this.escapeHtml(brName)}</strong></div>
                     </div>
@@ -402,7 +402,6 @@
         <div id="adminStylistBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="stylistEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Thêm Nhân Viên / Thợ Mới
               </h3>
@@ -454,7 +453,6 @@
                     <option value="Master Barber">Master Barber</option>
                     <option value="Senior Barber">Senior Barber</option>
                     <option value="Junior Barber">Junior Barber</option>
-                    <option value="Chuyên viên thu ngân">Chuyên viên thu ngân</option>
                     <option value="Quản lý">Quản lý</option>
                     <option value="Nhân viên">Nhân Viên</option>
                   </select>
@@ -575,10 +573,28 @@
       else if (rawRole.includes('ngân')) roleVal = 'Thu ngân';
       else if (rawRole.includes('quản lý')) roleVal = 'Quản lý chi nhánh';
       else if (st.role) roleVal = st.role;
-      if (roleSelect) roleSelect.value = roleVal;
+
+      if (roleSelect) {
+        // Nếu nhân sự đang sửa có vai trò là Quản lý chi nhánh mà roleSelect chưa có option (do user không phải Super Admin)
+        // thì bổ sung option hiển thị để user thấy vai trò hiện tại và có thể chọn phân bổ lại sang Thợ chính/Thợ phụ/Thu ngân
+        let managerOpt = roleSelect.querySelector('option[value="Quản lý chi nhánh"]');
+        if (roleVal === 'Quản lý chi nhánh') {
+          if (!managerOpt) {
+            managerOpt = document.createElement('option');
+            managerOpt.value = 'Quản lý chi nhánh';
+            managerOpt.textContent = 'Quản lý (Branch Manager) - [Hiện tại]';
+            managerOpt.id = 'tempCurrentManagerOpt';
+            roleSelect.appendChild(managerOpt);
+          }
+        } else {
+          const tempOpt = document.getElementById('tempCurrentManagerOpt');
+          if (tempOpt) tempOpt.remove();
+        }
+        roleSelect.value = roleVal;
+      }
 
       if (levelSelect) {
-        levelSelect.value = (st.CapBac || st.level || (roleVal === 'Thợ phụ' ? 'Junior Barber' : roleVal === 'Thu ngân' ? 'Chuyên viên thu ngân' : 'Master Barber')).trim();
+        levelSelect.value = (st.CapBac || st.level || (roleVal === 'Thợ phụ' ? 'Junior Barber' : roleVal === 'Thu ngân' ? 'Nhân viên' : 'Master Barber')).trim();
       }
 
       if (branchSelect) {
@@ -591,7 +607,7 @@
       if (avatarInput) avatarInput.value = st.avatar || '';
 
       if (titleEl) {
-        titleEl.textContent = 'Chỉnh Sửa Nhân Sự: ' + (st.name || st.HoTen) + ' (#' + stylistId + ')';
+        titleEl.textContent = 'Chỉnh Sửa Nhân Sự: ' + (st.name || st.HoTen);
       }
 
       const editor = document.getElementById('adminStylistBottomEditor');
@@ -604,6 +620,9 @@
     },
 
     resetStylistBottomEditor() {
+      const tempOpt = document.getElementById('tempCurrentManagerOpt');
+      if (tempOpt) tempOpt.remove();
+
       const idInput = document.getElementById('stylistEditorId');
       const nameInput = document.getElementById('stEditorName');
       const roleSelect = document.getElementById('stEditorRole');
@@ -636,7 +655,7 @@
       } else if (role === 'Thợ chính') {
         levelSelect.value = 'Master Barber';
       } else if (role === 'Thu ngân') {
-        levelSelect.value = 'Chuyên viên thu ngân';
+        levelSelect.value = 'Nhân viên';
       } else if (role === 'Quản lý chi nhánh' || role === 'Quản lý') {
         levelSelect.value = 'Quản lý';
       }
@@ -670,15 +689,15 @@
         if (stylistId) {
           const curSt = window.store.getStylistById(stylistId);
           const oldRole = curSt?.role || curSt?.ChucVu || '';
-          if (oldRole.includes('Quản lý')) {
-            role = oldRole;
-          } else if (role.includes('Quản lý')) {
-            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị tối cao mới có quyền bổ nhiệm Quản lý chi nhánh!', 'error');
+          // Nếu nhân sự đang là Quản lý, Quản lý chi nhánh ĐƯỢC PHÉP hạ/bỏ quản lý xuống Thợ chính/Thợ phụ/Thu ngân
+          // Nhưng KHÔNG ĐƯỢC phép nâng một thợ chưa phải Quản lý lên làm Quản lý (chỉ Quản trị viên mới được)
+          if (!oldRole.includes('Quản lý') && role.includes('Quản lý')) {
+            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị viên mới có quyền bổ nhiệm Quản lý chi nhánh!', 'error');
             return;
           }
         } else {
           if (role.includes('Quản lý')) {
-            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị tối cao mới có quyền tạo Quản lý chi nhánh!', 'error');
+            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị viên mới có quyền tạo Quản lý chi nhánh!', 'error');
             return;
           }
         }
@@ -767,7 +786,7 @@
               <div>
                 <label class="sub-label">Phân Loại Thợ / Vai Trò: <span style="color:#ef4444;">*</span></label>
                 ${!isSuper && (role === 'Quản lý chi nhánh' || role === 'Quản lý') ? `
-                  <select id="stRole" class="form-control-custom" disabled title="Chỉ Quản trị tối cao mới có quyền thay đổi vai trò Quản lý chi nhánh" style="opacity: 0.75; cursor: not-allowed;">
+                  <select id="stRole" class="form-control-custom" disabled title="Chỉ Quản trị viên mới có quyền thay đổi vai trò Quản lý chi nhánh" style="opacity: 0.75; cursor: not-allowed;">
                     <option value="Quản lý chi nhánh" selected>Quản lý chi nhánh (Khóa)</option>
                   </select>
                 ` : `
@@ -787,7 +806,6 @@
                   <option value="Master Barber" ${level === 'Master Barber' ? 'selected' : ''}>Master Barber</option>
                   <option value="Senior Barber" ${level === 'Senior Barber' ? 'selected' : ''}>Senior Barber</option>
                   <option value="Junior Barber" ${level === 'Junior Barber' ? 'selected' : ''}>Junior Barber</option>
-                  <option value="Chuyên viên thu ngân" ${level === 'Chuyên viên thu ngân' ? 'selected' : ''}>Chuyên viên thu ngân</option>
                   <option value="Nhân viên" ${level === 'Nhân viên' ? 'selected' : ''}>Nhân Viên</option>
                 </select>
               </div>
@@ -853,7 +871,7 @@
       } else if (role === 'Thợ chính') {
         levelSelect.value = 'Master Barber';
       } else if (role === 'Thu ngân') {
-        levelSelect.value = 'Chuyên viên thu ngân';
+        levelSelect.value = 'Nhân viên';
       } else if (role === 'Quản lý chi nhánh' || role === 'Quản lý') {
         levelSelect.value = 'Quản lý';
       }
@@ -886,15 +904,15 @@
         if (stylistId) {
           const curSt = window.store.getStylistById(stylistId);
           const oldRole = curSt?.role || curSt?.ChucVu || '';
-          if (oldRole.includes('Quản lý')) {
-            role = oldRole;
-          } else if (role.includes('Quản lý')) {
-            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị tối cao mới có quyền bổ nhiệm Quản lý chi nhánh!', 'error');
+          // Nếu nhân sự đang là Quản lý, Quản lý chi nhánh ĐƯỢC PHÉP hạ/bỏ quản lý xuống Thợ chính/Thợ phụ/Thu ngân
+          // Nhưng KHÔNG ĐƯỢC phép nâng một thợ chưa phải Quản lý lên làm Quản lý (chỉ Quản trị viên mới được)
+          if (!oldRole.includes('Quản lý') && role.includes('Quản lý')) {
+            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị viên mới có quyền bổ nhiệm Quản lý chi nhánh!', 'error');
             return;
           }
         } else {
           if (role.includes('Quản lý')) {
-            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị tối cao mới có quyền tạo Quản lý chi nhánh!', 'error');
+            if (window.UICommon) window.UICommon.showToast('Chỉ Quản trị viên mới có quyền tạo Quản lý chi nhánh!', 'error');
             return;
           }
         }

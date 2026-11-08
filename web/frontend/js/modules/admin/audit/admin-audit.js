@@ -100,7 +100,7 @@
       }
     },
 
-    submitInlineNewUser() {
+    async submitInlineNewUser() {
       const uInput = document.getElementById('inlineNewUsername');
       const fInput = document.getElementById('inlineNewFullName');
       const pInput = document.getElementById('inlineNewPhone');
@@ -130,7 +130,7 @@
       }
 
       const roleMap = {
-        'SUPER_ADMIN': 'Quản Trị Tối Cao',
+        'SUPER_ADMIN': 'Quản trị viên',
         'ADMIN': 'Quản trị viên',
         'BRANCH_MANAGER': 'Quản lý',
         'CASHIER': 'Thu ngân',
@@ -141,7 +141,25 @@
       const branchObj = branches.find(b => b.id === branchId);
       const branchName = branchObj ? branchObj.name : (branchId === 'ALL' ? 'Toàn Hệ Thống' : branchId);
 
-      const newId = 'TK_' + (users.length + 1).toString().padStart(2, '0');
+      const isStaff = ['SUPER_ADMIN', 'ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER'].includes(role);
+      
+      // Tạo mã đúng chuẩn: Nhân viên -> TK_NVxx, Khách hàng -> TK_KHxx
+      let nextNum = 1;
+      const prefix = isStaff ? 'TK_NV' : 'TK_KH';
+      users.forEach(u => {
+        const idStr = String(u.id || u.MaTaiKhoan || '');
+        if (idStr.startsWith(prefix)) {
+          const m = idStr.match(new RegExp(`^${prefix}(\\d+)`, 'i'));
+          if (m) {
+            const num = parseInt(m[1], 10);
+            if (!isNaN(num) && num >= nextNum) nextNum = num + 1;
+          }
+        }
+      });
+      if (isStaff && nextNum <= 80) nextNum = 81;
+      if (!isStaff && nextNum <= 22) nextNum = 23;
+
+      const newId = `${prefix}${nextNum < 10 ? '0' + nextNum : nextNum}`;
       const newUser = {
         id: newId,
         MaTaiKhoan: newId,
@@ -166,19 +184,47 @@
       window.store.state.users.unshift(newUser);
       if (window.store.saveState) window.store.saveState();
 
+      // Đồng bộ trực tiếp vào cơ sở dữ liệu SQL Server
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username,
+            fullName,
+            phone,
+            role,
+            branchId
+          })
+        });
+        const resData = await res.json().catch(() => null);
+        if (resData && resData.user && resData.user.id) {
+          newUser.id = resData.user.id;
+          newUser.MaTaiKhoan = resData.user.MaTaiKhoan;
+          if (resData.user.MaNhanVien) newUser.MaNhanVien = resData.user.MaNhanVien;
+          if (resData.user.MaKhachHang) newUser.MaKhachHang = resData.user.MaKhachHang;
+          if (window.store.saveState) window.store.saveState();
+        }
+      } catch (err) {
+        console.warn('Backend sync failed, saved locally:', err);
+      }
+
       if (typeof window.store.logAudit === 'function') {
         window.store.logAudit('CREATE_USER', `Tài khoản: ${username}`, `Thêm tài khoản mới: ${fullName} (${role})`);
       }
 
       this.isAddingUserInline = false;
-      if (window.SalonToast) window.SalonToast.show(`Đã thêm tài khoản "${username}" thành công`, 'success');
+      if (window.SalonToast) window.SalonToast.show(`Đã thêm tài khoản "${username}" [${newUser.id}] thành công`, 'success');
       this._updateAuditContentOnly();
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        window.store.syncWithLiveServer();
+      }
     },
 
     changeUserRoleDirect(userId, newRole) {
       if (!userId || !newRole) return;
       const roleMap = {
-        'SUPER_ADMIN': 'Quản Trị Tối Cao',
+        'SUPER_ADMIN': 'Quản trị viên',
         'ADMIN': 'Quản trị viên',
         'BRANCH_MANAGER': 'Quản lý',
         'CASHIER': 'Thu ngân',
@@ -205,7 +251,7 @@
       this._updateAuditContentOnly();
     },
 
-    changeUserBranchDirect(userId, newBranchId) {
+    async changeUserBranchDirect(userId, newBranchId) {
       if (!userId) return;
       const users = (window.store && window.store.state && window.store.state.users) || [];
       const u = users.find(x => x.id === userId || x.username === userId || x.MaTaiKhoan === userId || x.TenDangNhap === userId);
@@ -220,20 +266,28 @@
           window.store.logAudit('UPDATE_USER_BRANCH', `Tài khoản: ${u.username || u.TenDangNhap || userId}`, `Đổi cơ sở sang: ${u.branchName}`);
         }
       }
+      try {
+        await fetch(`/api/users/${encodeURIComponent(userId)}/branch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ branchId: newBranchId })
+        });
+      } catch (_) {}
       if (window.SalonToast) {
         window.SalonToast.show(`Đã cập nhật cơ sở cho ${userId}`, 'success');
       }
       this._updateAuditContentOnly();
     },
 
-    toggleUserActiveDirect(userId) {
+    async toggleUserActiveDirect(userId) {
       if (!userId) return;
       const users = (window.store && window.store.state && window.store.state.users) || [];
       const u = users.find(x => x.id === userId || x.username === userId || x.MaTaiKhoan === userId || x.TenDangNhap === userId);
+      let newActive = true;
       if (u) {
         const rawStatus = (u.TrangThai || '').toString();
         const currentlyActive = !rawStatus.includes('khóa') && !rawStatus.includes('khoa') && rawStatus !== 'inactive' && u.isActive !== false;
-        const newActive = !currentlyActive;
+        newActive = !currentlyActive;
         u.isActive = newActive;
         u.TrangThai = newActive ? 'Hoạt động' : 'Tạm khóa';
         if (window.store.saveState) window.store.saveState();
@@ -241,13 +295,20 @@
           window.store.logAudit('UPDATE_USER_STATUS', `Tài khoản: ${u.username || u.TenDangNhap || userId}`, newActive ? 'Mở khóa tài khoản' : 'Tạm khóa tài khoản');
         }
       }
+      try {
+        await fetch(`/api/users/${encodeURIComponent(userId)}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isActive: newActive, status: newActive ? 'Hoạt động' : 'Tạm khóa' })
+        });
+      } catch (_) {}
       if (window.SalonToast) {
         window.SalonToast.show(`Đã cập nhật trạng thái cho ${userId}`, 'info');
       }
       this._updateAuditContentOnly();
     },
 
-    deleteUserDirect(userId) {
+    async deleteUserDirect(userId) {
       if (!userId) return;
       if (confirm(`Bạn có chắc chắn muốn xóa tài khoản "${userId}" không?`)) {
         if (window.store && window.store.state && window.store.state.users) {
@@ -257,6 +318,9 @@
             window.store.logAudit('DELETE_USER', `Tài khoản: ${userId}`, 'Đã xóa tài khoản khỏi hệ thống');
           }
         }
+        try {
+          await fetch(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+        } catch (_) {}
         if (window.SalonToast) {
           window.SalonToast.show(`Đã xóa tài khoản ${userId}`, 'success');
         }
@@ -403,7 +467,7 @@
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditRoleFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
                     <option value="all" ${this.auditRoleFilter === 'all' ? 'selected' : ''}>Tất cả vai trò</option>
-                    <option value="SUPER_ADMIN" ${this.auditRoleFilter === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Tối Cao</option>
+                    <option value="SUPER_ADMIN" ${this.auditRoleFilter === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên</option>
                     <option value="ADMIN" ${this.auditRoleFilter === 'ADMIN' ? 'selected' : ''}>Quản Trị Viên</option>
                     <option value="BRANCH_MANAGER" ${this.auditRoleFilter === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh</option>
                     <option value="CASHIER" ${this.auditRoleFilter === 'CASHIER' ? 'selected' : ''}>Thu Ngân POS</option>
@@ -752,10 +816,8 @@
                     // Parse role accurately
                     const rawRole = (u.role || u.VaiTro || 'CUSTOMER').toString().toUpperCase();
                     let roleCode = 'CUSTOMER';
-                    if (rawRole.includes('TỐI CAO') || rawRole.includes('TOI CAO') || rawRole === 'SUPER_ADMIN') {
+                    if (rawRole.includes('TỐI CAO') || rawRole.includes('TOI CAO') || rawRole.includes('QUẢN TRỊ') || rawRole === 'SUPER_ADMIN') {
                       roleCode = 'SUPER_ADMIN';
-                    } else if (rawRole.includes('QUẢN TRỊ') || rawRole.includes('QUAN TRI') || rawRole === 'ADMIN') {
-                      roleCode = 'ADMIN';
                     } else if (rawRole.includes('QUẢN LÝ') || rawRole.includes('QUAN LY') || rawRole === 'BRANCH_MANAGER') {
                       roleCode = 'BRANCH_MANAGER';
                     } else if (rawRole.includes('THU NGÂN') || rawRole.includes('THU NGAN') || rawRole === 'CASHIER') {
@@ -797,8 +859,7 @@
                         <td style="padding: 12px 14px;">
                           <select class="admin-table-inline-select" style="height: 30px; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 2px 8px; border: 1px solid var(--border-color); background: #1c1b18; color: var(--text-primary); cursor: pointer; width: 100%; max-width: 165px;"
                                   onchange="AdminWeb.changeUserRoleDirect('${this.escapeHtml(String(uid).replace(/^#/, ""))}', this.value)">
-                            <option value="SUPER_ADMIN" ${roleCode === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Tối Cao</option>
-                            <option value="ADMIN" ${roleCode === 'ADMIN' ? 'selected' : ''}>Quản Trị Viên</option>
+                            <option value="SUPER_ADMIN" ${roleCode === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên</option>
                             <option value="BRANCH_MANAGER" ${roleCode === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh</option>
                             <option value="CASHIER" ${roleCode === 'CASHIER' ? 'selected' : ''}>Thu Ngân POS</option>
                             <option value="BARBER" ${roleCode === 'BARBER' ? 'selected' : ''}>Thợ / Barber</option>
@@ -1272,7 +1333,7 @@
                 Vai Trò Phân Quyền: <span style="color: #ef4444;">*</span>
               </label>
               <select id="userModalRoleSelect" class="admin-select-filter" style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;">
-                <option value="SUPER_ADMIN" ${currentRole === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Tối Cao (SUPER_ADMIN)</option>
+                <option value="SUPER_ADMIN" ${currentRole === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên (SUPER_ADMIN)</option>
                 <option value="ADMIN" ${currentRole === 'ADMIN' ? 'selected' : ''}>Quản Trị Viên (ADMIN)</option>
                 <option value="BRANCH_MANAGER" ${currentRole === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh (BRANCH_MANAGER)</option>
                 <option value="CASHIER" ${currentRole === 'CASHIER' ? 'selected' : ''}>Thu Ngân POS (CASHIER)</option>
@@ -1427,20 +1488,54 @@
       `);
     },
 
-    submitNewUser() {
-      const uname = (document.getElementById('newUname')?.value || '').trim();
+    async submitNewUser() {
+      const uname = (document.getElementById('newUname')?.value || '').trim().toLowerCase();
       const fname = (document.getElementById('newFname')?.value || '').trim();
       const phone = (document.getElementById('newPhone')?.value || '').trim();
       const role = document.getElementById('newRole')?.value || 'BARBER';
-      const branch = document.getElementById('newBranch')?.value || '';
+      const branch = document.getElementById('newBranch')?.value || 'ALL';
 
       if (!uname || !fname || !phone) {
         if (window.UICommon) window.UICommon.showToast('Vui lòng điền đầy đủ Tên đăng nhập, Họ tên và Số điện thoại!', 'warning');
         return;
       }
 
-      const users = (window.store && typeof window.store.getUsers === 'function') ? window.store.getUsers() : [];
-      const newId = `TK${String(users.length + 1).padStart(3, '0')}`;
+      const users = (window.store && window.store.state && window.store.state.users) || [];
+      const exists = users.some(u => (u.username || u.TenDangNhap || '').toLowerCase() === uname);
+      if (exists) {
+        if (window.SalonToast) window.SalonToast.show('Tên đăng nhập đã tồn tại trong hệ thống', 'warning');
+        return;
+      }
+
+      const roleMap = {
+        'SUPER_ADMIN': 'Quản trị viên',
+        'ADMIN': 'Quản trị viên',
+        'BRANCH_MANAGER': 'Quản lý',
+        'CASHIER': 'Thu ngân',
+        'BARBER': 'Nhân viên',
+        'CUSTOMER': 'Khách hàng'
+      };
+      const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
+      const branchObj = branches.find(b => b.id === branch);
+      const branchName = branchObj ? branchObj.name : (branch === 'ALL' ? 'Toàn Hệ Thống' : branch);
+
+      const isStaff = ['SUPER_ADMIN', 'ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER'].includes(role);
+      let nextNum = 1;
+      const prefix = isStaff ? 'TK_NV' : 'TK_KH';
+      users.forEach(u => {
+        const idStr = String(u.id || u.MaTaiKhoan || '');
+        if (idStr.startsWith(prefix)) {
+          const m = idStr.match(new RegExp(`^${prefix}(\\d+)`, 'i'));
+          if (m) {
+            const num = parseInt(m[1], 10);
+            if (!isNaN(num) && num >= nextNum) nextNum = num + 1;
+          }
+        }
+      });
+      if (isStaff && nextNum <= 80) nextNum = 81;
+      if (!isStaff && nextNum <= 22) nextNum = 23;
+
+      const newId = `${prefix}${nextNum < 10 ? '0' + nextNum : nextNum}`;
       const newUser = {
         id: newId,
         MaTaiKhoan: newId,
@@ -1451,16 +1546,54 @@
         phone: phone,
         SoDienThoai: phone,
         role: role,
-        VaiTro: role,
+        VaiTro: roleMap[role] || role,
+        roleName: roleMap[role] || role,
         branchId: branch,
         MaChiNhanh: branch,
-        status: 'Hoạt động'
+        branchName,
+        isActive: true,
+        TrangThai: 'Hoạt động',
+        createdAt: new Date().toISOString()
       };
 
-      users.unshift(newUser);
+      if (!window.store.state.users) window.store.state.users = [];
+      window.store.state.users.unshift(newUser);
+      if (window.store.saveState) window.store.saveState();
+
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: uname,
+            fullName: fname,
+            phone: phone,
+            role: role,
+            branchId: branch
+          })
+        });
+        const resData = await res.json().catch(() => null);
+        if (resData && resData.user && resData.user.id) {
+          newUser.id = resData.user.id;
+          newUser.MaTaiKhoan = resData.user.MaTaiKhoan;
+          if (resData.user.MaNhanVien) newUser.MaNhanVien = resData.user.MaNhanVien;
+          if (resData.user.MaKhachHang) newUser.MaKhachHang = resData.user.MaKhachHang;
+          if (window.store.saveState) window.store.saveState();
+        }
+      } catch (err) {
+        console.warn('Backend sync failed, saved locally:', err);
+      }
+
+      if (typeof window.store.logAudit === 'function') {
+        window.store.logAudit('CREATE_USER', `Tài khoản: ${uname}`, `Thêm tài khoản mới: ${fname} (${role})`);
+      }
+
       this._closeModal();
-      if (window.UICommon) window.UICommon.showToast(`Đã thêm tài khoản [${uname}] (${newId}) thành công!`, 'success');
+      if (window.SalonToast) window.SalonToast.show(`Đã thêm tài khoản "${uname}" [${newUser.id}] thành công`, 'success');
       this._updateAuditContentOnly();
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        window.store.syncWithLiveServer();
+      }
     },
 
     openAuditLogDetailModal(logId) {

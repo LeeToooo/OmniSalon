@@ -15,10 +15,20 @@
       if (window.store && typeof window.store.subscribe === 'function' && !this._isLiveSyncSubscribed) {
         this._isLiveSyncSubscribed = true;
         window.store.subscribe((state, event) => {
-          if (event === 'LIVE_SERVER_SYNC' || event === 'ORDER_STATUS_UPDATED' || event === 'BOOKING_UPDATED') {
+          // Bỏ qua LIVE_SERVER_SYNC định kỳ để chống giật re-render làm gián đoạn cuộn trang Admin
+          if (event === 'ORDER_STATUS_UPDATED' || event === 'BOOKING_UPDATED' || event === 'ADMIN_FORCE_RENDER') {
             const el = document.getElementById('webMainContainer');
             if (el && document.body.classList.contains('admin-mode')) {
+              // Lưu vị trí cuộn trang hiện tại của admin viewport
+              const viewport = document.querySelector('.admin-main-viewport');
+              const prevScrollTop = viewport ? viewport.scrollTop : 0;
+
               AdminWeb.render(el);
+
+              if (viewport && prevScrollTop > 0) {
+                const newViewport = document.querySelector('.admin-main-viewport');
+                if (newViewport) newViewport.scrollTop = prevScrollTop;
+              }
             }
           }
         });
@@ -138,7 +148,7 @@
 
       const roleBadge = activeRole === 'CASHIER'
         ? 'Thu Ngân POS'
-        : (activeRole === 'BRANCH_MANAGER' ? 'Quản Lý Chi Nhánh' : 'Quản Trị Tối Cao');
+        : (activeRole === 'BRANCH_MANAGER' ? 'Quản Lý Chi Nhánh' : 'Quản Trị Viên');
 
       const activeTabObj = visibleTabs.find(t => t.id === this.adminSubTab) || visibleTabs[0];
 

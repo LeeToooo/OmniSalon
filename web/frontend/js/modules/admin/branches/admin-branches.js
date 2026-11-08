@@ -301,7 +301,6 @@
         <div id="adminBranchBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding-bottom: 16px; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent, #C59B27);"></span>
               <h3 id="branchEditorTitle" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.01em;">
                 Thêm Chi Nhánh Mới
               </h3>
@@ -464,10 +463,10 @@
                   </button>
                 </div>
 
-                <div class="branch-clean-card" style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--surface-card, #181816); width: 100%; max-width: 380px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);">
+                <div class="branch-clean-card" style="border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; background: var(--surface-card, #181816); width: 100%; max-width: 320px; margin: 0 auto; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);">
                   
                   <div id="branchEditorMediaContainer" class="branch-media-box" 
-                       style="position: relative; width: 100%; aspect-ratio: 16 / 10; min-height: 190px; overflow: hidden; cursor: grab; user-select: none; touch-action: none; background: #0c0a09;"
+                       style="position: relative; width: 100%; height: 190px; min-height: 190px; max-height: 200px; overflow: hidden; cursor: grab; user-select: none; touch-action: none; background: #0c0a09;"
                        title="Bấm giữ chuột và kéo trực tiếp trên ảnh để đổi góc · Cuộn chuột để Phóng to/Thu nhỏ (Zoom)">
                     
                     <img id="branchEditorImgPreview" 
@@ -652,10 +651,10 @@
       if (idInput) idInput.value = b.id || '';
 
       const title = document.getElementById('branchEditorTitle');
-      if (title) title.innerHTML = `Chỉnh sửa chi nhánh [${b.id}] · ${this.escapeHtml(b.name || b.TenChiNhanh)}`;
+      if (title) title.innerHTML = `Chỉnh Sửa Chi Nhánh ${this.escapeHtml(b.name || b.TenChiNhanh)}`;
 
       const submitBtn = document.getElementById('btnSubmitBranchBottom');
-      if (submitBtn) submitBtn.innerHTML = `<span>Cập Nhật Chi Nhánh #${b.id}</span>`;
+      if (submitBtn) submitBtn.innerHTML = `<span>Cập Nhật Chi Nhánh</span>`;
 
       const nameInp = document.getElementById('branchEditorName');
       if (nameInp) nameInp.value = b.name || b.TenChiNhanh || '';
@@ -712,7 +711,7 @@
 
       const editor = document.getElementById('adminBranchBottomEditor');
       if (editor) {
-        editor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     },
 
@@ -721,7 +720,7 @@
       this.resetBranchBottomEditor();
       const editor = document.getElementById('adminBranchBottomEditor');
       if (editor) {
-        editor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         const nameInp = document.getElementById('branchEditorName');
         if (nameInp) nameInp.focus();
       }

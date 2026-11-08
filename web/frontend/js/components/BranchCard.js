@@ -161,15 +161,15 @@
       ` : '';
 
       return `
-        <article class="branch-clean-card" id="branchCard_${data.id}" data-branch-id="${data.id}">
+        <article class="branch-clean-card branch-card-container branch-card branch-item" id="branchCard_${data.id}" data-branch-id="${data.id}" style="width: 100% !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; border-radius: 14px !important; overflow: hidden !important; background: var(--surface-card, #FFFFFF) !important; box-shadow: 0 4px 16px rgba(0,0,0,0.06) !important; box-sizing: border-box !important;">
           
           <!-- HINH ANH MAT TIEN SALON O TREN -->
-          <div class="branch-media-box">
+          <div class="branch-media-box branch-banner-wrap" style="width: 100% !important; max-width: 100% !important; height: 190px !important; max-height: 220px !important; overflow: hidden !important; position: relative !important; background: var(--surface-elevated, #141412) !important;">
             <img src="${data.image}" 
                  alt="${data.shortName}" 
                  loading="lazy" 
-                 class="branch-cover-img"
-                 style="object-position: ${data.imagePosition || 'center'}; transform-origin: ${data.imagePosition || '50% 50%'}; ${data.imageZoom && data.imageZoom !== 1 ? 'transform: scale(' + data.imageZoom + ') !important;' : ''} transition: transform 0.12s ease-out, object-position 0.12s ease-out;"
+                 class="branch-cover-img branch-img"
+                 style="width: 100% !important; height: 100% !important; max-height: 220px !important; object-fit: cover !important; display: block !important; object-position: ${data.imagePosition || 'center'}; transform-origin: ${data.imagePosition || '50% 50%'}; ${data.imageZoom && data.imageZoom !== 1 ? 'transform: scale(' + data.imageZoom + ') !important;' : ''} transition: transform 0.12s ease-out, object-position 0.12s ease-out;"
                  onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80');">
             
             <!-- Huy hieu quan -->
