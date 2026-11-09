@@ -39,10 +39,7 @@
       const html = `
         <div class="chart-tooltip-card">
           <div class="chart-tooltip-header">
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 13px;">📊</span>
-              <strong style="font-size: 13px; color: var(--text-primary); font-weight: 800;">${fullLabel}</strong>
-            </div>
+            <strong style="font-size: 13px; color: var(--text-primary); font-weight: 800; letter-spacing: -0.01em;">${fullLabel}</strong>
             ${isHighlight ? `
               <span class="chart-tooltip-badge">Cao Điểm</span>
             ` : ''}
