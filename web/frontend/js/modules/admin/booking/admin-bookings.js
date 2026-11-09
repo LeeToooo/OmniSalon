@@ -358,7 +358,7 @@
           <button type="button" class="admin-tab-btn ${activeBookingSubTab === 'list' ? 'active' : ''}" 
                   style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${activeBookingSubTab === 'list' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                   onclick="AdminWeb.switchBookingSubTab('list')">
-            Danh Sách Lịch Hẹn (${filtered.length})
+            Danh Sách Lịch Hẹn
           </button>
         </div>
 

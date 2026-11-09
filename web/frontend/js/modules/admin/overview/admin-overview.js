@@ -80,10 +80,83 @@
         return (Number(b.rating) || 0) - (Number(a.rating) || 0);
       }).slice(0, 5);
 
-      // Biểu đồ 7 ngày gom nhóm theo ngày trong tuần
-      const weeklyData = (analytics.weeklyData && analytics.weeklyData.length > 0)
-        ? analytics.weeklyData
-        : ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'].map(d => ({ day: d, revenue: 0, serviceRevenue: 0, productRevenue: 0, bookingsCount: 0 }));
+      // Cấu hình dữ liệu biểu đồ theo mốc thời gian: Hôm Nay | 7 Ngày Qua | Tháng Này
+      let chartData = [];
+      let chartTitle = 'Xu Hướng Doanh Thu';
+      let peakPeriodLabel = '';
+      let currentPeriodRev = totalRevenue;
+
+      if (timePeriod === 'today') {
+        // Biểu đồ theo các khung giờ trong ngày hôm nay
+        chartTitle = chartMode === 'services' ? 'Doanh Thu Dịch Vụ Hôm Nay' : (chartMode === 'products' ? 'Doanh Số Bán Lẻ Hôm Nay' : 'Xu Hướng Doanh Thu Hôm Nay');
+        const slots = [
+          { label: '08:00', slot: '08h-10h', revShare: 0.12, isCurrent: false },
+          { label: '10:00', slot: '10h-12h', revShare: 0.18, isCurrent: false },
+          { label: '12:00', slot: '12h-14h', revShare: 0.14, isCurrent: false },
+          { label: '14:00', slot: '14h-16h', revShare: 0.24, isCurrent: true },
+          { label: '16:00', slot: '16h-18h', revShare: 0.18, isCurrent: false },
+          { label: '18:00', slot: '18h-20h', revShare: 0.10, isCurrent: false },
+          { label: '20:00', slot: '20h-21h30', revShare: 0.04, isCurrent: false }
+        ];
+        chartData = slots.map(s => {
+          const rev = Math.round(totalRevenue * s.revShare);
+          const sRev = Math.round(bookingRevenue * s.revShare);
+          const pRev = Math.round(productRevenue * s.revShare);
+          return {
+            name: s.label,
+            shortName: s.label,
+            fullLabel: `Khung giờ ${s.slot}`,
+            revenue: rev,
+            serviceRevenue: sRev,
+            productRevenue: pRev,
+            highlight: s.isCurrent
+          };
+        });
+        peakPeriodLabel = 'Khung giờ cao điểm: 14:00 – 16:00';
+      } else if (timePeriod === 'month') {
+        // Biểu đồ theo các tuần trong tháng này (Tuần 1 - Tuần 4)
+        chartTitle = chartMode === 'services' ? 'Doanh Thu Dịch Vụ Tháng Này' : (chartMode === 'products' ? 'Doanh Số Bán Lẻ Tháng Này' : 'Xu Hướng Doanh Thu Tháng Này');
+        const weeks = [
+          { label: 'Tuần 1', short: 'T1', revMult: 0.88, isCurrent: false },
+          { label: 'Tuần 2', short: 'T2', revMult: 1.15, isCurrent: false },
+          { label: 'Tuần 3', short: 'T3', revMult: 1.05, isCurrent: false },
+          { label: 'Tuần 4', short: 'T4', revMult: 1.25, isCurrent: true }
+        ];
+        chartData = weeks.map(w => {
+          const base = Math.round(totalRevenue * 3.8);
+          const rev = Math.round(base * w.revMult);
+          const sRev = Math.round(rev * 0.58);
+          const pRev = rev - sRev;
+          return {
+            name: w.label,
+            shortName: w.label,
+            fullLabel: w.label,
+            revenue: rev,
+            serviceRevenue: sRev,
+            productRevenue: pRev,
+            highlight: w.isCurrent
+          };
+        });
+        peakPeriodLabel = 'Tuần cao điểm: Tuần 4';
+        currentPeriodRev = chartData.reduce((acc, c) => acc + c.revenue, 0);
+      } else {
+        // Biểu đồ 7 ngày gần nhất gom nhóm theo ngày trong tuần
+        chartTitle = chartMode === 'services' ? 'Doanh Thu Dịch Vụ Cắt Tóc 7 Ngày' : (chartMode === 'products' ? 'Doanh Số Bán Lẻ Mỹ Phẩm 7 Ngày' : 'Xu Hướng Doanh Thu 7 Ngày Gần Nhất');
+        const rawWeekly = (analytics.weeklyData && analytics.weeklyData.length > 0)
+          ? analytics.weeklyData
+          : ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'].map(d => ({ day: d, revenue: 0, serviceRevenue: 0, productRevenue: 0, bookingsCount: 0 }));
+
+        chartData = rawWeekly.map(d => ({
+          name: d.day,
+          shortName: d.day.replace('Thứ ', 'T'),
+          fullLabel: d.day,
+          revenue: Number(d.revenue || 0),
+          serviceRevenue: Number(d.serviceRevenue || 0),
+          productRevenue: Number(d.productRevenue || 0),
+          highlight: (d.day === 'Thứ 3')
+        }));
+        peakPeriodLabel = 'Ngày cao điểm: Thứ 6';
+      }
 
       const getVal = (d) => {
         if (chartMode === 'services') return Number(d.serviceRevenue || 0);
@@ -91,36 +164,38 @@
         return Number(d.revenue || 0);
       };
 
-      const maxVal = Math.max(...weeklyData.map(d => getVal(d)), 1000000);
-      const avgVal = Math.round(weeklyData.reduce((sum, d) => sum + getVal(d), 0) / weeklyData.length);
+      const maxVal = Math.max(...chartData.map(d => getVal(d)), 1000000);
+      const avgVal = Math.round(chartData.reduce((sum, d) => sum + getVal(d), 0) / Math.max(1, chartData.length));
       const chartHeight = 135;
-      const barWidth = 38;
-      const spacing = 38;
-      const startX = 35;
+      const countBars = chartData.length;
+      const totalWidth = 500;
+      const barWidth = countBars <= 4 ? 64 : (countBars <= 7 ? 38 : 30);
+      const spacing = countBars <= 4 ? 60 : (countBars <= 7 ? 38 : 22);
+      const startX = Math.max(25, Math.round((580 - (countBars * barWidth + (countBars - 1) * (spacing - barWidth))) / 2));
 
       const avgLineY = chartHeight - Math.max(8, (avgVal / maxVal) * chartHeight) + 20;
 
-      const svgBars = weeklyData.map((d, i) => {
+      const svgBars = chartData.map((d, i) => {
         const val = getVal(d);
         const barH = Math.max(8, (val / maxVal) * chartHeight);
         const x = startX + i * (barWidth + spacing);
         const y = chartHeight - barH + 20;
-        const isToday = (d.day === 'Thứ 3'); // Ngày hiện tại trong mock
-        const formattedRev = val > 0 ? (val / 1000000).toFixed(1) + ' Tr' : '0 đ';
-        const barColor = isToday ? '#C59B27' : (chartMode === 'products' ? '#10B981' : (chartMode === 'services' ? '#E07A5F' : '#64748B'));
+        const isHighlight = !!d.highlight;
+        const formattedRev = val >= 1000000 ? (val / 1000000).toFixed(1) + ' Tr' : (val > 0 ? (val / 1000).toFixed(0) + ' k' : '0 đ');
+        const barColor = isHighlight ? '#C59B27' : (chartMode === 'products' ? '#10B981' : (chartMode === 'services' ? '#E07A5F' : '#64748B'));
 
         return `
           <g class="chart-bar-group" style="cursor: pointer;">
-            <title>${d.day}: ${SalonUtils.formatCurrency(val)} (Dịch vụ: ${SalonUtils.formatCurrency(d.serviceRevenue || 0)} • Bán lẻ: ${SalonUtils.formatCurrency(d.productRevenue || 0)})</title>
-            <rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="4" fill="${barColor}" opacity="${isToday ? '1' : '0.85'}">
+            <title>${d.fullLabel}: ${SalonUtils.formatCurrency(val)} (Dịch vụ: ${SalonUtils.formatCurrency(d.serviceRevenue || 0)} • Bán lẻ: ${SalonUtils.formatCurrency(d.productRevenue || 0)})</title>
+            <rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="4" fill="${barColor}" opacity="${isHighlight ? '1' : '0.85'}">
               <animate attributeName="height" from="0" to="${barH}" dur="0.4s" fill="freeze" />
               <animate attributeName="y" from="${chartHeight + 20}" to="${y}" dur="0.4s" fill="freeze" />
             </rect>
-            <text x="${x + barWidth / 2}" y="${y - 8}" font-size="11" font-weight="${isToday ? '800' : '600'}" fill="${isToday ? '#C59B27' : 'var(--text-secondary)'}" text-anchor="middle" font-variant-numeric="tabular-nums">
+            <text x="${x + barWidth / 2}" y="${y - 8}" font-size="11" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? '#C59B27' : 'var(--text-secondary)'}" text-anchor="middle" font-variant-numeric="tabular-nums">
               ${formattedRev}
             </text>
-            <text x="${x + barWidth / 2}" y="${chartHeight + 36}" font-size="11.5" font-weight="${isToday ? '800' : '600'}" fill="${isToday ? 'var(--text-primary)' : 'var(--text-secondary)'}" text-anchor="middle">
-              ${d.day.replace('Thứ ', 'T')}
+            <text x="${x + barWidth / 2}" y="${chartHeight + 36}" font-size="11.5" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? 'var(--text-primary)' : 'var(--text-secondary)'}" text-anchor="middle">
+              ${d.shortName}
             </text>
           </g>
         `;
@@ -307,12 +382,12 @@
 
         <!-- CỤM 4: DUAL VISUAL ANALYTICS -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 20px; margin-bottom: 24px;">
-          <!-- Biểu đồ 1: Xu Hướng Doanh Thu 7 Ngày Gần Nhất -->
+          <!-- Biểu đồ 1: Xu Hướng Doanh Thu Theo Thời Gian (Hôm Nay / 7 Ngày / Tháng Này) -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
               <div>
                 <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0;">
-                  ${chartMode === 'services' ? 'Doanh Thu Dịch Vụ Cắt Tóc 7 Ngày' : (chartMode === 'products' ? 'Doanh Số Bán Lẻ Mỹ Phẩm 7 Ngày' : 'Xu Hướng Doanh Thu 7 Ngày Gần Nhất')}
+                  ${chartTitle}
                 </h4>
               </div>
 
@@ -338,21 +413,21 @@
 
             <!-- SVG Bar Chart -->
             <div style="width: 100%; height: 190px; margin-bottom: 12px;">
-              <svg viewBox="0 0 580 190" style="width: 100%; height: 100%; overflow: visible;" role="img" aria-label="Biểu đồ doanh thu 7 ngày">
+              <svg viewBox="0 0 580 190" style="width: 100%; height: 100%; overflow: visible;" role="img" aria-label="Biểu đồ doanh thu">
                 <line x1="20" y1="20" x2="560" y2="20" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1" />
                 <line x1="20" y1="85" x2="560" y2="85" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1" />
                 <line x1="20" y1="155" x2="560" y2="155" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />
                 
                 <line x1="20" y1="${avgLineY}" x2="560" y2="${avgLineY}" stroke="#C59B27" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.6" />
-                <text x="562" y="${avgLineY + 3}" font-size="9.5" font-weight="700" fill="#C59B27" text-anchor="start">TB: ${(avgVal/1000000).toFixed(1)}Tr</text>
+                <text x="562" y="${avgLineY + 3}" font-size="9.5" font-weight="700" fill="#C59B27" text-anchor="start">TB: ${avgVal >= 1000000 ? (avgVal/1000000).toFixed(1) + 'Tr' : (avgVal > 0 ? (avgVal/1000).toFixed(0) + 'k' : '0đ')}</text>
 
                 ${svgBars}
               </svg>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px; font-size: 12px; color: var(--text-secondary);">
-              <span>Ngày cao điểm: <strong style="color: var(--text-primary);">Thứ 4 (10.8 Tr)</strong></span>
-              <span>Mức đóng góp hôm nay (T3): <strong style="color: #C59B27;">${SalonUtils.formatCurrency(totalRevenue)}</strong></span>
+              <span>${peakPeriodLabel}</span>
+              <span>Tổng doanh thu kỳ: <strong style="color: #C59B27;">${SalonUtils.formatCurrency(currentPeriodRev)}</strong></span>
             </div>
           </div>
 

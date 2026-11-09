@@ -469,6 +469,14 @@
                     const rStatus = r.status || r.TrangThai || 'Đã duyệt';
                     const isApproved = (rStatus === 'Đã duyệt');
                     const isPending = (rStatus === 'Chờ duyệt');
+                    const isRejected = (rStatus === 'Đã từ chối');
+
+                    // Chỉ Quản lý chi nhánh hoặc Quản trị viên mới có quyền duyệt/từ chối
+                    const user = this.getCurrentUser();
+                    const isSuper = this.isSuperAdmin(user);
+                    const isManager = this.isBranchManager(user);
+                    const canApprove = (isSuper || isManager);
+
                     return `
                       <tr style="transition: background 0.15s ease; border-bottom: 1px solid var(--border-color);">
                         <td style="white-space: nowrap; font-family: monospace; font-size: 12.5px; font-weight: 700; color: var(--text-primary); padding: 12px 14px;">${this.escapeHtml(r.id || r.MaPhieuNhap)}</td>
@@ -493,6 +501,12 @@
                           <div style="display: inline-flex; gap: 6px; align-items: center;">
                             <button class="pill-btn-outline" style="padding: 4px 12px; font-size: 11.5px; font-weight: 700; border-radius: 6px;" 
                                     onclick="AdminWeb.viewReceiptDetailModal('${r.id || r.MaPhieuNhap}')">Chi Tiết</button>
+                            ${(isPending && canApprove) ? `
+                              <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; color: #10b981; border-color: rgba(16, 185, 129, 0.4);" 
+                                      onclick="AdminWeb.approveReceipt('${r.id || r.MaPhieuNhap}')" title="Phê duyệt phiếu nhập kho">Duyệt</button>
+                              <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
+                                      onclick="AdminWeb.rejectReceiptModal('${r.id || r.MaPhieuNhap}')" title="Từ chối phiếu nhập kho kèm lý do">Từ Chối</button>
+                            ` : ''}
                           </div>
                         </td>
                       </tr>
