@@ -73,6 +73,29 @@ async function handleAiRoutes(req, res, ctx) {
     return true;
   }
 
+  // POST /api/ai/segment-hair - Trích xuất mặt nạ phân vùng tóc & bảo vệ ngũ quan
+  if (pathname === '/api/ai/segment-hair' && method === 'POST') {
+    const body = parsedBody || {};
+    const image = body.image || body.imageBase64OrUrl || body.imageBase64 || body.url || body.photoUrl || '';
+    const hairstyleId = body.hairstyleId || body.selectedHairstyle || 'layer-korean';
+    try {
+      const result = (typeof aiService.runPythonVisionMask === 'function')
+        ? aiService.runPythonVisionMask({ imageBase64OrUrl: image, hairstyleId })
+        : null;
+      if (result && result.success) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(result));
+      } else {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(result || { success: false, message: 'Không thể phân vùng tóc từ ảnh cung cấp.' }));
+      }
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Lỗi phân vùng tóc AI: ' + err.message }));
+    }
+    return true;
+  }
+
   // POST /api/ai/restyle-hair - Thử kiểu tóc AI
   if (pathname === '/api/ai/restyle-hair' && method === 'POST') {
     const body = parsedBody || {};

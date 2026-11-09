@@ -82,13 +82,13 @@
 
       if (activeRole === 'CASHIER') {
         visibleTabs = [
-          { id: 'receipts', icon: tabIcons.receipts, label: 'Lập Phiếu Nhập Kho' },
-          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' }
+          { id: 'receipts', icon: tabIcons.receipts, label: 'Lập phiếu nhập kho' },
+          { id: 'pos', icon: tabIcons.pos, label: 'Thu ngân POS & hóa đơn' },
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp nhận & check-in lịch hẹn' }
         ];
         tabGroups = [
           {
-            groupLabel: 'NGHIỆP VỤ THU NGÂN & TIẾP ĐÓN',
+            groupLabel: 'Nghiệp vụ thu ngân & tiếp đón',
             ids: ['receipts', 'pos', 'bookings']
           }
         ];
@@ -97,21 +97,21 @@
         }
       } else if (activeRole === 'BRANCH_MANAGER') {
         visibleTabs = [
-          { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Doanh Thu Chi Nhánh' },
-          { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
-          { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
-          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
-          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
-          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Check-in Lịch Hẹn' }
+          { id: 'overview', icon: tabIcons.overview, label: 'Báo cáo doanh thu chi nhánh' },
+          { id: 'stylists', icon: tabIcons.stylists, label: 'Đội ngũ thợ & phân ca' },
+          { id: 'inventory', icon: tabIcons.inventory, label: 'Quản lý kho & sản phẩm' },
+          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu nhập kho' },
+          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch vụ & bảng giá' },
+          { id: 'pos', icon: tabIcons.pos, label: 'Thu ngân POS & hóa đơn' },
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp nhận & check-in lịch hẹn' }
         ];
         tabGroups = [
           {
-            groupLabel: 'CHỨC NĂNG QUẢN LÝ CHI NHÁNH',
+            groupLabel: 'Chức năng quản lý chi nhánh',
             ids: ['overview', 'stylists', 'inventory', 'receipts', 'catalog']
           },
           {
-            groupLabel: 'QUYỀN THU NGÂN',
+            groupLabel: 'Quyền thu ngân',
             ids: ['pos', 'bookings']
           }
         ];
@@ -120,35 +120,35 @@
         }
       } else {
         visibleTabs = [
-          { id: 'overview', icon: tabIcons.overview, label: 'Báo Cáo Toàn Chuỗi Salon' },
-          { id: 'branches', icon: tabIcons.branches, label: 'Quản Lý Chuỗi Chi Nhánh' },
-          { id: 'audit', icon: tabIcons.audit, label: 'Khách Hàng & Nhật Ký Kiểm Toán' },
-          { id: 'stylists', icon: tabIcons.stylists, label: 'Đội Ngũ Thợ & Phân Ca' },
-          { id: 'inventory', icon: tabIcons.inventory, label: 'Quản Lý Kho & Sản Phẩm' },
-          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu Nhập Kho' },
-          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch Vụ & Bảng Giá' },
-          { id: 'pos', icon: tabIcons.pos, label: 'Thu Ngân POS & Hóa Đơn' },
-          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp Nhận & Điều Phối Lịch Hẹn' }
+          { id: 'overview', icon: tabIcons.overview, label: 'Báo cáo toàn chuỗi salon' },
+          { id: 'branches', icon: tabIcons.branches, label: 'Quản lý chuỗi chi nhánh' },
+          { id: 'audit', icon: tabIcons.audit, label: 'Khách hàng & nhật ký kiểm toán' },
+          { id: 'stylists', icon: tabIcons.stylists, label: 'Đội ngũ thợ & phân ca' },
+          { id: 'inventory', icon: tabIcons.inventory, label: 'Quản lý kho & sản phẩm' },
+          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu nhập kho' },
+          { id: 'catalog', icon: tabIcons.catalog, label: 'Dịch vụ & bảng giá' },
+          { id: 'pos', icon: tabIcons.pos, label: 'Thu ngân POS & hóa đơn' },
+          { id: 'bookings', icon: tabIcons.bookings, label: 'Tiếp nhận & điều phối lịch hẹn' }
         ];
         tabGroups = [
           {
-            groupLabel: 'QUẢN TRỊ HỆ THỐNG',
+            groupLabel: 'Quản trị hệ thống',
             ids: ['overview', 'branches', 'audit']
           },
           {
-            groupLabel: 'QUẢN LÝ VẬN HÀNH & KHO',
+            groupLabel: 'Quản lý vận hành & kho',
             ids: ['stylists', 'inventory', 'receipts', 'catalog']
           },
           {
-            groupLabel: 'QUYỀN THU NGÂN & TIẾP NHẬN',
+            groupLabel: 'Quyền thu ngân & tiếp nhận',
             ids: ['pos', 'bookings']
           }
         ];
       }
 
       const roleBadge = activeRole === 'CASHIER'
-        ? 'Thu Ngân POS'
-        : (activeRole === 'BRANCH_MANAGER' ? 'Quản Lý Chi Nhánh' : 'Quản Trị Viên');
+        ? 'Thu ngân POS'
+        : (activeRole === 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' : 'Quản trị viên');
 
       const activeTabObj = visibleTabs.find(t => t.id === this.adminSubTab) || visibleTabs[0];
 
@@ -173,7 +173,7 @@
                 <div class="admin-brand-icon-box">OS</div>
                 <div class="admin-brand-text">
                   <div class="admin-brand-name">OMNI SALON</div>
-                  <div class="admin-brand-desc">Bảng Quản Trị Hệ Thống</div>
+                  <div class="admin-brand-desc">Bảng quản trị hệ thống</div>
                 </div>
               </div>
               <!-- Nút thu gọn menu (Thụt vào) nằm bên phải chữ OMNI SALON -->
@@ -234,12 +234,12 @@
             <div class="admin-sidebar-footer">
               <button type="button" class="admin-sidebar-footer-btn action-return" onclick="AdminWeb._goToCustomerPortal()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                <span>Về Giao Diện Khách</span>
+                <span>Về giao diện khách</span>
               </button>
               <button type="button" class="admin-sidebar-footer-btn action-reset" 
                       onclick="if(confirm('Khôi phục toàn bộ dữ liệu mẫu demo ban đầu?')) { window.store.resetToDefault(); if(window.UICommon) window.UICommon.showToast('Đã khôi phục dữ liệu gốc!'); AdminWeb.render(document.getElementById('webMainContainer')); }">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                <span>Khôi Phục Dữ Liệu</span>
+                <span>Khôi phục dữ liệu</span>
               </button>
               <div class="admin-sidebar-system-version">Omni Salon Enterprise • 2026</div>
             </div>
@@ -255,12 +255,12 @@
                 </button>
                 <div class="admin-topbar-title-cluster">
                   <div class="admin-topbar-breadcrumbs">
-                    <span>Hệ Thống Quản Trị</span>
+                    <span>Hệ thống quản trị</span>
                     <span class="crumb-sep">/</span>
-                    <span class="crumb-active">${activeTabObj?.label || 'Tổng Quan'}</span>
+                    <span class="crumb-active">${activeTabObj?.label || 'Tổng quan'}</span>
                   </div>
                   <h1 class="admin-topbar-heading">
-                    ${activeTabObj?.label || 'Bảng Quản Trị'}
+                    ${activeTabObj?.label || 'Bảng quản trị'}
                   </h1>
                 </div>
               </div>
@@ -272,7 +272,7 @@
                 </div>
                 <div class="admin-topbar-status-badge">
                   <span class="status-pulse-dot"></span>
-                  <span>Trực Tuyến</span>
+                  <span>Trực tuyến</span>
                 </div>
                 <!-- Nút chuyển chế độ Sáng / Tối icon tinh gọn -->
                 <button type="button" class="admin-topbar-theme-icon-btn theme-toggle-btn" 
@@ -356,22 +356,22 @@
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px 30px; max-width: 520px; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
             <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 18px;">🔒</div>
             <div class="badge-terracotta" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3);">
-              KHU VỰC DÀNH CHO QUẢN TRỊ &amp; NHÂN VIÊN
+              Khu vực dành cho quản trị &amp; nhân viên
             </div>
             <h2 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 14px 0 10px;">
-              Yêu Cầu Quyền Quản Trị
+              Yêu cầu quyền quản trị
             </h2>
             <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin-bottom: 24px;">
               ${user
-          ? `Tài khoản <strong>${this.escapeHtml(user.fullName || user.username)}</strong> hiện không có quyền truy cập vào Phân Hệ Quản Trị. Vui lòng đăng nhập với tài khoản Quản lý hoặc Nhân viên có thẩm quyền.`
+          ? `Tài khoản <strong>${this.escapeHtml(user.fullName || user.username)}</strong> hiện không có quyền truy cập vào phân hệ quản trị. Vui lòng đăng nhập với tài khoản Quản lý hoặc Nhân viên có thẩm quyền.`
           : 'Bạn chưa đăng nhập. Vui lòng đăng nhập với tài khoản Quản trị viên, Quản lý chi nhánh hoặc Nhân viên để vào trang này.'}
             </p>
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
               <button class="pill-btn-outline" style="padding: 10px 20px; font-size: 13.5px;" onclick="if(window.AppRouter) window.AppRouter.navigate('/'); else AdminWeb._goToCustomerPortal();">
-                ← Về Trang Chủ
+                ← Về trang chủ
               </button>
               <button class="btn-submit-terracotta" style="padding: 10px 22px; font-size: 13.5px; font-weight: 700; border-radius: 8px; background: #C59B27; color: #000;" onclick="if(window.UICommon) window.UICommon.openAuthModal('login');">
-                Đăng Nhập Tài Khoản
+                Đăng nhập tài khoản
               </button>
             </div>
           </div>

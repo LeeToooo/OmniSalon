@@ -186,11 +186,11 @@
 
             <!-- TIÊU ĐỀ TRANG EDITORIAL -->
             <div style="text-align: center; margin-bottom: 36px;">
-              <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
-                HỆ THỐNG CHI NHÁNH TOÀN THÀNH PHỐ
+              <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: none; margin-bottom: 8px; display: inline-block;">
+                Hệ thống chi nhánh toàn thành phố
               </span>
               <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; margin: 0 0 28px; color: var(--text-primary); word-break: break-word; overflow-wrap: break-word; max-width: 100%;">
-                KHÔNG GIAN BARBERSHOP &amp; VỊ TRÍ CHI NHÁNH
+                Không gian barbershop &amp; vị trí chi nhánh
               </h1>
 
               <!-- Ô TÌM KIẾM THEO QUẬN & DROPDOWN LỰA CHỌN -->
@@ -207,7 +207,7 @@
                 <div style="position: relative; min-width: 240px;">
                   <select id="branchDistrictSelect" onchange="BranchesPage.setDistrict(this.value)"
                           style="width: 100%; height: 44px; padding: 0 32px 0 14px; border-radius: 6px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13.5px; font-weight: 700; cursor: pointer; outline: none; box-sizing: border-box; appearance: none; -webkit-appearance: none;">
-                    <option value="all">Tất Cả Các Quận / Huyện (${branches.length})</option>
+                    <option value="all">Tất cả các quận / huyện (${branches.length})</option>
                     ${this.renderDistrictOptionsHTML(branches)}
                   </select>
                   <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 11px; pointer-events: none; color: var(--text-secondary);">▼</span>

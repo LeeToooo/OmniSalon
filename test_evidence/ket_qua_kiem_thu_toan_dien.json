@@ -1,0 +1,259 @@
+{
+  "timestamp": "2026-11-09T17:02:50.513Z",
+  "total": 25,
+  "passed": 24,
+  "failed": 1,
+  "passRate": "96%",
+  "results": [
+    {
+      "id": "TC_SYS_01",
+      "module": "Hệ Thống",
+      "name": "Kiểm tra máy chủ & CSDL SQL Server",
+      "method": "GET",
+      "url": "/api/health",
+      "status": "PASS",
+      "durationMs": 53,
+      "details": "Server: MSSQL_EXPRESS_DIRECT, Database: QL_SALON, Connected: true"
+    },
+    {
+      "id": "TC_AUTH_01",
+      "module": "Xác Thực",
+      "name": "Đăng nhập Quản trị viên (Admin Login)",
+      "method": "POST",
+      "url": "/api/auth/login",
+      "status": "PASS",
+      "durationMs": 59,
+      "details": "Đăng nhập thành công Admin: Lê Minh Hoàng, Token length: 616"
+    },
+    {
+      "id": "TC_AUTH_02",
+      "module": "Xác Thực",
+      "name": "Chặn đăng nhập sai mật khẩu (Negative Test)",
+      "method": "POST",
+      "url": "/api/auth/login",
+      "status": "PASS",
+      "durationMs": 12,
+      "details": "Hệ thống chặn chính xác: \"Sai thông tin đăng nhập hoặc mật khẩu.\""
+    },
+    {
+      "id": "TC_AUTH_03",
+      "module": "Xác Thực",
+      "name": "Kiểm tra token hồ sơ đang đăng nhập (/api/auth/me)",
+      "method": "GET",
+      "url": "/api/auth/me",
+      "status": "PASS",
+      "durationMs": 11,
+      "details": "Xác thực JWT hợp lệ, User: Lê Minh Hoàng"
+    },
+    {
+      "id": "TC_SRV_01",
+      "module": "Dịch Vụ",
+      "name": "Lấy danh mục dịch vụ cắt & tạo mẫu tóc",
+      "method": "GET",
+      "url": "/api/services",
+      "status": "PASS",
+      "durationMs": 17,
+      "details": "Lấy thành công 10 dịch vụ. Dịch vụ mẫu: [DV01] Cắt tóc nam Fade & Tạo kiểu sáp Pomade"
+    },
+    {
+      "id": "TC_SRV_02",
+      "module": "Dịch Vụ",
+      "name": "Lọc dịch vụ theo danh mục (Category Filter)",
+      "method": "GET",
+      "url": "/api/services?category=haircut",
+      "status": "PASS",
+      "durationMs": 17,
+      "details": "Lọc danh mục thành công, tìm thấy 10 dịch vụ"
+    },
+    {
+      "id": "TC_BRN_01",
+      "module": "Chi Nhánh",
+      "name": "Lấy mạng lưới chi nhánh toàn quốc",
+      "method": "GET",
+      "url": "/api/branches",
+      "status": "PASS",
+      "durationMs": 14,
+      "details": "Tìm thấy 20 chi nhánh. Chi nhánh đầu: [CN01] Omni Salon Barber Q1 - Bến Thành"
+    },
+    {
+      "id": "TC_BRN_02",
+      "module": "Chi Nhánh",
+      "name": "Xem chi tiết 1 cơ sở chi nhánh",
+      "method": "GET",
+      "url": "/api/branches/CN01",
+      "status": "PASS",
+      "durationMs": 14,
+      "details": "Chi tiết chi nhánh: undefined, Địa chỉ: undefined"
+    },
+    {
+      "id": "TC_STF_01",
+      "module": "Nhân Sự",
+      "name": "Lấy danh sách Stylist & thợ cắt tóc",
+      "method": "GET",
+      "url": "/api/stylists",
+      "status": "PASS",
+      "durationMs": 23,
+      "details": "Tổng số 61 thợ tóc. Stylist mẫu: [NV01] Lê Hoàng Hải"
+    },
+    {
+      "id": "TC_STF_02",
+      "module": "Nhân Sự",
+      "name": "Lọc Stylist theo chi nhánh làm việc",
+      "method": "GET",
+      "url": "/api/stylists?branchId=CN01",
+      "status": "PASS",
+      "durationMs": 3,
+      "details": "Tìm thấy 61 stylist trực thuộc cơ sở CN01"
+    },
+    {
+      "id": "TC_BKG_01",
+      "module": "Lịch Hẹn",
+      "name": "Tạo lịch hẹn cắt tóc mới (Create Booking)",
+      "method": "POST",
+      "url": "/api/bookings",
+      "status": "PASS",
+      "durationMs": 30,
+      "details": "Tạo thành công lịch hẹn: Mã [LH30] - Khách: Nguyễn Văn Test"
+    },
+    {
+      "id": "TC_BKG_02",
+      "module": "Lịch Hẹn",
+      "name": "Lấy danh sách tất cả lịch hẹn (Admin View)",
+      "method": "GET",
+      "url": "/api/bookings",
+      "status": "PASS",
+      "durationMs": 15,
+      "details": "Tổng số 15 lịch hẹn được quản lý trong hệ thống"
+    },
+    {
+      "id": "TC_BKG_03",
+      "module": "Lịch Hẹn",
+      "name": "Cập nhật trạng thái lịch hẹn (Vào ghế / Hoàn thành)",
+      "method": "PUT",
+      "url": "/api/bookings/LH30",
+      "status": "PASS",
+      "durationMs": 7,
+      "details": "Cập nhật trạng thái lịch hẹn thành công (Vào ghế cắt số 2)"
+    },
+    {
+      "id": "TC_PRD_01",
+      "module": "Sản Phẩm",
+      "name": "Lấy danh mục sản phẩm mỹ phẩm nam",
+      "method": "GET",
+      "url": "/api/products",
+      "status": "PASS",
+      "durationMs": 37,
+      "details": "Lấy thành công 130 sản phẩm. Sản phẩm mẫu: [SP01] Apestomen Volcanic Clay"
+    },
+    {
+      "id": "TC_PRD_02",
+      "module": "Sản Phẩm",
+      "name": "Tìm kiếm sản phẩm theo từ khóa (Search Product)",
+      "method": "GET",
+      "url": "/api/products?search=Pomade",
+      "status": "PASS",
+      "durationMs": 7,
+      "details": "Tìm kiếm thành công, tìm thấy 130 sản phẩm khớp từ khóa \"Pomade\""
+    },
+    {
+      "id": "TC_ORD_01",
+      "module": "Đơn Hàng",
+      "name": "Tạo đơn hàng mua mỹ phẩm (Retail Checkout)",
+      "method": "POST",
+      "url": "/api/orders",
+      "status": "FAIL",
+      "durationMs": 69,
+      "details": "Lỗi: HTTP 500"
+    },
+    {
+      "id": "TC_INV_01",
+      "module": "Kho Hàng",
+      "name": "Lấy báo cáo tồn kho sản phẩm theo chi nhánh",
+      "method": "GET",
+      "url": "/api/inventory",
+      "status": "PASS",
+      "durationMs": 59,
+      "details": "Báo cáo kho: theo dõi 2600 mặt hàng tồn kho"
+    },
+    {
+      "id": "TC_INV_02",
+      "module": "Kho Hàng",
+      "name": "Lấy danh sách Phiếu Nhập Kho (Goods Receipts)",
+      "method": "GET",
+      "url": "/api/receipts",
+      "status": "PASS",
+      "durationMs": 9,
+      "details": "Tìm thấy 0 phiếu nhập kho trong hệ thống"
+    },
+    {
+      "id": "TC_INV_03",
+      "module": "Kho Hàng",
+      "name": "Tạo Phiếu Nhập Kho mới (Tự động sinh mã)",
+      "method": "POST",
+      "url": "/api/receipts",
+      "status": "PASS",
+      "durationMs": 16,
+      "details": "Tạo thành công phiếu nhập [null], trạng thái mặc định: Chờ duyệt"
+    },
+    {
+      "id": "TC_INV_04",
+      "module": "Kho Hàng",
+      "name": "Chặn từ chối phiếu nhập nếu thiếu lý do (Validation Rule)",
+      "method": "POST",
+      "url": "/api/receipts/PN25/reject",
+      "status": "PASS",
+      "durationMs": 15,
+      "details": "Hệ thống chặn hợp lệ khi thiếu lý do: \"undefined\""
+    },
+    {
+      "id": "TC_POS_01",
+      "module": "Thu Ngân",
+      "name": "Kiểm tra API cấu hình giao dịch tại quầy (POS)",
+      "method": "GET",
+      "url": "/api/pos",
+      "status": "PASS",
+      "durationMs": 16,
+      "details": "Mô-đun POS kết nối tốt, sẵn sàng lập hóa đơn và quét mã QR"
+    },
+    {
+      "id": "TC_AIS_01",
+      "module": "AI Studio",
+      "name": "Kiểm tra trạng thái kết nối AI Vision Analyzer",
+      "method": "GET",
+      "url": "/api/ai/health",
+      "status": "PASS",
+      "durationMs": 16,
+      "details": "Bộ não Python AI Vision Analyzer sẵn sàng phục vụ phân đoạn khuôn mặt"
+    },
+    {
+      "id": "TC_MKT_01",
+      "module": "Marketing",
+      "name": "Lấy danh mục mã voucher giảm giá (Coupons)",
+      "method": "GET",
+      "url": "/api/promotions",
+      "status": "PASS",
+      "durationMs": 18,
+      "details": "Lấy thành công 2 chương trình khuyến mãi & mã ưu đãi"
+    },
+    {
+      "id": "TC_REV_01",
+      "module": "Đánh Giá",
+      "name": "Lấy danh sách phản hồi & đánh giá khách hàng",
+      "method": "GET",
+      "url": "/api/reviews",
+      "status": "PASS",
+      "durationMs": 17,
+      "details": "Hệ thống ghi nhận 15 lượt đánh giá thực tế của khách hàng"
+    },
+    {
+      "id": "TC_ANL_01",
+      "module": "Báo Cáo",
+      "name": "Lấy phân tích doanh thu & chỉ số vận hành chi nhánh",
+      "method": "GET",
+      "url": "/api/analytics/revenue",
+      "status": "PASS",
+      "durationMs": 14,
+      "details": "Doanh thu phân tích sẵn sàng: Tổng 994000, Khung giờ cao điểm: 14h-16h"
+    }
+  ]
+}

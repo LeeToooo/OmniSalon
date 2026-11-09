@@ -218,7 +218,7 @@
               <button type="button"
                       class="branch-book-btn"
                       onclick="${onBookClick}">
-                Đặt Lịch Hẹn
+                Đặt lịch hẹn
               </button>
 
               <a href="${data.mapUrl}" 
@@ -226,7 +226,7 @@
                  rel="noopener noreferrer" 
                  class="branch-map-btn" 
                  title="Mở bản đồ Google Maps chỉ đường đến chi nhánh này">
-                Chỉ Đường
+                Chỉ đường
               </a>
             </div>
 

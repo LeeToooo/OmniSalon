@@ -50,7 +50,7 @@
       const getRoleBadge = (u) => {
         if (typeof this.getRoleBadgeText === 'function') return this.getRoleBadgeText(u);
         if (window.CustomerWeb && typeof window.CustomerWeb.getRoleBadgeText === 'function') return window.CustomerWeb.getRoleBadgeText(u);
-        return 'Khách Hàng';
+        return 'Khách hàng';
       };
 
       const renderShopMega = () => {
@@ -88,16 +88,16 @@
 
             <!-- CỤM 2  - GIỮA - : Navigation Links thuần tiếng Việt -->
             <nav class="web-nav-links">
-              <a href="/" data-route="/" class="nav-link ${currentTab === 'home' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('home')">Trang Chủ</a>
-              <a href="/services" data-route="/services" class="nav-link ${currentTab === 'services' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('services')">Dịch Vụ</a>
-              <a href="/stylists" data-route="/stylists" class="nav-link ${currentTab === 'stylists' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists')">Thợ Tạo Mẫu</a>
-              <a href="/booking" data-route="/booking" class="nav-link ${currentTab === 'booking' ? 'active' : ''} text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('booking')">Đặt Lịch</a>
+              <a href="/" data-route="/" class="nav-link ${currentTab === 'home' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('home')">Trang chủ</a>
+              <a href="/services" data-route="/services" class="nav-link ${currentTab === 'services' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('services')">Dịch vụ</a>
+              <a href="/stylists" data-route="/stylists" class="nav-link ${currentTab === 'stylists' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists')">Thợ tạo mẫu</a>
+              <a href="/booking" data-route="/booking" class="nav-link ${currentTab === 'booking' ? 'active' : ''} text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('booking')">Đặt lịch</a>
               <!-- CỬA HÀNG (MEGA MENU - CHUẨN ẢNH 2 4RAU) -->
               <div class="nav-mega-parent" id="navShopMegaWrap"
                    onmouseenter="CustomerWeb.handleMegaEnter('shop')"
                    onmouseleave="CustomerWeb.handleMegaLeave('shop')">
                 <a href="/shop" data-route="/shop" class="nav-link nav-link-optional ${currentTab === 'shop' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.handleNavMegaClick('shop', event)">
-                  <span>Cửa Hàng</span>
+                  <span>Cửa hàng</span>
                   <svg class="nav-caret-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
@@ -112,7 +112,7 @@
                    onmouseenter="CustomerWeb.handleMegaEnter('branches')"
                    onmouseleave="CustomerWeb.handleMegaLeave('branches')">
                 <a href="/branches" data-route="/branches" class="nav-link nav-link-optional ${currentTab === 'branches' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.handleNavMegaClick('branches', event)">
-                  <span>Chi Nhánh</span>
+                  <span>Chi nhánh</span>
                   <svg class="nav-caret-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
@@ -121,7 +121,7 @@
                   ${renderBranchesMega()}
                 </div>
               </div>
-              <a href="/ai-studio" data-route="/ai-studio" class="nav-link nav-link-optional text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('ai')">AI Tạo Kiểu Tóc</a>
+              <a href="/ai-studio" data-route="/ai-studio" class="nav-link nav-link-optional text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('ai')">AI tạo kiểu tóc</a>
             </nav>
 
             <!-- CỤM 3  - PHẢI - : Search, Cart, Theme Toggle, User Dropdown -->
@@ -251,7 +251,7 @@
                           </div>
                           <button class="dropdown-item-btn" style="background: var(--surface-card); color: var(--text-primary); font-weight: 700; border: 1px solid var(--border-color); border-radius: 8px; margin: 2px 0;" onclick="CustomerWeb.closeUserMenu(); if(window.AdminWeb) { AdminWeb.adminSubTab = 'receipts'; AdminWeb.inventorySubTab = 'receipts'; CustomerWeb.switchTab('admin'); setTimeout(() => { AdminWeb.switchSubTab('receipts'); AdminWeb.openAddReceiptModal(); }, 200); }">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                            <span>Lập Phiếu Nhập Kho</span>
+                            <span>Lập phiếu nhập kho</span>
                           </button>
                         `;
                       }
@@ -269,7 +269,7 @@
                         return `
                           <button class="dropdown-item-btn" style="margin: 2px 0;" onclick="CustomerWeb.openStaffShiftModal(); CustomerWeb.closeUserMenu();">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                            <span>Lịch Làm Hôm Nay &amp; Đăng Ký Ca</span>
+                            <span>Lịch làm hôm nay &amp; đăng ký ca</span>
                           </button>
                         `;
                       }
@@ -279,13 +279,13 @@
                     <!-- Trang ca nhan -->
                     <button class="dropdown-item-btn" onclick="CustomerWeb.closeUserMenu(); if(window.AppRouter) window.AppRouter.navigate('/profile'); else CustomerWeb.switchTab('profile');">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                      <span>Trang Cá Nhân</span>
+                      <span>Trang cá nhân</span>
                     </button>
 
                     <!-- Tra cuu lich hen -->
                     <button onclick="CustomerWeb.openLookupModal(); CustomerWeb.closeUserMenu();" class="dropdown-item-btn">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                      <span>Tra Cứu Lịch Hẹn</span>
+                      <span>Tra cứu lịch hẹn</span>
                     </button>
 
                     <div style="height: 1px; background: var(--border-color); margin: 4px 0;"></div>
@@ -293,7 +293,7 @@
                     <!-- Nut Dang Xuat -->
                     <button class="dropdown-logout-btn" onclick="window.AuthEngine ? window.AuthEngine.logout() : (window.store && window.store.logout()); CustomerWeb._lookupLastQuery = ''; CustomerWeb.currentTab = 'home'; CustomerWeb.renderHeader(); if(window.AppRouter) window.AppRouter.navigate('/'); else CustomerWeb.switchTab('home'); if(window.UICommon) window.UICommon.showToast('Đã đăng xuất tài khoản!'); CustomerWeb.closeUserMenu();">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                      <span>Đăng Xuất</span>
+                      <span>Đăng xuất</span>
                     </button>
                   </div>
                 </div>
@@ -305,7 +305,7 @@
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
                     </svg>
-                    <span>Đăng Nhập</span>
+                    <span>Đăng nhập</span>
                   </button>
                 </div>
               `}

@@ -197,13 +197,13 @@
 
       // Cấu hình dữ liệu biểu đồ theo mốc thời gian: Hôm Nay | 7 Ngày Qua | Tháng Này
       let chartData = [];
-      let chartTitle = 'Xu Hướng Doanh Thu';
+      let chartTitle = 'Xu hướng doanh thu';
       let peakPeriodLabel = '';
       let currentPeriodRev = totalRevenue;
 
       if (timePeriod === 'today') {
         // Biểu đồ theo các khung giờ trong ngày hôm nay
-        chartTitle = chartMode === 'services' ? 'Doanh Thu Dịch Vụ Hôm Nay' : (chartMode === 'products' ? 'Doanh Số Bán Lẻ Hôm Nay' : 'Xu Hướng Doanh Thu Hôm Nay');
+        chartTitle = chartMode === 'services' ? 'Doanh thu dịch vụ hôm nay' : (chartMode === 'products' ? 'Doanh số bán lẻ hôm nay' : 'Xu hướng doanh thu hôm nay');
         const slots = [
           { label: '08:00', slot: '08h-10h', revShare: 0.12, isCurrent: false },
           { label: '10:00', slot: '10h-12h', revShare: 0.18, isCurrent: false },
@@ -230,7 +230,7 @@
         peakPeriodLabel = 'Khung giờ cao điểm: 14:00 – 16:00';
       } else if (timePeriod === 'month') {
         // Biểu đồ theo các tuần trong tháng này (Tuần 1 - Tuần 4)
-        chartTitle = chartMode === 'services' ? 'Doanh Thu Dịch Vụ Tháng Này' : (chartMode === 'products' ? 'Doanh Số Bán Lẻ Tháng Này' : 'Xu Hướng Doanh Thu Tháng Này');
+        chartTitle = chartMode === 'services' ? 'Doanh thu dịch vụ tháng này' : (chartMode === 'products' ? 'Doanh số bán lẻ tháng này' : 'Xu hướng doanh thu tháng này');
         const weeks = [
           { label: 'Tuần 1', short: 'T1', revMult: 0.88, isCurrent: false },
           { label: 'Tuần 2', short: 'T2', revMult: 1.15, isCurrent: false },
@@ -256,7 +256,7 @@
         currentPeriodRev = chartData.reduce((acc, c) => acc + c.revenue, 0);
       } else {
         // Biểu đồ 7 ngày gần nhất gom nhóm theo ngày trong tuần
-        chartTitle = chartMode === 'services' ? 'Doanh Thu Dịch Vụ Cắt Tóc 7 Ngày' : (chartMode === 'products' ? 'Doanh Số Bán Lẻ Mỹ Phẩm 7 Ngày' : 'Xu Hướng Doanh Thu 7 Ngày Gần Nhất');
+        chartTitle = chartMode === 'services' ? 'Doanh thu dịch vụ cắt tóc 7 ngày' : (chartMode === 'products' ? 'Doanh số bán lẻ mỹ phẩm 7 ngày' : 'Xu hướng doanh thu 7 ngày gần nhất');
         const rawWeekly = (analytics.weeklyData && analytics.weeklyData.length > 0)
           ? analytics.weeklyData
           : ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'].map(d => ({ day: d, revenue: 0, serviceRevenue: 0, productRevenue: 0, bookingsCount: 0 }));
@@ -385,17 +385,17 @@
               <button type="button" 
                       style="padding: 6px 14px; font-size: 12.5px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; ${timePeriod === 'today' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
                       onclick="AdminWeb.overviewTimePeriod = 'today'; AdminWeb.refreshSubTab();">
-                Hôm Nay
+                Hôm nay
               </button>
               <button type="button" 
                       style="padding: 6px 14px; font-size: 12.5px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; ${timePeriod === '7days' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
                       onclick="AdminWeb.overviewTimePeriod = '7days'; AdminWeb.refreshSubTab();">
-                7 Ngày Qua
+                7 ngày qua
               </button>
               <button type="button" 
                       style="padding: 6px 14px; font-size: 12.5px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; ${timePeriod === 'month' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
                       onclick="AdminWeb.overviewTimePeriod = 'month'; AdminWeb.refreshSubTab();">
-                Tháng Này
+                Tháng này
               </button>
             </div>
           </div>
@@ -403,11 +403,11 @@
           <div style="display: flex; align-items: center; gap: 10px;">
             <button type="button" class="pill-btn-outline" style="height: 38px; padding: 0 16px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;" onclick="window.print()" title="In báo cáo phân tích">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-              <span>In Báo Cáo</span>
+              <span>In báo cáo</span>
             </button>
             <button type="button" class="btn-submit-terracotta" style="height: 38px; padding: 0 16px; font-size: 12.5px; font-weight: 800; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; background: #C59B27; color: #141413; border: 1px solid #C59B27;" onclick="if(window.UICommon) window.UICommon.showToast('Đang trích xuất dữ liệu phân tích sang tệp CSV...', 'success');">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>Xuất Dữ Liệu</span>
+              <span>Xuất dữ liệu</span>
             </button>
           </div>
         </div>
@@ -417,7 +417,7 @@
           <!-- KPI 1: Doanh Thu -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Doanh Thu Chuỗi</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Doanh thu chuỗi</span>
               <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">+14.8%</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
@@ -432,11 +432,11 @@
           <!-- KPI 2: Lượt Phục Vụ & Hoàn Tất -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Lịch Hẹn Phục Vụ</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Lịch hẹn phục vụ</span>
               <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">Tỷ lệ ${analytics.completionRate}%</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
-              ${totalBookings} Lượt Ca
+              ${totalBookings} lượt ca
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
               <span>${analytics.confirmedCount} thành công • ${analytics.cancelledCount} hủy</span>
@@ -447,7 +447,7 @@
           <!-- KPI 3: Giá Trị Đơn Trung Bình (AOV) -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Giá Trị TB / Khách (AOV)</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Giá trị TB / khách (AOV)</span>
               <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">+35k Upsell</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
@@ -462,8 +462,8 @@
           <!-- KPI 4: Công Suất Ghế & Đội Ngũ -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Công Suất Ghế Cắt</span>
-              <span style="font-size: 11px; font-weight: 700; color: ${occupancyPct >= 80 ? '#F59E0B' : '#10B981'}; background: ${occupancyPct >= 80 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)'}; padding: 2px 7px; border-radius: 6px;">${occupancyPct >= 80 ? 'Giờ Vàng' : 'Tối Ưu'}</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Công suất ghế cắt</span>
+              <span style="font-size: 11px; font-weight: 700; color: ${occupancyPct >= 80 ? '#F59E0B' : '#10B981'}; background: ${occupancyPct >= 80 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)'}; padding: 2px 7px; border-radius: 6px;">${occupancyPct >= 80 ? 'Giờ vàng' : 'Tối ưu'}</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
               ${occupancyPct}% Ghế
@@ -477,11 +477,11 @@
           <!-- KPI 5: Tỷ Lệ Khách Quen & Giữ Chân -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Tỷ Lệ Khách Quen</span>
-              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">Đạt Chuẩn VIP</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Tỷ lệ khách quen</span>
+              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">Đạt chuẩn VIP</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
-              82.5% Khách Quen
+              82.5% khách quen
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
               <span>Khách mới: <strong>17.5%</strong></span>
@@ -492,7 +492,7 @@
           <!-- KPI 6: Vốn Kho & Phiếu Nhập -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px; cursor: pointer;" onclick="AdminWeb.switchSubTab('receipts')" title="Xem chi tiết phiếu nhập kho">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Vốn Kho &amp; Phiếu Nhập</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Vốn kho &amp; phiếu nhập</span>
               <span style="font-size: 11px; font-weight: 700; color: #3B82F6; background: rgba(59, 130, 246, 0.12); padding: 2px 7px; border-radius: 6px;">${branchReceipts.length} Phiếu →</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
@@ -512,8 +512,8 @@
             <!-- Tiêu Đề & Bộ Lọc Chuẩn Báo Cáo Điều Hành -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
               <div>
-                <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
-                  Báo Cáo Doanh Thu
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: none; letter-spacing: 0.05em; margin-bottom: 2px;">
+                  Báo cáo doanh thu
                 </div>
                 <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0;">
                   ${chartTitle}
@@ -525,17 +525,17 @@
                 <button type="button" 
                         style="padding: 4px 12px; font-size: 12px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; ${chartMode === 'all' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
                         onclick="AdminWeb.overviewChartMode = 'all'; AdminWeb.refreshSubTab();">
-                  Tất Cả
+                  Tất cả
                 </button>
                 <button type="button" 
                         style="padding: 4px 12px; font-size: 12px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; ${chartMode === 'services' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
                         onclick="AdminWeb.overviewChartMode = 'services'; AdminWeb.refreshSubTab();">
-                  Dịch Vụ
+                  Dịch vụ
                 </button>
                 <button type="button" 
                         style="padding: 4px 12px; font-size: 12px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; ${chartMode === 'products' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
                         onclick="AdminWeb.overviewChartMode = 'products'; AdminWeb.refreshSubTab();">
-                  Bán Lẻ
+                  Bán lẻ
                 </button>
               </div>
             </div>
@@ -543,7 +543,7 @@
             <!-- Dải Chỉ Số Quản Trị Cốt Lõi (Executive Summary Strip) -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;">
               <div>
-                <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Tổng Doanh Thu Kỳ</div>
+                <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Tổng doanh thu kỳ</div>
                 <div style="font-size: 16px; font-weight: 900; color: #C59B27; font-variant-numeric: tabular-nums;">
                   ${SalonUtils.formatCurrency(periodTotalRev)}
                 </div>
@@ -602,7 +602,7 @@
             <div style="margin-bottom: 14px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0;">
-                  Phân Bổ Mật Độ Khách Theo Khung Giờ (Giờ Vàng)
+                  Phân bổ mật độ khách theo khung giờ (giờ vàng)
                 </h4>
                 <span style="font-size: 12px; color: #C59B27; font-weight: 700;">Đỉnh: 14h - 18h30</span>
               </div>
@@ -658,11 +658,11 @@
             <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
               <div>
                 <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0;">
-                  Bảng Xếp Hạng Năng Suất Barber
+                  Bảng xếp hạng năng suất barber
                 </h4>
               </div>
               <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px;" onclick="AdminWeb.switchSubTab('stylists')">
-                Tất Cả Thợ →
+                Tất cả thợ →
               </button>
             </div>
 
@@ -672,10 +672,10 @@
                   <tr>
                     <th style="width: 40px; text-align: center;">#</th>
                     <th>Barber</th>
-                    <th>Chi Nhánh</th>
-                    <th style="text-align: center;">Ca Cắt</th>
-                    <th style="text-align: right;">Doanh Thu</th>
-                    <th style="text-align: center;">Đánh Giá</th>
+                    <th>Chi nhánh</th>
+                    <th style="text-align: center;">Ca cắt</th>
+                    <th style="text-align: right;">Doanh thu</th>
+                    <th style="text-align: center;">Đánh giá</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -722,11 +722,11 @@
             <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
               <div>
                 <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0;">
-                  Hiệu Suất Mạng Lưới Chi Nhánh
+                  Hiệu suất mạng lưới chi nhánh
                 </h4>
               </div>
               <button type="button" class="pill-btn-outline" style="font-size: 12px; padding: 5px 12px;" onclick="AdminWeb.switchSubTab('branches')">
-                Tất Cả Cơ Sở →
+                Tất cả cơ sở →
               </button>
             </div>
 
@@ -734,11 +734,11 @@
               <table class="admin-enterprise-table" style="width: 100%; font-size: 12.5px;">
                 <thead>
                   <tr>
-                    <th>Chi Nhánh</th>
-                    <th style="text-align: right;">Doanh Thu</th>
-                    <th style="text-align: center;">Lượt Khách</th>
-                    <th style="text-align: center;">Công Suất</th>
-                    <th style="text-align: center;">Trạng Thái</th>
+                    <th>Chi nhánh</th>
+                    <th style="text-align: right;">Doanh thu</th>
+                    <th style="text-align: center;">Lượt khách</th>
+                    <th style="text-align: center;">Công suất</th>
+                    <th style="text-align: center;">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody>

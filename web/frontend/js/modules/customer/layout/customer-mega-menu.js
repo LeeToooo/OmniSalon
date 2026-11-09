@@ -230,12 +230,12 @@
           <div class="mega-column">
             <div class="mega-col-title">GROOMING</div>
             <ul class="mega-col-list">
-              <li><a href="/shop?category=DM02" onclick="CustomerWeb.selectShopCategory('DM02', event)">Pomade Gốc Dầu &amp; Gốc Nước</a></li>
-              <li><a href="/shop?category=DM01" onclick="CustomerWeb.selectShopCategory('DM01', event)">Clay, Wax &amp; Fiber Tạo Phồng</a></li>
-              <li><a href="/shop?category=DM03" onclick="CustomerWeb.selectShopCategory('DM03', event)">Pre-styling &amp; Xịt Muối Biển</a></li>
-              <li><a href="/shop?category=DM05" onclick="CustomerWeb.selectShopCategory('DM05', event)">Dầu Gội &amp; Dưỡng Tóc Nam</a></li>
-              <li><a href="/shop?category=DM08" onclick="CustomerWeb.selectShopCategory('DM08', event)">Chăm Sóc Râu &amp; Shaving</a></li>
-              <li class="mega-col-action"><a href="/shop" onclick="CustomerWeb.selectShopCategory('all', event)">Tất Cả Sáp Vuốt Tóc &rarr;</a></li>
+              <li><a href="/shop?category=DM02" onclick="CustomerWeb.selectShopCategory('DM02', event)">Pomade gốc dầu &amp; gốc nước</a></li>
+              <li><a href="/shop?category=DM01" onclick="CustomerWeb.selectShopCategory('DM01', event)">Clay, wax &amp; fiber tạo phồng</a></li>
+              <li><a href="/shop?category=DM03" onclick="CustomerWeb.selectShopCategory('DM03', event)">Pre-styling &amp; xịt muối biển</a></li>
+              <li><a href="/shop?category=DM05" onclick="CustomerWeb.selectShopCategory('DM05', event)">Dầu gội &amp; dưỡng tóc nam</a></li>
+              <li><a href="/shop?category=DM08" onclick="CustomerWeb.selectShopCategory('DM08', event)">Chăm sóc râu &amp; shaving</a></li>
+              <li class="mega-col-action"><a href="/shop" onclick="CustomerWeb.selectShopCategory('all', event)">Tất cả sáp vuốt tóc &rarr;</a></li>
             </ul>
           </div>
 
@@ -243,11 +243,11 @@
           <div class="mega-column">
             <div class="mega-col-title">PHỤ KIỆN &amp; DỤNG CỤ</div>
             <ul class="mega-col-list">
-              <li><a href="/shop?category=DM09" onclick="CustomerWeb.selectShopCategory('DM09', event)">Lược Bán Nguyệt &amp; Afro</a></li>
-              <li><a href="/shop?category=DM09" onclick="CustomerWeb.selectShopCategory('DM09', event)">Máy Sấy Tạo Phồng Nanoe</a></li>
-              <li><a href="/shop?category=DM04" onclick="CustomerWeb.selectShopCategory('DM04', event)">Gôm Xịt Khóa Nếp Hairspray</a></li>
-              <li><a href="/shop?category=DM06" onclick="CustomerWeb.selectShopCategory('DM06', event)">Bột Rắc Tạo Phồng Volume</a></li>
-              <li><a href="/shop?category=DM07" onclick="CustomerWeb.selectShopCategory('DM07', event)">Uốn Lạnh Down Perm Tại Nhà</a></li>
+              <li><a href="/shop?category=DM09" onclick="CustomerWeb.selectShopCategory('DM09', event)">Lược bán nguyệt &amp; afro</a></li>
+              <li><a href="/shop?category=DM09" onclick="CustomerWeb.selectShopCategory('DM09', event)">Máy sấy tạo phồng Nanoe</a></li>
+              <li><a href="/shop?category=DM04" onclick="CustomerWeb.selectShopCategory('DM04', event)">Gôm xịt khóa nếp hairspray</a></li>
+              <li><a href="/shop?category=DM06" onclick="CustomerWeb.selectShopCategory('DM06', event)">Bột rắc tạo phồng volume</a></li>
+              <li><a href="/shop?category=DM07" onclick="CustomerWeb.selectShopCategory('DM07', event)">Uốn lạnh down perm tại nhà</a></li>
             </ul>
           </div>
 
@@ -261,7 +261,7 @@
               <li><a href="/shop?brand=reuzel" onclick="CustomerWeb.selectShopBrand('reuzel', event)">Reuzel Pomade (Rotterdam)</a></li>
               <li><a href="/shop?brand=kevin-uppercut" onclick="CustomerWeb.selectShopBrand('kevin-uppercut', event)">Kevin Murphy &amp; Uppercut</a></li>
               <li><a href="/shop?brand=davines" onclick="CustomerWeb.selectShopBrand('davines', event)">Davines (Italy)</a></li>
-              <li class="mega-col-action"><a href="/shop" onclick="CustomerWeb.selectShopCategory('all', event)">Xem Tất Cả Thương Hiệu &rarr;</a></li>
+              <li class="mega-col-action"><a href="/shop" onclick="CustomerWeb.selectShopCategory('all', event)">Xem tất cả thương hiệu &rarr;</a></li>
             </ul>
           </div>
 
@@ -269,7 +269,7 @@
           <div class="mega-column">
             <div class="mega-col-title">DANH MỤC KHÁC</div>
             <ul class="mega-col-list">
-              <li><a href="/shop" onclick="CustomerWeb.selectShopSpecial('bestseller', event)">Sản Phẩm Bán Chạy</a></li>
+              <li><a href="/shop" onclick="CustomerWeb.selectShopSpecial('bestseller', event)">Sản phẩm bán chạy</a></li>
               <li>
                 <a href="/shop?category=fefo_expiry" onclick="CustomerWeb.selectShopCategory('fefo_expiry', event)" style="font-weight: 700; color: #DC2626;">
                   END OF SEASON SALE <span class="mega-badge-sale">SALE</span>
@@ -295,7 +295,7 @@
               <li><a href="/branches?district=Qu%E1%BA%ADn%203" onclick="CustomerWeb.selectBranchDistrict('Quận 3', event)">Quận 3 - Nam Kỳ Khởi Nghĩa</a></li>
               <li><a href="/branches?district=Qu%E1%BA%ADn%205" onclick="CustomerWeb.selectBranchDistrict('Quận 5', event)">Quận 5 - Trần Hưng Đạo</a></li>
               <li><a href="/branches?district=Qu%E1%BA%ADn%2010" onclick="CustomerWeb.selectBranchDistrict('Quận 10', event)">Quận 10 - 3 Tháng 2</a></li>
-              <li class="mega-col-action"><a href="/branches" onclick="CustomerWeb.selectBranchDistrict('all', event)">Xem Tất Cả 20 Chi Nhánh &rarr;</a></li>
+              <li class="mega-col-action"><a href="/branches" onclick="CustomerWeb.selectBranchDistrict('all', event)">Xem tất cả 20 chi nhánh &rarr;</a></li>
             </ul>
           </div>
 
@@ -327,8 +327,8 @@
           <div class="mega-column">
             <div class="mega-col-title">ĐẶC QUYỀN &amp; TIỆN ÍCH</div>
             <ul class="mega-col-list">
-              <li><a href="/booking" onclick="CustomerWeb.switchTab('booking'); CustomerWeb.closeAllMegaMenus();">Đặt Lịch Giữ Chỗ Barber</a></li>
-              <li><span style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; display: block; margin-top: 4px;">Giờ Mở Cửa: 08:30 - 21:30 Mỗi Ngày</span></li>
+              <li><a href="/booking" onclick="CustomerWeb.switchTab('booking'); CustomerWeb.closeAllMegaMenus();">Đặt lịch giữ chỗ barber</a></li>
+              <li><span style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; display: block; margin-top: 4px;">Giờ mở cửa: 08:30 - 21:30 mỗi ngày</span></li>
             </ul>
           </div>
         </div>

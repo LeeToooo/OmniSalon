@@ -165,11 +165,11 @@
           
           <!-- BANNER TIÊU ĐỀ EDITORIAL -->
           <div style="text-align: center; margin-bottom: 36px;">
-            <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
-              ĐẶT LỊCH TRỰC TUYẾN 24/7
+            <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: none; margin-bottom: 8px; display: inline-block;">
+              Đặt lịch trực tuyến 24/7
             </span>
             <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(30px, 4.2vw, 44px); font-weight: 700; color: var(--text-primary); margin: 0;">
-              ĐẶT LỊCH CẮT TÓC &amp; TẠO MẪU CHUYÊN NGHIỆP
+              Đặt lịch cắt tóc &amp; tạo mẫu chuyên nghiệp
             </h1>
           </div>
 
@@ -177,7 +177,7 @@
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 18px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; box-shadow: none;">
             <div style="display: flex; align-items: center; gap: 12px;">
               <div>
-                <strong style="color: var(--text-primary); font-size: 15px; display: block;">Chi Nhánh Omni Salon Gần Bạn Nhất:</strong>
+                <strong style="color: var(--text-primary); font-size: 15px; display: block;">Chi nhánh Omni Salon gần bạn nhất:</strong>
                 <span style="color: var(--text-secondary); font-size: 13px;">Chọn cơ sở bạn muốn ghé trải nghiệm</span>
               </div>
             </div>
@@ -199,7 +199,7 @@
                     1
                   </span>
                   <div>
-                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">1. Chọn Dịch Vụ &amp; Gói Chăm Sóc (Có thể chọn nhiều)</h3>
+                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">1. Chọn dịch vụ &amp; gói chăm sóc (Có thể chọn nhiều)</h3>
                     <span style="font-size: 13px; color: ${hasSelectedServices ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
                       ${this.getSelectedServicesSummaryText() || 'Bấm chọn một hoặc nhiều dịch vụ bên dưới'}
                     </span>
@@ -221,7 +221,7 @@
                     2
                   </span>
                   <div>
-                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">2. Chọn Thợ Barber Tạo Mẫu</h3>
+                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">2. Chọn thợ barber tạo mẫu</h3>
                     <span style="font-size: 13px; color: ${hasSelectedStylist ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
                       ${this.getSelectedStylistName() || (hasSelectedServices ? 'Chọn thợ phục vụ hoặc tự động xếp thợ nhanh' : 'Chờ chọn dịch vụ hoặc combo ở Bước 1')}
                     </span>
@@ -243,7 +243,7 @@
                     3
                   </span>
                   <div>
-                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">3. Chọn Ngày &amp; Khung Giờ Cắt Tóc</h3>
+                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">3. Chọn ngày &amp; khung giờ cắt tóc</h3>
                     <span style="font-size: 13px; color: ${hasSelectedTime ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
                       ${this.bookingState.timeSlot ? `Đã chọn: ${SalonUtils.formatDate(this.bookingState.date)} lúc ${this.bookingState.timeSlot}` : (hasSelectedServices ? 'Bấm chọn ngày và giờ còn trống' : 'Chờ chọn dịch vụ hoặc combo ở Bước 1')}
                     </span>
@@ -265,7 +265,7 @@
                     4
                   </span>
                   <div>
-                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">4. Thông Tin Khách Hàng &amp; Xác Nhận Đặt Lịch</h3>
+                    <h3 class="font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px;">4. Thông tin khách hàng &amp; xác nhận đặt lịch</h3>
                     <span style="font-size: 13px; color: ${this.expandedSteps.step4 ? '#C59B27' : 'var(--text-secondary)'}; font-weight: 600;">
                       ${this.expandedSteps.step4 ? 'Kiểm tra tóm tắt phiếu đặt hẹn và bấm xác nhận' : 'Chờ hoàn thành các bước trên...'}
                     </span>
@@ -783,10 +783,10 @@
               </div>
               <div style="display: flex; gap: 10px; align-items: center;">
                 <button type="button" class="btn-cancel" onclick="BookingPage.clearSelectedServices()" style="padding: 10px 16px; font-size: 13px; border-radius: 6px; cursor: pointer;">
-                  Xóa Hết
+                  Xóa hết
                 </button>
                 <button type="button" class="btn-submit-terracotta" onclick="BookingPage.proceedToStep2()" style="padding: 10px 22px; font-size: 13.5px; font-weight: 700; border-radius: 6px; background: #C59B27; color: #141413; border: 1px solid #C59B27; cursor: pointer;">
-                  Tiếp Tục Sang Chọn Thợ (${calc.count}) →
+                  Tiếp tục sang chọn thợ (${calc.count}) →
                 </button>
               </div>
             </div>
@@ -814,12 +814,12 @@
             <div style="display: flex; align-items: center; gap: 16px;">
               <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1.5px solid #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900;">AUTO</div>
               <div>
-                <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">Tự Động Chọn Thợ Tay Nghề Cao (Nhanh Nhất)</h4>
+                <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">Tự động chọn thợ tay nghề cao (nhanh nhất)</h4>
                 <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Hệ thống Omni Salon sẽ xếp ngay Barber tay nghề chuẩn đang rảnh ghế tại chi nhánh để bạn không phải đợi.</p>
               </div>
             </div>
             <span style="font-size: 14px; font-weight: 800; color: #f59e0b;">
-              ${this.bookingState.stylistId === '' ? 'Đang Chọn' : 'Chọn Nhanh'}
+              ${this.bookingState.stylistId === '' ? 'Đang chọn' : 'Chọn nhanh'}
             </span>
           </div>
 
@@ -1151,7 +1151,7 @@
             <!-- TỔNG CỘNG -->
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px;">
               <div>
-                <span style="font-size: 13px; font-weight: 800; color: var(--text-secondary); display: block;">TỔNG THANH TOÁN:</span>
+                <span style="font-size: 13px; font-weight: 800; color: var(--text-secondary); display: block;">Tổng thanh toán:</span>
                 <span style="font-size: 12px; color: var(--text-secondary);">Thời lượng: <strong>${calc.totalDuration} phút</strong></span>
               </div>
               <span style="font-size: 24px; font-weight: 800; color: #C59B27;">
@@ -1161,7 +1161,7 @@
 
             <button type="button" onclick="BookingPage.confirmAndSubmit()"
                     style="width: 100%; height: 48px; border-radius: 6px; background: #141413; border: 1px solid #141413; color: #FAF8F5; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none; transition: background 0.2s ease;">
-              Xác Nhận Đặt Lịch Hẹn Ngay →
+              Xác nhận đặt lịch hẹn ngay →
             </button>
           </div>
         </div>

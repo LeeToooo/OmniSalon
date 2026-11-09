@@ -215,11 +215,11 @@
           <div class="shop-fluid-container">
             <!-- Header Banner (Editorial Visual Hierarchy) -->
             <div style="margin-bottom: 32px;">
-              <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">
-                BỘ SƯU TẬP CHĂM SÓC TÓC NAM GIỚI
+              <span class="tracking-widest" style="font-size: 11.5px; font-weight: 700; color: #C59B27; text-transform: none; margin-bottom: 8px; display: inline-block;">
+                Bộ sưu tập chăm sóc tóc nam giới
               </span>
               <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; color: var(--text-primary); margin: 0; word-break: break-word; overflow-wrap: break-word; max-width: 100%;">
-                SẢN PHẨM GROOMING &amp; POMADE CHÍNH HÃNG
+                Sản phẩm grooming &amp; pomade chính hãng
               </h1>
             </div>
 
@@ -247,15 +247,15 @@
                   </button>
                   <div id="shopCatDropdown" class="shop-dropdown-menu">
                     <div class="shop-dropdown-item ${this.selectedCategory === 'all' ? 'selected' : ''}" onclick="ShopPage.setCategory('all')">
-                      <span>Tất Cả Danh Mục</span>
+                      <span>Tất cả danh mục</span>
                       ${this.selectedCategory === 'all' ? '<span style="color:#C59B27; font-weight:800;">✓</span>' : ''}
                     </div>
                     <div class="shop-dropdown-item ${this.selectedCategory === 'fefo_expiry' ? 'selected' : ''}" onclick="ShopPage.setCategory('fefo_expiry')" style="color: #ef4444;">
-                      <span>🔥 Ưu Đãi Đặc Biệt</span>
+                      <span>🔥 Ưu đãi đặc biệt</span>
                       ${this.selectedCategory === 'fefo_expiry' ? '<span style="color:#ef4444; font-weight:800;">✓</span>' : ''}
                     </div>
                     <div class="shop-dropdown-item ${this.selectedCategory === 'bestsellers' ? 'selected' : ''}" onclick="ShopPage.setCategory('bestsellers')" style="color: #f59e0b;">
-                      <span>⭐ Sản Phẩm Bán Chạy Nhất</span>
+                      <span>⭐ Sản phẩm bán chạy nhất</span>
                       ${this.selectedCategory === 'bestsellers' ? '<span style="color:#f59e0b; font-weight:800;">✓</span>' : ''}
                     </div>
                     ${categories.map(c => {
@@ -1324,7 +1324,7 @@
                   <div class="pdp-policy-accordion-item">
                     <button type="button" class="pdp-policy-header" onclick="ShopPage.togglePolicyAccordion(this)">
                       <div class="pdp-policy-header-text">
-                        <span class="pdp-policy-title">Chính sách đổi trả &amp; Bảo hành</span>
+                        <span class="pdp-policy-title">Chính sách đổi trả &amp; bảo hành</span>
                         <span class="pdp-policy-subtitle">Đổi mới miễn phí trong 7 ngày nếu lỗi sản phẩm</span>
                       </div>
                       <span class="pdp-policy-arrow">›</span>
@@ -1510,7 +1510,7 @@
               </div>
 
               <div class="footer-col-info">
-                <h4 class="footer-col-title">THÔNG TIN DOANH NGHIỆP</h4>
+                <h4 class="footer-col-title">Thông tin doanh nghiệp</h4>
                 <ul class="footer-info-list">
                   <li><strong>CÔNG TY TNHH OMNI SALON ENTERPRISE</strong></li>
                   <li>MST: 0315048848</li>
@@ -1522,10 +1522,10 @@
               </div>
 
               <div class="footer-col-policy">
-                <h4 class="footer-col-title">CHÍNH SÁCH HỆ THỐNG</h4>
+                <h4 class="footer-col-title">Chính sách hệ thống</h4>
                 <ul class="footer-policy-list">
                   <li>› Về Omni Salon</li>
-                  <li>› Hướng dẫn Đặt lịch trực tuyến</li>
+                  <li>› Hướng dẫn đặt lịch trực tuyến</li>
                   <li>› Điều kiện giao dịch chung</li>
                   <li>› Chính sách bảo mật thông tin khách hàng</li>
                   <li>› Cam kết bảo hành 7 ngày &amp; Chất lượng tạo mẫu 5 sao</li>
@@ -1964,7 +1964,7 @@
       modalBody.innerHTML = `
         <div style="padding: 10px;">
           <div style="text-align: center; margin-bottom: 16px;">
-            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary, #141413); margin: 0 0 6px;">Đánh Giá Sản Phẩm</h3>
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary, #141413); margin: 0 0 6px;">Đánh giá sản phẩm</h3>
             <p style="font-size: 13px; color: var(--accent-gold, #C59B27); margin: 0; font-weight: 600;">${this.escapeHtml(productName || 'Sản phẩm')}</p>
           </div>
 

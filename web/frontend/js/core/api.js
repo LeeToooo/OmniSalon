@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // OmniSalon / Omni Salon — CORE RESTFUL API LAYER
 // Phiên bản: 2.2.0 Clean Architecture 
 //
@@ -542,6 +542,19 @@
         console.warn('[SalonApi] askAiBarber failed:', err.message);
       }
       return { success: true, reply: 'Master Barber OmniSalon khuyên bạn nên chọn kiểu tóc tôn dáng xương hàm và uốn phồng chân tóc nhẹ để vào nếp đẹp suốt ngày dài!' };
+    },
+
+    async segmentHairPhoto(image, hairstyleId = 'layer-korean') {
+      try {
+        const res = await this._fetch('/ai/segment-hair', {
+          method: 'POST',
+          body: JSON.stringify({ image, hairstyleId })
+        });
+        if (res && res.success) return res;
+      } catch (err) {
+        console.warn('[SalonApi] segmentHairPhoto failed:', err.message);
+      }
+      return null;
     },
 
     async restyleHairPhoto(options) {

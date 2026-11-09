@@ -43,7 +43,7 @@
 
       let resolvedName = rawItem.name || rawItem.TenCombo || rawItem.TenDichVu || rawItem.TenGoi || meta.shortName || comboDef.name || '';
       if (!resolvedName || resolvedName === 'undefined') {
-        resolvedName = comboDef.name || meta.shortName || (isCombo ? 'Gói Combo Barber' : 'Dịch Vụ Tạo Kiểu');
+        resolvedName = comboDef.name || meta.shortName || (isCombo ? 'Gói combo barber' : 'Dịch vụ tạo kiểu');
       }
 
       let rawPrice = rawItem.price;
@@ -104,27 +104,27 @@
           <div class="services-fluid-container" style="width: 100%; max-width: 100%; margin: 0; padding: 0 clamp(20px, 3vw, 56px); box-sizing: border-box;">
             <!-- Header Banner -->
             <div style="text-align: center; margin-bottom: 40px;">
-              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(48px, 6vw, 76px); font-weight: 800; color: var(--text-primary); margin: 0 0 28px;">BẢNG GIÁ &amp; DỊCH VỤ</h1>
+              <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(38px, 5vw, 64px); font-weight: 800; color: var(--text-primary); margin: 0 0 28px;">Bảng giá dịch vụ cắt tóc &amp; chăm sóc nam giới</h1>
 
               <!-- Clean Tabs Category Filters -->
               <div class="clean-filter-tabs" style="justify-content: center; gap: 8px; flex-wrap: wrap;">
                 <button class="clean-tab-btn ${this.activeCategory === 'all' ? 'active' : ''}" onclick="ServicesPage.setCategory('all')">
-                  Tất Cả Dịch Vụ
+                  Tất cả dịch vụ
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'haircut' ? 'active' : ''}" onclick="ServicesPage.setCategory('haircut')">
-                  Cắt &amp; Fade Tạo Kiểu
+                  Cắt &amp; fade tạo kiểu
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'perm' ? 'active' : ''}" onclick="ServicesPage.setCategory('perm')">
-                  Uốn Texture &amp; Định Hình
+                  Uốn texture &amp; định hình
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'color' ? 'active' : ''}" onclick="ServicesPage.setCategory('color')">
-                  Nhuộm Tone Trầm &amp; Highlight
+                  Nhuộm tone trầm &amp; highlight
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'spa' || this.activeCategory === 'care' ? 'active' : ''}" onclick="ServicesPage.setCategory('spa')">
-                  Cạo Mặt &amp; Thư Giãn Da Đầu
+                  Cạo mặt &amp; thư giãn da đầu
                 </button>
                 <button class="clean-tab-btn ${this.activeCategory === 'combo' ? 'active' : ''}" onclick="ServicesPage.setCategory('combo')">
-                  Gói Combo Toàn Diện
+                  Gói combo toàn diện
                 </button>
               </div>
             </div>
@@ -547,7 +547,7 @@
 
       const title = item.name;
       const desc = item.description;
-      const categoryTag = isCombo ? 'GÓI COMBO ĐẶC BIỆT' : (item.category ? item.category.toUpperCase() : 'DỊCH VỤ TIÊU CHUẨN');
+      const categoryTag = isCombo ? 'Gói combo đặc biệt' : (item.category ? item.category.toLowerCase() : 'Dịch vụ phổ biến nhất');
 
       // Tai danh gia tu backend
       try {
@@ -592,7 +592,7 @@
               
               <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="btn-submit-terracotta" style="padding: 10px 24px; font-size: 14px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #141413;" onclick="ServicesPage.selectAndBook('${item.id}')">
-                  📅 Đặt Lịch Dịch Vụ Này Ngay
+                  📅 Đặt lịch dịch vụ này ngay
                 </button>
                 <button type="button" class="btn-cancel" style="padding: 10px 20px; font-size: 13.5px;" onclick="UICommon.closeGlobalModal()">
                   Đóng
@@ -604,7 +604,7 @@
           <!-- Cac dich vu thanh phan trong Combo neu co -->
           ${comboServices.length > 0 ? `
             <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
-              <h4 style="font-size: 13px; font-weight: 800; color: #8A6208; text-transform: uppercase; margin: 0 0 12px;">Các Dịch Vụ Bao Gồm Trong Combo</h4>
+              <h4 style="font-size: 13px; font-weight: 800; color: #8A6208; text-transform: none; margin: 0 0 12px;">Các dịch vụ bao gồm trong combo</h4>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
                 ${comboServices.map(s => `
                   <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-primary);">
@@ -618,8 +618,8 @@
 
           <!-- QUY TRINH THUC HIEN TIEU CHUAN -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-            <div style="font-size: 13.5px; font-weight: 800; color: #8A6208; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
-              QUY TRÌNH THỰC HIỆN TIÊU CHUẨN TẠI OMNI SALON
+            <div style="font-size: 13.5px; font-weight: 800; color: #8A6208; text-transform: none; letter-spacing: 0.05em; margin-bottom: 12px;">
+              Quy trình thực hiện tiêu chuẩn tại Omni Salon
             </div>
             <div style="display: flex; flex-direction: column; gap: 10px;">
               <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px;">
@@ -649,7 +649,7 @@
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
               <div>
-                <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">Đánh Giá Từ Khách Hàng</h3>
+                <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">Đánh giá từ khách hàng</h3>
                 <div style="font-size: 12.5px; color: var(--text-secondary);">Trải nghiệm thực tế của khách hàng khi sử dụng dịch vụ</div>
               </div>
 </div>

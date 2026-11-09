@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // Omni Salon — 3D PERSPECTIVE CLIENT-SIDE APP ROUTER
 // Module chức năng độc lập
 // Routes: /, /services, /stylists, /booking, /shop, /admin
@@ -276,14 +276,14 @@
         '/': 'Omni Salon | The Art of Modern Hair Care & Grooming',
         '/services': 'Bespoke Services Menu | Omni Salon Barbershop',
         '/stylists': 'Master Stylists & Art Directors | Omni Salon',
-        '/booking': 'Đặt Lịch Hẹn Trực Tuyến | Omni Salon',
-        '/shop': 'Omni Apothecary | Mỹ Phẩm & Sáp Vuốt Tóc Chính Hãng',
-        '/product': 'Chi Tiết Sản Phẩm | Omni Apothecary',
-        '/branches': 'Hệ Thống Chi Nhánh Toàn Quốc | Omni Salon',
-        '/ai-studio': 'AI Hair Studio 3D | Thử Kiểu Tóc Thực Tế | Omni Salon',
+        '/booking': 'Đặt lịch hẹn trực tuyến | Omni Salon',
+        '/shop': 'Omni Apothecary | Mỹ phẩm & sáp vuốt tóc chính hãng',
+        '/product': 'Chi tiết sản phẩm | Omni Apothecary',
+        '/branches': 'Hệ thống chi nhánh toàn quốc | Omni Salon',
+        '/ai-studio': 'AI Hair Studio 3D | Thử kiểu tóc thực tế | Omni Salon',
         '/admin': 'Enterprise Admin Hub & Dispatcher | Omni Salon'
       };
-      document.title = titles[route] || 'Omni Salon | Chuẩn Mực Barbershop Đương Đại';
+      document.title = titles[route] || 'Omni Salon | Chuẩn mực barbershop đương đại';
     },
 
     syncActiveNav(route) {

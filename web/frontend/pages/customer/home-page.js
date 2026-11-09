@@ -198,7 +198,7 @@
                   <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg')}" alt="Không gian chi nhánh OmniSalon" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
-                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Không gian Barbershop đương đại</h3>
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Không gian barbershop đương đại</h3>
                   <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
               </a>
@@ -209,7 +209,7 @@
                   <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV1.jpg')}" alt="Dịch vụ tạo mẫu chuẩn mực uy tín" style="width: 100%; height: 100%; object-fit: cover; object-position: center top; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
-                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Kỹ thuật kéo &amp; Fade tỉ mỉ</h3>
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Kỹ thuật kéo &amp; fade tỉ mỉ</h3>
                   <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
               </a>
@@ -217,10 +217,10 @@
               <!-- Thẻ 3: Mỹ phẩm nam chính hãng - Sáp Vuốt & Pomade Chính Hãng -->
               <a href="/shop" onclick="event.preventDefault(); AppRouter.navigate('/shop')" class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; text-decoration: none; cursor: pointer; box-shadow: none;">
                 <div style="position: relative; height: 260px; overflow: hidden; background: #FFFFFF; width: 100%; display: flex; align-items: center; justify-content: center;">
-                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg')}" alt="Sáp vuốt &amp; Pomade chính hãng" style="width: 100%; height: 100%; object-fit: contain; padding: 22px; display: block; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
+                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg')}" alt="Sáp vuốt &amp; pomade chính hãng" style="width: 100%; height: 100%; object-fit: contain; padding: 22px; display: block; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
-                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Sáp vuốt &amp; Pomade chính hãng</h3>
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Sáp vuốt &amp; pomade chính hãng</h3>
                   <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
               </a>
@@ -231,7 +231,7 @@
                   <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/DichVu_Men/DV7.jpg')}" alt="Gội đầu dưỡng sinh thư giãn" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
-                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Gội thảo mộc &amp; Cạo mặt khăn nóng</h3>
+                  <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Gội thảo mộc &amp; cạo mặt khăn nóng</h3>
                   <span class="experience-card-arrow" style="font-size: 18px; color: var(--brand-accent, #C59B27); transition: transform 0.25s ease;">→</span>
                 </div>
               </a>
@@ -435,7 +435,7 @@
           <section class="web-section omni-container" id="branchesSection" style="max-width: 1640px; margin: 0 auto; padding: 40px clamp(16px, 3.5vw, 48px);">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
               <div>
-                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Mạng lưới chi nhánh Barbershop</h2>
+                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Mạng lưới chi nhánh barbershop</h2>
               </div>
               <button class="nordic-btn-secondary" onclick="AppRouter.navigate('/branches')" style="background: var(--surface-card); color: var(--text-primary); border: 1px solid var(--border-color); font-size: 13.5px; font-weight: 700; padding: 10px 18px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                 <span>Xem toàn bộ chi nhánh</span>
@@ -454,7 +454,7 @@
           <section class="web-section omni-container" id="aiStudioSection" style="max-width: 1640px; margin: 0 auto; padding: 40px clamp(16px, 3.5vw, 48px);">
             <div style="background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; padding: 36px 28px;">
               <div style="text-align: center; max-width: 680px; margin: 0 auto 28px;">
-                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">OMNI AI HAIR VISION STUDIO</h2>
+                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">Omni AI Hair Vision Studio</h2>
               </div>
 
               <div style="max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;">
@@ -506,7 +506,7 @@
             <div class="omni-container" style="max-width: 1640px; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-bottom: 36px;">
               <div>
                 <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px;">
-                  <span class="footer-brand-title" style="font-size: 20px; font-weight: 900;">OMNI SALON</span><span class="footer-accent-text" style="font-size: 13px; font-weight: 700;">Barbershop Đương Đại</span>
+                  <span class="footer-brand-title" style="font-size: 20px; font-weight: 900;">OMNI SALON</span><span class="footer-accent-text" style="font-size: 13px; font-weight: 700;">Barbershop đương đại</span>
                 </div>
                 <p class="footer-desc" style="font-size: 14px; line-height: 1.6; margin: 0 0 16px;">
                   Chuỗi cắt tóc và chăm sóc tóc nam phong cách Barber đương đại. Nơi tôn vinh bản lĩnh và khí chất của người đàn ông.
@@ -544,7 +544,7 @@
               </div>
             </div>
             <div class="footer-bottom-bar" style="text-align: center; padding-top: 20px; font-size: 13px;">
-              © 2026 Omni Salon. Barbershop Đương Đại.
+              © 2026 Omni Salon. Barbershop đương đại.
             </div>
           </footer>
         </div>

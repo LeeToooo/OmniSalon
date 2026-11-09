@@ -321,6 +321,50 @@ function runPythonVisionPreprocess(options) {
   return null;
 }
 
+// Chạy Python Segmentation & Mask Extraction
+function runPythonVisionMask(options) {
+  try {
+    const pythonPaths = [
+      'C:\\Users\\pcx\\AppData\\Local\\Programs\\Python\\Python311\\python.exe',
+      'python',
+      'python3'
+    ];
+    let selectedPython = pythonPaths[0];
+    for (const p of pythonPaths) {
+      if (fs.existsSync(p)) { selectedPython = p; break; }
+    }
+    const scriptPath = path.join(__dirname, 'vision_analyzer.py');
+    if (!fs.existsSync(scriptPath)) return null;
+
+    const payload = JSON.stringify({
+      image: options.imageBase64OrUrl,
+      hairstyleId: options.hairstyleId || 'layer-korean'
+    });
+
+    const proc = spawnSync(selectedPython, [scriptPath, 'mask'], {
+      input: payload,
+      encoding: 'utf-8',
+      timeout: 15000,
+      maxBuffer: 25 * 1024 * 1024
+    });
+
+    if (!proc || proc.error || !proc.stdout) {
+      if (proc?.error) console.warn('[Python Vision Mask Error]:', proc.error.message);
+      return null;
+    }
+
+    const lines = proc.stdout.trim().split('\n');
+    const jsonLine = lines.find(l => l.trim().startsWith('{') && l.trim().endsWith('}')) || lines[lines.length - 1];
+    const data = JSON.parse(jsonLine);
+    if (data && data.success) {
+      return data;
+    }
+  } catch (e) {
+    console.warn('[Python Vision Mask Warning]:', e.message);
+  }
+  return null;
+}
+
 // Phân tích hình dáng khuôn mặt từ ảnh
 async function analyzeFaceGeometry(imageBase64OrUrl) {
   let resolvedImage = imageBase64OrUrl;
@@ -930,6 +974,7 @@ module.exports = {
   runPythonVisionRestyle,
   runPythonVisionAnalyzer,
   runPythonVisionPreprocess,
+  runPythonVisionMask,
   testGoogleGeminiApiKey,
   askBarberMasterAi
 };

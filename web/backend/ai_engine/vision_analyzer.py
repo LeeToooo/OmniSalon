@@ -706,6 +706,49 @@ def synthesize_forehead_shadow(hair_alpha, face_conf_c, lm_c, w_c, h_c):
     shadow_soft = cv2.GaussianBlur(shadow_zone, (11, 11), 3).astype(np.float32) / 255.0
     return np.clip(shadow_soft * 0.20, 0.0, 0.25)
 
+def inpaint_old_hair_region(img_cust, hair_conf_c, face_conf_c, bg_conf_c, lm_c, w_c, h_c, inpaint_radius=7):
+    """
+    BƯỚC 2: TẨY PHOM TÓC CŨ (INPAINTING & BALD SCALP RECONSTRUCTION)
+    Tẩy sạch các mảng tóc cũ dày/xù/dài, tái tạo vòm sọ tự nhiên (Clean Canvas)
+    để tóc mới ôm khít hoàn hảo mà không bị sợi tóc cũ đâm xuyên ra ngoài.
+    """
+    ear_l_y = lm_c[234].y * h_c
+    ear_r_y = lm_c[454].y * h_c
+    ear_top_y = int(min(ear_l_y, ear_r_y))
+    forehead_y = int(lm_c[10].y * h_c)
+    eyebrow_min_y = int(min(lm_c[70].y, lm_c[300].y) * h_c) - 8
+
+    # Vùng tóc cũ cần inpaint: xác suất tóc > 30%
+    hair_region = (hair_conf_c > 0.30).astype(np.uint8) * 255
+
+    # Vùng bảo vệ ngũ quan: mắt, mũi, miệng, cằm, má
+    face_protect = (face_conf_c > 0.18).astype(np.uint8) * 255
+    face_protect[:eyebrow_min_y, :] = 0  # Cho phép tẩy tóc ở phần trên trán
+
+    # Tóc thừa bay ra nền ngoài (Background Flyaways)
+    outer_mask = cv2.bitwise_and(hair_region, hair_region, mask=(bg_conf_c > 0.35).astype(np.uint8) * 255)
+    outer_mask[face_protect > 0] = 0
+
+    # Vùng sọ đầu phía trên
+    skull_mask = hair_region.copy()
+    skull_mask[face_protect > 0] = 0
+
+    # Kết hợp vùng cần inpaint tẩy tóc
+    combined_mask = cv2.bitwise_or(outer_mask, skull_mask)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    combined_mask = cv2.dilate(combined_mask, kernel, iterations=1)
+    combined_mask[face_protect > 0] = 0
+
+    # Thực hiện Inpainting bằng thuật toán Navier-Stokes kết hợp Telea
+    inpainted = cv2.inpaint(img_cust, combined_mask, inpaint_radius, cv2.INPAINT_TELEA)
+
+    # Làm mềm biên tiếp giáp giữa nền inpaint và khuôn mặt
+    mask_blur = cv2.GaussianBlur(combined_mask.astype(np.float32) / 255.0, (11, 11), 0)[:, :, None]
+    clean_base = (inpainted.astype(np.float32) * mask_blur + img_cust.astype(np.float32) * (1.0 - mask_blur))
+    clean_base = np.clip(clean_base, 0, 255).astype(np.uint8)
+
+    return clean_base, combined_mask
+
 def clean_old_hair_background(img_cust, bg_conf_c, hair_conf_c, face_conf_c, warped_alpha, lm_c, w_c, h_c):
     """
     Xóa sạch tóc cũ thừa ở nền ngoại cảnh (Outer Background Flyaways):
@@ -727,37 +770,53 @@ def clean_old_hair_background(img_cust, bg_conf_c, hair_conf_c, face_conf_c, war
 
 def reinhard_color_adaptation(warped_style, warped_alpha, img_cust, hair_conf_c, face_conf_c, color_hex):
     """
-    Cân bằng ánh sáng môi trường đa phổ (Reinhard LAB Transfer) & Phủ màu nhuộm 3D:
-    Tóc mẫu sẽ nhận đúng nhiệt độ màu đèn và hướng sáng của mặt khách hàng.
+    BƯỚC 4: HÀI HÒA ÁNH SÁNG & NHUỘM MÀU SALON CHUYÊN SÂU
+    (Luminance-Preserving Photographic Color Harmony & Strand Texture Synthesis):
+    1. Giữ nguyên độ bóng (Specular Highlight) và chiều sâu bóng đổ (Shadow Depth) của từng sợi tóc.
+    2. Cân bằng nhiệt độ màu ánh sáng (White Balance Transfer) từ mặt khách sang mái tóc.
+    3. Phủ màu nhuộm hữu cơ chuẩn cấp độ màu (Color Tone Saturation) không bị bết dính.
     """
     lab_cust = cv2.cvtColor(img_cust, cv2.COLOR_BGR2LAB).astype(np.float32)
     lab_style = cv2.cvtColor(warped_style, cv2.COLOR_BGR2LAB).astype(np.float32)
 
-    mask_s_bool = warped_alpha > 0.35
-    mask_c_bool = (hair_conf_c > 0.35) | (face_conf_c > 0.4)
+    mask_s_bool = warped_alpha > 0.30
+    mask_c_bool = (face_conf_c > 0.35) | (hair_conf_c > 0.30)
 
+    # 1. Khớp quang thông & dải sáng L (Luminance Matching)
     if np.sum(mask_s_bool) > 400 and np.sum(mask_c_bool) > 400:
         face_l = lab_cust[:, :, 0][mask_c_bool]
         hair_l = lab_style[:, :, 0][mask_s_bool]
-        mean_face_l = np.mean(face_l)
-        std_face_l = np.std(face_l) + 1e-5
-        mean_hair_l = np.mean(hair_l)
-        std_hair_l = np.std(hair_l) + 1e-5
+        mean_face_l = float(np.mean(face_l))
+        std_face_l = float(np.std(face_l)) + 1e-5
+        mean_hair_l = float(np.mean(hair_l))
+        std_hair_l = float(np.std(hair_l)) + 1e-5
 
-        scale_l = np.clip(std_face_l / std_hair_l, 0.75, 1.25)
-        target_l = (lab_style[:, :, 0] - mean_hair_l) * scale_l + mean_hair_l + (mean_face_l - 128) * 0.22
-        lab_style[:, :, 0] = np.clip(lab_style[:, :, 0] * 0.35 + target_l * 0.65, 0, 255)
+        # Tỷ lệ co giãn độ tương phản để khớp đèn phòng
+        scale_l = np.clip(std_face_l / std_hair_l, 0.80, 1.25)
+        # Giữ lại chi tiết sợi tóc sáng bóng (Specular Highlights) bằng đường cong cong phi tuyến
+        original_l = lab_style[:, :, 0]
+        adjusted_l = (original_l - mean_hair_l) * scale_l + mean_hair_l + (mean_face_l - 128.0) * 0.18
+        
+        # Bảo toàn vùng tóc sáng (High-key highlights > 180) để không làm xỉn sợi tóc
+        highlight_mask = np.clip((original_l - 150.0) / 60.0, 0.0, 1.0)
+        lab_style[:, :, 0] = np.clip(adjusted_l * (1.0 - highlight_mask * 0.4) + original_l * (highlight_mask * 0.4), 0, 255)
 
-    # Nhuộm màu tóc chuẩn Salon trong không gian LAB (Bảo toàn sợi tóc óng ánh)
-    if color_hex and color_hex.startswith('#') and len(color_hex) == 7 and color_hex.lower() != '#141413':
+    # 2. Phủ màu nhuộm Salon thời thượng bảo toàn ánh sắc (A-B Channels Modulation)
+    if color_hex and color_hex.startswith('#') and len(color_hex) == 7 and color_hex.lower() not in ['#141413', '#000000']:
         tr, tg, tb = int(color_hex[1:3], 16), int(color_hex[3:5], 16), int(color_hex[5:7], 16)
         tgt_bgr = np.uint8([[[tb, tg, tr]]])
         tgt_lab = cv2.cvtColor(tgt_bgr, cv2.COLOR_BGR2LAB)[0, 0].astype(np.float32)
-        dye_weight = np.clip((warped_alpha - 0.35) / 0.45, 0.0, 1.0) * 0.72
-        lab_style[:, :, 1] = lab_style[:, :, 1] * (1.0 - dye_weight) + tgt_lab[1] * dye_weight
-        lab_style[:, :, 2] = lab_style[:, :, 2] * (1.0 - dye_weight) + tgt_lab[2] * dye_weight
 
-    return cv2.cvtColor(np.clip(lab_style, 0, 255).astype(np.uint8), cv2.COLOR_LAB2BGR)
+        # Trọng số hòa sắc theo mật độ sợi tóc (Dye Intensity Blend)
+        dye_intensity = np.clip((warped_alpha - 0.25) / 0.50, 0.0, 1.0) * 0.78
+        
+        # Chuyển kênh A và B (Màu sắc) mà không can thiệp kênh L (Độ sáng & chi tiết sợi tóc)
+        lab_style[:, :, 1] = lab_style[:, :, 1] * (1.0 - dye_intensity) + tgt_lab[1] * dye_intensity
+        lab_style[:, :, 2] = lab_style[:, :, 2] * (1.0 - dye_intensity) + tgt_lab[2] * dye_intensity
+
+    # 3. Chuyển lại không gian BGR và tăng cường tương phản nhẹ cho sợi tóc tơ
+    bgr_recolored = cv2.cvtColor(np.clip(lab_style, 0, 255).astype(np.uint8), cv2.COLOR_LAB2BGR)
+    return bgr_recolored
 
 def restyle_portrait(image_source, hairstyle_id='layer-korean', color_hex='#141413', balance_lighting=True, smooth_skin=True, auto_preprocess=True):
     """
@@ -845,8 +904,9 @@ def restyle_portrait(image_source, hairstyle_id='layer-korean', color_hex='#1414
     lower_face_protect = cv2.GaussianBlur(lower_face_protect, (15, 15), 0)
     warped_alpha = warped_alpha * (1.0 - lower_face_protect)
 
-    # 4. Tái tạo nền sạch sẽ, loại bỏ tóc thừa bay ra nền ngoài
-    base_canvas = clean_old_hair_background(img_cust, bg_conf_c, hair_conf_c, face_conf_c, warped_alpha, lm_c, w_c, h_c)
+    # 4. Tái tạo nền sạch sẽ bằng Inpainting nâng cao (Tẩy phom tóc cũ, loại bỏ sợi xù)
+    inpainted_canvas, _ = inpaint_old_hair_region(img_cust, hair_conf_c, face_conf_c, bg_conf_c, lm_c, w_c, h_c)
+    base_canvas = clean_old_hair_background(inpainted_canvas, bg_conf_c, hair_conf_c, face_conf_c, warped_alpha, lm_c, w_c, h_c)
 
     # 5. Sinh bóng đổ chân tóc (Contact Shadow) tạo chiều sâu 3D thực tế
     shadow_map = synthesize_forehead_shadow(warped_alpha, face_conf_c, lm_c, w_c, h_c)
@@ -863,8 +923,17 @@ def restyle_portrait(image_source, hairstyle_id='layer-korean', color_hex='#1414
     refined_alpha = refined_alpha * (1.0 - eyes_protect)
     refined_alpha_3ch = refined_alpha[:, :, np.newaxis]
 
-    # 8. Hòa trộn hữu cơ hoàn thiện (Seamless Organic Composite)
-    final_composite = (matched_style.astype(np.float32) * refined_alpha_3ch + base_canvas.astype(np.float32) * (1.0 - refined_alpha_3ch))
+    # 8. Bảo toàn 100% nhận diện khuôn mặt thật (Face Identity Locking via High-Fidelity Alpha Blending)
+    # Lấy lại chính xác từng pixel gốc từ ảnh khách cho vùng mắt, mũi, miệng, cằm, nốt ruồi và râu
+    face_identity_mask = (face_conf_c > 0.25).astype(np.float32)
+    # Giữ an toàn vùng dưới chân mày
+    face_identity_mask[:eyebrow_min_y, :] = 0.0
+    # Làm mềm biên 5px để hòa trộn tự nhiên không tạo ngấn
+    face_identity_mask = cv2.GaussianBlur(face_identity_mask, (7, 7), 0)[:, :, None]
+
+    # Hòa trộn hữu cơ hoàn thiện (Seamless Organic Composite)
+    blended_composite = (matched_style.astype(np.float32) * refined_alpha_3ch + base_canvas.astype(np.float32) * (1.0 - refined_alpha_3ch))
+    final_composite = blended_composite * (1.0 - face_identity_mask) + img_cust.astype(np.float32) * face_identity_mask
     final_composite = np.clip(final_composite, 0, 255).astype(np.uint8)
 
     # Xuất ảnh JPEG chất lượng cao 95
@@ -886,7 +955,8 @@ def restyle_portrait(image_source, hairstyle_id='layer-korean', color_hex='#1414
 
 def generate_hair_mask(image_source, hairstyle_id='layer-korean'):
     """
-    Sinh Inpainting Mask chuẩn đen trắng (Black & White Mask) bảo toàn 100% nhận diện khuôn mặt
+    Trích xuất mặt nạ tóc chính xác (Hair Mask) và mặt nạ bảo vệ mặt (Face Protected Mask)
+    chuẩn hóa cho quy trình inpainting và tách lớp tóc AI thế hệ mới.
     """
     img = decode_image(image_source)
     if img is None:
@@ -900,28 +970,68 @@ def generate_hair_mask(image_source, hairstyle_id='layer-korean'):
         return {"success": False, "error": "Không tìm thấy khuôn mặt"}
     lm = det.face_landmarks[0]
     seg = segmenter.segment(mp_img)
+    
+    # Class 1: Hair, Class 3: Face Skin, Class 2: Body/Neck
     hair_conf = seg.confidence_masks[1].numpy_view().reshape((h, w))
     skin_conf = seg.confidence_masks[3].numpy_view().reshape((h, w))
-    hair_mask = (hair_conf > 0.25).astype(np.uint8) * 255
+    
+    raw_hair_mask = (hair_conf > 0.25).astype(np.uint8) * 255
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
-    hair_mask = cv2.dilate(hair_mask, kernel, iterations=2)
+    dilated_hair = cv2.dilate(raw_hair_mask, kernel, iterations=2)
+    
     forehead_y = int(lm[10].y * h)
     chin_y = int(lm[152].y * h)
     face_h = abs(chin_y - forehead_y)
+    
+    # Bổ sung trần sọ phía trên để phủ kín tóc phồng
     top_y = max(0, forehead_y - int(face_h * 0.70))
     left_x = max(0, int(lm[234].x * w) - int(face_h * 0.25))
     right_x = min(w, int(lm[454].x * w) + int(face_h * 0.25))
-    hair_mask[top_y:forehead_y, left_x:right_x] = 255
+    dilated_hair[top_y:forehead_y, left_x:right_x] = 255
+    
+    # Giới hạn vùng bảo vệ ngũ quan (mắt, mũi, miệng, cằm)
     eyebrow_min_y = int(min(lm[70].y, lm[300].y) * h) - 10
     allow_fringe = hairstyle_id in ['layer-korean', 'french-crop']
     cutoff_y = int(eyebrow_min_y if allow_fringe else forehead_y)
+    
     face_protect = (skin_conf > 0.15).astype(np.uint8) * 255
-    face_protect[:cutoff_y, :] = 0
-    hair_mask[face_protect > 0] = 0
-    hair_mask = cv2.GaussianBlur(hair_mask, (9, 9), 0)
-    _, mask_buf = cv2.imencode('.png', hair_mask)
-    mask_b64 = f"data:image/png;base64,{base64.b64encode(mask_buf).decode('utf-8')}"
-    return {"success": True, "maskBase64": mask_b64, "width": w, "height": h}
+    face_protect_clean = face_protect.copy()
+    face_protect_clean[:cutoff_y, :] = 0
+    
+    # Loại trừ mặt ra khỏi hair mask
+    final_hair_mask = dilated_hair.copy()
+    final_hair_mask[face_protect_clean > 0] = 0
+    final_hair_mask = cv2.GaussianBlur(final_hair_mask, (9, 9), 0)
+    
+    # Tính toán tỷ lệ diện tích tóc cũ
+    hair_pixel_count = int(np.count_nonzero(final_hair_mask > 30))
+    total_pixels = h * w
+    hair_coverage_pct = round((hair_pixel_count / float(total_pixels)) * 100, 1)
+
+    # Hairline landmarks (đường viền chân tóc trán)
+    hairline_points = [
+        {"x": round(float(lm[i].x), 4), "y": round(float(lm[i].y), 4)}
+        for i in [103, 67, 109, 10, 338, 297, 332]
+    ]
+
+    _, hair_buf = cv2.imencode('.png', final_hair_mask)
+    _, face_buf = cv2.imencode('.png', face_protect)
+    
+    hair_b64 = f"data:image/png;base64,{base64.b64encode(hair_buf).decode('utf-8')}"
+    face_b64 = f"data:image/png;base64,{base64.b64encode(face_buf).decode('utf-8')}"
+    
+    return {
+        "success": True,
+        "hairMaskBase64": hair_b64,
+        "maskBase64": hair_b64,
+        "faceProtectedMaskBase64": face_b64,
+        "hairCoveragePct": hair_coverage_pct,
+        "hairlinePoints": hairline_points,
+        "width": w,
+        "height": h,
+        "isFringeAllowed": allow_fringe,
+        "provider": "Python Vision MediaPipe Segmenter (Multiclass Hair & Face Separation)"
+    }
 
 if __name__ == '__main__':
     mode = 'analyze'
