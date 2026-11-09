@@ -19,14 +19,7 @@
       hasResult: false,
       resultImage: null,
       sliderPosition: 50,
-      faceAnalysis: null,
-      chatMessages: [
-        {
-          sender: 'barber',
-          text: 'Xin chào! Mình là Master Barber Lê Minh Hoàng. Hãy tải ảnh chân dung của bạn lên, hệ thống sẽ tự động căn góc chuẩn 3:4. Khi bạn bấm Mô phỏng, AI sẽ tự động tách nền và xóa phom tóc cũ để ghép kiểu tóc mới hoàn hảo nhất!'
-        }
-      ],
-      isChatLoading: false
+      faceAnalysis: null
     },
 
     hairstyles: [
@@ -456,55 +449,6 @@
 
             </div>
 
-          </div>
-
-          <!-- PHÂN HỆ TƯ VẤN TRỰC TIẾP VỚI BARBER MASTER AI (CHATBOT DRAWER) -->
-          <div style="max-width: 1240px; margin: 32px auto 0; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
-            <div style="padding: 14px 20px; background: var(--surface-elevated); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 32px; height: 32px; border-radius: 50%; background: #C59B27; color: #141413; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800;">
-                  💈
-                </div>
-                <div>
-                  <strong style="font-size: 13.5px; color: var(--text-primary); display: block;">Tư Vấn Trực Tiếp Với Master Barber AI</strong>
-                  <span style="font-size: 11px; color: #10B981;">● Thợ trưởng Lê Minh Hoàng (12 năm kinh nghiệm) đang trực tuyến</span>
-                </div>
-              </div>
-              <div style="display: flex; gap: 6px;">
-                <button type="button" onclick="AiStudioPage.askQuickQuestion('Mặt mình hơi tròn trán cao thì cắt kiểu nào đẹp?')" style="font-size: 11px; padding: 4px 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 4px; cursor: pointer;">
-                  Mặt tròn trán cao?
-                </button>
-                <button type="button" onclick="AiStudioPage.askQuickQuestion('Tóc cứng khó vào nếp thì dùng loại sáp nào?')" style="font-size: 11px; padding: 4px 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 4px; cursor: pointer;">
-                  Sáp cho tóc cứng?
-                </button>
-                <button type="button" onclick="AiStudioPage.askQuickQuestion('Da ngăm nhuộm màu gì cho sáng mặt?')" style="font-size: 11px; padding: 4px 8px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 4px; cursor: pointer;">
-                  Màu nhuộm sáng da?
-                </button>
-              </div>
-            </div>
-
-            <!-- Khung tin nhắn Chat -->
-            <div id="aiChatMessages" style="padding: 16px 20px; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-              ${this.state.chatMessages.map(m => `
-                <div style="display: flex; justify-content: ${m.sender === 'user' ? 'flex-end' : 'flex-start'};">
-                  <div style="max-width: 80%; padding: 8px 14px; border-radius: 6px; font-size: 12.5px; line-height: 1.5; background: ${m.sender === 'user' ? '#C59B27' : 'var(--surface-elevated)'}; color: ${m.sender === 'user' ? '#141413' : 'var(--text-primary)'}; border: 1px solid ${m.sender === 'user' ? '#C59B27' : 'var(--border-color)'};">
-                    ${m.text}
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-
-            <!-- Input gửi câu hỏi cho thợ -->
-            <div style="padding: 12px 20px; background: var(--surface-elevated); border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
-              <input type="text" id="aiChatInput" 
-                     placeholder="Hỏi Master Barber về kiểu tóc, chất tóc, sáp vuốt hoặc chăm sóc da đầu..." 
-                     onkeydown="if(event.key==='Enter') AiStudioPage.sendChatMessage()"
-                     style="flex: 1; padding: 10px 14px; background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; font-size: 13px;" />
-              <button type="button" onclick="AiStudioPage.sendChatMessage()" 
-                      style="padding: 10px 18px; background: #C59B27; color: #141413; border: 1px solid #C59B27; border-radius: 6px; font-size: 13px; font-weight: 800; cursor: pointer;">
-                Gửi Hỏi
-              </button>
-            </div>
           </div>
 
         </div>
@@ -1097,61 +1041,6 @@
       window.addEventListener('touchmove', onTouchMove, { passive: false });
       window.addEventListener('touchend', onTouchEnd);
       window.addEventListener('touchcancel', onTouchEnd);
-    },
-
-    // CHATBOT TƯ VẤN MASTER BARBER AI
-    async sendChatMessage() {
-      const input = document.getElementById('aiChatInput');
-      if (!input) return;
-      const msg = input.value.trim();
-      if (!msg) return;
-
-      input.value = '';
-      this.state.chatMessages.push({ sender: 'user', text: msg });
-      this._renderChat();
-
-      try {
-        let replyText = 'Master Barber OmniSalon khuyên bạn nên thử phom tóc uốn texture và cắt fade gọn gàng 2 bên mai để tôn đường nét xương hàm!';
-        if (window.SalonApi && typeof window.SalonApi.askAiBarber === 'function') {
-          const res = await window.SalonApi.askAiBarber(msg);
-          if (res && res.reply) replyText = res.reply;
-        } else {
-          const res = await fetch('/api/ai/consultation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: msg })
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.reply) replyText = data.reply;
-          }
-        }
-        this.state.chatMessages.push({ sender: 'barber', text: replyText });
-      } catch (err) {
-        this.state.chatMessages.push({ sender: 'barber', text: 'Có chút trục trặc mạng khi kết nối thợ trưởng, bạn vui lòng hỏi lại nhé!' });
-      }
-      this._renderChat();
-    },
-
-    askQuickQuestion(questionText) {
-      const input = document.getElementById('aiChatInput');
-      if (input) {
-        input.value = questionText;
-        this.sendChatMessage();
-      }
-    },
-
-    _renderChat() {
-      const container = document.getElementById('aiChatMessages');
-      if (!container) return;
-      container.innerHTML = this.state.chatMessages.map(m => `
-        <div style="display: flex; justify-content: ${m.sender === 'user' ? 'flex-end' : 'flex-start'};">
-          <div style="max-width: 80%; padding: 8px 14px; border-radius: 6px; font-size: 12.5px; line-height: 1.5; background: ${m.sender === 'user' ? '#C59B27' : 'var(--surface-elevated)'}; color: ${m.sender === 'user' ? '#141413' : 'var(--text-primary)'}; border: 1px solid ${m.sender === 'user' ? '#C59B27' : 'var(--border-color)'};">
-            ${m.text}
-          </div>
-        </div>
-      `).join('');
-      container.scrollTop = container.scrollHeight;
     },
 
     // CHỤP ẢNH BẰNG CAMERA NATIVE
