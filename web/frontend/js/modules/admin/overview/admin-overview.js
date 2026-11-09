@@ -13,9 +13,9 @@
     overviewTimePeriod: 'today', // 'today' | '7days' | 'month'
 
     // -----------------------------------------------------------------------
-    // FLOATING TOOLTIP CHO BIỂU ĐỒ DOANH THU OVERVIEW
+    // BẢNG THÔNG SỐ ĐIỀU HÀNH CHO BIỂU ĐỒ DOANH THU (TINH GỌN, KHÔNG HIỆU ỨNG)
     // -----------------------------------------------------------------------
-    showRevenueTooltip(targetEl, event, fullLabel, val, serviceRev, productRev, isHighlight) {
+    showRevenueTooltip(targetEl, event, fullLabel, val, serviceRev, productRev, isHighlight, avgVal) {
       const container = document.getElementById('revenueChartContainer');
       const tooltip = document.getElementById('adminChartBarTooltip');
       if (!container || !tooltip) return;
@@ -25,7 +25,6 @@
 
       // Tâm ngang của cột biểu đồ so với container
       const barCenterX = (bRect.left + bRect.width / 2) - cRect.left;
-      // Đỉnh của cột so với container
       const barTopY = bRect.top - cRect.top;
 
       const numVal = Number(val) || 0;
@@ -36,44 +35,51 @@
       const prdPct = Math.round((numPrd / totalSafe) * 100);
       const formatMoney = (v) => (typeof SalonUtils !== 'undefined' && SalonUtils.formatCurrency) ? SalonUtils.formatCurrency(v) : (Number(v || 0).toLocaleString('vi-VN') + ' đ');
 
+      const numAvg = Number(avgVal) || 0;
+      const diff = numVal - numAvg;
+      const diffPct = numAvg > 0 ? Math.round((Math.abs(diff) / numAvg) * 100) : 0;
+      const diffLabel = diff > 0 
+        ? `+${formatMoney(diff)} (+${diffPct}% so với TB)`
+        : (diff < 0 ? `-${formatMoney(Math.abs(diff))} (-${diffPct}% so với TB)` : `Bằng mức trung bình`);
+      const diffColor = diff > 0 ? '#10B981' : (diff < 0 ? 'var(--text-secondary)' : '#C59B27');
+
       const html = `
         <div class="chart-tooltip-card">
           <div class="chart-tooltip-header">
-            <strong style="font-size: 13px; color: var(--text-primary); font-weight: 800; letter-spacing: -0.01em;">${fullLabel}</strong>
-            ${isHighlight ? `
-              <span class="chart-tooltip-badge">Cao Điểm</span>
-            ` : ''}
+            <span style="font-weight: 700; color: var(--text-primary); font-size: 12.5px;">${fullLabel}</span>
+            ${isHighlight ? '<span class="chart-tooltip-badge">Cao Điểm</span>' : ''}
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 6px 0 8px 0;">
-            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Tổng Doanh Thu</span>
-            <span style="font-size: 15px; font-weight: 900; color: #C59B27; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Doanh thu:</span>
+            <span style="font-size: 14.5px; font-weight: 800; color: #C59B27; font-variant-numeric: tabular-nums;">
               ${formatMoney(numVal)}
             </span>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 5px; padding-top: 6px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #E07A5F; display: inline-block;"></span>
-                <span style="color: var(--text-secondary);">Dịch vụ tóc:</span>
-              </div>
-              <strong style="color: var(--text-primary); font-variant-numeric: tabular-nums;">
-                ${formatMoney(numSvc)} ${numVal > 0 ? `<span style="font-size: 10px; opacity: 0.75; font-weight: 500;">(${svcPct}%)</span>` : ''}
-              </strong>
+          <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 11.5px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--text-secondary);">Dịch vụ:</span>
+              <span style="font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums;">
+                ${formatMoney(numSvc)} <span style="font-weight: 400; color: var(--text-secondary);">(${svcPct}%)</span>
+              </span>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
-                <span style="color: var(--text-secondary);">Bán lẻ mỹ phẩm:</span>
-              </div>
-              <strong style="color: var(--text-primary); font-variant-numeric: tabular-nums;">
-                ${formatMoney(numPrd)} ${numVal > 0 ? `<span style="font-size: 10px; opacity: 0.75; font-weight: 500;">(${prdPct}%)</span>` : ''}
-              </strong>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--text-secondary);">Bán lẻ:</span>
+              <span style="font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums;">
+                ${formatMoney(numPrd)} <span style="font-weight: 400; color: var(--text-secondary);">(${prdPct}%)</span>
+              </span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 4px; border-top: 1px dashed rgba(255, 255, 255, 0.08); font-size: 11px;">
+              <span style="color: var(--text-secondary);">So với TB:</span>
+              <span style="font-weight: 700; color: ${diffColor}; font-variant-numeric: tabular-nums;">
+                ${diffLabel}
+              </span>
             </div>
           </div>
-          
+
           <div class="chart-tooltip-arrow"></div>
         </div>
       `;
@@ -103,35 +109,20 @@
       }
 
       tooltip.style.left = `${posX}px`;
-      
-      // Vị trí dọc (Y): nổi phía trên cột, giữ khoảng cách đẹp mắt
-      const targetTop = Math.max(-10, barTopY - 116);
+      const targetTop = Math.max(-10, barTopY - 124);
       tooltip.style.top = `${targetTop}px`;
       tooltip.style.opacity = '1';
-      tooltip.style.transform = 'translate(-50%, 0) scale(1)';
 
-      const svg = container.querySelector('svg');
-      if (svg) svg.classList.add('is-hovering');
-      
-      container.querySelectorAll('.chart-bar-group').forEach(g => {
-        if (g === targetEl) {
-          g.classList.add('active-hover');
-        } else {
-          g.classList.remove('active-hover');
-        }
-      });
+      targetEl.classList.add('active-hover');
     },
 
     hideRevenueTooltip() {
-      const container = document.getElementById('revenueChartContainer');
       const tooltip = document.getElementById('adminChartBarTooltip');
       if (tooltip) {
         tooltip.style.opacity = '0';
-        tooltip.style.transform = 'translate(-50%, -6px) scale(0.96)';
       }
+      const container = document.getElementById('revenueChartContainer');
       if (container) {
-        const svg = container.querySelector('svg');
-        if (svg) svg.classList.remove('is-hovering');
         container.querySelectorAll('.chart-bar-group').forEach(g => g.classList.remove('active-hover'));
       }
     },
@@ -288,39 +279,47 @@
         return Number(d.revenue || 0);
       };
 
-      const maxVal = Math.max(...chartData.map(d => getVal(d)), 1000000);
-      const avgVal = Math.round(chartData.reduce((sum, d) => sum + getVal(d), 0) / Math.max(1, chartData.length));
-      const chartHeight = 135;
-      const countBars = chartData.length;
-      const totalWidth = 500;
-      const barWidth = countBars <= 4 ? 64 : (countBars <= 7 ? 38 : 30);
-      const spacing = countBars <= 4 ? 60 : (countBars <= 7 ? 38 : 22);
-      const startX = Math.max(25, Math.round((580 - (countBars * barWidth + (countBars - 1) * (spacing - barWidth))) / 2));
+      const periodTotalRev = chartData.reduce((acc, c) => acc + getVal(c), 0);
+      const periodServiceRev = chartData.reduce((acc, c) => acc + (c.serviceRevenue || 0), 0);
+      const periodProductRev = chartData.reduce((acc, c) => acc + (c.productRevenue || 0), 0);
+      const periodSvcPct = periodTotalRev > 0 ? Math.round((periodServiceRev / periodTotalRev) * 100) : 0;
+      const periodPrdPct = periodTotalRev > 0 ? Math.round((periodProductRev / periodTotalRev) * 100) : 0;
 
-      const avgLineY = chartHeight - Math.max(8, (avgVal / maxVal) * chartHeight) + 20;
+      const peakItem = chartData.reduce((prev, curr) => getVal(curr) > getVal(prev) ? curr : prev, chartData[0] || { revenue: 0 });
+      const peakVal = peakItem ? getVal(peakItem) : 0;
+      const peakPctOfTotal = periodTotalRev > 0 ? Math.round((peakVal / periodTotalRev) * 100) : 0;
+
+      const maxVal = Math.max(...chartData.map(d => getVal(d)), 1000000);
+      const avgVal = Math.round(periodTotalRev / Math.max(1, chartData.length));
+      const chartHeight = 115;
+      const chartBaseY = 145;
+      const countBars = chartData.length;
+      const barWidth = countBars <= 4 ? 62 : (countBars <= 7 ? 38 : 28);
+      const spacing = countBars <= 4 ? 52 : (countBars <= 7 ? 28 : 16);
+      const totalBarsWidth = countBars * barWidth + (countBars - 1) * spacing;
+      const startX = 65 + Math.max(8, Math.round((495 - totalBarsWidth) / 2));
+
+      const avgLineY = chartBaseY - Math.max(6, Math.round((avgVal / maxVal) * chartHeight));
 
       const svgBars = chartData.map((d, i) => {
         const val = getVal(d);
-        const barH = Math.max(8, (val / maxVal) * chartHeight);
+        const barH = Math.max(6, Math.round((val / maxVal) * chartHeight));
         const x = startX + i * (barWidth + spacing);
-        const y = chartHeight - barH + 20;
+        const y = chartBaseY - barH;
         const isHighlight = !!d.highlight;
         const formattedRev = val >= 1000000 ? (val / 1000000).toFixed(1) + ' Tr' : (val > 0 ? (val / 1000).toFixed(0) + ' k' : '0 đ');
         const barColor = isHighlight ? '#C59B27' : (chartMode === 'products' ? '#10B981' : (chartMode === 'services' ? '#E07A5F' : '#64748B'));
         const safeFullLabel = (d.fullLabel || '').replace(/'/g, "\\'");
 
         return `
-          <g class="chart-bar-group" style="cursor: pointer;"
-             onmouseenter="AdminWeb.showRevenueTooltip(this, event, '${safeFullLabel}', ${val}, ${d.serviceRevenue || 0}, ${d.productRevenue || 0}, ${isHighlight ? 1 : 0})"
+          <g class="chart-bar-group"
+             onmouseenter="AdminWeb.showRevenueTooltip(this, event, '${safeFullLabel}', ${val}, ${d.serviceRevenue || 0}, ${d.productRevenue || 0}, ${isHighlight ? 1 : 0}, ${avgVal})"
              onmouseleave="AdminWeb.hideRevenueTooltip()">
-            <rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="4" fill="${barColor}" opacity="${isHighlight ? '1' : '0.85'}">
-              <animate attributeName="height" from="0" to="${barH}" dur="0.4s" fill="freeze" />
-              <animate attributeName="y" from="${chartHeight + 20}" to="${y}" dur="0.4s" fill="freeze" />
-            </rect>
-            <text class="chart-val-text" x="${x + barWidth / 2}" y="${y - 8}" font-size="11" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? '#C59B27' : 'var(--text-secondary)'}" text-anchor="middle" font-variant-numeric="tabular-nums">
+            <rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="3" fill="${barColor}" opacity="${isHighlight ? '1' : '0.85'}"></rect>
+            <text class="chart-val-text" x="${x + barWidth / 2}" y="${y - 6}" font-size="10.5" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? '#C59B27' : 'var(--text-secondary)'}" text-anchor="middle" font-variant-numeric="tabular-nums">
               ${formattedRev}
             </text>
-            <text class="chart-label-text" x="${x + barWidth / 2}" y="${chartHeight + 36}" font-size="11.5" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? 'var(--text-primary)' : 'var(--text-secondary)'}" text-anchor="middle">
+            <text class="chart-label-text" x="${x + barWidth / 2}" y="${chartBaseY + 18}" font-size="11" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? 'var(--text-primary)' : 'var(--text-secondary)'}" text-anchor="middle">
               ${d.shortName}
             </text>
           </g>
@@ -510,9 +509,13 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 20px; margin-bottom: 24px;">
           <!-- Biểu đồ 1: Xu Hướng Doanh Thu Theo Thời Gian (Hôm Nay / 7 Ngày / Tháng Này) -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <!-- Tiêu Đề & Bộ Lọc Chuẩn Báo Cáo Điều Hành -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
               <div>
-                <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin: 0;">
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
+                  Báo Cáo Doanh Thu
+                </div>
+                <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0;">
                   ${chartTitle}
                 </h4>
               </div>
@@ -520,42 +523,77 @@
               <!-- Filter tabs cho biểu đồ -->
               <div style="display: inline-flex; background: var(--surface-elevated, rgba(255,255,255,0.06)); padding: 2px; border-radius: 6px; border: 1px solid var(--border-color);">
                 <button type="button" 
-                        style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; ${chartMode === 'all' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
+                        style="padding: 4px 12px; font-size: 12px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; ${chartMode === 'all' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
                         onclick="AdminWeb.overviewChartMode = 'all'; AdminWeb.refreshSubTab();">
                   Tất Cả
                 </button>
                 <button type="button" 
-                        style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; ${chartMode === 'services' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
+                        style="padding: 4px 12px; font-size: 12px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; ${chartMode === 'services' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
                         onclick="AdminWeb.overviewChartMode = 'services'; AdminWeb.refreshSubTab();">
                   Dịch Vụ
                 </button>
                 <button type="button" 
-                        style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; ${chartMode === 'products' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
+                        style="padding: 4px 12px; font-size: 12px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; ${chartMode === 'products' ? 'background: #C59B27; color: #141413;' : 'background: transparent; color: var(--text-secondary);'}"
                         onclick="AdminWeb.overviewChartMode = 'products'; AdminWeb.refreshSubTab();">
                   Bán Lẻ
                 </button>
               </div>
             </div>
 
-            <!-- SVG Bar Chart -->
-            <div id="revenueChartContainer" style="position: relative; width: 100%; height: 190px; margin-bottom: 12px;">
-              <svg class="chart-svg" viewBox="0 0 580 190" style="width: 100%; height: 100%; overflow: visible;" role="img" aria-label="Biểu đồ doanh thu">
-                <line x1="20" y1="20" x2="560" y2="20" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1" />
-                <line x1="20" y1="85" x2="560" y2="85" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1" />
-                <line x1="20" y1="155" x2="560" y2="155" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />
+            <!-- Dải Chỉ Số Quản Trị Cốt Lõi (Executive Summary Strip) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;">
+              <div>
+                <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Tổng Doanh Thu Kỳ</div>
+                <div style="font-size: 16px; font-weight: 900; color: #C59B27; font-variant-numeric: tabular-nums;">
+                  ${SalonUtils.formatCurrency(periodTotalRev)}
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Dịch Vụ Tóc</div>
+                <div style="font-size: 13px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums;">
+                  ${SalonUtils.formatCurrency(periodServiceRev)} <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">(${periodSvcPct}%)</span>
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Bán Lẻ Mỹ Phẩm</div>
+                <div style="font-size: 13px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums;">
+                  ${SalonUtils.formatCurrency(periodProductRev)} <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">(${periodPrdPct}%)</span>
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Trung Bình / Mốc</div>
+                <div style="font-size: 13px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums;">
+                  ${SalonUtils.formatCurrency(avgVal)}
+                </div>
+              </div>
+            </div>
+
+            <!-- SVG Bar Chart với Trục Đo & Lưới Chuẩn Kỹ Thuật -->
+            <div id="revenueChartContainer" style="position: relative; width: 100%; height: 185px; margin-bottom: 12px;">
+              <svg class="chart-svg" viewBox="0 0 580 185" style="width: 100%; height: 100%; overflow: visible;" role="img" aria-label="Biểu đồ doanh thu">
+                <!-- Trục Y Ticks & Đường Lưới Ngang -->
+                <text x="50" y="34" font-size="9" font-weight="600" fill="var(--text-secondary)" text-anchor="end">${maxVal >= 1000000 ? (maxVal/1000000).toFixed(1) + 'Tr' : (maxVal/1000).toFixed(0) + 'k'}</text>
+                <line x1="58" y1="30" x2="565" y2="30" stroke="rgba(255, 255, 255, 0.08)" stroke-dasharray="2 3" stroke-width="1" />
+
+                <text x="50" y="91" font-size="9" font-weight="600" fill="var(--text-secondary)" text-anchor="end">${(maxVal/2) >= 1000000 ? (maxVal/2000000).toFixed(1) + 'Tr' : ((maxVal/2)/1000).toFixed(0) + 'k'}</text>
+                <line x1="58" y1="87" x2="565" y2="87" stroke="rgba(255, 255, 255, 0.08)" stroke-dasharray="2 3" stroke-width="1" />
+
+                <text x="50" y="149" font-size="9" font-weight="600" fill="var(--text-secondary)" text-anchor="end">0</text>
+                <line x1="58" y1="145" x2="565" y2="145" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1" />
                 
-                <line x1="20" y1="${avgLineY}" x2="560" y2="${avgLineY}" stroke="#C59B27" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.6" />
-                <text x="562" y="${avgLineY + 3}" font-size="9.5" font-weight="700" fill="#C59B27" text-anchor="start">TB: ${avgVal >= 1000000 ? (avgVal/1000000).toFixed(1) + 'Tr' : (avgVal > 0 ? (avgVal/1000).toFixed(0) + 'k' : '0đ')}</text>
+                <!-- Đường Mức Trung Bình (TB) -->
+                <line x1="58" y1="${avgLineY}" x2="565" y2="${avgLineY}" stroke="#C59B27" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.8" />
+                <text x="568" y="${avgLineY + 3}" font-size="9" font-weight="700" fill="#C59B27" text-anchor="start">TB: ${avgVal >= 1000000 ? (avgVal/1000000).toFixed(1) + 'Tr' : (avgVal > 0 ? (avgVal/1000).toFixed(0) + 'k' : '0đ')}</text>
 
                 ${svgBars}
               </svg>
-              <!-- Custom Floating Tooltip Card -->
+              <!-- Bảng Thông Số Điều Hành Khi Hover -->
               <div id="adminChartBarTooltip" class="admin-chart-tooltip"></div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px; font-size: 12px; color: var(--text-secondary);">
-              <span>${peakPeriodLabel}</span>
-              <span>Tổng doanh thu kỳ: <strong style="color: #C59B27;">${SalonUtils.formatCurrency(currentPeriodRev)}</strong></span>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap; gap: 8px;">
+              <span>${peakPeriodLabel} <strong style="color: var(--text-primary);">(${SalonUtils.formatCurrency(peakVal)} - ${peakPctOfTotal}% tổng kỳ)</strong></span>
+              <span>Theo dõi: <strong style="color: var(--text-primary);">${chartData.length} mốc</strong></span>
             </div>
           </div>
 

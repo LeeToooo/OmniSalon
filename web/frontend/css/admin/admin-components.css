@@ -185,36 +185,28 @@ html.light .admin-enterprise-table tr:hover td,
 
 /* --- 3. ADMIN INTERACTION OPTIMIZATIONS & CHART HOVER --- */
 
-/* Tương tác biểu đồ doanh thu Overview */
+/* Tương tác biểu đồ doanh thu Overview - Phong cách Quản Trị Tinh Gọn (No Effects, High Contrast) */
 .chart-bar-group {
   cursor: pointer;
-  transition: opacity 0.25s ease;
 }
 
 .chart-bar-group rect {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease, opacity 0.2s ease;
-  transform-origin: bottom center;
+  transition: opacity 0.15s ease, stroke 0.15s ease;
 }
 
 .chart-bar-group text {
-  transition: fill 0.2s ease, font-size 0.2s ease;
   pointer-events: none;
 }
 
-/* Dim non-hovered bars when chart is being hovered */
-.chart-svg.is-hovering .chart-bar-group:not(.active-hover) {
-  opacity: 0.38;
-}
-
-/* Hover state on the active bar */
+/* Hover state on the active bar: sắc nét, không nhún nhảy, không vầng sáng lòe loẹt */
 .chart-bar-group:hover rect,
 .chart-bar-group.active-hover rect {
   opacity: 1 !important;
-  transform: translateY(-4px);
-  filter: drop-shadow(0 6px 14px rgba(197, 155, 39, 0.6));
+  stroke: #C59B27;
+  stroke-width: 1.5px;
 }
 
-/* Text on active bar: luôn sáng rõ & vàng hoàng kim, không bị chìm màu */
+/* Text on active bar: luôn sáng rõ & đúng màu chuẩn */
 .chart-bar-group:hover text.chart-val-text,
 .chart-bar-group.active-hover text.chart-val-text {
   fill: #C59B27 !important;
@@ -232,35 +224,34 @@ html.light .chart-bar-group.active-hover text.chart-label-text {
   fill: #0F172A !important;
 }
 
-/* Custom Floating Tooltip for Admin Overview Chart */
+/* Floating Tooltip Box: bảng thông số điều hành phẳng, sắc nét, không bóng đổ lòe loẹt */
 .admin-chart-tooltip {
   position: absolute;
   pointer-events: none;
   z-index: 100;
   opacity: 0;
-  transform: translate(-50%, -6px) scale(0.96);
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translate(-50%, 0);
+  transition: opacity 0.12s ease;
   width: max-content;
   min-width: 220px;
-  max-width: 290px;
+  max-width: 280px;
 }
 
 .chart-tooltip-card {
   position: relative;
-  background: rgba(24, 24, 27, 0.96);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(197, 155, 39, 0.45);
-  border-radius: 10px;
-  padding: 10px 14px;
-  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.7), 0 0 16px rgba(197, 155, 39, 0.18);
+  background: #18181B;
+  border: 1px solid #3F3F46;
+  border-radius: 6px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   color: #FAF8F5;
+  font-size: 12px;
 }
 
 html.light .chart-tooltip-card {
-  background: rgba(255, 255, 255, 0.98);
-  border-color: rgba(197, 155, 39, 0.4);
-  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.12), 0 0 14px rgba(197, 155, 39, 0.15);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   color: #0F172A;
 }
 
@@ -271,20 +262,20 @@ html.light .chart-tooltip-card {
   gap: 8px;
   margin-bottom: 6px;
   padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 html.light .chart-tooltip-header {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .chart-tooltip-badge {
   font-size: 10px;
   font-weight: 800;
-  background: linear-gradient(135deg, #C59B27 0%, #E6CA65 100%);
+  background: #C59B27;
   color: #141413;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 1px 6px;
+  border-radius: 3px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
@@ -294,17 +285,17 @@ html.light .chart-tooltip-header {
   bottom: -5px;
   left: 50%;
   transform: translateX(-50%) rotate(45deg);
-  width: 10px;
-  height: 10px;
-  background: rgba(24, 24, 27, 0.96);
-  border-right: 1px solid rgba(197, 155, 39, 0.45);
-  border-bottom: 1px solid rgba(197, 155, 39, 0.45);
+  width: 8px;
+  height: 8px;
+  background: #18181B;
+  border-right: 1px solid #3F3F46;
+  border-bottom: 1px solid #3F3F46;
 }
 
 html.light .chart-tooltip-arrow {
-  background: rgba(255, 255, 255, 0.98);
-  border-right-color: rgba(197, 155, 39, 0.4);
-  border-bottom-color: rgba(197, 155, 39, 0.4);
+  background: #FFFFFF;
+  border-right: 1px solid #E2E8F0;
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .admin-tab-btn:focus {
