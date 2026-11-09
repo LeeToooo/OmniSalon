@@ -21,6 +21,7 @@
   align-items: center;
   gap: 10px;
 }
+
 /* Thẻ và địa chỉ chi nhánh */
 [data-theme="light"] .branch-card-item,
 html.light .branch-card-item,
@@ -81,6 +82,8 @@ body.light .branch-address-text {
 
 .branch-hours-text {
   color: #94A3B8;
+}
+
 /* Bong bóng chọn nhanh chi nhánh */
 .branch-bubble-item {
   position: relative;
@@ -442,6 +445,7 @@ html.light #branchBubblesModal p,
 }
 
 @media (max-width: 1024px) {
+
   #branchesCardsGrid,
   .branches-grid,
   .branches-grid-container {
@@ -451,6 +455,7 @@ html.light #branchBubblesModal p,
 }
 
 @media (max-width: 640px) {
+
   #branchesCardsGrid,
   .branches-grid,
   .branches-grid-container {
@@ -503,4 +508,3 @@ html.light #branchBubblesModal p,
   color: #000000;
   transform: translateY(-1px);
 }
-

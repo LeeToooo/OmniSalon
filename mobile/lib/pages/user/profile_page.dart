@@ -496,12 +496,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Cập nhật mật khẩu mới cho tài khoản. Mật khẩu được lưu trữ an toàn trong CSDL.',
-                      style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-                    ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
 
                     if (errorMessage != null) ...[
                       Container(

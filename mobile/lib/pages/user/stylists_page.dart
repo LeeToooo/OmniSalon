@@ -218,7 +218,7 @@ class _StylistsScreenState extends State<StylistsScreen> {
                 // Header Banner Editorial
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -233,19 +233,13 @@ class _StylistsScreenState extends State<StylistsScreen> {
                             style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Thợ Cắt Tóc & Chuyên Gia Tạo Mẫu',
-                          style: AppTheme.headingLarge(fontSize: 24),
-                          textAlign: TextAlign.center,
-                        ),
                         const SizedBox(height: 6),
                         Text(
-                          'Tập hợp những tay kéo vững tay nghề, sắc sảo trong từng đường fade và thấu hiểu cấu trúc gương mặt để định hình phong cách riêng cho bạn.',
-                          style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                          'THỢ CẮT TÓC & CHUYÊN GIA TẠO MẪU',
+                          style: AppTheme.headingLarge(fontSize: 22),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
 
                         // Nút mở Bubble Modal chọn chi nhánh
                         Row(

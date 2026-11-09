@@ -124,18 +124,9 @@ class _BranchesScreenState extends State<BranchesScreen> {
           icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hệ Thống 20 Chi Nhánh',
-              style: AppTheme.headingSmall(fontSize: 18),
-            ),
-            Text(
-              'Không gian chuẩn mực Barbershop tại TP.HCM',
-              style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary),
-            ),
-          ],
+        title: Text(
+          'Hệ Thống 20 Chi Nhánh',
+          style: AppTheme.headingSmall(fontSize: 18),
         ),
         backgroundColor: AppTheme.bgPrimary,
         elevation: 0,

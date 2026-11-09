@@ -1353,18 +1353,19 @@ body.light .mini-cart-trash-btn:hover,
 .cart-primary-action-btn {
   height: 44px;
   padding: 0 24px;
-  background: #f59e0b;
-  color: #000000;
+  background: var(--surface-card, #FFFFFF);
+  color: var(--text-primary, #141413);
+  border: 1.5px solid var(--border-color, rgba(20, 20, 19, 0.12));
   font-weight: 800;
   font-size: 14px;
   border-radius: 8px;
-  border: none;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s ease;
 }
 
 .cart-primary-action-btn:hover {
-  background: #fbbf24;
+  background: var(--surface-elevated, #F8FAFC);
+  transform: translateY(-1px);
 }
 
 

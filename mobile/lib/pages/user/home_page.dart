@@ -116,8 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Trải Nghiệm Chuẩn Mực Barber',
-                    style: AppTheme.headingMedium(fontSize: 24),
+                    'TRẢI NGHIỆM CHUẨN MỰC BARBER',
+                    style: AppTheme.headingMedium(fontSize: 22),
                   ),
                   const SizedBox(height: 14),
                   _buildAsymmetricBentoGrid(),
@@ -142,20 +142,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'DANH MỤC DỊCH VỤ',
-                        style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Dịch Vụ Tiêu Biểu',
-                        style: AppTheme.headingMedium(fontSize: 22),
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'DANH MỤC DỊCH VỤ',
+                          style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'DỊCH VỤ TIÊU BIỂU',
+                          style: AppTheme.headingMedium(fontSize: 22),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
                       if (widget.onNavigateToTab != null) widget.onNavigateToTab!(1);
@@ -191,20 +196,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'NGHỆ NHÂN TẠO MẪU',
-                        style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Master Stylist & Art Director',
-                        style: AppTheme.headingMedium(fontSize: 22),
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'NGHỆ NHÂN TẠO MẪU',
+                          style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'MASTER STYLIST & ART DIRECTOR',
+                          style: AppTheme.headingMedium(fontSize: 19),
+                          maxLines: 2,
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
                       Navigator.of(context).push(
@@ -257,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Hệ Thống Chi Nhánh Omni',
+                              'HỆ THỐNG CHI NHÁNH OMNI',
                               style: AppTheme.headingMedium(fontSize: 22),
                             ),
                           ],
@@ -309,41 +318,53 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppTheme.accentGold.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4)),
               ),
-              child: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentGold, size: 28),
+              child: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentGold, size: 26),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 5,
+                    runSpacing: 2,
                     children: [
-                      Text('OMNI AI STUDIO 3D', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
-                      const SizedBox(width: 6),
+                      Text('OMNI AI STUDIO 3D', style: AppTheme.labelUppercase(fontSize: 9.5, color: AppTheme.accentGold)),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
                         decoration: BoxDecoration(
                           color: AppTheme.statusSuccess.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(3),
                         ),
-                        child: const Text('NEURAL SCAN', style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: AppTheme.statusSuccess)),
+                        child: const Text('NEURAL SCAN', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: AppTheme.statusSuccess)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 3),
-                  Text('Thử Kiểu Tóc 3D Trên Khuôn Mặt', style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.textPrimary)),
+                  Text(
+                    'Thử Kiểu Tóc 3D Trên Khuôn Mặt',
+                    style: AppTheme.headingSmall(fontSize: 14.5, color: AppTheme.textPrimary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 2),
-                  Text('Tự động nhận diện ngũ quan & phối màu nhuộm thời thượng', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary), maxLines: 1),
+                  Text(
+                    'Tự động nhận diện ngũ quan & phối màu nhuộm thời thượng',
+                    style: AppTheme.bodySmall(fontSize: 10.5, color: AppTheme.textSecondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -356,12 +377,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: AppTheme.accentGold,
                 foregroundColor: AppTheme.charcoal,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: Text('Trải Nghiệm', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: AppTheme.charcoal)),
+              child: const Text('Trải Nghiệm', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.charcoal)),
             ),
           ],
         ),
@@ -518,7 +539,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Định Hình Phong Cách & Bản Lĩnh Phái Mạnh',
+                    'BẢN LĨNH PHÁI MẠNH',
                     style: AppTheme.headingLarge(
                       fontSize: 26,
                       color: AppTheme.textLight,
@@ -625,7 +646,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildBentoCard(
                 height: 210,
                 title: 'Master Barber',
-                subtitle: 'Kỹ thuật kéo tỉa kinh nghiệm trên 8 năm.',
                 tag: 'TAY NGHỀ',
                 imageUrl: ApiService.getImageUrl('Men_Grooming_Products/DichVu_Men/DV1.jpg'),
               ),
@@ -636,7 +656,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildBentoCard(
                 height: 210,
                 title: 'Pomade & Dược Liệu',
-                subtitle: '100% nhập khẩu chính ngạch.',
                 tag: 'CHẤT LƯỢNG',
                 imageUrl: ApiService.getImageUrl('Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg'),
                 fit: BoxFit.contain,
@@ -707,7 +726,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     title,
                     style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.textLight),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (subtitle != null && subtitle.isNotEmpty) ...[

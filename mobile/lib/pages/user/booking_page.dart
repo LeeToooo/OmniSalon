@@ -554,7 +554,7 @@ class _BookingScreenState extends State<BookingScreen> {
         if (_isLoading) {
           return Scaffold(
             backgroundColor: AppTheme.bgPrimary,
-            body: Center(
+            body: const Center(
               child: CircularProgressIndicator(color: AppTheme.accentGold, strokeWidth: 2),
             ),
           );
@@ -668,10 +668,8 @@ class _BookingScreenState extends State<BookingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('1. Chọn Chi Nhánh Trải Nghiệm', style: AppTheme.headingSmall(fontSize: 20)),
-        const SizedBox(height: 4),
-        Text('Vui lòng chọn địa điểm salon thuận tiện nhất cho lịch trình của bạn.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
-        const SizedBox(height: 16),
+        Text('1. Chọn chi nhánh trải nghiệm', style: AppTheme.headingSmall(fontSize: 20)),
+        const SizedBox(height: 14),
         ..._branches.map((b) {
           final isSelected = _selectedBranch?.id == b.id;
           return GestureDetector(
@@ -747,9 +745,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('2. Chọn Gói Dịch Vụ', style: AppTheme.headingSmall(fontSize: 20)),
-        const SizedBox(height: 4),
-        Text('Bạn có thể chọn một hoặc nhiều dịch vụ kết hợp cùng lúc.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+        Text('2. Chọn gói dịch vụ', style: AppTheme.headingSmall(fontSize: 20)),
         const SizedBox(height: 14),
 
         // Thanh tìm kiếm dịch vụ
@@ -914,14 +910,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('3. Chọn Master Barber', style: AppTheme.headingSmall(fontSize: 20)),
-        const SizedBox(height: 4),
-        Text(
-          _selectedBranch != null
-              ? 'Đội ngũ chuyên gia tạo mẫu tại ${_selectedBranch!.name}'
-              : 'Chọn thợ barber quen thuộc hoặc để Omni Salon chỉ định thợ tay nghề phù hợp.',
-          style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-        ),
+        Text('3. Chọn master barber', style: AppTheme.headingSmall(fontSize: 20)),
         const SizedBox(height: 14),
 
         // Thanh tìm kiếm thợ
@@ -1079,9 +1068,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('4. Chọn Ngày & Khung Giờ', style: AppTheme.headingSmall(fontSize: 20)),
-        const SizedBox(height: 4),
-        Text('Thời lượng dự kiến: $_totalDuration phút cho các dịch vụ đã chọn.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+        Text('4. Chọn ngày & khung giờ', style: AppTheme.headingSmall(fontSize: 20)),
         const SizedBox(height: 16),
 
         // Lịch 7 ngày tiếp theo dạng dải ngang
@@ -1265,9 +1252,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('5. Xác Nhận Thông Tin Lịch Hẹn', style: AppTheme.headingSmall(fontSize: 20)),
-        const SizedBox(height: 4),
-        Text('Kiểm tra lại thông tin và xác nhận để thợ barber chuẩn bị phục vụ quý khách chu đáo nhất.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
+        Text('5. Xác nhận thông tin lịch hẹn', style: AppTheme.headingSmall(fontSize: 20)),
         const SizedBox(height: 18),
 
         // Thẻ tóm tắt thông tin hẹn
@@ -1648,7 +1633,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   foregroundColor: AppTheme.charcoal,
                 ),
                 child: _isSubmitting
-                    ? SizedBox(
+                    ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),

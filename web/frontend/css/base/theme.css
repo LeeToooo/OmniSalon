@@ -1197,8 +1197,6 @@ body.light .nordic-pill-tab.active {
   font-weight: 800 !important;
 }
 
-}
-
 [data-theme="light"] .home-branch-card,
 html.light .home-branch-card,
 body.light .home-branch-card {
@@ -4345,8 +4343,6 @@ html.light .service-editorial-card button.service-card-btn-detail:hover {
   border-color: #8A6208 !important;
   color: var(--text-primary) !important;
   background: var(--surface-card) !important;
-}
-
 }
 
 /* Nhãn hiển thị dịch vụ */

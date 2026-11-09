@@ -1614,7 +1614,7 @@ class _ShopScreenState extends State<ShopScreen> {
             if (bestSellers.isNotEmpty)
               _buildShowcaseSection(
                 eyebrow: 'OMNI SIGNATURE GROOMING',
-                title: 'Sản Phẩm Bán Chạy Nhất',
+                title: 'Sản phẩm bán chạy nhất',
                 products: bestSellers,
                 onViewAll: () => setState(() => _selectedCategory = 'bestsellers'),
               ),
@@ -1792,13 +1792,8 @@ class _ShopScreenState extends State<ShopScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Pomade Cao Cấp',
+                            'Pomade cao cấp',
                             style: AppTheme.headingSmall(fontSize: 20, color: AppTheme.textLight),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Gốc dầu & gốc nước cho độ bóng lịch lãm.',
-                            style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textLightSecondary),
                           ),
                         ],
                       ),
@@ -1851,10 +1846,6 @@ class _ShopScreenState extends State<ShopScreen> {
                                 Text(
                                   'Clay & Fiber',
                                   style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.textLight),
-                                ),
-                                Text(
-                                  'Mờ tự nhiên & phồng dày',
-                                  style: AppTheme.bodySmall(fontSize: 10, color: AppTheme.textLightSecondary),
                                 ),
                               ],
                             ),
@@ -1912,7 +1903,7 @@ class _ShopScreenState extends State<ShopScreen> {
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  'Đang Giảm Giá',
+                                  'Đang giảm giá',
                                   style: AppTheme.headingSmall(fontSize: 15, color: AppTheme.textLight),
                                 ),
                               ],
@@ -1978,11 +1969,6 @@ class _ShopScreenState extends State<ShopScreen> {
                       Text(
                         'Shaving & Beard Grooming',
                         style: AppTheme.headingSmall(fontSize: 18, color: AppTheme.textLight),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Khăn nóng, kem cạo bọt mịn & dầu dưỡng da sau cạo.',
-                        style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textLightSecondary),
                       ),
                     ],
                   ),

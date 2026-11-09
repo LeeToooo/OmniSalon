@@ -339,13 +339,8 @@ class _ServicesScreenState extends State<ServicesScreen> with SingleTickerProvid
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Dịch Vụ & Thợ Tạo Mẫu',
-                          style: AppTheme.headingLarge(fontSize: 28),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Minh bạch bảng giá dịch vụ và tuyển chọn các Master Barber giàu trải nghiệm.',
-                          style: AppTheme.bodySmall(color: AppTheme.textSecondary),
+                          'DỊCH VỤ & THỢ TẠO MẪU',
+                          style: AppTheme.headingLarge(fontSize: 26),
                         ),
                         const SizedBox(height: 16),
 

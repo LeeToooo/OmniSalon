@@ -402,9 +402,7 @@ class _CartScreenState extends State<CartScreen> {
                     Icon(Icons.shopping_bag_outlined, size: 64, color: AppTheme.textMuted.withValues(alpha: 0.5)),
                     const SizedBox(height: 12),
                     Text('Giỏ hàng của bạn đang trống', style: AppTheme.headingSmall(fontSize: 18)),
-                    const SizedBox(height: 6),
-                    Text('Hãy chọn các sản phẩm sáp và dưỡng cao cấp tại Cửa hàng.', style: AppTheme.bodySmall(color: AppTheme.textSecondary)),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
@@ -631,7 +629,7 @@ class _CartScreenState extends State<CartScreen> {
                       child: ElevatedButton(
                         onPressed: _isCheckingOut ? null : _processCheckout,
                         child: _isCheckingOut
-                            ? SizedBox(
+                            ? const SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),
