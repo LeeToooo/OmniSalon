@@ -183,16 +183,128 @@ html.light .admin-enterprise-table tr:hover td,
   transform: none;
 }
 
-/* --- 3. ADMIN INTERACTION OPTIMIZATIONS & TAB CONTROLS --- */
+/* --- 3. ADMIN INTERACTION OPTIMIZATIONS & CHART HOVER --- */
 
-/* Tối ưu tương tác khu vực quản trị */
-.chart-bar-group:hover rect {
-  opacity: 1 !important;
-  filter: drop-shadow(0 4px 10px rgba(200, 90, 68, 0.4));
+/* Tương tác biểu đồ doanh thu Overview */
+.chart-bar-group {
+  cursor: pointer;
+  transition: opacity 0.25s ease;
 }
 
-.chart-bar-group:hover text {
-  fill: #111116;
+.chart-bar-group rect {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease, opacity 0.2s ease;
+  transform-origin: bottom center;
+}
+
+.chart-bar-group text {
+  transition: fill 0.2s ease, font-size 0.2s ease;
+  pointer-events: none;
+}
+
+/* Dim non-hovered bars when chart is being hovered */
+.chart-svg.is-hovering .chart-bar-group:not(.active-hover) {
+  opacity: 0.38;
+}
+
+/* Hover state on the active bar */
+.chart-bar-group:hover rect,
+.chart-bar-group.active-hover rect {
+  opacity: 1 !important;
+  transform: translateY(-4px);
+  filter: drop-shadow(0 6px 14px rgba(197, 155, 39, 0.6));
+}
+
+/* Text on active bar: luôn sáng rõ & vàng hoàng kim, không bị chìm màu */
+.chart-bar-group:hover text.chart-val-text,
+.chart-bar-group.active-hover text.chart-val-text {
+  fill: #C59B27 !important;
+  font-weight: 800 !important;
+}
+
+.chart-bar-group:hover text.chart-label-text,
+.chart-bar-group.active-hover text.chart-label-text {
+  fill: var(--text-primary, #FAF8F5) !important;
+  font-weight: 800 !important;
+}
+
+html.light .chart-bar-group:hover text.chart-label-text,
+html.light .chart-bar-group.active-hover text.chart-label-text {
+  fill: #0F172A !important;
+}
+
+/* Custom Floating Tooltip for Admin Overview Chart */
+.admin-chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transform: translate(-50%, -6px) scale(0.96);
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  width: max-content;
+  min-width: 220px;
+  max-width: 290px;
+}
+
+.chart-tooltip-card {
+  position: relative;
+  background: rgba(24, 24, 27, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(197, 155, 39, 0.45);
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.7), 0 0 16px rgba(197, 155, 39, 0.18);
+  color: #FAF8F5;
+}
+
+html.light .chart-tooltip-card {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(197, 155, 39, 0.4);
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.12), 0 0 14px rgba(197, 155, 39, 0.15);
+  color: #0F172A;
+}
+
+.chart-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html.light .chart-tooltip-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.chart-tooltip-badge {
+  font-size: 10px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #C59B27 0%, #E6CA65 100%);
+  color: #141413;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.chart-tooltip-arrow {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: rgba(24, 24, 27, 0.96);
+  border-right: 1px solid rgba(197, 155, 39, 0.45);
+  border-bottom: 1px solid rgba(197, 155, 39, 0.45);
+}
+
+html.light .chart-tooltip-arrow {
+  background: rgba(255, 255, 255, 0.98);
+  border-right-color: rgba(197, 155, 39, 0.4);
+  border-bottom-color: rgba(197, 155, 39, 0.4);
 }
 
 .admin-tab-btn:focus {

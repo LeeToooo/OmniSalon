@@ -13,6 +13,133 @@
     overviewTimePeriod: 'today', // 'today' | '7days' | 'month'
 
     // -----------------------------------------------------------------------
+    // FLOATING TOOLTIP CHO BIỂU ĐỒ DOANH THU OVERVIEW
+    // -----------------------------------------------------------------------
+    showRevenueTooltip(targetEl, event, fullLabel, val, serviceRev, productRev, isHighlight) {
+      const container = document.getElementById('revenueChartContainer');
+      const tooltip = document.getElementById('adminChartBarTooltip');
+      if (!container || !tooltip) return;
+
+      const cRect = container.getBoundingClientRect();
+      const bRect = targetEl.getBoundingClientRect();
+
+      // Tâm ngang của cột biểu đồ so với container
+      const barCenterX = (bRect.left + bRect.width / 2) - cRect.left;
+      // Đỉnh của cột so với container
+      const barTopY = bRect.top - cRect.top;
+
+      const numVal = Number(val) || 0;
+      const numSvc = Number(serviceRev) || 0;
+      const numPrd = Number(productRev) || 0;
+      const totalSafe = Math.max(numVal, 1);
+      const svcPct = Math.round((numSvc / totalSafe) * 100);
+      const prdPct = Math.round((numPrd / totalSafe) * 100);
+      const formatMoney = (v) => (typeof SalonUtils !== 'undefined' && SalonUtils.formatCurrency) ? SalonUtils.formatCurrency(v) : (Number(v || 0).toLocaleString('vi-VN') + ' đ');
+
+      const html = `
+        <div class="chart-tooltip-card">
+          <div class="chart-tooltip-header">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 13px;">📊</span>
+              <strong style="font-size: 13px; color: var(--text-primary); font-weight: 800;">${fullLabel}</strong>
+            </div>
+            ${isHighlight ? `
+              <span class="chart-tooltip-badge">Cao Điểm</span>
+            ` : ''}
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 6px 0 8px 0;">
+            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Tổng Doanh Thu</span>
+            <span style="font-size: 15px; font-weight: 900; color: #C59B27; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;">
+              ${formatMoney(numVal)}
+            </span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 5px; padding-top: 6px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #E07A5F; display: inline-block;"></span>
+                <span style="color: var(--text-secondary);">Dịch vụ tóc:</span>
+              </div>
+              <strong style="color: var(--text-primary); font-variant-numeric: tabular-nums;">
+                ${formatMoney(numSvc)} ${numVal > 0 ? `<span style="font-size: 10px; opacity: 0.75; font-weight: 500;">(${svcPct}%)</span>` : ''}
+              </strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+                <span style="color: var(--text-secondary);">Bán lẻ mỹ phẩm:</span>
+              </div>
+              <strong style="color: var(--text-primary); font-variant-numeric: tabular-nums;">
+                ${formatMoney(numPrd)} ${numVal > 0 ? `<span style="font-size: 10px; opacity: 0.75; font-weight: 500;">(${prdPct}%)</span>` : ''}
+              </strong>
+            </div>
+          </div>
+          
+          <div class="chart-tooltip-arrow"></div>
+        </div>
+      `;
+
+      tooltip.innerHTML = html;
+
+      // Tính toán vị trí ngang (X) và căn chỉnh mũi tên chỉ định
+      const tooltipWidth = 230;
+      let posX = barCenterX;
+      let arrowLeftPct = 50;
+
+      const minLeft = 115;
+      const maxLeft = Math.max(minLeft, cRect.width - 115);
+      if (posX < minLeft) {
+        const offset = minLeft - posX;
+        arrowLeftPct = Math.max(15, 50 - (offset / tooltipWidth) * 100);
+        posX = minLeft;
+      } else if (posX > maxLeft) {
+        const offset = posX - maxLeft;
+        arrowLeftPct = Math.min(85, 50 + (offset / tooltipWidth) * 100);
+        posX = maxLeft;
+      }
+
+      const arrowEl = tooltip.querySelector('.chart-tooltip-arrow');
+      if (arrowEl) {
+        arrowEl.style.left = `${arrowLeftPct}%`;
+      }
+
+      tooltip.style.left = `${posX}px`;
+      
+      // Vị trí dọc (Y): nổi phía trên cột, giữ khoảng cách đẹp mắt
+      const targetTop = Math.max(-10, barTopY - 116);
+      tooltip.style.top = `${targetTop}px`;
+      tooltip.style.opacity = '1';
+      tooltip.style.transform = 'translate(-50%, 0) scale(1)';
+
+      const svg = container.querySelector('svg');
+      if (svg) svg.classList.add('is-hovering');
+      
+      container.querySelectorAll('.chart-bar-group').forEach(g => {
+        if (g === targetEl) {
+          g.classList.add('active-hover');
+        } else {
+          g.classList.remove('active-hover');
+        }
+      });
+    },
+
+    hideRevenueTooltip() {
+      const container = document.getElementById('revenueChartContainer');
+      const tooltip = document.getElementById('adminChartBarTooltip');
+      if (tooltip) {
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translate(-50%, -6px) scale(0.96)';
+      }
+      if (container) {
+        const svg = container.querySelector('svg');
+        if (svg) svg.classList.remove('is-hovering');
+        container.querySelectorAll('.chart-bar-group').forEach(g => g.classList.remove('active-hover'));
+      }
+    },
+
+    // -----------------------------------------------------------------------
     // SUB-TAB 1: TỔNG QUAN DOANH THU & KPIS, OVERVIEW - ZERO N+1
     // -----------------------------------------------------------------------
     renderOverviewTab(user, branches, stylists, products, bookings = null, branchMap = null) {
@@ -183,18 +310,20 @@
         const isHighlight = !!d.highlight;
         const formattedRev = val >= 1000000 ? (val / 1000000).toFixed(1) + ' Tr' : (val > 0 ? (val / 1000).toFixed(0) + ' k' : '0 đ');
         const barColor = isHighlight ? '#C59B27' : (chartMode === 'products' ? '#10B981' : (chartMode === 'services' ? '#E07A5F' : '#64748B'));
+        const safeFullLabel = (d.fullLabel || '').replace(/'/g, "\\'");
 
         return `
-          <g class="chart-bar-group" style="cursor: pointer;">
-            <title>${d.fullLabel}: ${SalonUtils.formatCurrency(val)} (Dịch vụ: ${SalonUtils.formatCurrency(d.serviceRevenue || 0)} • Bán lẻ: ${SalonUtils.formatCurrency(d.productRevenue || 0)})</title>
+          <g class="chart-bar-group" style="cursor: pointer;"
+             onmouseenter="AdminWeb.showRevenueTooltip(this, event, '${safeFullLabel}', ${val}, ${d.serviceRevenue || 0}, ${d.productRevenue || 0}, ${isHighlight ? 1 : 0})"
+             onmouseleave="AdminWeb.hideRevenueTooltip()">
             <rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="4" fill="${barColor}" opacity="${isHighlight ? '1' : '0.85'}">
               <animate attributeName="height" from="0" to="${barH}" dur="0.4s" fill="freeze" />
               <animate attributeName="y" from="${chartHeight + 20}" to="${y}" dur="0.4s" fill="freeze" />
             </rect>
-            <text x="${x + barWidth / 2}" y="${y - 8}" font-size="11" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? '#C59B27' : 'var(--text-secondary)'}" text-anchor="middle" font-variant-numeric="tabular-nums">
+            <text class="chart-val-text" x="${x + barWidth / 2}" y="${y - 8}" font-size="11" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? '#C59B27' : 'var(--text-secondary)'}" text-anchor="middle" font-variant-numeric="tabular-nums">
               ${formattedRev}
             </text>
-            <text x="${x + barWidth / 2}" y="${chartHeight + 36}" font-size="11.5" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? 'var(--text-primary)' : 'var(--text-secondary)'}" text-anchor="middle">
+            <text class="chart-label-text" x="${x + barWidth / 2}" y="${chartHeight + 36}" font-size="11.5" font-weight="${isHighlight ? '800' : '600'}" fill="${isHighlight ? 'var(--text-primary)' : 'var(--text-secondary)'}" text-anchor="middle">
               ${d.shortName}
             </text>
           </g>
@@ -412,8 +541,8 @@
             </div>
 
             <!-- SVG Bar Chart -->
-            <div style="width: 100%; height: 190px; margin-bottom: 12px;">
-              <svg viewBox="0 0 580 190" style="width: 100%; height: 100%; overflow: visible;" role="img" aria-label="Biểu đồ doanh thu">
+            <div id="revenueChartContainer" style="position: relative; width: 100%; height: 190px; margin-bottom: 12px;">
+              <svg class="chart-svg" viewBox="0 0 580 190" style="width: 100%; height: 100%; overflow: visible;" role="img" aria-label="Biểu đồ doanh thu">
                 <line x1="20" y1="20" x2="560" y2="20" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1" />
                 <line x1="20" y1="85" x2="560" y2="85" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1" />
                 <line x1="20" y1="155" x2="560" y2="155" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />
@@ -423,6 +552,8 @@
 
                 ${svgBars}
               </svg>
+              <!-- Custom Floating Tooltip Card -->
+              <div id="adminChartBarTooltip" class="admin-chart-tooltip"></div>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px; font-size: 12px; color: var(--text-secondary);">
