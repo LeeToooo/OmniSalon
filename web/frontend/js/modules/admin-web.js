@@ -74,12 +74,12 @@
       if (typeof this.clearSearchQueries === 'function') this.clearSearchQueries();
       const user = (typeof this.getCurrentUser === 'function') ? this.getCurrentUser() : null;
       const activeRole = (typeof this.getActiveRole === 'function') ? this.getActiveRole(user) : 'SUPER_ADMIN';
-      if (activeRole === 'CASHIER' && !['receipts', 'pos', 'bookings', 'chat'].includes(tabName)) {
-        if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Tiếp nhận lịch hẹn, Lập phiếu nhập, Chat CSKH và Lịch sử đơn!', 'warning');
+      if (activeRole === 'CASHIER' && !['receipts', 'pos', 'bookings'].includes(tabName)) {
+        if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Tiếp nhận lịch hẹn, Lập phiếu nhập và Lịch sử đơn!', 'warning');
         return;
       }
-      if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings', 'chat'].includes(tabName)) {
-        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Báo cáo, Thợ, Kho, Phiếu nhập, Giá dịch vụ, Chat và toàn quyền Thu ngân!', 'warning');
+      if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings'].includes(tabName)) {
+        if (window.UICommon) window.UICommon.showToast('Quản lý chi nhánh có quyền Báo cáo, Thợ, Kho, Phiếu nhập, Giá dịch vụ và toàn quyền Thu ngân!', 'warning');
         return;
       }
       if (tabName === 'receipts') {
@@ -129,8 +129,6 @@
           return this.renderPosTab(user, services, combos, products, branches, stylists, bMap);
         case 'audit':
           return this.renderAuditTab(auditLogs);
-        case 'chat':
-          return this.renderChatTab(user, branches, stylists);
         default:
           return (activeRole === 'CASHIER' || activeRole === 'BRANCH_MANAGER')
             ? this.renderPosTab(user, services, combos, products, branches, stylists, bMap)

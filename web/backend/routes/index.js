@@ -6,7 +6,6 @@ const handleStoreDomain = require('./store');
 const handleMarketingDomain = require('./marketing');
 const handleAnalyticsDomain = require('./analytics');
 const handleAiDomain = require('./ai');
-const handleChatDomain = require('./chat');
 
 /**
  * Điều phối tuần tự các yêu cầu API đến đúng phân hệ chức năng
@@ -36,9 +35,6 @@ async function handleApiRoutes(req, res, ctx) {
 
   // Phân hệ AI Studio
   if (await handleAiDomain(req, res, ctx)) return true;
-
-  // Phân hệ Chat trực tuyến (Customer <-> Admin / Quản lý / Thu ngân)
-  if (await handleChatDomain(req, res, ctx)) return true;
 
   return false;
 }
