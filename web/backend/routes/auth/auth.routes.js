@@ -59,29 +59,29 @@ async function handleAuthRoutes(req, res, ctx) {
   // POST /api/auth/send-otp - Sinh và gửi mã OTP xác thực qua SMS / Email
   // Lưu ý: Có cơ chế Rate limit 30 giây chống gửi tin nhắn spam
   if (pathname === '/api/auth/send-otp' && method === 'POST') {
-    const { phone, email, purpose } = parsedBody || {};
-    const target = (phone || email || '').trim();
+    try {
+      const { phone, email, purpose } = parsedBody || {};
+      const target = (phone || email || '').trim();
 
-    if (!target) {
-      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: 'Vui lòng cung cấp số điện thoại hoặc email nhận mã OTP.' }));
-      return true;
+      if (!target) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Vui lòng cung cấp số điện thoại hoặc email nhận mã OTP.' }));
+        return true;
+      }
+
+      const result = await otpService.generateAndSaveOtp(target, purpose || 'LOGIN');
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        success: true,
+        message: result.message || `Mã OTP xác thực đã được gửi tới ${target}. Mã có hiệu lực trong 5 phút.`,
+        target,
+        expiresAt: result.expiresAt
+      }));
+    } catch (err) {
+      const status = err.statusCode || 500;
+      res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: err.message }));
     }
-
-    const result = await otpService.generateAndSaveOtp(target, purpose || 'LOGIN');
-    if (!result.success) {
-      res.writeHead(429, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify(result));
-      return true;
-    }
-
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({
-      success: true,
-      message: `Mã OTP xác thực đã được gửi tới ${target}. Mã có hiệu lực trong 5 phút.`,
-      target,
-      expiresAt: result.expiresAt
-    }));
     return true;
   }
 

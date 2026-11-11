@@ -1,6 +1,6 @@
-// Dịch vụ gửi mã xác nhận qua email
 const fs = require('fs');
 const path = require('path');
+const { querySql } = require('../database/db');
 
 let nodemailer = null;
 try {
@@ -15,7 +15,6 @@ const EMAIL_CONFIG_FILE = fs.existsSync(path.join(__dirname, '..', 'config', 'em
     ? path.join(__dirname, '..', 'email_config.json')
     : path.join(__dirname, '..', '..', '..', 'email_config.json'));
 
-// Bộ nhớ đệm phục vụ Rate Limiting và Fallback khi DB bận
 const otpMemoryCache = new Map();
 
 function getEmailConfig() {
@@ -89,12 +88,10 @@ async function sendGmail(toEmail, otp) {
   return { sentReal: true };
 }
 
-/**
- * Đảm bảo bảng XacThucOTP đã tồn tại trong CSDL
- */
-async function ensureOtpTable(querySql) {
+async function ensureOtpTable(customSql = null) {
+  const sql = customSql || querySql;
   try {
-    await querySql(`
+    await sql(`
       IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'XacThucOTP')
       BEGIN
         CREATE TABLE XacThucOTP (
@@ -109,14 +106,11 @@ async function ensureOtpTable(querySql) {
       END
     `);
   } catch (err) {
-    // Có thể DB chưa sẵn sàng, tiếp tục dùng Memory Cache
+    // Database fallback to memory cache
   }
 }
 
-/**
- * Gửi và lưu trữ mã OTP
- */
-async function generateAndSendOtp(target, querySql = null) {
+async function generateAndSendOtp(target, customSql = null) {
   const cleanTarget = (target || '').trim().toLowerCase();
   if (!cleanTarget) {
     throw new Error('Vui lòng nhập Email hoặc Số điện thoại.');
@@ -125,7 +119,6 @@ async function generateAndSendOtp(target, querySql = null) {
   const now = Date.now();
   const existing = otpMemoryCache.get(cleanTarget);
 
-  // Rate Limiting: 30 giây giữa 2 lần gửi
   if (existing && (now - existing.lastSentAt) < 30000) {
     const waitSec = Math.ceil((30000 - (now - existing.lastSentAt)) / 1000);
     const err = new Error(`Vui lòng đợi ${waitSec} giây trước khi gửi lại mã.`);
@@ -133,18 +126,16 @@ async function generateAndSendOtp(target, querySql = null) {
     throw err;
   }
 
-  // Sinh mã 6 số ngẫu nhiên thực sự
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = now + 5 * 60 * 1000;
 
-  // Lưu vào Memory Cache
   otpMemoryCache.set(cleanTarget, { otp, expiresAt, lastSentAt: now });
 
-  // Lưu bền vững vào SQL Server
-  if (querySql) {
+  const sql = customSql || querySql;
+  if (sql) {
     try {
-      await ensureOtpTable(querySql);
-      await querySql(
+      await ensureOtpTable(sql);
+      await sql(
         `INSERT INTO XacThucOTP (Identifier, MaOTP, HetHanLuc, TrangThai)
          VALUES (?, ?, DATEADD(minute, 5, GETDATE()), N'Chờ xác thực')`,
         [cleanTarget, otp]
@@ -154,12 +145,12 @@ async function generateAndSendOtp(target, querySql = null) {
     }
   }
 
-  // Gửi email nếu là email address
   let emailResult = null;
   if (cleanTarget.includes('@')) {
     try {
       emailResult = await sendGmail(cleanTarget, otp);
     } catch (mailErr) {
+      console.error('[GMAIL SEND ERROR]', mailErr.message);
       emailResult = { sentReal: false, error: mailErr.message };
     }
   }
@@ -172,14 +163,17 @@ async function generateAndSendOtp(target, querySql = null) {
       ? `Mã xác nhận đã gửi về ${cleanTarget}. Vui lòng kiểm tra hộp thư đến hoặc Spam.`
       : `Mã OTP xác thực: ${otp}`,
     identifier: cleanTarget,
-    otp
+    otp,
+    expiresAt: new Date(expiresAt).toISOString(),
+    sentEmail: Boolean(emailResult?.sentReal)
   };
 }
 
-/**
- * Xác thực mã OTP (Khắc phục triệt để bypass '123456')
- */
-async function verifyOtp(target, rawOtp, querySql = null) {
+async function generateAndSaveOtp(target, purpose = 'LOGIN', customSql = null) {
+  return await generateAndSendOtp(target, customSql);
+}
+
+async function verifyOtp(target, rawOtp, customSql = null) {
   const cleanTarget = (target || '').trim().toLowerCase();
   const otp = String(rawOtp || '').trim();
 
@@ -187,11 +181,10 @@ async function verifyOtp(target, rawOtp, querySql = null) {
     return { valid: false, message: 'Thiếu thông tin hoặc mã OTP.' };
   }
 
-  // Tuyệt đối không cho phép bypass 123456
-  // Kiểm tra từ SQL Server trước
-  if (querySql) {
+  const sql = customSql || querySql;
+  if (sql) {
     try {
-      const rows = await querySql(
+      const rows = await sql(
         `SELECT TOP 1 Id, MaOTP, HetHanLuc, TrangThai 
          FROM XacThucOTP 
          WHERE Identifier = ? AND MaOTP = ? AND TrangThai = N'Chờ xác thực' AND HetHanLuc > GETDATE()
@@ -200,8 +193,7 @@ async function verifyOtp(target, rawOtp, querySql = null) {
       );
 
       if (rows && rows.length > 0) {
-        // Đánh dấu đã sử dụng
-        await querySql(`UPDATE XacThucOTP SET TrangThai = N'Đã sử dụng' WHERE Id = ?`, [rows[0].Id]);
+        await sql(`UPDATE XacThucOTP SET TrangThai = N'Đã sử dụng' WHERE Id = ?`, [rows[0].Id]);
         otpMemoryCache.delete(cleanTarget);
         return { valid: true };
       }
@@ -210,7 +202,6 @@ async function verifyOtp(target, rawOtp, querySql = null) {
     }
   }
 
-  // Kiểm tra Fallback từ Memory Cache
   const entry = otpMemoryCache.get(cleanTarget);
   if (!entry) {
     return { valid: false, message: 'Mã OTP không tồn tại hoặc đã hết hạn.' };
@@ -225,14 +216,20 @@ async function verifyOtp(target, rawOtp, querySql = null) {
     return { valid: false, message: 'Mã OTP không chính xác.' };
   }
 
-  // Xác thực thành công: xóa ngay khỏi memory để tránh dùng lại
   otpMemoryCache.delete(cleanTarget);
   return { valid: true };
 }
 
+async function verifyAndConsumeOtp(target, rawOtp, purpose = 'LOGIN', customSql = null) {
+  const res = await verifyOtp(target, rawOtp, customSql);
+  return res.valid === true;
+}
+
 module.exports = {
   generateAndSendOtp,
+  generateAndSaveOtp,
   verifyOtp,
-  ensureOtpTable
+  verifyAndConsumeOtp,
+  ensureOtpTable,
+  sendGmail
 };
-

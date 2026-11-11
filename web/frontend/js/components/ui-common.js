@@ -700,8 +700,7 @@ const UICommon = {
               Quét mã VietQR bằng app ngân hàng bất kỳ để hoàn tất thanh toán:
             </p>
             <div style="background: #ffffff; padding: 14px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 12px; border: 1px solid #e2e8f0;">
-              <img src="${vietQrUrl}" alt="Mã VietQR" style="width: 180px; height: 180px; border-radius: 8px; margin: 0 auto; display: block; object-fit: contain;"
-                   onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:180px;height:180px;margin:0 auto;\\'>' + '${vietQrSvg.replace(/'/g, "\\'")}' + '</div><div style=\\'font-size: 10.5px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;\\'>VIETQR 24/7 CHUYỂN NHANH NAPAS</div>';">
+              <img src="${vietQrUrl}" alt="Mã VietQR" style="width: 180px; height: 180px; border-radius: 8px; margin: 0 auto; display: block; object-fit: contain;">
               <div style="font-size: 10.5px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
             </div>
 
@@ -1394,9 +1393,10 @@ const UICommon = {
               </div>
             </div>
             <div style="margin-top: 10px;">
-              <button type="button" id="btnSimulateOrderPayment" onclick="UICommon.simulateOrderPayment('${order.id}', ${order.totalAmount})" 
-                      style="padding: 6px 12px; background: rgba(197, 155, 39, 0.15); border: 1px solid #C59B27; border-radius: 6px; color: #C59B27; font-size: 11px; font-weight: 700; cursor: pointer;">
-                ⚡ Giả lập chuyển khoản thành công (Test)
+              <button type="button" id="btnManualCheckOrderPayment" onclick="UICommon.manualCheckOrderPayment('${order.id}')" 
+                      style="padding: 7px 14px; background: #C59B27; border: 1px solid #C59B27; border-radius: 6px; color: #141413; font-size: 11.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <span id="manualCheckOrderSpinner" style="display: none; width: 12px; height: 12px; border: 2px solid #141413; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+                <span>Kiểm Tra Giao Dịch</span>
               </button>
             </div>
           </div>
@@ -1491,41 +1491,31 @@ const UICommon = {
     }
   },
 
-  async simulateOrderPayment(orderId, amount = 100000) {
-    const btn = document.getElementById('btnSimulateOrderPayment');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Đang giả lập...';
-    }
+  async manualCheckOrderPayment(orderId) {
+    const btn = document.getElementById('btnManualCheckOrderPayment');
+    const spinner = document.getElementById('manualCheckOrderSpinner');
+    if (btn) btn.disabled = true;
+    if (spinner) spinner.style.display = 'inline-block';
+
     try {
-      const res = await fetch('/api/payments/simulate-transfer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: orderId,
-          amount: amount,
-          bankName: 'MBBank'
-        })
-      });
-      const data = await res.json();
-      if (data && data.success) {
-        this.handleOrderPaymentConfirmed(orderId, data);
-      } else {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = '⚡ Giả lập chuyển khoản thành công (Test)';
+      const res = await fetch('/api/payment/check-status/' + encodeURIComponent(orderId));
+      if (res.ok) {
+        const data = await res.json();
+        if (data && (data.isPaid || data.status === 'PAID')) {
+          this.handleOrderPaymentConfirmed(orderId, data);
+          return;
         }
       }
-    } catch (e) {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = '⚡ Giả lập chuyển khoản thành công (Test)';
-      }
+      if (window.UICommon) window.UICommon.showToast('Chưa ghi nhận tiền vào tài khoản. Hệ thống vẫn đang tiếp tục kiểm tra...', 'info');
+    } catch (_) {
+      if (window.UICommon) window.UICommon.showToast('Lỗi kiểm tra trạng thái thanh toán.', 'warning');
+    } finally {
+      if (btn) btn.disabled = false;
+      if (spinner) spinner.style.display = 'none';
     }
   },
 
-  // Chi tiết sản phẩm & tin tức modal
-  openProductDetailModal(productId) {
+    openProductDetailModal(productId) {
     if (typeof this.closeGlobalModal === 'function') {
       this.closeGlobalModal();
     }

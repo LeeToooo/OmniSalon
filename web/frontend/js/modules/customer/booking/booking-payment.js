@@ -33,7 +33,7 @@
       const checkOnce = async () => {
         if (!this._currentPollingCode || this._currentPollingCode !== bookingCode) return;
         try {
-          const res = await fetch(`/api/payments/status?code=${encodeURIComponent(bookingCode)}`);
+          const res = await fetch(`/api/payment/check-status/${encodeURIComponent(bookingCode)}`);
           if (res.ok) {
             const data = await res.json();
             if (data && data.isPaid) {
@@ -92,42 +92,29 @@
     },
 
     /**
-     * Giả lập chuyển khoản 1-click dùng cho kiểm thử nhanh
+     * Kiểm tra trạng thái thanh toán thủ công
      */
-    async simulateTestPayment(bookingCode, amount = 50000) {
-      const btn = document.getElementById('btnSimulateTransfer');
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Đang giả lập chuyển khoản...';
-      }
+    async manualCheckPayment(bookingCode) {
+      const btn = document.getElementById("btnManualCheckPayment");
+      const spinner = document.getElementById("manualCheckSpinner");
+      if (btn) btn.disabled = true;
+      if (spinner) spinner.style.display = "inline-block";
 
       try {
-        const res = await fetch('/api/payments/simulate-transfer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: bookingCode,
-            amount: amount,
-            bankName: 'MBBank'
-          })
-        });
-
-        const data = await res.json();
-        if (data && data.success) {
-          this.handlePaymentConfirmed(bookingCode, data);
-        } else {
-          if (window.UICommon) window.UICommon.showToast(data.message || 'Chưa thể giả lập thanh toán', 'warning');
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'Giả lập chuyển khoản thành công (Test)';
+        const res = await fetch("/api/payment/check-status/" + encodeURIComponent(bookingCode));
+        if (res.ok) {
+          const data = await res.json();
+          if (data && (data.isPaid || data.status === "PAID")) {
+            this.handlePaymentConfirmed(bookingCode, data);
+            return;
           }
         }
-      } catch (err) {
-        if (window.UICommon) window.UICommon.showToast('Lỗi: ' + err.message, 'error');
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = 'Giả lập chuyển khoản thành công (Test)';
-        }
+        if (window.UICommon) window.UICommon.showToast("Chưa ghi nhận tiền vào tài khoản. Hệ thống vẫn đang tiếp tục kiểm tra...", "info");
+      } catch (_) {
+        if (window.UICommon) window.UICommon.showToast("Lỗi kiểm tra trạng thái thanh toán.", "warning");
+      } finally {
+        if (btn) btn.disabled = false;
+        if (spinner) spinner.style.display = "none";
       }
     },
 
@@ -160,9 +147,7 @@
       const amount = booking.totalPrice || 0;
       const bCode = booking.id || booking.bookingCode || booking.MaLichHen || bookingId;
 
-      const qrSvg = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.generateQrSvgCode === 'function')
-        ? SalonUtils.generateQrSvgCode(`VIETQR-OMNISALON-BOOKING-${bCode}-${amount}`)
-        : '';
+      const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${amount}&addInfo=${encodeURIComponent('THANHTOAN ' + bCode)}&accountName=OMNISALON%20ENTERPRISE`;
 
       const escapeFn = (s) => (typeof this.escapeHtml === 'function' ? this.escapeHtml(s) : (window.CustomerWeb?.escapeHtml ? window.CustomerWeb.escapeHtml(s) : String(s ?? '')));
       const formattedAmount = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatCurrency === 'function')
@@ -187,22 +172,17 @@
           </div>
 
           <!-- VietQR Box -->
-          <div style="background: #ffffff; padding: 16px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 14px; border: 1px solid #e2e8f0;">
-            ${qrSvg ? `
-              <div style="width: 190px; height: 190px; margin: 0 auto;">${qrSvg}</div>
-            ` : `
-              <div style="width: 190px; height: 190px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px; font-weight: 800; color: #C59B27;">
-                VIETQR CODE
-              </div>
-            `}
+          <div style="background: #ffffff; padding: 14px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 14px; border: 1px solid #e2e8f0;">
+            <img src="${vietQrUrl}" alt="Mã VietQR" style="width: 200px; height: 200px; border-radius: 8px; margin: 0 auto; display: block; object-fit: contain;">
             <div style="font-size: 11px; font-weight: 700; color: #141413; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
           </div>
 
-          <!-- Nút giả lập kiểm thử nhanh -->
+          <!-- Nút kiểm tra giao dịch thật -->
           <div style="margin-bottom: 14px;">
-            <button type="button" id="btnSimulateTransfer" onclick="CustomerBookingPayment.simulateTestPayment('${escapeFn(bCode)}', ${amount})" 
-                    style="padding: 7px 14px; background: rgba(197, 155, 39, 0.15); border: 1px solid #C59B27; border-radius: 6px; color: #C59B27; font-size: 11.5px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
-              ⚡ Giả lập chuyển khoản thành công (Test)
+            <button type="button" id="btnManualCheckPayment" onclick="CustomerBookingPayment.manualCheckPayment('${escapeFn(bCode)}')"
+                    style="padding: 8px 18px; background: #C59B27; border: 1px solid #C59B27; border-radius: 8px; color: #141413; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease;">
+              <span id="manualCheckSpinner" style="display: none; width: 14px; height: 14px; border: 2px solid #141413; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+              <span>Kiểm Tra Giao Dịch</span>
             </button>
           </div>
 
