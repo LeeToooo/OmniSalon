@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE TRA CỨU ĐƠN HÀNG MỸ PHẨM (CUSTOMER ORDER SEARCH)
-// File: web/frontend/js/modules/customer/customer-order-search.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

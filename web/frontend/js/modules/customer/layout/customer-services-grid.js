@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - DỊCH VỤ TRANG CHỦ & HỎI ĐÁP FAQ (CUSTOMER SERVICES GRID)
-// File: web/frontend/js/modules/customer/layout/customer-services-grid.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - OMNI AI HAIR STUDIO (CUSTOMER AI STUDIO)
-// File: web/frontend/js/modules/customer/ai/customer-ai-studio.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

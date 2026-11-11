@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE HỦY LỊCH HẸN CẮT TÓC (CUSTOMER BOOKING CANCEL)
-// File: web/frontend/js/modules/customer/booking/booking-cancel.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

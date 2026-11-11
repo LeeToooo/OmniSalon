@@ -1,7 +1,3 @@
-// =========================================================================
-// BOOKING CONTROLLER — ĐIỀU PHỐI YÊU CẦU & PHẢN HỒI ĐẶT LỊCH HẸN
-// =========================================================================
-
 const BookingService = require('../services/booking.service');
 const { extractAuthUser } = require('../middlewares/auth_middleware');
 

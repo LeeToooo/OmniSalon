@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - ĐIỀU HƯỚNG VÀ LAYOUT NỘI DUNG CHÍNH (CUSTOMER MAIN CONTENT)
-// File: web/frontend/js/modules/customer/layout/customer-main-content.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

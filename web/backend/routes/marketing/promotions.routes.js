@@ -1,9 +1,4 @@
-﻿// =========================================================================
-// QUẢN LÝ KHUYẾN MÃI & MÃ GIẢM GIÁ
-// Bảng CSDL: KhuyenMai, KhuyenMai_DichVu, KhuyenMai_SanPham
-// =========================================================================
-
-const { querySql } = require('../../database/db');
+﻿const { querySql } = require('../../database/db');
 
 async function handlePromotionRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;

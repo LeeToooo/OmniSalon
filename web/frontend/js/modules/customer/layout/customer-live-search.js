@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE TÌM KIẾM TRỰC TIẾP LIVE SEARCH (CUSTOMER LIVE SEARCH)
-// File: web/frontend/js/modules/customer/customer-live-search.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

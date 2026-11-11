@@ -1,21 +1,19 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE THANH TOÁN LỊCH HẸN QUA VIETQR (BOOKING PAYMENT)
-// File: web/frontend/js/modules/customer/booking-payment.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 
   const CustomerBookingPayment = {
     _subModalSource: null,
     _lookupLastQuery: '',
+    _pollingTimer: null,
+    _currentPollingCode: null,
 
     /**
      * Escape chuỗi HTML an toàn
      */
     escapeHtml(str) {
-      if (window.CustomerUtils && typeof window.CustomerUtils.escapeHtml === "function") { return window.CustomerUtils.escapeHtml(str); }
+      if (window.CustomerUtils && typeof window.CustomerUtils.escapeHtml === 'function') {
+        return window.CustomerUtils.escapeHtml(str);
+      }
       if (typeof str !== 'string') return str == null ? '' : String(str);
       return str
         .replace(/&/g, '&amp;')
@@ -23,6 +21,114 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    },
+
+    /**
+     * Bắt đầu polling tự động kiểm tra trạng thái chuyển khoản
+     */
+    startPaymentPolling(bookingCode) {
+      this.stopPaymentPolling();
+      this._currentPollingCode = bookingCode;
+
+      const checkOnce = async () => {
+        if (!this._currentPollingCode || this._currentPollingCode !== bookingCode) return;
+        try {
+          const res = await fetch(`/api/payments/status?code=${encodeURIComponent(bookingCode)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.isPaid) {
+              this.handlePaymentConfirmed(bookingCode, data);
+              return;
+            }
+          }
+        } catch (_) {}
+
+        // Tiếp tục poll mỗi 2.5 giây
+        this._pollingTimer = setTimeout(checkOnce, 2500);
+      };
+
+      this._pollingTimer = setTimeout(checkOnce, 2000);
+    },
+
+    /**
+     * Dừng polling khi đóng modal
+     */
+    stopPaymentPolling() {
+      if (this._pollingTimer) {
+        clearTimeout(this._pollingTimer);
+        this._pollingTimer = null;
+      }
+      this._currentPollingCode = null;
+    },
+
+    /**
+     * Xử lý khi phát hiện chuyển khoản thành công
+     */
+    async handlePaymentConfirmed(bookingCode, paymentInfo = {}) {
+      this.stopPaymentPolling();
+
+      const statusBox = document.getElementById('vqrAutoConfirmStatus');
+      if (statusBox) {
+        statusBox.innerHTML = `
+          <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 8px; padding: 12px; color: #10B981; font-weight: 800; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span style="font-size: 18px;">✓</span>
+            <span>Chuyển khoản thành công! Lịch hẹn #${bookingCode} đã được tự động xác nhận.</span>
+          </div>
+        `;
+      }
+
+      if (window.store && typeof window.store.payBooking === 'function') {
+        try { await window.store.payBooking(bookingCode); } catch (_) {}
+      }
+
+      if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+        window.UICommon.showToast(`Lịch hẹn #${bookingCode} đã xác nhận thanh toán thành công!`, 'success');
+      }
+
+      // Đóng modal sau 2.5 giây để khách thấy thông báo xác nhận thành công
+      setTimeout(() => {
+        this.closeBookingPaymentModal();
+      }, 2500);
+    },
+
+    /**
+     * Giả lập chuyển khoản 1-click dùng cho kiểm thử nhanh
+     */
+    async simulateTestPayment(bookingCode, amount = 50000) {
+      const btn = document.getElementById('btnSimulateTransfer');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Đang giả lập chuyển khoản...';
+      }
+
+      try {
+        const res = await fetch('/api/payments/simulate-transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: bookingCode,
+            amount: amount,
+            bankName: 'MBBank'
+          })
+        });
+
+        const data = await res.json();
+        if (data && data.success) {
+          this.handlePaymentConfirmed(bookingCode, data);
+        } else {
+          if (window.UICommon) window.UICommon.showToast(data.message || 'Chưa thể giả lập thanh toán', 'warning');
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Giả lập chuyển khoản thành công (Test)';
+          }
+        }
+      } catch (err) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi: ' + err.message, 'error');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Giả lập chuyển khoản thành công (Test)';
+        }
+      }
     },
 
     /**
@@ -57,7 +163,6 @@
       const qrSvg = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.generateQrSvgCode === 'function')
         ? SalonUtils.generateQrSvgCode(`VIETQR-OMNISALON-BOOKING-${bCode}-${amount}`)
         : '';
-      const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${encodeURIComponent(amount)}&addInfo=${encodeURIComponent('THANHTOAN ' + bCode)}&accountName=${encodeURIComponent('OMNISALON ENTERPRISE')}`;
 
       const escapeFn = (s) => (typeof this.escapeHtml === 'function' ? this.escapeHtml(s) : (window.CustomerWeb?.escapeHtml ? window.CustomerWeb.escapeHtml(s) : String(s ?? '')));
       const formattedAmount = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatCurrency === 'function')
@@ -66,9 +171,6 @@
 
       const modalHtml = `
         <div class="order-payment-modal-box" style="max-width: 480px; margin: 0 auto; text-align: center; padding: 10px 4px;">
-          <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px;">
-            💳
-          </div>
           <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
             Thanh Toán Lịch Hẹn #${escapeFn(bCode)}
           </h3>
@@ -76,16 +178,32 @@
             Quét mã VietQR bằng app ngân hàng hoặc chuyển khoản theo thông tin bên dưới:
           </p>
 
+          <!-- Trạng thái tự động kiểm tra chuyển khoản -->
+          <div id="vqrAutoConfirmStatus" style="margin-bottom: 14px;">
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(197, 155, 39, 0.12); border: 1px solid rgba(197, 155, 39, 0.3); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #C59B27; font-weight: 700;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+              <span>Đang chờ chuyển khoản (Tự động xác nhận sau 2s)...</span>
+            </div>
+          </div>
+
           <!-- VietQR Box -->
-          <div style="background: #ffffff; padding: 16px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 16px; border: 1px solid #e2e8f0;">
+          <div style="background: #ffffff; padding: 16px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 14px; border: 1px solid #e2e8f0;">
             ${qrSvg ? `
               <div style="width: 190px; height: 190px; margin: 0 auto;">${qrSvg}</div>
             ` : `
-              <div style="width: 190px; height: 190px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px; font-weight: 800; color: #0284c7;">
+              <div style="width: 190px; height: 190px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px; font-weight: 800; color: #C59B27;">
                 VIETQR CODE
               </div>
             `}
-            <div style="font-size: 11px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
+            <div style="font-size: 11px; font-weight: 700; color: #141413; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
+          </div>
+
+          <!-- Nút giả lập kiểm thử nhanh -->
+          <div style="margin-bottom: 14px;">
+            <button type="button" id="btnSimulateTransfer" onclick="CustomerBookingPayment.simulateTestPayment('${escapeFn(bCode)}', ${amount})" 
+                    style="padding: 7px 14px; background: rgba(197, 155, 39, 0.15); border: 1px solid #C59B27; border-radius: 6px; color: #C59B27; font-size: 11.5px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+              ⚡ Giả lập chuyển khoản thành công (Test)
+            </button>
           </div>
 
           <!-- Thông tin tài khoản nhận -->
@@ -96,7 +214,7 @@
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Số tài khoản:</span>
-              <strong style="color: #0284c7; font-size: 14px;">0900000000</strong>
+              <strong style="color: #C59B27; font-size: 14px;">0900000000</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Chủ tài khoản:</span>
@@ -104,18 +222,18 @@
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Số tiền cần trả:</span>
-              <strong style="color: var(--color-terracotta); font-size: 15px;">${formattedAmount}</strong>
+              <strong style="color: #C59B27; font-size: 15px;">${formattedAmount}</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Nội dung chuyển khoản:</span>
-              <strong style="color: #b48312;">THANHTOAN ${escapeFn(bCode)}</strong>
+              <strong style="color: #C59B27;">THANHTOAN ${escapeFn(bCode)}</strong>
             </div>
           </div>
 
           <!-- Nút hành động -->
           <div style="display: flex; justify-content: center;">
             <button type="button" class="btn-cancel" 
-                    style="min-height: 42px; min-width: 140px; padding: 0 24px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
+                    style="min-height: 42px; min-width: 140px; padding: 0 24px; border-radius: 6px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
                     onclick="(window.CustomerBookingPayment || window.CustomerWeb).closeBookingPaymentModal()">
               Đóng Cửa Sổ
             </button>
@@ -126,12 +244,17 @@
       if (window.UICommon && typeof window.UICommon.openModal === 'function') {
         window.UICommon.openModal(modalHtml, 'payment');
       }
+
+      // Khởi động polling tự động xác nhận chuyển khoản
+      this.startPaymentPolling(bCode);
     },
 
     /**
      * Đóng modal thanh toán lịch hẹn và quay về modal trước đó
      */
     closeBookingPaymentModal() {
+      this.stopPaymentPolling();
+
       const subModalSource = this._subModalSource !== undefined ? this._subModalSource : window.CustomerWeb?._subModalSource;
       const modalSource = this._modalSource !== undefined ? this._modalSource : window.CustomerWeb?._modalSource;
       const lookupLastQuery = this._lookupLastQuery !== undefined ? this._lookupLastQuery : (window.CustomerWeb?._lookupLastQuery || '');
@@ -162,10 +285,11 @@
     },
 
     /**
-     * Xác nhận thanh toán lịch hẹn thành công
+     * Xác nhận thanh toán lịch hẹn thành công thủ công
      * @param {string|number} bookingCode 
      */
     async confirmBookingPaid(bookingCode) {
+      this.stopPaymentPolling();
       if (window.store && typeof window.store.payBooking === 'function') {
         await window.store.payBooking(bookingCode);
       }
@@ -174,7 +298,8 @@
       }
       if (typeof this.closeBookingPaymentModal === 'function') {
         this.closeBookingPaymentModal();
-      } else if (window.UICommon && typeof window.UICommon.closeGlobalModal === "function") { window.UICommon.closeGlobalModal();
+      } else if (window.UICommon && typeof window.UICommon.closeGlobalModal === 'function') {
+        window.UICommon.closeGlobalModal();
       }
     }
   };
@@ -188,4 +313,3 @@
   }
 
 })(typeof window !== 'undefined' ? window : this);
-

@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - NGĂN KÉO STYLIST & ĐẶT LỊCH NHANH (STYLIST DRAWER & QUICK BOOKING)
-// File: web/frontend/js/modules/customer/layout/customer-stylist-drawer.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

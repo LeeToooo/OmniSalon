@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE MEGA MENU CỬA HÀNG & CHI NHÁNH (CUSTOMER MEGA MENU)
-// File: web/frontend/js/modules/customer/customer-mega-menu.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

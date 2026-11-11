@@ -1,8 +1,3 @@
-// =========================================================================
-// QUẢN LÝ SẢN PHẨM MỸ PHẨM & DANH MỤC
-// Bảng CSDL: SanPham, DanhMucSanPham, TonKho, ChiTietPhieuNhap, QuyTacGiamGiaTheoHan
-// =========================================================================
-
 const { querySql } = require('../../database/db');
 const { catIcons, brandPrefixes, detectBrand } = require('../../services/helper_service');
 

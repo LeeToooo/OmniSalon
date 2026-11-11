@@ -8,6 +8,7 @@ import 'package:omni_salon_mobile/models/order.dart';
 import 'package:omni_salon_mobile/components/omni_image.dart';
 import 'package:omni_salon_mobile/pages/user/booking_page.dart';
 import 'package:omni_salon_mobile/pages/auth/login_page.dart';
+import 'package:omni_salon_mobile/pages/user/vietqr_payment_page.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -332,227 +333,27 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> with SingleTickerPr
   }
 
   void _showBookingPaymentModal(Booking b) {
-    final vietQrUrl = 'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${b.totalPrice}&addInfo=${Uri.encodeComponent('THANHTOAN ${b.bookingCode}')}&accountName=OMNISALON%20ENTERPRISE';
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceCard,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => VietQrPaymentPage(
+          orderId: b.bookingCode,
+          amount: b.totalPrice,
+          description: 'THANHTOAN ${b.bookingCode}',
         ),
-        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-        contentPadding: const EdgeInsets.all(20),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppTheme.accentGold,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.qr_code_scanner_rounded, color: AppTheme.charcoal, size: 20),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'THANH TOÁN VIETQR #${b.bookingCode}',
-                style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 16),
-              ),
-            ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 8)],
-                ),
-                child: Image.network(
-                  vietQrUrl,
-                  width: 180,
-                  height: 180,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Image.network(
-                    'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${Uri.encodeComponent('OMNISALON-BOOKING-${b.bookingCode}')}',
-                    width: 180,
-                    height: 180,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0284C7).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'VIETQR 24/7 CHUYỂN NHANH NAPAS',
-                  style: TextStyle(
-                    color: AppTheme.isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildTicketRow('Ngân hàng:', 'MBBank (Quân Đội)'),
-              _buildTicketRow('Số tài khoản:', '0900000000'),
-              _buildTicketRow('Chủ tài khoản:', 'OMNISALON ENTERPRISE'),
-              _buildTicketRow('Nội dung CK:', 'THANHTOAN ${b.bookingCode}'),
-              _buildTicketRow('Số tiền:', currencyFormat.format(b.totalPrice), isPrice: true),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceElevated,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.borderColor),
-                ),
-                child: Text(
-                  'Quét mã VietQR bằng ứng dụng ngân hàng bất kỳ để thanh toán tức thì.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentGold,
-                foregroundColor: AppTheme.charcoal,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Đóng', style: TextStyle(fontWeight: FontWeight.w900)),
-            ),
-          ),
-        ],
       ),
-    );
+    ).then((_) => _loadData());
   }
 
   void _showOrderPaymentModal(SalonOrder o) {
-    final vietQrUrl = 'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${o.totalAmount}&addInfo=${Uri.encodeComponent('DONHANG ${o.orderCode}')}&accountName=OMNISALON%20ENTERPRISE';
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceCard,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => VietQrPaymentPage(
+          orderId: o.orderCode,
+          amount: o.totalAmount,
+          description: 'DONHANG ${o.orderCode}',
         ),
-        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-        contentPadding: const EdgeInsets.all(20),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppTheme.accentGold,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.qr_code_scanner_rounded, color: AppTheme.charcoal, size: 20),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'THANH TOÁN ĐƠN HÀNG #${o.orderCode}',
-                style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.textPrimary, fontSize: 16),
-              ),
-            ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 8)],
-                ),
-                child: Image.network(
-                  vietQrUrl,
-                  width: 180,
-                  height: 180,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Image.network(
-                    'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${Uri.encodeComponent('OMNISALON-ORDER-${o.orderCode}')}',
-                    width: 180,
-                    height: 180,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0284C7).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'VIETQR 24/7 CHUYỂN NHANH NAPAS',
-                  style: TextStyle(
-                    color: AppTheme.isDarkMode ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildTicketRow('Ngân hàng:', 'MBBank (Quân Đội)'),
-              _buildTicketRow('Số tài khoản:', '0900000000'),
-              _buildTicketRow('Chủ tài khoản:', 'OMNISALON ENTERPRISE'),
-              _buildTicketRow('Nội dung CK:', 'DONHANG ${o.orderCode}'),
-              _buildTicketRow('Tổng tiền:', currencyFormat.format(o.totalAmount), isPrice: true),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceElevated,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.borderColor),
-                ),
-                child: Text(
-                  'Quét mã VietQR bằng ứng dụng ngân hàng bất kỳ để thanh toán tức thì.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentGold,
-                foregroundColor: AppTheme.charcoal,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Đóng', style: TextStyle(fontWeight: FontWeight.w900)),
-            ),
-          ),
-        ],
       ),
-    );
+    ).then((_) => _loadData());
   }
 
   void _showBookingRatingDialog(Booking b) {

@@ -1028,70 +1028,6 @@ async function generateAiHairRestyle(options) {
   };
 }
 
-// Trợ lý ảo tư vấn kiểu tóc
-async function askBarberMasterAi(userMessage, context = {}) {
-  const cleanMsg = (userMessage || '').trim();
-  if (!cleanMsg) {
-    return {
-      success: false,
-      reply: 'Chào bạn, mình là Master Barber Lê Minh Hoàng. Bạn muốn tư vấn kiểu tóc, dáng mặt hay cách dùng sáp vuốt tóc nào hôm nay?'
-    };
-  }
-
-  // Gọi AI qua Pollinations Text API
-  const systemPrompt = `Bạn là Master Barber Lê Minh Hoàng, thợ trưởng với 12 năm kinh nghiệm tại OmniSalon Barber House (chuỗi 20 chi nhánh cao cấp).
-Nhiệm vụ: Tư vấn kiểu tóc nam chuẩn tỉ lệ vàng khuôn mặt, kỹ thuật sấy phồng, chọn sáp (Volcanic Clay, Reuzel Pomade, Hanz de Fuko), uốn Texture, nhuộm màu sáng da, trị gàu rụng tóc.
-Phong cách trả lời: Thân thiện, lịch thiệp, đậm chất thợ barber đỉnh cao, dùng tiếng Việt tự nhiên và súc tích (tối đa 3-4 câu).
-Gợi ý dịch vụ khi phù hợp: Cắt Master Barber (120k), Uốn Texture Hàn Quốc (350k), Nhuộm màu lạnh (300k), Combo Quý Tộc 10 bước (200k).
-Câu hỏi của khách: "${cleanMsg}"`;
-
-  try {
-    const encoded = encodeURIComponent(systemPrompt);
-    const replyText = await new Promise((resolve, reject) => {
-      const req = https.get(`https://text.pollinations.ai/${encoded}`, { timeout: 8000 }, (res) => {
-        let data = '';
-        res.on('data', chunk => { data += chunk; });
-        res.on('end', () => resolve(data.trim()));
-      });
-      req.on('error', err => reject(err));
-      req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
-    });
-
-    if (replyText && replyText.length > 5) {
-      return {
-        success: true,
-        reply: replyText,
-        barberName: 'Lê Minh Hoàng',
-        title: 'Master Barber • Giám Đốc Kỹ Thuật OmniSalon'
-      };
-    }
-  } catch (err) {
-    console.warn('[AI Consultation Fallback]:', err.message);
-  }
-
-  // Phản hồi dự phòng thông minh
-  let fallbackReply = 'Dáng mặt và chất tóc của nam giới Á Đông rất cần kỹ thuật fade chuẩn và uốn phồng chân tóc nhẹ để tạo volume tự nhiên. ';
-  const lower = cleanMsg.toLowerCase();
-  if (lower.includes('tròn')) {
-    fallbackReply += 'Với mặt tròn, bạn nên chọn Pompadour hoặc Side Part 7/3 vuốt cao đỉnh đầu để kéo dài tỉ lệ mặt, tránh cắt buzz cut quá cụt.';
-  } else if (lower.includes('vuông')) {
-    fallbackReply += 'Mặt vuông chữ điền là dáng mặt cực đẹp! Pompadour Mid Fade hoặc Side Part cổ điển sẽ làm nổi bật xương hàm đầy nam tính của bạn.';
-  } else if (lower.includes('dài')) {
-    fallbackReply += 'Khuôn mặt dài nên ưu tiên Layer Texture mái rủ hoặc French Crop để che bớt trán và giúp khuôn mặt cân đối hơn.';
-  } else if (lower.includes('sáp') || lower.includes('clay') || lower.includes('pomade')) {
-    fallbackReply += 'Nếu tóc dày cứng hãy dùng Apestomen Volcanic Clay giữ nếp cả ngày; nếu thích phong cách quý ông cổ điển bóng bẩy thì Reuzel Pomade là lựa chọn số 1.';
-  } else {
-    fallbackReply += 'Bạn có thể ghé bất kỳ chi nhánh OmniSalon nào để thợ trưởng soi chất tóc trực tiếp và tạo kiểu ưng ý nhất nhé!';
-  }
-
-  return {
-    success: true,
-    reply: fallbackReply,
-    barberName: 'Lê Minh Hoàng',
-    title: 'Master Barber • Giám Đốc Kỹ Thuật OmniSalon'
-  };
-}
-
 module.exports = {
   HAIRSTYLES,
   HAIR_COLORS,
@@ -1103,6 +1039,5 @@ module.exports = {
   runPythonVisionAnalyzer,
   runPythonVisionPreprocess,
   runPythonVisionMask,
-  testGoogleGeminiApiKey,
-  askBarberMasterAi
+  testGoogleGeminiApiKey
 };

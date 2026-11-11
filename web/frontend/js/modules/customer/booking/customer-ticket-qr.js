@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - VÉ ĐIỆN TỬ CHECK-IN QR & HỦY LỊCH (CUSTOMER TICKET QR)
-// File: web/frontend/js/modules/customer/customer-ticket-qr.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

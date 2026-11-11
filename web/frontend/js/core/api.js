@@ -1,10 +1,3 @@
-// =========================================================================
-// OmniSalon / Omni Salon — CORE RESTFUL API LAYER
-// Phiên bản: 2.2.0 Clean Architecture 
-//
-// Hỗ trợ kết nối API trực tiếp
-// =========================================================================
-
 (function (window) {
   'use strict';
 

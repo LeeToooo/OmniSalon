@@ -1,8 +1,3 @@
-// =========================================================================
-// QUẢN LÝ DỊCH VỤ & COMBO LÀM ĐẸP
-// Bảng CSDL: DichVu, ComboDichVu, KhuyenMai_DichVu, DanhGia
-// =========================================================================
-
 const { querySql } = require('../../database/db');
 
 async function handleServiceRoutes(req, res, ctx) {

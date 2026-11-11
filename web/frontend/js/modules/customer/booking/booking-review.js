@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE ĐÁNH GIÁ LỊCH HẸN & ĐĂNG XUẤT (BOOKING REVIEW & LOGOUT)
-// File: web/frontend/js/modules/customer/booking/booking-review.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

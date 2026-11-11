@@ -1,11 +1,3 @@
-// =========================================================================
-// Omni Salon — 3D PERSPECTIVE CLIENT-SIDE APP ROUTER
-// Module chức năng độc lập
-// Routes: /, /services, /stylists, /booking, /shop, /admin
-// 3D Scene Transitions: 1200px perspective, 3D Depth Flip/Glide
-// Spotlight Border Effect • Magnetic Buttons • Interactive Slot Ripple
-// =========================================================================
-
 (function (window) {
   'use strict';
 

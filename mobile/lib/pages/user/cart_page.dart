@@ -9,6 +9,7 @@ import 'package:omni_salon_mobile/models/order.dart';
 import 'package:omni_salon_mobile/components/editorial_image.dart';
 import 'package:omni_salon_mobile/pages/auth/login_page.dart';
 import 'package:omni_salon_mobile/components/main_scaffold.dart';
+import 'package:omni_salon_mobile/pages/user/vietqr_payment_page.dart';
 
 class CartScreen extends StatefulWidget {
   final List<OrderItem> cart;
@@ -271,7 +272,7 @@ class _CartScreenState extends State<CartScreen> {
       shippingFee: _shippingFee,
       voucherCode: _appliedVoucher,
       paymentMethod: _selectedPayment,
-      paymentStatus: _selectedPayment.contains('VietQR') ? 'Đã thanh toán' : 'Chưa thanh toán (COD)',
+      paymentStatus: _selectedPayment.contains('VietQR') ? 'Chưa thanh toán (VietQR)' : 'Chưa thanh toán (COD)',
       orderStatus: 'Đang xử lý',
       createdAt: DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
     );
@@ -364,10 +365,38 @@ class _CartScreenState extends State<CartScreen> {
         ),
         ),
         actions: [
+          if (paymentUsed.toLowerCase().contains('vietqr') || _selectedPayment.toLowerCase().contains('vietqr')) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentGold,
+                  foregroundColor: AppTheme.charcoal,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
+                label: const Text('Mở Cổng Thanh Toán VietQR (PayOS)', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => VietQrPaymentPage(
+                        orderId: orderCode,
+                        amount: orderAmount > 0 ? orderAmount : _finalTotal,
+                        description: 'DONHANG $orderCode',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           SizedBox(
             width: double.infinity,
             height: 44,
-            child: ElevatedButton(
+            child: OutlinedButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
                 Navigator.of(context).pop();

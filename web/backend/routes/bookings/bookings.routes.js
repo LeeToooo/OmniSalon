@@ -1,8 +1,3 @@
-// =========================================================================
-// PHÂN HỆ ĐẶT LỊCH HẸN & KHUNG GIỜ
-// Bảng CSDL chính: LichHen, ChiTietLichHen, KhachHang, NhanVien, ChiNhanh
-// =========================================================================
-
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 const {

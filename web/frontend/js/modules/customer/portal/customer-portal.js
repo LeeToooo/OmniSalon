@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - TRANG CÁ NHÂN & PORTAL (CUSTOMER PORTAL)
-// File: web/frontend/js/modules/customer/portal/customer-portal.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

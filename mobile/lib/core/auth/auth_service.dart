@@ -181,27 +181,54 @@ class AuthService {
     }
   }
 
-  // Cấu hình kiểm tra mã OTP qua email
-  static const bool enableGmailOtpVerification = false;
-
-  static String lastGeneratedOtp = '888999';
-
   static Future<bool> sendGmailOtp(String email) async {
-    // Viết sẵn hàm service gửi OTP qua Gmail chuẩn bị cho giai đoạn production
-    // Ở chế độ chờ, mock: Giả lập gửi thành công và in ra console để test
-    const mockOtp = '888999';
-    lastGeneratedOtp = mockOtp;
+    final cleanEmail = email.trim();
     debugPrint(
-        '[AuthService] 📧 Đã chuẩn bị mã OTP xác thực Gmail cho: $email -> Mã OTP: $mockOtp (enableGmailOtpVerification: $enableGmailOtpVerification)');
-    await Future.delayed(const Duration(milliseconds: 600));
-    return true;
+        '[AuthService] Gửi mã OTP xác thực Gmail đến địa chỉ thực tế: nonamenood0809@gmail.com (Tài khoản: $cleanEmail)');
+    try {
+      final res = await http
+          .post(
+            Uri.parse('${ApiService.baseUrl}/auth/send-otp'),
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'email': cleanEmail,
+              'purpose': 'VERIFY_ACCOUNT',
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      final data = jsonDecode(utf8.decode(res.bodyBytes));
+      return res.statusCode == 200 && data['success'] == true;
+    } catch (e) {
+      debugPrint('[AuthService] Send OTP error: $e');
+      return false;
+    }
   }
 
   static Future<bool> verifyGmailOtp(String email, String otp) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    // Ở chế độ test: chấp nhận mã '888999' hoặc đúng mã đã sinh hoặc khi tắt cờ OTP
-    if (!enableGmailOtpVerification) return true;
-    return otp.trim() == lastGeneratedOtp || otp.trim() == '888999';
+    final cleanEmail = email.trim();
+    final cleanOtp = otp.trim();
+    debugPrint(
+        '[AuthService] Xác thực mã OTP qua backend cho nonamenood0809@gmail.com (Tài khoản: $cleanEmail)');
+    try {
+      final res = await http
+          .post(
+            Uri.parse('${ApiService.baseUrl}/auth/verify-otp'),
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'email': cleanEmail,
+              'otp': cleanOtp,
+              'purpose': 'VERIFY_ACCOUNT',
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      final data = jsonDecode(utf8.decode(res.bodyBytes));
+      return res.statusCode == 200 && data['success'] == true;
+    } catch (e) {
+      debugPrint('[AuthService] Verify OTP error: $e');
+      return false;
+    }
   }
 
   static Future<Map<String, dynamic>> forgotPassword(String email) async {

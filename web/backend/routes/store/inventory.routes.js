@@ -1,8 +1,3 @@
-// =========================================================================
-// QUẢN LÝ KHO HÀNG, PHIẾU NHẬP & NHÀ CUNG CẤP
-// Bảng CSDL: TonKho, PhieuNhapKho, ChiTietPhieuNhap, NhaCungCap, QuyTacGiamGiaTheoHan
-// =========================================================================
-
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 

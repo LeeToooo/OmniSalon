@@ -1,8 +1,3 @@
-// =========================================================================
-// QUẢN LÝ ĐÁNH GIÁ & PHẢN HỒI KHÁCH HÀNG
-// Bảng CSDL: DanhGia, KhachHang, DonHang, LichHen
-// =========================================================================
-
 const { querySql } = require('../../database/db');
 const { resolveOrCreateCustomer } = require('../../services/helper_service');
 

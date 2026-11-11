@@ -10,6 +10,7 @@ import 'package:omni_salon_mobile/models/booking.dart';
 import 'package:omni_salon_mobile/components/editorial_image.dart';
 import 'package:omni_salon_mobile/pages/user/my_bookings_page.dart';
 import 'package:omni_salon_mobile/pages/auth/login_page.dart';
+import 'package:omni_salon_mobile/pages/user/vietqr_payment_page.dart';
 
 class BookingScreen extends StatefulWidget {
   final Branch? initialBranch;
@@ -507,10 +508,44 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
         ),
         actions: [
+          if (booking.paymentMethod.toLowerCase().contains('vietqr') || _selectedPaymentMethod.toLowerCase().contains('vietqr')) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentGold,
+                  foregroundColor: AppTheme.charcoal,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
+                label: const Text('Mở Cổng Thanh Toán VietQR (PayOS)', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  setState(() => _currentStep = 0);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => VietQrPaymentPage(
+                        orderId: booking.bookingCode,
+                        amount: booking.totalPrice,
+                        description: 'THANHTOAN ${booking.bookingCode}',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           SizedBox(
             width: double.infinity,
             height: 44,
-            child: ElevatedButton(
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.textPrimary,
+                side: BorderSide(color: AppTheme.borderColor),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
               onPressed: () {
                 Navigator.of(ctx).pop();
                 setState(() => _currentStep = 0);
@@ -663,7 +698,7 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // BƯỚC 1: CHỌN CHI NHÁNH
+  // Chọn chi nhánh
   Widget _buildStepBranches() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,7 +767,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // BƯỚC 2: CHỌN DỊCH VỤ & COMBO
+  // Chọn dịch vụ và combo
   Widget _buildStepServices() {
     final query = _serviceQuery.trim().toLowerCase();
     final filtered = _services.where((s) {
@@ -872,7 +907,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // BƯỚC 3: CHỌN THỢ TẠO MẪU
+  // Chọn stylist
   Widget _buildStepStylists() {
     final query = _stylistQuery.trim().toLowerCase();
     final selectedBranchId = _selectedBranch?.id ?? '';
@@ -1061,7 +1096,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // BƯỚC 4: CHỌN NGÀY & KHUNG GIỜ
+  // Chọn ngày và khung giờ
   Widget _buildStepDateTime() {
     final now = DateTime.now();
 
@@ -1238,7 +1273,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // BƯỚC 5: XÁC NHẬN THÔNG TIN & ĐẶT LỊCH
+  // Xác nhận thông tin và đặt lịch
   Widget _buildStepConfirm() {
     final dateFormatted = DateFormat('dd/MM/yyyy').format(_selectedDate);
 
@@ -1611,7 +1646,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             _loadAvailableSlots();
                           }
                         } else {
-                          // BƯỚC 5: Yêu cầu đăng nhập trước khi xác nhận đặt lịch
+                          // Yêu cầu đăng nhập trước khi xác nhận đặt lịch
                           if (AuthService.currentUser == null) {
                             _showStepWarning('Vui lòng đăng nhập tài khoản để xác nhận đặt lịch hẹn!');
                             await Navigator.of(context).push(

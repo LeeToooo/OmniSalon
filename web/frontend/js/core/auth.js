@@ -1,10 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// TẦNG XÁC THỰC BẢO MẬT & PHÂN QUYỀN RBAC
-// Phiên bản: 2.2.0 Clean Architecture & Performance Optimized
-// Module chức năng độc lập
-// ============================================================================
-
 (function (window) {
   'use strict';
 

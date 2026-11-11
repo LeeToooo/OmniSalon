@@ -50,6 +50,14 @@ class EditorialImage extends StatelessWidget {
       } catch (_) {
         imageWidget = _buildPlaceholder();
       }
+    } else if (cleanUrl.startsWith('assets/')) {
+      imageWidget = Image.asset(
+        cleanUrl,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+      );
     } else {
       final int? targetCacheWidth =
           (!kIsWeb && width != null && width!.isFinite && width! > 0)

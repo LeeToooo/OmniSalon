@@ -93,17 +93,17 @@ class _HomeScreenState extends State<HomeScreen> {
           child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          // 1. HERO BANNER
+          // Hero banner
           SliverToBoxAdapter(
             child: _buildHeroBanner(context),
           ),
 
-          // 2. MARQUEE BANNER
+          // Marquee banner
           const SliverToBoxAdapter(
             child: MarqueeBanner(),
           ),
 
-          // 3. ASYMMETRIC MOBILE BENTO GRID
+          // Bento grid
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
@@ -126,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 4. AI STUDIO 3D TEASER BANNER, ĐỒNG BỘ 100% VỚI WEB
+          // Styling banner
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -134,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 5. DỊCH VỤ TẠO KIỂU ĐƯỢC ƯA CHUỘNG
+          // Dịch vụ nổi bật
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
@@ -188,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 6. ĐỘI NGŨ MASTER STYLIST, ĐỒNG BỘ 100% VỚI WEB 3-COLUMN SHOWCASE
+          // Đội ngũ thợ tạo mẫu
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
@@ -245,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 7. HỆ THỐNG CHI NHÁNH CHUYÊN NGHIỆP
+          // Danh sách chi nhánh
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
@@ -493,7 +493,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 1. Hero Banner
+  // Hero banner
   Widget _buildHeroBanner(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -628,7 +628,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 2. Bento Grid
+  // Bento grid
   Widget _buildAsymmetricBentoGrid() {
     return Column(
       children: [

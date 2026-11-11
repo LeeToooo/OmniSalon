@@ -706,11 +706,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6),
-                    child: Image.network(
-                      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=120&q=80',
+                    child: Image.asset(
+                      'assets/hairstyles/sidepart-gentleman.jpg',
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 50,
+                        height: 50,
+                        color: AppTheme.surfaceElevated,
+                        child: const Icon(Icons.content_cut, size: 20),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),

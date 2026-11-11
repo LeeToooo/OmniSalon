@@ -367,12 +367,10 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
     );
   }
 
-  // =========================================================================
-  // 1. TAB TỔNG QUAN, OVERVIEW
-  // =========================================================================
+  // Tab tổng quan
   Widget _buildOverviewTab() {
-    final todayRev = _metrics['todayRevenue'] ?? 8450000;
-    final todayBookings = _metrics['todayBookings'] ?? 28;
+    final todayRev = _metrics['todayRevenue'] ?? 0;
+    final todayBookings = _metrics['todayBookings'] ?? 0;
     final staffCount = _metrics['staffOnDuty'] ?? 8;
     final occupancy = _metrics['occupancyRate'] ?? 85.5;
 
@@ -555,9 +553,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
     );
   }
 
-  // =========================================================================
-  // 2. TAB ĐIỀU PHỐI LỊCH HẸN, DISPATCHER
-  // =========================================================================
+  // Tab điều phối lịch hẹn
   Widget _buildDispatcherTab() {
     final filtered = _bookings.where((b) {
       if (_bookingStatusFilter != 'all') {
@@ -829,9 +825,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
     );
   }
 
-  // =========================================================================
-  // 3. TAB POS THU NGÂN TẠI QUẦY
-  // =========================================================================
+  // Tab POS thu ngân tại quầy
   Widget _buildPosTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -1143,9 +1137,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
     );
   }
 
-  // =========================================================================
-  // 4. TAB ĐỘI NGŨ NHÂN SỰ & THỢ CẮT, STAFF
-  // =========================================================================
+  // Tab đội ngũ nhân sự
   Widget _buildStaffTab() {
     return ListView.builder(
       padding: const EdgeInsets.all(14),
@@ -1198,9 +1190,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
     );
   }
 
-  // =========================================================================
-  // 5. TAB KHO HÀNG & HẠN DÙNG FEFO
-  // =========================================================================
+  // Tab kho hàng và FEFO
   Widget _buildInventoryTab() {
     return ListView(
       padding: const EdgeInsets.all(14),
@@ -1256,9 +1246,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
     );
   }
 
-  // =========================================================================
-  // 6. TAB BẢNG GIÁ DỊCH VỤ, CATALOG
-  // =========================================================================
+  // Tab bảng giá dịch vụ
   Widget _buildCatalogTab() {
     return ListView.builder(
       padding: const EdgeInsets.all(14),
@@ -1348,9 +1336,7 @@ class _AdminHubScreenState extends State<AdminHubScreen> with SingleTickerProvid
     );
   }
 
-  // =========================================================================
-  // 7. TAB HÓA ĐƠN & KIỂM TOÁN, INVOICES
-  // =========================================================================
+  // Tab hóa đơn
   Widget _buildInvoicesTab() {
     return ListView.builder(
       padding: const EdgeInsets.all(14),

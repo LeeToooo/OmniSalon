@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE TIỆN ÍCH DÙNG CHUNG (CUSTOMER UTILS)
-// File: web/frontend/js/modules/customer/customer-utils.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

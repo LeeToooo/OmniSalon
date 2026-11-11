@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG & NHÂN SỰ - QUẢN LÝ CA LÀM VIỆC (CUSTOMER STAFF SHIFT)
-// File: web/frontend/js/modules/customer/customer-staff-shift.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

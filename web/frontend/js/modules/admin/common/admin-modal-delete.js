@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ QUẢN TRỊ SALON - MODAL XÁC NHẬN XÓA TỔNG QUÁT (ADMIN MODAL DELETE)
-// File: web/frontend/js/modules/admin/common/admin-modal-delete.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

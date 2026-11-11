@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ QUẢN TRỊ SALON - GIAO DIỆN KHUNG SHELL, SIDEBAR & PHÂN QUYỀN TRUY CẬP
-// File: web/frontend/js/modules/admin/layout/admin-shell.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

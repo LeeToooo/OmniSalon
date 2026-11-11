@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// CORE PRICING & PROMOTION SERVICE
-// Module chức năng độc lập
-// ============================================================================
-
 (function (window) {
   'use strict';
 

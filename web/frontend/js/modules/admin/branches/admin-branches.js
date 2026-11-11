@@ -1,8 +1,3 @@
-// ============================================================================
-// Omni Salon: PHÂN HỆ QUẢN TRỊ - QUẢN LÝ CHUỖI CHI NHÁNH (BRANCHES MANAGEMENT)
-// File tách độc lập để tối ưu tốc độ và giảm tải IDE
-// ============================================================================
-
 (function (window) {
   'use strict';
 

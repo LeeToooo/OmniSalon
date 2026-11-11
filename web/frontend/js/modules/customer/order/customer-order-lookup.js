@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE TRA CỨU ĐƠN HÀNG & MODAL SHELL (CUSTOMER ORDER LOOKUP)
-// File: web/frontend/js/modules/customer/customer-order-lookup.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

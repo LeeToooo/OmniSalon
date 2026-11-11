@@ -40,7 +40,7 @@ class Stylist {
     final rawAvatar = json['avatar'] ?? json['HinhAnh'] ?? '';
     final formattedAvatar = ApiService.getImageUrl(
       rawAvatar.toString(),
-      fallback: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
+      fallback: 'assets/images/placeholder_avatar.png',
     );
 
     final rawRating = json['rating'] ?? 5.0;

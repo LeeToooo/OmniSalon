@@ -1,9 +1,3 @@
-// ============================================================================
-// Omni Salon: PHÂN HỆ QUẢN TRỊ - QUẢN LÝ KHO HÀNG ĐA CHI NHÁNH & FEFO (INVENTORY)
-// Giao diện thiết kế 1:1 đồng bộ chuẩn Quản lý chuỗi chi nhánh (Enterprise UI/UX)
-// File tách độc lập để tối ưu tốc độ và giảm tải IDE
-// ============================================================================
-
 (function (window) {
   'use strict';
 

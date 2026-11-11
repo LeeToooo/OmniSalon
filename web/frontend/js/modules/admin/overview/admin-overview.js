@@ -1,8 +1,3 @@
-// ============================================================================
-// Omni Salon: PHÂN HỆ QUẢN TRỊ - TỔNG QUAN DOANH THU & KPIS (OVERVIEW)
-// File tách độc lập để tối ưu tốc độ và giảm tải IDE
-// ============================================================================
-
 (function (window) {
   'use strict';
 

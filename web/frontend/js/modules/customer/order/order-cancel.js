@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE HỦY ĐƠN HÀNG MỸ PHẨM (CUSTOMER ORDER CANCEL)
-// File: web/frontend/js/modules/customer/order/order-cancel.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

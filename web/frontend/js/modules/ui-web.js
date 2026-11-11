@@ -1,11 +1,4 @@
-﻿// =========================================================================
-// OmniSalon — UIWeb Compatibility Bridge & Delegate
-// Chuyển tiếp toàn bộ phương thức và thuộc tính sang CustomerWeb & AdminWeb
-// Giữ nguyên 100% tính năng, loại bỏ hoàn toàn 2.700 dòng code trùng lặp
-// Module chức năng độc lập
-// =========================================================================
-
-(function (window) {
+﻿(function (window) {
   'use strict';
 
   const UIWebBridge = new Proxy({}, {

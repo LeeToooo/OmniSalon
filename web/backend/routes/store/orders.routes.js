@@ -1,8 +1,3 @@
-// =========================================================================
-// QUẢN LÝ ĐƠN HÀNG ONLINE
-// Bảng CSDL chính: DonHang, ChiTietDonHang, ChiTietPhieuNhap, HoaDon, ThanhToan
-// =========================================================================
-
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 const {

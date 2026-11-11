@@ -127,21 +127,6 @@ async function handleAiRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/ai/consultation - Trò chuyện tư vấn tạo mẫu tóc với AI Barber Master
-  if (pathname === '/api/ai/consultation' && method === 'POST') {
-    const body = parsedBody || {};
-    const message = body.message || body.prompt || body.content || '';
-    const context = body.context || {};
-    try {
-      const reply = await aiService.askBarberMasterAi(message, context);
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify(reply));
-    } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: 'Lỗi kết nối Barber Master AI: ' + err.message }));
-    }
-    return true;
-  }
 
   // GET /api/ai/config & POST /api/ai/config - Cấu hình API key AI
   if (pathname === '/api/ai/config' && method === 'GET') {

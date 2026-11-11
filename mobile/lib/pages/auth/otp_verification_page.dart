@@ -58,24 +58,22 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   String get _currentOtp => _controllers.map((c) => c.text).join();
 
-  Future<void> _handleVerify({bool bypass = false}) async {
-    if (!bypass) {
-      final code = _currentOtp;
-      if (code.length < 6) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Vui lòng nhập đủ 6 chữ số mã xác thực OTP.', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
-            backgroundColor: AppTheme.statusDanger,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return;
-      }
+  Future<void> _handleVerify() async {
+    final code = _currentOtp;
+    if (code.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Vui lòng nhập đủ 6 chữ số mã xác thực OTP.', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          backgroundColor: AppTheme.statusDanger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
     }
 
     setState(() => _isVerifying = true);
 
-    final isValid = bypass ? true : await AuthService.verifyGmailOtp(widget.email, _currentOtp);
+    final isValid = await AuthService.verifyGmailOtp(widget.email, _currentOtp);
 
     if (!mounted) return;
     setState(() => _isVerifying = false);
@@ -252,53 +250,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // =========================================================
-              // CHẾ ĐỘ CHỜ / TEST NHANH, Khi enableGmailOtpVerification = false
-              // =========================================================
-              if (!AuthService.enableGmailOtpVerification) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceElevated,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.accentGold.withValues(alpha: 0.3)),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.verified_user_outlined, size: 16, color: AppTheme.accentGold),
-                          const SizedBox(width: 6),
-                          Text(
-                            'CHẾ ĐỘ KIỂM THỬ (CHƯA BẬT GỬI MAIL THẬT)',
-                            style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 44,
-                        child: OutlinedButton.icon(
-                          onPressed: () => _handleVerify(bypass: true),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
-                            backgroundColor: AppTheme.surfaceCard,
-                          ),
-                          icon: const Icon(Icons.bolt_rounded, color: AppTheme.accentGold, size: 18),
-                          label: Text(
-                            'Bỏ qua / Xác nhận nhanh (Chế độ Test)',
-                            style: AppTheme.bodyMedium(color: AppTheme.accentGold, fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
         ),

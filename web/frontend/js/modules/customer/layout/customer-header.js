@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE THANH TIÊU ĐỀ HEADER (CUSTOMER HEADER)
-// File: web/frontend/js/modules/customer/customer-header.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 
@@ -121,7 +115,7 @@
                   ${renderBranchesMega()}
                 </div>
               </div>
-              <a href="/ai-studio" data-route="/ai-studio" class="nav-link nav-link-optional text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('ai')">AI tạo kiểu tóc</a>
+              <a href="/ai-studio" data-route="/ai-studio" class="nav-link nav-link-optional text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('ai')">Studio kiểu tóc</a>
             </nav>
 
             <!-- CỤM 3  - PHẢI - : Search, Cart, Theme Toggle, User Dropdown -->

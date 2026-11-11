@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 // Khởi tạo máy chủ web và điều hướng api
 
 const http = require('http');

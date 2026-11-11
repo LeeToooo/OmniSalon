@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE TRA CỨU LỊCH HẸN CẮT TÓC (CUSTOMER BOOKING SEARCH)
-// File: web/frontend/js/modules/customer/customer-booking-search.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

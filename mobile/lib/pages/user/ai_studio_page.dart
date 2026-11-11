@@ -1,5 +1,4 @@
 import 'package:omni_salon_mobile/core/api/api_service.dart';
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
 import 'package:omni_salon_mobile/components/editorial_image.dart';
@@ -15,14 +14,12 @@ class AiStylingScreen extends StatefulWidget {
 class _AiStylingScreenState extends State<AiStylingScreen> {
   String _selectedHairstyle = 'layer-korean';
   String _selectedColor = 'natural-black';
-  String _currentPhotoUrl =
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80';
+  String _currentPhotoUrl = 'assets/hairstyles/sidepart-gentleman.jpg';
   String? _rawOriginalPhotoUrl;
   String? _croppedImageUrl;
-  String _viewMode = 'cropped'; // 'cropped', 'raw'
+  String _viewMode = 'cropped';
 
   bool _isScanning = false;
-  double _scanProgress = 0.0;
   String _scanStageText = '';
   bool _hasResult = false;
   String? _resultImageUrl;
@@ -37,16 +34,14 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
       'tag': 'THỜI THƯỢNG',
       'desc':
           'Tỉa tầng bay bổng, uốn texture tạo độ phồng tự nhiên cho khuôn mặt Á Đông.',
-      'preview':
-          'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80',
+      'preview': 'assets/hairstyles/layer-korean.jpg',
     },
     {
       'id': 'pompadour-luxury',
       'name': 'Pompadour & Mid Fade',
       'tag': 'LỊCH LÃM',
       'desc': 'Độ phồng vuốt ngược pomade kết hợp đường fade sắc nét 2 bên.',
-      'preview':
-          'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=400&q=80',
+      'preview': 'assets/hairstyles/pompadour-luxury.jpg',
     },
     {
       'id': 'mullet-modern',
@@ -54,8 +49,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
       'tag': 'PHONG CÁCH',
       'desc':
           'Gáy tỉa so le mềm mại kết hợp đường cạo viền dứt khoát và nam tính.',
-      'preview':
-          'https://images.unsplash.com/photo-1517832606589-7629c3395907?auto=format&fit=crop&w=400&q=80',
+      'preview': 'assets/hairstyles/mullet-modern.jpg',
     },
     {
       'id': 'sidepart-gentleman',
@@ -63,24 +57,21 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
       'tag': 'QUÝ ÔNG',
       'desc':
           'Đường rẽ ngôi tỉ lệ vàng tôn phom mặt, dễ dàng chải sáp suốt cả ngày.',
-      'preview':
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+      'preview': 'assets/hairstyles/sidepart-gentleman.jpg',
     },
     {
       'id': 'buzzcut-fade',
       'name': 'Buzz Cut & High Fade',
       'tag': 'DỨT KHOÁT',
       'desc': 'Húi cua ngắn gọn gàng, tôn trọn vẹn xương hàm nam tính.',
-      'preview':
-          'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=400&q=80',
+      'preview': 'assets/hairstyles/buzzcut-fade.jpg',
     },
     {
       'id': 'french-crop',
       'name': 'French Crop Textured',
       'tag': 'HIỆN ĐẠI',
       'desc': 'Mái bằng textured tỉa nhọn che trán cao, fade cao 2 bên mai.',
-      'preview':
-          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+      'preview': 'assets/hairstyles/french-crop.jpg',
     },
   ];
 
@@ -115,24 +106,20 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
 
   final _demoPortraits = [
     {
-      'name': 'Mẫu Nam 01',
-      'url':
-          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80'
+      'name': 'Mẫu 01 (Side Part)',
+      'url': 'assets/hairstyles/sidepart-gentleman.jpg'
     },
     {
-      'name': 'Mẫu Nam 02',
-      'url':
-          'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=500&q=80'
+      'name': 'Mẫu 02 (Pompadour)',
+      'url': 'assets/hairstyles/pompadour-luxury.jpg'
     },
     {
-      'name': 'Mẫu Nam 03',
-      'url':
-          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=500&q=80'
+      'name': 'Mẫu 03 (Layer)',
+      'url': 'assets/hairstyles/layer-korean.jpg'
     },
     {
-      'name': 'Mẫu Nam 04',
-      'url':
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80'
+      'name': 'Mẫu 04 (Mullet)',
+      'url': 'assets/hairstyles/mullet-modern.jpg'
     },
   ];
 
@@ -165,7 +152,6 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     });
   }
 
-  // 1. GỌI API CHẨN ĐOÁN NGŨ QUAN THẬT
   Future<void> _triggerFaceAnalysis() async {
     final targetPhoto = _rawOriginalPhotoUrl ?? _currentPhotoUrl;
     final res = await ApiService.analyzeFace(targetPhoto);
@@ -176,7 +162,6 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
         if (res['croppedImageUrl'] != null) {
           _croppedImageUrl = res['croppedImageUrl'].toString();
         }
-        // Giữ nguyên tóc thật của khách trong ảnh xem trước
         if (_viewMode == 'cropped' && _croppedImageUrl != null) {
           _currentPhotoUrl = _croppedImageUrl!;
         } else {
@@ -186,32 +171,13 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     }
   }
 
-  // 2. GỌI API SINH KIỂU TÓC THẬT BẰNG AI, TỰ ĐỘNG TÁCH NỀN & XÓA TÓC CŨ KHI BẮT ĐẦU MÔ PHỎNG
   Future<void> _runRestyleSimulation() async {
     if (_isScanning) return;
 
     setState(() {
       _isScanning = true;
-      _scanProgress = 0.15;
       _hasResult = false;
-      _scanStageText =
-          'Đang tự động tách phông nền & xóa phom tóc cũ của khách...';
-    });
-
-    final timer1 = Timer(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
-      setState(() {
-        _scanProgress = 0.50;
-        _scanStageText = 'Đang dựng đa giác 3D phom tóc mới...';
-      });
-    });
-
-    final timer2 = Timer(const Duration(milliseconds: 1200), () {
-      if (!mounted) return;
-      setState(() {
-        _scanProgress = 0.85;
-        _scanStageText = 'Đang hòa sắc màu nhuộm & ray-tracing chiều sâu...';
-      });
+      _scanStageText = 'Đang tải ảnh lên và xử lý...';
     });
 
     try {
@@ -223,14 +189,10 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
         colorId: _selectedColor,
       );
 
-      timer1.cancel();
-      timer2.cancel();
-
       if (!mounted) return;
 
       if (res != null && res['resultImageUrl'] != null) {
         setState(() {
-          _scanProgress = 1.0;
           _isScanning = false;
           _hasResult = true;
           _resultImageUrl = res['resultImageUrl']?.toString();
@@ -239,23 +201,19 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
           }
         });
       } else {
-        // Fallback tạo ảnh mẫu tương ứng
         final style =
             _hairstyles.firstWhere((h) => h['id'] == _selectedHairstyle);
         setState(() {
-          _scanProgress = 1.0;
           _isScanning = false;
           _hasResult = true;
           _resultImageUrl = style['preview'] ?? _currentPhotoUrl;
         });
       }
-    } catch (e) {
-      timer1.cancel();
-      timer2.cancel();
+    } catch (_) {
       if (!mounted) return;
       setState(() {
         _isScanning = false;
-        _hasResult = true;
+        _hasResult = false;
       });
     }
   }
@@ -267,7 +225,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     final skinTone = _faceAnalysis?['skinUndertone']?['name']?.toString() ??
         'Sắc Tố Da Ấm (Warm Undertone)';
     final barberAdvice = _faceAnalysis?['barberAdvice']?.toString() ??
-        'Master Barber khuyên bạn nên sấy phồng chân tóc tạo volume và dùng sáp Apestomen Volcanic Clay để kiểm soát nếp suốt cả ngày.';
+        'Master Barber khuyên bạn nên sấy phồng chân tóc tạo volume và dùng sáp phù hợp để kiểm soát nếp suốt cả ngày.';
 
     return ValueListenableBuilder<bool>(
       valueListenable: AppTheme.isDarkModeNotifier,
@@ -285,7 +243,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                     children: [
                       Flexible(
                         child: Text(
-                          'CÔNG NGHỆ REAL AI BARBER VISION',
+                          'OMNISALON LOOKBOOK & STYLING',
                           style: AppTheme.labelUppercase(
                               fontSize: 10.5, color: AppTheme.accentGold),
                           maxLines: 1,
@@ -303,32 +261,22 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                               color:
                                   AppTheme.accentGold.withValues(alpha: 0.4)),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.auto_awesome,
-                                color: AppTheme.accentGold, size: 12),
-                            const SizedBox(width: 4),
-                            Text(
-                              'NEURAL 3D',
-                              style: AppTheme.labelUppercase(
-                                  fontSize: 9.5, color: AppTheme.accentGold),
-                            ),
-                          ],
+                        child: Text(
+                          'TẠO MẪU',
+                          style: AppTheme.labelUppercase(
+                              fontSize: 9.5, color: AppTheme.accentGold),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'THỬ KIỂU TÓC THẬT & CHẨN ĐOÁN DÁNG MẶT AI',
+                    'THỬ KIỂU TÓC & TƯ VẤN DÁNG MẶT',
                     style: AppTheme.headingLarge(fontSize: 22),
                   ),
                   const SizedBox(height: 16),
 
-                  // ========================================================
-                  // KHUNG XEM TRƯỚC ẢNH & HIỆU ỨNG QUÉT LASER
-                  // ========================================================
+                  // Khung xem trước ảnh
                   Container(
                     width: double.infinity,
                     height: 310,
@@ -342,7 +290,6 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          // Ảnh gốc hoặc Before/After Slider
                           if (!_hasResult) ...[
                             EditorialImage(
                               imageUrl: _currentPhotoUrl,
@@ -352,10 +299,9 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                             _buildBeforeAfterComparison(),
                           ],
 
-                          // Lớp phủ khi đang quét Neural Scan
                           if (_isScanning) ...[
                             Container(
-                              color: AppTheme.charcoal.withValues(alpha: 0.85),
+                              color: AppTheme.charcoal.withValues(alpha: 0.88),
                               child: Center(
                                 child: Padding(
                                   padding: const EdgeInsets.all(24),
@@ -363,8 +309,8 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       const SizedBox(
-                                        width: 40,
-                                        height: 40,
+                                        width: 38,
+                                        height: 38,
                                         child: CircularProgressIndicator(
                                           color: AppTheme.accentGold,
                                           strokeWidth: 2.5,
@@ -372,31 +318,11 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
-                                        'AI NEURAL RE-STYLING',
-                                        style: AppTheme.labelUppercase(
-                                            fontSize: 10,
-                                            color: AppTheme.accentGold),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
                                         _scanStageText,
                                         style: AppTheme.bodySmall(
                                             color: AppTheme.textLight,
                                             fontWeight: FontWeight.w600),
                                         textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 14),
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(3),
-                                        child: LinearProgressIndicator(
-                                          value: _scanProgress,
-                                          backgroundColor: Colors.white
-                                              .withValues(alpha: 0.15),
-                                          valueColor:
-                                              const AlwaysStoppedAnimation<
-                                                  Color>(AppTheme.accentGold),
-                                          minHeight: 5,
-                                        ),
                                       ),
                                     ],
                                   ),
@@ -410,7 +336,6 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Thanh chuyển chế độ xem góc chân dung, Giữ nguyên tóc thật của khách
                   if (_croppedImageUrl != null) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -423,29 +348,25 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.auto_fix_high,
-                              color: AppTheme.accentGold, size: 14),
-                          const SizedBox(width: 6),
                           Text(
-                            'CĂN GÓC:',
+                            'KHUNG HÌNH:',
                             style: AppTheme.labelUppercase(
                                 fontSize: 9, color: AppTheme.accentGold),
                           ),
                           const Spacer(),
-                          _buildViewModeChip(
-                              'cropped', '✂️ Cắt 3:4 (Tóc Thật)'),
+                          _buildViewModeChip('cropped', 'Tỉ lệ 3:4'),
                           const SizedBox(width: 4),
-                          _buildViewModeChip('raw', '🖼️ Gốc'),
+                          _buildViewModeChip('raw', 'Ảnh gốc'),
                         ],
                       ),
                     ),
                     const SizedBox(height: 10),
                   ],
 
-                  // Chọn ảnh mẫu chân dung có sẵn
+                  // Chọn ảnh mẫu chân dung
                   Row(
                     children: [
-                      Text('CHỌN ẢNH MẪU:',
+                      Text('ẢNH MẪU:',
                           style: AppTheme.labelUppercase(
                               fontSize: 9.5, color: AppTheme.textSecondary)),
                       const SizedBox(width: 8),
@@ -463,10 +384,6 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                                   (_rawOriginalPhotoUrl ?? _currentPhotoUrl) ==
                                       p['url'];
                               return ActionChip(
-                                avatar: CircleAvatar(
-                                  backgroundImage: NetworkImage(p['url']!),
-                                  radius: 10,
-                                ),
                                 label: Text(p['name']!),
                                 labelStyle: AppTheme.bodySmall(
                                   fontSize: 11,
@@ -503,9 +420,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // ========================================================
-                  // THẺ CHẨN ĐOÁN DÁNG MẶT AI, REAL FACE DIAGNOSTIC
-                  // ========================================================
+                  // Khối tư vấn dáng mặt
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
@@ -524,7 +439,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                             Flexible(
                               flex: 5,
                               child: Text(
-                                '🧠 CHẨN ĐOÁN NGŨ QUAN AI',
+                                'TƯ VẤN DÁNG MẶT',
                                 style: AppTheme.labelUppercase(
                                     fontSize: 10, color: AppTheme.accentGold),
                                 maxLines: 1,
@@ -566,8 +481,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                           children: [
                             _buildInfoPill('Tông da', skinTone.split(' ')[0]),
                             _buildInfoPill('Tỉ lệ mặt', 'Chuẩn Á Đông'),
-                            _buildInfoPill('Ngũ quan', 'Giữ 100% mặt thật'),
-                            _buildInfoPill('Độ hợp cao nhất', '99%'),
+                            _buildInfoPill('Độ hợp cao nhất', '98%'),
                           ],
                         ),
                       ],
@@ -575,9 +489,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  // ========================================================
-                  // DANH SÁCH 6 PHOM DÁNG TÓC THỊNH HÀNH
-                  // ========================================================
+                  // Danh sách phom dáng tóc
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -607,8 +519,6 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                     itemBuilder: (context, index) {
                       final h = _hairstyles[index];
                       final isSelected = _selectedHairstyle == h['id'];
-
-                      // Điểm tương thích
                       final scores = _faceAnalysis?['styleScores']
                           as Map<String, dynamic>?;
                       final matchScore =
@@ -689,9 +599,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  // ========================================================
-                  // BẢNG MÀU NHUỘM TÔN DA
-                  // ========================================================
+                  // Bảng màu nhuộm
                   Text(
                     'MÀU NHUỘM PHỐI HỢP',
                     style: AppTheme.labelUppercase(
@@ -739,7 +647,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // NÚT CTA: MÔ PHỎNG KIỂU TÓC THẬT NGAY
+                  // Nút xem trước kiểu tóc
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -763,15 +671,12 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                                   color: AppTheme.charcoal, strokeWidth: 2),
                             ),
                             const SizedBox(width: 8),
-                          ] else ...[
-                            const Icon(Icons.auto_awesome, size: 18),
-                            const SizedBox(width: 6),
                           ],
                           Flexible(
                             child: Text(
                               _isScanning
-                                  ? 'ĐANG BIẾN ĐỔI TÓC & CÂN BẰNG MẶT...'
-                                  : 'MÔ PHỎNG TÓC & CÂN BẰNG MẶT AI →',
+                                  ? 'Đang xử lý...'
+                                  : 'Xem trước kiểu tóc →',
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
@@ -796,7 +701,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                         onPressed: () {
                           final scaffold = MainScaffold.of(context);
                           if (scaffold != null) {
-                            scaffold.switchTab(2); // Chuyển sang Tab Đặt lịch
+                            scaffold.switchTab(2);
                           }
                         },
                         style: OutlinedButton.styleFrom(
@@ -806,7 +711,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                               borderRadius: BorderRadius.circular(8)),
                         ),
                         child: Text(
-                          '✂️ Đặt Lịch Cắt Kiểu Này Ngay →',
+                          'Đặt lịch cắt kiểu này ngay →',
                           style: AppTheme.bodyMedium(
                               color: AppTheme.accentGold,
                               fontWeight: FontWeight.w700),
@@ -865,7 +770,6 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     );
   }
 
-  // Before & After Interactive Slider View, Comparing actual photo with REAL restyled photo
   Widget _buildBeforeAfterComparison() {
     final resultUrl = _resultImageUrl ?? _currentPhotoUrl;
 
@@ -877,13 +781,10 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
         return Stack(
           fit: StackFit.expand,
           children: [
-            // Ảnh kết quả AI thật bên dưới
             EditorialImage(
               imageUrl: resultUrl,
               fit: BoxFit.cover,
             ),
-
-            // Ảnh trước cắt xén bên trái theo thanh trượt
             ClipRect(
               clipper: _HorizontalSplitClipper(split),
               child: EditorialImage(
@@ -891,8 +792,6 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                 fit: BoxFit.cover,
               ),
             ),
-
-            // Nhãn Trước / Sau
             Positioned(
               left: 12,
               bottom: 12,
@@ -904,7 +803,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                   border:
                       Border.all(color: Colors.white.withValues(alpha: 0.2)),
                 ),
-                child: Text('ẢNH GỐC CỦA BẠN',
+                child: Text('ẢNH GỐC',
                     style: AppTheme.labelUppercase(
                         fontSize: 8.5, color: Colors.white)),
               ),
@@ -923,13 +822,11 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                         blurRadius: 4),
                   ],
                 ),
-                child: Text('TÓC MỚI & CÂN BẰNG MẶT (GEMINI AI) ✨',
+                child: Text('KIỂU TÓC MỚI',
                     style: AppTheme.labelUppercase(
                         fontSize: 8.5, color: AppTheme.charcoal)),
               ),
             ),
-
-            // Tay kéo điều khiển thanh trượt
             Positioned(
               left: split - 15,
               top: 0,

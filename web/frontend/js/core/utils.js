@@ -1,9 +1,4 @@
-﻿// =========================================================================
-// OmniSalon / Omni Salon — CORE UTILITIES MODULE
-// Các hàm tiện ích dùng chung trong giao diện 
-// =========================================================================
-
-(function (window) {
+﻿(function (window) {
   'use strict';
 
   const SalonUtils = {

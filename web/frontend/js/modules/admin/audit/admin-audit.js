@@ -1,8 +1,3 @@
-// ============================================================================
-// Omni Salon: PHÂN HỆ QUẢN TRỊ - NHẬT KÝ KIỂM TOÁN, HÓA ĐƠN & PHÂN QUYỀN (AUDIT & RBAC)
-// File tách độc lập để tối ưu tốc độ và giảm tải IDE
-// ============================================================================
-
 (function (window) {
   'use strict';
 

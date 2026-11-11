@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE ĐÁNH GIÁ ĐƠN HÀNG MỸ PHẨM (ORDER REVIEW)
-// File: web/frontend/js/modules/customer/order-review.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

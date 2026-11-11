@@ -1,9 +1,3 @@
-// =========================================================================
-// OmniSalon / Omni Salon — CORE REACTIVE STORE MODULE
-// Phiên bản: 2.2.0 Clean Architecture 
-//, State Engine, Quản lý Combos, Tồn kho Chi Nhánh, Anti-Double Booking, POS
-// =========================================================================
-
 (function (window) {
   'use strict';
 

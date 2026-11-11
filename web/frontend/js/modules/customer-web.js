@@ -1,10 +1,3 @@
-// =========================================================================
-// OmniSalon / Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG TRÊN WEB PORTAL  CUSTOMER WEB PLATFORM MODULE 
-// Phiên bản: 2.2.0 Clean Architecture, RBAC Protected & High Aesthetics
-// Hỗ trợ kết nối API trực tiếp
-// =========================================================================
-
 (function (window) {
   'use strict';
 

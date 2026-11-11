@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE ĐIỀU HƯỚNG & MENU TÀI KHOẢN (CUSTOMER NAVIGATION)
-// File: web/frontend/js/modules/customer/customer-navigation.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - MODULE MINI CART & POPUP GIỎ HÀNG (CUSTOMER CART POPUP)
-// File: web/frontend/js/modules/customer/customer-cart-popup.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

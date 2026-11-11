@@ -1,10 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ QUẢN TRỊ SALON TRÊN WEB (ADMIN WEB PLATFORM MODULE)
-// Phiên bản: 11.2 Clean Architecture, Zero N+1 Query, Modular Shell
-// Module chức năng điều phối trung tâm
-// ============================================================================
-
 (function (window) {
   'use strict';
 

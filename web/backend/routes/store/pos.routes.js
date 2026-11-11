@@ -1,9 +1,3 @@
-// =========================================================================
-// QUẢN LÝ BÁN HÀNG TẠI QUẦY POS, HÓA ĐƠN & LỊCH SỬ THANH TOÁN
-// Bảng CSDL chính: HoaDon, ChiTietHoaDon_DichVu, ChiTietHoaDon_SanPham,
-//                  ThanhToan, ChiTietPhieuNhap, LichHen
-// =========================================================================
-
 const { querySql } = require('../../database/db');
 const {
   resolveOrCreateCustomer,

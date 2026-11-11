@@ -1,8 +1,3 @@
-// ============================================================================
-// Omni Salon: PHÂN HỆ QUẢN TRỊ - QUẦY THU NGÂN POS TẠI CHỖ (POS CHECKOUT)
-// File tách độc lập để tối ưu tốc độ và giảm tải IDE
-// ============================================================================
-
 (function (window) {
   'use strict';
 

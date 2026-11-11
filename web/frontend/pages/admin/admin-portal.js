@@ -1,9 +1,3 @@
-// =========================================================================
-// Omni Salon: ADMIN PORTAL COMPONENT
-// Module chức năng độc lập
-// Route: "/admin" & "/admin/*" -> Bento Dashboard, Timeline Dispatcher, RBAC Guard
-// =========================================================================
-
 (function (window) {
   'use strict';
 

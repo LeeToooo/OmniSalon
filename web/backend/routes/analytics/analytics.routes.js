@@ -1,9 +1,4 @@
-﻿// =========================================================================
-// THỐNG KÊ DOANH THU & BÁO CÁO HIỆU SUẤT
-// Bảng CSDL: HoaDon, LichHen, NhanVien, ChiNhanh
-// =========================================================================
-
-const { querySql } = require('../../database/db');
+﻿const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 
 async function handleAnalyticsRoutes(req, res, ctx) {

@@ -1,9 +1,4 @@
-﻿// =========================================================================
-// QUẢN LÝ DANH SÁCH CHI NHÁNH SALON
-// Bảng CSDL: ChiNhanh, LichHen, DonHang, NhanVien, TonKho
-// =========================================================================
-
-const { querySql } = require('../../database/db');
+﻿const { querySql } = require('../../database/db');
 const { formatTime } = require('../../services/helper_service');
 const { enforceAuth } = require('../../middlewares/auth_middleware');
 

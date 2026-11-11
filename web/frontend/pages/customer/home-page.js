@@ -449,12 +449,13 @@
           </section>
 
           <!-- ========================================================
-               8. CÔNG NGHỆ THỬ TÓC TRÍ TUỆ NHÂN TẠO AI
+               8. STUDIO TẠO KIỂU & BỘ SƯU TẬP TÓC NAM
                ======================================================== -->
           <section class="web-section omni-container" id="aiStudioSection" style="max-width: 1640px; margin: 0 auto; padding: 40px clamp(16px, 3.5vw, 48px);">
             <div style="background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; padding: 36px 28px;">
               <div style="text-align: center; max-width: 680px; margin: 0 auto 28px;">
-                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">Omni AI Hair Vision Studio</h2>
+                <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">Studio Tạo Kiểu &amp; Thử Phom Tóc Barbershop</h2>
+                <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Khám phá bộ sưu tập 28 kiểu tóc nam chuẩn tỉ lệ vàng và xem trước trên ảnh chân dung của bạn.</p>
               </div>
 
               <div style="max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;">
@@ -474,24 +475,24 @@
                     2. Chọn kiểu tóc thịnh hành:
                   </label>
                   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
-                    <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
-                      Tỉa lớp tự nhiên
+                    <button type="button" class="ai-home-style-pill active" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
+                      Layer texture Hàn Quốc
                     </button>
                     <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
-                      Vuốt ngược quý ông
+                      Side Part 7/3 cổ điển
                     </button>
                     <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
-                      Đuôi dài cá tính
+                      Pompadour lịch lãm
                     </button>
                     <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
-                      Rẽ ngôi lịch lãm
+                      Short Quiff &amp; Taper
                     </button>
                   </div>
                 </div>
 
                 <div style="margin-top: 6px;">
                   <button type="button" class="nordic-btn-primary" style="width: 100%; height: 46px; background: #C59B27; color: #141413; font-weight: 800; font-size: 14.5px; border-radius: 6px; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none;" onclick="HomePage.startAiStudio()">
-                    <span>Thử kiểu tóc ngay bằng AI</span>
+                    <span>Khám phá &amp; thử kiểu tóc ngay</span>
                     <span>→</span>
                   </button>
                 </div>

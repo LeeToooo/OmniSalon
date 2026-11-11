@@ -1,7 +1,3 @@
-// =========================================================================
-// BOOKING SERVICE — LOGIC NGHIỆP VỤ & TRUY VẤN SQL ĐẶT LỊCH HẸN
-// =========================================================================
-
 const { querySql } = require('../database/db');
 const {
   formatTime,

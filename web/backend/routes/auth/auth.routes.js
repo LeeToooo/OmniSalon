@@ -1,8 +1,3 @@
-// =========================================================================
-// PHÂN HỆ XÁC THỰC: ĐĂNG NHẬP, ĐĂNG KÝ, TOKEN JWT & OTP
-// Bảng CSDL: TaiKhoan, KhachHang, NhanVien, XacThucOTP
-// =========================================================================
-
 const { querySql, getActiveDbConfig, DB_NAME } = require('../../database/db');
 const { signJwt, extractAuthUser } = require('../../middlewares/auth_middleware');
 const otpService = require('../../services/otp_service');

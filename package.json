@@ -24,6 +24,8 @@
     "@capacitor/core": "^6.1.2",
     "@capacitor/splash-screen": "^6.0.2",
     "@capacitor/status-bar": "^6.0.2",
+    "@payos/node": "^2.0.5",
+    "dotenv": "^18.0.10",
     "msnodesqlv8": "^5.5.0",
     "mssql": "^12.7.4",
     "nodemailer": "^10.0.16"

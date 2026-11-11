@@ -1,12 +1,3 @@
-// =========================================================================
-// OmniSalon & Spa — UNIFIED WIDGETS BUNDLE
-// Tích hợp toàn bộ 6 Widgets giao diện dùng chung trong 1 tệp duy nhất:
-// ServiceCardWidget       4. BookingSlotPicker
-// StylistCardWidget       5. StatCardWidget
-// TimeSlotChipsWidget     6. ShimmerLoadingWidget
-// Module chức năng độc lập
-// =========================================================================
-
 (function (window) {
   'use strict';
 

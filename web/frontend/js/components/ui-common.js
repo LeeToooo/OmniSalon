@@ -1398,11 +1398,23 @@ const UICommon = {
         </p>
 
         ${paymentMethodKey === 'VIETQR' ? `
-          <div style="background: var(--surface-card, #14171F); border: 2px solid #10b981; border-radius: 14px; padding: 16px; margin-bottom: 16px; text-align: center;">
-            <div style="font-size: 13.5px; font-weight: 800; color: #10b981; margin-bottom: 8px;">MÃ THANH TOÁN VIETQR CHÍNH THỨC</div>
+          <div style="background: var(--surface-card, #14171F); border: 1.5px solid #C59B27; border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center;">
+            <div style="font-size: 13.5px; font-weight: 800; color: #C59B27; margin-bottom: 8px;">MÃ THANH TOÁN VIETQR CHÍNH THỨC</div>
             <img src="${qrUrl}" alt="Mã VietQR" style="width: 180px; height: 180px; border-radius: 10px; margin: 0 auto; display: block; border: 1px solid var(--border-color);">
             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
               Quét mã bằng app ngân hàng bất kỳ để hoàn tất thanh toán <strong>${SalonUtils.formatCurrency(order.totalAmount)}</strong>
+            </div>
+            <div id="vqrOrderAutoStatus" style="margin-top: 10px;">
+              <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(197, 155, 39, 0.12); border: 1px solid rgba(197, 155, 39, 0.3); border-radius: 20px; padding: 4px 12px; font-size: 11.5px; color: #C59B27; font-weight: 700;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+                <span>Đang chờ chuyển khoản (Tự động xác nhận sau 2s)...</span>
+              </div>
+            </div>
+            <div style="margin-top: 10px;">
+              <button type="button" id="btnSimulateOrderPayment" onclick="UICommon.simulateOrderPayment('${order.id}', ${order.totalAmount})" 
+                      style="padding: 6px 12px; background: rgba(197, 155, 39, 0.15); border: 1px solid #C59B27; border-radius: 6px; color: #C59B27; font-size: 11px; font-weight: 700; cursor: pointer;">
+                ⚡ Giả lập chuyển khoản thành công (Test)
+              </button>
             </div>
           </div>
         ` : ''}
@@ -1441,6 +1453,92 @@ const UICommon = {
       </div>
     `;
     modal.classList.add('active');
+
+    if (paymentMethodKey === 'VIETQR' && order && order.id) {
+      this.startOrderPaymentPolling(order.id);
+    }
+  },
+
+  _orderPollingTimer: null,
+  _currentPollingOrderId: null,
+
+  startOrderPaymentPolling(orderId) {
+    this.stopOrderPaymentPolling();
+    this._currentPollingOrderId = orderId;
+
+    const checkOnce = async () => {
+      if (!this._currentPollingOrderId || this._currentPollingOrderId !== orderId) return;
+      try {
+        const res = await fetch(`/api/payments/status?code=${encodeURIComponent(orderId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.isPaid) {
+            this.handleOrderPaymentConfirmed(orderId, data);
+            return;
+          }
+        }
+      } catch (_) {}
+
+      this._orderPollingTimer = setTimeout(checkOnce, 2500);
+    };
+
+    this._orderPollingTimer = setTimeout(checkOnce, 2000);
+  },
+
+  stopOrderPaymentPolling() {
+    if (this._orderPollingTimer) {
+      clearTimeout(this._orderPollingTimer);
+      this._orderPollingTimer = null;
+    }
+    this._currentPollingOrderId = null;
+  },
+
+  handleOrderPaymentConfirmed(orderId, data = {}) {
+    this.stopOrderPaymentPolling();
+    const statusBox = document.getElementById('vqrOrderAutoStatus');
+    if (statusBox) {
+      statusBox.innerHTML = `
+        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 6px; padding: 8px 12px; color: #10B981; font-weight: 800; font-size: 12px;">
+          ✓ Đã xác nhận chuyển khoản ngân hàng thành công! Đơn hàng #${orderId} đang được đóng gói.
+        </div>
+      `;
+    }
+    if (window.UICommon) {
+      window.UICommon.showToast(`Đơn hàng #${orderId} đã được tự động xác nhận thanh toán!`, 'success');
+    }
+  },
+
+  async simulateOrderPayment(orderId, amount = 100000) {
+    const btn = document.getElementById('btnSimulateOrderPayment');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Đang giả lập...';
+    }
+    try {
+      const res = await fetch('/api/payments/simulate-transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: orderId,
+          amount: amount,
+          bankName: 'MBBank'
+        })
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        this.handleOrderPaymentConfirmed(orderId, data);
+      } else {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '⚡ Giả lập chuyển khoản thành công (Test)';
+        }
+      }
+    } catch (e) {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '⚡ Giả lập chuyển khoản thành công (Test)';
+      }
+    }
   },
 
   // -----------------------------------------------------------------------
@@ -2688,6 +2786,7 @@ const UICommon = {
   },
 
   closeGlobalModal() {
+    this.stopOrderPaymentPolling();
     const modal = document.getElementById('globalModal');
     if (modal) {
       modal.classList.remove('active', 'modal-auth', 'modal-lookup');

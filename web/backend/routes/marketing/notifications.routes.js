@@ -1,9 +1,4 @@
-﻿// =========================================================================
-// QUẢN LÝ THÔNG BÁO HỆ THỐNG
-// Bảng CSDL: ThongBao, KhachHang, TaiKhoan
-// =========================================================================
-
-const { querySql } = require('../../database/db');
+﻿const { querySql } = require('../../database/db');
 
 async function handleNotificationRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;

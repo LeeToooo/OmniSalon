@@ -6,6 +6,7 @@ const handleStoreDomain = require('./store');
 const handleMarketingDomain = require('./marketing');
 const handleAnalyticsDomain = require('./analytics');
 const handleAiDomain = require('./ai');
+const handlePaymentDomain = require('./payment');
 
 /**
  * Điều phối tuần tự các yêu cầu API đến đúng phân hệ chức năng
@@ -15,6 +16,9 @@ const handleAiDomain = require('./ai');
  * @returns {Promise<boolean>} true nếu đã xử lý, false nếu không khớp API nào
  */
 async function handleApiRoutes(req, res, ctx) {
+  // Phân hệ Thanh toán & Webhook chuyển khoản ngân hàng
+  if (await handlePaymentDomain(req, res, ctx)) return true;
+
   // Phân hệ Xác thực & Tài khoản
   if (await handleAuthDomain(req, res, ctx)) return true;
 

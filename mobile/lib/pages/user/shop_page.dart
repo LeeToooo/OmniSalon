@@ -97,7 +97,7 @@ class ShopScreen extends StatefulWidget {
         ? cachedProducts
         : (allProducts != null && allProducts.isNotEmpty
             ? allProducts
-            : ApiService.seedProducts);
+            : const <Product>[]);
 
     final relatedProducts = getRelatedProducts(product, effectiveCatalog);
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
@@ -1757,7 +1757,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   fit: StackFit.expand,
                   children: [
                     const EditorialImage(
-                      imageUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80',
+                      imageUrl: 'assets/hairstyles/sidepart-gentleman.jpg',
                       fit: BoxFit.cover,
                     ),
                     Container(
@@ -1822,7 +1822,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         fit: StackFit.expand,
                         children: [
                           const EditorialImage(
-                            imageUrl: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&q=80',
+                            imageUrl: 'assets/hairstyles/short-quiff.jpg',
                             fit: BoxFit.cover,
                           ),
                           Container(
@@ -1872,7 +1872,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         fit: StackFit.expand,
                         children: [
                           const EditorialImage(
-                            imageUrl: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80',
+                            imageUrl: 'assets/hairstyles/pompadour-luxury.jpg',
                             fit: BoxFit.cover,
                           ),
                           Container(
@@ -1940,7 +1940,7 @@ class _ShopScreenState extends State<ShopScreen> {
               fit: StackFit.expand,
               children: [
                 const EditorialImage(
-                  imageUrl: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=900&q=80',
+                  imageUrl: 'assets/hairstyles/undercut-slick.jpg',
                   fit: BoxFit.cover,
                 ),
                 Container(

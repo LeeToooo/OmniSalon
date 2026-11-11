@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ KHÁCH HÀNG - THANH TOÁN ĐƠN HÀNG MỸ PHẨM QUA VIETQR (ORDER PAYMENT)
-// File: web/frontend/js/modules/customer/order/order-payment.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 

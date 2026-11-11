@@ -1,9 +1,3 @@
-// ============================================================================
-// OmniSalon & Omni Salon Enterprise Suite
-// PHÂN HỆ QUẢN TRỊ SALON - MODULE TIỆN ÍCH DÙNG CHUNG & PHÂN QUYỀN (ADMIN UTILS)
-// File: web/frontend/js/modules/admin/common/admin-utils.js
-// ============================================================================
-
 (function (window) {
   'use strict';
 
