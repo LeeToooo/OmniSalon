@@ -372,9 +372,9 @@ body.light .stylist-card-gallery-img,
   min-height: 44px;
   height: 44px;
   border-radius: 10px;
-  background: linear-gradient(180deg, #F59E0B, #D97706);
+  background: #C59B27;
   border: none;
-  color: #09090B;
+  color: #141413;
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
@@ -770,8 +770,8 @@ body.dark .stylist-avatar-rating {
   align-items: center !important;
   justify-content: center !important;
   gap: 8px !important;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
-  color: #000000 !important;
+  background: #C59B27 !important;
+  color: #141413 !important;
   font-size: 15px !important;
   font-weight: 700 !important;
   border-radius: 12px !important;

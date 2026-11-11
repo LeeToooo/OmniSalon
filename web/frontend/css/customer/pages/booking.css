@@ -34,10 +34,10 @@ body.light .stepper-num {
 [data-theme="light"] .stepper-step.active .stepper-num,
 html.light .stepper-step.active .stepper-num,
 body.light .stepper-step.active .stepper-num {
-  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
-  color: var(--text-primary) !important;
-  border: 1.5px solid #F59E0B !important;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4) !important;
+  background: #C59B27 !important;
+  color: #141413 !important;
+  border: 1.5px solid #C59B27 !important;
+  box-shadow: 0 4px 14px rgba(197, 155, 39, 0.4) !important;
 }
 
 [data-theme="light"] .stepper-text,
@@ -62,8 +62,8 @@ body.light .stepper-line {
 [data-theme="light"] .stepper-line.active,
 html.light .stepper-line.active,
 body.light .stepper-line.active {
-  background: linear-gradient(90deg, #F59E0B, rgba(245, 158, 11, 0.5)) !important;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.25) !important;
+  background: #C59B27 !important;
+  box-shadow: 0 0 8px rgba(197, 155, 39, 0.25) !important;
 }
 
 [data-theme="light"] .booking-page-title,
@@ -324,10 +324,10 @@ body.light .booking-page-desc {
 }
 
 .stepper-step.active .stepper-num {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
+  background: #C59B27;
   color: #0A0B0E;
   border-color: #FDE68A;
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 16px rgba(197, 155, 39, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
   font-weight: 900;
   transform: scale(1.05);
 }
@@ -356,8 +356,8 @@ body.light .booking-page-desc {
 }
 
 .stepper-line.active {
-  background: linear-gradient(90deg, #F59E0B, rgba(245, 158, 11, 0.4));
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+  background: #C59B27;
+  box-shadow: 0 0 8px rgba(197, 155, 39, 0.35);
 }
 
 @media (max-width: 768px) {
@@ -441,10 +441,10 @@ body.light .booking-page-desc {
 }
 
 .date-scroll-chip.active {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(212, 175, 55, 0.05));
+  background: rgba(197, 155, 39, 0.15);
   border-color: var(--color-accent-gold);
   color: var(--color-accent-gold);
-  box-shadow: 0 0 14px rgba(212, 175, 55, 0.25);
+  box-shadow: 0 0 14px rgba(197, 155, 39, 0.25);
 }
 
 .date-chip-day {
@@ -532,9 +532,9 @@ body.light .booking-page-desc {
 
 /* Nút tự động chọn thợ cắt */
 .btn-auto-stylist {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(229, 184, 105, 0.08));
+  background: rgba(197, 155, 39, 0.12);
   color: var(--color-accent-gold);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  border: 1px solid rgba(197, 155, 39, 0.35);
   border-radius: var(--radius-btn);
   padding: 10px 16px;
   font-size: 12px;

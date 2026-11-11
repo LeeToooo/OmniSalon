@@ -167,7 +167,7 @@ body.light .bento-editorial-card,
 }
 
 .btn-hero-terracotta {
-  background: linear-gradient(135deg, #D4AF37 0%, #E5C158 100%);
+  background: #C59B27;
   color: #0B0D13;
   padding: 14px 38px;
   font-size: 14px;
@@ -1258,7 +1258,7 @@ body.dark .btn-hero-primary:hover,
 }
 
 .bento-overlay-sale {
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.3) 0%, rgba(185, 28, 28, 0.85) 100%);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.88) 100%);
 }
 
 .bento-card-content {

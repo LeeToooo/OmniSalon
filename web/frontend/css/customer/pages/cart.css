@@ -1553,7 +1553,7 @@ body.light .step-connector,
 .checkout-next-btn {
   flex: 2;
   height: 44px;
-  background: linear-gradient(180deg, #F59E0B, #D97706);
+  background: #C59B27;
   border: none;
   border-radius: 8px;
   color: #09090B;

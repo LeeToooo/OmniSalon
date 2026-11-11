@@ -86,11 +86,11 @@
 .booking-slot-chip.active,
 .md3-time-chip.active,
 .time-slot-btn.active {
-  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
-  color: #000000 !important;
-  border-color: #F59E0B !important;
+  background: #C59B27 !important;
+  color: #141413 !important;
+  border-color: #C59B27 !important;
   font-weight: 900 !important;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(197, 155, 39, 0.45) !important;
 }
 
 .booking-slot-chip.disabled,
@@ -230,8 +230,8 @@ body[data-theme="light"] .lookup-card-result {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #ffffff;
+  background: #C59B27;
+  color: #141413;
   font-size: 10px;
   font-weight: 800;
   padding: 2px 8px;

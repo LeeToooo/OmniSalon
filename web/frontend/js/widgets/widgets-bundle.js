@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // OmniSalon & Spa — UNIFIED WIDGETS BUNDLE
 // Tích hợp toàn bộ 6 Widgets giao diện dùng chung trong 1 tệp duy nhất:
 // ServiceCardWidget       4. BookingSlotPicker
@@ -291,7 +291,7 @@
       const growth = esc(stat.growth || stat.growthRate || '+0.0%');
       const isPositive = stat.isPositive !== undefined ? Boolean(stat.isPositive) : !growth.startsWith('-');
       const icon = stat.icon || '';
-      const defaultGradient = 'linear-gradient(135deg, #D4AF37 0%, #996515 100%)';
+      const defaultGradient = '#C59B27';
       const gradient = stat.iconGradient || defaultGradient;
       const subtext = esc(stat.subtext || stat.detail || 'So với kỳ trước');
       const cardId = stat.id ? `id="statCard_${stat.id}"` : '';

@@ -147,7 +147,6 @@
         ${recommendations.length > 0 ? `
           <div class="cart-recom-card" style="margin-top: 36px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-card);">
             <div class="cart-card-header" style="border-bottom: 1px solid var(--border-color); padding: 16px 20px;">
-              <span class="cart-card-icon">💡</span>
               <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Sản phẩm gợi ý cho bạn</h3>
             </div>
             <div class="cart-recom-grid" style="padding: 20px;">
@@ -225,7 +224,6 @@
             ${recommendations.length > 0 ? `
               <div class="cart-recom-card">
                 <div class="cart-card-header">
-                  <span class="cart-card-icon">💡</span>
                   <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Có thể bạn cũng thích</h3>
                 </div>
                 <div class="cart-recom-grid">
@@ -239,7 +237,6 @@
           <div class="cart-right-col">
             <div class="cart-coupon-card">
               <div class="cart-card-header">
-                <span class="cart-card-icon">🎟️</span>
                 <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin: 0;">Mã giảm giá</h3>
               </div>
 
@@ -317,7 +314,6 @@
           <div class="cart-left-col">
             <div class="cart-table-card">
               <div class="cart-card-header">
-                <span class="cart-card-icon">📍</span>
                 <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Hình thức nhận hàng</h3>
               </div>
 
@@ -356,7 +352,6 @@
                          value="${this.escapeHtml(this.checkoutData.recipientAddress || '')}"
                          oninput="CartPage.handleAddressInput(this.value)" required>
                   <div id="nearestBranchNotice" style="margin-top: 8px; padding: 10px 14px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; font-size: 13px; color: #10b981; display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 16px;">📍</span>
                     <span>Đơn hàng sẽ được xuất từ chi nhánh gần bạn nhất: <strong id="nearestBranchName">${this._getNearestBranchName()}</strong> (Giao nhanh trong 2h)</span>
                   </div>
                 </div>
@@ -459,7 +454,6 @@
           <div class="cart-left-col">
             <div class="cart-table-card">
               <div class="cart-card-header">
-                <span class="cart-card-icon">💳</span>
                 <h3 class="cart-card-title">Chọn phương thức thanh toán</h3>
               </div>
 
@@ -467,7 +461,6 @@
               <div class="checkout-method-card ${this.checkoutData.paymentMethod === 'COD' ? 'selected' : ''}" 
                    onclick="CartPage.setPaymentMethod('COD')">
                 <input type="radio" name="payMethod" class="checkout-method-radio" ${this.checkoutData.paymentMethod === 'COD' ? 'checked' : ''}>
-                <div class="checkout-method-icon">💵</div>
                 <div class="checkout-method-info">
                   <div class="checkout-method-name">${this.checkoutData.deliveryType === 'PICKUP_BRANCH' ? 'Thanh toán tiền mặt tại quầy' : 'Thanh toán khi nhận hàng COD'}</div>
                   <div class="checkout-method-desc">Kiểm tra sản phẩm và thanh toán trực tiếp khi nhận hàng</div>
@@ -477,7 +470,6 @@
               <div class="checkout-method-card ${this.checkoutData.paymentMethod === 'VIETQR' ? 'selected' : ''}" 
                    onclick="CartPage.setPaymentMethod('VIETQR')">
                 <input type="radio" name="payMethod" class="checkout-method-radio" ${this.checkoutData.paymentMethod === 'VIETQR' ? 'checked' : ''}>
-                <div class="checkout-method-icon">🏦</div>
                 <div class="checkout-method-info">
                   <div class="checkout-method-name">Chuyển khoản VietQR Ngân Hàng</div>
                   <div class="checkout-method-desc">Quét mã QR thanh toán nhanh qua ứng dụng mọi ngân hàng</div>
@@ -487,7 +479,6 @@
               <div class="checkout-method-card ${this.checkoutData.paymentMethod === 'MOMO' ? 'selected' : ''}" 
                    onclick="CartPage.setPaymentMethod('MOMO')">
                 <input type="radio" name="payMethod" class="checkout-method-radio" ${this.checkoutData.paymentMethod === 'MOMO' ? 'checked' : ''}>
-                <div class="checkout-method-icon">📱</div>
                 <div class="checkout-method-info">
                   <div class="checkout-method-name">Ví điện tử MoMo hoặc ZaloPay</div>
                   <div class="checkout-method-desc">Thanh toán qua ví điện tử tiện lợi và an toàn</div>

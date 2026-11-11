@@ -12,6 +12,7 @@
       activeBaseMode: 'cropped', // 'cropped' | 'raw'
       isPreprocessed: false,
       selectedHairstyle: 'layer-korean',
+      activeCategory: 'all', // 'all' | 'trends' | 'classic' | 'edgy' | 'wavy'
       selectedColor: 'natural-black',
       isScanning: false,
       scanProgress: 0,
@@ -26,22 +27,34 @@
       {
         id: 'layer-korean',
         name: 'Layer Texture Hàn Quốc',
+        category: 'trends',
         tag: 'THỜI THƯỢNG',
         desc: 'Tỉa tầng bay bổng, uốn texture tạo độ phồng tự nhiên cho khuôn mặt Á Đông.',
         preview: 'assets/hairstyles/layer-korean.jpg',
         result: 'assets/hairstyles/layer-korean.jpg'
       },
       {
-        id: 'pompadour-luxury',
-        name: 'Pompadour & Mid Fade',
-        tag: 'LỊCH LÃM',
-        desc: 'Độ phồng vuốt ngược pomade kết hợp đường fade sắc nét 2 bên mang lại phong thái đĩnh đạc.',
-        preview: 'assets/hairstyles/pompadour-luxury.jpg',
-        result: 'assets/hairstyles/pompadour-luxury.jpg'
+        id: 'two-block',
+        name: 'Two-Block 6/4 Lãng Tử',
+        category: 'trends',
+        tag: 'K-STYLE IDOL',
+        desc: 'Phần mai và gáy tỉa gọn, phần trên để dài rẽ ngôi 6/4 bồng bềnh chuẩn sao Hàn.',
+        preview: 'assets/hairstyles/two-block.jpg',
+        result: 'assets/hairstyles/two-block.jpg'
+      },
+      {
+        id: 'short-quiff',
+        name: 'Short Quiff & Mid Taper',
+        category: 'trends',
+        tag: 'NĂNG ĐỘNG',
+        desc: 'Mái vuốt ngược ngắn tự nhiên, mai cắt taper gọn gàng, tôn vầng trán sáng sủa.',
+        preview: 'assets/hairstyles/short-quiff.jpg',
+        result: 'assets/hairstyles/short-quiff.jpg'
       },
       {
         id: 'mullet-modern',
         name: 'Modern Mullet & Taper Fade',
+        category: 'trends',
         tag: 'PHONG CÁCH',
         desc: 'Gáy tỉa so le mềm mại kết hợp đường cạo viền dứt khoát và nam tính.',
         preview: 'assets/hairstyles/mullet-modern.jpg',
@@ -50,14 +63,43 @@
       {
         id: 'sidepart-gentleman',
         name: 'Side Part 7/3 Cổ Điển',
+        category: 'classic',
         tag: 'QUÝ ÔNG',
         desc: 'Đường rẽ ngôi tỉ lệ vàng tôn phom mặt, dễ dàng chải sáp restyle suốt cả ngày.',
         preview: 'assets/hairstyles/sidepart-gentleman.jpg',
         result: 'assets/hairstyles/sidepart-gentleman.jpg'
       },
       {
+        id: 'pompadour-luxury',
+        name: 'Pompadour & Mid Fade',
+        category: 'classic',
+        tag: 'LỊCH LÃM',
+        desc: 'Độ phồng vuốt ngược pomade kết hợp đường fade sắc nét 2 bên mang lại phong thái đĩnh đạc.',
+        preview: 'assets/hairstyles/pompadour-luxury.jpg',
+        result: 'assets/hairstyles/pompadour-luxury.jpg'
+      },
+      {
+        id: 'ivy-league',
+        name: 'Ivy League Hiện Đại',
+        category: 'classic',
+        tag: 'DOANH NHÂN',
+        desc: 'Tóc quý tộc Mỹ kết hợp fade đương đại, mái vuốt lệch nhẹ 8/2 tạo vẻ chững chạc.',
+        preview: 'assets/hairstyles/ivy-league.jpg',
+        result: 'assets/hairstyles/ivy-league.jpg'
+      },
+      {
+        id: 'undercut-slick',
+        name: 'Undercut Slicked Back',
+        category: 'classic',
+        tag: 'QUYỀN LỰC',
+        desc: 'Cạo sát 2 bên mai (Skin Fade), tóc đỉnh đầu vuốt mượt bóng ra sau quyền lực.',
+        preview: 'assets/hairstyles/undercut-slick.jpg',
+        result: 'assets/hairstyles/undercut-slick.jpg'
+      },
+      {
         id: 'buzzcut-fade',
         name: 'Buzz Cut & High Fade',
+        category: 'edgy',
         tag: 'DỨT KHOÁT',
         desc: 'Gọn gàng, tôn trọn vẹn xương hàm và đường nét góc cạnh của gương mặt.',
         preview: 'assets/hairstyles/buzzcut-fade.jpg',
@@ -66,27 +108,50 @@
       {
         id: 'french-crop',
         name: 'French Crop Textured',
+        category: 'edgy',
         tag: 'HIỆN ĐẠI',
         desc: 'Mái bằng textured tỉa nhọn che trán cao, fade sát 2 bên mai năng động.',
         preview: 'assets/hairstyles/french-crop.jpg',
         result: 'assets/hairstyles/french-crop.jpg'
+      },
+      {
+        id: 'mohican-fade',
+        name: 'Mohican Ngắn & Sharp Fade',
+        category: 'edgy',
+        tag: 'BỤI BẶM',
+        desc: 'Mái vuốt nhọn hướng về trước, hai bên cạo fade trắng dứt khoát và cá tính.',
+        preview: 'assets/hairstyles/mohican-fade.jpg',
+        result: 'assets/hairstyles/mohican-fade.jpg'
+      },
+      {
+        id: 'ripple-perm',
+        name: 'Uốn Con Sâu / Ripple Curls',
+        category: 'wavy',
+        tag: 'CÁ TÍNH',
+        desc: 'Tóc uốn sóng lượn dập xù cá tính, tạo kết cấu bồng bềnh và độ dày tối đa.',
+        preview: 'assets/hairstyles/ripple-perm.jpg',
+        result: 'assets/hairstyles/ripple-perm.jpg'
       }
     ],
 
     hairColors: [
-      { id: 'natural-black', name: 'Đen Tự Nhiên', hex: '#141413' },
-      { id: 'cold-ash-brown', name: 'Nâu Lạnh Sâu', hex: '#523A28' },
-      { id: 'titan-grey', name: 'Xám Khói Titan', hex: '#6B7280' },
-      { id: 'nordic-platinum', name: 'Vàng Cát Trầm', hex: '#C59B27' },
-      { id: 'chestnut-brown', name: 'Nâu Hạt Dẻ', hex: '#6F4E37' },
-      { id: 'moss-ash', name: 'Rêu Khói Ánh Xanh', hex: '#4A5568' }
+      { id: 'natural-black', name: 'Đen Tự Nhiên', hex: '#141413', desc: 'Lịch thiệp, chuẩn công sở' },
+      { id: 'cold-ash-brown', name: 'Nâu Lạnh Sâu', hex: '#523A28', desc: 'Sáng da, không cần tẩy' },
+      { id: 'titan-grey', name: 'Xám Khói Titan', hex: '#6B7280', desc: 'Ánh kim khói thời thượng' },
+      { id: 'nordic-platinum', name: 'Vàng Cát Trầm', hex: '#C59B27', desc: 'Ấm áp, tôn đường sóng uốn' },
+      { id: 'chestnut-brown', name: 'Nâu Hạt Dẻ', hex: '#6F4E37', desc: 'Nhẹ nhàng, tôn làn da nam Á Đông' },
+      { id: 'moss-ash', name: 'Rêu Khói Ánh Xanh', hex: '#4A5568', desc: 'Phá cách, cuốn hút hiện đại' },
+      { id: 'caramel-mocha', name: 'Nâu Mocha Caramel', hex: '#8B5A2B', desc: 'Trầm ấm, ngọt ngào lịch lãm' },
+      { id: 'pure-platinum', name: 'Bạch Kim Khói', hex: '#E5E7EB', desc: 'Nổi bật, phong cách idol' }
     ],
 
     demoPortraits: [
-      { name: 'Mẫu Nam 01 (Khách Thật)', url: 'assets/hairstyles/sidepart-gentleman.jpg' },
-      { name: 'Mẫu Nam 02 (Khách Thật)', url: 'assets/hairstyles/pompadour-luxury.jpg' },
-      { name: 'Mẫu Nam 03 (Khách Thật)', url: 'assets/hairstyles/layer-korean.jpg' },
-      { name: 'Mẫu Nam 04 (Khách Thật)', url: 'assets/hairstyles/mullet-modern.jpg' }
+      { name: 'Mẫu 01 (Side Part)', url: 'assets/hairstyles/sidepart-gentleman.jpg' },
+      { name: 'Mẫu 02 (Pompadour)', url: 'assets/hairstyles/pompadour-luxury.jpg' },
+      { name: 'Mẫu 03 (Layer Hàn)', url: 'assets/hairstyles/layer-korean.jpg' },
+      { name: 'Mẫu 04 (Mullet)', url: 'assets/hairstyles/mullet-modern.jpg' },
+      { name: 'Mẫu 05 (Short Quiff)', url: 'assets/hairstyles/short-quiff.jpg' },
+      { name: 'Mẫu 06 (Two-Block)', url: 'assets/hairstyles/two-block.jpg' }
     ],
 
     render(container, params = {}) {
@@ -125,7 +190,7 @@
                 </span>
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <button type="button" onclick="AiStudioPage.openGeminiKeyModal()" title="Cài đặt link / API Key Google Gemini" style="background: rgba(197, 155, 39, 0.15); border: 1px solid #C59B27; border-radius: 4px; padding: 4px 10px; color: #C59B27; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                    <span id="aiGeminiHeaderBadgeIcon">✨</span>
+                    <span id="aiGeminiHeaderBadgeIcon" style="display: none;"></span>
                     <span id="aiGeminiHeaderBadgeText">Google Gemini AI</span>
                   </button>
                   <span id="aiUploadStatusBadge" style="font-size: 11.5px; color: #10B981; font-weight: 700;">
@@ -137,12 +202,9 @@
               <!-- THANH CĂN CHỈNH GÓC CHÂN DUNG (GIỮ NGUYÊN TÓC THẬT, CHỈ XÓA KHI BẮT ĐẦU MÔ PHỎNG) -->
               <div id="aiPreprocessBar" style="background: rgba(197, 155, 39, 0.08); border: 1px solid rgba(197, 155, 39, 0.3); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                  <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 13px;">✂️</span>
-                    <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
-                      CĂN GÓC CHÂN DUNG &amp; CHUẨN BỊ MÔ PHỎNG
-                    </span>
-                  </div>
+                  <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
+                    Căn góc chân dung &amp; chuẩn bị mô phỏng
+                  </span>
                   <span id="aiPreprocessStatusBadge" style="font-size: 10.5px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 4px;">
                     ● Đã định vị 478 điểm mốc 3D
                   </span>
@@ -152,18 +214,13 @@
                   <button type="button" id="btnBaseModeCropped" onclick="AiStudioPage.switchBaseMode('cropped')" 
                           title="Ảnh chân dung đã được tự động cắt tỉ lệ 3:4 chuẩn Studio (giữ nguyên tóc thật của khách)"
                           style="padding: 7px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; border: 1px solid #C59B27; background: #C59B27; color: #141413; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.15s ease;">
-                    <span>✂️ Cắt 3:4 Chuẩn (Giữ Tóc Thật)</span>
+                    <span>Cắt 3:4 chuẩn (giữ tóc thật)</span>
                   </button>
                   <button type="button" id="btnBaseModeRaw" onclick="AiStudioPage.switchBaseMode('raw')" 
                           title="Xem lại ảnh gốc nguyên bản ban đầu khách gửi"
                           style="padding: 7px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.15s ease;">
-                    <span>🖼️ Ảnh Gốc Ban Đầu</span>
+                    <span>Ảnh gốc ban đầu</span>
                   </button>
-                </div>
-
-                <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4; display: flex; align-items: flex-start; gap: 6px; padding-top: 2px;">
-                  <span style="color: #C59B27; font-size: 12px; margin-top: 1px;">⚡</span>
-                  <span>AI sẽ <strong>tự động tách nền &amp; xóa sạch tóc cũ</strong> ngay khi bạn bấm <em>"Mô Phỏng Kiểu Tóc"</em> để kiểu tóc mới ôm khít hoàn hảo vào vòm trán.</span>
                 </div>
               </div>
 
@@ -216,7 +273,7 @@
 
                   <!-- LASER & SCAN MESH OVERLAY -->
                   <div id="aiScanLaserLine" class="ai-laser-line" style="display: none; position: absolute; left: 0; right: 0; height: 2.5px; background: #C59B27; box-shadow: 0 0 12px #C59B27; z-index: 10; pointer-events: none;"></div>
-                  <div id="aiScanGridMesh" class="ai-grid-mesh" style="display: none; position: absolute; inset: 0; background-image: radial-gradient(rgba(197, 155, 39, 0.25) 1.5px, transparent 1.5px); background-size: 20px 20px; pointer-events: none; z-index: 8;"></div>
+                  <div id="aiScanGridMesh" class="ai-grid-mesh" style="display: none; position: absolute; inset: 0; background: rgba(197, 155, 39, 0.04); border: 1px dashed rgba(197, 155, 39, 0.3); pointer-events: none; z-index: 8;"></div>
 
                   <!-- HUD MODAL QUÉT NEURAL NETWORK -->
                   <div id="aiScanHudModal" style="display: none; position: absolute; inset: 0; background: rgba(20, 20, 19, 0.88); backdrop-filter: blur(4px); flex-direction: column; align-items: center; justify-content: center; z-index: 15; padding: 24px; text-align: center;">
@@ -233,7 +290,7 @@
                     ẢNH GỐC CỦA BẠN
                   </div>
                   <div id="aiViewBadgeAfter" style="display: ${this.state.hasResult ? 'block' : 'none'}; position: absolute; bottom: 10px; right: 10px; background: rgba(197, 155, 39, 0.95); color: #141413; padding: 4px 10px; border-radius: 4px; font-size: 10.5px; font-weight: 800; z-index: 5; box-shadow: 0 2px 8px rgba(0,0,0,0.4); pointer-events: none;">
-                    ĐỔI TÓC &amp; CÂN BẰNG MẶT (GEMINI AI) ✨
+                    Đổi tóc &amp; cân bằng mặt (Gemini AI)
                   </div>
                 </div>
 
@@ -241,7 +298,9 @@
                 <div id="aiEmptyUploadUI" 
                      onclick="AiStudioPage.triggerFileInput()"
                      style="display: ${this.state.uploadedImage ? 'none' : 'flex'}; cursor: pointer; flex-direction: column; align-items: center; justify-content: center; padding: 24px;">
-                  <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
+                  <div style="width: 40px; height: 40px; margin-bottom: 8px; color: var(--text-muted); display: flex; align-items: center; justify-content: center;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </div>
                   <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 6px;">Kéo thả hoặc nhấp để chọn ảnh chân dung</h4>
                   <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 14px;">Hỗ trợ ảnh chụp camera trước hoặc tệp JPG/PNG</p>
                 </div>
@@ -250,10 +309,10 @@
               <!-- Nút tải ảnh & Chụp Camera -->
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button type="button" onclick="AiStudioPage.triggerFileInput()" class="nordic-btn-secondary" style="flex: 1; padding: 9px 12px; font-size: 12.5px; font-weight: 700; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                  <span>📁 Tải Ảnh Từ Thiết Bị</span>
+                  <span>Tải ảnh từ thiết bị</span>
                 </button>
                 <button type="button" onclick="AiStudioPage.openCameraModal()" class="nordic-btn-secondary" style="flex: 1; padding: 9px 12px; font-size: 12.5px; font-weight: 700; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                  <span>📸 Chụp Bằng Camera</span>
+                  <span>Chụp bằng camera</span>
                 </button>
               </div>
 
@@ -294,11 +353,11 @@
             <div class="ai-studio-panel" style="border-radius: 8px; padding: 22px; background: var(--surface-card); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 16px;">
               
               <!-- THẺ CHẨN ĐOÁN NGŨ QUAN & SẮC TỐ DA THẬT (AI DIAGNOSTIC CARD) -->
-              <div id="aiFaceDiagnosticBox" style="background: linear-gradient(145deg, rgba(197, 155, 39, 0.08) 0%, rgba(20, 20, 19, 0.4) 100%); border: 1px solid rgba(197, 155, 39, 0.35); border-radius: 8px; padding: 14px 16px;">
+              <div id="aiFaceDiagnosticBox" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 11px; font-weight: 800; color: #C59B27; letter-spacing: 0.5px;">
-                      🧠 CHẨN ĐOÁN NGŨ QUAN 3D (PYTHON VISION)
+                      CHẨN ĐOÁN NGŨ QUAN 3D (PYTHON VISION)
                     </span>
                     <span id="aiVisionProviderTag" style="display: none; font-size: 10px; color: #10B981; font-weight: 700; background: rgba(16, 185, 129, 0.12); padding: 1px 6px; border-radius: 4px;"></span>
                   </div>
@@ -324,56 +383,89 @@
                 </div>
               </div>
 
-              <!-- DANH SÁCH 6 PHOM DÁNG TÓC THỊNH HÀNH -->
+              <!-- DANH SÁCH 12 PHOM DÁNG TÓC THỊNH HÀNH -->
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
                   <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
-                    CHỌN PHOM DÁNG TÓC THỊNH HÀNH
+                    CHỌN PHOM DÁNG TÓC BARBERSHOP
                   </span>
-                  <span style="font-size: 11px; color: var(--text-muted);">6 kiểu thịnh hành nhất</span>
+                  <span style="font-size: 11px; color: var(--text-muted);">12 kiểu tóc nam chuẩn tỉ lệ vàng</span>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <!-- BỘ LỌC PHÂN LOẠI PHONG CÁCH -->
+                <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; scrollbar-width: none;">
+                  <button type="button" class="ai-category-tab-btn" data-cat="all" onclick="AiStudioPage.filterCategory('all')" 
+                          style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; border: 1px solid #C59B27; background: #C59B27; color: #141413; cursor: pointer; transition: all 0.15s ease;">
+                    Tất cả (12)
+                  </button>
+                  <button type="button" class="ai-category-tab-btn" data-cat="trends" onclick="AiStudioPage.filterCategory('trends')" 
+                          style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;">
+                    Trẻ trung &amp; K-Style (4)
+                  </button>
+                  <button type="button" class="ai-category-tab-btn" data-cat="classic" onclick="AiStudioPage.filterCategory('classic')" 
+                          style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;">
+                    Quý ông &amp; Cổ điển (4)
+                  </button>
+                  <button type="button" class="ai-category-tab-btn" data-cat="edgy" onclick="AiStudioPage.filterCategory('edgy')" 
+                          style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;">
+                    Góc cạnh &amp; Thể thao (3)
+                  </button>
+                  <button type="button" class="ai-category-tab-btn" data-cat="wavy" onclick="AiStudioPage.filterCategory('wavy')" 
+                          style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;">
+                    Uốn Texture (1)
+                  </button>
+                </div>
+
+                <!-- LƯỚI THẺ KIỂU TÓC TRỰC QUAN -->
+                <div id="aiHairstylesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; max-height: 340px; overflow-y: auto; padding-right: 4px;">
                   ${this.hairstyles.map(h => {
-        const isSelected = this.state.selectedHairstyle === h.id;
-        return `
-                      <button type="button" 
-                              id="pillStyle_${h.id}"
-                              class="ai-style-pill-btn ${isSelected ? 'selected' : ''}"
-                              onclick="AiStudioPage.selectHairstyle('${h.id}')"
-                              style="width: 100%; padding: 10px 12px; border-radius: 6px; text-align: left; display: flex; flex-direction: column; gap: 3px; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.08)' : 'var(--surface-elevated)'}; transition: all 0.15s ease;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                          <strong style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'}; font-size: 12.5px;">${h.name}</strong>
-                          <span id="scoreTag_${h.id}" style="font-size: 10px; font-weight: 800; color: ${isSelected ? '#C59B27' : '#10B981'}; background: rgba(16, 185, 129, 0.12); padding: 1px 5px; border-radius: 3px;">
-                            95%
-                          </span>
+                    const isSelected = this.state.selectedHairstyle === h.id;
+                    return `
+                      <div id="pillStyle_${h.id}"
+                           class="ai-style-card ${isSelected ? 'selected' : ''}"
+                           onclick="AiStudioPage.selectHairstyle('${h.id}')"
+                           style="padding: 8px 10px; border-radius: 8px; display: flex; gap: 10px; align-items: center; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.1)' : 'var(--surface-elevated)'}; transition: all 0.2s ease; position: relative;">
+                        <img src="${h.preview}" alt="${h.name}" onerror="this.src='assets/hairstyles/layer-korean.jpg'" style="width: 52px; height: 52px; border-radius: 6px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15);" />
+                        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                          <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                            <strong style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'}; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${h.name}</strong>
+                            <span id="scoreTag_${h.id}" style="font-size: 9.5px; font-weight: 800; color: ${isSelected ? '#C59B27' : '#10B981'}; background: rgba(16, 185, 129, 0.12); padding: 1px 5px; border-radius: 3px; flex-shrink: 0;">
+                              95%
+                            </span>
+                          </div>
+                          <span style="font-size: 9.5px; font-weight: 700; color: #C59B27; letter-spacing: 0.5px;">${h.tag}</span>
+                          <span style="font-size: 10px; color: var(--text-secondary); line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${h.desc}</span>
                         </div>
-                        <span style="font-size: 10px; color: var(--text-secondary); line-height: 1.2;">${h.tag} • ${h.desc.substring(0, 36)}...</span>
-                      </button>
+                        ${isSelected ? '<span style="position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: #C59B27; color: #141413; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">✓</span>' : ''}
+                      </div>
                     `;
-      }).join('')}
+                  }).join('')}
                 </div>
               </div>
 
               <!-- MÀU NHUỘM PHỐI HỢP -->
               <div>
-                <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase; display: block; margin-bottom: 8px;">
-                  BẢNG MÀU NHUỘM TÔN DA
-                </span>
-                <div style="display: flex; gap: 7px; flex-wrap: wrap;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                  <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
+                    BẢNG MÀU NHUỘM TÔN DA (8 MÀU)
+                  </span>
+                  <span style="font-size: 10.5px; color: var(--text-muted);" id="aiSelectedColorLabel">Đen Tự Nhiên</span>
+                </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                   ${this.hairColors.map(c => {
-        const isSelected = this.state.selectedColor === c.id;
-        return `
+                    const isSelected = this.state.selectedColor === c.id;
+                    return `
                       <button type="button" 
                               id="pillColor_${c.id}"
                               class="ai-color-pill-btn ${isSelected ? 'selected' : ''}"
+                              title="${c.name} - ${c.desc || ''}"
                               onclick="AiStudioPage.selectColor('${c.id}')"
-                              style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 5px; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.08)' : 'var(--surface-elevated)'}; font-size: 11.5px; font-weight: 700; transition: all 0.15s ease;">
+                              style="display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 5px; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.12)' : 'var(--surface-elevated)'}; font-size: 11px; font-weight: 700; transition: all 0.15s ease;">
                         <span style="width: 10px; height: 10px; border-radius: 50%; background: ${c.hex}; display: inline-block; border: 1px solid rgba(255,255,255,0.4); flex-shrink: 0;"></span>
                         <span style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'};">${c.name}</span>
                       </button>
                     `;
-      }).join('')}
+                  }).join('')}
                 </div>
               </div>
 
@@ -381,7 +473,7 @@
               <div style="background: var(--surface-elevated); border: 1px solid rgba(197, 155, 39, 0.3); border-radius: 6px; padding: 12px 14px; margin-top: 2px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                   <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
-                    💎 CÂN BẰNG KHUÔN MẶT &amp; GEMINI AI VISION
+                    Cân bằng khuôn mặt &amp; Gemini AI Vision
                   </span>
                   <div id="aiGeminiKeyBadge" onclick="AiStudioPage.openGeminiKeyModal()" style="cursor: pointer;"></div>
                 </div>
@@ -411,30 +503,30 @@
                 <button type="button" class="nordic-btn-primary" id="btnRunAiRestyle" onclick="AiStudioPage.runAiRestyle()"
                         style="width: 100%; height: 48px; font-size: 14px; font-weight: 800; background: #C59B27; color: #141413; border: 1px solid #C59B27; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(197, 155, 39, 0.25);">
                   <span id="aiBtnSpinner" style="display: none; width: 16px; height: 16px; border: 2.5px solid #141413; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-                  <span id="aiBtnIcon">✨</span>
-                  <span id="aiBtnText">Mô Phỏng Kiểu Tóc &amp; Cân Bằng Mặt Thật Ngay →</span>
+                  <span id="aiBtnIcon" style="display: none;"></span>
+                  <span id="aiBtnText">Mô phỏng kiểu tóc &amp; cân bằng mặt ngay →</span>
                 </button>
 
                 <!-- Action Buttons khi đã có kết quả -->
                 <div id="aiResultActions" style="display: ${this.state.hasResult ? 'flex' : 'none'}; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
                   <button type="button" onclick="AiStudioPage.bookThisHairstyle()"
                           style="flex: 1.4; min-width: 160px; padding: 10px 14px; font-size: 12.5px; font-weight: 800; background: #C59B27; color: #141413; border: 1px solid #C59B27; border-radius: 6px; cursor: pointer;">
-                    ✂️ Đặt Lịch Cắt Kiểu Này Ngay
+                    Đặt lịch cắt kiểu này ngay
                   </button>
                   <button type="button" onclick="AiStudioPage.downloadResultImage()"
                           style="flex: 1; min-width: 110px; padding: 10px 14px; font-size: 12.5px; font-weight: 600; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
-                    📥 Tải Ảnh HD
+                    Tải ảnh HD
                   </button>
                   <button type="button" onclick="AiStudioPage.resetAiRestyle()"
                           style="padding: 10px 14px; font-size: 12.5px; font-weight: 600; background: var(--surface-elevated); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
-                    Thử Lại
+                    Thử lại
                   </button>
                 </div>
 
                 <!-- Thống kê chi tiết & Lời khuyên sáp vuốt -->
                 <div id="aiAnalysisCard" style="display: ${this.state.hasResult ? 'block' : 'none'}; margin-top: 12px; padding: 12px 14px; background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 6px;">
                   <div style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase; margin-bottom: 6px;">
-                    💡 LỜI KHUYÊN TẠO KIỂU TỪ BARBER MASTER
+                    Lời khuyên tạo kiểu từ Barber Master
                   </div>
                   <div id="aiBarberAdviceText" style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;">
                     Đang đồng bộ phân tích...
@@ -472,7 +564,7 @@
 
       if (badge) badge.textContent = 'ĐANG PHÂN TÍCH...';
       if (prepBadge) {
-        prepBadge.textContent = '⏳ Đang cắt ảnh, tách nền & xóa tóc cũ...';
+        prepBadge.textContent = 'Đang nhận diện ngũ quan & điểm mốc 3D...';
         prepBadge.style.color = '#F59E0B';
       }
 
@@ -707,7 +799,7 @@
 
         this._toggleResultState(false);
         this.triggerFaceAnalysis();
-        if (window.UICommon) window.UICommon.showToast('✂️ Đang tự động cắt góc chân dung, tách phông nền và xóa tóc cũ để ghép tóc chuẩn...', 'info');
+        if (window.UICommon) window.UICommon.showToast('Đang tự động căn chỉnh góc chân dung chuẩn Studio...', 'info');
       };
       reader.readAsDataURL(file);
     },
@@ -1049,7 +1141,7 @@
         <div id="aiCameraModalBackdrop" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px;">
           <div style="background: var(--surface-card, #1c1c1f); border: 1px solid var(--border-color, #333); border-radius: 8px; width: 100%; max-width: 500px; padding: 20px; box-sizing: border-box;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <strong style="color: var(--text-primary); font-size: 16px;">📸 Chụp Chân Dung Bằng Camera</strong>
+              <strong style="color: var(--text-primary); font-size: 16px;">Chụp chân dung bằng camera</strong>
               <button type="button" onclick="AiStudioPage.closeCameraModal()" style="background: transparent; border: none; font-size: 20px; color: var(--text-secondary); cursor: pointer;">✕</button>
             </div>
             
@@ -1060,7 +1152,7 @@
 
             <div style="display: flex; gap: 10px;">
               <button type="button" onclick="AiStudioPage.captureCameraShot()" style="flex: 1; padding: 12px; background: #C59B27; color: #141413; font-weight: 800; border-radius: 6px; border: 1px solid #C59B27; cursor: pointer;">
-                Chụp Ảnh Ngay 📸
+                Chụp ảnh ngay
               </button>
               <button type="button" onclick="AiStudioPage.closeCameraModal()" style="padding: 12px 18px; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
                 Hủy
@@ -1193,27 +1285,64 @@
       if (bAfter) bAfter.style.display = hasResult ? 'block' : 'none';
     },
 
+    filterCategory(cat) {
+      this.state.activeCategory = cat;
+      const tabs = document.querySelectorAll('.ai-category-tab-btn');
+      tabs.forEach(t => {
+        const isAct = t.getAttribute('data-cat') === cat;
+        t.style.background = isAct ? '#C59B27' : 'var(--surface-elevated)';
+        t.style.color = isAct ? '#141413' : 'var(--text-secondary)';
+        t.style.borderColor = isAct ? '#C59B27' : 'var(--border-color)';
+        t.style.fontWeight = isAct ? '800' : '600';
+      });
+
+      this.hairstyles.forEach(h => {
+        const card = document.getElementById(`pillStyle_${h.id}`);
+        if (!card) return;
+        const matchCat = (cat === 'all') || (h.category === cat);
+        card.style.display = matchCat ? 'flex' : 'none';
+      });
+    },
+
     _updateHairstyleUI() {
       this.hairstyles.forEach(h => {
-        const btn = document.getElementById(`pillStyle_${h.id}`);
-        if (!btn) return;
+        const card = document.getElementById(`pillStyle_${h.id}`);
+        if (!card) return;
         const isSelected = this.state.selectedHairstyle === h.id;
-        btn.classList.toggle('selected', isSelected);
-        btn.style.borderColor = isSelected ? '#C59B27' : 'var(--border-color)';
-        btn.style.background = isSelected ? 'rgba(197, 155, 39, 0.08)' : 'var(--surface-elevated)';
-        const title = btn.querySelector('strong');
+        card.classList.toggle('selected', isSelected);
+        card.style.borderColor = isSelected ? '#C59B27' : 'var(--border-color)';
+        card.style.background = isSelected ? 'rgba(197, 155, 39, 0.12)' : 'var(--surface-elevated)';
+        
+        let check = card.querySelector('.ai-check-badge');
+        if (isSelected && !check) {
+          const badge = document.createElement('span');
+          badge.className = 'ai-check-badge';
+          badge.innerHTML = '✓';
+          badge.style.cssText = 'position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: #C59B27; color: #141413; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4);';
+          card.appendChild(badge);
+        } else if (!isSelected && check) {
+          check.remove();
+        }
+
+        const title = card.querySelector('strong');
         if (title) title.style.color = isSelected ? '#C59B27' : 'var(--text-primary)';
       });
     },
 
     _updateColorUI() {
+      const colorLabel = document.getElementById('aiSelectedColorLabel');
+      const currentColor = this.hairColors.find(c => c.id === this.state.selectedColor);
+      if (colorLabel && currentColor) {
+        colorLabel.textContent = `${currentColor.name} (${currentColor.desc || ''})`;
+      }
+
       this.hairColors.forEach(c => {
         const btn = document.getElementById(`pillColor_${c.id}`);
         if (!btn) return;
         const isSelected = this.state.selectedColor === c.id;
         btn.classList.toggle('selected', isSelected);
         btn.style.borderColor = isSelected ? '#C59B27' : 'var(--border-color)';
-        btn.style.background = isSelected ? 'rgba(197, 155, 39, 0.08)' : 'var(--surface-elevated)';
+        btn.style.background = isSelected ? 'rgba(197, 155, 39, 0.15)' : 'var(--surface-elevated)';
         const nameSpan = btn.querySelector('span:last-child');
         if (nameSpan) nameSpan.style.color = isSelected ? '#C59B27' : 'var(--text-primary)';
       });
@@ -1224,7 +1353,7 @@
         <div id="aiSettingsModalBackdrop" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px;">
           <div style="background: var(--surface-card, #1c1c1f); border: 1px solid var(--border-color, #333); border-radius: 8px; width: 100%; max-width: 480px; padding: 22px; box-sizing: border-box;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-              <h3 style="margin: 0; font-size: 17px; color: var(--text-primary); font-weight: 700;">⚙️ Cấu Hình Động Cơ Real AI Vision</h3>
+              <h3 style="margin: 0; font-size: 17px; color: var(--text-primary); font-weight: 700;">Cấu hình động cơ Real AI Vision</h3>
               <button type="button" onclick="document.getElementById('aiSettingsModalBackdrop').remove()" style="background: transparent; border: none; font-size: 18px; color: var(--text-secondary); cursor: pointer;">✕</button>
             </div>
             <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px; line-height: 1.5;">
@@ -1245,7 +1374,7 @@
               </div>
               <div style="display: flex; gap: 10px; margin-top: 6px;">
                 <button type="button" onclick="AiStudioPage.saveAiSettingsModal()" style="flex: 1; padding: 10px; background: #C59B27; color: #141413; font-weight: 800; border-radius: 6px; border: 1px solid #C59B27; cursor: pointer;">
-                  Lưu Thiết Lập
+                  Lưu thiết lập
                 </button>
                 <button type="button" onclick="document.getElementById('aiSettingsModalBackdrop').remove()" style="padding: 10px 16px; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
                   Đóng
@@ -1269,23 +1398,23 @@
         if (key) {
           badge.innerHTML = `
             <span style="font-size: 10px; background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 2px 8px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-              🟢 Gemini Key: Đã kết nối <span style="font-size: 9px; opacity: 0.8; text-decoration: underline;">(Đổi)</span>
+              ● Gemini Key: Đã kết nối <span style="font-size: 9px; opacity: 0.8; text-decoration: underline;">(Đổi)</span>
             </span>
           `;
         } else {
           badge.innerHTML = `
             <span style="font-size: 10px; background: rgba(197, 155, 39, 0.15); color: #C59B27; border: 1px solid rgba(197, 155, 39, 0.4); padding: 2px 8px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-              🔑 Nhập Gemini Key (Tóc Thật)
+              Cấu hình Gemini Key
             </span>
           `;
         }
       }
 
       if (headerText) {
-        headerText.textContent = key ? 'Gemini AI: Đã kết nối' : 'Kết Nối Gemini AI';
+        headerText.textContent = key ? 'Gemini AI: Đã kết nối' : 'Kết nối Gemini AI';
       }
       if (headerIcon) {
-        headerIcon.textContent = key ? '🟢' : '🔑';
+        headerIcon.style.display = 'none';
       }
     },
 
@@ -1304,10 +1433,10 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
               <div>
                 <div style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 20px; background: rgba(197, 155, 39, 0.15); color: #C59B27; font-size: 11px; font-weight: 800; margin-bottom: 6px;">
-                  <span>✨ GOOGLE GEMINI MULTIMODAL VISION</span>
+                  <span>GOOGLE GEMINI MULTIMODAL VISION</span>
                 </div>
                 <h3 style="margin: 0; font-size: 18px; color: #FAF8F5; font-weight: 800; font-family: 'Cinzel', serif;">
-                  Kết Nối Google Gemini API (Tóc Thật)
+                  Kết nối Google Gemini API (tóc thật)
                 </h3>
               </div>
               <button type="button" onclick="document.getElementById('geminiKeyModalBackdrop').remove()" style="background: transparent; border: none; font-size: 20px; color: #A1A1AA; cursor: pointer;">✕</button>
@@ -1315,7 +1444,7 @@
 
             ${reasonMsg ? `
               <div style="padding: 10px 12px; background: rgba(197, 155, 39, 0.1); border-left: 3px solid #C59B27; border-radius: 4px; font-size: 12px; color: #E4E4E7; margin-bottom: 14px; line-height: 1.5;">
-                💡 ${reasonMsg}
+                ${reasonMsg}
               </div>
             ` : ''}
 
@@ -1330,7 +1459,7 @@
               </div>
               <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" 
                  style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: #C59B27; text-decoration: underline;">
-                🔗 Bấm vào đây để lấy API Key miễn phí tại Google AI Studio ↗
+                Bấm vào đây để lấy API Key miễn phí tại Google AI Studio ↗
               </a>
             </div>
 
@@ -1344,8 +1473,8 @@
                          value="${savedKey}" 
                          placeholder="AIzaSy..." 
                          style="width: 100%; box-sizing: border-box; padding: 10px 40px 10px 12px; border-radius: 6px; background: #262624; color: #FAF8F5; border: 1px solid rgba(255,255,255,0.2); font-size: 13px; font-family: monospace;" />
-                  <button type="button" onclick="AiStudioPage.toggleKeyVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #A1A1AA; cursor: pointer; font-size: 14px;">
-                    👁️
+                  <button type="button" onclick="AiStudioPage.toggleKeyVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #A1A1AA; cursor: pointer; font-size: 12px; font-weight: 700;">
+                    Hiện
                   </button>
                 </div>
                 <div id="geminiKeyTestStatus" style="font-size: 12px; margin-top: 6px; min-height: 18px;"></div>
@@ -1355,11 +1484,11 @@
                 <button type="button" id="btnTestGeminiKey" onclick="AiStudioPage.testGeminiKeyInModal()" 
                         style="padding: 10px 14px; font-size: 12px; font-weight: 700; background: #262624; color: #FAF8F5; border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                   <span id="geminiTestSpinner" style="display: none; width: 12px; height: 12px; border: 2px solid #FAF8F5; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-                  <span>⚡ Kiểm Tra Kết Nối</span>
+                  <span>Kiểm tra kết nối</span>
                 </button>
                 <button type="button" onclick="AiStudioPage.saveGeminiKeyModal()" 
                         style="flex: 1; padding: 10px 16px; font-size: 12.5px; font-weight: 800; background: #C59B27; color: #141413; border: 1px solid #C59B27; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 10px rgba(197, 155, 39, 0.3);">
-                  💾 Lưu &amp; Kích Hoạt Tóc Thật
+                  Lưu &amp; kích hoạt tóc thật
                 </button>
               </div>
 

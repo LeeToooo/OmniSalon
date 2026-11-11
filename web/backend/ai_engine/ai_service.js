@@ -45,11 +45,12 @@ function saveAiConfig(cfg) {
   }
 }
 
-// Bảng dữ liệu 6 kiểu tóc chuẩn Salon
+// Bảng dữ liệu 12 kiểu tóc chuẩn Salon Barber chuyên nghiệp
 const HAIRSTYLES = {
   'layer-korean': {
     id: 'layer-korean',
     name: 'Layer Texture Hàn Quốc',
+    category: 'trends',
     tag: 'THỜI THƯỢNG',
     desc: 'Tỉa tầng bay bổng, uốn texture tạo độ phồng tự nhiên cho khuôn mặt Á Đông.',
     faceSuitability: {
@@ -67,6 +68,7 @@ const HAIRSTYLES = {
   'pompadour-luxury': {
     id: 'pompadour-luxury',
     name: 'Pompadour & Mid Fade',
+    category: 'classic',
     tag: 'LỊCH LÃM',
     desc: 'Độ phồng vuốt ngược pomade kết hợp đường fade sắc nét 2 bên mang lại phong thái đĩnh đạc.',
     faceSuitability: {
@@ -84,6 +86,7 @@ const HAIRSTYLES = {
   'mullet-modern': {
     id: 'mullet-modern',
     name: 'Modern Mullet & Taper Fade',
+    category: 'trends',
     tag: 'PHONG CÁCH',
     desc: 'Gáy tỉa so le mềm mại kết hợp đường cạo viền dứt khoát và nam tính.',
     faceSuitability: {
@@ -101,6 +104,7 @@ const HAIRSTYLES = {
   'sidepart-gentleman': {
     id: 'sidepart-gentleman',
     name: 'Side Part 7/3 Cổ Điển',
+    category: 'classic',
     tag: 'QUÝ ÔNG',
     desc: 'Đường rẽ ngôi tỉ lệ vàng tôn phom mặt, dễ dàng chải sáp restyle suốt cả ngày.',
     faceSuitability: {
@@ -118,6 +122,7 @@ const HAIRSTYLES = {
   'buzzcut-fade': {
     id: 'buzzcut-fade',
     name: 'Buzz Cut & High Fade',
+    category: 'edgy',
     tag: 'DỨT KHOÁT',
     desc: 'Gọn gàng, tôn trọn vẹn xương hàm và đường nét góc cạnh của gương mặt.',
     faceSuitability: {
@@ -135,6 +140,7 @@ const HAIRSTYLES = {
   'french-crop': {
     id: 'french-crop',
     name: 'French Crop Textured',
+    category: 'edgy',
     tag: 'HIỆN ĐẠI',
     desc: 'Mái tỉa nhọn textured ngang trán, cạo fade cao 2 bên mai năng động và trẻ trung.',
     faceSuitability: {
@@ -148,6 +154,114 @@ const HAIRSTYLES = {
     promptDesc: 'modern textured french crop haircut with blunt micro fringe and high drop fade, sharp stylish Asian male, urban studio portrait, 8k resolution, photorealistic',
     suggestedProduct: { id: 'SP72', name: 'Hanz de Fuko Quicksand 56g', price: 464000, category: 'Sáp tạo texture khô tự nhiên' },
     suggestedService: { id: 'DV2', name: 'Uốn Phồng Chân Tóc Hàn Quốc', price: 300000 }
+  },
+  'short-quiff': {
+    id: 'short-quiff',
+    name: 'Short Quiff & Mid Taper',
+    category: 'trends',
+    tag: 'NĂNG ĐỘNG',
+    desc: 'Mái vuốt ngược ngắn tự nhiên, hai bên mai cắt taper gọn gàng, phù hợp cả công sở lẫn thể thao.',
+    faceSuitability: {
+      OVAL: { score: 97, note: 'Tôn trọn đường sống mũi và vầng trán sáng, phong thái vô cùng năng động.' },
+      SQUARE: { score: 95, note: 'Độ nâng vừa phải ở ngọn tóc giúp làm mềm mại các đường nét góc cạnh của hàm.' },
+      ROUND: { score: 96, note: 'Cực kỳ khuyên dùng! Đỉnh tóc vuốt hướng lên giúp kéo dài gương mặt thon gọn.' },
+      OBLONG: { score: 82, note: 'Nên vuốt chếch nhẹ sang bên để tránh làm khuôn mặt trông dài hơn.' },
+      DIAMOND: { score: 92, note: 'Mai taper mềm mại giúp khuôn mặt có chiều sâu và hài hòa hơn.' },
+      HEART: { score: 90, note: 'Tạo điểm nhấn nam tính, cân bằng tỉ lệ giữa trán và cằm.' }
+    },
+    promptDesc: 'handsome Asian male model with modern textured short quiff haircut, neat taper fade, clean barbershop studio lighting, sharp focus, 8k portrait',
+    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay 80g', price: 480000, category: 'Sáp tạo texture' },
+    suggestedService: { id: 'DV1', name: 'Cắt Tóc Fade Chuyên Nghiệp', price: 120000 }
+  },
+  'two-block': {
+    id: 'two-block',
+    name: 'Two-Block 6/4 Lãng Tử',
+    category: 'trends',
+    tag: 'K-STYLE IDOL',
+    desc: 'Phần mai và gáy tỉa ngắn gọn, phần trên để dài rẽ ngôi 6/4 bồng bềnh chuẩn phong cách sao Hàn.',
+    faceSuitability: {
+      OVAL: { score: 99, note: 'Tỉ lệ vàng! Đẹp hoàn hảo từ góc chính diện đến góc nghiêng.' },
+      SQUARE: { score: 91, note: 'Mái rủ 2 bên trán giúp che bớt góc trán vuông, tạo nét lãng tử cuốn hút.' },
+      ROUND: { score: 87, note: 'Cần sấy nâng phom đỉnh đầu để tạo cảm giác khuôn mặt thanh tú.' },
+      OBLONG: { score: 97, note: 'Cực kỳ phù hợp! Tóc mái rủ che trán rút ngắn chiều dài mặt đáng kể.' },
+      DIAMOND: { score: 95, note: 'Phom tóc ôm sát gò má giúp làm dịu độ nhô của xương gò má.' },
+      HEART: { score: 94, note: 'Đường rẽ ngôi 6/4 tôn vinh chiếc cằm thon gọn và ánh mắt sáng.' }
+    },
+    promptDesc: 'handsome Korean male idol with stylish two-block haircut, airy 6/4 parted curtain fringe bangs, soft natural texture, barbershop studio portrait, 8k',
+    suggestedProduct: { id: 'SP51', name: 'Reuzel Grooming Tonic 100ml', price: 415000, category: 'Xịt tạo phồng tự nhiên' },
+    suggestedService: { id: 'DV2', name: 'Uốn Phồng Chân Tóc Hàn Quốc', price: 300000 }
+  },
+  'ivy-league': {
+    id: 'ivy-league',
+    name: 'Ivy League Hiện Đại',
+    category: 'classic',
+    tag: 'DOANH NHÂN',
+    desc: 'Tóc quý tộc Mỹ kết hợp fade đương đại, mái vuốt lệch nhẹ 8/2 tạo phong thái trí thức đĩnh đạc.',
+    faceSuitability: {
+      OVAL: { score: 98, note: 'Chuẩn mực quý ông! Ngũ quan sáng rõ, phong thái doanh nhân trẻ thành đạt.' },
+      SQUARE: { score: 98, note: 'Tôn vinh góc cạnh nam tính của xương quai hàm và ánh mắt quyết đoán.' },
+      ROUND: { score: 90, note: 'Đường cạo mai sắc nét giúp định hình phom mặt gọn gàng.' },
+      OBLONG: { score: 88, note: 'Chiều dài tóc ngắn vừa phải không làm mất cân đối tỉ lệ mặt.' },
+      DIAMOND: { score: 92, note: 'Cực kỳ lịch lãm, hợp với âu phục và môi trường công sở cao cấp.' },
+      HEART: { score: 91, note: 'Tôn vòm trán thông minh và đường viền cằm gọn gàng.' }
+    },
+    promptDesc: 'dapper handsome Asian man with modern Ivy League haircut, short combed side part, neat clean taper fade, elegant gentleman, barbershop portrait, 8k',
+    suggestedProduct: { id: 'SP30', name: 'Reuzel Green Medium Hold Grease 95g', price: 549000, category: 'Pomade giữ nếp' },
+    suggestedService: { id: 'CBDV1', name: 'Combo Cắt Gội Quý Tộc 10 Bước', price: 200000 }
+  },
+  'undercut-slick': {
+    id: 'undercut-slick',
+    name: 'Undercut Slicked Back',
+    category: 'classic',
+    tag: 'QUYỀN LỰC',
+    desc: 'Cạo sát 2 bên mai (Skin Fade), tóc đỉnh đầu vuốt mượt bóng ra sau với pomade gốc nước.',
+    faceSuitability: {
+      OVAL: { score: 96, note: 'Khoe trọn ngũ quan thanh tú, tạo vẻ sắc sảo và cuốn hút đỉnh cao.' },
+      SQUARE: { score: 99, note: 'Đỉnh cao phong độ! Đường cạo sát tương phản tôn vinh xương quai hàm chữ điền vạm vỡ.' },
+      ROUND: { score: 95, note: 'Tóc ép mượt 2 bên giúp thu hẹp bề ngang khuôn mặt hiệu quả.' },
+      OBLONG: { score: 76, note: 'Cần vuốt ép sát đầu để không tăng thêm chiều cao khuôn mặt.' },
+      DIAMOND: { score: 89, note: 'Đường fade sắc nét mang lại diện mạo góc cạnh, ấn tượng.' },
+      HEART: { score: 88, note: 'Rất tôn sống mũi cao và đường viền quai hàm sắc bén.' }
+    },
+    promptDesc: 'handsome Asian gentleman with undercut slicked back hairstyle, high skin fade, glossy pomade texture, sharp hairline line-up, barbershop portrait, 8k',
+    suggestedProduct: { id: 'SP30', name: 'Reuzel Blue High Sheen Pomade', price: 549000, category: 'Pomade bóng cao cấp' },
+    suggestedService: { id: 'DV1', name: 'Cắt Tóc Fade Chuyên Nghiệp', price: 120000 }
+  },
+  'ripple-perm': {
+    id: 'ripple-perm',
+    name: 'Uốn Con Sâu / Ripple Curls',
+    category: 'wavy',
+    tag: 'BÙNG NỔ CÁ TÍNH',
+    desc: 'Tóc uốn sóng lượn dập xù cá tính, tạo kết cấu bồng bềnh và độ dày tối đa cho mái tóc mỏng.',
+    faceSuitability: {
+      OVAL: { score: 96, note: 'Cực kỳ thời trang và nổi bật giữa đám đông!' },
+      SQUARE: { score: 93, note: 'Các lọn sóng xoăn uốn lượn làm mềm mại các góc cạnh cứng nhắc trên khuôn mặt.' },
+      ROUND: { score: 89, note: 'Độ phồng dập xù đỉnh đầu giúp gương mặt trông thon dài và cá tính hơn.' },
+      OBLONG: { score: 95, note: 'Độ phồng 2 bên mai giúp làm đầy đặn bề ngang khuôn mặt gầy.' },
+      DIAMOND: { score: 96, note: 'Sóng tóc bao quanh giúp che bớt độ nhô của gò má, mang lại vẻ nghệ sĩ.' },
+      HEART: { score: 94, note: 'Tôn nét trẻ trung, nổi loạn của phong cách streetwear.' }
+    },
+    promptDesc: 'handsome young Asian male with trendy textured ripple perm haircut, rippled wavy volume, taper fade sides, studio portrait, 8k',
+    suggestedProduct: { id: 'SP72', name: 'Hanz de Fuko Quicksand 56g', price: 464000, category: 'Sáp tạo phồng khô' },
+    suggestedService: { id: 'DV2', name: 'Uốn Tóc Texture / Con Sâu', price: 350000 }
+  },
+  'mohican-fade': {
+    id: 'mohican-fade',
+    name: 'Mohican Ngắn & Sharp Fade',
+    category: 'edgy',
+    tag: 'BỤI BẶM',
+    desc: 'Mái vuốt nhọn hướng về trước, hai bên cạo fade trắng dứt khoát, toát lên vẻ bụi bặm và phá cách.',
+    faceSuitability: {
+      OVAL: { score: 94, note: 'Rất khỏe khoắn, nam tính và giàu năng lượng thể thao.' },
+      SQUARE: { score: 96, note: 'Tôn vinh sự mạnh mẽ, dứt khoát của người đàn ông hành động.' },
+      ROUND: { score: 95, note: 'Đỉnh nhọn vuốt về trước giúp đánh lừa thị giác làm mặt dài và thon hơn.' },
+      OBLONG: { score: 79, note: 'Nên tỉa mái ngắn sát để không làm mặt trông dài thêm.' },
+      DIAMOND: { score: 90, note: 'Mang lại phong thái gai góc, đậm chất đường phố.' },
+      HEART: { score: 88, note: 'Làm nổi bật nét cương nghị và ánh nhìn sắc sảo.' }
+    },
+    promptDesc: 'handsome confident Asian male with modern short mohican haircut, sharp burst fade sides, textured spiked crest, barbershop studio light, 8k',
+    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay 80g', price: 480000, category: 'Sáp vuốt tóc giữ nếp' },
+    suggestedService: { id: 'DV1', name: 'Cắt Tóc Fade Chuyên Nghiệp', price: 120000 }
   }
 };
 
@@ -194,6 +308,20 @@ const HAIR_COLORS = {
     hex: '#4A5568',
     undertoneMatch: ['COOL', 'NEUTRAL'],
     desc: 'Màu nhuộm phá cách thời thượng, thể hiện gu thẩm mỹ hiện đại và cuốn hút.'
+  },
+  'caramel-mocha': {
+    id: 'caramel-mocha',
+    name: 'Nâu Mocha Caramel (Caramel Mocha)',
+    hex: '#8B5A2B',
+    undertoneMatch: ['WARM', 'NEUTRAL'],
+    desc: 'Tông nâu caramel trầm ấm, ngọt ngào và cực kỳ tôn vinh đường nét ngũ quan nam tính.'
+  },
+  'pure-platinum': {
+    id: 'pure-platinum',
+    name: 'Bạch Kim Khói (Pure Platinum)',
+    hex: '#E5E7EB',
+    undertoneMatch: ['COOL', 'NEUTRAL'],
+    desc: 'Bạch kim ánh bạc thời thượng đẳng cấp quốc tế, phong cách idol nổi bật.'
   }
 };
 

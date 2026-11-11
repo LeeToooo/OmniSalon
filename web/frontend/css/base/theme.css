@@ -579,7 +579,7 @@ body.light .nordic-metric-label,
 }
 
 [data-theme="light"] .hero-magazine-container {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F1F3F5 100%);
+  background: #FFFFFF;
   border-color: var(--border-color);
 }
 
@@ -1174,11 +1174,11 @@ body.light .nordic-pill-tab:hover {
 [data-theme="light"] .nordic-pill-tab.active,
 html.light .nordic-pill-tab.active,
 body.light .nordic-pill-tab.active {
-  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
-  color: var(--text-primary) !important;
+  background: #C59B27 !important;
+  color: #141413 !important;
   border-color: var(--brand-accent-gold) !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(197, 155, 39, 0.35) !important;
 }
 
 /* Các bước đặt lịch */
@@ -1984,7 +1984,7 @@ body.light .admin-kpi-card-rich {
 }
 
 .link-open-mobile-app {
-  background: linear-gradient(135deg, #D4AF37, #E5C158);
+  background: #C59B27;
   color: #0B0D13 !important;
   padding: 3px 12px;
   border-radius: var(--radius-pill);
@@ -2099,7 +2099,7 @@ body.light .admin-kpi-card-rich {
 
 .btn-execute-ai {
   width: 100%;
-  background: linear-gradient(135deg, #D4AF37 0%, #E5C158 100%);
+  background: #C59B27;
   color: #0B0D13;
   padding: 13px;
   border-radius: 12px;
@@ -2172,10 +2172,10 @@ html.light .web-nav-links .nav-link-admin {
 
 .web-nav-links .nav-link-admin:hover,
 .web-nav-links .nav-link-admin.active {
-  background: linear-gradient(135deg, #d4af37, #f59e0b) !important;
+  background: #C59B27 !important;
   color: #000000 !important;
-  border-color: #d4af37 !important;
-  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+  border-color: #C59B27 !important;
+  box-shadow: 0 2px 8px rgba(197, 155, 39, 0.3);
 }
 
 
@@ -2289,10 +2289,10 @@ html.light .web-nav-links .nav-link-admin {
 
 .header-admin-pill-btn:hover,
 .header-admin-pill-btn.active {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
+  background: #C59B27;
   color: #000000;
-  border-color: #F59E0B;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  border-color: #C59B27;
+  box-shadow: 0 4px 14px rgba(197, 155, 39, 0.4);
   transform: translateY(-1px);
 }
 
@@ -2900,7 +2900,7 @@ html.light .web-nav-links .nav-link-admin {
 .slot-pulse-ripple {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.65) 0%, rgba(245, 158, 11, 0.1) 50%, transparent 70%);
+  background: rgba(197, 155, 39, 0.35);
   transform: scale(0);
   animation: slotRipplePulse 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
   pointer-events: none;
@@ -2935,7 +2935,7 @@ html.light .web-nav-links .nav-link-admin {
   right: 5%;
   width: 650px;
   height: 650px;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.04) 50%, transparent 70%);
+  background: rgba(197, 155, 39, 0.04);
   border-radius: 50%;
   pointer-events: none;
   z-index: 1;
@@ -3642,7 +3642,7 @@ html.light .nordic-pill-tab {
 }
 
 html.light .nordic-pill-tab.active {
-  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+  background: #C59B27 !important;
   color: #000000 !important;
 }
 
@@ -4006,10 +4006,10 @@ html.light .admin-pagination-bar .admin-page-active,
 }
 
 .nordic-pill-tab.active {
-  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-  color: #ffffff !important;
-  border-color: #f59e0b !important;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+  background: #C59B27 !important;
+  color: #141413 !important;
+  border-color: #C59B27 !important;
+  box-shadow: 0 4px 14px rgba(197, 155, 39, 0.35) !important;
 }
 
 html.light .nordic-pill-tab,
@@ -4021,10 +4021,10 @@ html.light .nordic-pill-tab,
 
 html.light .nordic-pill-tab.active,
 [data-theme="light"] .nordic-pill-tab.active {
-  background: linear-gradient(135deg, #b48312, #94680e) !important;
+  background: #C59B27 !important;
   color: #ffffff !important;
-  border-color: #b48312 !important;
-  box-shadow: 0 4px 14px rgba(180, 131, 18, 0.3) !important;
+  border-color: #C59B27 !important;
+  box-shadow: 0 4px 14px rgba(197, 155, 39, 0.3) !important;
 }
 
 #webPlatformSection,
@@ -5268,16 +5268,16 @@ html.light .mega-col-title {
 html.light .dropdown-admin-card-btn,
 body.light .dropdown-admin-card-btn,
 [data-theme="light"] .dropdown-admin-card-btn {
-  background: linear-gradient(135deg, #FFFDF5 0%, #FEF3C7 100%) !important;
-  border: 1.5px solid #F59E0B !important;
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.12) !important;
+  background: #FEF3C7 !important;
+  border: 1.5px solid #C59B27 !important;
+  box-shadow: 0 2px 10px rgba(197, 155, 39, 0.12) !important;
   color: #78350F !important;
 }
 
 html.light .dropdown-admin-card-btn:hover,
 body.light .dropdown-admin-card-btn:hover,
 [data-theme="light"] .dropdown-admin-card-btn:hover {
-  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%) !important;
+  background: #FDE68A !important;
   border-color: #D97706 !important;
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2) !important;
   transform: translateY(-1px);

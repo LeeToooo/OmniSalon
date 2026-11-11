@@ -534,7 +534,11 @@ def get_style_data(hairstyle_id, segmenter, detector):
         return _STYLE_CACHE[hairstyle_id]
 
     backend_dir = os.path.dirname(os.path.abspath(__file__))
-    valid_styles = ['layer-korean', 'pompadour-luxury', 'mullet-modern', 'sidepart-gentleman', 'buzzcut-fade', 'french-crop']
+    valid_styles = [
+        'layer-korean', 'pompadour-luxury', 'mullet-modern', 'sidepart-gentleman', 
+        'buzzcut-fade', 'french-crop', 'short-quiff', 'two-block', 
+        'ivy-league', 'undercut-slick', 'ripple-perm', 'mohican-fade'
+    ]
     if hairstyle_id not in valid_styles:
         # Map common aliases
         alias_map = {
@@ -542,7 +546,15 @@ def get_style_data(hairstyle_id, segmenter, detector):
             'buzz-cut': 'buzzcut-fade',
             'buzzcut': 'buzzcut-fade',
             'mullet': 'mullet-modern',
-            'sidepart': 'sidepart-gentleman'
+            'sidepart': 'sidepart-gentleman',
+            'quiff': 'short-quiff',
+            'twoblock': 'two-block',
+            'ivyleague': 'ivy-league',
+            'undercut': 'undercut-slick',
+            'slickback': 'undercut-slick',
+            'ripple': 'ripple-perm',
+            'con-sau': 'ripple-perm',
+            'mohican': 'mohican-fade'
         }
         hairstyle_id = alias_map.get(hairstyle_id, 'layer-korean')
 

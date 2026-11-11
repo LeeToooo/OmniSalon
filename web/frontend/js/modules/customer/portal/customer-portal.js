@@ -239,7 +239,7 @@
           <div class="portal-profile-hero" style="background: var(--surface-card, #f8fafc) !important; border: 1px solid var(--border-color, #cbd5e1) !important; border-radius: 16px; padding: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.04);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px;">
               <div style="display: flex; gap: 16px; align-items: center;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B, #D97706); color: #000; font-size: 24px; font-weight: 900; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.3); flex-shrink: 0;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: #C59B27; color: #141413; font-size: 24px; font-weight: 900; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.3); flex-shrink: 0;">
                   ${initials}
                 </div>
                 <div>
@@ -274,13 +274,13 @@
           <!-- TRUNG TÂM QUẢN TRỊ DÀNH RIÊNG CHO ADMIN -->
           ${isAdmin ? `
             <div class="portal-admin-hub-card" onclick="UICommon.closeGlobalModal(); if(window.AppRouter) { window.AppRouter.navigate('/admin'); } else if(window.CustomerWeb) { window.CustomerWeb.switchTab('admin'); } else { window.location.href='/admin'; }" 
-                 style="margin-top: 16px; margin-bottom: 18px; padding: 16px 20px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%); border: 2px solid #F59E0B; border-radius: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: none; transition: all 0.25s ease;">
+                 style="margin-top: 16px; margin-bottom: 18px; padding: 16px 20px; background: rgba(197, 155, 39, 0.1); border: 2px solid #C59B27; border-radius: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: none; transition: all 0.25s ease;">
               <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; background: #F59E0B; color: #0F172A; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; flex-shrink: 0; box-shadow: none;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #C59B27; color: #141413; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; flex-shrink: 0; box-shadow: none;">
                   ADM
                 </div>
                 <div>
-                  <div style="font-size: 15px; font-weight: 900; color: #b48312; letter-spacing: 0.04em; text-transform: uppercase;">
+                  <div style="font-size: 15px; font-weight: 900; color: #C59B27; letter-spacing: 0.04em; text-transform: uppercase;">
                     [ TRUNG TÂM QUẢN TRỊ &amp; DỮ LIỆU CHUỖI SALON ]
                   </div>
                   <div style="font-size: 13.5px; color: var(--text-secondary, #475569); margin-top: 2px; font-weight: 500;">
@@ -288,7 +288,7 @@
                   </div>
                 </div>
               </div>
-              <button type="button" class="btn-primary-nordic" style="min-height: 48px; padding: 12px 22px; font-size: 15px; font-weight: 800; background: linear-gradient(135deg, #F59E0B, #D97706); color: #0F172A; border: none; border-radius: 12px; flex-shrink: 0; cursor: pointer; box-shadow: none;" onclick="event.stopPropagation(); UICommon.closeGlobalModal(); if(window.AppRouter) { window.AppRouter.navigate('/admin'); } else if(window.CustomerWeb) { window.CustomerWeb.switchTab('admin'); } else { window.location.href='/admin'; }">
+              <button type="button" class="btn-primary-nordic" style="min-height: 48px; padding: 12px 22px; font-size: 15px; font-weight: 800; background: #C59B27; color: #141413; border: none; border-radius: 12px; flex-shrink: 0; cursor: pointer; box-shadow: none;" onclick="event.stopPropagation(); UICommon.closeGlobalModal(); if(window.AppRouter) { window.AppRouter.navigate('/admin'); } else if(window.CustomerWeb) { window.CustomerWeb.switchTab('admin'); } else { window.location.href='/admin'; }">
                 [ Trung Tâm Quản Trị Salon ] →
               </button>
             </div>
@@ -436,18 +436,18 @@
                     ${(!isPaid && !isCancelled) ? `
                       <button class="pill-btn-outline btn-pay" style="font-size: 11px; padding: 4px 10px; color: #10b981 !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                               onclick="CustomerWeb.openBookingPaymentModal('${escapeFn(bCode)}')">
-                        💳 Thanh Toán VietQR
+                        Thanh toán VietQR
                       </button>
                     ` : ''}
                     ${(!isCancelled) ? (bReview ? `
                       <button class="pill-btn-outline btn-review" style="font-size: 11px; padding: 4px 10px; color: #f59e0b !important; font-weight: 700; cursor: pointer;" 
                               onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
-                        ⭐ Sửa Đánh Giá
+                        Sửa đánh giá
                       </button>
                     ` : `
                       <button class="pill-btn-outline btn-review" style="font-size: 11px; padding: 4px 10px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                               onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
-                        ⭐ Đánh Giá Lịch Hẹn
+                        Đánh giá lịch hẹn
                       </button>
                     `) : ''}
                     ${isCancellable ? `
@@ -538,7 +538,7 @@
                   <!-- Visual Timeline 4 Buoc -->
                   ${isCancelled ? `
                     <div style="padding: 12px 16px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; font-size: 14px; font-weight: 700; color: #ef4444; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                      <span>❌</span> Đơn hàng đã được hủy
+                      Đơn hàng đã được hủy
                     </div>
                   ` : `
                     <div class="order-status-timeline" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 12px 18px; background: var(--surface-elevated, rgba(255, 255, 255, 0.03)); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); border-radius: 12px;">
@@ -570,7 +570,7 @@
                   <!-- Danh sach mon hang -->
                   <div style="background: var(--surface-elevated, rgba(255, 255, 255, 0.02)); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.07)); border-radius: 12px; padding: 14px 18px; margin-bottom: 14px;">
                     <div style="font-size: 12.5px; font-weight: 800; color: var(--text-secondary, #575752); text-transform: uppercase; margin-bottom: 10px;">
-                      📦 SẢN PHẨM TRONG ĐƠN:
+                      SẢN PHẨM TRONG ĐƠN:
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                       ${visibleItems.map(it => {
@@ -634,7 +634,7 @@
                     <div>
                       ${isDelivering ? `
                         <span style="font-size: 13px; color: #0284c7; background: rgba(2, 132, 199, 0.12); border: 1px solid rgba(2, 132, 199, 0.35); padding: 6px 12px; border-radius: 8px; font-weight: 700;">
-                          🚚 Đang vận chuyển
+                          Đang vận chuyển
                         </span>
                       ` : (isCompleted ? `
                         <span style="font-size: 13px; color: #10B981; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 6px 12px; border-radius: 8px; font-weight: 700;">
@@ -647,30 +647,30 @@
                       ${(!isPaid && !isCancelled) ? `
                         <button type="button" class="btn-order-action btn-pay" style="font-size: 13px; padding: 8px 16px; color: #10b981 !important; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                                 onclick="CustomerWeb.openOrderPaymentModal('${oId}')">
-                          💳 Thanh Toán VietQR
+                          Thanh toán VietQR
                         </button>
                       ` : ''}
 
                       ${(!isCancelled) ? (oReview ? `
                         <button type="button" class="btn-order-action btn-review" style="font-size: 13px; padding: 8px 16px; color: #f59e0b !important; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                                 onclick="CustomerWeb.openOrderReviewModal('${oId}')">
-                          ⭐ Sửa Đánh Giá
+                          Sửa đánh giá
                         </button>
                       ` : `
                         <button type="button" class="btn-order-action btn-review" style="font-size: 13px; padding: 8px 16px; color: #f59e0b !important; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                                 onclick="CustomerWeb.openOrderReviewModal('${oId}')">
-                          ⭐ Đánh Giá Đơn Hàng
+                          Đánh giá đơn hàng
                         </button>
                       `) : ''}
 
                       ${(window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function' ? window.SalonUtils.canCancelOrder(o) : (!isCancelled)) ? `
                         <button type="button" class="btn-order-action btn-cancel-order" style="font-size: 13px; padding: 8px 16px; color: #ef4444 !important; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                                 onclick="CustomerWeb.openOrderCancelModal('${oId}')">
-                          ✕ Hủy Đơn Hàng
+                          Hủy đơn hàng
                         </button>
                       ` : `
                         <span style="font-size: 12.5px; color: #94a3b8; background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); padding: 6px 14px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                          ✕ Đã hủy đơn
+                          Đã hủy đơn
                         </span>
                       `}
                     </div>

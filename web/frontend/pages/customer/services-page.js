@@ -399,11 +399,11 @@
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:3px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>${durationVal} phút
               </div>
               ${isCombo ? `
-                <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #C59B27, #eab308); color: #141413; padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 800; border: none; letter-spacing: 0.04em; z-index: 2;">
+                <div style="position: absolute; top: 12px; right: 12px; background: #C59B27; color: #141413; padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 800; border: none; letter-spacing: 0.04em; z-index: 2;">
                   COMBO ĐẶC BIỆT
                 </div>
               ` : (item.discountPercent > 0 ? `
-                <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 800; border: none; letter-spacing: 0.04em; z-index: 2;">
+                <div style="position: absolute; top: 12px; right: 12px; background: #EF4444; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 800; border: none; letter-spacing: 0.04em; z-index: 2;">
                   GIẢM -${item.discountPercent}%
                 </div>
               ` : '')}
@@ -585,14 +585,14 @@
                 <span style="font-size: 26px; font-weight: 900; color: #8A6208;">${priceFormatted}</span>
                 ${item.originalPrice && item.originalPrice > actualPrice ? `
                   <span style="font-size: 16px; text-decoration: line-through; color: var(--text-muted);">${window.SalonUtils ? window.SalonUtils.formatCurrency(item.originalPrice) : item.originalPrice}</span>
-                  <span style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 800;">-${item.discountPercent}%</span>
+                  <span style="background: #EF4444; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 800;">-${item.discountPercent}%</span>
                 ` : ''}
               </div>
               <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin: 0 0 20px;">${this.escapeHtml(desc)}</p>
               
               <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="btn-submit-terracotta" style="padding: 10px 24px; font-size: 14px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #141413;" onclick="ServicesPage.selectAndBook('${item.id}')">
-                  📅 Đặt lịch dịch vụ này ngay
+                  Đặt lịch dịch vụ này ngay
                 </button>
                 <button type="button" class="btn-cancel" style="padding: 10px 20px; font-size: 13.5px;" onclick="UICommon.closeGlobalModal()">
                   Đóng

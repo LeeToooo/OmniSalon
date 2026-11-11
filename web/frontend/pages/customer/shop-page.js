@@ -251,7 +251,7 @@
                       ${this.selectedCategory === 'all' ? '<span style="color:#C59B27; font-weight:800;">✓</span>' : ''}
                     </div>
                     <div class="shop-dropdown-item ${this.selectedCategory === 'fefo_expiry' ? 'selected' : ''}" onclick="ShopPage.setCategory('fefo_expiry')" style="color: #ef4444;">
-                      <span>🔥 Ưu đãi đặc biệt</span>
+                      <span>Ưu đãi đặc biệt</span>
                       ${this.selectedCategory === 'fefo_expiry' ? '<span style="color:#ef4444; font-weight:800;">✓</span>' : ''}
                     </div>
                     <div class="shop-dropdown-item ${this.selectedCategory === 'bestsellers' ? 'selected' : ''}" onclick="ShopPage.setCategory('bestsellers')" style="color: #f59e0b;">
@@ -977,18 +977,18 @@
       // Nhãn và biểu tượng cho 4 góc chụp chuyên nghiệp
       const pNameLower = (prod.name || prod.TenSanPham || '').toLowerCase();
       let angleList = [
-        { index: 0, badge: 'Góc 1 • Chính Diện', label: 'Mặt Chính Diện', icon: '📷' },
-        { index: 1, badge: 'Góc 2 • Nghiêng 45°', label: 'Góc Nghiêng 45°', icon: '📐' },
-        { index: 2, badge: 'Góc 3 • Chất Sáp / Mở Nắp', label: 'Chất Sáp / Mở Nắp', icon: '✨' },
-        { index: 3, badge: 'Góc 4 • Mặt Sau & Tem', label: 'Mặt Sau & Tem Nhãn', icon: '🏷️' }
+        { index: 0, badge: 'Góc 1 • Chính Diện', label: 'Mặt Chính Diện', icon: '' },
+        { index: 1, badge: 'Góc 2 • Nghiêng 45°', label: 'Góc Nghiêng 45°', icon: '' },
+        { index: 2, badge: 'Góc 3 • Chất Sáp / Mở Nắp', label: 'Chất Sáp / Mở Nắp', icon: '' },
+        { index: 3, badge: 'Góc 4 • Mặt Sau & Tem', label: 'Mặt Sau & Tem Nhãn', icon: '' }
       ];
 
       if (pNameLower.includes('lược') || pNameLower.includes('máy sấy') || pNameLower.includes('kéo') || pNameLower.includes('brush') || pNameLower.includes('comb')) {
-        angleList[2] = { index: 2, badge: 'Góc 3 • Chi Tiết Máy', label: 'Cận Cảnh Chi Tiết', icon: '🔍' };
-        angleList[3] = { index: 3, badge: 'Góc 4 • Thông Số & Tem', label: 'Thông Số Kỹ Thuật', icon: '🏷️' };
+        angleList[2] = { index: 2, badge: 'Góc 3 • Chi Tiết Máy', label: 'Cận Cảnh Chi Tiết', icon: '' };
+        angleList[3] = { index: 3, badge: 'Góc 4 • Thông Số & Tem', label: 'Thông Số Kỹ Thuật', icon: '' };
       } else if (pNameLower.includes('dầu gội') || pNameLower.includes('shampoo') || pNameLower.includes('xịt') || pNameLower.includes('spray') || pNameLower.includes('tonic') || pNameLower.includes('dưỡng')) {
-        angleList[2] = { index: 2, badge: 'Góc 3 • Vòi Xịt / Nắp', label: 'Đầu Vòi Xịt & Nắp Chai', icon: '🧴' };
-        angleList[3] = { index: 3, badge: 'Góc 4 • Mặt Sau & Thành Phần', label: 'Mặt Sau & Thành Phần', icon: '🏷️' };
+        angleList[2] = { index: 2, badge: 'Góc 3 • Vòi Xịt / Nắp', label: 'Đầu Vòi Xịt & Nắp Chai', icon: '' };
+        angleList[3] = { index: 3, badge: 'Góc 4 • Mặt Sau & Thành Phần', label: 'Mặt Sau & Thành Phần', icon: '' };
       }
       this.currentAngleList = angleList;
       this._currentReviews = null;
@@ -1134,7 +1134,7 @@
                   <!-- Thumbnails Dọc Trái -->
                   <div class="pdp-thumbnails-col">
                     ${detailImages.map((img, idx) => {
-                      const ang = angleList[idx] || { badge: 'Góc ' + (idx + 1), icon: '📷' };
+                      const ang = angleList[idx] || { badge: 'Góc ' + (idx + 1), icon: '' };
                       return `
                         <div class="pdp-thumb-item ${idx === 0 ? 'active' : ''}" 
                              title="${ang.label || ang.badge}"
@@ -1587,7 +1587,7 @@
       const angleBadge = document.getElementById('pdpAngleStageBadge');
       if (angleBadge && this.currentAngleList && this.currentAngleList[idx]) {
         const ang = this.currentAngleList[idx];
-        angleBadge.innerHTML = `<span class="pdp-angle-icon">${ang.icon}</span> <span id="pdpAngleText">${ang.badge}</span>`;
+        angleBadge.innerHTML = `<span id="pdpAngleText">${ang.badge}</span>`;
       }
     },
 
@@ -1921,7 +1921,7 @@
             return `
               <div class="pdp-review-item" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 16px;">
                 <div class="pdp-review-user" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                  <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 38px; height: 38px; border-radius: 50%; background: #C59B27; color: #141413; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center;">
                     ${(window.SalonUtils && typeof window.SalonUtils.getInitials === 'function') ? window.SalonUtils.getInitials(author) : author.substring(0, 2).toUpperCase()}
                   </div>
                   <div class="pdp-review-meta">

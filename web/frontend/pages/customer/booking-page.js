@@ -635,8 +635,8 @@
             <div class="svc-media-gradient"></div>
             
             <div class="svc-media-badges">
-              ${isCombo ? '<span class="svc-badge-pill svc-badge-combo" style="background: linear-gradient(135deg, #C59B27, #eab308); color: #141413; font-weight: 800;">COMBO HOT</span>' : '<span class="svc-badge-pill svc-badge-type">BARBER</span>'}
-              ${item.discountPercent > 0 ? `<span class="svc-badge-pill svc-badge-promo" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; font-weight: 800; border: none;">-${item.discountPercent}%</span>` : ''}
+              ${isCombo ? '<span class="svc-badge-pill svc-badge-combo" style="background: #C59B27; color: #141413; font-weight: 800;">COMBO HOT</span>' : '<span class="svc-badge-pill svc-badge-type">BARBER</span>'}
+              ${item.discountPercent > 0 ? `<span class="svc-badge-pill svc-badge-promo" style="background: #EF4444; color: #fff; font-weight: 800; border: none;">-${item.discountPercent}%</span>` : ''}
               ${meta.savings ? `<span class="svc-badge-pill svc-badge-savings">${meta.savings}</span>` : ''}
             </div>
 

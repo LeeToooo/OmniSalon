@@ -96,7 +96,7 @@
                 
                 <!-- Cột thông tin thành viên -->
                 <div style="display: flex; align-items: center; gap: 20px;">
-                  <div style="width: 76px; height: 76px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B 0%, #B45309 100%); color: #000; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); border: 2px solid #FFFFFF;">
+                  <div style="width: 76px; height: 76px; border-radius: 50%; background: #C59B27; color: #141413; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; box-shadow: 0 4px 15px rgba(197, 155, 39, 0.3); border: 2px solid #FFFFFF;">
                     ${avatarInitials}
                   </div>
                   <div>

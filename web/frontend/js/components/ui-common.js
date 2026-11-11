@@ -706,7 +706,7 @@ const UICommon = {
           <!-- Mã VietQR Chuyển Khoản Thanh Toán (Khi thanh toán bằng VietQR) -->
           <div class="booking-qr-card" style="margin-top: 16px; padding: 18px 16px; background: var(--surface-elevated, #fafafa); border-radius: 12px; text-align: center; border: 1px solid var(--border-color, #e2e8f0); color: var(--text-primary);">
             <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; background: rgba(2, 132, 199, 0.12); color: #0284c7; font-size: 11.5px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px;">
-              💳 MÃ VIETQR CHUYỂN KHOẢN THANH TOÁN
+              Mã VietQR chuyển khoản thanh toán
             </div>
             <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px;">
               Quét mã VietQR bằng app ngân hàng bất kỳ để hoàn tất thanh toán:

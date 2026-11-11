@@ -179,7 +179,7 @@
             <button type="button" class="btn-submit-terracotta" id="btnConfirmCancelBooking"
                     style="min-height: 40px; padding: 0 20px; border-radius: 999px; font-size: 13px; font-weight: 800; background: #ef4444; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
                     onclick="CustomerWeb.submitBookingCancellation('${escapeFn(bCode)}')">
-              ✕ Xác Nhận Hủy Lịch
+              Xác nhận hủy lịch
             </button>
           </div>
         </div>

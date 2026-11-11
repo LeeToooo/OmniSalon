@@ -158,8 +158,8 @@
   left: 0;
   width: 100%;
   height: 4px;
-  background: linear-gradient(90deg, transparent, #ff4400, #ff8800, #ff4400, transparent);
-  box-shadow: 0 0 15px #ff4400, 0 0 30px #ff8800;
+  background: #C59B27;
+  box-shadow: 0 0 15px #C59B27;
   animation: laserScanAnim 2s infinite ease-in-out alternate;
 }
 
@@ -178,9 +178,11 @@
   height: 44px;
   border-radius: 50%;
   margin: 0 auto;
-  background: conic-gradient(from 0deg, #D4AF37, rgba(212, 175, 55, 0.2), #CBD5E1, #D4AF37);
+  border: 3px solid rgba(197, 155, 39, 0.2);
+  border-top-color: #C59B27;
+  background: transparent;
   animation: spinBarber 1.2s linear infinite;
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 20px rgba(197, 155, 39, 0.4);
 }
 
 @keyframes spinBarber {
