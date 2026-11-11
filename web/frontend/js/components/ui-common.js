@@ -1,8 +1,6 @@
 // Các hàm tiện ích giao diện dùng chung
 const UICommon = {
-  // -----------------------------------------------------------------------
-  // RENDER THẺ SẢN PHẨM  CHUẨN 100% ẢNH NGON.PNG 
-  // -----------------------------------------------------------------------
+  // Render thẻ sản phẩm  chuẩn 100% ảnh ngon.png
   renderProductCard(prod, isMobile = false) {
     if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.render === 'function') {
       return window.ProductCard.render(prod, { isMobile });
@@ -21,9 +19,7 @@ const UICommon = {
     `;
   },
 
-  // -----------------------------------------------------------------------
-  // RENDER BÀI VIẾT TIN TÓC UNDERGROUND  CHUẨN ẢNH NGON.PNG 
-  // -----------------------------------------------------------------------
+  // Render bài viết tin tóc underground  chuẩn ảnh ngon.png
   renderFeatureArticle(article) {
     return `
       <article class="underground-feature-card" onclick="UICommon.openArticleModal('${article.id}')">
@@ -54,9 +50,7 @@ const UICommon = {
     `;
   },
 
-  // -----------------------------------------------------------------------
-  // RENDER NÚT CHI NHÁNH DẠNG THẺ HIỆN ĐẠI
-  // -----------------------------------------------------------------------
+  // Render nút chi nhánh dạng thẻ hiện đại
   renderBranchPill(branch) {
     const rawParts = (branch.name || '').replace(/—/g, ' - ').split(' - ');
     const mainTitle = (rawParts[0] || branch.name).trim();
@@ -75,9 +69,7 @@ const UICommon = {
     `;
   },
 
-  // -----------------------------------------------------------------------
-  // RENDER TICKER DỊCH VỤ: OUR SERVICES
-  // -----------------------------------------------------------------------
+  // Render ticker dịch vụ: our services
   renderServicesTickerHTML() {
     return `
       <div class="services-ticker-container">
@@ -140,9 +132,7 @@ const UICommon = {
     `;
   },
 
-  // -----------------------------------------------------------------------
-  // RENDER HỢP TÁC THƯƠNG HIỆU: BRAND COLLABS
-  // -----------------------------------------------------------------------
+  // Render hợp tác thương hiệu: brand collabs
   renderBrandCollabCard(collab) {
     return `
       <div class="collab-box-card" onclick="UICommon.showToast('Khám phá bộ sưu tập ${collab.title}!')">
@@ -152,9 +142,7 @@ const UICommon = {
     `;
   },
 
-  // -----------------------------------------------------------------------
-  // BOOKING WIZARD ĐẶT LỊCH CHỐNG TRÙNG LỊCH  QUY TRÌNH 4 BƯỚC ĐỘC LẬP 
-  // -----------------------------------------------------------------------
+  // Booking wizard đặt lịch chống trùng lịch  quy trình 4 bước độc lập
   bookingStep: 1, // 1: Dịch vụ & Combo | 2: Stylist | 3: Ngày & Giờ | 4: Hóa đơn & Xác nhận
 
   bookingData: {
@@ -748,12 +736,7 @@ const UICommon = {
     modal.classList.add('active');
   },
 
-  // -----------------------------------------------------------------------
-  // GIỎ HÀNG  DRAWER WEB & BOTTOM SHEET MOBILE 
-  // -----------------------------------------------------------------------
-  // -----------------------------------------------------------------------
-  // GIỎ HÀNG  DRAWER WEB & BOTTOM SHEET MOBILE  VỚI GIAO HÀNG & VOUCHER
-  // -----------------------------------------------------------------------
+  // Giỏ hàng  drawer web & bottom sheet mobile
   cartState: {
     deliveryType: 'PICKUP_BRANCH', // 'PICKUP_BRANCH' | 'DELIVERY'
     pickupBranchId: 'CN01',
@@ -1541,9 +1524,7 @@ const UICommon = {
     }
   },
 
-  // -----------------------------------------------------------------------
-  // CHI TIẾT SẢN PHẨM & TIN TỨC MODAL
-  // -----------------------------------------------------------------------
+  // Chi tiết sản phẩm & tin tức modal
   openProductDetailModal(productId) {
     if (typeof this.closeGlobalModal === 'function') {
       this.closeGlobalModal();
@@ -1614,9 +1595,7 @@ const UICommon = {
     modal.classList.add('active');
   },
 
-  // -----------------------------------------------------------------------
-  // MODAL ĐĂNG NHẬP / TÀI KHOẢN  ROLE SWITCHER 5 VAI TRÒ & TAB ĐĂNG KÝ 
-  // -----------------------------------------------------------------------
+  // Modal đăng nhập / tài khoản  role switcher 5 vai trò & tab đăng ký
   authTab: 'login',
 
   openAuthModal(tab = 'login') {
@@ -2322,9 +2301,7 @@ const UICommon = {
     }
   },
 
-  // -----------------------------------------------------------------------
-  // AI PHOTO RESTYLE VISION STUDIO  KẾT NỐI API THẬT & ĐỔI ẢNH TÓC KHÁCH 
-  // -----------------------------------------------------------------------
+  // AI photo restyle vision studio  kết nối api thật & đổi ảnh tóc khách
   aiState: {
     originalImage: null,
     resultImage: null,
@@ -2772,9 +2749,7 @@ const UICommon = {
     UICommon.showToast(`Đã đưa kiểu tóc "${this.aiState.selectedStyle}" vào ghi chú đặt lịch!`);
   },
 
-  // -----------------------------------------------------------------------
-  // TOAST NOTIFICATION VÀ TIỆN ÍCH MODAL
-  // -----------------------------------------------------------------------
+  // Toast notification và tiện ích modal
   openModal(html, type = '') {
     const modal = document.getElementById('globalModal');
     const modalBody = document.getElementById('globalModalBody');

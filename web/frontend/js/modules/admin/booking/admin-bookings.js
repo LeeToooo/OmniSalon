@@ -68,9 +68,7 @@
       `;
     },
 
-    // -----------------------------------------------------------------------
-    // SUB-TAB 2: ĐIỀU PHỐI LỊCH HẸN, BOOKINGS DISPATCHER REALTIME 4RAU
-    // -----------------------------------------------------------------------
+    // Sub-tab 2: Điều Phối Lịch Hẹn
     renderBookingsTab(user, bookings, branches, stylists, branchMap = null, services = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const allServices = (Array.isArray(services) && services.length > 0)
@@ -959,9 +957,7 @@
       `;
     },
 
-    // -----------------------------------------------------------------------
-    // INLINE BOTTOM WALKIN EDITOR (ĐẶT NGAY DƯỚI ĐÁY TRANG GIỐNG CÁC PHÂN HỆ KHÁC)
-    // -----------------------------------------------------------------------
+    // Inline bottom walkin editor (đặt ngay dưới đáy trang giống các phân hệ khác)
     _renderWalkinBottomEditor(user, branches, stylists, services = []) {
       return '';
     },

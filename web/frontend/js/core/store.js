@@ -899,9 +899,7 @@
       });
     }
 
-    // -----------------------------------------------------------------------
-    // CHI NHÁNH & ĐỊA ĐIỂM
-    // -----------------------------------------------------------------------
+    // Chi nhánh & địa điểm
     getBranches() {
       return this.state.branches || [];
     }
@@ -1011,9 +1009,7 @@
       return true;
     }
 
-    // -----------------------------------------------------------------------
-    // NGƯỜI DÙNG & PHIÊN ĐĂNG NHẬP, ĐỒNG BỘ AUTHENGINE
-    // -----------------------------------------------------------------------
+    // Người dùng & phiên đăng nhập
     getCurrentUser() {
       let user = null;
       if (window.AuthEngine && typeof window.AuthEngine.getCurrentUser === 'function') {
@@ -1089,9 +1085,7 @@
       return user || { id: userId, username: userId, role: roleCode, VaiTro: vaiTro };
     }
 
-    // -----------------------------------------------------------------------
-    // DỊCH VỤ & GÓI COMBO VIP, CRUD COMBOS
-    // -----------------------------------------------------------------------
+    // Dịch vụ & gói combo VIP
     getServices(category = null) {
       const list = this.state.services || [];
       if (!category || category === 'all') return list;
@@ -1312,9 +1306,7 @@
       return true;
     }
 
-    // -----------------------------------------------------------------------
-    // THỢ CẮT TÓC & ĐIỀU PHỐI CA, THỢ CHÍNH, THỢ PHỤ, QUẢN LÝ
-    // -----------------------------------------------------------------------
+    // Thợ cắt tóc & điều phối ca
     getStylists(branchId = null, includeAllStaff = false) {
       const list = (this.state.stylists || []).filter(s => {
         if (includeAllStaff) return true;
@@ -1419,9 +1411,7 @@
       ).sort((a, b) => (a.timeSlot || '').localeCompare(b.timeSlot || ''));
     }
 
-    // -----------------------------------------------------------------------
-    // ĐẶT LỊCH & CHỐNG TRÙNG LỊCH, ANTI-DOUBLE BOOKING WITH FLEXIBLE DURATION
-    // -----------------------------------------------------------------------
+    // Đặt lịch & chống trùng lịch
     _timeToMinutes(timeStr) {
       if (!timeStr || !timeStr.includes(':')) return 0;
       const [h, m] = timeStr.split(':').map(Number);
@@ -1740,9 +1730,7 @@
       );
     }
 
-    // -----------------------------------------------------------------------
-    // QUẢN LÝ TỒN KHO CHI NHÁNH & TRỪ KHO NGUYÊN TỬ, ATOMIC STOCK
-    // -----------------------------------------------------------------------
+    // Quản lý tồn kho chi nhánh & trừ kho nguyên tử
     getBranchInventory(branchId = null) {
       const bId = (!branchId || String(branchId).toLowerCase() === 'all') ? null : branchId;
 
@@ -2021,9 +2009,7 @@
       return true;
     }
 
-    // -----------------------------------------------------------------------
-    // GIỎ HÀNG & ĐƠN HÀNG ONLINE / QUẦY POS, ATOMIC CHECKOUT
-    // -----------------------------------------------------------------------
+    // Giỏ hàng & đơn hàng online / quầy POS
     getCategories() {
       return this.state.categories || [];
     }
@@ -2657,9 +2643,7 @@
       }
     }
 
-    // -----------------------------------------------------------------------
-    // QUẢN LÝ CA LÀM & ĐĂNG KÝ CA LÀM NHÂN VIÊN, THỢ BARBER & THU NGÂN
-    // -----------------------------------------------------------------------
+    // Quản lý ca làm & đăng ký ca làm nhân viên
     getStaffShifts(userId = null) {
       if (!this.state.staffShifts) {
         // Khởi tạo một số ca mẫu nếu chưa có
@@ -2869,9 +2853,7 @@
       return (this.state.invoices || []).find(i => i.id === invoiceId || i.MaHoaDon === invoiceId) || null;
     }
 
-    // -----------------------------------------------------------------------
-    // BÁO CÁO THỐNG KÊ DOANH THU & HOA HỒNG THỢ
-    // -----------------------------------------------------------------------
+    // Báo cáo thống kê doanh thu & hoa hồng thợ
     getRevenueAnalytics(branchId = null) {
       const bId = (branchId && branchId !== 'all') ? branchId : null;
       const bookings = bId ? this.getBookings(bId) : (this.state.bookings || []);
@@ -3071,9 +3053,7 @@
       };
     }
 
-    // -----------------------------------------------------------------------
-    // THÔNG BÁO & AUDIT TRAIL
-    // -----------------------------------------------------------------------
+    // Thông báo & audit trail
     getNotifications(userId = null) {
       const list = this.state.notifications || [];
       if (!userId) return list;
@@ -3151,9 +3131,7 @@
       if (this.state.auditLogs.length > 200) this.state.auditLogs.pop();
     }
 
-    // -----------------------------------------------------------------------
-    // CONTENT & MEDIA QUERIES, ARTICLES, MOMENTS, COLLABS, HAIRSTYLES
-    // -----------------------------------------------------------------------
+    // Content & media queries
     getNewsArticles() {
       return this.state.newsArticles || [];
     }

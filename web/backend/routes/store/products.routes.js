@@ -17,9 +17,7 @@ function getProductGallery(img) {
 async function handleProductRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
 
-  // -----------------------------------------------------------------------
-  // SẢN PHẨM MỸ PHẨM
-  // -----------------------------------------------------------------------
+  // Sản phẩm mỹ phẩm
 
   // GET /api/products - Danh sách mỹ phẩm kèm thông tin tồn kho, lô hạn dùng và giảm giá cận date
   if (pathname === '/api/products' && method === 'GET') {
@@ -300,9 +298,7 @@ async function handleProductRoutes(req, res, ctx) {
     return true;
   }
 
-  // -----------------------------------------------------------------------
-  // DANH MỤC SẢN PHẨM
-  // -----------------------------------------------------------------------
+  // Danh mục sản phẩm
 
   // GET /api/categories - Lấy danh mục sản phẩm
   if (pathname === '/api/categories' && method === 'GET') {

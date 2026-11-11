@@ -21,9 +21,7 @@
       showApiSettings: false
     },
 
-    // -----------------------------------------------------------------------
-    // KHỞI TẠO MODULE KHÁCH HÀNG TRÊN WEB
-    // -----------------------------------------------------------------------
+    // Khởi tạo module khách hàng trên web
     init() {
       // Xác định tab hiện tại từ URL pathname để không bị ghi đè trang chủ
       const path = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '/';
@@ -111,9 +109,7 @@
     }
   };
 
-  // -----------------------------------------------------------------------
-  // EXPOSURE & TƯƠNG THÍCH HOÀN HẢO VỚI HỆ THỐNG HIỆN HỮU — UIWEB BRIDGE 
-  // -----------------------------------------------------------------------
+  // Exposure & tương thích hoàn hảo với hệ thống hiện hữu
   window.CustomerWeb = CustomerWeb;
 
     // Cầu nối thông minh: Nếu UIWeb đã tồn tại, đồng bộ hóa các hàm gọi từ UIWeb sang CustomerWeb

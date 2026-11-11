@@ -238,9 +238,7 @@
       this.refreshCatalogView();
     },
 
-    // -----------------------------------------------------------------------
-    // INLINE BOTTOM CATALOG EDITOR (CHỈNH SỬA & THÊM MỚI Ở ĐÁY TRANG GIỐNG CHI NHÁNH)
-    // -----------------------------------------------------------------------
+    // Inline bottom catalog editor (chỉnh sửa & thêm mới ở đáy trang giống chi nhánh)
     _renderCatalogBottomEditor(type = 'services') {
       const isCombo = type === 'combos';
       const defaultImg = isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg';

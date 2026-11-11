@@ -10,9 +10,7 @@
     selectedBranchId: null,
     branchTransform: { zoom: 1.0, panX: 50, panY: 50 },
 
-    // -----------------------------------------------------------------------
-    // SUB-TAB: QUẢN LÝ CHI NHÁNH, BRANCHES MANAGEMENT
-    // -----------------------------------------------------------------------
+    // Sub
     renderBranchesTab(user, branches, stylists, bookings = null, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       let list = [...branches];
@@ -279,9 +277,7 @@
       this._updateBranchesContentOnly();
     },
 
-    // -----------------------------------------------------------------------
-    // INLINE BOTTOM BRANCH EDITOR (CHỈNH SỬA & THÊM MỚI Ở ĐÁY TRANG + LIVE IMAGE ADJUSTER)
-    // -----------------------------------------------------------------------
+    // Inline bottom branch editor (chỉnh sửa & thêm mới ở đáy trang + live image adjuster)
     _renderBranchBottomEditor() {
       const branchPresets = [
         'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80',

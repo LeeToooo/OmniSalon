@@ -292,9 +292,7 @@
       });
     },
 
-    // -----------------------------------------------------------------------
-    // GIAO DIỆN ỔN ĐỊNH & VỮNG CHÃI, TRIỆT TIÊU CHAO ĐẢO 3D KHI DI CHUỘT
-    // -----------------------------------------------------------------------
+    // Giao diện ổn định & vững chãi
     initTiltEffects(scope = document) {
       const cards = scope.querySelectorAll('.card-3d-tilt, .service-bento-card, .stylist-nordic-card, .product-nordic-card, .md3-service-card, .md3-stylist-card');
       cards.forEach(card => {
@@ -303,9 +301,7 @@
       });
     },
 
-    // -----------------------------------------------------------------------
-    // CỐ ĐỊNH NÚT BẤM, TRIỆT TIÊU HIỆU ỨNG HÚT NAM CHÂM CHẠY THEO CHUỘT
-    // -----------------------------------------------------------------------
+    // Cố định nút bấm
     initMagneticButtons(scope = document) {
       const buttons = scope.querySelectorAll('.nordic-btn-primary, .nordic-btn-secondary, .stylist-book-btn, .service-bento-btn, .btn-magnetic');
       buttons.forEach(btn => {
@@ -313,9 +309,7 @@
       });
     },
 
-    // -----------------------------------------------------------------------
-    // INTERACTIVE TIME SLOT RIPPLE, HIỆU ỨNG CHẠM NHẸ KHI CHỌN GIỜ
-    // -----------------------------------------------------------------------
+    // Interactive time slot ripple
     initSlotRippleDelegation() {
       document.addEventListener('click', (e) => {
         const slotEl = e.target.closest('.slot-chip-interactive, [onclick*="selectTimeSlot"], .time-slot-chip');

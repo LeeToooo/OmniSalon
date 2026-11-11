@@ -3,9 +3,7 @@
   'use strict';
 
   const BranchCard = {
-    // ---------------------------------------------------------------------
-    // CHUẨN HOÁ TRẠNG THÁI MỞ CỬA THEO THỜI GIAN THỰC
-    // ---------------------------------------------------------------------
+    // Chuẩn hoá trạng thái mở cửa theo thời gian thực
     getOperatingStatus(hoursString) {
       // Mặc định: 08:30 - 21:30
       let openHour = 8, openMin = 30;
@@ -51,9 +49,7 @@
       }
     },
 
-    // ---------------------------------------------------------------------
-    // CHUẨN HOÁ DỮ LIỆU ĐẦU VÀO
-    // ---------------------------------------------------------------------
+    // Chuẩn hoá dữ liệu đầu vào
     normalize(b) {
       if (!b) return null;
 
@@ -116,9 +112,7 @@
       };
     },
 
-    // ---------------------------------------------------------------------
-    // RENDER BRANCH CARD
-    // ---------------------------------------------------------------------
+    // Render branch card
     render(rawBranch, options = {}) {
       const data = this.normalize(rawBranch);
       if (!data) return '';
@@ -236,9 +230,7 @@
       `;
     },
 
-    // ---------------------------------------------------------------------
-    // SKELETON LOADING STATE, Khớp 100% kích thước của Card Chi Nhánh
-    // ---------------------------------------------------------------------
+    // Skeleton loading state
     renderSkeleton(count = 3) {
       const items = Array.from({ length: count });
       return items.map(() => `
@@ -260,9 +252,7 @@
       `).join('');
     },
 
-    // ---------------------------------------------------------------------
-    // EMPTY STATE
-    // ---------------------------------------------------------------------
+    // Empty state
     renderEmptyState(options = {}) {
       const {
         title = 'Không tìm thấy chi nhánh phù hợp',

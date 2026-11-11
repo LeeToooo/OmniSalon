@@ -1,9 +1,7 @@
 (function (window) {
   'use strict';
 
-  // -----------------------------------------------------------------------
-  // SERVICE CARD WIDGET
-  // -----------------------------------------------------------------------
+  // Service card widget
   const ServiceCardWidget = {
     render(service, options = {}) {
       if (!service) return '';
@@ -64,9 +62,7 @@
     }
   };
 
-  // -----------------------------------------------------------------------
-  // STYLIST CARD WIDGET
-  // -----------------------------------------------------------------------
+  // Stylist card widget
   const StylistCardWidget = {
     render(stylist, options = {}) {
       if (!stylist) return '';
@@ -140,9 +136,7 @@
     }
   };
 
-  // -----------------------------------------------------------------------
-  // TIME SLOT CHIPS WIDGET
-  // -----------------------------------------------------------------------
+  // Time slot chips widget
   const TimeSlotChipsWidget = {
     render(slots = [], selectedSlot = '', onSelectFnName = 'UICommon.selectBookingSlot') {
       if (!Array.isArray(slots) || slots.length === 0) {
@@ -188,9 +182,7 @@
     }
   };
 
-  // -----------------------------------------------------------------------
-  // BOOKING SLOT PICKER
-  // -----------------------------------------------------------------------
+  // Booking slot picker
   const BookingSlotPicker = {
     categorizeSlots(slots = []) {
       const groups = { morning: [], afternoon: [], evening: [] };
@@ -269,9 +261,7 @@
     }
   };
 
-  // -----------------------------------------------------------------------
-  // STAT CARD WIDGET
-  // -----------------------------------------------------------------------
+  // Stat card widget
   const StatCardWidget = {
     render(stat = {}, options = {}) {
       if (!stat) return '';
@@ -317,9 +307,7 @@
     }
   };
 
-  // -----------------------------------------------------------------------
-  // SHIMMER LOADING WIDGET
-  // -----------------------------------------------------------------------
+  // Shimmer loading widget
   const ShimmerLoadingWidget = {
     renderServiceListSkeleton(count = 3) {
       const items = Array.from({ length: count });
@@ -374,9 +362,7 @@
     }
   };
 
-  // -----------------------------------------------------------------------
-  // EXPORTS & BACKWARD COMPATIBILITY
-  // -----------------------------------------------------------------------
+  // Exports & backward compatibility
   window.ServiceCardWidget = ServiceCardWidget;
   window.StylistCardWidget = StylistCardWidget;
   window.TimeSlotChipsWidget = TimeSlotChipsWidget;

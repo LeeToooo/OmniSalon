@@ -359,9 +359,7 @@
     },
 
     
-    // -----------------------------------------------------------------------
-    // HỆ THỐNG LOOKBOOK SHOWCASE & BENTO BANNERS CHUẨN ẢNH 1, 4RAU STYLE
-    // -----------------------------------------------------------------------
+    // Hệ thống lookbook showcase & bento banners chuẩn ảnh 1
     getAllActiveProducts() {
       let all = (window.store && typeof window.store.getProducts === 'function')
         ? window.store.getProducts()
@@ -907,9 +905,7 @@
       `;
     },
 
-    // -----------------------------------------------------------------------
-    // TRANG CHI TIẾT SẢN PHẨM  - PRODUCT DETAIL PAGE — FULL-PAGE CHUYÊN NGHIỆP - 
-    // -----------------------------------------------------------------------
+    // Trang chi tiết sản phẩm
     renderProductDetail(container, productId) {
       if (!container) return;
 

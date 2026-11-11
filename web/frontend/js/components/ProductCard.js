@@ -3,9 +3,7 @@
   'use strict';
 
   const ProductCard = {
-    // ---------------------------------------------------------------------
-    // WISHLIST ENGINE
-    // ---------------------------------------------------------------------
+    // Wishlist engine
     getWishlist() {
       try {
         const raw = localStorage.getItem('omni_wishlist');
@@ -65,9 +63,7 @@
       return !isExist;
     },
 
-    // ---------------------------------------------------------------------
-    // CHUẨN HOÁ DỮ LIỆU ĐẦU VÀO
-    // ---------------------------------------------------------------------
+    // Chuẩn hoá dữ liệu đầu vào
     normalize(p) {
       if (!p) return null;
 
@@ -128,9 +124,7 @@
       };
     },
 
-    // ---------------------------------------------------------------------
-    // RENDER PRODUCT CARD
-    // ---------------------------------------------------------------------
+    // Render product card
     render(rawProduct, options = {}) {
       const data = this.normalize(rawProduct);
       if (!data) return '';
@@ -229,9 +223,7 @@
       `;
     },
 
-    // ---------------------------------------------------------------------
-    // SKELETON LOADING STATE, Khớp 100% layout và kích thước của Card
-    // ---------------------------------------------------------------------
+    // Skeleton loading state
     renderSkeleton(count = 4) {
       const items = Array.from({ length: count });
       return items.map(() => `
@@ -255,9 +247,7 @@
       `).join('');
     },
 
-    // ---------------------------------------------------------------------
-    // EMPTY STATE, Thiết kế phẳng, rõ ràng, không AI bloat
-    // ---------------------------------------------------------------------
+    // Empty state
     renderEmptyState(options = {}) {
       const {
         title = 'Không tìm thấy sản phẩm phù hợp',
@@ -283,9 +273,7 @@
       `;
     },
 
-    // ---------------------------------------------------------------------
-    // ERROR STATE, Xử lý sự cố mạng / tải dữ liệu lỗi
-    // ---------------------------------------------------------------------
+    // Error state
     renderErrorState(options = {}) {
       const {
         message = 'Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.',

@@ -96,9 +96,7 @@
         .replace(/'/g, '&#039;');
     },
 
-    // -----------------------------------------------------------------------
-    // PAGINATION CONTROLS & HANDLERS
-    // -----------------------------------------------------------------------
+    // Pagination controls & handlers
     _renderPaginationControls(currentPage, totalPages, totalItems, onPageChangeExpr, itemName = 'mục') {
       if (totalPages <= 1) {
         return `
@@ -211,9 +209,7 @@
       this.refreshBookingsTable();
     },
 
-    // -----------------------------------------------------------------------
-    // DRY UTILITIES & EAGER LOADING AGGREGATORS
-    // -----------------------------------------------------------------------
+    // Dry utilities & eager loading aggregators
     _openModal(htmlContent, isWide = false) {
       const modal = document.getElementById('globalModal');
       const modalBody = document.getElementById('globalModalBody');

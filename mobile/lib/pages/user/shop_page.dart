@@ -476,9 +476,7 @@ class ShopScreen extends StatefulWidget {
                       );
                     },
                   ),
-                  // -------------------------------------------------------------
-                  // PHẦN "CÓ THỂ BẠN CŨNG THÍCH" - CHUẨN SHOPEE
-                  // -------------------------------------------------------------
+                  // Phần "có thể bạn cũng thích"
                   if (relatedProducts.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Row(

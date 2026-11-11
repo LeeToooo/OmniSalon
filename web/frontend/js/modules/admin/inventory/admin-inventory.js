@@ -9,9 +9,7 @@
     inventorySearchQuery: '',
     _receiptItems: [],
 
-    // -----------------------------------------------------------------------
-    // SUB-TAB 5: QUẢN LÝ KHO HÀNG ĐA CHI NHÁNH & PHIẾU NHẬP KHO (TÁCH RIÊNG ĐỘC LẬP)
-    // -----------------------------------------------------------------------
+    // Sub-tab 5: Quản Lý Kho Hàng Đa Chi Nhánh & Phiếu Nhập Kho (tách Riêng Độc Lập)
     switchInventorySubTab(type) {
       this.inventorySubTab = type;
       this.inventoryPage = 1;
@@ -931,9 +929,7 @@
       this.executeUniversalDelete('products', productId);
     },
 
-    // -----------------------------------------------------------------------
-    // QUẢN LÝ PHIẾU NHẬP KHO, INVENTORY RECEIPTS - SQL PHIEUNHAPKHO & CHITIETPHIEUNHAP
-    // -----------------------------------------------------------------------
+    // Quản lý phiếu nhập kho
     // Multi-item Receipt State & Management
     openAddReceiptModal() {
       const user = this.getCurrentUser();
@@ -1325,9 +1321,7 @@
     },
 
     
-    // -----------------------------------------------------------------------
-    // BOTTOM EDITORS CHUẨN FORM QUẢN LÝ CHUỖI CHI NHÁNH (2 CỘT LIỀN MẠCH 1:1)
-    // -----------------------------------------------------------------------
+    // Bottom editors chuẩn form quản lý chuỗi chi nhánh (2 cột liền mạch 1:1)
     _renderProductBottomEditor() {
       const productPresets = [
         'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80',
@@ -1762,9 +1756,7 @@
       this.syncProductPreviewCard();
     },
 
-    // -----------------------------------------------------------------------
-    // BOTTOM EDITOR CHO PHIẾU NHẬP KHO (2 CỘT LIỀN MẠCH 1:1)
-    // -----------------------------------------------------------------------
+    // Bottom editor cho phiếu nhập kho (2 cột liền mạch 1:1)
     _renderReceiptBottomEditor() {
       const user = this.getCurrentUser();
       const branches = window.store.getBranches() || [];
@@ -1953,9 +1945,7 @@
     },
 
 
-    // -----------------------------------------------------------------------
-    // BOTTOM EDITOR CHO NHÀ CUNG CẤP HÀNG HÓA (2 CỘT LIỀN MẠCH 1:1)
-    // -----------------------------------------------------------------------
+    // Bottom editor cho nhà cung cấp hàng hóa (2 cột liền mạch 1:1)
     _renderSupplierBottomEditor() {
       return `
         <div id="adminSupplierBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">
@@ -2190,10 +2180,6 @@
       if (window.UICommon) window.UICommon.showToast(`Đã xóa nhà cung cấp [${name}]!`, 'info');
       this.refreshInventoryView();
     },
-
-    // -----------------------------------------------------------------------
- // QUY TRÌNH XÁC NHẬN XÓA CHUNG TOÀN HỆ THỐNG, UNIFIED DELETE CONFIRM MODAL
-    // Áp dụng 1 form duy nhất cho: Sản Phẩm, Dịch Vụ, Gói Combo, Thợ, Lịch Hẹn
   });
 
 })(typeof window !== "undefined" ? window : this);

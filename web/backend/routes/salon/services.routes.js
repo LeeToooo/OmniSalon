@@ -3,9 +3,7 @@ const { querySql } = require('../../database/db');
 async function handleServiceRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
 
-  // -----------------------------------------------------------------------
-  // DỊCH VỤ LẺ
-  // -----------------------------------------------------------------------
+  // Dịch vụ lẻ
 
   // GET /api/services - Lấy danh mục dịch vụ salon kèm giá khuyến mãi và số sao đánh giá
   if (pathname === '/api/services' && method === 'GET') {
@@ -176,9 +174,7 @@ async function handleServiceRoutes(req, res, ctx) {
     return true;
   }
 
-  // -----------------------------------------------------------------------
-  // GÓI DỊCH VỤ COMBO
-  // -----------------------------------------------------------------------
+  // Gói dịch vụ combo
 
   // GET /api/combos - Lấy danh sách gói combo khuyến mãi trọn gói kèm dịch vụ con
   if (pathname === '/api/combos' && method === 'GET') {

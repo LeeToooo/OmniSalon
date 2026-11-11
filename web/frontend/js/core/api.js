@@ -14,9 +14,7 @@
       }
     },
 
-    // -----------------------------------------------------------------------
-    // HTTP CLIENT HELPER
-    // -----------------------------------------------------------------------
+    // Http client helper
     _getHeaders(customHeaders = {}) {
       const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function')
         ? window.Auth.getAuthHeader()
@@ -71,9 +69,7 @@
       return data;
     },
 
-    // -----------------------------------------------------------------------
-    // MODULE 1: XÁC THỰC & NGƯỜI DÙNG, AUTH & USERS CONTRACTS
-    // -----------------------------------------------------------------------
+    // Module 1: Xác Thực & Người Dùng
     async sendOtp(email) {
       if (this.config.useLiveApi) {
         const live = await this._request('/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) });
@@ -192,9 +188,7 @@
       return window.SalonStore ? window.SalonStore.getUsers() : [];
     },
 
-    // -----------------------------------------------------------------------
-    // MODULE 2: CHI NHÁNH & ĐỘI NGŨ THỢ, BRANCHES & STYLISTS CONTRACTS
-    // -----------------------------------------------------------------------
+    // Module 2: Chi Nhánh & Đội Ngũ Thợ
     async getBranches() {
       const live = await this._request('/branches');
       if (live) return live;
@@ -274,9 +268,7 @@
       return window.SalonStore ? window.SalonStore.deleteStylist(id) : false;
     },
 
-    // -----------------------------------------------------------------------
-    // MODULE 3: DỊCH VỤ & GÓI COMBO VIP, SERVICES & COMBOS CONTRACTS
-    // -----------------------------------------------------------------------
+    // Module 3: Dịch Vụ & Gói Combo VIP
     async getServices(category = null) {
       const endpoint = category ? `/services?category=${category}` : '/services';
       const live = await this._request(endpoint);
@@ -344,9 +336,7 @@
       return window.SalonStore ? window.SalonStore.deleteCombo(id) : false;
     },
 
-    // -----------------------------------------------------------------------
-    // MODULE 4: ĐẶT LỊCH & ĐIỀU PHỐI CA, BOOKINGS CONTRACTS
-    // -----------------------------------------------------------------------
+    // Module 4: Đặt Lịch & Điều Phối Ca
     async getAvailableSlots(date, stylistId, branchId = null, durationMinutes = 45) {
       const live = await this._request(`/bookings/available-slots?date=${date}&stylistId=${stylistId}&branchId=${branchId}&duration=${durationMinutes}`);
       if (live) return live;
@@ -407,9 +397,7 @@
       return window.SalonStore ? window.SalonStore.cancelBooking(bookingId, reason) : false;
     },
 
-    // -----------------------------------------------------------------------
-    // MODULE 5: SẢN PHẨM, KHO HÀNG & POS BÁN LẺ, CATALOG, INVENTORY & POS
-    // -----------------------------------------------------------------------
+    // Module 5: Sản Phẩm
     async getProducts(section = null) {
       const endpoint = section ? `/products?section=${section}` : '/products';
       const live = await this._request(endpoint);
@@ -478,9 +466,7 @@
       return window.SalonStore ? window.SalonStore.getOrders(user.id) : [];
     },
 
-    // -----------------------------------------------------------------------
-    // MODULE 6: AI RESTYLE STUDIO ENGINE, CANVAS + NEURAL CONNECTORS
-    // -----------------------------------------------------------------------
+    // Module 6: AI Restyle Studio Engine
     saveAiConfig(provider, apiKey, endpoint, model) {
       this.config.ai.provider = provider || this.config.ai.provider;
       this.config.ai.apiKey = apiKey !== undefined ? apiKey.trim() : this.config.ai.apiKey;
@@ -754,9 +740,7 @@
       });
     },
 
-    // -----------------------------------------------------------------------
-    // MODULE 7: BÁO CÁO THỐNG KÊ & AUDIT, ANALYTICS & AUDIT CONTRACTS
-    // -----------------------------------------------------------------------
+    // Module 7: Báo Cáo Thống Kê & Audit
     async getRevenueOverview(branchId = null) {
       this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'xem báo cáo doanh thu');
       const endpoint = branchId ? `/analytics/revenue?branch_id=${branchId}` : '/analytics/revenue';
@@ -779,10 +763,7 @@
       return window.SalonStore ? window.SalonStore.getAuditLogs() : [];
     },
 
-    // -----------------------------------------------------------------------
-    // MODULE 8: WAREHOUSE, SUPPLIERS, RULES, INVOICES & NOTIFICATIONS
-    //, Đồng bộ 100% CSDL QL_SALON.sql
-    // -----------------------------------------------------------------------
+    // Module 8: Warehouse
     // Nhà Cung Cấp, NhaCungCap
     async getSuppliers() {
       const live = await this._request('/suppliers');

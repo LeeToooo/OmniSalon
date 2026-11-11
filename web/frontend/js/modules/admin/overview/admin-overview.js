@@ -7,9 +7,7 @@
     overviewChartMode: 'all', // 'all' | 'services' | 'products'
     overviewTimePeriod: 'today', // 'today' | '7days' | 'month'
 
-    // -----------------------------------------------------------------------
-    // BẢNG THÔNG SỐ ĐIỀU HÀNH CHO BIỂU ĐỒ DOANH THU (TINH GỌN, KHÔNG HIỆU ỨNG)
-    // -----------------------------------------------------------------------
+    // Bảng thông số điều hành cho biểu đồ doanh thu (tinh gọn
     showRevenueTooltip(targetEl, event, fullLabel, val, serviceRev, productRev, isHighlight, avgVal) {
       const container = document.getElementById('revenueChartContainer');
       const tooltip = document.getElementById('adminChartBarTooltip');
@@ -122,9 +120,7 @@
       }
     },
 
-    // -----------------------------------------------------------------------
-    // SUB-TAB 1: TỔNG QUAN DOANH THU & KPIS, OVERVIEW - ZERO N+1
-    // -----------------------------------------------------------------------
+    // Sub-tab 1: Tổng Quan Doanh Thu & Kpis
     renderOverviewTab(user, branches, stylists, products, bookings = null, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const allBookings = bookings || ((window.store && window.store.getBookings) ? window.store.getBookings() : []);

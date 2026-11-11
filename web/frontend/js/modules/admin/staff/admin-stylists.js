@@ -8,9 +8,7 @@
     stylistSearchQuery: '',
     filterStylistRole: 'all',
 
-    // -----------------------------------------------------------------------
-    // SUB-TAB 3: ĐỘI NGŨ BARBER & HOA HỒNG, ZERO N+1 WITH STATS MAP
-    // -----------------------------------------------------------------------
+    // Sub-tab 3: Đội Ngũ Barber & Hoa Hồng
     renderStylistsTab(user, stylists, branches, bookings = null, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const allBookings = bookings || ((window.store && window.store.getBookings) ? window.store.getBookings() : []);
@@ -377,9 +375,7 @@
     },
 
     
-    // -----------------------------------------------------------------------
-    // INLINE BOTTOM STYLIST EDITOR (FORM THÊM & SỬA NHÂN SỰ NẰM DƯỚI BẢNG)
-    // -----------------------------------------------------------------------
+    // Inline bottom stylist editor (form thêm & sửa nhân sự nằm dưới bảng)
     _renderStylistBottomEditor(user, branches) {
       const isSuper = this.isSuperAdmin(user);
       const isManager = this.isBranchManager(user);

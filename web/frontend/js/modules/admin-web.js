@@ -2,9 +2,7 @@
   'use strict';
 
   const AdminWeb = {
-    // -----------------------------------------------------------------------
-    // STATE MANAGEMENT
-    // -----------------------------------------------------------------------
+    // State management
     isSidebarCollapsed: (typeof localStorage !== 'undefined' && localStorage.getItem('omni_admin_sidebar_collapsed') === 'true'),
     adminSubTab: 'overview', // 'overview' | 'bookings' | 'stylists' | 'catalog' | 'inventory' | 'pos' | 'audit'
     filterBranch: 'all',
@@ -161,9 +159,7 @@
     }
   };
 
-  // -----------------------------------------------------------------------
-  // EXPOSURE & TƯƠNG THÍCH HỆ THỐNG
-  // -----------------------------------------------------------------------
+  // Exposure & tương thích hệ thống
   window.AdminWeb = AdminWeb;
   window.AdminPortal = AdminWeb;
 

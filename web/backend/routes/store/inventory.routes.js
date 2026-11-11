@@ -493,9 +493,7 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // -----------------------------------------------------------------------
-  // NHÀ CUNG CẤP
-  // -----------------------------------------------------------------------
+  // Nhà cung cấp
 
   // GET /api/suppliers - Danh sách nhà cung cấp
   if (pathname === '/api/suppliers' && method === 'GET') {
@@ -576,9 +574,7 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // -----------------------------------------------------------------------
-  // QUY TAC GIAM GIA THEO HAN DUNG FEFO
-  // -----------------------------------------------------------------------
+  // Quy tac giam gia theo han dung FEFO
 
   // GET /api/discount-rules - Danh sách quy tắc giảm giá cận hạn
   if (pathname === '/api/discount-rules' && method === 'GET') {

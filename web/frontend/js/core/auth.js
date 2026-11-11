@@ -1,9 +1,7 @@
 (function (window) {
   'use strict';
 
-  // --------------------------------------------------------------------------
-  // DOMAIN CONSTANTS & RBAC DEFINITIONS
-  // --------------------------------------------------------------------------
+  // Domain constants & rbac definitions
 
   const ROLES = Object.freeze({
     SUPER_ADMIN: 'SUPER_ADMIN',
@@ -107,13 +105,9 @@
   const ACCESS_TOKEN_EXP_SECONDS = 7200; // 2 giờ
   const REFRESH_TOKEN_EXP_SECONDS = 604800; // 7 ngày
 
-  // --------------------------------------------------------------------------
-  // TÀI KHOẢN MẪU ĐÃ XÁC THỰC
-  // --------------------------------------------------------------------------
+  // Tài khoản mẫu đã xác thực
 
-  // --------------------------------------------------------------------------
-  // 101 TÀI KHOẢN & PHÂN QUYỀN RBAC TRÍCH XUẤT 100% TỪ QL_SALON.sql
-  // --------------------------------------------------------------------------
+  // 101 tài khoản & phân quyền rbac trích xuất 100% từ ql_salon.sql
 
   const RAW_STAFF_SQL = [
     ["NV00","CN01","Lê Minh Hoàng","19008899","admin@omnisalon.vn","Chủ Tịch HĐQT","Quản trị viên"],
@@ -306,9 +300,7 @@
     }))
   ];
 
-  // --------------------------------------------------------------------------
-  // LAYER: VALIDATOR SERVICE, CLEAN INPUT VALIDATION
-  // --------------------------------------------------------------------------
+  // Layer: validator service
 
   class ValidatorService {
     static sanitize(input) {
@@ -356,9 +348,7 @@
     }
   }
 
-  // --------------------------------------------------------------------------
-  // LAYER: TOKEN SERVICE, JWT ENCODING, SIGNING & VERIFICATION WITH CACHE
-  // --------------------------------------------------------------------------
+  // Layer: token service
 
   class TokenService {
     static _tokenCache = new Map(); // Performance: Tránh giải mã JWT lặp đi lặp lại
@@ -472,9 +462,7 @@
     }
   }
 
-  // --------------------------------------------------------------------------
-  // LAYER: USER REPOSITORY, PERSISTENCE ABSTRACTION
-  // --------------------------------------------------------------------------
+  // Layer: user repository
 
   class UserRepository {
     static _serverAccounts = null;
@@ -677,9 +665,7 @@
     }
   }
 
-  // --------------------------------------------------------------------------
-  // LAYER: PERMISSION POLICY SERVICE, RBAC EVALUATION
-  // --------------------------------------------------------------------------
+  // Layer: permission policy service
 
   class PermissionPolicyService {
     static hasRole(user, requiredRoles) {
@@ -718,9 +704,7 @@
     }
   }
 
-  // --------------------------------------------------------------------------
-  // LAYER: SESSION STORAGE SERVICE, STORAGE FACADE
-  // --------------------------------------------------------------------------
+  // Layer: session storage service
 
   class SessionStorageService {
     static saveSession(accessToken, refreshToken, user) {
@@ -753,9 +737,7 @@
     }
   }
 
-  // --------------------------------------------------------------------------
-  // LAYER: AUTH ENGINE, FACADE PATTERN — PUBLIC API
-  // --------------------------------------------------------------------------
+  // Layer: auth engine
 
   class AuthEngine {
     constructor() {
@@ -1398,9 +1380,7 @@
     }
   }
 
-  // --------------------------------------------------------------------------
-  // EXPOSURE
-  // --------------------------------------------------------------------------
+  // Exposure
 
   const authInstance = new AuthEngine();
   authInstance.normalizeRole = normalizeRole;

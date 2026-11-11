@@ -179,9 +179,7 @@
       }
     },
 
-    // -------------------------------------------------------------
-    // 1. Danh sách lịch hẹn cắt tóc
-    // -------------------------------------------------------------
+    // Danh sách lịch hẹn cắt tóc
     renderBookingsTab(bookings) {
       if (!bookings || bookings.length === 0) {
         return `
@@ -295,9 +293,7 @@
       `;
     },
 
-    // -------------------------------------------------------------
-    // 2. Danh sách đơn hàng mỹ phẩm
-    // -------------------------------------------------------------
+    // Danh sách đơn hàng mỹ phẩm
     renderOrdersTab(orders) {
       if (!orders || orders.length === 0) {
         return `
@@ -554,9 +550,7 @@
       `;
     },
 
-    // -------------------------------------------------------------
-    // 3. Bộ sưu tập ảnh kiểu tóc AI
-    // -------------------------------------------------------------
+    // Bộ sưu tập ảnh kiểu tóc AI
     renderGalleryTab(gallery) {
       if (!gallery || gallery.length === 0) {
         return `
@@ -609,9 +603,7 @@
       `;
     },
 
-    // -------------------------------------------------------------
-    // 4. Cài đặt thông tin cá nhân
-    // -------------------------------------------------------------
+    // Cài đặt thông tin cá nhân
     renderAccountTab(user) {
       return `
         <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 28px; max-width: 600px;">

@@ -1286,9 +1286,7 @@
 
       return '';
     },
-    // -----------------------------------------------------------------------
-    // MODALS & OPERATIONS FOR AUDIT, USERS, INVOICES
-    // -----------------------------------------------------------------------
+    // Modals & operations for audit
     openUserRoleModal(userId) {
       if (!userId) return;
       const users = (window.store && typeof window.store.getUsers === 'function') ? window.store.getUsers() : [];
