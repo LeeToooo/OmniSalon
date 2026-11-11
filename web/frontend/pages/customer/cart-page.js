@@ -619,7 +619,7 @@
           <p style="font-size: 13.5px; color: #94A3B8; margin: 0 0 20px;">Cảm ơn quý khách đã tin dùng sản phẩm chăm sóc tóc nam chính hãng tại Omni Salon.</p>
 
           <div style="background: rgba(255, 255, 255, 0.04); border-radius: 10px; padding: 16px; margin-bottom: 24px; text-align: left; font-size: 13.5px; line-height: 1.8;">
-            <div><strong style="color: #94A3B8;">Mã đơn hàng:</strong> <span style="color: #F59E0B; font-weight: 800; font-family: monospace;">#${orderCode}</span></div>
+            <div><strong style="color: #94A3B8;">Mã đơn hàng:</strong> <span style="color: #F59E0B; font-weight: 800; font-family: monospace;">${orderCode}</span></div>
             <div><strong style="color: #94A3B8;">Người nhận:</strong> ${this.escapeHtml(this.checkoutData.recipientName)} (${this.escapeHtml(this.checkoutData.recipientPhone)})</div>
             <div><strong style="color: #94A3B8;">Hình thức:</strong> ${this.checkoutData.deliveryType === 'PICKUP_BRANCH' ? 'Nhận hàng tại chi nhánh salon' : `Giao tận nơi: ${this.escapeHtml(this.checkoutData.recipientAddress)}`}</div>
             <div><strong style="color: #94A3B8;">Phương thức:</strong> ${this.checkoutData.paymentMethod === 'VIETQR' ? 'Chuyển khoản VietQR' : (this.checkoutData.paymentMethod === 'MOMO' ? 'Ví MoMo/ZaloPay' : 'Thanh toán khi nhận hàng')}</div>

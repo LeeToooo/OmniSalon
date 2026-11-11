@@ -72,7 +72,7 @@
         statusBox.innerHTML = `
           <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 8px; padding: 12px; color: #10B981; font-weight: 800; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <span style="font-size: 18px;">✓</span>
-            <span>Chuyển khoản thành công! Lịch hẹn #${bookingCode} đã được tự động xác nhận.</span>
+            <span>Chuyển khoản thành công! Lịch hẹn ${bookingCode} đã được tự động xác nhận.</span>
           </div>
         `;
       }
@@ -82,7 +82,7 @@
       }
 
       if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-        window.UICommon.showToast(`Lịch hẹn #${bookingCode} đã xác nhận thanh toán thành công!`, 'success');
+        window.UICommon.showToast(`Lịch hẹn ${bookingCode} đã xác nhận thanh toán thành công!`, 'success');
       }
 
       // Đóng modal sau 2.5 giây để khách thấy thông báo xác nhận thành công
@@ -157,7 +157,7 @@
       const modalHtml = `
         <div class="order-payment-modal-box" style="max-width: 480px; margin: 0 auto; text-align: center; padding: 10px 4px;">
           <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
-            Thanh Toán Lịch Hẹn #${escapeFn(bCode)}
+            Thanh Toán Lịch Hẹn ${escapeFn(bCode)}
           </h3>
           <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;">
             Quét mã VietQR bằng app ngân hàng hoặc chuyển khoản theo thông tin bên dưới:
@@ -274,7 +274,7 @@
         await window.store.payBooking(bookingCode);
       }
       if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-        window.UICommon.showToast(`Lịch hẹn #${bookingCode} đã ghi nhận thanh toán VietQR thành công!`, 'success');
+        window.UICommon.showToast(`Lịch hẹn ${bookingCode} đã ghi nhận thanh toán VietQR thành công!`, 'success');
       }
       if (typeof this.closeBookingPaymentModal === 'function') {
         this.closeBookingPaymentModal();

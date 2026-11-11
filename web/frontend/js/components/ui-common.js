@@ -1354,7 +1354,7 @@ const UICommon = {
     this.cartState.recipientPhone = '';
 
     this.updateCartBadges();
-    UICommon.showToast(`Đặt đơn hàng #${order.id} thành công!`, 'success');
+    UICommon.showToast(`Đặt đơn hàng ${order.id} thành công!`, 'success');
 
     // Mở popup thành công  nếu VietQR thì hiện mã QR thanh toán 
     this.openOrderSuccessModal(order, paymentMethodKey);
@@ -1376,7 +1376,7 @@ const UICommon = {
         <div class="success-icon" style="background:#10b981; margin: 0 auto 12px; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 900;">✓</div>
         <h2 class="font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; margin-bottom: 6px;">ĐẶT HÀNG THÀNH CÔNG!</h2>
         <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 18px;">
-          Mã đơn hàng: <strong style="color: #C59B27;">#${order.id}</strong>. Bộ phận kho OMNI sẽ chuẩn bị và giao sớm nhất đến quý khách.
+          Mã đơn hàng: <strong style="color: #C59B27;">${order.id}</strong>. Bộ phận kho OMNI sẽ chuẩn bị và giao sớm nhất đến quý khách.
         </p>
 
         ${paymentMethodKey === 'VIETQR' ? `
@@ -1482,12 +1482,12 @@ const UICommon = {
     if (statusBox) {
       statusBox.innerHTML = `
         <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 6px; padding: 8px 12px; color: #10B981; font-weight: 800; font-size: 12px;">
-          ✓ Đã xác nhận chuyển khoản ngân hàng thành công! Đơn hàng #${orderId} đang được đóng gói.
+          ✓ Đã xác nhận chuyển khoản ngân hàng thành công! Đơn hàng ${orderId} đang được đóng gói.
         </div>
       `;
     }
     if (window.UICommon) {
-      window.UICommon.showToast(`Đơn hàng #${orderId} đã được tự động xác nhận thanh toán!`, 'success');
+      window.UICommon.showToast(`Đơn hàng ${orderId} đã được tự động xác nhận thanh toán!`, 'success');
     }
   },
 
