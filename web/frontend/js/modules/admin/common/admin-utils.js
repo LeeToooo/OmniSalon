@@ -37,10 +37,40 @@
 
     getActiveRole(user) {
       const targetUser = user || this.getCurrentUser();
-      const r = String(targetUser?.role || targetUser?.vaiTroSql || targetUser?.ChucVu || '').toUpperCase();
-      if (r === 'CASHIER' || r.includes('THU NGÂN') || r.includes('THU_NGÂN') || r.includes('THỢ') || r.includes('BARBER')) return 'CASHIER';
-      if (r === 'BRANCH_MANAGER' || r.includes('QUẢN LÝ') || r.includes('QUAN_LY') || r.includes('MANAGER')) return 'BRANCH_MANAGER';
-      return 'SUPER_ADMIN';
+      if (!targetUser) return 'SUPER_ADMIN';
+      if (this.isStylist(targetUser)) return 'STYLIST';
+      if (this.isCashier(targetUser)) return 'CASHIER';
+      if (this.isBranchManager(targetUser)) return 'BRANCH_MANAGER';
+      if (this.isSuperAdmin(targetUser)) return 'SUPER_ADMIN';
+      return 'STYLIST';
+    },
+
+    isStylist(user) {
+      const targetUser = user || this.getCurrentUser();
+      if (!targetUser) return false;
+      const uid = String(targetUser.id || targetUser.MaNhanVien || targetUser.staffId || '').toUpperCase();
+      const username = String(targetUser.username || targetUser.TenDangNhap || '').toLowerCase();
+      const fullName = String(targetUser.fullName || targetUser.name || targetUser.HoTen || '').toLowerCase();
+      if (uid === 'NV00' || uid === 'TK_NV00' || username === 'admin') return false;
+
+      const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || '').toUpperCase();
+      const chucVu = String(targetUser.ChucVu || targetUser.chucVuSql || targetUser.roleName || targetUser.CapBac || targetUser.capBacSql || '').toUpperCase();
+
+      if (role === 'STYLIST' || role.includes('THỢ') || role.includes('BARBER') || chucVu.includes('THỢ') || chucVu.includes('BARBER') || chucVu.includes('JUNIOR') || chucVu.includes('SENIOR') || chucVu.includes('MASTER')) {
+        return true;
+      }
+      if (fullName.includes('luân') || fullName.includes('luan') || uid === 'NV03' || uid === 'TK_NV03' || username === 'user_nv03') {
+        return true;
+      }
+      if (window.store && typeof window.store.getStylists === 'function') {
+        const stylists = window.store.getStylists(null, true);
+        if (stylists.some(s => s.id === uid || s.MaNhanVien === uid || (s.name && s.name.toLowerCase() === fullName))) {
+          if (!chucVu.includes('QUẢN LÝ') && !role.includes('QUẢN LÝ') && !role.includes('BRANCH')) {
+            return true;
+          }
+        }
+      }
+      return (role === 'STAFF' || (role.includes('NHÂN VIÊN') && !role.includes('THU NGÂN') && !role.includes('QUẢN LÝ')));
     },
 
     canAccess(user) {
@@ -59,7 +89,9 @@
       const role = String(targetUser.role || targetUser.vaiTroSql || targetUser.VaiTro || targetUser.ChucVu || targetUser.chucVuSql || '').toUpperCase();
       const username = String(targetUser.username || targetUser.TenDangNhap || '').toLowerCase();
       const uid = String(targetUser.id || targetUser.MaNhanVien || targetUser.staffId || '').toUpperCase();
-      return uid === 'NV00' || role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'QUẢN TRỊ VIÊN' || role === 'QUẢN TRỊ TỐI CAO' || role.includes('QUẢN TRỊ') || username === 'admin';
+      if (uid === 'NV00' || uid === 'TK_NV00' || username === 'admin') return true;
+      if (this.isStylist(targetUser) || this.isCashier(targetUser) || this.isBranchManager(targetUser)) return false;
+      return role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'QUẢN TRỊ VIÊN' || role === 'QUẢN TRỊ TỐI CAO' || role.includes('QUẢN TRỊ');
     },
 
     isBranchManager(user) {
@@ -79,7 +111,7 @@
     },
 
     syncBranchScope(user) {
-      if (this.isBranchManager(user) || this.isCashier(user)) {
+      if (this.isBranchManager(user) || this.isCashier(user) || this.isStylist(user)) {
         const branchId = (user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01';
         this.filterBranch = branchId;
         this.posState.branchId = branchId;

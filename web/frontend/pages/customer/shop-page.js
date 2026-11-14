@@ -1718,7 +1718,7 @@
           if (window.UICommon && typeof window.UICommon.showToast === 'function') {
             window.UICommon.showToast('Sản phẩm đã hết hạn sử dụng (Thu hồi tiêu hủy), không thể bán.', 'error');
           } else {
-            alert('Sản phẩm đã hết hạn sử dụng (Thu hồi tiêu hủy), không thể bán.');
+            // Thong bao qua toast hop nhat
           }
           return;
         }
@@ -1741,7 +1741,7 @@
           if (window.UICommon && typeof window.UICommon.showToast === 'function') {
             window.UICommon.showToast('Sản phẩm đã hết hạn sử dụng (Thu hồi tiêu hủy), không thể bán.', 'error');
           } else {
-            alert('Sản phẩm đã hết hạn sử dụng (Thu hồi tiêu hủy), không thể bán.');
+            // Thong bao qua toast hop nhat
           }
           return;
         }

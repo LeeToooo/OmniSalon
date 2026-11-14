@@ -154,7 +154,7 @@
           </div>
 
           <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; font-size: 12px; color: #ef4444; line-height: 1.5; text-align: left;">
-            ⚠️ <strong>Lưu ý:</strong> Đơn hàng sau khi hủy sẽ không thể phục hồi. Sản phẩm sẽ được hoàn lại kho.
+            <strong>Lưu ý:</strong> Đơn hàng sau khi hủy sẽ không thể phục hồi. Sản phẩm sẽ được hoàn lại kho.
           </div>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">

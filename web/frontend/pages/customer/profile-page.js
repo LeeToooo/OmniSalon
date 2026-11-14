@@ -33,8 +33,8 @@
         container.innerHTML = `
           <div class="profile-page-shell" style="background-color: var(--bg-primary); min-height: 80vh; padding: 60px 20px; display: flex; align-items: center; justify-content: center;">
             <div style="max-width: 480px; width: 100%; text-align: center; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-              <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(197, 155, 39, 0.15); border: 2px solid #C59B27; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
-                👤
+              <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(197, 155, 39, 0.15); border: 2px solid #C59B27; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#C59B27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
               <h2 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">Tài Khoản Omni Salon</h2>
               <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
@@ -111,8 +111,8 @@
                       ` : ''}
                     </div>
                     <div style="font-size: 13.5px; color: var(--text-secondary); display: flex; gap: 16px; flex-wrap: wrap;">
-                      <span>📞 ${user.phone || 'Chưa cập nhật SĐT'}</span>
-                      <span>✉️ ${user.email || 'khachhang@omnisalon.vn'}</span>
+                      <span style="display: inline-flex; align-items: center; gap: 5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> ${user.phone || 'Chưa cập nhật SĐT'}</span>
+                      <span style="display: inline-flex; align-items: center; gap: 5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> ${user.email || 'khachhang@omnisalon.vn'}</span>
                     </div>
                   </div>
                 </div>
@@ -141,16 +141,16 @@
             <!-- 2. NAVIGATION TABS TRANG PROFILE -->
             <div class="profile-nav-tabs" style="display: flex; gap: 10px; border-bottom: 2px solid var(--border-color); margin-bottom: 24px; overflow-x: auto; padding-bottom: 6px;">
               <button class="profile-tab-btn ${this.activeTab === 'bookings' ? 'active' : ''}" onclick="ProfilePage.setTab('bookings')" style="padding: 12px 20px; font-size: 14.5px; font-weight: 700; border: none; background: ${this.activeTab === 'bookings' ? '#f59e0b' : 'transparent'}; color: ${this.activeTab === 'bookings' ? '#000000' : 'var(--text-secondary)'}; border-radius: 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
-                📅 Lịch Hẹn Cắt Tóc (${userBookings.length})
+                Lịch Hẹn Cắt Tóc (${userBookings.length})
               </button>
               <button class="profile-tab-btn ${this.activeTab === 'orders' ? 'active' : ''}" onclick="ProfilePage.setTab('orders')" style="padding: 12px 20px; font-size: 14.5px; font-weight: 700; border: none; background: ${this.activeTab === 'orders' ? '#f59e0b' : 'transparent'}; color: ${this.activeTab === 'orders' ? '#000000' : 'var(--text-secondary)'}; border-radius: 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
-                📦 Đơn Hàng Mỹ Phẩm (${userOrders.length})
+                Đơn Hàng Mỹ Phẩm (${userOrders.length})
               </button>
               <button class="profile-tab-btn ${this.activeTab === 'gallery' ? 'active' : ''}" onclick="ProfilePage.setTab('gallery')" style="padding: 12px 20px; font-size: 14.5px; font-weight: 700; border: none; background: ${this.activeTab === 'gallery' ? '#f59e0b' : 'transparent'}; color: ${this.activeTab === 'gallery' ? '#000000' : 'var(--text-secondary)'}; border-radius: 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
-                ✂️ Thư Viện Tóc AI (${galleryItems.length})
+                Thư Viện Tóc AI (${galleryItems.length})
               </button>
               <button class="profile-tab-btn ${this.activeTab === 'account' ? 'active' : ''}" onclick="ProfilePage.setTab('account')" style="padding: 12px 20px; font-size: 14.5px; font-weight: 700; border: none; background: ${this.activeTab === 'account' ? '#f59e0b' : 'transparent'}; color: ${this.activeTab === 'account' ? '#000000' : 'var(--text-secondary)'}; border-radius: 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
-                ⚙️ Cài Đặt Tài Khoản
+                Cài Đặt Tài Khoản
               </button>
             </div>
 
@@ -184,7 +184,7 @@
       if (!bookings || bookings.length === 0) {
         return `
           <div style="padding: 48px 20px; text-align: center; background: var(--surface-card); border-radius: 16px; border: 1px dashed var(--border-color);">
-            <div style="font-size: 40px; margin-bottom: 12px;">📅</div>
+            <div style="margin-bottom: 14px; color: var(--brand-accent);"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
             <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Bạn Chưa Có Lịch Hẹn Nào!</h3>
             <p style="font-size: 14px; color: var(--text-secondary); max-width: 440px; margin: 0 auto 20px; line-height: 1.6;">
               Đặt lịch hẹn trước với Master Stylist yêu thích tại Omni Salon để trải nghiệm dịch vụ cắt tóc và uốn tạo kiểu đỉnh cao mà không phải chờ đợi.
@@ -252,6 +252,13 @@
                       <div><strong style="color: var(--text-primary);">Thanh toán:</strong> ${payMethodLabel} • <strong style="color: ${isPaid ? '#10B981' : '#f59e0b'};">${isPaid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</strong></div>
                     </div>
 
+                    ${isCancelled ? `
+                      <div style="font-size: 12px; color: #ef4444; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 6px 10px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span><strong>Lý do hủy:</strong> ${window.SalonUtils ? window.SalonUtils.escapeHtml(b.LyDoHuy || b.cancelReason || '[Hệ Thống] Tự động hủy qua 12h đêm do khách không đến theo lịch hẹn.') : (b.LyDoHuy || b.cancelReason || '[Hệ Thống] Tự động hủy qua 12h đêm do khách không đến theo lịch hẹn.')}</span>
+                      </div>
+                    ` : ''}
+
                     ${bReview ? `
                       <div style="font-size: 12.5px; color: var(--text-secondary); padding: 8px 12px; background: rgba(245, 158, 11, 0.08); border-radius: 8px; margin-bottom: 12px;">
                         <span style="color: #f59e0b;">${'★'.repeat(bReview.rating || 5)}${'☆'.repeat(5 - (bReview.rating || 5))}</span>
@@ -267,7 +274,7 @@
                     </button>
                     ${(!isPaid && !isCancelled) ? `
                       <button type="button" class="pill-btn-outline btn-pay" style="font-size: 12px; padding: 5px 12px; color: #10B981 !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.openBookingPaymentModal('${bCode}')">
-                        💳 Thanh Toán VietQR
+                        Thanh Toán VietQR
                       </button>
                     ` : ''}
                     ${(!isCancelled) ? (bReview ? `
@@ -298,7 +305,7 @@
       if (!orders || orders.length === 0) {
         return `
           <div style="padding: 48px 20px; text-align: center; background: var(--surface-card); border-radius: 16px; border: 1px dashed var(--border-color);">
-            <div style="font-size: 40px; margin-bottom: 12px;">📦</div>
+            <div style="margin-bottom: 14px; color: var(--brand-accent);"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div>
             <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Bạn Chưa Có Đơn Hàng Mỹ Phẩm Nào!</h3>
             <p style="font-size: 14px; color: var(--text-secondary); max-width: 440px; margin: 0 auto 20px; line-height: 1.6;">
               Khám phá ngay bộ sưu tập sáp vuốt tóc, pomade chính hãng Brosh, Hanz de Fuko và dầu dưỡng cao cấp tại Omni Salon Shop.
@@ -318,7 +325,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
               <span style="font-size: 17px; font-weight: 800; color: var(--text-primary);">
-                📦 Lịch sử mua hàng &amp; Tiến trình vận chuyển
+                Lịch Sử Mua Hàng &amp; Tiến Trình Vận Chuyển
               </span>
               <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 800;">
                 ${orders.length} đơn
@@ -382,7 +389,7 @@
                   <!-- Visual Timeline 4 Buoc -->
                   ${isCancelled ? `
                     <div style="padding: 16px 20px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; font-size: 15px; font-weight: 700; color: #ef4444; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                      <span style="font-size: 20px;">❌</span> <span>Đơn hàng đã được hủy bỏ.</span>
+                      <span style="display: inline-flex; align-items: center; gap: 8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> Đơn hàng đã được hủy bỏ.</span>
                     </div>
                   ` : `
                     <div class="order-status-timeline-large" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; padding: 18px 24px; background: var(--surface-elevated, rgba(255, 255, 255, 0.03)); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); border-radius: 14px;">
@@ -427,7 +434,7 @@
                   <!-- Danh sach mon hang -->
                   <div style="background: var(--surface-elevated, rgba(255, 255, 255, 0.02)); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); border-radius: 14px; padding: 20px 24px; margin-bottom: 20px;">
                     <div style="font-size: 13.5px; font-weight: 800; color: var(--text-secondary, #575752); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-                      <span>📦</span> SẢN PHẨM TRONG ĐƠN:
+                      SẢN PHẨM TRONG ĐƠN:
                     </div>
                     
                     <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -483,10 +490,10 @@
 
                     <div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-color, rgba(255, 255, 255, 0.12)); font-size: 14.5px; color: var(--text-secondary, #575752); display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center;">
                       <div>
-                        <span>📍 Hình thức:</span> <strong style="color: var(--text-primary, #141413); margin-left: 4px;">${o.shippingAddress || (o.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nơi')}</strong>
+                        <span>Hình thức:</span> <strong style="color: var(--text-primary, #141413); margin-left: 4px;">${o.shippingAddress || (o.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nơi')}</strong>
                       </div>
                       <div>
-                        <span>💳 Thanh toán:</span> <strong style="color: ${isPaid ? '#10B981' : '#f59e0b'}; margin-left: 4px;">${isPaid ? 'Đã thanh toán (VietQR)' : 'Chưa thanh toán'}</strong>
+                        <span>Thanh toán:</span> <strong style="color: ${isPaid ? '#10B981' : '#f59e0b'}; margin-left: 4px;">${isPaid ? 'Đã thanh toán (VietQR)' : 'Chưa thanh toán'}</strong>
                       </div>
                     </div>
                   </div>
@@ -504,7 +511,7 @@
                     <div>
                       ${isDelivering ? `
                         <span style="font-size: 13.5px; color: #0284c7; background: rgba(2, 132, 199, 0.12); border: 1px solid rgba(2, 132, 199, 0.35); padding: 8px 16px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                          🚚 Đơn hàng đang được vận chuyển - Không thể hủy
+                          Đơn hàng đang được vận chuyển - Không thể hủy
                         </span>
                       ` : (isCompleted ? `
                         <span style="font-size: 13.5px; color: #10B981; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 8px 16px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
@@ -516,7 +523,7 @@
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                       ${(!isPaid && !isCancelled) ? `
                         <button type="button" class="btn-order-action btn-pay" style="font-size: 13.5px; padding: 9px 20px; color: #10B981 !important; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
-                          💳 Thanh Toán VietQR
+                          Thanh Toán VietQR
                         </button>
                       ` : ''}
 
@@ -555,7 +562,7 @@
       if (!gallery || gallery.length === 0) {
         return `
           <div style="padding: 48px 20px; text-align: center; background: var(--surface-card); border-radius: 16px; border: 1px dashed var(--border-color);">
-            <div style="font-size: 40px; margin-bottom: 12px;">✂️</div>
+            <div style="margin-bottom: 14px; color: var(--brand-accent);"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg></div>
             <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Chưa Có Kiểu Tóc Nào Trong Bộ Sưu Tập!</h3>
             <p style="font-size: 14px; color: var(--text-secondary); max-width: 440px; margin: 0 auto 20px; line-height: 1.6;">
               Trải nghiệm công nghệ AI Studio của Omni Salon: Tải ảnh chân dung của bạn lên và thử ngay 10+ kiểu tóc Fade, Mullet, Sidepart hot trend hoàn toàn miễn phí.

@@ -294,8 +294,6 @@
       if (!this.bookingState.serviceIds || this.bookingState.serviceIds.length === 0) {
         if (window.UICommon && typeof window.UICommon.showToast === 'function') {
           window.UICommon.showToast('Vui lòng chọn ít nhất 1 dịch vụ hoặc gói combo ở Bước 1 trước!', 'warning');
-        } else if (typeof alert === 'function') {
-          alert('Vui lòng chọn ít nhất 1 dịch vụ hoặc gói combo ở Bước 1 trước!');
         }
         this.expandedSteps.step1 = true;
         this.expandedSteps.step2 = false;
@@ -309,8 +307,6 @@
       if (stepKey === 'step4' && (!this.bookingState.timeSlot || !this.bookingState.date)) {
         if (window.UICommon && typeof window.UICommon.showToast === 'function') {
           window.UICommon.showToast('Vui lòng chọn ngày và giờ hẹn ở Bước 3 trước!', 'warning');
-        } else if (typeof alert === 'function') {
-          alert('Vui lòng chọn ngày và giờ hẹn ở Bước 3 trước!');
         }
         this.expandedSteps.step3 = true;
         this.render(this.currentContainer || document.getElementById('webMainContainer'));
@@ -829,7 +825,7 @@
               <div onclick="BookingPage.onSelectStylist('${s.id}')"
                    style="padding: 20px; border-radius: 14px; cursor: pointer; border: 2px solid ${this.bookingState.stylistId === s.id ? '#f59e0b' : 'var(--border-color)'}; background: ${this.bookingState.stylistId === s.id ? 'rgba(245, 158, 11, 0.08)' : 'var(--surface-card)'}; text-align: center; transition: all 0.2s ease;">
                 <div style="width: 72px; height: 72px; margin: 0 auto 12px; border-radius: 50%; overflow: hidden; border: 2px solid #f59e0b;">
-                  <img src="${s.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=140&q=80'}" style="width: 100%; height: 100%; object-fit: cover;" alt="${s.name}" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150';">
+                  <img src="${s.avatar || '/DataPicture/ChanDungTho/Tho1.jpg'}" style="width: 100%; height: 100%; object-fit: cover;" alt="${s.name}" onerror="this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
                 </div>
                 <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">${s.name}</h4>
                 <div style="margin-bottom: 6px; display: flex; justify-content: center; gap: 6px; align-items: center;">

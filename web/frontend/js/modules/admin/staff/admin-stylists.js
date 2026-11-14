@@ -131,7 +131,7 @@
               <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                   <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 14px;">
-                    <img src="${st.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80'}" 
+                    <img src="${st.avatar || '/DataPicture/ChanDungTho/Tho1.jpg'}" onerror="this.src='/DataPicture/ChanDungTho/Tho1.jpg';" 
                          style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid ${isCashier ? '#10b981' : isAssis ? '#0ea5e9' : '#f59e0b'};" alt="${this.escapeHtml(st.name)}">
                     <div style="flex: 1; min-width: 0;">
                       <div style="display: flex; justify-content: space-between; align-items: baseline;">
@@ -382,11 +382,11 @@
       const defaultBranchId = (isManager && user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01';
 
       const avatarPresets = [
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80'
+        '/DataPicture/ChanDungTho/Tho1.jpg',
+        '/DataPicture/ChanDungTho/Tho2.jpg',
+        '/DataPicture/ChanDungTho/Tho3.jpg',
+        '/DataPicture/ChanDungTho/Tho4.jpg',
+        '/DataPicture/ChanDungTho/Tho5.jpg'
       ];
 
       return `
@@ -646,7 +646,7 @@
       if (phoneInput) phoneInput.value = '';
       if (emailInput) emailInput.value = '';
       if (specialtyInput) specialtyInput.value = '';
-      if (avatarInput) avatarInput.value = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80';
+      if (avatarInput) avatarInput.value = '/DataPicture/ChanDungTho/Tho1.jpg';
 
       if (titleEl) {
         titleEl.textContent = 'Thêm Nhân Viên / Thợ Mới';
@@ -774,11 +774,11 @@
       const branchId = st?.branchId || ((!isSuper && isManager && user?.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : 'CN01'));
 
       const avatarPresets = [
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80'
+        '/DataPicture/ChanDungTho/Tho1.jpg',
+        '/DataPicture/ChanDungTho/Tho2.jpg',
+        '/DataPicture/ChanDungTho/Tho3.jpg',
+        '/DataPicture/ChanDungTho/Tho4.jpg',
+        '/DataPicture/ChanDungTho/Tho5.jpg'
       ];
 
       this._openModal(`

@@ -16,6 +16,9 @@ const { getCorsOrigin, ALLOWED_ORIGINS } = require('./middlewares/auth_middlewar
 // Router điều hướng các api
 const handleApiRoutes = require('./routes');
 
+// Bộ lập lịch tự động kích hoạt hủy lịch hẹn/đơn hàng quá hạn qua 12h đêm
+const { startMidnightAutoCancelScheduler } = require('./services/auto_cancel_service');
+
 // Đường dẫn thư mục gốc và thư mục frontend giao diện
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 const FRONTEND_DIR = path.join(ROOT_DIR, 'web', 'frontend');
@@ -103,19 +106,14 @@ const server = http.createServer(async (req, res) => {
       }
       relPath = relPath.replace(/^web\/frontend\//, '').replace(/^frontend\//, '').replace(/^web\//, '');
 
-      // Tìm kiếm file tại thư mục gốc dự án hoặc thư mục frontend
+      // Phục vụ file tĩnh từ DataPicture, thư mục gốc hoặc frontend
+      const cleanRelPath = relPath.replace(/^DataPicture\//i, '');
       const candidatePaths = [
+        path.join(ROOT_DIR, 'DataPicture', cleanRelPath),
         path.join(ROOT_DIR, relPath),
-        path.join(ROOT_DIR, 'Men_Grooming_Products', relPath),
+        path.join(FRONTEND_DIR, 'DataPicture', cleanRelPath),
         path.join(FRONTEND_DIR, relPath)
       ];
-
-      if (relPath.startsWith('ChiNhanh_Omni/')) {
-        candidatePaths.push(path.join(ROOT_DIR, 'Men_Grooming_Products', 'ChiNhanh_Omni', path.basename(relPath)));
-      }
-      if (relPath.startsWith('DichVu_Men/')) {
-        candidatePaths.push(path.join(ROOT_DIR, 'Men_Grooming_Products', 'DichVu_Men', path.basename(relPath)));
-      }
 
       for (const targetPath of candidatePaths) {
         if (fs.existsSync(targetPath)) {
@@ -171,6 +169,7 @@ const server = http.createServer(async (req, res) => {
 // KHỞI ĐỘNG MÁY CHỦ VỚI CƠ CHẾ DÒ TÌM CỔNG DỰ PHÒNG
 async function startServer() {
   await initDbConnection();
+  startMidnightAutoCancelScheduler();
 
   // Danh sách các cổng có thể lắng nghe nếu cổng mặc định bị chiếm dụng
   const CANDIDATE_PORTS = [

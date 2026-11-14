@@ -595,58 +595,6 @@
         suggestedProduct: backendRes ? backendRes.suggestedProduct : null
       };
 
-      const { provider, apiKey, endpoint, model } = this.config.ai;
-
-      // Hugging Face Inference Connector
-      if (provider === 'huggingface' && apiKey) {
-        try {
-          const prompt = `portrait photo of a handsome man with modern ${hairstyleName} haircut, dyed hair ${hairColorName}, photorealistic, barbershop styling, sharp facial focus, 8k uhd, cinematic lighting`;
-          const res = await fetch(endpoint || `https://api-inference.huggingface.co/models/${model}`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ inputs: prompt, parameters: { negative_prompt: 'deformed, blurry, bad hair, female, cartoon', guidance_scale: 7.5 } })
-          });
-          if (res.ok) {
-            const blob = await res.blob();
-            return new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve({
-                success: true,
-                resultImageUrl: reader.result,
-                providerUsed: 'Hugging Face API',
-                hairstyle: hairstyleName,
-                color: hairColorName
-              });
-              reader.readAsDataURL(blob);
-            });
-          }
-        } catch (e) {
-          console.warn('[SalonApi] HuggingFace inference failed, fallback to Smart Canvas:', e);
-        }
-      }
-
-      // Replicate / OpenAI / Custom Connector
-      if ((provider === 'openai' || provider === 'replicate' || provider === 'custom') && apiKey && endpoint) {
-        try {
-          const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: originalImageBase64, hairstyle: hairstyleName, hair_color: hairColorName, prompt: customPrompt })
-          });
-          if (res.ok) {
-            const data = await res.json();
-            const resultUrl = data.output_url || data.result_image || (data.data && data.data[0]?.url) || data.imageUrl;
-            if (resultUrl) {
-              return { success: true, resultImageUrl: resultUrl, providerUsed: `${provider.toUpperCase()} Vision API`, hairstyle: hairstyleName, color: hairColorName };
-            }
-          }
-        } catch (e) {
-          console.warn('[SalonApi] Custom Vision API failed, fallback to Smart Canvas:', e);
-        }
-      }
-
-      // Smart Canvas High-Resolution Neural Restyle, 100% Reliable Native Fallback
-      return this._generateSmartRealisticRestyle(originalImageBase64, hairstyleName, hairColorName, hairColorHex);
     },
 
     _generateSmartRealisticRestyle(imageBase64, hairstyleName, hairColorName, hairColorHex) {
@@ -816,7 +764,7 @@
     },
 
     async createReceipt(receiptData) {
-      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'tạo phiếu nhập kho');
+      this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER', 'STYLIST', 'STAFF'], 'tạo phiếu nhập kho');
       return await this._request('/inventory/receipts', { method: 'POST', body: JSON.stringify(receiptData) });
     },
 

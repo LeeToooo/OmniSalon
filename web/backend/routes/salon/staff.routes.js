@@ -1,13 +1,19 @@
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 
-// Đường dẫn ảnh chân dung nhân viên cục bộ (Yêu cầu tải thủ công 20 ảnh nhân viên thật đặt vào thư mục web/frontend/uploads/staff/ hoặc assets/images/staff/ dạng staff_<id>.png)
+// Đường dẫn ảnh chân dung thợ thật từ thư mục ChanDungTho (Tho1.jpg -> Tho20.jpg)
 function getBarberAvatar(id, name, fallback) {
   if (fallback && fallback.trim().length > 0 && !fallback.includes('images.unsplash.com')) {
     return fallback.trim();
   }
-  const cleanId = String(id || name || 'default').toLowerCase().replace(/[^a-z0-9_-]/g, '');
-  return `/uploads/staff/staff_${cleanId}.png`;
+  const str = String(id || name || '').toUpperCase();
+  const match = str.match(/(\d+)/);
+  let thoIdx = 1;
+  if (match) {
+    const n = parseInt(match[1], 10);
+    thoIdx = ((n - 1) % 20) + 1;
+  }
+  return `/DataPicture/ChanDungTho/Tho${thoIdx}.jpg`;
 }
 
 async function handleStaffRoutes(req, res, ctx) {

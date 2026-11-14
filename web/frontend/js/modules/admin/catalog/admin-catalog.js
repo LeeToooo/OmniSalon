@@ -53,13 +53,15 @@
           </td>
           <td>
             <div style="display: flex; gap: 4px;">
-              <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px;" 
-                      onclick="AdminWeb.editCatalogItemBottom('${type}', '${itemId}')">
-                Sửa
+              <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;" 
+                      onclick="AdminWeb.editCatalogItemBottom('${type}', '${itemId}')" title="Chỉnh sửa dịch vụ">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <span>Sửa</span>
               </button>
-              <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; color: #b91c1c; border-color: #fca5a5;" 
-                      onclick="AdminWeb.deleteCatalogItem('${type}', '${itemId}')">
-                Xóa
+              <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; color: #b91c1c; border-color: #fca5a5; display: inline-flex; align-items: center; gap: 4px;" 
+                      onclick="AdminWeb.deleteCatalogItem('${type}', '${itemId}')" title="Ngừng kinh doanh dịch vụ">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span>Xóa</span>
               </button>
             </div>
           </td>

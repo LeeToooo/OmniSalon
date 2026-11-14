@@ -322,9 +322,9 @@
           const displayList = (featured.length >= 3 ? featured.slice(0, 3) : barbersOnly.slice(0, 3));
 
           const distinctAvatars = {
-            NV02: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-            NV05: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-            NV08: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=300&q=80'
+            NV02: '/DataPicture/ChanDungTho/Tho2.jpg',
+            NV05: '/DataPicture/ChanDungTho/Tho5.jpg',
+            NV08: '/DataPicture/ChanDungTho/Tho8.jpg'
           };
 
           return displayList.map((s, index) => {
@@ -336,7 +336,7 @@
               .replace(/Barber/gi, 'Thợ Cắt Tóc')
               .replace(/Nghệ Nhân Tạo Mẫu/gi, 'Thợ Chính')
               .trim();
-            const avatarUrl = s.avatar || distinctAvatars[s.id] || distinctAvatars[s.MaNhanVien] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
+            const avatarUrl = s.avatar || distinctAvatars[s.id] || distinctAvatars[s.MaNhanVien] || '/DataPicture/ChanDungTho/Tho1.jpg';
             const rating = (s.rating !== undefined ? Number(s.rating) : 5.0).toFixed(1);
             const yearsExp = 6 + ((index * 2) % 5);
 
@@ -353,7 +353,7 @@
                     <div class="stylist-clean-card" id="homeStylistCard_${s.id}">
                       <div class="stylist-clean-card-body">
                         <div class="stylist-avatar-box">
-                          <img src="${avatarUrl}" class="stylist-avatar-img" alt="${cleanName}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';">
+                          <img src="${avatarUrl}" class="stylist-avatar-img" alt="${cleanName}" loading="lazy" onerror="this.onerror=null; this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
                           <span class="stylist-avatar-rating"><svg width="11" height="11" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" aria-hidden="true" style="display: inline-block; vertical-align: middle; margin-right: 2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${rating}</span>
                         </div>
                         <h3 class="stylist-clean-name font-serif tracking-tight leading-tight">${cleanName}</h3>

@@ -109,7 +109,23 @@ class Booking {
       durationMinutes: int.tryParse(json['durationMinutes']?.toString() ?? '45') ?? 45,
       estimatedEndTime: json['endTime'] ?? json['estimatedEndTime'] ?? '',
       totalPrice: priceNum.toInt(),
-      status: json['status'] ?? json['TrangThai'] ?? 'Confirmed',
+      status: () {
+        final rawStatus = (json['status'] ?? json['TrangThai'] ?? 'Confirmed').toString();
+        final rawDate = (json['date'] ?? json['NgayHen'] ?? '').toString().trim();
+        if (rawDate.isNotEmpty) {
+          try {
+            final bDate = DateTime.parse(rawDate.split('T')[0]);
+            final now = DateTime.now();
+            final todayMidnight = DateTime(now.year, now.month, now.day);
+            final isPastDate = bDate.isBefore(todayMidnight);
+            final isNotDone = rawStatus != 'Completed' && rawStatus != 'Cancelled' && rawStatus != 'Đã hủy' && rawStatus != 'Hoàn thành';
+            if (isPastDate && isNotDone) {
+              return 'Cancelled';
+            }
+          } catch (_) {}
+        }
+        return rawStatus;
+      }(),
       notes: json['notes'] ?? json['GhiChu'] ?? '',
       createdAt: json['createdAt'] ?? '',
       serviceImage: formattedImg,

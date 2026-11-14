@@ -711,10 +711,6 @@ const UICommon = {
               <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số tiền thanh toán:</span><strong style="color: var(--brand-accent, #C59B27); font-size: 14.5px;">${SalonUtils.formatCurrency(booking.totalPrice)}</strong></div>
               <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Nội dung chuyển khoản:</span><strong style="color: #b48312;">THANHTOAN ${realCode}</strong></div>
             </div>
-
-            <div style="background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #0284c7; line-height: 1.4; text-align: left; max-width: 380px; margin: 0 auto;">
-              ℹ️ <strong>Tự động xác nhận:</strong> Sau khi quý khách quét mã chuyển khoản thành công, salon sẽ tự động kiểm tra giao dịch và cập nhật "Đã Thanh Toán".
-            </div>
           </div>
         ` : `
           <!-- Mã QR Vector SVG Check-in Tại Quầy (Khi thanh toán Tiền mặt) -->
@@ -917,7 +913,9 @@ const UICommon = {
     if (cart.length === 0) {
       listContainer.innerHTML = `
         <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-          <div style="font-size: 42px; margin-bottom: 12px;">🛒</div>
+          <div style="margin-bottom: 14px; color: var(--text-secondary); opacity: 0.5;">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          </div>
           <div style="font-weight: 700; font-size: 16px; color: var(--text-primary); margin-bottom: 6px;">Giỏ hàng của bạn đang trống</div>
           <div style="font-size: 13px; line-height: 1.5; max-width: 280px; margin: 0 auto 20px;">Hãy chọn các sản phẩm chăm sóc tóc & sáp vuốt cao cấp!</div>
           <button type="button" class="btn-flat-cta btn-flat-primary" style="height: 38px; padding: 0 16px; font-size: 13px; border-radius: 8px;" onclick="UICommon.closeCartDrawer(); if(window.AppRouter) window.AppRouter.navigate('/shop');">
@@ -1663,7 +1661,7 @@ const UICommon = {
             <div style="margin-bottom: 14px;">
               <label class="sub-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: block;">Gmail hoặc Số điện thoại tài khoản:</label>
               <div style="display: flex; gap: 8px;">
-                <input type="text" id="resetIdentifier" class="form-control-custom" placeholder="nhapemail@gmail.com hoặc SĐT" required style="flex: 1; height: 44px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
+                <input type="text" id="resetIdentifier" class="form-control-custom" placeholder="Nhập email hoặc SĐT..." required style="flex: 1; height: 44px; padding: 0 14px; border-radius: 8px; font-size: 14px; border: 1.5px solid var(--border-color); background: var(--surface-card); color: var(--text-primary); box-sizing: border-box;">
                 <button type="button" id="btnSendResetOtp" onclick="UICommon.sendResetOtp()" style="background: #141413; color: #FFFFFF; font-weight: 700; font-size: 13px; padding: 0 16px; border-radius: 8px; border: 1px solid #2E2E2C; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
                   Gửi Mã
                 </button>
@@ -2397,11 +2395,11 @@ const UICommon = {
                   <div class="sample-avatar-strip" onclick="event.stopPropagation();">
                     <span style="font-size: 11px; color: #999; font-weight: 600; display: block; margin-bottom: 8px;">HOẶC THỬ NHANH VỚI ẢNH MẪU:</span>
                     <div style="display: flex; gap: 8px; justify-content: center;">
-                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=140&q=80" 
+                      <img src="/DataPicture/ChanDungTho/Tho1.jpg" 
                            class="sample-avatar-thumb" title="Mẫu Nam 1" onclick="UICommon.loadSampleAiPhoto(this.src)">
-                      <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=140&q=80" 
+                      <img src="/DataPicture/ChanDungTho/Tho2.jpg" 
                            class="sample-avatar-thumb" title="Mẫu Nam 2" onclick="UICommon.loadSampleAiPhoto(this.src)">
-                      <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=140&q=80" 
+                      <img src="/DataPicture/ChanDungTho/Tho3.jpg" 
                            class="sample-avatar-thumb" title="Mẫu Nam 3" onclick="UICommon.loadSampleAiPhoto(this.src)">
                     </div>
                   </div>

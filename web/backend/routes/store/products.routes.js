@@ -268,33 +268,17 @@ async function handleProductRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/products/:id - Ngừng kinh doanh sản phẩm
-  // Lưu ý: Dùng Soft-delete nếu sản phẩm đã có lịch sử trong Đơn hàng, Hóa đơn POS, Phiếu nhập kho hoặc Khuyến mãi
+  // DELETE /api/products/:id - Ngừng kinh doanh sản phẩm (Bảo toàn 100% lịch sử giao dịch & kho)
   if (pathname.startsWith('/api/products/') && method === 'DELETE') {
     const id = pathname.replace('/api/products/', '').trim();
-    const hasHistory = await querySql(`
-      SELECT TOP 1 MaSanPham FROM (
-        SELECT MaSanPham FROM ChiTietDonHang WHERE MaSanPham = ?
-        UNION ALL
-        SELECT MaSanPham FROM ChiTietHoaDon_SanPham WHERE MaSanPham = ?
-        UNION ALL
-        SELECT MaSanPham FROM ChiTietPhieuNhap WHERE MaSanPham = ?
-        UNION ALL
-        SELECT MaSanPham FROM KhuyenMai_SanPham WHERE MaSanPham = ?
-      ) t
-    `, [id, id, id, id]);
-
-    if (hasHistory && hasHistory.length > 0) {
-      await querySql(`UPDATE SanPham SET TrangThaiKinhDoanh = N'Ngừng kinh doanh' WHERE MaSanPham = ?`, [id]);
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: true, message: 'Sản phẩm đã có lịch sử chứng từ kho hoặc giao dịch, chuyển sang trạng thái Ngừng kinh doanh.', id, softDeleted: true }));
-      return true;
-    }
-
-    await querySql(`DELETE FROM TonKho WHERE MaSanPham = ?`, [id]);
-    await querySql(`DELETE FROM SanPham WHERE MaSanPham = ?`, [id]);
+    await querySql(`UPDATE SanPham SET TrangThaiKinhDoanh = N'Ngừng kinh doanh' WHERE MaSanPham = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Đã xóa sản phẩm khỏi cơ sở dữ liệu', id }));
+    res.end(JSON.stringify({ 
+      success: true, 
+      message: 'Đã chuyển sản phẩm sang trạng thái Ngừng kinh doanh. Toàn bộ lịch sử chứng từ kho, đơn hàng và hóa đơn được bảo toàn nguyên vẹn trong cơ sở dữ liệu SQL.', 
+      id, 
+      softDeleted: true 
+    }));
     return true;
   }
 
@@ -310,7 +294,7 @@ async function handleProductRoutes(req, res, ctx) {
       TenDanhMuc: r.TenDanhMuc,
       description: r.MoTa,
       MoTa: r.MoTa,
-      icon: catIcons[r.MaDanhMuc] || '💈',
+      icon: catIcons[r.MaDanhMuc] || 'category',
       status: r.TrangThai
     }));
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

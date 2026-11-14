@@ -442,7 +442,6 @@
         this.openPosReceiptModal(posOrder);
       } catch (err) {
         if (window.UICommon) window.UICommon.showToast(`${err.message || 'Lỗi xử lý hóa đơn POS'}`, 'error');
-        else alert(err.message || 'Lỗi xử lý hóa đơn POS');
       }
     },
 

@@ -60,7 +60,7 @@
       const body = document.getElementById('drawerStylistBody');
       const bookBtn = document.getElementById('drawerBookStylistBtn');
 
-      if (avatar) avatar.src = st.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80';
+      if (avatar) avatar.src = st.avatar || '/DataPicture/ChanDungTho/Tho1.jpg';
       if (name) name.textContent = st.name;
       if (title) title.textContent = `${st.title || st.role || 'Senior Artisan'} • ${st.rating || '4.9'}`;
 

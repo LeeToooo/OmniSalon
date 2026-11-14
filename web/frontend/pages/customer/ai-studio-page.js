@@ -1135,7 +1135,8 @@
       if (this.state.isProcessing) return;
 
       const sourceImg = document.getElementById('aiSourcePortrait');
-      if (!sourceImg || (!this.state.uploadedImage && !sourceImg.src)) {
+      const photoToSend = this.state.uploadedImage || (sourceImg ? sourceImg.src : '');
+      if (!photoToSend) {
         if (window.UICommon) window.UICommon.showToast('Vui lòng tải ảnh chân dung lên trước!', 'warning');
         return;
       }
@@ -1156,42 +1157,43 @@
 
       if (hud) hud.style.display = 'flex';
       if (spinner) spinner.style.display = 'inline-block';
-      if (text) text.textContent = 'Đang Tạo Phom Tóc...';
+      if (text) text.textContent = 'Đang Uốn Phom Tóc 3D...';
       if (btn) {
         btn.disabled = true;
         btn.style.opacity = '0.75';
       }
       if (resultImgEl) resultImgEl.style.display = 'none';
 
-      // Mô phỏng tiến trình chuẩn Barbershop nhanh chóng và thanh lịch
-      let step = 0;
-      const steps = [
-        { progress: 35, text: `Đang căn chỉnh phom dáng: ${currentStyle.name}...` },
-        { progress: 75, text: `Phối màu nhuộm: ${currentColor.name}...` },
-        { progress: 100, text: 'Hoàn tất phom tóc!' }
-      ];
+      if (hudProgress) hudProgress.style.width = '30%';
+      if (hudSub) hudSub.textContent = `Đang phân tích 478 điểm mốc 3D và định hình tóc: ${currentStyle.name}...`;
 
-      const interval = setInterval(() => {
-        if (step < steps.length) {
-          if (hudProgress) hudProgress.style.width = `${steps[step].progress}%`;
-          if (hudSub) hudSub.textContent = steps[step].text;
-          step++;
-        } else {
-          clearInterval(interval);
+      try {
+        if (hudProgress) hudProgress.style.width = '55%';
+        if (hudSub) hudSub.textContent = 'Đang uốn phom sọ Delaunay & tách sợi tóc tơ viền mái...';
 
-          // Sử dụng ảnh kết quả của kiểu tóc tương ứng
-          const resultUrl = currentStyle.result || currentStyle.preview || sourceImg.src;
+        const res = await fetch('/api/ai/restyle-hair', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: photoToSend,
+            hairstyleId: currentStyle.id,
+            colorId: currentColor.id,
+            colorHex: currentColor.hex || '#141413'
+          })
+        });
+
+        if (hudProgress) hudProgress.style.width = '85%';
+        if (hudSub) hudSub.textContent = `Đang hòa sắc màu nhuộm ${currentColor.name} & bảo toàn ngũ quan thật...`;
+
+        const data = await res.json();
+
+        if (data && data.success && data.resultImageUrl) {
+          if (hudProgress) hudProgress.style.width = '100%';
+          if (hudSub) hudSub.textContent = 'Hoàn tất phom tóc chuẩn salon!';
+
+          const resultUrl = data.resultImageUrl;
           this.state.resultImage = resultUrl;
-          this.state.isProcessing = false;
           this.state.hasResult = true;
-
-          if (hud) hud.style.display = 'none';
-          if (spinner) spinner.style.display = 'none';
-          if (text) text.textContent = 'Xem trước kiểu tóc trên ảnh chân dung →';
-          if (btn) {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-          }
 
           if (resultImgEl) {
             resultImgEl.src = resultUrl;
@@ -1201,21 +1203,43 @@
           this._toggleResultState(true);
           this.setCompareMode('split');
 
+          if (data.faceAnalysis && data.faceAnalysis.faceShape) {
+            this.state.faceShape = data.faceAnalysis.faceShape.name;
+          }
+
           // Cập nhật lời khuyên thợ
           const adviceEl = document.getElementById('aiBarberAdviceText');
           const prodEl = document.getElementById('aiProductRec');
           if (adviceEl) {
-            adviceEl.textContent = `Kiểu tóc [${currentStyle.name}] mang lại phong thái ${currentStyle.tag.toLowerCase()}, khuyên dùng máy sấy nâng phom chân tóc khi tóc còn ẩm và hoàn thiện với nếp ${currentStyle.finish}.`;
+            adviceEl.textContent = `Kiểu tóc [${currentStyle.name}] tôn trọn vẹn đường nét khuôn mặt của bạn, khuyên dùng máy sấy nâng phom chân tóc khi tóc còn ẩm và hoàn thiện với nếp ${currentStyle.finish}.`;
           }
           if (prodEl) {
             prodEl.textContent = currentStyle.finish.includes('Pomade') ? 'Reuzel Blue Pomade' : 'Apestomen Volcanic Clay';
           }
 
           if (window.UICommon) {
-            window.UICommon.showToast(`Đã tạo phom tóc "${currentStyle.name}" thành công!`, 'success');
+            window.UICommon.showToast(`Đã tạo phom tóc "${currentStyle.name}" bảo toàn gương mặt thật thành công!`, 'success');
+          }
+        } else {
+          const errMsg = (data && data.message) ? data.message : 'Không thể nhận diện khuôn mặt rõ nét trong ảnh. Vui lòng chụp góc thẳng và sáng rõ.';
+          if (window.UICommon) {
+            window.UICommon.showToast(errMsg, 'warning');
           }
         }
-      }, 300);
+      } catch (err) {
+        if (window.UICommon) {
+          window.UICommon.showToast('Lỗi kết nối máy chủ AI: ' + err.message, 'error');
+        }
+      } finally {
+        this.state.isProcessing = false;
+        if (hud) hud.style.display = 'none';
+        if (spinner) spinner.style.display = 'none';
+        if (text) text.textContent = 'Xem trước kiểu tóc trên ảnh chân dung →';
+        if (btn) {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        }
+      }
     },
 
     // ĐIỀU KHIỂN CHẾ ĐỘ XEM TRƯỚC / SAU & SLIDER

@@ -576,49 +576,58 @@ async function handleInventoryRoutes(req, res, ctx) {
 
   // Quy tac giam gia theo han dung FEFO
 
-  // GET /api/discount-rules - Danh sách quy tắc giảm giá cận hạn
-  if (pathname === '/api/discount-rules' && method === 'GET') {
+  // GET /api/discount-rules & /api/inventory/discount-rules - Danh sách quy tắc giảm giá cận hạn
+  if ((pathname === '/api/discount-rules' || pathname === '/api/inventory/discount-rules') && method === 'GET') {
     const rows = await querySql(`SELECT * FROM QuyTacGiamGiaTheoHan ORDER BY PhanTramGiam ASC`);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(rows));
     return true;
   }
 
-  // POST /api/discount-rules - Thêm quy tắc mới
-  if (pathname === '/api/discount-rules' && method === 'POST') {
+  // POST /api/discount-rules & /api/inventory/discount-rules - Thêm quy tắc mới
+  if ((pathname === '/api/discount-rules' || pathname === '/api/inventory/discount-rules') && method === 'POST') {
     const body = parsedBody || {};
-    const id = body.id || body.MaQuyTac || ('QT' + Date.now().toString().slice(-4));
+    let id = (body.id || body.MaQuyTac || '').trim();
+    if (!id) {
+      const maxRows = await querySql(`SELECT TOP 1 MaQuyTac FROM QuyTacGiamGiaTheoHan ORDER BY LEN(MaQuyTac) DESC, MaQuyTac DESC`);
+      let nextN = 6;
+      if (maxRows && maxRows[0]) {
+        const m = maxRows[0].MaQuyTac.match(/QT(\d+)/i);
+        if (m) nextN = parseInt(m[1], 10) + 1;
+      }
+      id = 'QT' + (nextN < 10 ? '0' + nextN : nextN);
+    }
     const name = body.name || body.TenQuyTac || 'Quy tắc mới';
-    const minD = parseInt(body.minDays || body.SoNgayConLaiToiThieu || 0, 10);
-    const maxD = parseInt(body.maxDays || body.SoNgayConLaiToiDa || 30, 10);
-    const pct = parseFloat(body.percent || body.PhanTramGiam || 10);
-    const status = body.status || body.TrangThai || 'Áp dụng';
+    const minD = parseInt(body.minDays !== undefined ? body.minDays : (body.SoNgayConLaiToiThieu !== undefined ? body.SoNgayConLaiToiThieu : 0), 10);
+    const maxD = parseInt(body.maxDays !== undefined ? body.maxDays : (body.SoNgayConLaiToiDa !== undefined ? body.SoNgayConLaiToiDa : 30), 10);
+    const pct = parseFloat(body.percent !== undefined ? body.percent : (body.PhanTramGiam || 10));
+    const status = body.status || body.TrangThai || 'Đang áp dụng';
 
     await querySql(
       `INSERT INTO QuyTacGiamGiaTheoHan (MaQuyTac, TenQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam, TrangThai) VALUES (?, ?, ?, ?, ?, ?)`,
       [id, name, minD, maxD, pct, status]
     );
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, rule: { id, name, minDays: minD, maxDays: maxD, percent: pct, status } }));
+    res.end(JSON.stringify({ success: true, rule: { id, MaQuyTac: id, name, TenQuyTac: name, minDays: minD, SoNgayConLaiToiThieu: minD, maxDays: maxD, SoNgayConLaiToiDa: maxD, percent: pct, PhanTramGiam: pct, status, TrangThai: status } }));
     return true;
   }
 
-  // PUT /api/discount-rules/:id - Sửa quy tắc
-  if (pathname.startsWith('/api/discount-rules/') && method === 'PUT') {
-    const id = pathname.replace('/api/discount-rules/', '').trim();
+  // PUT /api/discount-rules/:id & /api/inventory/discount-rules/:id - Sửa quy tắc
+  if ((pathname.startsWith('/api/discount-rules/') || pathname.startsWith('/api/inventory/discount-rules/')) && method === 'PUT') {
+    const id = pathname.replace('/api/inventory/discount-rules/', '').replace('/api/discount-rules/', '').trim();
     const body = parsedBody || {};
     await querySql(
       `UPDATE QuyTacGiamGiaTheoHan SET TenQuyTac = COALESCE(?, TenQuyTac), SoNgayConLaiToiThieu = COALESCE(?, SoNgayConLaiToiThieu), SoNgayConLaiToiDa = COALESCE(?, SoNgayConLaiToiDa), PhanTramGiam = COALESCE(?, PhanTramGiam), TrangThai = COALESCE(?, TrangThai) WHERE MaQuyTac = ?`,
-      [body.name || body.TenQuyTac || null, body.minDays || body.SoNgayConLaiToiThieu || null, body.maxDays || body.SoNgayConLaiToiDa || null, body.percent || body.PhanTramGiam || null, body.status || body.TrangThai || null, id]
+      [body.name || body.TenQuyTac || null, body.minDays !== undefined ? body.minDays : (body.SoNgayConLaiToiThieu !== undefined ? body.SoNgayConLaiToiThieu : null), body.maxDays !== undefined ? body.maxDays : (body.SoNgayConLaiToiDa !== undefined ? body.SoNgayConLaiToiDa : null), body.percent !== undefined ? body.percent : (body.PhanTramGiam !== undefined ? body.PhanTramGiam : null), body.status || body.TrangThai || null, id]
     );
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã cập nhật quy tắc #' + id }));
     return true;
   }
 
-  // DELETE /api/discount-rules/:id - Xóa quy tắc
-  if (pathname.startsWith('/api/discount-rules/') && method === 'DELETE') {
-    const id = pathname.replace('/api/discount-rules/', '').trim();
+  // DELETE /api/discount-rules/:id & /api/inventory/discount-rules/:id - Xóa quy tắc
+  if ((pathname.startsWith('/api/discount-rules/') || pathname.startsWith('/api/inventory/discount-rules/')) && method === 'DELETE') {
+    const id = pathname.replace('/api/inventory/discount-rules/', '').replace('/api/discount-rules/', '').trim();
     await querySql(`DELETE FROM QuyTacGiamGiaTheoHan WHERE MaQuyTac = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã xóa quy tắc #' + id }));

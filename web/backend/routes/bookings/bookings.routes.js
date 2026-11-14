@@ -9,14 +9,27 @@ const {
   generateNextCtlhId,
   resolveServiceInfo
 } = require('../../services/helper_service');
+const {
+  checkAndAutoCancelOnRequest,
+  autoCancelOverdueBookingsAndOrders
+} = require('../../services/auto_cancel_service');
 
 async function handleBookingRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
+
+  // POST /api/bookings/auto-cancel-overdue - Kích hoạt tự động hủy lịch hẹn & đơn hàng quá hạn qua 12h đêm
+  if (pathname === '/api/bookings/auto-cancel-overdue' && method === 'POST') {
+    const result = await autoCancelOverdueBookingsAndOrders();
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(result));
+    return true;
+  }
 
   // GET /api/bookings/available-slots
   // Tra cứu các khung giờ còn trống theo ngày và stylist
   // Tham số: date, stylistId
   if (pathname === '/api/bookings/available-slots' && method === 'GET') {
+    await checkAndAutoCancelOnRequest();
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -83,6 +96,7 @@ async function handleBookingRoutes(req, res, ctx) {
 
   // GET /api/bookings/lookup - Tra cứu nhanh lịch hẹn theo mã, tên hoặc số điện thoại
   if (pathname === '/api/bookings/lookup' && method === 'GET') {
+    await checkAndAutoCancelOnRequest();
     const q = (parsedUrl.searchParams.get('q') || '').trim();
     const rows = await querySql(
       `SELECT lh.MaLichHen, lh.MaKhachHang, lh.MaNhanVien, lh.MaChiNhanh,
@@ -176,6 +190,7 @@ async function handleBookingRoutes(req, res, ctx) {
 
   // GET /api/bookings - Danh sách toàn bộ lịch hẹn
   if (pathname === '/api/bookings' && method === 'GET') {
+    await checkAndAutoCancelOnRequest();
     const authUser = extractAuthUser(req);
     const branchParam = parsedUrl.searchParams.get('branch_id');
     let effectiveBranch = branchParam;

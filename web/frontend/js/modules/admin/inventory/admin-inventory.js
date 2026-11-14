@@ -16,8 +16,12 @@
       this.inventorySearchQuery = '';
       const user = this.getCurrentUser();
       const isCashier = this.isCashier(user);
+      const isStylist = (typeof this.isStylist === 'function') ? this.isStylist(user) : false;
 
-      if (isCashier || this.adminSubTab === 'receipts') {
+      if (isStylist) {
+        this.adminSubTab = 'receipts';
+        this.inventorySubTab = 'receipts';
+      } else if (isCashier || this.adminSubTab === 'receipts') {
         this.adminSubTab = 'receipts';
         if (type !== 'receipts' && type !== 'rules') {
           this.inventorySubTab = 'receipts';
@@ -61,12 +65,15 @@
     // RENDER TAB CHÍNH: Tách biệt hoàn toàn Quản Lý Kho & Phiếu Nhập Kho, Bỏ icon emoji
     renderInventoryTab(user, branches, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
-      const branchId = (this.isBranchManager(user) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
       const isCashier = this.isCashier(user);
-      const isReceiptTab = (isCashier || this.adminSubTab === 'receipts');
+      const isStylist = (typeof this.isStylist === 'function') ? this.isStylist(user) : false;
+      const branchId = ((this.isBranchManager(user) || isStylist) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
+      const isReceiptTab = (isCashier || isStylist || this.adminSubTab === 'receipts');
 
       let subType = this.inventorySubTab;
-      if (isReceiptTab) {
+      if (isStylist) {
+        subType = 'receipts';
+      } else if (isReceiptTab) {
         if (subType !== 'receipts' && subType !== 'rules') subType = 'receipts';
       } else {
         if (subType === 'receipts') subType = 'stock';
@@ -91,7 +98,7 @@
                     onclick="AdminWeb.switchInventorySubTab('receipts')">
               Danh Sách Phiếu Nhập Kho
             </button>
-            ${!isCashier ? `
+            ${(!isCashier && !isStylist) ? `
               <button type="button" class="admin-tab-btn ${subType === 'rules' ? 'active' : ''}" 
                       style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${subType === 'rules' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                       onclick="AdminWeb.switchInventorySubTab('rules')">
@@ -140,7 +147,7 @@
 
             <!-- Lọc theo Khu Vực / Chi Nhánh -->
             <div style="display: flex; align-items: center; gap: 6px;">
-              ${this.isBranchManager(user) ? `
+              ${(this.isBranchManager(user) || isStylist) ? `
                 <span class="badge-terracotta" style="padding: 8px 12px; font-size: 12px;">Chi nhánh của bạn</span>
               ` : `
                 <select class="admin-select-filter" style="height: 38px; font-size: 13px; border-radius: 8px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--surface-elevated);"
@@ -303,16 +310,18 @@
                           </span>
                         </td>
 
-                        <!-- Cột 9: THAO TÁC (Sửa vàng / Xóa đỏ chuẩn 1:1 giống quản lý chi nhánh) -->
+                        <!-- Cột 9: THAO TÁC (Sửa vàng / Xóa đỏ chuẩn 1:1 kèm icon SVG clean) -->
                         <td style="text-align: center; padding: 12px 14px; white-space: nowrap;">
                           <div style="display: inline-flex; gap: 6px;">
-                            <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px;"
+                            <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;"
                                     onclick="event.stopPropagation(); AdminWeb.editProductBottom('${item.productId}')" title="Chỉnh sửa sản phẩm">
-                              Sửa
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                              <span>Sửa</span>
                             </button>
-                            <button class="pill-btn-outline" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
-                                    onclick="event.stopPropagation(); AdminWeb.openUniversalDeleteModal('products', '${item.productId}')" title="Xóa sản phẩm">
-                              Xóa
+                            <button class="pill-btn-outline" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: inline-flex; align-items: center; gap: 4px;" 
+                                    onclick="event.stopPropagation(); AdminWeb.openUniversalDeleteModal('products', '${item.productId}')" title="Xóa / Ngừng kinh doanh sản phẩm">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                              <span>Xóa</span>
                             </button>
                           </div>
                         </td>
@@ -569,13 +578,15 @@
                       </td>
                       <td style="text-align: center; padding: 12px 14px; white-space: nowrap;">
                         <div style="display: inline-flex; gap: 6px;">
-                          <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px;"
+                          <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;"
                                   onclick="event.stopPropagation(); AdminWeb.editSupplierBottom('${s.id || s.MaNhaCungCap}')" title="Chỉnh sửa đối tác">
-                            Sửa
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <span>Sửa</span>
                           </button>
-                          <button class="pill-btn-outline" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" 
+                          <button class="pill-btn-outline" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: inline-flex; align-items: center; gap: 4px;" 
                                   onclick="event.stopPropagation(); AdminWeb.deleteSupplierDirect('${s.id || s.MaNhaCungCap}')" title="Xóa nhà cung cấp">
-                            Xóa
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <span>Xóa</span>
                           </button>
                         </div>
                       </td>
@@ -629,9 +640,10 @@
       const container = document.getElementById('adminInventoryContentContainer');
       if (container) {
         const user = this.getCurrentUser();
-        const branchId = (this.isBranchManager(user) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
         const isCashier = this.isCashier(user);
-        const subType = isCashier ? 'receipts' : (this.inventorySubTab || 'stock');
+        const isStylist = (typeof this.isStylist === 'function') ? this.isStylist(user) : false;
+        const branchId = ((this.isBranchManager(user) || isStylist) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
+        const subType = (isCashier || isStylist || this.adminSubTab === 'receipts') ? 'receipts' : (this.inventorySubTab || 'stock');
         const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];
         const fefoLots = (window.store && typeof window.store.getFefoLots === 'function') ? window.store.getFefoLots(branchId) : [];
         const receipts = (window.store && typeof window.store.getReceipts === 'function') ? window.store.getReceipts(branchId) : [];
@@ -901,7 +913,6 @@
 
       if (!name || price <= 0) {
         if (window.UICommon) window.UICommon.showToast('Vui lòng nhập tên sản phẩm và giá bán hợp lệ!', 'warning');
-        else alert('Vui lòng nhập tên sản phẩm và giá bán hợp lệ!');
         return;
       }
 
@@ -938,7 +949,8 @@
       const products = window.store.getProducts() || [];
       const isSuper = this.isSuperAdmin(user);
       const isManager = this.isBranchManager(user);
-      const branchId = (isManager && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : 'CN01');
+      const isStylist = (typeof this.isStylist === 'function') ? this.isStylist(user) : false;
+      const branchId = ((isManager || isStylist) && user.branchId) ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : 'CN01');
       const creatorName = user ? (user.fullName || user.name || user.username || 'Nhân viên') : 'Nhân viên kho';
       const isStaffOnly = !isSuper && !isManager;
 
@@ -1277,7 +1289,7 @@
 
           ${(receipt.rejectReason || receipt.LyDoTuChoi || (receipt.status || receipt.TrangThai) === 'Đã từ chối') ? `
             <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; color: #ef4444; font-size: 13px;">
-              <strong>⚠️ Lý Do Từ Chối Phiếu:</strong> ${this.escapeHtml(receipt.rejectReason || receipt.LyDoTuChoi || 'Không đạt tiêu chuẩn kiểm định lô hàng')}
+              <strong style="display: inline-flex; align-items: center; gap: 4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Lý Do Từ Chối Phiếu:</strong> ${this.escapeHtml(receipt.rejectReason || receipt.LyDoTuChoi || 'Không đạt tiêu chuẩn kiểm định lô hàng')}
             </div>
           ` : ''}
 
@@ -1764,7 +1776,8 @@
       const products = window.store.getProducts() || [];
       const isSuper = this.isSuperAdmin(user);
       const isManager = this.isBranchManager(user);
-      const branchId = (isManager && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : 'CN01');
+      const isStylist = (typeof this.isStylist === 'function') ? this.isStylist(user) : false;
+      const branchId = ((isManager || isStylist) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : 'CN01');
       const creatorName = user ? (user.fullName || user.name || user.username || 'Nhân viên') : 'Nhân viên kho';
       const isStaffOnly = !isSuper && !isManager;
       const now = new Date();

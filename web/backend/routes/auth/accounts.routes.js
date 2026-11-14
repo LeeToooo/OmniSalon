@@ -57,14 +57,25 @@ async function handleAccountsRoutes(req, res, ctx) {
              ISNULL(nv.HoTen, kh.HoTen) AS HoTen,
              ISNULL(nv.SoDienThoai, kh.SoDienThoai) AS SoDienThoai,
              ISNULL(nv.Email, kh.Email) AS Email,
-             nv.MaChiNhanh, nv.ChucVu
+             nv.MaChiNhanh, nv.ChucVu, tk.MaNhanVien, tk.MaKhachHang
       FROM TaiKhoan tk
       LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
       LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang
       ORDER BY tk.NgayTao DESC
     `);
+    const result = (rows || []).map(r => {
+      const code = r.MaNhanVien || r.MaKhachHang || r.MaTaiKhoan || '1';
+      const m = String(code).match(/(\d+)/);
+      const n = m ? parseInt(m[1], 10) : 1;
+      const idx = ((n - 1) % 20) + 1;
+      return {
+        ...r,
+        avatarUrl: `/DataPicture/ChanDungTho/Tho${idx}.jpg`,
+        avatar: `/DataPicture/ChanDungTho/Tho${idx}.jpg`
+      };
+    });
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify(rows));
+    res.end(JSON.stringify(result));
     return true;
   }
 

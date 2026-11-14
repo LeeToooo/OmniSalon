@@ -55,7 +55,9 @@
         ? (this._getBranchShortName((user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01', branchMap) || 'Chi Nhánh Q1 - Bến Thành')
         : (this.isCashier(user)
           ? (this._getBranchShortName((user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01', branchMap) || 'Quầy Thu Ngân Chi Nhánh Q1')
-          : `Toàn Hệ Thống Cơ Sở`);
+          : (this.isStylist(user)
+            ? (this._getBranchShortName((user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01', branchMap) || 'Chi Nhánh OmniSalon')
+            : `Toàn Hệ Thống Cơ Sở`));
 
       const activeRole = this.getActiveRole(user);
 
@@ -68,13 +70,26 @@
         catalog: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
         inventory: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
         receipts: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
-        audit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`
+        audit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+        promotions: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`
       };
 
       let visibleTabs = [];
       let tabGroups = [];
 
-      if (activeRole === 'CASHIER') {
+      if (activeRole === 'STYLIST') {
+        visibleTabs = [
+          { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu nhập kho' }
+        ];
+        tabGroups = [
+          {
+            groupLabel: 'Quản lý kho hàng',
+            ids: ['receipts']
+          }
+        ];
+        this.adminSubTab = 'receipts';
+        this.inventorySubTab = 'receipts';
+      } else if (activeRole === 'CASHIER') {
         visibleTabs = [
           { id: 'receipts', icon: tabIcons.receipts, label: 'Lập phiếu nhập kho' },
           { id: 'pos', icon: tabIcons.pos, label: 'Thu ngân POS & hóa đơn' },
@@ -117,6 +132,7 @@
           { id: 'overview', icon: tabIcons.overview, label: 'Báo cáo toàn chuỗi salon' },
           { id: 'branches', icon: tabIcons.branches, label: 'Quản lý chuỗi chi nhánh' },
           { id: 'audit', icon: tabIcons.audit, label: 'Khách hàng & nhật ký kiểm toán' },
+          { id: 'promotions', icon: tabIcons.promotions, label: 'Quản lý khuyến mãi & quy tắc giảm giá' },
           { id: 'stylists', icon: tabIcons.stylists, label: 'Đội ngũ thợ & phân ca' },
           { id: 'inventory', icon: tabIcons.inventory, label: 'Quản lý kho & sản phẩm' },
           { id: 'receipts', icon: tabIcons.receipts, label: 'Phiếu nhập kho' },
@@ -127,7 +143,7 @@
         tabGroups = [
           {
             groupLabel: 'Quản trị hệ thống',
-            ids: ['overview', 'branches', 'audit']
+            ids: ['overview', 'branches', 'audit', 'promotions']
           },
           {
             groupLabel: 'Quản lý vận hành & kho',
@@ -140,9 +156,20 @@
         ];
       }
 
-      const roleBadge = activeRole === 'CASHIER'
-        ? 'Thu ngân POS'
-        : (activeRole === 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' : 'Quản trị viên');
+      let roleBadge = 'Quản trị viên';
+      if (activeRole === 'STYLIST') {
+        if (user?.CapBac && user?.ChucVu) {
+          roleBadge = `${user.CapBac} (${user.ChucVu})`;
+        } else {
+          roleBadge = user?.roleName || user?.ChucVu || user?.CapBac || 'Thợ Salon';
+        }
+      } else if (activeRole === 'CASHIER') {
+        roleBadge = 'Thu ngân POS';
+      } else if (activeRole === 'BRANCH_MANAGER') {
+        roleBadge = 'Quản lý chi nhánh';
+      } else {
+        roleBadge = 'Quản trị viên';
+      }
 
       const activeTabObj = visibleTabs.find(t => t.id === this.adminSubTab) || visibleTabs[0];
 
@@ -230,11 +257,13 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                 <span>Về giao diện khách</span>
               </button>
-              <button type="button" class="admin-sidebar-footer-btn action-reset" 
-                      onclick="if(confirm('Khôi phục toàn bộ dữ liệu mẫu demo ban đầu?')) { window.store.resetToDefault(); if(window.UICommon) window.UICommon.showToast('Đã khôi phục dữ liệu gốc!'); AdminWeb.render(document.getElementById('webMainContainer')); }">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                <span>Khôi phục dữ liệu</span>
-              </button>
+              ${this.isSuperAdmin(user) ? `
+                <button type="button" class="admin-sidebar-footer-btn action-reset" 
+                        onclick="if(confirm('Khôi phục toàn bộ dữ liệu mẫu demo ban đầu?')) { window.store.resetToDefault(); if(window.UICommon) window.UICommon.showToast('Đã khôi phục dữ liệu gốc!'); AdminWeb.render(document.getElementById('webMainContainer')); }">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                  <span>Khôi phục dữ liệu</span>
+                </button>
+              ` : ''}
               <div class="admin-sidebar-system-version">Omni Salon Enterprise • 2026</div>
             </div>
           </aside>
@@ -348,7 +377,7 @@
       container.innerHTML = `
         <div class="admin-full-wrapper" style="min-height: 480px; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px 30px; max-width: 520px; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
-            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 18px;">🔒</div>
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
             <div class="badge-terracotta" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3);">
               Khu vực dành cho quản trị &amp; nhân viên
             </div>

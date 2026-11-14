@@ -70,6 +70,10 @@ test_theme_out.txt
 *.sln
 *.sw?
 
+# Office & binary documents
+*.docx
+*.doc
+
 # Python Cache
 __pycache__/
 *.py[cod]

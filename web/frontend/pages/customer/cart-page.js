@@ -165,7 +165,7 @@
           <div class="cart-left-col">
             <div class="cart-table-card">
               <div class="cart-card-header">
-                <span class="cart-card-icon">🛒</span>
+                <span class="cart-card-icon" style="display:inline-flex;align-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></span>
                 <h3 class="cart-card-title font-serif tracking-tight leading-tight" style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Giỏ hàng của bạn</h3>
                 <span class="cart-items-count-badge" style="background: rgba(197, 155, 39, 0.15); color: #C59B27; border: 1px solid rgba(197, 155, 39, 0.3);">${totalQty} sản phẩm</span>
               </div>
@@ -485,6 +485,15 @@
                 </div>
               </div>
 
+              <div class="checkout-method-card ${this.checkoutData.paymentMethod === 'VNPAY' ? 'selected' : ''}" 
+                   onclick="CartPage.setPaymentMethod('VNPAY')">
+                <input type="radio" name="payMethod" class="checkout-method-radio" ${this.checkoutData.paymentMethod === 'VNPAY' ? 'checked' : ''}>
+                <div class="checkout-method-info">
+                  <div class="checkout-method-name">Cổng thanh toán điện tử VNPAY (Thẻ ATM, Visa, QR)</div>
+                  <div class="checkout-method-desc">Thanh toán bảo mật trực tiếp qua Cổng VNPAY (ATM nội địa, Visa, Mastercard, VNPAY-QR)</div>
+                </div>
+              </div>
+
               <!-- Thong tin nguoi nhan tong hop -->
               <div style="margin-top: 24px; padding: 16px; background: rgba(255, 255, 255, 0.03); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 13.5px; line-height: 1.6;">
                 <div style="font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">Thông tin nhận hàng:</div>
@@ -598,7 +607,54 @@
         window.UICommon.updateCartBadges();
       }
 
+      // Neu chon thanh toan VNPAY, chuyen huong truc tiep sang cong VNPAY Sandbox
+      if (this.checkoutData.paymentMethod === 'VNPAY') {
+        const oCode = newOrder.orderCode || newOrder.id || newOrder.MaDonHang;
+        try {
+          if (window.UICommon) window.UICommon.showToast('Đang kết nối cổng thanh toán VNPAY...', 'info');
+          const resp = await fetch('/api/payment/vnpay-create-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: oCode,
+              amount: finalTotal,
+              orderInfo: `Thanh toan don hang ${oCode}`
+            })
+          });
+          const vnpData = await resp.json();
+          if (vnpData && vnpData.success && vnpData.paymentUrl) {
+            window.location.href = vnpData.paymentUrl;
+            return;
+          }
+        } catch (vnpErr) {
+          console.error('VNPAY Redirection Error:', vnpErr);
+        }
+      }
+
       this.setStep(4);
+    },
+
+    async payOrderWithVNPay(orderCode, finalAmount) {
+      try {
+        if (window.UICommon) window.UICommon.showToast('Đang kết nối cổng thanh toán VNPAY...', 'info');
+        const resp = await fetch('/api/payment/vnpay-create-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: orderCode,
+            amount: finalAmount,
+            orderInfo: `Thanh toan don hang ${orderCode}`
+          })
+        });
+        const vnpData = await resp.json();
+        if (vnpData && vnpData.success && vnpData.paymentUrl) {
+          window.location.href = vnpData.paymentUrl;
+        } else {
+          if (window.UICommon) window.UICommon.showToast(vnpData?.message || 'Không thể tạo liên kết VNPAY', 'error');
+        }
+      } catch (err) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối cổng VNPAY: ' + err.message, 'error');
+      }
     },
 
     // BUOC 4: HOAN TAT DON HANG
@@ -606,6 +662,7 @@
       const order = this.checkoutData.completedOrder || {};
       const orderCode = order.orderCode || order.id || order.MaDonHang || '';
       const isVietQr = this.checkoutData.paymentMethod === 'VIETQR';
+      const isVnPay = this.checkoutData.paymentMethod === 'VNPAY';
       const finalAmount = order.totalAmount || 0;
       const vietQrUrl = `https://img.vietqr.io/image/970422-0908123456-compact2.png?amount=${finalAmount}&addInfo=OMNI%20${orderCode}&accountName=OMNI%20SALON%20VIETNAM`;
 
@@ -622,9 +679,20 @@
             <div><strong style="color: #94A3B8;">Mã đơn hàng:</strong> <span style="color: #F59E0B; font-weight: 800; font-family: monospace;">${orderCode}</span></div>
             <div><strong style="color: #94A3B8;">Người nhận:</strong> ${this.escapeHtml(this.checkoutData.recipientName)} (${this.escapeHtml(this.checkoutData.recipientPhone)})</div>
             <div><strong style="color: #94A3B8;">Hình thức:</strong> ${this.checkoutData.deliveryType === 'PICKUP_BRANCH' ? 'Nhận hàng tại chi nhánh salon' : `Giao tận nơi: ${this.escapeHtml(this.checkoutData.recipientAddress)}`}</div>
-            <div><strong style="color: #94A3B8;">Phương thức:</strong> ${this.checkoutData.paymentMethod === 'VIETQR' ? 'Chuyển khoản VietQR' : (this.checkoutData.paymentMethod === 'MOMO' ? 'Ví MoMo/ZaloPay' : 'Thanh toán khi nhận hàng')}</div>
+            <div><strong style="color: #94A3B8;">Phương thức:</strong> ${this.checkoutData.paymentMethod === 'VNPAY' ? 'Cổng thanh toán điện tử VNPAY' : (this.checkoutData.paymentMethod === 'VIETQR' ? 'Chuyển khoản VietQR' : (this.checkoutData.paymentMethod === 'MOMO' ? 'Ví MoMo/ZaloPay' : 'Thanh toán khi nhận hàng'))}</div>
             <div><strong style="color: #94A3B8;">Tổng thanh toán:</strong> <strong style="color: #F59E0B; font-size: 16px;">${SalonUtils.formatCurrency(finalAmount)}</strong></div>
           </div>
+
+          ${isVnPay ? `
+            <!-- Cong VNPAY -->
+            <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center;">
+              <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px; color: #38BDF8;">Cổng Thanh Toán Trực Tuyến VNPAY</div>
+              <div style="font-size: 13px; color: #94A3B8; margin-bottom: 16px;">Nếu chưa được tự động chuyển hướng, vui lòng nhấp vào nút dưới để mở cổng thanh toán VNPAY (ATM, Visa, Master, VNPAY-QR):</div>
+              <button type="button" onclick="CartPage.payOrderWithVNPay('${orderCode}', ${finalAmount})" style="background: #0284c7; color: #ffffff; border: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background 0.2s;">
+                Mở Cổng Thanh Toán VNPAY →
+              </button>
+            </div>
+          ` : ''}
 
           ${isVietQr ? `
             <!-- Ma QR chuyen khoan truc tiep -->

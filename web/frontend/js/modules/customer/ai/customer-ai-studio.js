@@ -118,11 +118,11 @@
                   <div class="sample-avatar-strip" onclick="event.stopPropagation();">
                     <span style="font-size: 11px; color: #999; font-weight: 700; display: block; margin-bottom: 8px;">HOẶC THỬ NHANH VỚI ẢNH MẪU:</span>
                     <div style="display: flex; gap: 10px; justify-content: center;">
-                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&q=80" 
+                      <img src="/DataPicture/ChanDungTho/Tho1.jpg" 
                            class="sample-avatar-thumb" title="Mẫu Nam 1" onclick="CustomerWeb.loadSampleAi(this.src)">
-                      <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80" 
+                      <img src="/DataPicture/ChanDungTho/Tho2.jpg" 
                            class="sample-avatar-thumb" title="Mẫu Nam 2" onclick="CustomerWeb.loadSampleAi(this.src)">
-                      <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=160&q=80" 
+                      <img src="/DataPicture/ChanDungTho/Tho3.jpg" 
                            class="sample-avatar-thumb" title="Mẫu Nam 3" onclick="CustomerWeb.loadSampleAi(this.src)">
                     </div>
                   </div>
@@ -451,8 +451,8 @@
           hairstyle: 'Side Part 7/3 Hàn Quốc',
           color: 'Khói Xám Bạc',
           colorHex: '#9ca3af',
-          resultImageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
-          originalImageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
+          resultImageUrl: '/DataPicture/ChanDungTho/Tho1.jpg',
+          originalImageUrl: '/DataPicture/ChanDungTho/Tho1.jpg',
           createdAt: new Date(Date.now() - 86400000).toISOString()
         },
         {
@@ -460,8 +460,8 @@
           hairstyle: 'Undercut Fade Bén (Hà Hiền)',
           color: 'Đen Tự Nhiên',
           colorHex: '#1c1b18',
-          resultImageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80',
-          originalImageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80',
+          resultImageUrl: '/DataPicture/ChanDungTho/Tho2.jpg',
+          originalImageUrl: '/DataPicture/ChanDungTho/Tho2.jpg',
           createdAt: new Date(Date.now() - 172800000).toISOString()
         }
       ];

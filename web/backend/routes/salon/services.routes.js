@@ -145,32 +145,17 @@ async function handleServiceRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/services/:id - Ngừng kinh doanh dịch vụ
-  // Lưu ý: Dùng Soft-delete nếu dịch vụ đã có dữ liệu trong Hóa đơn, Lịch hẹn, Combo hoặc Khuyến mãi
+  // DELETE /api/services/:id - Ngừng kinh doanh dịch vụ (Bảo toàn 100% lịch sử hóa đơn, lịch hẹn, đánh giá)
   if (pathname.startsWith('/api/services/') && method === 'DELETE') {
     const id = pathname.replace('/api/services/', '').trim();
-    const hasHistory = await querySql(`
-      SELECT TOP 1 MaDichVu FROM (
-        SELECT MaDichVu FROM ChiTietHoaDon_DichVu WHERE MaDichVu = ?
-        UNION ALL
-        SELECT MaDichVu FROM ChiTietLichHen WHERE MaDichVu = ?
-        UNION ALL
-        SELECT MaDichVu FROM ChiTietComboDichVu WHERE MaDichVu = ?
-        UNION ALL
-        SELECT MaDichVu FROM KhuyenMai_DichVu WHERE MaDichVu = ?
-      ) t
-    `, [id, id, id, id]);
-
-    if (hasHistory && hasHistory.length > 0) {
-      await querySql(`UPDATE DichVu SET TrangThai = N'Ngừng kinh doanh' WHERE MaDichVu = ?`, [id]);
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: true, message: 'Dịch vụ đã có dữ liệu giao dịch hoặc lịch hẹn, đã chuyển trạng thái sang Ngừng kinh doanh.', id, softDeleted: true }));
-      return true;
-    }
-
-    await querySql(`DELETE FROM DichVu WHERE MaDichVu = ?`, [id]);
+    await querySql(`UPDATE DichVu SET TrangThai = N'Ngừng kinh doanh' WHERE MaDichVu = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Đã xóa dịch vụ khỏi cơ sở dữ liệu', id }));
+    res.end(JSON.stringify({ 
+      success: true, 
+      message: 'Đã chuyển dịch vụ sang trạng thái Ngừng kinh doanh. Toàn bộ lịch sử hóa đơn, lịch hẹn và đánh giá được bảo toàn nguyên vẹn trong cơ sở dữ liệu SQL.', 
+      id, 
+      softDeleted: true 
+    }));
     return true;
   }
 
@@ -399,20 +384,17 @@ async function handleServiceRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/combos/:id - Ngừng kinh doanh combo
+  // DELETE /api/combos/:id - Ngừng kinh doanh combo (Bảo toàn 100% lịch sử giao dịch & báo cáo)
   if (pathname.startsWith('/api/combos/') && method === 'DELETE') {
     const id = pathname.replace('/api/combos/', '').trim();
-    const hasHistory = await querySql(`SELECT TOP 1 MaChiTietHDDV FROM ChiTietHoaDon_DichVu WHERE MaCombo = ?`, [id]);
-    if (hasHistory && hasHistory.length > 0) {
-      await querySql(`UPDATE ComboDichVu SET TrangThai = N'Ngừng kinh doanh' WHERE MaCombo = ?`, [id]);
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: true, message: 'Combo đã có trong lịch sử thanh toán, đã chuyển trạng thái sang Ngừng kinh doanh.', id, softDeleted: true }));
-      return true;
-    }
-
-    await querySql(`DELETE FROM ComboDichVu WHERE MaCombo = ?`, [id]);
+    await querySql(`UPDATE ComboDichVu SET TrangThai = N'Ngừng kinh doanh' WHERE MaCombo = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Đã xóa combo khỏi cơ sở dữ liệu', id }));
+    res.end(JSON.stringify({ 
+      success: true, 
+      message: 'Đã chuyển combo sang trạng thái Ngừng kinh doanh. Toàn bộ lịch sử hóa đơn và dịch vụ thành phần được bảo toàn nguyên vẹn trong cơ sở dữ liệu SQL.', 
+      id, 
+      softDeleted: true 
+    }));
     return true;
   }
 

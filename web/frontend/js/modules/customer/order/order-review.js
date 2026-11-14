@@ -159,7 +159,7 @@
                       style="width: 100%; min-height: 180px !important; height: 180px; box-sizing: border-box; background: var(--surface-card, #1c1c1a) !important; color: var(--text-primary, #FAF8F5) !important; border: 1.5px solid var(--border-color, #4A4A44) !important; border-radius: 12px !important; padding: 14px 16px !important; font-size: 15px !important; line-height: 1.6 !important; font-family: inherit; resize: vertical !important; outline: none;"
                       placeholder="Chất lượng sản phẩm, độ giữ nếp hoặc mùi hương, thời gian giao hàng và quy cách đóng hộp...">${escapeFn(currentComment)}</textarea>
             <div style="margin-top: 6px; font-size: 12px; color: var(--text-secondary); text-align: right;">
-              💡 Nhận xét chân thực của bạn giúp Omni Salon không ngừng nâng cao chất lượng.
+              Nhận xét chân thực của bạn giúp Omni Salon không ngừng nâng cao chất lượng.
             </div>
           </div>
 

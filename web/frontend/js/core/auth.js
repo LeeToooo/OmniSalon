@@ -237,7 +237,7 @@
       ChucVu: 'Quản trị viên',
       branchId: 'ALL',
       branchName: 'Toàn Bộ Hệ Thống Chuỗi Omni Salon',
-      avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80',
+      avatarUrl: '/DataPicture/ChanDungTho/Tho1.jpg',
       rewardPoints: 10000,
       tier: 'Chủ Tịch HĐQT',
       isActive: true
@@ -268,8 +268,8 @@
         branchId: item[1],
         branchName: `Omni Salon Barber ${item[1]}`,
         avatarUrl: isCashier
-          ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
-          : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+          ? `/DataPicture/ChanDungTho/Tho${((parseInt(item[0].replace(/\D/g, '') || 1) - 1) % 20) + 1}.jpg`
+          : `/DataPicture/ChanDungTho/Tho${((parseInt(item[0].replace(/\D/g, '') || 1) - 1) % 20) + 1}.jpg`,
         rewardPoints: isManager ? 5000 : (isCashier ? 1000 : 2000),
         tier: item[5],
         isActive: true
@@ -293,7 +293,7 @@
       ChucVu: null,
       branchId: null,
       branchName: 'Khách Hàng',
-      avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
+      avatarUrl: `/DataPicture/ChanDungTho/Tho${((parseInt(item[0].replace(/\D/g, '') || 1) - 1) % 20) + 1}.jpg`,
       rewardPoints: 0,
       tier: 'Khách Hàng',
       isActive: true
@@ -797,7 +797,7 @@
         branchName: payload.branchName || 'Toàn Bộ Hệ Thống Salon',
         email: payload.email || '',
         phone: payload.phone || '',
-        avatarUrl: payload.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
+        avatarUrl: payload.avatarUrl || '/DataPicture/ChanDungTho/Tho1.jpg',
         rewardPoints: payload.rewardPoints || 0,
         tier: payload.tier || 'Thành Viên',
         MaNhanVien: payload.MaNhanVien || null,
@@ -1011,7 +1011,7 @@
         roleName: ROLE_NAMES.CUSTOMER,
         branchId: null,
         branchName: 'Khách Hàng',
-        avatarUrl: userData.avatarUrl || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
+        avatarUrl: userData.avatarUrl || '/DataPicture/ChanDungTho/Tho1.jpg',
         rewardPoints: 100, // Chào mừng 100 điểm
         tier: 'Standard Member',
         isActive: true,
@@ -1138,7 +1138,7 @@
         vaiTroSql: backendUser.vaiTroSql || null,
         branchId: backendUser.branchId || null,
         branchName: backendUser.branchName || 'Chi Nhánh OmniSalon',
-        avatarUrl: backendUser.avatarUrl || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
+        avatarUrl: backendUser.avatarUrl || '/DataPicture/ChanDungTho/Tho1.jpg',
         rewardPoints: backendUser.rewardPoints || 100,
         tier: backendUser.tier || 'Thành Viên',
         permissions: ROLE_PERMISSIONS[role] || []

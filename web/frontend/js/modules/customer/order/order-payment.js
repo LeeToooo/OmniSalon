@@ -61,7 +61,7 @@
       const modalHtml = `
         <div class="order-payment-modal-box" style="max-width: 480px; margin: 0 auto; text-align: center; padding: 10px 4px;">
           <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px;">
-            💳
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
           </div>
           <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
             Thanh Toán Đơn Hàng #${escapeFn(oCode)}
@@ -107,9 +107,14 @@
           </div>
 
           <!-- Nút hành động -->
-          <div style="display: flex; justify-content: center;">
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center;">
+            <button type="button" class="btn-vnpay"
+                    style="min-height: 44px; width: 100%; max-width: 320px; padding: 0 20px; border-radius: 10px; font-size: 14px; font-weight: 700; background: #0284c7; color: #ffffff; border: none; cursor: pointer; transition: background 0.2s;"
+                    onclick="(window.CustomerOrderPayment || window.CustomerWeb).payWithVNPay('${escapeFn(oCode)}', ${amount})">
+              Thanh Toán Trực Tuyến Qua VNPAY
+            </button>
             <button type="button" class="btn-cancel" 
-                    style="min-height: 42px; min-width: 140px; padding: 0 24px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
+                    style="min-height: 40px; min-width: 140px; padding: 0 24px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
                     onclick="CustomerWeb.closeOrderPaymentModal()">
               Đóng Cửa Sổ
             </button>
@@ -119,6 +124,36 @@
 
       if (window.UICommon && typeof window.UICommon.openModal === 'function') {
         window.UICommon.openModal(modalHtml, 'payment');
+      }
+    },
+
+    /**
+     * Chuyển hướng thanh toán qua cổng VNPAY Sandbox
+     */
+    async payWithVNPay(orderId, amount) {
+      if (!orderId || !amount) {
+        if (window.UICommon) window.UICommon.showToast('Thông tin đơn hàng không hợp lệ.', 'error');
+        return;
+      }
+      try {
+        if (window.UICommon) window.UICommon.showToast('Đang kết nối cổng thanh toán VNPAY...', 'info');
+        const resp = await fetch('/api/payment/vnpay-create-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: String(orderId),
+            amount: Number(amount),
+            orderInfo: `Thanh toan don hang ${orderId}`
+          })
+        });
+        const data = await resp.json();
+        if (data && data.success && data.paymentUrl) {
+          window.location.href = data.paymentUrl;
+        } else {
+          if (window.UICommon) window.UICommon.showToast(data?.message || 'Không thể tạo liên kết VNPAY', 'error');
+        }
+      } catch (err) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối cổng VNPAY: ' + err.message, 'error');
       }
     },
 

@@ -1,9 +1,10 @@
 // Các hàm phụ trợ định dạng dữ liệu
 const { querySql } = require('../database/db');
+const { checkAndAutoCancelOnRequest } = require('./auto_cancel_service');
 
 const catIcons = {
-  DM01: '💈', DM02: '✨', DM03: '💨', DM04: '🧴', DM05: '🧼',
-  DM06: '🌾', DM07: '🧪', DM08: '🧔', DM09: '✂'
+  DM01: 'haircut', DM02: 'styling', DM03: 'haircare', DM04: 'shampoo', DM05: 'soap',
+  DM06: 'treatment', DM07: 'chemical', DM08: 'beard', DM09: 'tools'
 };
 
 const brandPrefixes = [
@@ -224,6 +225,7 @@ async function resolveServiceInfo(serviceId, serviceName) {
 }
 
 async function getFullSqlDatabase() {
+  try { await checkAndAutoCancelOnRequest(); } catch (_) {}
   const [
     branchRows,
     serviceRows,
@@ -809,6 +811,35 @@ async function getFullSqlDatabase() {
     itemCount: Number(r.SoLuongMatHang) || 1
   }));
 
+  const mappedPromotions = (promoRows || []).map(r => {
+    const sIds = (kmDichVuRows || []).filter(k => k.MaKhuyenMai === r.MaKhuyenMai).map(k => k.MaDichVu);
+    const pIds = (kmSanPhamRows || []).filter(k => k.MaKhuyenMai === r.MaKhuyenMai).map(k => k.MaSanPham);
+    return {
+      ...r,
+      id: r.MaKhuyenMai,
+      code: r.MaKhuyenMai,
+      name: r.TenKhuyenMai,
+      type: r.HinhThuc,
+      value: Number(r.GiaTriGiam) || 0,
+      target: r.DoiTuongApDung || 'Tất cả khách hàng',
+      startDate: r.NgayBatDau,
+      endDate: r.NgayKetThuc,
+      status: r.TrangThai || 'Đang áp dụng',
+      serviceIds: sIds,
+      productIds: pIds
+    };
+  });
+
+  const mappedDiscountRules = (discountRuleRows || []).map(r => ({
+    ...r,
+    id: r.MaQuyTac,
+    name: r.TenQuyTac,
+    minDays: Number(r.SoNgayConLaiToiThieu) || 0,
+    maxDays: Number(r.SoNgayConLaiToiDa) || 0,
+    percent: Number(r.PhanTramGiam) || 0,
+    status: r.TrangThai || 'Đang áp dụng'
+  }));
+
   return {
     branches: mappedBranches,
     services: mappedServices,
@@ -819,7 +850,7 @@ async function getFullSqlDatabase() {
     products: mappedProducts,
     bookings: mappedBookings,
     orders: mappedOrders,
-    promotions: promoRows,
+    promotions: mappedPromotions,
     reviews: reviewRows,
     users: userRows,
     notifications: thongBaoRows,
@@ -828,7 +859,7 @@ async function getFullSqlDatabase() {
     receipts: mappedReceipts,
     invoices: invoiceRows,
     payments: paymentRows,
-    discountRules: discountRuleRows,
+    discountRules: mappedDiscountRules,
     fefoLots: mappedFefoLots,
     lowStock: lowStockRows
   };

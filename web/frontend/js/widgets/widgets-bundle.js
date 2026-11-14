@@ -80,7 +80,7 @@
       const reviews = Number(stylist.reviewsCount || stylist.reviews_count || 120);
       
       const avatar = stylist.avatar || stylist.avatar_url || 
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80';
+        '/DataPicture/ChanDungTho/Tho1.jpg';
 
       const specialties = Array.isArray(stylist.specialties) && stylist.specialties.length > 0
         ? stylist.specialties
@@ -93,7 +93,7 @@
              title="Chọn Stylist: ${name}">
           <div class="md3-stylist-avatar-wrap">
             <img src="${avatar}" class="md3-stylist-avatar" alt="${name}" 
-                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80';">
+                 onerror="this.onerror=null; this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
             <span class="md3-stylist-status-dot" title="Sẵn sàng nhận lịch"></span>
           </div>
 

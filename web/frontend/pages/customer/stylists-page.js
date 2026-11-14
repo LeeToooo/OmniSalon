@@ -247,12 +247,12 @@
       const paginated = filtered.slice(startIdx, startIdx + this.pageSize);
 
       const portfolioSamples = [
-        'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=300&q=80',
-        'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=300&q=80',
-        'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=300&q=80',
-        'https://images.unsplash.com/photo-1517832606589-7629c3395907?auto=format&fit=crop&w=300&q=80',
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
+        'DataPicture/DichVu_Men/DV1.jpg',
+        'DataPicture/DichVu_Men/DV2.jpg',
+        'DataPicture/DichVu_Men/DV3.jpg',
+        'DataPicture/DichVu_Men/DV4.jpg',
+        'DataPicture/DichVu_Men/DV5.jpg',
+        'DataPicture/DichVu_Men/DV6.jpg'
       ];
 
       return paginated.map((stylist, index) => {
@@ -283,12 +283,12 @@
             <div>
               <!-- Avatar Tròn Cân Đối Kèm Huy Hiệu Rating -->
               <div class="stylist-card-avatar-wrap" style="position: relative; width: 96px; height: 96px; margin: 0 auto 14px;">
-                <img src="${stylist.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80'}"
+                <img src="${stylist.avatar || '/DataPicture/ChanDungTho/Tho1.jpg'}"
                      class="stylist-card-avatar-img"
                      style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color);"
                      alt="${cleanName}"
                      loading="lazy"
-                     onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150';">
+                     onerror="this.onerror=null; this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
                 <span class="stylist-card-rating-float" style="position: absolute; bottom: 0; right: 0; background: #C59B27; color: #141413; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">★ ${rating}</span>
               </div>
 
@@ -297,7 +297,7 @@
                 ${cleanName}
               </h3>
 
-              <!-- Cấp Bậc & Chi Nhánh (Đã bỏ icon ghim 📍) -->
+              <!-- Cấp Bậc & Chi Nhánh (Đã bỏ icon ghim) -->
               <div class="stylist-card-badge-row" style="display: flex; gap: 6px; justify-content: center; margin-bottom: 8px;">
                 <span class="stylist-card-role-pill" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: rgba(197, 155, 39, 0.12); color: #C59B27;">${roleBadgeText}</span>
                 <span class="stylist-card-level-pill" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: var(--surface-elevated); color: var(--text-secondary); border: 1px solid var(--border-color);">${stylist.level || (isAssis ? 'Junior Barber' : 'Master Barber')}</span>
@@ -329,9 +329,9 @@
                 <span style="flex: 1; height: 1px; background: var(--border-color);"></span>
               </div>
               <div class="stylist-card-gallery-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 18px;">
-                <img src="${p1}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 1" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300';">
-                <img src="${p2}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 2" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300';">
-                <img src="${p3}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 3" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300';">
+                <img src="${p1}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 1" loading="lazy" onerror="this.src='/DataPicture/DichVu_Men/DV1.jpg';">
+                <img src="${p2}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 2" loading="lazy" onerror="this.src='/DataPicture/DichVu_Men/DV2.jpg';">
+                <img src="${p3}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px;" alt="Mẫu tóc 3" loading="lazy" onerror="this.src='/DataPicture/DichVu_Men/DV3.jpg';">
               </div>
             </div>
 

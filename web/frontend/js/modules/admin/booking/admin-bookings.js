@@ -241,7 +241,7 @@
               return `
                 <div class="admin-workstation-column stylist-timeline-col" id="workstation-card-${st.id}">
                   <div class="workstation-column-header stylist-col-header">
-                    <img src="${st.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80'}" class="stylist-col-avatar" alt="${this.escapeHtml(st.name)}">
+                    <img src="${st.avatar || '/DataPicture/ChanDungTho/Tho1.jpg'}" class="stylist-col-avatar" alt="${this.escapeHtml(st.name)}" onerror="this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
                     <div class="stylist-col-info">
                       <div class="stylist-col-name">Ghế #${globalChairNum} • ${this.escapeHtml(st.name)}</div>
                       <div class="stylist-col-badge">${st.rating || '5.0'} • ${this.escapeHtml(st.role || 'Master Barber')}</div>
@@ -979,7 +979,9 @@
       const notesInput = document.getElementById('walkinNotes');
 
       if (!nameInput || !phoneInput || !nameInput.value.trim() || !phoneInput.value.trim()) {
-        alert('Vui lòng nhập Tên và Số điện thoại khách hàng!');
+        if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+          window.UICommon.showToast('Vui lòng nhập Tên và Số điện thoại khách hàng!', 'warning');
+        }
         return;
       }
 

@@ -79,13 +79,13 @@
       if (!isCustomer && (!query || query.length < 3)) {
         container.innerHTML = `
           <div style="padding: 32px 20px; text-align: center; background: var(--surface-elevated); border-radius: 12px; border: 1px solid var(--border-color);">
-            <div style="font-size: 32px; margin-bottom: 12px;">🔍</div>
+            <div style="margin-bottom: 14px; color: var(--brand-accent);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
             <div style="font-size: 16px; font-weight: 700; color: #f59e0b; margin-bottom: 8px;">Tra Cứu Đơn Hàng Mỹ Phẩm</div>
             <div style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; max-width: 420px; margin: 0 auto 16px;">
               Vui lòng nhập <strong>Số điện thoại</strong> hoặc <strong>Mã đơn hàng</strong> (VD: DH11) vào ô tìm kiếm ở trên để tra cứu tiến trình đơn hàng của bạn.
             </div>
             <div style="font-size: 12px; color: #94a3b8; background: rgba(255,255,255,0.03); padding: 8px 14px; border-radius: 8px; display: inline-block;">
-              💡 Vui lòng nhập đúng số điện thoại hoặc mã đơn để tra cứu trạng thái đơn hàng.
+              Vui lòng nhập đúng số điện thoại hoặc mã đơn để tra cứu trạng thái đơn hàng.
             </div>
           </div>
         `;
@@ -196,7 +196,7 @@
                   <div style="display: flex; gap: 8px; align-items: center;">
                     ${(!isPaid && !isCancelled) ? `
                       <button type="button" class="btn-submit-terracotta" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
-                        <span>💳 Thanh Toán Ngay (VietQR)</span>
+                        <span>Thanh Toán Ngay (VietQR)</span>
                       </button>
                     ` : ''}
                     ${isCancellable ? `

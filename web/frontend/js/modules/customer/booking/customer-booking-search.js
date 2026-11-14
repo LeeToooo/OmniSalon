@@ -116,7 +116,7 @@
       if (!isCustomer && (!query || query.length < 3)) {
         container.innerHTML = `
           <div style="padding: 32px 20px; text-align: center; background: var(--surface-elevated); border-radius: 12px; border: 1px solid var(--border-color);">
-            <div style="font-size: 32px; margin-bottom: 12px;">📅</div>
+            <div style="margin-bottom: 14px; color: var(--brand-accent);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
             <div style="font-size: 16px; font-weight: 700; color: #f59e0b; margin-bottom: 8px;">Tra Cứu Lịch Hẹn Cắt Tóc</div>
             <div style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; max-width: 420px; margin: 0 auto 16px;">
               Vui lòng nhập <strong>Số điện thoại</strong> của bạn vào ô tìm kiếm ở trên để tra cứu chi tiết lịch hẹn và stylist phục vụ.
@@ -227,18 +227,18 @@
                 ${(!isPaid) ? `
                   <button type="button" class="pill-btn-outline btn-pay" style="font-size: 11px; padding: 4px 10px; color: #10b981 !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingPaymentModal('${escapeFn(bCode)}')">
-                    💳 Thanh Toán VietQR
+                    Thanh Toán VietQR
                   </button>
                 ` : ''}
                 ${bReview ? `
                   <button type="button" class="pill-btn-outline btn-review" style="font-size: 11px; padding: 4px 10px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
-                    ⭐ Sửa Đánh Giá
+                    Sửa Đánh Giá
                   </button>
                 ` : `
                   <button type="button" class="pill-btn-outline btn-review" style="font-size: 11px; padding: 4px 10px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
-                    ⭐ Đánh Giá Lịch Hẹn
+                    Đánh Giá Lịch Hẹn
                   </button>
                 `}
                 <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px; color: var(--brand-accent); border-color: rgba(217, 119, 6, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" onclick="UICommon.closeGlobalModal(); UICommon.openBookingModal();">
@@ -286,18 +286,18 @@
                   ${(!isPaid && !isCancelled) ? `
                     <button type="button" class="pill-btn-outline btn-pay" style="font-size: 11px; padding: 5px 12px; color: #10b981 !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                             onclick="CustomerWeb.openBookingPaymentModal('${escapeFn(bCode)}')">
-                      💳 Thanh Toán VietQR
+                      Thanh Toán VietQR
                     </button>
                   ` : ''}
                   ${(!isCancelled) ? (bReview ? `
                     <button type="button" class="pill-btn-outline btn-review" style="font-size: 11px; padding: 5px 12px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                             onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
-                      ⭐ Sửa Đánh Giá
+                      Sửa Đánh Giá
                     </button>
                   ` : `
                     <button type="button" class="pill-btn-outline btn-review" style="font-size: 11px; padding: 5px 12px; color: #f59e0b !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                             onclick="CustomerWeb.openBookingReviewModal('${escapeFn(bCode)}')">
-                      ⭐ Đánh Giá Lịch Hẹn
+                      Đánh Giá Lịch Hẹn
                     </button>
                   `) : ''}
                   ${isCancellable ? (
@@ -309,7 +309,7 @@
                     ` : `
                       <button type="button" class="pill-btn-outline" style="font-size: 11px; padding: 5px 12px; color: #94a3b8; border-color: rgba(148, 163, 184, 0.4); display: inline-flex; align-items: center; gap: 4px; font-weight: 600; cursor: pointer;" 
                               onclick="CustomerWeb.promptLoginToCancelOrder('${b.id}')">
-                        🔒 Đăng nhập để hủy lịch
+                        Đăng Nhập Để Hủy Lịch
                       </button>
                     `
           ) : ''}

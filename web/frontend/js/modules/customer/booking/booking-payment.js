@@ -211,9 +211,14 @@
           </div>
 
           <!-- Nút hành động -->
-          <div style="display: flex; justify-content: center;">
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center;">
+            <button type="button" class="btn-vnpay"
+                    style="min-height: 42px; width: 100%; max-width: 320px; padding: 0 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700; background: #0284c7; color: #ffffff; border: none; cursor: pointer; transition: background 0.2s;"
+                    onclick="(window.CustomerBookingPayment || window.CustomerWeb).payWithVNPay('${escapeFn(bCode)}', ${amount})">
+              Thanh Toán Trực Tuyến Qua VNPAY
+            </button>
             <button type="button" class="btn-cancel" 
-                    style="min-height: 42px; min-width: 140px; padding: 0 24px; border-radius: 6px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
+                    style="min-height: 40px; min-width: 140px; padding: 0 24px; border-radius: 6px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
                     onclick="(window.CustomerBookingPayment || window.CustomerWeb).closeBookingPaymentModal()">
               Đóng Cửa Sổ
             </button>
@@ -227,6 +232,36 @@
 
       // Khởi động polling tự động xác nhận chuyển khoản
       this.startPaymentPolling(bCode);
+    },
+
+    /**
+     * Chuyển hướng thanh toán lịch hẹn qua cổng VNPAY
+     */
+    async payWithVNPay(bookingCode, amount) {
+      if (!bookingCode || !amount) {
+        if (window.UICommon) window.UICommon.showToast('Thông tin lịch hẹn không hợp lệ.', 'error');
+        return;
+      }
+      try {
+        if (window.UICommon) window.UICommon.showToast('Đang kết nối cổng thanh toán VNPAY...', 'info');
+        const resp = await fetch('/api/payment/vnpay-create-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: String(bookingCode),
+            amount: Number(amount),
+            orderInfo: `Thanh toan lich hen ${bookingCode}`
+          })
+        });
+        const data = await resp.json();
+        if (data && data.success && data.paymentUrl) {
+          window.location.href = data.paymentUrl;
+        } else {
+          if (window.UICommon) window.UICommon.showToast(data?.message || 'Không thể tạo liên kết VNPAY', 'error');
+        }
+      } catch (err) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối cổng VNPAY: ' + err.message, 'error');
+      }
     },
 
     /**

@@ -61,7 +61,6 @@ body.light {
   --color-footer-title: var(--text-primary, #141413);
   --color-footer-text: var(--text-secondary, #575752);
   --color-footer-muted: #8E8E8A;
-  --theme-toggle-icon: '🌙';
 }
 
 /* Chế độ tối (Charcoal Black & Burnished Gold) */
@@ -120,7 +119,6 @@ body.dark {
   --color-footer-title: #FAF8F5;
   --color-footer-text: #A6A6A0;
   --color-footer-muted: #8E8E8A;
-  --theme-toggle-icon: '☀️';
 }
 
 /* Chuyển đổi giao diện mượt mà */

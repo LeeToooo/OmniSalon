@@ -15,9 +15,9 @@
 
       if (type === 'products') {
         const p = window.store.getProductById(id);
-        badge = 'CẢNH BÁO XÓA HÀNG HÓA';
-        title = 'Xác Nhận Xóa Khỏi Kho?';
-        warning = 'Bạn có chắc chắn muốn xóa sản phẩm này khỏi hệ thống kho OmniSalon? Dữ liệu hàng hóa sẽ bị gỡ bỏ và không thể hoàn tác.';
+        badge = 'CẢNH BÁO NGỪNG KINH DOANH SẢN PHẨM';
+        title = 'Xác Nhận Ngừng Kinh Doanh Sản Phẩm?';
+        warning = 'Sản phẩm sẽ được chuyển sang trạng thái <strong>Ngừng kinh doanh</strong>. Toàn bộ lịch sử hóa đơn, đơn hàng, chứng từ nhập kho và doanh thu trước đó được <strong>bảo toàn 100% nguyên vẹn trong SQL</strong>, tuyệt đối không bị mất thông tin hay lỗi liên kết.';
         code = `#${id}`;
         subTag = p?.brand || 'CHÍNH HÃNG';
         name = p ? (p.name || p.TenSanPham) : id;
@@ -28,9 +28,9 @@
         img = p?.image || p?.HinhAnh || img;
       } else if (type === 'services') {
         const s = window.store.getServiceById(id);
-        badge = 'CẢNH BÁO XÓA DỊCH VỤ';
-        title = 'Xác Nhận Xóa Dịch Vụ?';
-        warning = 'Bạn có chắc chắn muốn xóa dịch vụ này khỏi danh mục OmniSalon? Dữ liệu dịch vụ sẽ bị xóa và cập nhật vào database SQL.';
+        badge = 'CẢNH BÁO NGỪNG KINH DOANH DỊCH VỤ';
+        title = 'Xác Nhận Ngừng Kinh Doanh Dịch Vụ?';
+        warning = 'Dịch vụ sẽ được chuyển sang trạng thái <strong>Ngừng kinh doanh</strong>. Toàn bộ lịch sử lịch hẹn, hóa đơn dịch vụ và đánh giá của khách hàng trước đó được <strong>bảo toàn 100% nguyên vẹn trong SQL</strong>, tuyệt đối không bị mất thông tin hay lỗi liên kết.';
         code = `#${id}`;
         subTag = s?.category || 'Dịch Vụ Cắt Tóc';
         name = s ? (s.name || s.TenDichVu) : id;
@@ -41,9 +41,9 @@
         img = s?.image || img;
       } else if (type === 'combos') {
         const c = window.store.getComboById(id);
-        badge = 'CẢNH BÁO XÓA COMBO VIP';
-        title = 'Xác Nhận Xóa Gói Combo?';
-        warning = 'Bạn có chắc chắn muốn xóa combo VIP này khỏi danh mục kinh doanh? Dữ liệu sẽ bị gỡ bỏ khỏi hệ thống.';
+        badge = 'CẢNH BÁO NGỪNG KINH DOANH COMBO';
+        title = 'Xác Nhận Ngừng Kinh Doanh Combo?';
+        warning = 'Gói combo sẽ được chuyển sang trạng thái <strong>Ngừng kinh doanh</strong>. Toàn bộ lịch sử hóa đơn, dịch vụ thành phần và doanh thu trước đó được <strong>bảo toàn 100% nguyên vẹn trong SQL</strong>, tuyệt đối không bị mất thông tin.';
         code = `#${id}`;
         subTag = 'Combo VIP';
         name = c ? c.name : id;
@@ -64,7 +64,7 @@
         const brName = this._getBranchShortName(st?.branchId || 'CN01');
         detail1 = `<span style="color: #f59e0b; font-weight: 700;">${st?.rating ? Number(st.rating).toFixed(1) : '5.0'}</span>`;
         detail2 = `<span style="color: #94a3b8;">Cơ sở: <strong style="color: #f1f5f9;">${brName}</strong></span>`;
-        img = st?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80';
+        img = st?.avatar || '/DataPicture/ChanDungTho/Tho1.jpg';
       } else if (type === 'bookings') {
         const b = (window.store.getBookings() || []).find(it => it.id === id || it.bookingCode === id);
         badge = 'CẢNH BÁO XÓA LỊCH HẸN';
@@ -97,8 +97,13 @@
       this._openModal(`
         <div style="text-align: center; padding: 10px 4px; max-width: 480px; margin: 0 auto;">
           <!-- ICON NỔI BẬT NGUY HIỂM -->
-          <div style="width: 72px; height: 72px; margin: 0 auto 16px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); border: 2px solid rgba(239, 68, 68, 0.35); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);">
-            Xóa
+          <div style="width: 72px; height: 72px; margin: 0 auto 16px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); border: 2px solid rgba(239, 68, 68, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
           </div>
 
           <div class="badge-terracotta" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35); margin-bottom: 8px;">
@@ -152,19 +157,19 @@
         const name = p ? (p.name || p.TenSanPham) : id;
         await window.store.deleteProduct(id);
         this._closeModal();
-        if (window.UICommon) window.UICommon.showToast(`Đã xóa sản phẩm #${id} (${name}) khỏi kho và database SQL!`);
+        if (window.UICommon) window.UICommon.showToast(`Đã ngừng kinh doanh sản phẩm #${id} (${name}). Lịch sử chứng từ, đơn hàng & hóa đơn được bảo toàn nguyên vẹn trong SQL!`, 'success');
         this.refreshInventoryView();
       } else if (type === 'services') {
         const s = window.store.getServiceById(id);
         const name = s ? (s.name || s.TenDichVu) : id;
         await window.store.deleteService(id);
         this._closeModal();
-        if (window.UICommon) window.UICommon.showToast(`Đã xóa dịch vụ #${id} (${name}) khỏi database SQL!`);
+        if (window.UICommon) window.UICommon.showToast(`Đã ngừng kinh doanh dịch vụ #${id} (${name}). Lịch sử lịch hẹn & hóa đơn được bảo toàn nguyên vẹn trong SQL!`, 'success');
         this.refreshCatalogView();
       } else if (type === 'combos') {
         await window.store.deleteCombo(id);
         this._closeModal();
-        if (window.UICommon) window.UICommon.showToast(`Đã xóa combo #${id}!`);
+        if (window.UICommon) window.UICommon.showToast(`Đã ngừng kinh doanh combo #${id}. Toàn bộ dữ liệu lịch sử được bảo toàn nguyên vẹn trong SQL!`, 'success');
         this.refreshCatalogView();
       } else if (type === 'stylists') {
         const st = window.store.getStylistById(id);

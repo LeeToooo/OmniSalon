@@ -5,12 +5,14 @@ const {
   generateNextOrderId,
   generateNextCtdhId
 } = require('../../services/helper_service');
+const { checkAndAutoCancelOnRequest } = require('../../services/auto_cancel_service');
 
 async function handleOrderRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
 
   // GET /api/orders hoặc GET /api/orders/:id - Tra cứu danh sách hoặc chi tiết đơn hàng
   if ((pathname === '/api/orders' || pathname.startsWith('/api/orders/')) && !pathname.endsWith('/cancel') && method === 'GET') {
+    await checkAndAutoCancelOnRequest();
     let orderIdParam = pathname.startsWith('/api/orders/') ? pathname.replace('/api/orders/', '').trim() : null;
     if (orderIdParam) {
       orderIdParam = decodeURIComponent(orderIdParam).replace(/^#+/, '').trim();

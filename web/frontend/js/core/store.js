@@ -88,6 +88,7 @@
         if (Array.isArray(db.bookings) && db.bookings.length > 0) {
           this.state.bookings = db.bookings;
           changed = true;
+          this.checkAutoCancelOverdueBookings();
         }
 
         // Đồng bộ danh sách đơn hàng từ SQL: Lấy chuẩn CSDL SQL Server làm nguồn sự thật duy nhất
@@ -601,13 +602,7 @@
         ['Mạc Đĩnh Chi', 'Nguyễn Du Nam', 'Cao Bá Quát']
       ];
 
-      const avatarPresets = [
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80'
-      ];
+      const avatarPresets = Array.from({ length: 20 }, (_, i) => `/DataPicture/ChanDungTho/Tho${i + 1}.jpg`);
 
       const stylists = [];
       let nvIndex = 1;
@@ -741,6 +736,50 @@
       };
     }
 
+    checkAutoCancelOverdueBookings() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const todayIso = `${y}-${m}-${d}`;
+
+      let changed = false;
+      if (Array.isArray(this.state.bookings)) {
+        this.state.bookings.forEach(b => {
+          const bDate = String(b.date || b.bookingDate || b.NgayHen || '').split('T')[0];
+          const isNotDone = !['Cancelled', 'Completed', 'Đã hủy', 'Hoàn thành'].includes(b.status) &&
+                            !['Đã hủy', 'Hoàn thành'].includes(b.TrangThai);
+          if (bDate && bDate < todayIso && isNotDone) {
+            b.status = 'Cancelled';
+            b.TrangThai = 'Đã hủy';
+            b.cancelReason = '[Hệ Thống] Tự động hủy qua 12h đêm do khách không đến theo lịch hẹn.';
+            b.LyDoHuy = '[Hệ Thống] Tự động hủy qua 12h đêm do khách không đến theo lịch hẹn.';
+            changed = true;
+          }
+        });
+      }
+
+      if (Array.isArray(this.state.orders)) {
+        this.state.orders.forEach(o => {
+          const oDate = String(o.orderDate || o.createdAt || o.NgayDat || '').split('T')[0];
+          const oSt = String(o.orderStatus || o.status || o.TrangThai || '');
+          const isPending = ['Pending', 'pending', 'Processing', 'Chờ xử lý', 'Chờ xác nhận', 'Chờ nhận hàng', 'Chờ thanh toán'].includes(oSt);
+          if (oDate && oDate < todayIso && isPending) {
+            o.orderStatus = 'Cancelled';
+            o.status = 'Cancelled';
+            o.TrangThai = 'Đã hủy';
+            o.cancelReason = '[Hệ Thống] Tự động hủy qua 12h đêm do khách không đến nhận hàng.';
+            o.GhiChu = (o.GhiChu ? o.GhiChu + ' ' : '') + '[Hệ Thống: Tự động hủy qua 12h đêm do khách không đến nhận hàng]';
+            changed = true;
+          }
+        });
+      }
+
+      if (changed) {
+        this.saveState();
+      }
+    }
+
     initStore() {
       // Dọn dẹp cache phiên bản cũ
       try {
@@ -835,7 +874,7 @@
         if (Array.isArray(this.state.branches)) {
           this.state.branches.forEach((b, idx) => {
             if (isBadImg(b.image)) {
-              b.image = baseline.branches[idx]?.image || maleFallback;
+              b.image = baseline.branches[idx]?.image || 'DataPicture/Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg';
             }
           });
         }
@@ -869,6 +908,7 @@
         this.state.auditLogs.forEach(l => { if (typeof l.entity === 'string') l.entity = l.entity.replace(/#/g, ''); });
       }
 
+      this.checkAutoCancelOverdueBookings();
       this.saveState();
       this.syncWithLiveServer();
     }
@@ -1086,8 +1126,11 @@
     }
 
     // Dịch vụ & gói combo VIP
-    getServices(category = null) {
-      const list = this.state.services || [];
+    getServices(category = null, includeDiscontinued = false) {
+      let list = this.state.services || [];
+      if (!includeDiscontinued) {
+        list = list.filter(s => !s.isDeleted && s.status !== 'Ngừng kinh doanh' && s.TrangThai !== 'Ngừng kinh doanh');
+      }
       if (!category || category === 'all') return list;
       if (category === 'haircut' || category === 'cut' || category === 'cat-tao-kieu') {
         return list.filter(s => s.category === 'haircut' || s.id === 'DV01' || s.id === 'DV02');
@@ -1098,7 +1141,7 @@
     getServiceById(serviceId) {
       if (!serviceId) return null;
       const clean = String(serviceId).trim().toLowerCase();
-      const services = this.getServices();
+      const services = this.state.services || [];
       return services.find(s => 
         String(s.id || '').trim().toLowerCase() === clean || 
         String(s.MaDichVu || '').trim().toLowerCase() === clean
@@ -1132,8 +1175,12 @@
       };
     }
 
-    getCombos() {
-      return (this.state.combos || []).map(c => this._normalizeCombo(c));
+    getCombos(includeDiscontinued = false) {
+      let list = this.state.combos || [];
+      if (!includeDiscontinued) {
+        list = list.filter(c => !c.isDeleted && c.status !== 'Ngừng kinh doanh' && c.TrangThai !== 'Ngừng kinh doanh');
+      }
+      return list.map(c => this._normalizeCombo(c));
     }
 
     getComboById(comboId) {
@@ -1223,10 +1270,12 @@
     }
 
     deleteCombo(comboId) {
-      const idx = (this.state.combos || []).findIndex(c => c.id === comboId || c.MaCombo === comboId);
-      if (idx === -1) return false;
-      const removed = this.state.combos.splice(idx, 1)[0];
-      this.logAudit('DELETE_COMBO', `Gói: #${comboId}`, `Xóa combo: ${removed.name || removed.TenCombo}`);
+      const c = (this.state.combos || []).find(item => item.id === comboId || item.MaCombo === comboId);
+      if (!c) return false;
+      c.status = 'Ngừng kinh doanh';
+      c.TrangThai = 'Ngừng kinh doanh';
+      c.isDeleted = true;
+      this.logAudit('DELETE_COMBO', `Gói: #${comboId}`, `Ngừng kinh doanh (bảo toàn lịch sử SQL): ${c.name || c.TenCombo}`);
       this.saveState();
       this.syncDeleteComboToLiveServer(comboId);
       return true;
@@ -1297,10 +1346,12 @@
     }
 
     deleteService(serviceId) {
-      const idx = (this.state.services || []).findIndex(s => s.id === serviceId);
-      if (idx === -1) return false;
-      const removed = this.state.services.splice(idx, 1)[0];
-      this.logAudit('DELETE_SERVICE', `Dịch vụ: #${serviceId}`, `Xóa dịch vụ: ${removed.name}`);
+      const s = (this.state.services || []).find(item => item.id === serviceId || item.MaDichVu === serviceId);
+      if (!s) return false;
+      s.status = 'Ngừng kinh doanh';
+      s.TrangThai = 'Ngừng kinh doanh';
+      s.isDeleted = true;
+      this.logAudit('DELETE_SERVICE', `Dịch vụ: #${serviceId}`, `Ngừng kinh doanh (bảo toàn lịch sử SQL): ${s.name || s.TenDichVu}`);
       this.saveState();
       this.syncDeleteServiceToLiveServer(serviceId);
       return true;
@@ -1359,7 +1410,7 @@
         title: `${level} • ${role}`,
         phone: stylistData.phone || '0912000000',
         email: stylistData.email || `${nextId.toLowerCase()}@salontoc.vn`,
-        avatar: stylistData.avatar || (role === 'Thợ phụ' ? 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80' : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'),
+        avatar: stylistData.avatar || (role === 'Thợ phụ' ? '/DataPicture/ChanDungTho/Tho3.jpg' : '/DataPicture/ChanDungTho/Tho1.jpg'),
         rating: 5.0,
         reviewCount: 0,
         specialty: stylistData.specialty || (role === 'Thợ phụ' ? 'Gội đầu dưỡng sinh, Ép side & Chăm sóc tóc' : 'Tạo kiểu tóc chuyên nghiệp, Fade & Uốn'),
@@ -1709,6 +1760,7 @@
     }
 
     getBookings(branchId = null, userId = null) {
+      this.checkAutoCancelOverdueBookings();
       let list = this.state.bookings || [];
       if (branchId) {
         const tb = this.getBranchById(branchId);
@@ -1720,6 +1772,7 @@
     }
 
     getBookingByPhoneOrId(query) {
+      this.checkAutoCancelOverdueBookings();
       if (!query) return [];
       const q = String(query).trim().toLowerCase().replace('#', '');
       return (this.state.bookings || []).filter(b =>
@@ -1734,7 +1787,7 @@
     getBranchInventory(branchId = null) {
       const bId = (!branchId || String(branchId).toLowerCase() === 'all') ? null : branchId;
 
-      const prods = this.state.products || [];
+      const prods = (this.state.products || []).filter(p => !p.isDeleted && p.status !== 'Ngừng kinh doanh' && p.TrangThaiKinhDoanh !== 'Ngừng kinh doanh');
       const invList = this.state.inventory || [];
 
       // Bản đồ tồn kho theo key: branchId_productId
@@ -2014,8 +2067,11 @@
       return this.state.categories || [];
     }
 
-    getProducts(section = null) {
+    getProducts(section = null, includeDiscontinued = false) {
       let list = this.state.products || [];
+      if (!includeDiscontinued) {
+        list = list.filter(p => !p.isDeleted && p.status !== 'Ngừng kinh doanh' && p.TrangThaiKinhDoanh !== 'Ngừng kinh doanh');
+      }
       if (!section || section === 'all') return list;
       if (section === 'new') return list.slice(0, 6);
       if (section === 'best') return list.filter(p => (p.discountPercent && p.discountPercent > 0) || ['SP01', 'SP04', 'SP06', 'SP10', 'SP14'].includes(p.id));
@@ -2024,8 +2080,12 @@
 
     getProductById(productId) {
       if (!productId) return null;
-      const products = this.getProducts();
-      return products.find(p => p.id === productId || p.MaSanPham === productId) || null;
+      const clean = String(productId).trim().toLowerCase();
+      const products = this.state.products || [];
+      return products.find(p => 
+        String(p.id || '').trim().toLowerCase() === clean || 
+        String(p.MaSanPham || '').trim().toLowerCase() === clean
+      ) || null;
     }
 
     async addProduct(productData) {
@@ -2111,13 +2171,16 @@
     }
 
     async deleteProduct(productId) {
-      const idx = (this.state.products || []).findIndex(p => p.id === productId || p.MaSanPham === productId);
-      if (idx === -1) return false;
-      const removed = this.state.products.splice(idx, 1)[0];
+      const p = (this.state.products || []).find(item => item.id === productId || item.MaSanPham === productId);
+      if (!p) return false;
+      p.status = 'Ngừng kinh doanh';
+      p.TrangThaiKinhDoanh = 'Ngừng kinh doanh';
+      p.isDeleted = true;
       if (this.state.inventory) {
-        this.state.inventory = this.state.inventory.filter(i => i.productId !== productId);
+        const inv = this.state.inventory.find(i => i.productId === productId || i.MaSanPham === productId);
+        if (inv) inv.status = 'Ngừng kinh doanh';
       }
-      this.logAudit('DELETE_PRODUCT', `Sản phẩm: ${productId}`, `Xóa sản phẩm: ${removed.name || removed.TenSanPham}`);
+      this.logAudit('DELETE_PRODUCT', `Sản phẩm: ${productId}`, `Ngừng kinh doanh (bảo toàn lịch sử SQL): ${p.name || p.TenSanPham}`);
       this.saveState();
       await this.syncDeleteProductToLiveServer(productId);
       return true;
@@ -2448,20 +2511,8 @@
         newOrder.id = assignedId;
         newOrder.orderCode = assignedId;
         newOrder.MaDonHang = assignedId;
-      } else if (!newOrder.id) {
-        // Fallback offline nếu mất kết nối mạng
-        const existingDh = (this.state.orders || [])
-          .map(o => (o.id || o.orderCode || o.MaDonHang || ''))
-          .filter(code => /^DH\d+$/i.test(code));
-        let maxDhNum = 10;
-        existingDh.forEach(code => {
-          const num = parseInt(code.replace(/^DH/i, ''), 10);
-          if (num > maxDhNum) maxDhNum = num;
-        });
-        const fallbackCode = 'DH' + (maxDhNum + 1 < 10 ? '0' + (maxDhNum + 1) : (maxDhNum + 1));
-        newOrder.id = fallbackCode;
-        newOrder.orderCode = fallbackCode;
-        newOrder.MaDonHang = fallbackCode;
+      } else {
+        return { error: 'Không thể tạo đơn hàng trên máy chủ CSDL SQL Server. Vui lòng kiểm tra kết nối mạng!' };
       }
 
       // Trừ kho từng sản phẩm sau khi server chấp thuận
@@ -3165,43 +3216,31 @@
     }
 
     async addSupplier(data) {
-      try {
-        const res = await fetch('/api/suppliers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        const resJson = await res.json();
-        if (resJson && resJson.success && resJson.supplier) {
-          if (!this.state.suppliers) this.state.suppliers = [];
-          this.state.suppliers.push(resJson.supplier);
-          this.saveToStorage();
-          return resJson.supplier;
-        }
-      } catch (err) {
-        console.warn('API error addSupplier, fallback local:', err);
+      const res = await fetch('/api/suppliers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const resJson = await res.json();
+      if (resJson && resJson.success && resJson.supplier) {
+        if (!this.state.suppliers) this.state.suppliers = [];
+        this.state.suppliers.push(resJson.supplier);
+        this.saveToStorage();
+        return resJson.supplier;
       }
-      /* Fallback local */
-      const id = data.id || ('NCC' + String(Date.now()).slice(-3));
-      const newSup = { ...data, id, MaNhaCungCap: id, status: data.status || 'Hoạt động' };
-      if (!this.state.suppliers) this.state.suppliers = [];
-      this.state.suppliers.push(newSup);
-      this.saveToStorage();
-      return newSup;
+      throw new Error(resJson?.message || 'Không thể thêm nhà cung cấp');
     }
 
     async updateSupplier(supplierId, data) {
-      try {
-        const res = await fetch('/api/suppliers/' + encodeURIComponent(supplierId), {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        await res.json();
-      } catch (err) {
-        console.warn('API error updateSupplier, fallback local:', err);
+      const res = await fetch('/api/suppliers/' + encodeURIComponent(supplierId), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const resJson = await res.json();
+      if (!res.ok || (resJson && resJson.success === false)) {
+        throw new Error(resJson?.message || 'Không thể cập nhật nhà cung cấp');
       }
-      /* Update local state */
       if (this.state.suppliers) {
         const idx = this.state.suppliers.findIndex(s => s.id === supplierId || s.MaNhaCungCap === supplierId);
         if (idx !== -1) {
@@ -3213,15 +3252,13 @@
     }
 
     async deleteSupplier(supplierId) {
-      try {
-        const res = await fetch('/api/suppliers/' + encodeURIComponent(supplierId), {
-          method: 'DELETE'
-        });
-        await res.json();
-      } catch (err) {
-        console.warn('API error deleteSupplier, fallback local:', err);
+      const res = await fetch('/api/suppliers/' + encodeURIComponent(supplierId), {
+        method: 'DELETE'
+      });
+      const resJson = await res.json();
+      if (!res.ok || (resJson && resJson.success === false)) {
+        throw new Error(resJson?.message || 'Không thể xóa nhà cung cấp');
       }
-      /* Update local state */
       if (this.state.suppliers) {
         this.state.suppliers = this.state.suppliers.filter(s => s.id !== supplierId && s.MaNhaCungCap !== supplierId);
         this.saveToStorage();
@@ -3235,6 +3272,108 @@
 
     getDiscountRuleById(ruleId) {
       return (this.state.discountRules || []).find(r => r.id === ruleId || r.MaQuyTac === ruleId) || null;
+    }
+
+    async addPromotion(data) {
+      const res = await fetch('/api/promotions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const resJson = await res.json();
+      if (resJson && resJson.success && resJson.promotion) {
+        if (!this.state.promotions) this.state.promotions = [];
+        this.state.promotions.push(resJson.promotion);
+        this.saveToStorage();
+        return resJson.promotion;
+      }
+      throw new Error(resJson?.message || 'Không thể tạo chương trình khuyến mãi');
+    }
+
+    async updatePromotion(promoId, data) {
+      const res = await fetch('/api/promotions/' + encodeURIComponent(promoId), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const resJson = await res.json();
+      if (!res.ok || (resJson && resJson.success === false)) {
+        throw new Error(resJson?.message || 'Không thể cập nhật chương trình khuyến mãi');
+      }
+      if (this.state.promotions) {
+        const idx = this.state.promotions.findIndex(p => p.id === promoId || p.MaKhuyenMai === promoId);
+        if (idx !== -1) {
+          this.state.promotions[idx] = { ...this.state.promotions[idx], ...data };
+          this.saveToStorage();
+        }
+      }
+      return true;
+    }
+
+    async deletePromotion(promoId) {
+      const res = await fetch('/api/promotions/' + encodeURIComponent(promoId), {
+        method: 'DELETE'
+      });
+      const resJson = await res.json();
+      if (!res.ok || (resJson && resJson.success === false)) {
+        throw new Error(resJson?.message || 'Không thể xóa chương trình khuyến mãi');
+      }
+      if (this.state.promotions) {
+        this.state.promotions = this.state.promotions.filter(p => p.id !== promoId && p.MaKhuyenMai !== promoId);
+        this.saveToStorage();
+      }
+      return true;
+    }
+
+    async addDiscountRule(data) {
+      const res = await fetch('/api/discount-rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const resJson = await res.json();
+      if (resJson && resJson.success && resJson.rule) {
+        if (!this.state.discountRules) this.state.discountRules = [];
+        this.state.discountRules.push(resJson.rule);
+        this.saveToStorage();
+        return resJson.rule;
+      }
+      throw new Error(resJson?.message || 'Không thể thêm quy tắc giảm giá');
+    }
+
+    async updateDiscountRule(ruleId, data) {
+      const res = await fetch('/api/discount-rules/' + encodeURIComponent(ruleId), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const resJson = await res.json();
+      if (!res.ok || (resJson && resJson.success === false)) {
+        throw new Error(resJson?.message || 'Không thể cập nhật quy tắc giảm giá');
+      }
+      if (this.state.discountRules) {
+        const idx = this.state.discountRules.findIndex(r => r.id === ruleId || r.MaQuyTac === ruleId);
+        if (idx !== -1) {
+          this.state.discountRules[idx] = { ...this.state.discountRules[idx], ...data };
+          this.saveToStorage();
+        }
+      }
+      return true;
+    }
+
+    async deleteDiscountRule(ruleId) {
+      const res = await fetch('/api/discount-rules/' + encodeURIComponent(ruleId), {
+        method: 'DELETE'
+      });
+      const resJson = await res.json();
+      if (!res.ok || (resJson && resJson.success === false)) {
+        throw new Error(resJson?.message || 'Không thể xóa quy tắc giảm giá');
+      }
+      if (this.state.discountRules) {
+        this.state.discountRules = this.state.discountRules.filter(r => r.id !== ruleId && r.MaQuyTac !== ruleId);
+        this.saveToStorage();
+      }
+      return true;
     }
 
     getReceipts(branchId = null) {

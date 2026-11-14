@@ -1,4 +1,4 @@
-﻿(function (window) {
+(function (window) {
   'use strict';
 
   const SalonUtils = {
@@ -244,7 +244,7 @@
 
     formatImageUrl(path) {
       if (!path || typeof path !== 'string') {
-        return this.getBasePrefix() + 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
+        return this.getBasePrefix() + 'DataPicture/DichVu_Men/DV1.jpg';
       }
       if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:') || path.startsWith('blob:')) {
         return path;
@@ -254,11 +254,8 @@
       else if (clean.startsWith('web/')) clean = clean.substring(4);
       else if (clean.startsWith('frontend/')) clean = clean.substring(9);
 
-      // Chuẩn hóa đường dẫn: Dịch vụ & Chi nhánh luôn nằm trong Men_Grooming_Products/
-      if (clean.startsWith('DichVu_Men/')) {
-        clean = 'Men_Grooming_Products/' + clean;
-      } else if (clean.startsWith('ChiNhanh_Omni/')) {
-        clean = 'Men_Grooming_Products/' + clean;
+      if (!clean.startsWith('DataPicture/')) {
+        clean = 'DataPicture/' + clean;
       }
 
       const prefix = this.getBasePrefix();
@@ -271,60 +268,16 @@
 
     handleImgError(imgEl) {
       if (!imgEl) return;
-      const src = imgEl.getAttribute('src') || imgEl.src || '';
-      if (!imgEl._retryStep) imgEl._retryStep = 0;
-      imgEl._retryStep++;
-
-      const prefix = this.getBasePrefix();
-
-      // Xử lý ảnh DichVu_Men -> luôn trỏ về folder chuẩn Men_Grooming_Products/DichVu_Men
-      if (src.includes('DichVu_Men')) {
-        const fileMatch = src.match(/(DV\d+|CBDV\d+)\.(jpg|jpeg|png|webp)/i);
-        const fileName = fileMatch ? fileMatch[0] : 'DV1.jpg';
-        const target = 'Men_Grooming_Products/DichVu_Men/' + fileName;
-        if (imgEl._retryStep === 1) {
-          imgEl.src = prefix + target;
-          return;
-        } else if (imgEl._retryStep === 2) {
-          imgEl.src = target;
-          return;
-        } else if (imgEl._retryStep === 3) {
-          imgEl.src = prefix + 'Men_Grooming_Products/DichVu_Men/DV1.jpg';
-          return;
-        }
-        imgEl.onerror = null;
-        imgEl.src = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80';
-        return;
-      }
-
-      if (src.includes('ChiNhanh_Omni')) {
-        const fileMatch = src.match(/(CN\d+)\.(jpg|jpeg|png|webp)/i);
-        const fileName = fileMatch ? fileMatch[0] : 'CN1.jpg';
-        const target = 'Men_Grooming_Products/ChiNhanh_Omni/' + fileName;
-        if (imgEl._retryStep === 1) {
-          imgEl.src = prefix + target;
-          return;
-        } else if (imgEl._retryStep === 2) {
-          imgEl.src = target;
-          return;
-        }
-        imgEl.onerror = null;
-        imgEl.src = 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80';
-        return;
-      }
-
-      if (src.includes('Men_Grooming_Products')) {
-        const clean = src.replace(/.*Men_Grooming_Products/, 'Men_Grooming_Products').replace(/^\/+/, '');
-        if (imgEl._retryStep === 1) {
-          imgEl.src = prefix + clean;
-          return;
-        } else if (imgEl._retryStep === 2) {
-          imgEl.src = clean;
-          return;
-        }
-      }
       imgEl.onerror = null;
-      imgEl.src = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80';
+      const src = imgEl.getAttribute('src') || imgEl.src || '';
+      const prefix = this.getBasePrefix();
+      if (src.includes('ChanDungTho') || src.includes('Tho')) {
+        imgEl.src = prefix + 'DataPicture/ChanDungTho/Tho1.jpg';
+      } else if (src.includes('ChiNhanh_Omni') || src.includes('CN')) {
+        imgEl.src = prefix + 'DataPicture/ChiNhanh_Omni/CN1.jpg';
+      } else {
+        imgEl.src = prefix + 'DataPicture/DichVu_Men/DV1.jpg';
+      }
     }
   };
 

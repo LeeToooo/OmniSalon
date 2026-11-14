@@ -680,6 +680,81 @@ BEGIN
 END;
 GO
 
+-- Trigger tự động hoàn lại tồn kho khi đơn hàng bị hủy
+CREATE OR ALTER TRIGGER trg_DonHang_HuyDon_HoanTonKho
+ON DonHang
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1 FROM inserted i
+        JOIN deleted d ON i.MaDonHang = d.MaDonHang
+        WHERE i.TrangThai = N'Đã hủy' AND d.TrangThai <> N'Đã hủy'
+    )
+    BEGIN
+        -- Hoàn lại số lượng cho từng lô trong ChiTietPhieuNhap
+        UPDATE ctpn
+        SET ctpn.SoLuongConLai = ctpn.SoLuongConLai + ctdh.SoLuong
+        FROM ChiTietPhieuNhap ctpn
+        JOIN ChiTietDonHang ctdh ON ctpn.MaChiTietPhieuNhap = ctdh.MaChiTietPhieuNhap
+        JOIN inserted i ON ctdh.MaDonHang = i.MaDonHang
+        JOIN deleted d ON i.MaDonHang = d.MaDonHang
+        WHERE i.TrangThai = N'Đã hủy' AND d.TrangThai <> N'Đã hủy';
+
+        -- Hoàn lại số lượng tổng tồn kho cho ChiNhanh
+        UPDATE tk
+        SET tk.SoLuongTon = tk.SoLuongTon + agg.SoLuongHoan,
+            tk.NgayCapNhat = GETDATE()
+        FROM TonKho tk
+        JOIN (
+            SELECT ctdh.MaSanPham, i.MaChiNhanh, SUM(ctdh.SoLuong) AS SoLuongHoan
+            FROM ChiTietDonHang ctdh
+            JOIN inserted i ON ctdh.MaDonHang = i.MaDonHang
+            JOIN deleted d ON i.MaDonHang = d.MaDonHang
+            WHERE i.TrangThai = N'Đã hủy' AND d.TrangThai <> N'Đã hủy'
+            GROUP BY ctdh.MaSanPham, i.MaChiNhanh
+        ) AS agg ON tk.MaSanPham = agg.MaSanPham AND tk.MaChiNhanh = agg.MaChiNhanh;
+    END
+END;
+GO
+
+-- Thủ tục tự động hủy lịch hẹn dịch vụ và đơn hàng quá 12h đêm (No-show Auto Cancel)
+CREATE OR ALTER PROCEDURE sp_TuDongHuyLichHenVaDonHangQuaDem
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 1. Tự động hủy các lịch hẹn dịch vụ quá 12h đêm mà khách không đến
+    UPDATE LichHen
+    SET TrangThai = N'Đã hủy',
+        LyDoHuy = ISNULL(LyDoHuy, N'') + N'[Hệ Thống] Tự động hủy qua 12h đêm do khách không đến theo lịch hẹn.'
+    WHERE NgayHen < CAST(GETDATE() AS DATE)
+      AND TrangThai NOT IN (N'Đã hủy', N'Hoàn thành', 'Completed', 'Cancelled');
+
+    -- 2. Tự động hủy các đơn hàng đặt online / nhận tại quầy quá 12h đêm chưa hoàn tất
+    UPDATE DonHang
+    SET TrangThai = N'Đã hủy',
+        GhiChu = ISNULL(GhiChu, N'') + N' [Hệ Thống: Tự động hủy qua 12h đêm do khách không đến nhận hàng]'
+    WHERE CAST(NgayDat AS DATE) < CAST(GETDATE() AS DATE)
+      AND TrangThai IN (N'Chờ xử lý', N'Chờ xác nhận', N'Chờ nhận hàng', N'Chờ thanh toán', 'Pending', 'pending', 'Processing');
+END;
+GO
+
+-- Trigger tự động kích hoạt hủy các đơn/lịch hẹn cũ quá đêm khi có thao tác phát sinh lịch hẹn
+CREATE OR ALTER TRIGGER trg_LichHen_TuDongHuyQuaDem
+ON LichHen
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF TRIGGER_NESTLEVEL() <= 1
+    BEGIN
+        EXEC sp_TuDongHuyLichHenVaDonHangQuaDem;
+    END
+END;
+GO
+
 -- =========================================================================
 -- 5. PROCEDURES FEFO ĐA LÔ THEO CHI NHÁNH
 -- =========================================================================

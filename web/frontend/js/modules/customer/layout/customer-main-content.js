@@ -219,7 +219,7 @@
             ${stylists.map(st => `
               <div class="stylist-showcase-card">
                 <div class="stylist-showcase-avatar-wrap">
-                  <img src="${st.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'}" alt="${this.escapeHtml(st.name)}" class="stylist-showcase-avatar" loading="lazy">
+                  <img src="${st.avatar || '/DataPicture/ChanDungTho/Tho1.jpg'}" alt="${this.escapeHtml(st.name)}" class="stylist-showcase-avatar" loading="lazy" onerror="this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
                   <span class="stylist-master-badge">Stylist Chuyên Nghiệp</span>
                 </div>
                 <div class="stylist-showcase-body">

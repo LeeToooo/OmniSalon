@@ -65,6 +65,10 @@
       if (typeof this.clearSearchQueries === 'function') this.clearSearchQueries();
       const user = (typeof this.getCurrentUser === 'function') ? this.getCurrentUser() : null;
       const activeRole = (typeof this.getActiveRole === 'function') ? this.getActiveRole(user) : 'SUPER_ADMIN';
+      if (activeRole === 'STYLIST' && tabName !== 'receipts') {
+        if (window.UICommon) window.UICommon.showToast('Thợ salon chỉ có quyền xem và lập phiếu nhập kho!', 'warning');
+        return;
+      }
       if (activeRole === 'CASHIER' && !['receipts', 'pos', 'bookings'].includes(tabName)) {
         if (window.UICommon) window.UICommon.showToast('Thu ngân chỉ có quyền sử dụng Quầy POS, Tiếp nhận lịch hẹn, Lập phiếu nhập và Lịch sử đơn!', 'warning');
         return;
@@ -96,7 +100,10 @@
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const activeRole = (typeof this.getActiveRole === 'function') ? this.getActiveRole(user) : 'SUPER_ADMIN';
 
-      if (activeRole === 'CASHIER' && !['receipts', 'pos', 'bookings'].includes(this.adminSubTab)) {
+      if (activeRole === 'STYLIST') {
+        this.adminSubTab = 'receipts';
+        this.inventorySubTab = 'receipts';
+      } else if (activeRole === 'CASHIER' && !['receipts', 'pos', 'bookings'].includes(this.adminSubTab)) {
         this.adminSubTab = 'pos';
       } else if (activeRole === 'BRANCH_MANAGER' && !['overview', 'stylists', 'inventory', 'receipts', 'catalog', 'pos', 'bookings'].includes(this.adminSubTab)) {
         this.adminSubTab = 'overview';
@@ -120,6 +127,8 @@
           return this.renderPosTab(user, services, combos, products, branches, stylists, bMap);
         case 'audit':
           return this.renderAuditTab(auditLogs);
+        case 'promotions':
+          return this.renderPromotionsTab(user);
         default:
           return (activeRole === 'CASHIER' || activeRole === 'BRANCH_MANAGER')
             ? this.renderPosTab(user, services, combos, products, branches, stylists, bMap)

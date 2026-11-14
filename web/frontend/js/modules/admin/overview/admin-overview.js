@@ -682,7 +682,7 @@
                         </td>
                         <td>
                           <div style="display: flex; align-items: center; gap: 8px;">
-                            <img src="${st.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80'}" 
+                            <img src="${st.avatar || '/DataPicture/ChanDungTho/Tho1.jpg'}" onerror="this.src='/DataPicture/ChanDungTho/Tho1.jpg';" 
                                  style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);" alt="${this.escapeHtml(st.name)}">
                             <div>
                               <strong style="color: var(--text-primary); display: block;">${this.escapeHtml(st.name)}</strong>
