@@ -340,7 +340,10 @@ class _CartScreenState extends State<CartScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${orderAmount > 0 ? orderAmount : _finalTotal}&addInfo=${Uri.encodeComponent("DONHANG $orderCode")}&accountName=OMNISALON%20ENTERPRISE',
+                        ApiService.getVietQrImageUrl(
+                          amount: (orderAmount > 0 ? orderAmount : _finalTotal).toInt(),
+                          description: 'DONHANG $orderCode',
+                        ),
                         height: 170,
                         width: 170,
                         fit: BoxFit.contain,

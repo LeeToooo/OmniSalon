@@ -132,6 +132,7 @@
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
               <thead>
                 <tr style="background: var(--surface-elevated, rgba(255,255,255,0.02)); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px;">
+                  <th style="padding: 12px 16px; font-weight: 700; text-align: center; width: 50px;">STT</th>
                   <th style="padding: 12px 16px; font-weight: 700;">Mã Quy Tắc</th>
                   <th style="padding: 12px 16px; font-weight: 700;">Tên Quy Tắc Giảm Giá</th>
                   <th style="padding: 12px 16px; font-weight: 700;">Số Ngày Còn Lại Tối Thiểu</th>
@@ -142,8 +143,9 @@
                 </tr>
               </thead>
               <tbody>
-                ${rules.map(r => {
-                  const id = r.id || r.MaQuyTac;
+                ${rules.map((r, index) => {
+                  const id = r.real_id || r.id || r.MaQuyTac;
+                  const stt = r.stt || (index + 1);
                   const name = r.name || r.TenQuyTac || '—';
                   const minDays = (r.minDays !== undefined ? r.minDays : r.SoNgayConLaiToiThieu);
                   const maxDays = (r.maxDays !== undefined ? r.maxDays : r.SoNgayConLaiToiDa);
@@ -154,6 +156,7 @@
 
                   return `
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                      <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: var(--text-secondary); width: 50px;">${stt}</td>
                       <td style="padding: 14px 16px; font-family: monospace; font-weight: 700; color: var(--text-primary);">${this.escapeHtml(id)}</td>
                       <td style="padding: 14px 16px; font-weight: 600; color: var(--text-primary);">${this.escapeHtml(name)}</td>
                       <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">${minDays < 0 ? minDays + ' (Quá hạn)' : minDays + ' ngày'}</td>
@@ -220,6 +223,7 @@
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
               <thead>
                 <tr style="background: var(--surface-elevated, rgba(255,255,255,0.02)); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px;">
+                  <th style="padding: 12px 16px; font-weight: 700; text-align: center; width: 50px;">STT</th>
                   <th style="padding: 12px 16px; font-weight: 700;">Mã Khuyến Mãi</th>
                   <th style="padding: 12px 16px; font-weight: 700;">Tên Chương Trình</th>
                   <th style="padding: 12px 16px; font-weight: 700;">Hình Thức Giảm</th>
@@ -231,8 +235,9 @@
                 </tr>
               </thead>
               <tbody>
-                ${promos.map(p => {
-                  const id = p.id || p.MaKhuyenMai;
+                ${promos.map((p, index) => {
+                  const id = p.real_id || p.id || p.MaKhuyenMai;
+                  const stt = p.stt || (index + 1);
                   const name = p.name || p.TenKhuyenMai || '—';
                   const type = p.type || p.HinhThuc || 'Giảm giá %';
                   const val = p.value !== undefined ? p.value : (p.GiaTriGiam || 0);
@@ -248,6 +253,7 @@
 
                   return `
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                      <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: var(--text-secondary); width: 50px;">${stt}</td>
                       <td style="padding: 14px 16px; font-family: monospace; font-weight: 700; color: var(--text-primary);">${this.escapeHtml(id)}</td>
                       <td style="padding: 14px 16px; font-weight: 600; color: var(--text-primary);">${this.escapeHtml(name)}</td>
                       <td style="padding: 14px 16px;">

@@ -22,7 +22,8 @@ async function handleStaffRoutes(req, res, ctx) {
   // GET /api/stylists hoặc /api/admin/staff - Danh sách nhân sự / stylist
   if ((pathname === '/api/stylists' || pathname === '/api/admin/staff') && method === 'GET') {
     const branchParam = parsedUrl.searchParams.get('branch_id');
-    const isPublicStylists = (pathname === '/api/stylists');
+    const forBookingOnly = (parsedUrl.searchParams.get('for_booking') === 'true' || parsedUrl.searchParams.get('role') === 'stylist');
+    const isPublicStylists = (pathname === '/api/stylists' && forBookingOnly);
     let q = `
       SELECT nv.MaNhanVien, nv.MaChiNhanh, nv.HoTen, nv.SoDienThoai, nv.Email, 
              nv.CapBac, nv.ChucVu, nv.TrangThai, cn.TenChiNhanh 

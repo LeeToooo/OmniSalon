@@ -815,8 +815,15 @@
         if (!Array.isArray(this.state.categories) || this.state.categories.length === 0) {
           this.state.categories = baseline.categories;
         }
+        const hasCashiers = Array.isArray(this.state.stylists) && this.state.stylists.some(s => (s.role || s.ChucVu || '').includes('ngân'));
         if (!Array.isArray(this.state.stylists) || this.state.stylists.length < 60) {
           this.state.stylists = baseline.stylists;
+        } else if (!hasCashiers) {
+          const existingIds = new Set(this.state.stylists.map(s => s.id || s.MaNhanVien));
+          const missingCashiers = baseline.stylists.filter(b => (b.role === 'Thu ngân' || b.ChucVu === 'Thu ngân') && !existingIds.has(b.id));
+          if (missingCashiers.length > 0) {
+            this.state.stylists.push(...missingCashiers);
+          }
         }
         if (!Array.isArray(this.state.products) || this.state.products.length < 130) {
           this.state.products = baseline.products;
@@ -923,6 +930,10 @@
       } catch (e) {
         console.error('[SalonStore] LocalStorage error:', e);
       }
+    }
+
+    saveToStorage() {
+      return this.saveState();
     }
 
     subscribe(listener) {
@@ -1246,6 +1257,8 @@
         description: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
         MoTa: comboData.description || 'Gói dịch vụ cắt gội tạo kiểu trọn gói cao cấp',
         durationMinutes: Number(comboData.duration || 75),
+        status: comboData.status || comboData.TrangThai || 'Đang kinh doanh',
+        TrangThai: comboData.status || comboData.TrangThai || 'Đang kinh doanh',
         services: Array.isArray(comboData.services) ? comboData.services : (Array.isArray(comboData.serviceIds) ? comboData.serviceIds : []),
         serviceIds: Array.isArray(comboData.serviceIds) ? comboData.serviceIds : (Array.isArray(comboData.services) ? comboData.services : []),
         rating: 5.0,
@@ -1270,12 +1283,10 @@
     }
 
     deleteCombo(comboId) {
-      const c = (this.state.combos || []).find(item => item.id === comboId || item.MaCombo === comboId);
-      if (!c) return false;
-      c.status = 'Ngừng kinh doanh';
-      c.TrangThai = 'Ngừng kinh doanh';
-      c.isDeleted = true;
-      this.logAudit('DELETE_COMBO', `Gói: #${comboId}`, `Ngừng kinh doanh (bảo toàn lịch sử SQL): ${c.name || c.TenCombo}`);
+      const idx = (this.state.combos || []).findIndex(item => item.id === comboId || item.MaCombo === comboId);
+      if (idx === -1) return false;
+      const c = this.state.combos.splice(idx, 1)[0];
+      this.logAudit('DELETE_COMBO', `Gói: #${comboId}`, `Xóa vĩnh viễn gói combo: ${c.name || c.TenCombo}`);
       this.saveState();
       this.syncDeleteComboToLiveServer(comboId);
       return true;
@@ -1319,6 +1330,8 @@
         duration: Number(serviceData.duration || 45),
         image: serviceData.image || 'DichVu_Men/DV1.jpg',
         description: serviceData.description || 'Dịch vụ tạo mẫu tóc chuẩn Omni Salon',
+        status: serviceData.status || serviceData.TrangThai || 'Đang kinh doanh',
+        TrangThai: serviceData.status || serviceData.TrangThai || 'Đang kinh doanh',
         rating: 5.0,
         reviewsCount: 1
       };
@@ -1346,12 +1359,10 @@
     }
 
     deleteService(serviceId) {
-      const s = (this.state.services || []).find(item => item.id === serviceId || item.MaDichVu === serviceId);
-      if (!s) return false;
-      s.status = 'Ngừng kinh doanh';
-      s.TrangThai = 'Ngừng kinh doanh';
-      s.isDeleted = true;
-      this.logAudit('DELETE_SERVICE', `Dịch vụ: #${serviceId}`, `Ngừng kinh doanh (bảo toàn lịch sử SQL): ${s.name || s.TenDichVu}`);
+      const idx = (this.state.services || []).findIndex(item => item.id === serviceId || item.MaDichVu === serviceId);
+      if (idx === -1) return false;
+      const s = this.state.services.splice(idx, 1)[0];
+      this.logAudit('DELETE_SERVICE', `Dịch vụ: #${serviceId}`, `Xóa vĩnh viễn dịch vụ: ${s.name || s.TenDichVu}`);
       this.saveState();
       this.syncDeleteServiceToLiveServer(serviceId);
       return true;
@@ -2171,16 +2182,16 @@
     }
 
     async deleteProduct(productId) {
-      const p = (this.state.products || []).find(item => item.id === productId || item.MaSanPham === productId);
-      if (!p) return false;
-      p.status = 'Ngừng kinh doanh';
-      p.TrangThaiKinhDoanh = 'Ngừng kinh doanh';
-      p.isDeleted = true;
+      const idx = (this.state.products || []).findIndex(item => item.id === productId || item.MaSanPham === productId);
+      if (idx === -1) return false;
+      const p = this.state.products.splice(idx, 1)[0];
       if (this.state.inventory) {
-        const inv = this.state.inventory.find(i => i.productId === productId || i.MaSanPham === productId);
-        if (inv) inv.status = 'Ngừng kinh doanh';
+        const invIdx = this.state.inventory.findIndex(i => i.productId === productId || i.MaSanPham === productId);
+        if (invIdx !== -1) {
+          this.state.inventory.splice(invIdx, 1);
+        }
       }
-      this.logAudit('DELETE_PRODUCT', `Sản phẩm: ${productId}`, `Ngừng kinh doanh (bảo toàn lịch sử SQL): ${p.name || p.TenSanPham}`);
+      this.logAudit('DELETE_PRODUCT', `Sản phẩm: ${productId}`, `Xóa vĩnh viễn sản phẩm: ${p.name || p.TenSanPham}`);
       this.saveState();
       await this.syncDeleteProductToLiveServer(productId);
       return true;
@@ -3225,7 +3236,7 @@
       if (resJson && resJson.success && resJson.supplier) {
         if (!this.state.suppliers) this.state.suppliers = [];
         this.state.suppliers.push(resJson.supplier);
-        this.saveToStorage();
+        this.saveState();
         return resJson.supplier;
       }
       throw new Error(resJson?.message || 'Không thể thêm nhà cung cấp');
@@ -3245,7 +3256,7 @@
         const idx = this.state.suppliers.findIndex(s => s.id === supplierId || s.MaNhaCungCap === supplierId);
         if (idx !== -1) {
           this.state.suppliers[idx] = { ...this.state.suppliers[idx], ...data };
-          this.saveToStorage();
+          this.saveState();
         }
       }
       return true;
@@ -3261,7 +3272,7 @@
       }
       if (this.state.suppliers) {
         this.state.suppliers = this.state.suppliers.filter(s => s.id !== supplierId && s.MaNhaCungCap !== supplierId);
-        this.saveToStorage();
+        this.saveState();
       }
       return true;
     }
@@ -3284,7 +3295,7 @@
       if (resJson && resJson.success && resJson.promotion) {
         if (!this.state.promotions) this.state.promotions = [];
         this.state.promotions.push(resJson.promotion);
-        this.saveToStorage();
+        this.saveState();
         return resJson.promotion;
       }
       throw new Error(resJson?.message || 'Không thể tạo chương trình khuyến mãi');
@@ -3304,7 +3315,7 @@
         const idx = this.state.promotions.findIndex(p => p.id === promoId || p.MaKhuyenMai === promoId);
         if (idx !== -1) {
           this.state.promotions[idx] = { ...this.state.promotions[idx], ...data };
-          this.saveToStorage();
+          this.saveState();
         }
       }
       return true;
@@ -3320,7 +3331,7 @@
       }
       if (this.state.promotions) {
         this.state.promotions = this.state.promotions.filter(p => p.id !== promoId && p.MaKhuyenMai !== promoId);
-        this.saveToStorage();
+        this.saveState();
       }
       return true;
     }
@@ -3335,7 +3346,7 @@
       if (resJson && resJson.success && resJson.rule) {
         if (!this.state.discountRules) this.state.discountRules = [];
         this.state.discountRules.push(resJson.rule);
-        this.saveToStorage();
+        this.saveState();
         return resJson.rule;
       }
       throw new Error(resJson?.message || 'Không thể thêm quy tắc giảm giá');
@@ -3355,7 +3366,7 @@
         const idx = this.state.discountRules.findIndex(r => r.id === ruleId || r.MaQuyTac === ruleId);
         if (idx !== -1) {
           this.state.discountRules[idx] = { ...this.state.discountRules[idx], ...data };
-          this.saveToStorage();
+          this.saveState();
         }
       }
       return true;
@@ -3371,7 +3382,7 @@
       }
       if (this.state.discountRules) {
         this.state.discountRules = this.state.discountRules.filter(r => r.id !== ruleId && r.MaQuyTac !== ruleId);
-        this.saveToStorage();
+        this.saveState();
       }
       return true;
     }

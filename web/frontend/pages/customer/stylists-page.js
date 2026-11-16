@@ -277,18 +277,24 @@
         const isAssis = (stylist.role || '').toLowerCase().includes('phụ');
         const roleBadgeText = isAssis ? 'Thợ Phụ' : 'Thợ Chính';
 
+        const sMatch = String(stylist.id || stylist.MaNhanVien || cleanName).match(/(\d+)/);
+        const sNum = sMatch ? parseInt(sMatch[1], 10) : (index + 1);
+        const thoIdx = ((sNum - 1) % 20) + 1;
+        const defaultAvatar = `/DataPicture/ChanDungTho/Tho${thoIdx}.jpg`;
+        const avatarUrl = (stylist.avatar && !stylist.avatar.includes('images.unsplash.com')) ? stylist.avatar : defaultAvatar;
+
         return `
           <div class="stylist-nordic-card" id="stylistCard_${stylist.id}"
                style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px 20px 20px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box; transition: transform 0.25s ease, border-color 0.25s ease;">
             <div>
               <!-- Avatar Tròn Cân Đối Kèm Huy Hiệu Rating -->
               <div class="stylist-card-avatar-wrap" style="position: relative; width: 96px; height: 96px; margin: 0 auto 14px;">
-                <img src="${stylist.avatar || '/DataPicture/ChanDungTho/Tho1.jpg'}"
+                <img src="${avatarUrl}"
                      class="stylist-card-avatar-img"
                      style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color);"
                      alt="${cleanName}"
                      loading="lazy"
-                     onerror="this.onerror=null; this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
+                     onerror="this.onerror=null; this.src='${defaultAvatar}';">
                 <span class="stylist-card-rating-float" style="position: absolute; bottom: 0; right: 0; background: #C59B27; color: #141413; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">★ ${rating}</span>
               </div>
 

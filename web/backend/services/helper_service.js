@@ -257,9 +257,9 @@ async function getFullSqlDatabase() {
                      CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
                      CONVERT(VARCHAR(8), GioDongCua) AS GioDongCua, 
                      HinhAnh, TrangThai FROM ChiNhanh`),
-    querySql(`SELECT MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, 
+    querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaDichVu) ASC, MaDichVu ASC) AS stt, MaDichVu AS real_id, MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, 
                      CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu`),
-    querySql(`SELECT MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`),
+    querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaCombo) ASC, MaCombo ASC) AS stt, MaCombo AS real_id, MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`),
     querySql(`SELECT nv.MaNhanVien, nv.MaChiNhanh, nv.HoTen, nv.SoDienThoai, nv.Email, 
                      nv.CapBac, nv.ChucVu, nv.TrangThai, cn.TenChiNhanh 
               FROM NhanVien nv 
@@ -656,7 +656,7 @@ async function getFullSqlDatabase() {
     return isApp && inRange;
   });
 
-  const mappedServices = (serviceRows || []).map(r => {
+  const mappedServices = (serviceRows || []).map((r, index) => {
     const origPrice = parseFloat(r.Gia || 0);
     const kmMatch = (kmDichVuRows || []).find(k => k.MaDichVu === r.MaDichVu);
     let promo = null;
@@ -671,6 +671,8 @@ async function getFullSqlDatabase() {
     const finalPrice = discPercent > 0 ? Math.round(origPrice * (1 - discPercent / 100)) : origPrice;
 
     return {
+      stt: r.stt || (index + 1),
+      real_id: r.real_id || r.MaDichVu,
       id: r.MaDichVu,
       MaDichVu: r.MaDichVu,
       name: r.TenDichVu,
@@ -696,20 +698,22 @@ async function getFullSqlDatabase() {
       MoTa: r.MoTa,
       image: r.HinhAnh,
       HinhAnh: r.HinhAnh,
-      status: r.TrangThai,
-      TrangThai: r.TrangThai,
+      status: r.TrangThai || 'Đang kinh doanh',
+      TrangThai: r.TrangThai || 'Đang kinh doanh',
       applyDate: r.NgayApDung,
       NgayApDung: r.NgayApDung
     };
   });
 
   // Chuẩn hóa danh sách gói combo làm đẹp
-  const mappedCombos = (comboRows || []).map(r => {
+  const mappedCombos = (comboRows || []).map((r, index) => {
     const details = (chiTietComboRows || []).filter(c => c.MaCombo === r.MaCombo);
     const serviceIds = details.map(c => c.MaDichVu);
     const sumDuration = details.reduce((sum, d) => sum + parseInt(d.ThoiLuong || 0, 10), 0);
     const finalDuration = r.ThoiLuong || sumDuration || 60;
     return {
+      stt: r.stt || (index + 1),
+      real_id: r.real_id || r.MaCombo,
       id: r.MaCombo,
       MaCombo: r.MaCombo,
       name: r.TenCombo,
@@ -723,8 +727,8 @@ async function getFullSqlDatabase() {
       ThoiLuong: finalDuration,
       image: r.HinhAnh || '',
       HinhAnh: r.HinhAnh || '',
-      status: r.TrangThai || 'Kinh doanh',
-      TrangThai: r.TrangThai || 'Kinh doanh',
+      status: r.TrangThai || 'Đang kinh doanh',
+      TrangThai: r.TrangThai || 'Đang kinh doanh',
       serviceIds,
       services: details.map(d => ({
         id: d.MaDichVu,
@@ -750,27 +754,35 @@ async function getFullSqlDatabase() {
   }));
 
   // Chuẩn hóa danh sách thợ cắt
-  const mappedStylists = (stylistRows || []).map(r => ({
-    id: r.MaNhanVien,
-    MaNhanVien: r.MaNhanVien,
-    name: r.HoTen,
-    HoTen: r.HoTen,
-    phone: r.SoDienThoai,
-    SoDienThoai: r.SoDienThoai,
-    email: r.Email,
-    branchId: r.MaChiNhanh,
-    MaChiNhanh: r.MaChiNhanh,
-    branchName: r.TenChiNhanh,
-    TenChiNhanh: r.TenChiNhanh,
-    rank: r.CapBac,
-    CapBac: r.CapBac,
-    level: r.CapBac,
-    position: r.ChucVu,
-    ChucVu: r.ChucVu,
-    role: r.ChucVu,
-    status: r.TrangThai,
-    TrangThai: r.TrangThai
-  }));
+  const mappedStylists = (stylistRows || []).map((r, index) => {
+    const match = String(r.MaNhanVien || r.HoTen || '').match(/(\d+)/);
+    const num = match ? parseInt(match[1], 10) : (index + 1);
+    const thoIdx = ((num - 1) % 20) + 1;
+    const avatarPath = `/DataPicture/ChanDungTho/Tho${thoIdx}.jpg`;
+    return {
+      id: r.MaNhanVien,
+      MaNhanVien: r.MaNhanVien,
+      name: r.HoTen,
+      HoTen: r.HoTen,
+      phone: r.SoDienThoai,
+      SoDienThoai: r.SoDienThoai,
+      email: r.Email,
+      branchId: r.MaChiNhanh,
+      MaChiNhanh: r.MaChiNhanh,
+      branchName: r.TenChiNhanh,
+      TenChiNhanh: r.TenChiNhanh,
+      rank: r.CapBac,
+      CapBac: r.CapBac,
+      level: r.CapBac,
+      position: r.ChucVu,
+      ChucVu: r.ChucVu,
+      role: r.ChucVu,
+      status: r.TrangThai,
+      TrangThai: r.TrangThai,
+      avatar: avatarPath,
+      avatarUrl: avatarPath
+    };
+  });
 
   const mappedFefoLots = (fefoLotRows || []).map(r => ({
     ...r,

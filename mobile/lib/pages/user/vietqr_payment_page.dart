@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -34,6 +35,7 @@ class _VietQrPaymentPageState extends State<VietQrPaymentPage> {
   String? _errorMessage;
 
   String _qrCodeUrl = '';
+  String _qrData = '';
   String _accountNumber = '0900000000';
   String _accountName = 'OMNISALON ENTERPRISE';
   final String _bankName = 'MBBank (Ngân hàng Quân Đội)';
@@ -75,23 +77,51 @@ class _VietQrPaymentPageState extends State<VietQrPaymentPage> {
     if (!mounted) return;
 
     if (res['success'] == true) {
+      final returnedQr = res['qrCode']?.toString() ?? '';
+      final returnedData = res['qrData']?.toString() ?? '';
+      final finalDesc = res['description']?.toString() ?? 'THANHTOAN ${widget.orderId}';
+      final finalAmt = (res['amount'] as num?) ?? widget.amount;
+      final accNo = res['accountNumber']?.toString() ?? '0900000000';
+
+      String effectiveQrUrl = returnedQr;
+      if (effectiveQrUrl.isEmpty || effectiveQrUrl.contains('api.vietqr.io')) {
+        effectiveQrUrl = ApiService.getVietQrImageUrl(
+          accountNo: accNo,
+          amount: finalAmt.toInt(),
+          description: finalDesc,
+        );
+      } else if (effectiveQrUrl.startsWith('000201')) {
+        effectiveQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=12&data=${Uri.encodeComponent(effectiveQrUrl)}';
+      }
+
       setState(() {
         _isLoading = false;
-        _qrCodeUrl = res['qrCode']?.toString() ?? '';
-        _accountNumber = res['accountNumber']?.toString() ?? '0900000000';
+        _qrCodeUrl = effectiveQrUrl;
+        _qrData = returnedData.isNotEmpty ? returnedData : effectiveQrUrl;
+        _accountNumber = accNo;
         _accountName = res['accountName']?.toString() ?? 'OMNISALON ENTERPRISE';
-        _finalAmount = (res['amount'] as num?) ?? widget.amount;
-        _transferContent = res['description']?.toString() ?? 'THANHTOAN ${widget.orderId}';
+        _finalAmount = finalAmt;
+        _transferContent = finalDesc;
         _payosOrderCode = res['orderCode'] as int?;
       });
 
       _startCountdownTimer();
       _startStatusPolling();
     } else {
+      final fallbackDesc = widget.description ?? 'THANHTOAN ${widget.orderId}';
+      final fallbackUrl = ApiService.getVietQrImageUrl(
+        accountNo: _accountNumber,
+        amount: widget.amount.toInt(),
+        description: fallbackDesc,
+      );
       setState(() {
         _isLoading = false;
-        _errorMessage = res['message']?.toString() ?? 'Không thể khởi tạo liên kết thanh toán PayOS.';
+        _qrCodeUrl = fallbackUrl;
+        _qrData = fallbackUrl;
+        _transferContent = fallbackDesc;
       });
+      _startCountdownTimer();
+      _startStatusPolling();
     }
   }
 
@@ -399,46 +429,63 @@ class _VietQrPaymentPageState extends State<VietQrPaymentPage> {
             const SizedBox(height: 16),
           ],
 
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final qrSize = (constraints.maxWidth * 0.60).clamp(180.0, 220.0);
+              return Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(maxWidth: 340),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    _qrCodeUrl,
-                    width: 220,
-                    height: 220,
-                    fit: BoxFit.contain,
-                    errorBuilder: (ctx, err, stack) {
-                      final fallbackUrl =
-                          'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${_finalAmount.toInt()}&addInfo=${Uri.encodeComponent(_transferContent)}&accountName=OMNISALON%20ENTERPRISE';
-                      return Image.network(fallbackUrl, width: 220, height: 220);
-                    },
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: qrSize,
+                      height: qrSize,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: _buildQrImageWidget(qrSize),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'VIETQR 24/7 CHUYỂN NHANH NAPAS',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF141413),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Quét bằng ứng dụng Ngân hàng hoặc Ví điện tử',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Quét bằng ứng dụng Ngân hàng hoặc Ví điện tử',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: Colors.grey.shade700,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: 16),
 
@@ -559,6 +606,88 @@ class _VietQrPaymentPageState extends State<VietQrPaymentPage> {
           const SizedBox(height: 16),
         ],
       ),
+    );
+  }
+
+  Widget _buildQrImageWidget(double size) {
+    if (_qrCodeUrl.startsWith('data:image/')) {
+      try {
+        final base64String = _qrCodeUrl.contains(',') ? _qrCodeUrl.split(',').last : _qrCodeUrl;
+        final bytes = base64Decode(base64String);
+        return Image.memory(
+          bytes,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+        );
+      } catch (_) {}
+    }
+
+    final effectiveUrl = _qrCodeUrl.isNotEmpty
+        ? _qrCodeUrl
+        : ApiService.getVietQrImageUrl(
+            accountNo: _accountNumber,
+            amount: _finalAmount.toInt(),
+            description: _transferContent,
+          );
+
+    return Image.network(
+      effectiveUrl,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      loadingBuilder: (ctx, child, progress) {
+        if (progress == null) return child;
+        return Center(
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              value: progress.expectedTotalBytes != null
+                  ? progress.cumulativeBytesLoaded / (progress.expectedTotalBytes ?? 1)
+                  : null,
+              color: AppTheme.accentGold,
+            ),
+          ),
+        );
+      },
+      errorBuilder: (ctx, err, stack) {
+        final fallbackUrl = 'https://quickchart.io/qr?size=300&margin=2&text=${Uri.encodeComponent(_qrData.isNotEmpty ? _qrData : '0900000000 ${_finalAmount.toInt()} $_transferContent')}';
+        return Image.network(
+          fallbackUrl,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) {
+            return Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.qr_code_2_rounded, size: 48, color: AppTheme.accentGold),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'VietQR MBBank',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF1E293B)),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'STK: $_accountNumber',
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Color(0xFF0284C7)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

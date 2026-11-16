@@ -483,7 +483,10 @@ class _BookingScreenState extends State<BookingScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        'https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${booking.totalPrice}&addInfo=${Uri.encodeComponent("LICHHEN ${booking.bookingCode}")}&accountName=OMNISALON%20ENTERPRISE',
+                        ApiService.getVietQrImageUrl(
+                          amount: booking.totalPrice,
+                          description: 'LICHHEN ${booking.bookingCode}',
+                        ),
                         height: 170,
                         width: 170,
                         fit: BoxFit.contain,

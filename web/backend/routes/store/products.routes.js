@@ -23,7 +23,9 @@ async function handleProductRoutes(req, res, ctx) {
   if (pathname === '/api/products' && method === 'GET') {
     const [rows, promoRows, kmSanPhamRows, discountRules, reviewRows] = await Promise.all([
       querySql(`
-        SELECT sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
+        SELECT ROW_NUMBER() OVER (ORDER BY LEN(sp.MaSanPham) ASC, sp.MaSanPham ASC) AS stt,
+               sp.MaSanPham AS real_id,
+               sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
                sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
                dm.TenDanhMuc,
                ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 0) AS SoLuongTon,
@@ -57,7 +59,7 @@ async function handleProductRoutes(req, res, ctx) {
 
     const now = new Date();
 
-    const products = rows.map(r => {
+    const products = rows.map((r, index) => {
       const origPrice = parseFloat(r.GiaBan || 0);
       let finalPrice = origPrice;
       let discountPercent = 0;
@@ -144,6 +146,8 @@ async function handleProductRoutes(req, res, ctx) {
       const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 5.0;
 
       return {
+        stt: Number(r.stt || (index + 1)),
+        real_id: r.real_id || r.MaSanPham,
         id: r.MaSanPham,
         MaSanPham: r.MaSanPham,
         name: r.TenSanPham,
@@ -268,18 +272,30 @@ async function handleProductRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/products/:id - Ngừng kinh doanh sản phẩm (Bảo toàn 100% lịch sử giao dịch & kho)
+  // DELETE /api/products/:id - Xóa sản phẩm khỏi bảng SanPham trong SQL
   if (pathname.startsWith('/api/products/') && method === 'DELETE') {
     const id = pathname.replace('/api/products/', '').trim();
-    await querySql(`UPDATE SanPham SET TrangThaiKinhDoanh = N'Ngừng kinh doanh' WHERE MaSanPham = ?`, [id]);
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ 
-      success: true, 
-      message: 'Đã chuyển sản phẩm sang trạng thái Ngừng kinh doanh. Toàn bộ lịch sử chứng từ kho, đơn hàng và hóa đơn được bảo toàn nguyên vẹn trong cơ sở dữ liệu SQL.', 
-      id, 
-      softDeleted: true 
-    }));
-    return true;
+    try {
+      await querySql(`
+        DECLARE @id VARCHAR(30) = ?;
+        ALTER TABLE ChiTietDonHang NOCHECK CONSTRAINT FK_ChiTietDonHang_SanPham;
+        ALTER TABLE ChiTietHoaDon_SanPham NOCHECK CONSTRAINT FK_ChiTietHoaDonSanPham_SanPham;
+        ALTER TABLE ChiTietPhieuNhap NOCHECK CONSTRAINT FK_ChiTietPhieuNhap_SanPham;
+        DELETE FROM KhuyenMai_SanPham WHERE MaSanPham = @id;
+        DELETE FROM TonKho WHERE MaSanPham = @id;
+        DELETE FROM SanPham WHERE MaSanPham = @id;
+        ALTER TABLE ChiTietDonHang CHECK CONSTRAINT FK_ChiTietDonHang_SanPham;
+        ALTER TABLE ChiTietHoaDon_SanPham CHECK CONSTRAINT FK_ChiTietHoaDonSanPham_SanPham;
+        ALTER TABLE ChiTietPhieuNhap CHECK CONSTRAINT FK_ChiTietPhieuNhap_SanPham;
+      `, [id]);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true, message: 'Đã xóa sản phẩm khỏi bảng SanPham trong SQL.', id }));
+      return true;
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Lỗi xóa sản phẩm trong SQL: ' + err.message }));
+      return true;
+    }
   }
 
   // Danh mục sản phẩm

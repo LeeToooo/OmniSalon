@@ -110,7 +110,7 @@
   };
 
   // Exposure & tương thích hoàn hảo với hệ thống hiện hữu
-  window.CustomerWeb = CustomerWeb;
+  window.CustomerWeb = Object.assign(window.CustomerWeb || {}, CustomerWeb);
 
     // Cầu nối thông minh: Nếu UIWeb đã tồn tại, đồng bộ hóa các hàm gọi từ UIWeb sang CustomerWeb
     if(typeof window.UIWeb !== 'undefined') {

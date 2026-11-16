@@ -6,17 +6,21 @@ async function handlePromotionRoutes(req, res, ctx) {
   // GET /api/promotions - Danh sách chương trình ưu đãi
   if ((pathname === '/api/promotions' || pathname === '/api/coupons' || pathname === '/api/vouchers') && method === 'GET') {
     const rows = await querySql(
-      `SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, DoiTuongApDung, 
+      `SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaKhuyenMai) ASC, MaKhuyenMai ASC) AS stt, 
+              MaKhuyenMai AS real_id, 
+              MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, DoiTuongApDung, 
               CONVERT(VARCHAR(10), NgayBatDau, 120) AS NgayBatDau, 
               CONVERT(VARCHAR(10), NgayKetThuc, 120) AS NgayKetThuc, 
-              TrangThai FROM KhuyenMai ORDER BY MaKhuyenMai ASC`
+              TrangThai FROM KhuyenMai ORDER BY LEN(MaKhuyenMai) ASC, MaKhuyenMai ASC`
     );
     const [kmDv, kmSp] = await Promise.all([
       querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`),
       querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`)
     ]);
-    const result = (rows || []).map(r => ({
+    const result = (rows || []).map((r, index) => ({
       ...r,
+      stt: Number(r.stt || (index + 1)),
+      real_id: r.real_id || r.MaKhuyenMai,
       id: r.MaKhuyenMai,
       code: r.MaKhuyenMai,
       name: r.TenKhuyenMai,
@@ -37,13 +41,23 @@ async function handlePromotionRoutes(req, res, ctx) {
   // POST /api/promotions - Tạo chương trình khuyến mãi mới
   if (pathname === '/api/promotions' && method === 'POST') {
     const body = parsedBody || {};
-    const maxKm = await querySql(`SELECT TOP 1 MaKhuyenMai FROM KhuyenMai ORDER BY LEN(MaKhuyenMai) DESC, MaKhuyenMai DESC`);
-    let nextN = 1;
-    if (maxKm && maxKm[0]) {
-      const m = maxKm[0].MaKhuyenMai.match(/KM(d+)/i);
-      if (m) nextN = parseInt(m[1], 10) + 1;
+    const kmRows = await querySql(`SELECT MaKhuyenMai FROM KhuyenMai`);
+    const existingIds = new Set((kmRows || []).map(r => String(r.MaKhuyenMai || '').trim().toUpperCase()));
+    let maxN = 0;
+    (kmRows || []).forEach(r => {
+      const m = String(r.MaKhuyenMai || '').match(/^KM0*(\d+)$/i);
+      if (m) {
+        const num = parseInt(m[1], 10);
+        if (num > maxN) maxN = num;
+      }
+    });
+    const nextN = maxN + 1;
+    const autoKmId = 'KM' + (nextN < 10 ? '0' + nextN : nextN);
+    let chosenId = (body.id || body.MaKhuyenMai || body.code || '').trim();
+    if (!chosenId || existingIds.has(chosenId.toUpperCase())) {
+      chosenId = autoKmId;
     }
-    const kmId = (body.id || body.MaKhuyenMai || body.code || ('KM' + (nextN < 10 ? '0' + nextN : nextN))).trim();
+    const kmId = chosenId;
     const name = body.name || body.TenKhuyenMai || body.title || 'Khuyến mãi mới';
     const type = body.type || body.HinhThuc || (body.discountType === 'percent' ? `Giảm ${body.value}%` : `Giảm ${body.value}đ`);
     const value = parseFloat(body.value !== undefined ? body.value : (body.GiaTriGiam || 10));
@@ -153,11 +167,15 @@ async function handlePromotionRoutes(req, res, ctx) {
   // GET /api/discount-rules - Danh sách quy tắc giảm giá cận hạn theo SQL Server
   if ((pathname === '/api/discount-rules' || pathname === '/api/admin/discount-rules') && method === 'GET') {
     const rows = await querySql(
-      `SELECT MaQuyTac, TenQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam, TrangThai 
+      `SELECT ROW_NUMBER() OVER (ORDER BY SoNgayConLaiToiThieu DESC) AS stt,
+              MaQuyTac AS real_id,
+              MaQuyTac, TenQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam, TrangThai 
        FROM QuyTacGiamGiaTheoHan 
        ORDER BY SoNgayConLaiToiThieu DESC`
     );
-    const result = (rows || []).map(r => ({
+    const result = (rows || []).map((r, index) => ({
+      stt: Number(r.stt || (index + 1)),
+      real_id: r.real_id || r.MaQuyTac,
       id: r.MaQuyTac,
       MaQuyTac: r.MaQuyTac,
       name: r.TenQuyTac,
@@ -179,13 +197,23 @@ async function handlePromotionRoutes(req, res, ctx) {
   // POST /api/discount-rules - Thêm quy tắc giảm giá mới vào SQL Server
   if (pathname === '/api/discount-rules' && method === 'POST') {
     const body = parsedBody || {};
-    const maxQt = await querySql(`SELECT TOP 1 MaQuyTac FROM QuyTacGiamGiaTheoHan ORDER BY LEN(MaQuyTac) DESC, MaQuyTac DESC`);
-    let nextN = 1;
-    if (maxQt && maxQt[0]) {
-      const m = String(maxQt[0].MaQuyTac).match(/QT0*(\d+)/i);
-      if (m) nextN = parseInt(m[1], 10) + 1;
+    const qtRows = await querySql(`SELECT MaQuyTac FROM QuyTacGiamGiaTheoHan`);
+    const existingIds = new Set((qtRows || []).map(r => String(r.MaQuyTac || '').trim().toUpperCase()));
+    let maxN = 0;
+    (qtRows || []).forEach(r => {
+      const m = String(r.MaQuyTac || '').match(/^QT0*(\d+)$/i);
+      if (m) {
+        const num = parseInt(m[1], 10);
+        if (num > maxN) maxN = num;
+      }
+    });
+    const nextN = maxN + 1;
+    const autoRuleId = 'QT' + (nextN < 10 ? '0' + nextN : nextN);
+    let chosenId = (body.id || body.MaQuyTac || '').trim();
+    if (!chosenId || existingIds.has(chosenId.toUpperCase())) {
+      chosenId = autoRuleId;
     }
-    const ruleId = (body.id || body.MaQuyTac || ('QT' + (nextN < 10 ? '0' + nextN : nextN))).trim();
+    const ruleId = chosenId;
     const name = (body.name || body.TenQuyTac || 'Quy tắc giảm giá mới').trim();
     const minDays = parseInt(body.minDays !== undefined ? body.minDays : (body.SoNgayConLaiToiThieu || 0), 10);
     const maxDays = parseInt(body.maxDays !== undefined ? body.maxDays : (body.SoNgayConLaiToiDa || 99999), 10);

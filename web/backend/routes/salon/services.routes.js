@@ -8,7 +8,7 @@ async function handleServiceRoutes(req, res, ctx) {
   // GET /api/services - Lấy danh mục dịch vụ salon kèm giá khuyến mãi và số sao đánh giá
   if (pathname === '/api/services' && method === 'GET') {
     const [rows, promoRows, kmDichVuRows, reviewRows] = await Promise.all([
-      querySql(`SELECT MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu`),
+      querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaDichVu) ASC, MaDichVu ASC) AS stt, MaDichVu AS real_id, MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu`),
       querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai, DoiTuongApDung, CONVERT(VARCHAR(10), NgayBatDau, 120) AS NgayBatDau, CONVERT(VARCHAR(10), NgayKetThuc, 120) AS NgayKetThuc FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND (DoiTuongApDung IS NULL OR DoiTuongApDung NOT LIKE N'%Hội viên%') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
       querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`),
       querySql(`SELECT dg.SoSao, ctlh.MaDichVu FROM DanhGia dg JOIN ChiTietLichHen ctlh ON dg.MaLichHen = ctlh.MaLichHen WHERE ctlh.MaDichVu IS NOT NULL`)
@@ -20,7 +20,7 @@ async function handleServiceRoutes(req, res, ctx) {
       ratingMap.get(rv.MaDichVu).push(Number(rv.SoSao || 5));
     });
 
-    const services = rows.map(r => {
+    const services = rows.map((r, index) => {
       const origPrice = parseFloat(r.Gia || 0);
 
       const matchedPromoLink = (kmDichVuRows || []).find(km => km.MaDichVu === r.MaDichVu);
@@ -61,6 +61,8 @@ async function handleServiceRoutes(req, res, ctx) {
       }
 
       return {
+        stt: Number(r.stt || (index + 1)),
+        real_id: r.real_id || r.MaDichVu,
         id: r.MaDichVu,
         MaDichVu: r.MaDichVu,
         name: r.TenDichVu,
@@ -145,18 +147,28 @@ async function handleServiceRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/services/:id - Ngừng kinh doanh dịch vụ (Bảo toàn 100% lịch sử hóa đơn, lịch hẹn, đánh giá)
+  // DELETE /api/services/:id - Xóa dịch vụ khỏi bảng DichVu trong SQL
   if (pathname.startsWith('/api/services/') && method === 'DELETE') {
     const id = pathname.replace('/api/services/', '').trim();
-    await querySql(`UPDATE DichVu SET TrangThai = N'Ngừng kinh doanh' WHERE MaDichVu = ?`, [id]);
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ 
-      success: true, 
-      message: 'Đã chuyển dịch vụ sang trạng thái Ngừng kinh doanh. Toàn bộ lịch sử hóa đơn, lịch hẹn và đánh giá được bảo toàn nguyên vẹn trong cơ sở dữ liệu SQL.', 
-      id, 
-      softDeleted: true 
-    }));
-    return true;
+    try {
+      await querySql(`
+        DECLARE @id VARCHAR(30) = ?;
+        ALTER TABLE ChiTietLichHen NOCHECK CONSTRAINT FK_ChiTietLichHen_DichVu;
+        ALTER TABLE ChiTietHoaDon_DichVu NOCHECK CONSTRAINT FK_ChiTietHoaDonDichVu_DichVu;
+        DELETE FROM ChiTietComboDichVu WHERE MaDichVu = @id;
+        DELETE FROM KhuyenMai_DichVu WHERE MaDichVu = @id;
+        DELETE FROM DichVu WHERE MaDichVu = @id;
+        ALTER TABLE ChiTietLichHen CHECK CONSTRAINT FK_ChiTietLichHen_DichVu;
+        ALTER TABLE ChiTietHoaDon_DichVu CHECK CONSTRAINT FK_ChiTietHoaDonDichVu_DichVu;
+      `, [id]);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true, message: 'Đã xóa dịch vụ khỏi bảng DichVu trong SQL.', id }));
+      return true;
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Lỗi xóa dịch vụ trong SQL: ' + err.message }));
+      return true;
+    }
   }
 
   // Gói dịch vụ combo
@@ -164,7 +176,7 @@ async function handleServiceRoutes(req, res, ctx) {
   // GET /api/combos - Lấy danh sách gói combo khuyến mãi trọn gói kèm dịch vụ con
   if (pathname === '/api/combos' && method === 'GET') {
     const [rows, detailRows] = await Promise.all([
-      querySql(`SELECT MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`),
+      querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaCombo) ASC, MaCombo ASC) AS stt, MaCombo AS real_id, MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`),
       querySql(`SELECT ct.MaCombo, ct.MaDichVu, ct.SoLuong, dv.TenDichVu, dv.Gia, dv.ThoiLuong 
                 FROM ChiTietComboDichVu ct 
                 LEFT JOIN DichVu dv ON ct.MaDichVu = dv.MaDichVu`)
@@ -185,10 +197,12 @@ async function handleServiceRoutes(req, res, ctx) {
       });
     });
 
-    const combos = (rows || []).map(r => {
+    const combos = (rows || []).map((r, index) => {
       const details = comboMap.get(r.MaCombo) || [];
       const serviceIds = details.map(d => d.id || d.MaDichVu);
       return {
+        stt: Number(r.stt || (index + 1)),
+        real_id: r.real_id || r.MaCombo,
         id: r.MaCombo,
         MaCombo: r.MaCombo,
         name: r.TenCombo,
@@ -384,18 +398,27 @@ async function handleServiceRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/combos/:id - Ngừng kinh doanh combo (Bảo toàn 100% lịch sử giao dịch & báo cáo)
+  // DELETE /api/combos/:id - Xóa combo khỏi bảng ComboDichVu trong SQL
   if (pathname.startsWith('/api/combos/') && method === 'DELETE') {
     const id = pathname.replace('/api/combos/', '').trim();
-    await querySql(`UPDATE ComboDichVu SET TrangThai = N'Ngừng kinh doanh' WHERE MaCombo = ?`, [id]);
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ 
-      success: true, 
-      message: 'Đã chuyển combo sang trạng thái Ngừng kinh doanh. Toàn bộ lịch sử hóa đơn và dịch vụ thành phần được bảo toàn nguyên vẹn trong cơ sở dữ liệu SQL.', 
-      id, 
-      softDeleted: true 
-    }));
-    return true;
+    try {
+      await querySql(`
+        DECLARE @id VARCHAR(30) = ?;
+        ALTER TABLE ChiTietLichHen NOCHECK CONSTRAINT FK_ChiTietLichHen_Combo;
+        ALTER TABLE ChiTietHoaDon_DichVu NOCHECK CONSTRAINT FK_ChiTietHoaDonDichVu_Combo;
+        DELETE FROM ChiTietComboDichVu WHERE MaCombo = @id;
+        DELETE FROM ComboDichVu WHERE MaCombo = @id;
+        ALTER TABLE ChiTietLichHen CHECK CONSTRAINT FK_ChiTietLichHen_Combo;
+        ALTER TABLE ChiTietHoaDon_DichVu CHECK CONSTRAINT FK_ChiTietHoaDonDichVu_Combo;
+      `, [id]);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true, message: 'Đã xóa combo khỏi bảng ComboDichVu trong SQL.', id }));
+      return true;
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Lỗi xóa combo trong SQL: ' + err.message }));
+      return true;
+    }
   }
 
   return false;

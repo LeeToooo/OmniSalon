@@ -59,6 +59,7 @@ async function autoCancelOverdueBookingsAndOrders(customSql = null) {
       FROM DonHang
       WHERE CONVERT(VARCHAR(10), NgayDat, 120) < ?
         AND TrangThai IN (N'Chờ xử lý', N'Chờ xác nhận', N'Chờ thanh toán', N'Chờ nhận hàng', 'Pending', 'pending', 'Processing')
+        AND TrangThai NOT IN (N'Đã giao', N'Hoàn tất', N'Hoàn thành', N'Đã hủy', 'Completed', 'Delivered', 'Cancelled')
     `, [todayIso]);
 
     if (overdueOrders && overdueOrders.length > 0) {
@@ -152,6 +153,7 @@ async function checkAndAutoCancelOnRequest(customSql = null) {
         SELECT MaDonHang FROM DonHang 
         WHERE CONVERT(VARCHAR(10), NgayDat, 120) < ? 
           AND TrangThai IN (N'Chờ xử lý', N'Chờ xác nhận', N'Chờ nhận hàng', N'Chờ thanh toán', 'Pending', 'pending', 'Processing')
+          AND TrangThai NOT IN (N'Đã giao', N'Hoàn tất', N'Hoàn thành', N'Đã hủy', 'Completed', 'Delivered', 'Cancelled')
       ) t
     `, [todayIso, todayIso]);
 

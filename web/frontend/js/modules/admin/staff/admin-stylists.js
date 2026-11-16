@@ -10,6 +10,13 @@
 
     // Sub-tab 3: Đội Ngũ Barber & Hoa Hồng
     renderStylistsTab(user, stylists, branches, bookings = null, branchMap = null) {
+      if (!stylists || stylists.length === 0 || !stylists.some(s => (s.role || s.ChucVu || '').toLowerCase().includes('ngân'))) {
+        if (window.store && typeof window.store.getAllStaff === 'function') {
+          stylists = window.store.getAllStaff();
+        } else if (window.store && typeof window.store.getStylists === 'function') {
+          stylists = window.store.getStylists(null, true);
+        }
+      }
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const allBookings = bookings || ((window.store && window.store.getBookings) ? window.store.getBookings() : []);
 
@@ -247,7 +254,7 @@
         const content = document.getElementById('adminSubTabContent');
         if (content && this.adminSubTab === 'stylists') {
           const user = this.getCurrentUser();
-          const stylists = window.store.getStylists();
+          const stylists = (window.store && typeof window.store.getAllStaff === 'function') ? window.store.getAllStaff() : window.store.getStylists(null, true);
           const branches = window.store.getBranches();
           const bookings = window.store.getBookings();
           content.innerHTML = this.renderStylistsTab(user, stylists, branches, bookings);
@@ -262,7 +269,7 @@
         return;
       }
       const user = this.getCurrentUser();
-      const stylists = window.store.getStylists();
+      const stylists = (window.store && typeof window.store.getAllStaff === 'function') ? window.store.getAllStaff() : window.store.getStylists(null, true);
       const branches = window.store.getBranches();
       const bookings = window.store.getBookings();
       const bMap = new Map(branches.map(b => [b.id, b]));

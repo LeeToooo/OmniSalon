@@ -944,4 +944,47 @@ class ApiService {
     }
     return {'success': false, 'status': 'PENDING', 'isPaid': false};
   }
+
+  static String getVietQrImageUrl({
+    String bankBin = '970422',
+    String accountNo = '0900000000',
+    required int amount,
+    required String description,
+  }) {
+    final cleanDesc = description
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .trim()
+        .toUpperCase();
+    final f00 = '000201';
+    final f01 = '010212';
+    final sub00 = '0010A000000727';
+    final sub01Inner = '0006$bankBin' + '01' + accountNo.length.toString().padLeft(2, '0') + accountNo;
+    final sub01 = '01' + sub01Inner.length.toString().padLeft(2, '0') + sub01Inner;
+    final sub02 = '0208QRIBFTTA';
+    final f38Inner = sub00 + sub01 + sub02;
+    final f38 = '38' + f38Inner.length.toString().padLeft(2, '0') + f38Inner;
+    final f53 = '5303704';
+    final amtStr = amount.toString();
+    final f54 = '54' + amtStr.length.toString().padLeft(2, '0') + amtStr;
+    final f58 = '5802VN';
+    final sub6208 = '08' + cleanDesc.length.toString().padLeft(2, '0') + cleanDesc;
+    final f62 = '62' + sub6208.length.toString().padLeft(2, '0') + sub6208;
+    final raw = f00 + f01 + f38 + f53 + f54 + f58 + f62 + '6304';
+
+    int crc = 0xFFFF;
+    for (int i = 0; i < raw.length; i++) {
+      crc ^= (raw.codeUnitAt(i) << 8);
+      for (int j = 0; j < 8; j++) {
+        if ((crc & 0x8000) != 0) {
+          crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+        } else {
+          crc = (crc << 1) & 0xFFFF;
+        }
+      }
+    }
+    final crcHex = crc.toRadixString(16).toUpperCase().padLeft(4, '0');
+    final emvco = raw + crcHex;
+
+    return 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=12&data=${Uri.encodeComponent(emvco)}';
+  }
 }

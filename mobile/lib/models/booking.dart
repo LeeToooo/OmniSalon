@@ -172,7 +172,8 @@ class Booking {
 
   bool get isCancelled =>
       status.toLowerCase() == 'cancelled' ||
-      status == 'Đã hủy' ||
+      status.toLowerCase().contains('hủy') ||
+      status.toLowerCase().contains('cancel') ||
       status.toLowerCase() == 'da_huy';
 
   bool get isCompleted =>

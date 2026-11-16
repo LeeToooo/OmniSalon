@@ -1339,7 +1339,7 @@ class _OrderCardItemState extends State<_OrderCardItem> {
                   label: Text('Đánh Giá', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary)),
                   onPressed: widget.onRate,
                 ),
-              if (!isCancelled)
+              if (!isCancelled && !isCompleted)
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFDC2626)),
@@ -1563,7 +1563,8 @@ class _BookingCardItemState extends State<_BookingCardItem> {
                 label: const Text('Xem Vé QR', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.accentGold)),
                 onPressed: widget.onShowQr,
               ),
-              ElevatedButton.icon(
+              if (!isCancelled && !isCompleted)
+                ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.accentGold,
                   foregroundColor: AppTheme.charcoal,

@@ -8,29 +8,36 @@
       if (!pagedItems || pagedItems.length === 0) {
         return `
           <tr>
-            <td colspan="8" style="text-align: center; padding: 32px; color: #888;">
+            <td colspan="10" style="text-align: center; padding: 32px; color: #888;">
               Không tìm thấy mặt hàng nào phù hợp với bộ lọc tìm kiếm.
             </td>
           </tr>
         `;
       }
-      return pagedItems.map(item => {
+      return pagedItems.map((item, index) => {
+        const stt = item.stt || (((this.catalogPage - 1) * this.pageSize) + index + 1);
+        const realId = item.real_id || item.id || item.MaCombo || item.MaDichVu || item.MaSanPham || '';
         const itemId = item.id || item.MaCombo || item.MaDichVu || item.MaSanPham || '';
+        const displayCode = type === 'combos' ? `CB${stt}` : (type === 'products' ? `SP${stt}` : `DV${stt}`);
         const itemName = item.name || item.TenCombo || item.TenDichVu || item.TenSanPham || itemId;
         const itemCat = item.category || (type === 'combos' ? 'Combo VIP' : (type === 'products' ? (item.brand || 'Sản Phẩm') : 'Dịch Vụ'));
         const itemPrice = item.price !== undefined ? item.price : (item.GiaCombo !== undefined ? item.GiaCombo : (item.GiaBan !== undefined ? item.GiaBan : (item.Gia || 0)));
         const itemDuration = item.durationMinutes || parseInt(item.duration || item.ThoiLuong || (type === 'combos' ? 60 : 45), 10) || 45;
         const itemDesc = item.description || item.MoTa || (type === 'combos' ? 'Gói combo dịch vụ VIP tiêu chuẩn' : 'Chất lượng tiêu chuẩn Omni Salon Suite');
         const itemImage = item.image || item.HinhAnh || (type === 'combos' ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg');
+        const itemStatus = item.status || item.TrangThai || 'Đang kinh doanh';
+        const isStopped = itemStatus.toLowerCase().includes('ngừng') || itemStatus.toLowerCase().includes('ngưng');
+        const statusLabel = isStopped ? 'Ngừng kinh doanh' : 'Đang kinh doanh';
 
         return `
         <tr>
+          <td style="text-align: center; font-weight: 700; color: var(--text-secondary, #888); width: 50px;">${stt}</td>
           <td>
             <img src="${SalonUtils.formatImageUrl(itemImage)}" 
                  style="width: 42px; height: 42px; border-radius: 6px; object-fit: cover;" alt="${this.escapeHtml(itemName)}"
                  onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DichVu_Men/DV1.jpg');">
           </td>
-          <td><strong>${this.escapeHtml(itemId)}</strong></td>
+          <td><strong style="color: var(--text-primary); font-size: 13px;">${this.escapeHtml(displayCode)}</strong></td>
           <td style="font-weight: 800;">${this.escapeHtml(itemName)}</td>
           <td>
             <span class="badge-terracotta" style="font-size: 10px; padding: 2px 8px;">
@@ -52,6 +59,11 @@
             ${this.escapeHtml(itemDesc)}
           </td>
           <td>
+            <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; ${isStopped ? 'background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.25);' : 'background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25);'}">
+              ${statusLabel}
+            </span>
+          </td>
+          <td>
             <div style="display: flex; gap: 4px;">
               <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;" 
                       onclick="AdminWeb.editCatalogItemBottom('${type}', '${itemId}')" title="Chỉnh sửa dịch vụ">
@@ -59,7 +71,7 @@
                 <span>Sửa</span>
               </button>
               <button class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; color: #b91c1c; border-color: #fca5a5; display: inline-flex; align-items: center; gap: 4px;" 
-                      onclick="AdminWeb.deleteCatalogItem('${type}', '${itemId}')" title="Ngừng kinh doanh dịch vụ">
+                      onclick="AdminWeb.deleteCatalogItem('${type}', '${itemId}')" title="Xóa dịch vụ">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 <span>Xóa</span>
               </button>
@@ -79,13 +91,25 @@
 
       let items = [];
       if (type === 'services') {
-        items = services.filter(s => !q || (s.name && s.name.toLowerCase().includes(q)) || (s.category && s.category.toLowerCase().includes(q)) || (s.id && s.id.toLowerCase().includes(q)));
+        items = services.filter((s, index) => {
+          const stt = s.stt || (index + 1);
+          const dispCode = ('dv' + stt);
+          return !q ||
+            (s.name && s.name.toLowerCase().includes(q)) ||
+            (s.category && s.category.toLowerCase().includes(q)) ||
+            (s.id && s.id.toLowerCase().includes(q)) ||
+            (s.real_id && s.real_id.toLowerCase().includes(q)) ||
+            dispCode.includes(q);
+        });
       } else {
-        items = combos.filter(c => {
+        items = combos.filter((c, index) => {
+          const stt = c.stt || (index + 1);
+          const dispCode = ('cb' + stt);
           const cName = (c.name || c.TenCombo || '').toLowerCase();
           const cDesc = (c.description || c.MoTa || '').toLowerCase();
           const cId = (c.id || c.MaCombo || '').toLowerCase();
-          return !q || cName.includes(q) || cDesc.includes(q) || cId.includes(q);
+          const cRealId = (c.real_id || '').toLowerCase();
+          return !q || cName.includes(q) || cDesc.includes(q) || cId.includes(q) || cRealId.includes(q) || dispCode.includes(q);
         });
       }
 
@@ -142,6 +166,7 @@
             <table class="admin-enterprise-table">
               <thead>
                 <tr>
+                  <th style="width: 50px; text-align: center;">STT</th>
                   <th>Ảnh</th>
                   <th>Mã</th>
                   <th>Tên Dịch Vụ / Combo</th>
@@ -149,6 +174,7 @@
                   <th id="adminCatalogPriceHeader">${type === 'combos' ? 'Giá Gói Combo' : 'Giá Dịch Vụ'}</th>
                   <th>Thời Lượng</th>
                   <th>Mô Tả Tóm Tắt</th>
+                  <th>Trạng Thái</th>
                   <th>Hành Động</th>
                 </tr>
               </thead>
@@ -336,6 +362,30 @@
                     </div>
                   </div>
 
+                  <!-- Hàng 4: Mô tả tóm tắt & Trạng thái kinh doanh -->
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; align-items: start;">
+                    <div>
+                      <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                        Mô Tả Tóm Tắt &amp; Công Dụng
+                      </label>
+                      <textarea id="catEditorDescription" class="form-control-custom" rows="2" 
+                                style="font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 8px 12px; box-sizing: border-box; height: 38px; resize: none;" 
+                                placeholder="Mô tả công dụng và các bước phục vụ..."
+                                oninput="AdminWeb.syncCatalogPreviewCard()"></textarea>
+                    </div>
+                    <div>
+                      <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                        Trạng Thái Kinh Doanh
+                      </label>
+                      <select id="catEditorStatus" class="admin-select-filter" 
+                              style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;"
+                              onchange="AdminWeb.syncCatalogPreviewCard()">
+                        <option value="Đang kinh doanh">Đang kinh doanh</option>
+                        <option value="Ngừng kinh doanh">Ngừng kinh doanh</option>
+                      </select>
+                    </div>
+                  </div>
+
                   ${isCombo ? `
                     <!-- Khối chọn dịch vụ cấu thành gói Combo VIP -->
                     <div class="combo-services-selection-box" style="margin-bottom: 14px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
@@ -377,17 +427,6 @@
                       </div>
                     </div>
                   ` : ''}
-
-                  <!-- Hàng 4: Mô tả tóm tắt -->
-                  <div style="margin-bottom: 10px;">
-                    <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
-                      Mô Tả Tóm Tắt &amp; Công Dụng
-                    </label>
-                    <textarea id="catEditorDescription" class="form-control-custom" rows="2" 
-                              style="font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 8px 12px; box-sizing: border-box;" 
-                              placeholder="Mô tả công dụng và các bước phục vụ..."
-                              oninput="AdminWeb.syncCatalogPreviewCard()"></textarea>
-                  </div>
                 </div>
 
               </div>
@@ -496,6 +535,7 @@
       const catInput = document.getElementById('catEditorCategory');
       const imgInput = document.getElementById('catEditorImage');
       const descInput = document.getElementById('catEditorDescription');
+      const statusInput = document.getElementById('catEditorStatus');
       const titleEl = document.getElementById('catalogEditorTitle');
       const submitBtn = document.getElementById('catEditorSubmitBtn');
 
@@ -507,6 +547,10 @@
       if (catInput) catInput.value = item.category || (type === 'combos' ? 'Combo VIP' : 'Dịch Vụ');
       if (imgInput) imgInput.value = item.image || item.HinhAnh || (type === 'combos' ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg');
       if (descInput) descInput.value = item.description || item.MoTa || '';
+      if (statusInput) {
+        const curStatus = item.status || item.TrangThai || 'Đang kinh doanh';
+        statusInput.value = (curStatus.toLowerCase().includes('ngừng') || curStatus.toLowerCase().includes('ngưng')) ? 'Ngừng kinh doanh' : 'Đang kinh doanh';
+      }
 
       if (titleEl) {
         titleEl.textContent = 'Chỉnh Sửa ' + (type === 'combos' ? 'Gói Combo' : 'Dịch Vụ') + ': ' + (item.name || item.TenCombo || item.TenDichVu);
@@ -551,6 +595,7 @@
       const catInput = document.getElementById('catEditorCategory');
       const imgInput = document.getElementById('catEditorImage');
       const descInput = document.getElementById('catEditorDescription');
+      const statusInput = document.getElementById('catEditorStatus');
       const titleEl = document.getElementById('catalogEditorTitle');
       const submitBtn = document.getElementById('catEditorSubmitBtn');
 
@@ -562,6 +607,7 @@
       if (catInput) catInput.value = isCombo ? 'Combo VIP' : 'Cắt & Tạo Kiểu';
       if (imgInput) imgInput.value = isCombo ? 'DichVu_Men/CBDV1.jpg' : 'DichVu_Men/DV1.jpg';
       if (descInput) descInput.value = '';
+      if (statusInput) statusInput.value = 'Đang kinh doanh';
 
       if (titleEl) {
         titleEl.textContent = 'Thêm ' + (isCombo ? 'Gói Combo VIP' : 'Dịch Vụ') + ' Mới';
@@ -628,6 +674,7 @@
       const category = document.getElementById('catEditorCategory')?.value?.trim() || (type === 'combos' ? 'Combo VIP' : 'Dịch Vụ');
       let image = document.getElementById('catEditorImage')?.value?.trim();
       const description = document.getElementById('catEditorDescription')?.value?.trim() || '';
+      const status = document.getElementById('catEditorStatus')?.value || 'Đang kinh doanh';
 
       if (!name || price <= 0) {
         if (window.UICommon) window.UICommon.showToast('Vui lòng nhập tên và giá bán hợp lệ!', 'warning');
@@ -657,17 +704,17 @@
       if (id) {
         // Cập nhật mặt hàng hiện có
         if (type === 'services') {
-          window.store.updateService(id, { name, price, category, duration, image, description });
+          window.store.updateService(id, { name, price, category, duration, image, description, status, TrangThai: status });
         } else if (type === 'combos') {
-          window.store.updateCombo(id, { name, price, duration, durationMinutes: duration, image, description, serviceIds, services: serviceIds });
+          window.store.updateCombo(id, { name, price, duration, durationMinutes: duration, image, description, serviceIds, services: serviceIds, status, TrangThai: status });
         }
         if (window.UICommon) window.UICommon.showToast(`Đã cập nhật [${name}] thành công!`, 'success');
       } else {
         // Thêm mặt hàng mới
         if (type === 'services') {
-          window.store.addService({ name, price, category, duration, image, description });
+          window.store.addService({ name, price, category, duration, image, description, status, TrangThai: status });
         } else if (type === 'combos') {
-          window.store.addCombo({ name, price, duration, durationMinutes: duration, image, description, serviceIds, services: serviceIds });
+          window.store.addCombo({ name, price, duration, durationMinutes: duration, image, description, serviceIds, services: serviceIds, status, TrangThai: status });
         }
         if (window.UICommon) window.UICommon.showToast(`Đã thêm [${name}] vào danh mục!`, 'success');
       }

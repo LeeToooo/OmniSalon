@@ -35,6 +35,42 @@ function generateIntegerOrderCode(orderId) {
   return orderCode > 0 ? orderCode : Math.floor(Math.random() * 899999) + 100000;
 }
 
+function crc16(data) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < data.length; i++) {
+    crc ^= (data.charCodeAt(i) << 8);
+    for (let j = 0; j < 8; j++) {
+      if ((crc & 0x8000) !== 0) {
+        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+      } else {
+        crc = (crc << 1) & 0xFFFF;
+      }
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function buildVietQREMVCo({ bin = '970422', accountNo = '0900000000', amount = 0, purpose = '' }) {
+  const f00 = '000201';
+  const f01 = '010212';
+  const sub00 = '0010A000000727';
+  const sub01_inner = '0006' + bin + '01' + accountNo.length.toString().padStart(2, '0') + accountNo;
+  const sub01 = '01' + sub01_inner.length.toString().padStart(2, '0') + sub01_inner;
+  const sub02 = '0208QRIBFTTA';
+  const f38_inner = sub00 + sub01 + sub02;
+  const f38 = '38' + f38_inner.length.toString().padStart(2, '0') + f38_inner;
+  const f53 = '5303704';
+  const amtStr = String(Math.round(amount));
+  const f54 = '54' + amtStr.length.toString().padStart(2, '0') + amtStr;
+  const f58 = '5802VN';
+  const cleanPurp = String(purpose || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9 ]/g, '').trim().toUpperCase();
+  const sub62_08 = '08' + cleanPurp.length.toString().padStart(2, '0') + cleanPurp;
+  const f62 = '62' + sub62_08.length.toString().padStart(2, '0') + sub62_08;
+  const raw = f00 + f01 + f38 + f53 + f54 + f58 + f62 + '6304';
+  const crc = crc16(raw);
+  return raw + crc;
+}
+
 const PaymentController = {
   async createPaymentLink(req, res, ctx) {
     try {
@@ -92,11 +128,20 @@ const PaymentController = {
       }
 
       const finalCheckoutUrl = payosResponse?.checkoutUrl || `https://pay.payos.vn/web/${orderCode}`;
-      const finalQrCode = payosResponse?.qrCode ||
-        `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${numAmount}&addInfo=${encodeURIComponent(cleanDescription)}&accountName=OMNISALON%20ENTERPRISE`;
-      const finalPaymentLinkId = payosResponse?.paymentLinkId || `LINK_${orderCode}`;
       const accountNumber = payosResponse?.accountNumber || '0900000000';
       const accountName = payosResponse?.accountName || 'OMNISALON ENTERPRISE';
+
+      const emvcoString = (payosResponse?.qrCode && String(payosResponse.qrCode).startsWith('000201'))
+        ? payosResponse.qrCode
+        : buildVietQREMVCo({
+            bin: '970422',
+            accountNo: accountNumber,
+            amount: numAmount,
+            purpose: cleanDescription
+          });
+
+      const finalQrCode = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=12&data=${encodeURIComponent(emvcoString)}`;
+      const finalPaymentLinkId = payosResponse?.paymentLinkId || `LINK_${orderCode}`;
 
       payosTransactionsMap.set(orderCode, {
         orderId,
@@ -107,28 +152,12 @@ const PaymentController = {
         createdAt: new Date()
       });
 
-      try {
-        const upperCode = String(orderId).trim().toUpperCase();
-        if (upperCode.startsWith('LH')) {
-          await querySql(
-            `UPDATE LichHen SET TrangThai = N'Chờ xác nhận' WHERE MaLichHen = ?`,
-            [upperCode]
-          );
-        } else if (upperCode.startsWith('DH')) {
-          await querySql(
-            `UPDATE DonHang SET TrangThai = N'Chờ xử lý', GhiChu = ? WHERE MaDonHang = ?`,
-            [`PayOS orderCode: ${orderCode}`, upperCode]
-          );
-        }
-      } catch (dbErr) {
-        console.warn('Database note update ignored:', dbErr.message);
-      }
-
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({
         success: true,
         checkoutUrl: finalCheckoutUrl,
         qrCode: finalQrCode,
+        qrData: emvcoString,
         orderCode,
         amount: numAmount,
         accountNumber,

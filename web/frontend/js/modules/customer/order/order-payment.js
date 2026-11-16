@@ -4,12 +4,14 @@
   const CustomerOrderPayment = {
     _subModalSource: null,
     _lookupLastQuery: '',
+    _pollingTimer: null,
+    _currentPollingCode: null,
 
     /**
      * Escape chuỗi HTML an toàn
      */
     escapeHtml(str) {
-      if (window.CustomerUtils && typeof window.CustomerUtils.escapeHtml === "function") { return window.CustomerUtils.escapeHtml(str); }
+      if (window.CustomerUtils && typeof window.CustomerUtils.escapeHtml === 'function') { return window.CustomerUtils.escapeHtml(str); }
       if (typeof str !== 'string') return str == null ? '' : String(str);
       return str
         .replace(/&/g, '&amp;')
@@ -17,6 +19,62 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    },
+
+    /**
+     * Bắt đầu polling kiểm tra trạng thái chuyển khoản tự động
+     */
+    startPaymentPolling(orderCode) {
+      this.stopPaymentPolling();
+      this._currentPollingCode = orderCode;
+
+      const checkOnce = async () => {
+        if (!this._currentPollingCode || this._currentPollingCode !== orderCode) return;
+        try {
+          const res = await fetch(`/api/payment/check-status/${encodeURIComponent(orderCode)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && (data.isPaid || data.status === 'Paid' || data.status === 'PAID')) {
+              this.handlePaymentConfirmed(orderCode, data);
+              return;
+            }
+          }
+        } catch (_) {}
+
+        this._pollingTimer = setTimeout(checkOnce, 2500);
+      };
+
+      this._pollingTimer = setTimeout(checkOnce, 2000);
+    },
+
+    /**
+     * Dừng polling khi đóng modal
+     */
+    stopPaymentPolling() {
+      if (this._pollingTimer) {
+        clearTimeout(this._pollingTimer);
+        this._pollingTimer = null;
+      }
+      this._currentPollingCode = null;
+    },
+
+    /**
+     * Xử lý khi xác nhận chuyển khoản thành công
+     */
+    async handlePaymentConfirmed(orderCode, paymentInfo = {}) {
+      this.stopPaymentPolling();
+
+      if (window.store && typeof window.store.confirmOrderPayment === 'function') {
+        try { await window.store.confirmOrderPayment(orderCode, 'VietQR'); } catch (_) {}
+      }
+
+      if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+        window.UICommon.showToast(`Đơn hàng #${orderCode} đã xác nhận thanh toán thành công!`, 'success');
+      }
+
+      setTimeout(() => {
+        this.closeOrderPaymentModal();
+      }, 1500);
     },
 
     /**
@@ -41,14 +99,21 @@
         }
       }
 
-      const orders = (window.store && typeof window.store.getOrders === 'function') ? window.store.getOrders() : [];
-      const order = orders.find(o => (o.id || o.orderCode || o.MaDonHang) === orderId) || {};
-      const amount = order.totalAmount || order.TongTien || 0;
-      const oCode = order.id || order.orderCode || order.MaDonHang || orderId;
+      const orders = (window.store && typeof window.store.getOrders === 'function')
+        ? window.store.getOrders()
+        : (window.store?.state?.orders || []);
+      const order = orders.find(o =>
+        (o.id || o.orderCode || o.MaDonHang) === orderId ||
+        String(o.id) === String(orderId) ||
+        String(o.orderCode) === String(orderId) ||
+        String(o.MaDonHang) === String(orderId)
+      ) || {};
 
-      const qrSvg = (window.SalonUtils && typeof window.SalonUtils.generateQrSvgCode === 'function')
-        ? window.SalonUtils.generateQrSvgCode(`VIETQR-OMNISALON-ORDER-${oCode}-${amount}`)
-        : '';
+      const amount = Number(order.totalAmount || order.TongTien || 0);
+      const rawCode = order.id || order.orderCode || order.MaDonHang || orderId;
+      const cleanCode = String(rawCode).replace(/^#/, '');
+
+      const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${amount}&addInfo=${encodeURIComponent('THANHTOAN ' + cleanCode)}&accountName=OMNISALON%20ENTERPRISE`;
 
       const escapeFn = (typeof this.escapeHtml === 'function')
         ? this.escapeHtml.bind(this)
@@ -56,7 +121,7 @@
           ? window.CustomerWeb.escapeHtml.bind(window.CustomerWeb)
           : (str) => (typeof str !== 'string' ? (str == null ? '' : String(str)) : str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'));
 
-      const fmtCurr = (c) => (typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatCurrency === 'function' ? SalonUtils.formatCurrency(c) : `${c} đ`);
+      const fmtCurr = (c) => (typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatCurrency === 'function' ? SalonUtils.formatCurrency(c) : `${Number(c || 0).toLocaleString('vi-VN')} đ`);
 
       const modalHtml = `
         <div class="order-payment-modal-box" style="max-width: 480px; margin: 0 auto; text-align: center; padding: 10px 4px;">
@@ -64,22 +129,16 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
           </div>
           <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
-            Thanh Toán Đơn Hàng #${escapeFn(oCode)}
+            Thanh Toán Đơn Hàng #${escapeFn(cleanCode)}
           </h3>
           <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;">
             Quét mã VietQR bằng app ngân hàng hoặc chuyển khoản theo thông tin bên dưới:
           </p>
 
           <!-- VietQR Box -->
-          <div style="background: #ffffff; padding: 16px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 16px; border: 1px solid #e2e8f0;">
-            ${qrSvg ? `
-              <div style="width: 190px; height: 190px; margin: 0 auto;">${qrSvg}</div>
-            ` : `
-              <div style="width: 190px; height: 190px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px; font-weight: 800; color: #0284c7;">
-                VIETQR CODE
-              </div>
-            `}
-            <div style="font-size: 11px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
+          <div style="background: #ffffff; padding: 14px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 16px; border: 1px solid #e2e8f0;">
+            <img src="${vietQrUrl}" alt="Mã VietQR" style="width: 200px; height: 200px; border-radius: 8px; margin: 0 auto; display: block; object-fit: contain;">
+            <div style="font-size: 11px; font-weight: 700; color: #141413; margin-top: 6px; letter-spacing: 0.5px;">VIETQR 24/7 CHUYỂN NHANH NAPAS</div>
           </div>
 
           <!-- Thông tin tài khoản nhận -->
@@ -102,7 +161,7 @@
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Nội dung chuyển khoản:</span>
-              <strong style="color: #b48312;">THANHTOAN ${escapeFn(oCode)}</strong>
+              <strong style="color: #b48312;">THANHTOAN ${escapeFn(cleanCode)}</strong>
             </div>
           </div>
 
@@ -110,12 +169,12 @@
           <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center;">
             <button type="button" class="btn-vnpay"
                     style="min-height: 44px; width: 100%; max-width: 320px; padding: 0 20px; border-radius: 10px; font-size: 14px; font-weight: 700; background: #0284c7; color: #ffffff; border: none; cursor: pointer; transition: background 0.2s;"
-                    onclick="(window.CustomerOrderPayment || window.CustomerWeb).payWithVNPay('${escapeFn(oCode)}', ${amount})">
+                    onclick="(window.CustomerOrderPayment || window.CustomerWeb).payWithVNPay('${escapeFn(cleanCode)}', ${amount})">
               Thanh Toán Trực Tuyến Qua VNPAY
             </button>
             <button type="button" class="btn-cancel" 
                     style="min-height: 40px; min-width: 140px; padding: 0 24px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: var(--surface-elevated, #2a2a26); color: var(--text-primary, #fff); border: 1px solid var(--border-color, #444); cursor: pointer;"
-                    onclick="CustomerWeb.closeOrderPaymentModal()">
+                    onclick="(window.CustomerOrderPayment || window.CustomerWeb).closeOrderPaymentModal()">
               Đóng Cửa Sổ
             </button>
           </div>
@@ -125,6 +184,8 @@
       if (window.UICommon && typeof window.UICommon.openModal === 'function') {
         window.UICommon.openModal(modalHtml, 'payment');
       }
+
+      this.startPaymentPolling(cleanCode);
     },
 
     /**
@@ -161,6 +222,8 @@
      * Đóng modal thanh toán đơn hàng và quay lại màn hình trước
      */
     closeOrderPaymentModal() {
+      this.stopPaymentPolling();
+
       const isPortal = (this._subModalSource === 'portal' || (window.CustomerWeb && window.CustomerWeb._subModalSource === 'portal') || (window.CustomerWeb && window.CustomerWeb._modalSource === 'portal'));
 
       if (isPortal) {
@@ -206,4 +269,3 @@
   }
 
 })(typeof window !== 'undefined' ? window : this);
-

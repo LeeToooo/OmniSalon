@@ -15,9 +15,9 @@
 
       if (type === 'products') {
         const p = window.store.getProductById(id);
-        badge = 'CẢNH BÁO NGỪNG KINH DOANH SẢN PHẨM';
-        title = 'Xác Nhận Ngừng Kinh Doanh Sản Phẩm?';
-        warning = 'Sản phẩm sẽ được chuyển sang trạng thái <strong>Ngừng kinh doanh</strong>. Toàn bộ lịch sử hóa đơn, đơn hàng, chứng từ nhập kho và doanh thu trước đó được <strong>bảo toàn 100% nguyên vẹn trong SQL</strong>, tuyệt đối không bị mất thông tin hay lỗi liên kết.';
+        badge = 'CẢNH BÁO XÓA SẢN PHẨM';
+        title = 'Xác Nhận Xóa Sản Phẩm Khỏi SQL?';
+        warning = 'Mục này sẽ bị <strong>xóa trực tiếp khỏi database SQL</strong>. Sau khi xóa, STT hiển thị trên web sẽ tự động đánh lại liên tục.';
         code = `#${id}`;
         subTag = p?.brand || 'CHÍNH HÃNG';
         name = p ? (p.name || p.TenSanPham) : id;
@@ -28,9 +28,9 @@
         img = p?.image || p?.HinhAnh || img;
       } else if (type === 'services') {
         const s = window.store.getServiceById(id);
-        badge = 'CẢNH BÁO NGỪNG KINH DOANH DỊCH VỤ';
-        title = 'Xác Nhận Ngừng Kinh Doanh Dịch Vụ?';
-        warning = 'Dịch vụ sẽ được chuyển sang trạng thái <strong>Ngừng kinh doanh</strong>. Toàn bộ lịch sử lịch hẹn, hóa đơn dịch vụ và đánh giá của khách hàng trước đó được <strong>bảo toàn 100% nguyên vẹn trong SQL</strong>, tuyệt đối không bị mất thông tin hay lỗi liên kết.';
+        badge = 'CẢNH BÁO XÓA DỊCH VỤ';
+        title = 'Xác Nhận Xóa Dịch Vụ Khỏi SQL?';
+        warning = 'Dịch vụ sẽ bị <strong>xóa trực tiếp khỏi database SQL</strong>. Khi tạo mới sẽ tiếp tục từ mã kế tiếp và STT trên web tự động đánh lại liên tục.';
         code = `#${id}`;
         subTag = s?.category || 'Dịch Vụ Cắt Tóc';
         name = s ? (s.name || s.TenDichVu) : id;
@@ -41,9 +41,9 @@
         img = s?.image || img;
       } else if (type === 'combos') {
         const c = window.store.getComboById(id);
-        badge = 'CẢNH BÁO NGỪNG KINH DOANH COMBO';
-        title = 'Xác Nhận Ngừng Kinh Doanh Combo?';
-        warning = 'Gói combo sẽ được chuyển sang trạng thái <strong>Ngừng kinh doanh</strong>. Toàn bộ lịch sử hóa đơn, dịch vụ thành phần và doanh thu trước đó được <strong>bảo toàn 100% nguyên vẹn trong SQL</strong>, tuyệt đối không bị mất thông tin.';
+        badge = 'CẢNH BÁO XÓA COMBO';
+        title = 'Xác Nhận Xóa Combo Khỏi SQL?';
+        warning = 'Gói combo sẽ bị <strong>xóa trực tiếp khỏi database SQL</strong>. STT trên web tự động đánh lại liên tục.';
         code = `#${id}`;
         subTag = 'Combo VIP';
         name = c ? c.name : id;
@@ -157,19 +157,19 @@
         const name = p ? (p.name || p.TenSanPham) : id;
         await window.store.deleteProduct(id);
         this._closeModal();
-        if (window.UICommon) window.UICommon.showToast(`Đã ngừng kinh doanh sản phẩm #${id} (${name}). Lịch sử chứng từ, đơn hàng & hóa đơn được bảo toàn nguyên vẹn trong SQL!`, 'success');
+        if (window.UICommon) window.UICommon.showToast(`Đã xóa sản phẩm #${id} (${name}). Lịch sử chứng từ, đơn hàng & hóa đơn được bảo toàn nguyên vẹn trong SQL!`, 'success');
         this.refreshInventoryView();
       } else if (type === 'services') {
         const s = window.store.getServiceById(id);
         const name = s ? (s.name || s.TenDichVu) : id;
         await window.store.deleteService(id);
         this._closeModal();
-        if (window.UICommon) window.UICommon.showToast(`Đã ngừng kinh doanh dịch vụ #${id} (${name}). Lịch sử lịch hẹn & hóa đơn được bảo toàn nguyên vẹn trong SQL!`, 'success');
+        if (window.UICommon) window.UICommon.showToast(`Đã xóa dịch vụ #${id} (${name}). Lịch sử lịch hẹn & hóa đơn được bảo toàn nguyên vẹn trong SQL!`, 'success');
         this.refreshCatalogView();
       } else if (type === 'combos') {
         await window.store.deleteCombo(id);
         this._closeModal();
-        if (window.UICommon) window.UICommon.showToast(`Đã ngừng kinh doanh combo #${id}. Toàn bộ dữ liệu lịch sử được bảo toàn nguyên vẹn trong SQL!`, 'success');
+        if (window.UICommon) window.UICommon.showToast(`Đã xóa combo #${id}. Toàn bộ dữ liệu lịch sử được bảo toàn nguyên vẹn trong SQL!`, 'success');
         this.refreshCatalogView();
       } else if (type === 'stylists') {
         const st = window.store.getStylistById(id);

@@ -60,7 +60,13 @@
       const body = document.getElementById('drawerStylistBody');
       const bookBtn = document.getElementById('drawerBookStylistBtn');
 
-      if (avatar) avatar.src = st.avatar || '/DataPicture/ChanDungTho/Tho1.jpg';
+      if (avatar) {
+        const sMatch = String(st.id || st.MaNhanVien || st.name || '').match(/(\d+)/);
+        const thoIdx = sMatch ? (((parseInt(sMatch[1], 10) - 1) % 20) + 1) : 1;
+        const defaultAvatar = `/DataPicture/ChanDungTho/Tho${thoIdx}.jpg`;
+        avatar.src = (st.avatar && !st.avatar.includes('images.unsplash.com')) ? st.avatar : defaultAvatar;
+        avatar.onerror = () => { avatar.onerror = null; avatar.src = defaultAvatar; };
+      }
       if (name) name.textContent = st.name;
       if (title) title.textContent = `${st.title || st.role || 'Senior Artisan'} • ${st.rating || '4.9'}`;
 

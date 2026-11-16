@@ -216,6 +216,7 @@
               <table class="admin-enterprise-table" style="width: 100%; border-collapse: separate; border-spacing: 0;">
                 <thead style="background: var(--surface-elevated); border-bottom: 2px solid var(--border-color);">
                   <tr>
+                    <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap; text-align: center; width: 50px;">STT</th>
                     <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap;">MÃ</th>
                     <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap;">SẢN PHẨM &amp; THƯƠNG HIỆU</th>
                     <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap;">DANH MỤC</th>
@@ -228,7 +229,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  ${pagedInventory.length > 0 ? pagedInventory.map(item => {
+                  ${pagedInventory.length > 0 ? pagedInventory.map((item, index) => {
+                    const stt = item.stt || (((this.inventoryPage - 1) * this.pageSize) + index + 1);
+                    const realId = item.real_id || item.productId || item.id || '';
                     const stock = item.stock || 0;
                     const costPriceVal = item.costPrice !== undefined ? item.costPrice : (item.GiaNhap !== undefined ? item.GiaNhap : Math.round((item.price || 250000) * 0.7));
                     const isAvailable = stock > 0;
@@ -240,9 +243,13 @@
                     return `
                       <tr class="admin-inventory-table-row"
                           style="cursor: pointer; transition: background 0.15s ease, box-shadow 0.15s ease; border-bottom: 1px solid var(--border-color);">
+                        <!-- Cột 0: STT Tự động -->
+                        <td style="text-align: center; font-weight: 700; color: var(--text-secondary); padding: 12px 14px; width: 50px;">
+                          ${stt}
+                        </td>
                         <!-- Cột 1: MÃ SP (Giống cột MÃ CN01) -->
                         <td style="white-space: nowrap; font-family: monospace; font-size: 12.5px; font-weight: 700; color: var(--text-primary); padding: 12px 14px;">
-                          ${this.escapeHtml(item.productId || item.id)}
+                          ${this.escapeHtml(realId)}
                         </td>
 
                         <!-- Cột 2: SẢN PHẨM & THƯƠNG HIỆU (Ảnh 44x44 + Tên đậm + Thương hiệu vàng gold - Chuẩn 1:1 giống Chi nhánh & Cơ sở) -->
@@ -328,7 +335,7 @@
                       </tr>
                     `;
                   }).join('') : `
-                    <tr><td colspan="9" style="text-align: center; padding: 36px; color: var(--text-secondary); font-size: 13.5px;">Không tìm thấy bản ghi tồn kho nào phù hợp.</td></tr>
+                    <tr><td colspan="10" style="text-align: center; padding: 36px; color: var(--text-secondary); font-size: 13.5px;">Không tìm thấy bản ghi tồn kho nào phù hợp.</td></tr>
                   `}
                 </tbody>
               </table>
