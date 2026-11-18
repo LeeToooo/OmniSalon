@@ -5,7 +5,7 @@
     constructor() {
       this.storageKey = 'OMNISALON_SQL_DIRECT_V13';
       this.listeners = [];
-      this.liveServerUrl = (typeof window !== 'undefined' && window.location.origin && (window.location.origin.startsWith('http://') || window.location.origin.startsWith('https://')))
+      this.liveServerUrl = (typeof window !== 'undefined' && window.location?.origin && (window.location.origin.startsWith('http://') || window.location.origin.startsWith('https://')))
         ? `${window.location.origin}/api`
         : 'http://127.0.0.1:3000/api';
       this.initStore();
@@ -93,8 +93,28 @@
 
         // Đồng bộ danh sách đơn hàng từ SQL: Lấy chuẩn CSDL SQL Server làm nguồn sự thật duy nhất
         if (Array.isArray(db.orders) && db.orders.length > 0) {
-          this.state.orders = db.orders;
-          changed = true;
+          const prevOrdersMap = new Map();
+          (this.state.orders || []).forEach(o => {
+            const code = String(o.id || o.orderCode || o.MaDonHang || '').trim();
+            if (code) prevOrdersMap.set(code, o);
+          });
+          const mergedOrders = db.orders.map(newOrder => {
+            const code = String(newOrder.id || newOrder.orderCode || newOrder.MaDonHang || '').trim();
+            const prev = code ? prevOrdersMap.get(code) : null;
+            if (prev && (prev.paymentStatus === 'Paid' || prev.isPaid === true) && newOrder.paymentStatus !== 'Paid') {
+              return {
+                ...newOrder,
+                paymentStatus: 'Paid',
+                isPaid: true,
+                TrangThaiHoaDon: newOrder.TrangThaiHoaDon || 'Đã thanh toán'
+              };
+            }
+            return newOrder;
+          });
+          if (!this.state.orders || JSON.stringify(this.state.orders) !== JSON.stringify(mergedOrders)) {
+            this.state.orders = mergedOrders;
+            changed = true;
+          }
         }
 
         // Đồng bộ Combos từ SQL
@@ -129,8 +149,9 @@
 
         // Đồng bộ Nhà Cung Cấp từ SQL, NhaCungCap
         if (Array.isArray(db.suppliers) && db.suppliers.length > 0) {
-          if (!this.state.suppliers || JSON.stringify(this.state.suppliers) !== JSON.stringify(db.suppliers)) {
-            this.state.suppliers = db.suppliers;
+          const normSuppliers = db.suppliers.map(s => this._normalizeSupplier(s)).filter(Boolean);
+          if (!this.state.suppliers || JSON.stringify(this.state.suppliers) !== JSON.stringify(normSuppliers)) {
+            this.state.suppliers = normSuppliers;
             changed = true;
           }
         }
@@ -153,8 +174,26 @@
 
         // Đồng bộ Hóa Đơn & Thanh Toán từ SQL, HoaDon, ThanhToan
         if (Array.isArray(db.invoices)) {
-          if (!this.state.invoices || JSON.stringify(this.state.invoices) !== JSON.stringify(db.invoices)) {
-            this.state.invoices = db.invoices;
+          const dbOrderIds = new Set();
+          const dbInvIds = new Set();
+          db.invoices.forEach(i => {
+            const id = String(i.id || i.MaHoaDon || '').trim();
+            if (id) dbInvIds.add(id);
+            const ord = String(i.MaDonHang || i.orderCode || '').trim();
+            if (ord) dbOrderIds.add(ord);
+          });
+
+          const localPendingInvoices = (this.state.invoices || []).filter(localInv => {
+            const lId = String(localInv.id || localInv.MaHoaDon || '').trim();
+            const lOrd = String(localInv.MaDonHang || localInv.orderCode || '').trim();
+            if (dbInvIds.has(lId)) return false;
+            if (lOrd && dbOrderIds.has(lOrd)) return false;
+            return Boolean(lId);
+          });
+
+          const mergedInvoices = [...localPendingInvoices, ...db.invoices];
+          if (!this.state.invoices || JSON.stringify(this.state.invoices) !== JSON.stringify(mergedInvoices)) {
+            this.state.invoices = mergedInvoices;
             changed = true;
           }
         }
@@ -437,6 +476,17 @@
       } catch (_) { }
     }
 
+    async syncUpdateBranchToLiveServer(branchId, updates) {
+      if (typeof fetch === 'undefined') return;
+      try {
+        await fetch(`${this.liveServerUrl}/branches/${branchId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
+          body: JSON.stringify(updates)
+        });
+      } catch (_) { }
+    }
+
     async syncDeleteBranchToLiveServer(branchId) {
       if (typeof fetch === 'undefined') return;
       try {
@@ -478,10 +528,13 @@
               customerId: posOrder.userId,
               branchId: posOrder.branchId,
               totalAmount: posOrder.totalAmount,
+              serviceTotal: posOrder.serviceTotal,
+              productTotal: posOrder.productTotal,
               TrangThai: 'Đã thanh toán',
               MaSoHoaDon: data.invoice.invoiceNo,
-              services: posOrder.services,
-              products: posOrder.items
+              services: posOrder.services || [],
+              items: posOrder.items || [],
+              products: posOrder.items || []
             });
             this.saveState();
           }
@@ -1044,9 +1097,10 @@
       if (updates.name) b.TenChiNhanh = updates.name;
       if (updates.address) b.DiaChi = updates.address;
       if (updates.phone) b.SoDienThoai = updates.phone;
+      if (updates.status) b.TrangThai = updates.status;
       this.logAudit('UPDATE_BRANCH', `Chi nhánh: ${branchId}`, 'Cập nhật thông tin chi nhánh');
       this.saveState();
-      this.syncBranchToLiveServer(b);
+      this.syncUpdateBranchToLiveServer(branchId, updates);
       return b;
     }
 
@@ -1063,17 +1117,59 @@
     // Người dùng & phiên đăng nhập
     getCurrentUser() {
       let user = null;
-      if (window.AuthEngine && typeof window.AuthEngine.getCurrentUser === 'function') {
-        user = window.AuthEngine.getCurrentUser();
-      } else if (window.Auth && typeof window.Auth.getCurrentUser === 'function') {
-        user = window.Auth.getCurrentUser();
+      if (typeof window !== 'undefined') {
+        if (window.AuthEngine && typeof window.AuthEngine.getCurrentUser === 'function') {
+          user = window.AuthEngine.getCurrentUser();
+        }
+        if (!user && window.Auth && typeof window.Auth.getCurrentUser === 'function') {
+          user = window.Auth.getCurrentUser();
+        }
+        if (!user) {
+          try {
+            const rawAuthUser = localStorage.getItem('omnisalon_auth_user') || localStorage.getItem('OMNISALON_AUTH_USER');
+            if (rawAuthUser) user = JSON.parse(rawAuthUser);
+          } catch (_) {}
+        }
+        if (!user) {
+          try {
+            const rawCurr = localStorage.getItem('currentUser');
+            if (rawCurr) user = JSON.parse(rawCurr);
+          } catch (_) {}
+        }
       }
-      if (window.AuthEngine) {
-        return user;
+      if (!user && this.state) {
+        user = this.state.currentUser || null;
       }
-      if (!user) user = this.state.currentUser || null;
-      if (user && !user.name) {
-        user.name = user.fullName || user.username || 'Tài Khoản';
+      if (user) {
+        let role = user.role;
+        const rawRole = String(role || user.vaiTroSql || user.VaiTro || user.ChucVu || '').toUpperCase();
+        if (!role || rawRole.includes('QUẢN LÝ') || rawRole.includes('THU NGÂN') || rawRole.includes('QUẢN TRỊ') || rawRole.includes('THỢ') || rawRole.includes('KHÁCH')) {
+          if (rawRole.includes('SUPER') || rawRole.includes('ADMIN') || rawRole.includes('QUẢN TRỊ') || user.username === 'admin') {
+            role = 'SUPER_ADMIN';
+          } else if (rawRole.includes('MANAGER') || rawRole.includes('QUẢN LÝ')) {
+            role = 'BRANCH_MANAGER';
+          } else if (rawRole.includes('CASHIER') || rawRole.includes('THU NGÂN')) {
+            role = 'CASHIER';
+          } else if (rawRole.includes('BARBER') || rawRole.includes('STYLIST') || rawRole.includes('THỢ') || rawRole.includes('NHÂN VIÊN') || rawRole.includes('STAFF')) {
+            role = 'STYLIST';
+          } else if (rawRole.includes('CUSTOMER') || rawRole.includes('KHÁCH')) {
+            role = 'CUSTOMER';
+          } else {
+            role = user.role || (user.username === 'admin' ? 'SUPER_ADMIN' : 'CUSTOMER');
+          }
+        }
+        const roleName = user.roleName || (
+          role === 'SUPER_ADMIN' || role === 'ADMIN' ? 'Quản trị viên' :
+          role === 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' :
+          role === 'CASHIER' ? 'Thu ngân' :
+          role === 'STYLIST' || role === 'BARBER' ? 'Nhân viên / Thợ' : 'Khách hàng'
+        );
+        user.username = user.username || user.TenDangNhap || user.email || 'user';
+        user.fullName = user.fullName || user.HoTen || user.name || user.username || 'Người Dùng';
+        user.name = user.fullName;
+        user.role = role;
+        user.roleName = roleName;
+        user.branchId = user.branchId || user.MaChiNhanh || 'CN01';
       }
       return user;
     }
@@ -1086,14 +1182,16 @@
       if (!userId || !newRole) return null;
       const roleMap = {
         SUPER_ADMIN: 'Quản trị viên',
+        ADMIN: 'Quản trị viên',
         BRANCH_MANAGER: 'Quản lý',
         CASHIER: 'Thu ngân',
+        BARBER: 'Nhân viên',
         STYLIST: 'Nhân viên',
         STAFF: 'Nhân viên',
         CUSTOMER: 'Khách hàng'
       };
       const vaiTro = roleMap[newRole] || newRole;
-      const roleCode = Object.keys(roleMap).find(k => roleMap[k] === vaiTro) || newRole;
+      const roleCode = newRole;
 
       /* 1. Cap nhat trong store state */
       const users = this.state.users || [];
@@ -1102,6 +1200,15 @@
         user.VaiTro = vaiTro;
         user.role = roleCode;
         user.roleName = vaiTro;
+        if (roleCode === 'BARBER') {
+          if (!user.ChucVu || user.ChucVu.includes('Khách hàng')) user.ChucVu = 'Thợ chính';
+        } else if (roleCode === 'CASHIER') {
+          user.ChucVu = 'Thu ngân';
+        } else if (roleCode === 'BRANCH_MANAGER') {
+          user.ChucVu = 'Quản lý chi nhánh';
+        } else if (roleCode === 'SUPER_ADMIN' || roleCode === 'ADMIN') {
+          user.ChucVu = 'Quản trị viên';
+        }
       }
 
       /* 2. Cap nhat trong Auth engine neu ton tai */
@@ -1123,9 +1230,14 @@
 
       /* 4. Dong bo backend API */
       try {
-        await fetch('/api/users/role', {
+        const baseUrl = this.liveServerUrl || '/api';
+        const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
+        await fetch(`${baseUrl}/users/role`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': token } : {})
+          },
           body: JSON.stringify({ id: userId, role: roleCode, vaiTro })
         });
       } catch (e) {
@@ -1140,7 +1252,11 @@
     getServices(category = null, includeDiscontinued = false) {
       let list = this.state.services || [];
       if (!includeDiscontinued) {
-        list = list.filter(s => !s.isDeleted && s.status !== 'Ngừng kinh doanh' && s.TrangThai !== 'Ngừng kinh doanh');
+        list = list.filter(s => {
+          if (s.isDeleted) return false;
+          const st = String(s.status || s.TrangThai || '').toLowerCase();
+          return !st.includes('ngừng') && !st.includes('ngưng');
+        });
       }
       if (!category || category === 'all') return list;
       if (category === 'haircut' || category === 'cut' || category === 'cat-tao-kieu') {
@@ -1189,7 +1305,11 @@
     getCombos(includeDiscontinued = false) {
       let list = this.state.combos || [];
       if (!includeDiscontinued) {
-        list = list.filter(c => !c.isDeleted && c.status !== 'Ngừng kinh doanh' && c.TrangThai !== 'Ngừng kinh doanh');
+        list = list.filter(c => {
+          if (c.isDeleted) return false;
+          const st = String(c.status || c.TrangThai || '').toLowerCase();
+          return !st.includes('ngừng') && !st.includes('ngưng');
+        });
       }
       return list.map(c => this._normalizeCombo(c));
     }
@@ -1273,13 +1393,17 @@
     }
 
     updateCombo(comboId, updates) {
-      const combo = this.getComboById(comboId);
-      if (!combo) return false;
-      Object.assign(combo, updates);
+      const clean = String(comboId).trim().toLowerCase();
+      const rawCombo = (this.state.combos || []).find(c => 
+        String(c.id || '').trim().toLowerCase() === clean || 
+        String(c.MaCombo || '').trim().toLowerCase() === clean
+      );
+      if (!rawCombo) return false;
+      Object.assign(rawCombo, updates);
       this.logAudit('UPDATE_COMBO', `Gói: #${comboId}`, `Cập nhật thông tin combo`);
       this.saveState();
       this.syncUpdateComboToLiveServer(comboId, updates);
-      return combo;
+      return this._normalizeCombo(rawCombo);
     }
 
     deleteCombo(comboId) {
@@ -2587,6 +2711,8 @@
       if (!order) return { success: false, error: 'Không tìm thấy đơn hàng trong hệ thống!' };
 
       order.paymentStatus = 'Paid';
+      order.isPaid = true;
+      order.TrangThaiHoaDon = 'Đã thanh toán';
       order.TrangThai = 'Đã thanh toán';
       order.orderStatus = (order.orderStatus === 'Pending' || order.orderStatus === 'Chờ xác nhận') ? 'Processing' : (order.orderStatus || 'Processing');
       order.paymentMethod = paymentMethod || order.paymentMethod || 'VietQR';
@@ -2597,6 +2723,7 @@
       if (!this.state.invoices) this.state.invoices = [];
       const existingInv = this.state.invoices.find(i => i.MaDonHang === (order.id || order.orderCode) || i.id === invoiceId);
       if (!existingInv) {
+        const orderTotal = Number(order.totalAmount || 0);
         this.state.invoices.unshift({
           id: invoiceId,
           MaHoaDon: invoiceId,
@@ -2604,14 +2731,22 @@
           MaKhachHang: order.userId || order.customerId || 'KH01',
           MaChiNhanh: order.branchId || 'CN01',
           NgayLap: new Date().toISOString(),
-          TongTien: Number(order.totalAmount || 0),
+          TongTien: orderTotal,
+          totalAmount: orderTotal,
+          serviceTotal: 0,
+          TongTienDichVu: 0,
+          TienDichVu: 0,
+          productTotal: orderTotal,
+          TongTienSanPham: orderTotal,
+          TienSanPham: orderTotal,
           TrangThai: 'Đã thanh toán',
           MaSoHoaDon: `HD-${order.id || order.orderCode}`,
           services: [],
+          items: order.items || [],
           products: order.items || [],
           payment: {
             paymentMethod: paymentMethod,
-            amount: Number(order.totalAmount || 0),
+            amount: orderTotal,
             status: 'SUCCESS'
           }
         });
@@ -2627,12 +2762,18 @@
           headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify({
             paymentStatus: 'Paid',
+            isPaid: true,
             status: order.orderStatus,
             paymentMethod: paymentMethod,
             totalAmount: order.totalAmount
           })
         });
         const data = await res.json().catch(() => ({}));
+        if (data && data.paymentStatus) {
+          order.paymentStatus = data.paymentStatus;
+          order.isPaid = (data.paymentStatus === 'Paid');
+        }
+        this.saveState();
         return { success: true, message: data.message || `Đã xác nhận thanh toán đơn #${order.orderCode || order.id}!`, order };
       } catch (err) {
         console.warn('[CONFIRM PAYMENT SERVER SYNC]', err.message);
@@ -2671,6 +2812,18 @@
         vietnameseStatus = 'Đã hủy';
       }
 
+      // Bảo tồn trạng thái thanh toán của order nếu đã trả tiền
+      const isCurrentPaid = (
+        order.paymentStatus === 'Paid' || 
+        order.isPaid === true || 
+        order.TrangThai === 'Đã thanh toán' || 
+        order.TrangThaiHoaDon === 'Đã thanh toán'
+      );
+      if (isCurrentPaid) {
+        order.paymentStatus = 'Paid';
+        order.isPaid = true;
+      }
+
       order.orderStatus = normalizedStatus;
       order.TrangThai = vietnameseStatus;
       if (notes) order.notes = notes;
@@ -2694,10 +2847,20 @@
           body: JSON.stringify({
             status: vietnameseStatus,
             orderStatus: normalizedStatus,
-            notes: notes || order.notes || ''
+            notes: notes || order.notes || '',
+            paymentStatus: isCurrentPaid ? 'Paid' : (order.paymentStatus || 'Unpaid'),
+            isPaid: isCurrentPaid
           })
         });
         const data = await res.json().catch(() => ({}));
+        if (data && data.paymentStatus) {
+          order.paymentStatus = data.paymentStatus;
+          order.isPaid = (data.paymentStatus === 'Paid');
+        } else if (isCurrentPaid) {
+          order.paymentStatus = 'Paid';
+          order.isPaid = true;
+        }
+        this.saveState();
         return { success: true, message: data.message || `Đã cập nhật tiến trình đơn #${order.orderCode || order.id} sang "${vietnameseStatus}"!`, order };
       } catch (err) {
         console.warn('[UPDATE ORDER STATUS SERVER SYNC]', err.message);
@@ -2883,6 +3046,23 @@
         throw new Error('Vi phạm ràng buộc CHECK CK_HoaDon_Nguon: Hóa đơn không thể đồng thời tham chiếu cả Lịch hẹn và Đơn hàng.');
       }
 
+      const services = invoiceData.services || [];
+      const items = invoiceData.items || invoiceData.products || [];
+      let sTotal = Number(invoiceData.serviceTotal !== undefined ? invoiceData.serviceTotal : (invoiceData.TongTienDichVu !== undefined ? invoiceData.TongTienDichVu : (invoiceData.TienDichVu || 0)));
+      let pTotal = Number(invoiceData.productTotal !== undefined ? invoiceData.productTotal : (invoiceData.TongTienSanPham !== undefined ? invoiceData.TongTienSanPham : (invoiceData.TienSanPham || 0)));
+      if (sTotal === 0 && services.length > 0) {
+        sTotal = services.reduce((sum, s) => sum + Number(s.price || s.DonGia || 0), 0);
+      }
+      if (pTotal === 0 && items.length > 0) {
+        pTotal = items.reduce((sum, it) => sum + (Number(it.price || it.DonGia || 0) * (it.qty || it.quantity || it.SoLuong || 1)), 0);
+      }
+      let total = Number(invoiceData.TongTien !== undefined ? invoiceData.TongTien : (invoiceData.totalAmount !== undefined ? invoiceData.totalAmount : 0));
+      if (total === 0) total = sTotal + pTotal;
+      else if (sTotal === 0 && pTotal === 0 && total > 0) {
+        if (hasOrder) { pTotal = total; sTotal = 0; }
+        else { sTotal = total; pTotal = 0; }
+      }
+
       const maHoaDon = invoiceData.MaHoaDon || invoiceData.id || `HD-${Date.now().toString(36).toUpperCase()}`;
       const newInvoice = {
         id: maHoaDon,
@@ -2892,11 +3072,19 @@
         MaDonHang: hasOrder ? (invoiceData.MaDonHang || invoiceData.orderId) : null,
         MaChiNhanh: invoiceData.MaChiNhanh || invoiceData.branchId || 'CN01',
         NgayLap: invoiceData.NgayLap || new Date().toISOString(),
-        TongTien: Number(invoiceData.TongTien || invoiceData.totalAmount || 0),
+        TongTien: total,
+        totalAmount: total,
+        serviceTotal: sTotal,
+        TongTienDichVu: sTotal,
+        TienDichVu: sTotal,
+        productTotal: pTotal,
+        TongTienSanPham: pTotal,
+        TienSanPham: pTotal,
         TrangThai: invoiceData.TrangThai || 'Đã thanh toán',
         MaSoHoaDon: invoiceData.MaSoHoaDon || `HD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(100 + Math.random() * 900)}`,
-        services: invoiceData.services || [],
-        products: invoiceData.products || [],
+        services: services,
+        items: items,
+        products: items,
         payment: invoiceData.payment || null
       };
 
@@ -3139,37 +3327,69 @@
       if (!this.state.auditLogs || this.state.auditLogs.length === 0) {
         this.state.auditLogs = this._getSeedAuditLogs();
         this.saveState();
+      } else {
+        // Tự động bổ sung operatorRole cho các bản ghi cũ nếu bị thiếu
+        let needsSave = false;
+        this.state.auditLogs.forEach(l => {
+          if (!l.operatorRole) {
+            const str = String(l.operatorName || l.operator || '').toUpperCase();
+            if (str.includes('BRANCH_MANAGER') || str.includes('QUẢN LÝ')) l.operatorRole = 'BRANCH_MANAGER';
+            else if (str.includes('CASHIER') || str.includes('THU NGÂN')) l.operatorRole = 'CASHIER';
+            else if (str.includes('SUPER_ADMIN') || str.includes('ADMIN') || str.includes('QUẢN TRỊ')) l.operatorRole = 'SUPER_ADMIN';
+            else if (str.includes('BARBER') || str.includes('STYLIST') || str.includes('THỢ') || str.includes('NHÂN VIÊN') || str.includes('STAFF')) l.operatorRole = 'STYLIST';
+            else if (str.includes('CUSTOMER') || str.includes('KHÁCH')) l.operatorRole = 'CUSTOMER';
+            else if (str.includes('HỆ THỐNG') || str.includes('SYSTEM') || !str.trim()) l.operatorRole = 'SYSTEM';
+            else l.operatorRole = 'SUPER_ADMIN';
+            needsSave = true;
+          }
+        });
+        if (needsSave) this.saveState();
       }
       return this.state.auditLogs || [];
     }
 
     _getSeedAuditLogs() {
       const actions = [
-        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch: LH17", details: "Chuyển trạng thái: waiting -> In Progress", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 5 * 60 * 1000 },
-        { action: "UPDATE_BRANCH", entity: "Chi nhánh: CN01", details: "Cập nhật thông tin chi nhánh", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 3 * 3600 * 1000 },
-        { action: "UPDATE_BRANCH", entity: "Chi nhánh: CN01", details: "Cập nhật thông tin chi nhánh", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 3.1 * 3600 * 1000 },
-        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: user_kh01", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 4 * 3600 * 1000 },
-        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: user_kh01", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 4.1 * 3600 * 1000 },
-        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: user_kh19", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 4.2 * 3600 * 1000 },
-        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: admin", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 6 * 3600 * 1000 },
-        { action: "AUTH_LOGIN", entity: "Tài khoản: admin", details: "Trạng thái: LOGIN", operator: "Lê Minh Hoàng (SUPER_ADMIN)", timeOffset: 12 * 3600 * 1000 },
-        { action: "AUTH_LOGOUT", entity: "Tài khoản: user_nv03", details: "Trạng thái: LOGOUT", operator: "Hệ Thống", timeOffset: 12.1 * 3600 * 1000 },
-        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch: LH28", details: "Chuyển trạng thái: waiting -> In_Progress", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", timeOffset: 14 * 3600 * 1000 },
-        { action: "POS_CHECKOUT", entity: "Hóa đơn: HD1042", details: "Thu ngân thanh toán thành công 350.000 đ", operator: "Thu Ngân CN01 (CASHIER)", timeOffset: 16 * 3600 * 1000 },
-        { action: "CREATE_RECEIPT", entity: "Phiếu nhập: PN08", details: "Tạo phiếu nhập 50 Gôm Sáp Vuốt Tóc", operator: "Thủ Kho (BRANCH_MANAGER)", timeOffset: 20 * 3600 * 1000 },
-        { action: "UPDATE_STOCK", entity: "Sản phẩm: SP03", details: "Cập nhật số lượng tồn kho: 45 -> 95", operator: "Thủ Kho (BRANCH_MANAGER)", timeOffset: 20.2 * 3600 * 1000 },
-        { action: "CREATE_BOOKING", entity: "Lịch: LH35", details: "Khách hàng đặt lịch Combo Đế Vương lúc 15:00", operator: "Ngô Văn Tuấn (CUSTOMER)", timeOffset: 24 * 3600 * 1000 }
+        // Thao tác của Quản Lý Chi Nhánh (BRANCH_MANAGER)
+        { action: "UPDATE_PRODUCT", entity: "Sản phẩm: SP01", details: "Cập nhật giá bán & tồn kho sản phẩm: Sáp Vuốt Tóc Clay Wax (288.000 đ)", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 12 * 60 * 1000 },
+        { action: "UPDATE_STYLIST", entity: "Nhân sự: #NV02", details: "Cập nhật thông tin nhân sự: Đỗ Đình Độ (Thợ chính)", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 25 * 60 * 1000 },
+        { action: "CREATE_STYLIST", entity: "Nhân sự: Nguyễn Văn An", details: "Thêm mới Thợ phụ (#NV15) tại cơ sở CN02", operator: "Phạm Thu Thảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 45 * 60 * 1000 },
+        { action: "UPDATE_SERVICE", entity: "Dịch vụ: #DV02", details: "Cập nhật bảng giá dịch vụ: Uốn Tóc Tiêu Chuẩn (350.000 đ)", operator: "Phạm Thu Thảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 1.5 * 3600 * 1000 },
+        { action: "CREATE_SERVICE", entity: "Dịch vụ: Gội Đầu Dưỡng Sinh Hoàng Gia", details: "Thêm mới dịch vụ thư giãn tại cơ sở CN03", operator: "Võ Quốc Bảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 2.2 * 3600 * 1000 },
+        { action: "UPDATE_COMBO", entity: "Gói: #CB01", details: "Cập nhật giá ưu đãi Combo Cắt Gội Massage", operator: "Võ Quốc Bảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 2.8 * 3600 * 1000 },
+        { action: "UPDATE_STOCK", entity: "Kho [CN01]: SP04", details: "Điều chỉnh số lượng tồn kho: 30 -> 65", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 3.5 * 3600 * 1000 },
+        { action: "CREATE_RECEIPT", entity: "Phiếu nhập: PN08", details: "Tạo phiếu nhập 50 Gôm Sáp Vuốt Tóc", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 4.2 * 3600 * 1000 },
+        { action: "UPDATE_PRODUCT", entity: "Sản phẩm: SP05", details: "Cập nhật mô tả & hình ảnh Gel vuốt tóc Pomade", operator: "Phạm Thu Thảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 5 * 3600 * 1000 },
+        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch: LH28", details: "Chuyển trạng thái: waiting -> In_Progress", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 6 * 3600 * 1000 },
+        { action: "DELETE_STYLIST", entity: "Nhân sự: #NV12", details: "Cho thôi việc nhân sự thử việc", operator: "Võ Quốc Bảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 7.5 * 3600 * 1000 },
+        { action: "UPDATE_STOCK", entity: "Kho [CN03]: SP02", details: "Điều chỉnh số lượng tồn kho: 15 -> 40", operator: "Võ Quốc Bảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 8.5 * 3600 * 1000 },
+
+        // Thao tác của Quản Trị Viên (SUPER_ADMIN)
+        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch: LH17", details: "Chuyển trạng thái: waiting -> In Progress", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 5 * 60 * 1000 },
+        { action: "UPDATE_BRANCH", entity: "Chi nhánh: CN01", details: "Cập nhật thông tin chi nhánh", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 9 * 3600 * 1000 },
+        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: user_kh01", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 10 * 3600 * 1000 },
+        { action: "AUTH_LOGIN", entity: "Tài khoản: admin", details: "Trạng thái: LOGIN", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 12 * 3600 * 1000 },
+        { action: "CREATE_BRANCH", entity: "Chi nhánh: CN04", details: "Thêm chi nhánh mới OmniSalon Tây Hồ", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 15 * 3600 * 1000 },
+
+        // Thao tác của Thu Ngân (CASHIER)
+        { action: "POS_CHECKOUT", entity: "Hóa đơn: HD1042", details: "Thu ngân thanh toán thành công 350.000 đ", operator: "Thu Ngân CN01 (CASHIER)", role: "CASHIER", timeOffset: 16 * 3600 * 1000 },
+        { action: "CREATE_INVOICE", entity: "Hóa đơn: INV-2026-088", details: "Xuất hóa đơn thanh toán combo cắt uốn", operator: "Thu Ngân CN02 (CASHIER)", role: "CASHIER", timeOffset: 17 * 3600 * 1000 },
+
+        // Thao tác của Khách Hàng & Hệ Thống
+        { action: "CREATE_BOOKING", entity: "Lịch: LH35", details: "Khách hàng đặt lịch Combo Đế Vương lúc 15:00", operator: "Ngô Văn Tuấn (CUSTOMER)", role: "CUSTOMER", timeOffset: 18 * 3600 * 1000 },
+        { action: "AUTH_LOGOUT", entity: "Tài khoản: user_nv03", details: "Trạng thái: LOGOUT", operator: "Hệ Thống", role: "SYSTEM", timeOffset: 20 * 3600 * 1000 }
       ];
 
       const now = Date.now();
       const logs = [];
-      for (let i = 0; i < 82; i++) {
+      for (let i = 0; i < 84; i++) {
         const template = actions[i % actions.length];
-        const logTime = new Date(now - (template.timeOffset + i * 2800 * 1000)).toISOString();
+        const logTime = new Date(now - (template.timeOffset + i * 2100 * 1000)).toISOString();
         logs.push({
           id: "log-" + (now - i * 1000),
           timestamp: logTime,
           operatorName: template.operator,
+          operatorRole: template.role || 'SUPER_ADMIN',
           action: template.action,
           entity: template.entity,
           details: template.details
@@ -3178,19 +3398,44 @@
       return logs;
     }
 
-    logAudit(action, entity, details) {
-      const user = this.getCurrentUser();
+    logAudit(action, entity, details, operatorUser = null) {
+      const user = operatorUser || this.getCurrentUser();
+      let role = 'SYSTEM';
+      if (user) {
+        const rawRole = String(user.role || user.vaiTroSql || user.VaiTro || user.ChucVu || '').toUpperCase();
+        if (rawRole.includes('SUPER') || rawRole.includes('ADMIN') || user.username === 'admin') {
+          role = 'SUPER_ADMIN';
+        } else if (rawRole.includes('MANAGER') || rawRole.includes('QUẢN LÝ')) {
+          role = 'BRANCH_MANAGER';
+        } else if (rawRole.includes('CASHIER') || rawRole.includes('THU NGÂN')) {
+          role = 'CASHIER';
+        } else if (rawRole.includes('BARBER') || rawRole.includes('STYLIST') || rawRole.includes('THỢ') || rawRole.includes('NHÂN VIÊN') || rawRole.includes('STAFF')) {
+          role = 'STYLIST';
+        } else if (rawRole.includes('CUSTOMER') || rawRole.includes('KHÁCH')) {
+          role = 'CUSTOMER';
+        } else {
+          role = user.role || 'USER';
+        }
+      }
+
+      const opName = user ? `${user.fullName || user.username || 'Tài Khoản'} (${role})` : 'Hệ Thống';
       const newLog = {
-        id: `log-${Date.now()}`,
+        id: `log-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         timestamp: new Date().toISOString(),
-        operatorName: user ? `${user.fullName || user.username} (${user.role})` : 'Hệ Thống',
+        operatorName: opName,
+        operatorRole: role,
         action,
         entity,
         details
       };
+
       if (!this.state.auditLogs) this.state.auditLogs = [];
       this.state.auditLogs.unshift(newLog);
-      if (this.state.auditLogs.length > 200) this.state.auditLogs.pop();
+      if (this.state.auditLogs.length > 300) {
+        this.state.auditLogs = this.state.auditLogs.slice(0, 300);
+      }
+      this.saveState();
+      return newLog;
     }
 
     // Content & media queries
@@ -3218,44 +3463,86 @@
       return this.getBranchInventory(branchId);
     }
 
+    _normalizeSupplier(s) {
+      if (!s) return null;
+      const id = s.id || s.MaNhaCungCap || '';
+      const name = s.name || s.TenNhaCungCap || '';
+      const phone = s.phone || s.SoDienThoai || '';
+      const email = s.email || s.Email || '';
+      const address = s.address || s.DiaChi || '';
+      const status = s.status || s.TrangThai || 'Hoạt động';
+      return {
+        ...s,
+        id,
+        MaNhaCungCap: id,
+        name,
+        TenNhaCungCap: name,
+        phone,
+        SoDienThoai: phone,
+        email,
+        Email: email,
+        address,
+        DiaChi: address,
+        status,
+        TrangThai: status
+      };
+    }
+
     getSuppliers() {
-      return this.state.suppliers || [];
+      return (this.state.suppliers || []).map(s => this._normalizeSupplier(s)).filter(Boolean);
     }
 
     getSupplierById(supplierId) {
-      return (this.state.suppliers || []).find(s => s.id === supplierId || s.MaNhaCungCap === supplierId) || null;
+      if (!supplierId) return null;
+      const clean = String(supplierId).trim().toLowerCase();
+      const s = (this.state.suppliers || []).find(x => 
+        String(x.id || '').trim().toLowerCase() === clean || 
+        String(x.MaNhaCungCap || '').trim().toLowerCase() === clean
+      );
+      return this._normalizeSupplier(s);
     }
 
     async addSupplier(data) {
-      const res = await fetch('/api/suppliers', {
+      const res = await fetch(`${this.liveServerUrl}/suppliers`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : ''
+        },
         body: JSON.stringify(data)
       });
-      const resJson = await res.json();
-      if (resJson && resJson.success && resJson.supplier) {
+      const resJson = await res.json().catch(() => ({}));
+      if (res.ok && resJson && resJson.success && resJson.supplier) {
+        const norm = this._normalizeSupplier(resJson.supplier);
         if (!this.state.suppliers) this.state.suppliers = [];
-        this.state.suppliers.push(resJson.supplier);
+        this.state.suppliers.push(norm);
         this.saveState();
-        return resJson.supplier;
+        return norm;
       }
       throw new Error(resJson?.message || 'Không thể thêm nhà cung cấp');
     }
 
     async updateSupplier(supplierId, data) {
-      const res = await fetch('/api/suppliers/' + encodeURIComponent(supplierId), {
+      const res = await fetch(`${this.liveServerUrl}/suppliers/` + encodeURIComponent(supplierId), {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : ''
+        },
         body: JSON.stringify(data)
       });
-      const resJson = await res.json();
+      const resJson = await res.json().catch(() => ({}));
       if (!res.ok || (resJson && resJson.success === false)) {
         throw new Error(resJson?.message || 'Không thể cập nhật nhà cung cấp');
       }
       if (this.state.suppliers) {
-        const idx = this.state.suppliers.findIndex(s => s.id === supplierId || s.MaNhaCungCap === supplierId);
+        const clean = String(supplierId).trim().toLowerCase();
+        const idx = this.state.suppliers.findIndex(s => 
+          String(s.id || '').trim().toLowerCase() === clean || 
+          String(s.MaNhaCungCap || '').trim().toLowerCase() === clean
+        );
         if (idx !== -1) {
-          this.state.suppliers[idx] = { ...this.state.suppliers[idx], ...data };
+          this.state.suppliers[idx] = this._normalizeSupplier({ ...this.state.suppliers[idx], ...data });
           this.saveState();
         }
       }
@@ -3263,15 +3550,22 @@
     }
 
     async deleteSupplier(supplierId) {
-      const res = await fetch('/api/suppliers/' + encodeURIComponent(supplierId), {
-        method: 'DELETE'
+      const res = await fetch(`${this.liveServerUrl}/suppliers/` + encodeURIComponent(supplierId), {
+        method: 'DELETE',
+        headers: {
+          'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : ''
+        }
       });
-      const resJson = await res.json();
+      const resJson = await res.json().catch(() => ({}));
       if (!res.ok || (resJson && resJson.success === false)) {
         throw new Error(resJson?.message || 'Không thể xóa nhà cung cấp');
       }
       if (this.state.suppliers) {
-        this.state.suppliers = this.state.suppliers.filter(s => s.id !== supplierId && s.MaNhaCungCap !== supplierId);
+        const clean = String(supplierId).trim().toLowerCase();
+        this.state.suppliers = this.state.suppliers.filter(s => 
+          String(s.id || '').trim().toLowerCase() !== clean && 
+          String(s.MaNhaCungCap || '').trim().toLowerCase() !== clean
+        );
         this.saveState();
       }
       return true;

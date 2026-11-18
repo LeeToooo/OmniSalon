@@ -27,6 +27,10 @@ docs/
 
 # Test suites, local QA benchmarks & test run artifacts
 tests/
+test_evidence/
+e2e_*
+functional_test_*
+test_*.js
 
 # External cloned repositories (Ponytail / Caveman sources)
 repos/

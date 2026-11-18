@@ -579,8 +579,8 @@
                       </td>
                       <td style="font-size: 12px; color: var(--text-secondary); padding: 12px 14px;">${this.escapeHtml(s.email || s.Email || '—')}</td>
                       <td style="text-align: center; padding: 12px 14px;">
-                        <span class="status-pill status-completed" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 9999px;">
-                          ${this.escapeHtml(s.status || 'Hoạt động')}
+                        <span class="status-pill ${(s.status || s.TrangThai || '').includes('ngưng') || (s.status || s.TrangThai || '').includes('Tạm') ? 'status-cancelled' : 'status-completed'}" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 9999px;">
+                          ${this.escapeHtml(s.status || s.TrangThai || 'Hoạt động')}
                         </span>
                       </td>
                       <td style="text-align: center; padding: 12px 14px; white-space: nowrap;">
@@ -2133,7 +2133,7 @@
       if (addrEl) addrEl.value = s.address || s.DiaChi || '';
 
       const statusEl = document.getElementById('supEditorStatus');
-      if (statusEl) statusEl.value = s.status || 'Hoạt động';
+      if (statusEl) statusEl.value = s.status || s.TrangThai || 'Hoạt động';
 
       const btnSubmitText = document.getElementById('btnSubmitSupplierBottomText');
       if (btnSubmitText) btnSubmitText.textContent = 'Lưu';
@@ -2172,20 +2172,23 @@
 
       if (supId) {
         if (window.store && typeof window.store.updateSupplier === 'function') {
-          await window.store.updateSupplier(supId, { name, TenNhaCungCap: name, phone, SoDienThoai: phone, email, Email: email, address, DiaChi: address, status, category });
+          await window.store.updateSupplier(supId, { name, TenNhaCungCap: name, phone, SoDienThoai: phone, email, Email: email, address, DiaChi: address, status, TrangThai: status, category });
         }
         if (window.UICommon) window.UICommon.showToast(`Đã cập nhật nhà cung cấp [${name}]!`, 'success');
       } else {
         const suppliers = (window.store && typeof window.store.getSuppliers === 'function') ? window.store.getSuppliers() : [];
         const nextId = code || ('NCC' + String(suppliers.length + 1).padStart(2, '0'));
         if (window.store && typeof window.store.addSupplier === 'function') {
-          await window.store.addSupplier({ id: nextId, MaNhaCungCap: nextId, name, TenNhaCungCap: name, phone, SoDienThoai: phone, email, Email: email, address, DiaChi: address, status, category });
+          await window.store.addSupplier({ id: nextId, MaNhaCungCap: nextId, name, TenNhaCungCap: name, phone, SoDienThoai: phone, email, Email: email, address, DiaChi: address, status, TrangThai: status, category });
         }
         if (window.UICommon) window.UICommon.showToast(`Đã thêm mới nhà cung cấp [${name}]!`, 'success');
       }
 
       this.resetSupplierBottomEditor();
       this.refreshInventoryView();
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        window.store.syncWithLiveServer();
+      }
     },
 
     async deleteSupplierDirect(supplierId) {

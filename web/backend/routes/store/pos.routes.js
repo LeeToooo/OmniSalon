@@ -307,8 +307,20 @@ async function handlePosRoutes(req, res, ctx) {
              hd.TongTien, hd.TrangThai, hd.MaSoHoaDon,
              kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
              cn.TenChiNhanh,
-             ISNULL((SELECT SUM(ThanhTien) FROM ChiTietHoaDon_DichVu WHERE MaHoaDon = hd.MaHoaDon), 0) AS TongTienDichVu,
-             ISNULL((SELECT SUM(ThanhTien) FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = hd.MaHoaDon), 0) AS TongTienSanPham,
+             CASE 
+               WHEN EXISTS (SELECT 1 FROM ChiTietHoaDon_DichVu WHERE MaHoaDon = hd.MaHoaDon) THEN
+                 (SELECT ISNULL(SUM(ThanhTien), 0) FROM ChiTietHoaDon_DichVu WHERE MaHoaDon = hd.MaHoaDon)
+               WHEN hd.MaLichHen IS NOT NULL THEN
+                 ISNULL((SELECT SUM(ThanhTien) FROM ChiTietLichHen WHERE MaLichHen = hd.MaLichHen), hd.TongTien)
+               ELSE 0
+             END AS TongTienDichVu,
+             CASE 
+               WHEN EXISTS (SELECT 1 FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = hd.MaHoaDon) THEN
+                 (SELECT ISNULL(SUM(ThanhTien), 0) FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = hd.MaHoaDon)
+               WHEN hd.MaDonHang IS NOT NULL THEN
+                 ISNULL((SELECT SUM(ThanhTien) FROM ChiTietDonHang WHERE MaDonHang = hd.MaDonHang), hd.TongTien)
+               ELSE 0
+             END AS TongTienSanPham,
              ISNULL((SELECT TOP 1 PhuongThuc FROM ThanhToan WHERE MaHoaDon = hd.MaHoaDon ORDER BY ThoiGianThanhToan DESC), N'VietQR') AS PhuongThucThanhToan
       FROM HoaDon hd
       LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang
@@ -321,15 +333,35 @@ async function handlePosRoutes(req, res, ctx) {
     }
     q += ` ORDER BY hd.NgayLap DESC`;
     const rows = await querySql(q, params);
-    const mapped = rows.map(r => ({
-      ...r,
-      serviceTotal: parseFloat(r.TongTienDichVu || 0),
-      productTotal: parseFloat(r.TongTienSanPham || 0),
-      total: parseFloat(r.TongTien || 0),
-      totalAmount: parseFloat(r.TongTien || 0),
-      TongThanhToan: parseFloat(r.TongTien || 0),
-      paymentMethod: r.PhuongThucThanhToan || 'VietQR'
-    }));
+    const mapped = rows.map(r => {
+      let sTotal = parseFloat(r.TongTienDichVu || 0);
+      let pTotal = parseFloat(r.TongTienSanPham || 0);
+      let total = parseFloat(r.TongTien || 0);
+      if (total === 0) {
+        total = sTotal + pTotal;
+      } else if (sTotal === 0 && pTotal === 0 && total > 0) {
+        if (r.MaDonHang) {
+          pTotal = total;
+          sTotal = 0;
+        } else {
+          sTotal = total;
+          pTotal = 0;
+        }
+      }
+      return {
+        ...r,
+        serviceTotal: sTotal,
+        TongTienDichVu: sTotal,
+        TienDichVu: sTotal,
+        productTotal: pTotal,
+        TongTienSanPham: pTotal,
+        TienSanPham: pTotal,
+        total: total,
+        totalAmount: total,
+        TongThanhToan: total,
+        paymentMethod: r.PhuongThucThanhToan || 'VietQR'
+      };
+    });
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(mapped));
     return true;

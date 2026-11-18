@@ -3,7 +3,25 @@
 
   if (!window.AdminWeb) window.AdminWeb = {};
 
+  // Cấu hình thông tin thanh toán VietQR chuyển khoản ngân hàng tập trung
+  const VIETQR_CONFIG = Object.freeze({
+    bin: '970422',
+    bankName: 'MB BANK (Quân Đội)',
+    accountNo: '0900000000',
+    accountName: 'OMNISALON ENTERPRISE',
+    napasText: 'VIETQR 24/7 CHUYỂN NHANH NAPAS'
+  });
+
+  window.AdminWeb.VIETQR_CONFIG = VIETQR_CONFIG;
+
   Object.assign(window.AdminWeb, {
+    _buildVietQrUrl(amount, memo) {
+      const cleanAmount = encodeURIComponent(Number(amount) || 0);
+      const cleanMemo = encodeURIComponent(String(memo || '').trim());
+      const cleanAccountName = encodeURIComponent(VIETQR_CONFIG.accountName);
+      return `https://api.vietqr.io/image/${VIETQR_CONFIG.bin}-${VIETQR_CONFIG.accountNo}-compact.jpg?amount=${cleanAmount}&addInfo=${cleanMemo}&accountName=${cleanAccountName}`;
+    },
+
     renderPosTab(user, services, combos, products, branches, stylists, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
       const pos = this.posState;
@@ -205,6 +223,31 @@
                   Tiền Mặt Tại Quầy
                 </button>
               </div>
+
+              ${pos.paymentMethod === 'VietQR' && summary.finalTotal > 0 ? `
+                <!-- Khối Preview VietQR Thu Nhỏ Cho Khách Quét Tại Quầy -->
+                <div class="pos-qr-preview-card" style="margin-top: 10px; padding: 12px; background: var(--surface-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                  <div style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; background: rgba(2, 132, 199, 0.12); color: #0284c7; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">
+                    <span>📱</span> Khách quét mã VietQR để thanh toán
+                  </div>
+                  <div style="background: #ffffff; padding: 10px; border-radius: 8px; display: inline-block; border: 1px solid #e2e8f0; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                    <img src="${this._buildVietQrUrl(summary.finalTotal, 'THANHTOAN POS' + (pos.customerPhone ? (' ' + pos.customerPhone.slice(-4)) : ''))}" 
+                         alt="Mã VietQR POS" 
+                         style="width: 160px; height: 160px; border-radius: 6px; margin: 0 auto; display: block; object-fit: contain;">
+                    <div style="font-size: 9.5px; font-weight: 700; color: #0369a1; margin-top: 4px; letter-spacing: 0.3px;">${VIETQR_CONFIG.napasText}</div>
+                  </div>
+                  <div class="pos-qr-preview-info" style="background: var(--surface-elevated, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 8px 10px; text-align: left; font-size: 11.5px; line-height: 1.5; color: var(--text-primary);">
+                    <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Ngân hàng:</span><strong>${VIETQR_CONFIG.bankName}</strong></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số TK:</span><strong class="pos-qr-val-blue" style="color: #0284c7;">${VIETQR_CONFIG.accountNo}</strong></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Chủ TK:</span><strong>${VIETQR_CONFIG.accountName}</strong></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số tiền:</span><strong class="pos-qr-val-accent" style="color: var(--brand-accent, #C59B27); font-size: 13px;">${SalonUtils.formatCurrency(summary.finalTotal)}</strong></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Nội dung CK:</span><strong class="pos-qr-val-gold" style="color: #b48312;">THANHTOAN POS${pos.customerPhone ? ' ' + this.escapeHtml(pos.customerPhone.slice(-4)) : ''}</strong></div>
+                  </div>
+                  <div style="font-size: 11px; color: #0284c7; margin-top: 8px; font-weight: 600;">
+                    💡 Khách chuyển khoản xong, Thu ngân bấm nút bên dưới để xuất hóa đơn
+                  </div>
+                </div>
+              ` : ''}
             </div>
 
             <!-- Nút Thanh Toán -->
@@ -446,21 +489,29 @@
     },
 
     openPosReceiptModal(order) {
-      const qrSvg = SalonUtils.generateQrSvgCode ? SalonUtils.generateQrSvgCode(`VIETQR-OMNI-${order.orderCode}-${order.totalAmount}`) : '';
+      if (!order) return;
+      const realCode = order.orderCode || order.id || 'POS';
+      const orderTotal = Number(order.totalAmount) || 0;
+      const isVietQR = order.paymentMethod === 'VietQR_Transfer' ||
+                       order.paymentMethod === 'VietQR' ||
+                       String(order.paymentMethod || '').toLowerCase().includes('qr') ||
+                       String(order.paymentMethod || '').toLowerCase().includes('vietqr');
+      const vietQrUrl = this._buildVietQrUrl(orderTotal, 'THANHTOAN ' + realCode);
+      const paymentDisplay = isVietQR ? 'Quét Mã VietQR (Chuyển khoản Napas)' : 'Tiền Mặt Tại Quầy';
 
       this._openModal(`
         <div class="booking-success-box" style="max-width: 500px; margin: 0 auto; text-align: center;">
           <div class="success-icon" style="background:#10b981; margin: 0 auto 12px;">✓</div>
           <h2 style="font-size: 22px; font-weight: 900; margin-bottom: 4px;">THANH TOÁN POS THÀNH CÔNG!</h2>
-          <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
-            Mã hóa đơn quầy: <strong style="color: #c85a44;">${this.escapeHtml(order.orderCode || order.id)}</strong> • Trạng thái: <strong style="color: #10b981;">ĐÃ THANH TOÁN</strong>
+          <p style="color: var(--text-secondary, #666); font-size: 13px; margin-bottom: 16px;">
+            Mã hóa đơn quầy: <strong style="color: var(--brand-accent, #c85a44);">${this.escapeHtml(realCode)}</strong> • Trạng thái: <strong style="color: #10b981;">ĐÃ THANH TOÁN</strong>
           </p>
 
           <div class="booking-invoice-card" style="text-align: left; background: var(--surface-elevated); border-radius: 10px; padding: 14px; border: 1px solid var(--border-color); color: var(--text-primary);">
             <div class="invoice-item"><span>Cơ sở phục vụ:</span><strong>${this.escapeHtml(this._getBranchShortName(order.branchId))}</strong></div>
             <div class="invoice-item"><span>Barber phục vụ:</span><strong>${this.escapeHtml(order.stylistName || (window.store && window.store.getStylistById(order.stylistId)?.name) || 'Master Barber')}</strong></div>
-            <div class="invoice-item"><span>Khách hàng:</span><span>${this.escapeHtml(order.customerName)} (${this.escapeHtml(order.customerPhone)})</span></div>
-            <div class="invoice-item"><span>Hình thức thanh toán:</span><strong>${this.escapeHtml(order.paymentMethod)}</strong></div>
+            <div class="invoice-item"><span>Khách hàng:</span><span>${this.escapeHtml(order.customerName || 'Khách vãng lai')}${order.customerPhone ? ` (${this.escapeHtml(order.customerPhone)})` : ''}</span></div>
+            <div class="invoice-item"><span>Hình thức thanh toán:</span><strong style="color: ${isVietQR ? '#0284c7' : '#10b981'};">${this.escapeHtml(paymentDisplay)}</strong></div>
 
             ${order.services && order.services.length > 0 ? `
               <div style="margin: 8px 0; border-top: 1px dashed var(--border-color); padding-top: 6px;">
@@ -485,16 +536,43 @@
 
             <div class="invoice-item price-row" style="border-top: 2px solid var(--border-color); padding-top: 8px; margin-top: 8px; display: flex; justify-content: space-between;">
               <span style="font-weight: 800;">Tổng thực thu:</span>
-              <strong style="color: #c85a44; font-size: 18px;">${SalonUtils.formatCurrency(order.totalAmount)}</strong>
+              <strong style="color: var(--brand-accent, #c85a44); font-size: 18px;">${SalonUtils.formatCurrency(orderTotal)}</strong>
             </div>
           </div>
 
-          ${qrSvg ? `
-            <div style="margin: 16px 0; padding: 12px; background: var(--surface-elevated); border-radius: 10px; border: 1px dashed var(--border-color); text-align: center;">
-              <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">MÃ VIETQR XÁC NHẬN GIAO DỊCH TỨC THÌ</div>
-              <div style="display: flex; justify-content: center; margin: 6px 0;">${qrSvg}</div>
+          ${isVietQR ? `
+            <!-- Thẻ VietQR Chuyển Khoản Thanh Toán Chuẩn Ngân Hàng (Hình 2) -->
+            <div class="pos-vietqr-card" style="margin-top: 16px; padding: 18px 16px; background: var(--surface-elevated, #fafafa); border-radius: 12px; text-align: center; border: 1px solid var(--border-color, #e2e8f0); color: var(--text-primary);">
+              <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; background: rgba(2, 132, 199, 0.12); color: #0284c7; font-size: 11.5px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px;">
+                MÃ VIETQR CHUYỂN KHOẢN THANH TOÁN
+              </div>
+              <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px;">
+                Quét mã VietQR bằng app ngân hàng bất kỳ để hoàn tất thanh toán:
+              </p>
+              <div style="background: #ffffff; padding: 14px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 12px; border: 1px solid #e2e8f0;">
+                <img src="${vietQrUrl}" alt="Mã VietQR" style="width: 200px; height: 200px; border-radius: 8px; margin: 0 auto; display: block; object-fit: contain;">
+                <div style="font-size: 10.5px; font-weight: 700; color: #0369a1; margin-top: 6px; letter-spacing: 0.5px;">${VIETQR_CONFIG.napasText}</div>
+              </div>
+
+              <div class="pos-vietqr-info" style="background: var(--surface-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 10px 14px; text-align: left; font-size: 12.5px; line-height: 1.6; max-width: 380px; margin: 0 auto;">
+                <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Ngân hàng:</span><strong>${VIETQR_CONFIG.bankName}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số tài khoản:</span><strong class="pos-qr-val-blue" style="color: #0284c7; font-size: 13.5px;">${VIETQR_CONFIG.accountNo}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Chủ tài khoản:</span><strong>${VIETQR_CONFIG.accountName}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số tiền cần trả:</span><strong class="pos-qr-val-accent" style="color: var(--brand-accent, #C59B27); font-size: 14.5px;">${SalonUtils.formatCurrency(orderTotal)}</strong></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Nội dung chuyển khoản:</span><strong class="pos-qr-val-gold" style="color: #b48312;">THANHTOAN ${this.escapeHtml(realCode)}</strong></div>
+              </div>
             </div>
-          ` : ''}
+          ` : `
+            <!-- Thanh Toán Tiền Mặt Tại Quầy -->
+            <div style="margin-top: 16px; padding: 14px; background: rgba(16, 185, 129, 0.08); border-radius: 10px; border: 1px dashed rgba(16, 185, 129, 0.3); text-align: center;">
+              <div style="display: inline-flex; align-items: center; gap: 6px; color: #10b981; font-weight: 800; font-size: 13px;">
+                <span>✓</span> ĐÃ THU TIỀN MẶT TẠI QUẦY
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                Thu ngân đã nhận đủ <strong>${SalonUtils.formatCurrency(orderTotal)}</strong>. Hóa đơn đã được lưu vào hệ thống.
+              </div>
+            </div>
+          `}
 
           <div style="display: flex; gap: 10px; margin-top: 18px;">
             <button class="pill-btn-outline" style="flex: 1;" onclick="window.print()">In Hóa Đơn</button>

@@ -94,12 +94,14 @@
         items = services.filter((s, index) => {
           const stt = s.stt || (index + 1);
           const dispCode = ('dv' + stt);
+          const sStatus = (s.status || s.TrangThai || '').toLowerCase();
           return !q ||
             (s.name && s.name.toLowerCase().includes(q)) ||
             (s.category && s.category.toLowerCase().includes(q)) ||
             (s.id && s.id.toLowerCase().includes(q)) ||
             (s.real_id && s.real_id.toLowerCase().includes(q)) ||
-            dispCode.includes(q);
+            dispCode.includes(q) ||
+            sStatus.includes(q);
         });
       } else {
         items = combos.filter((c, index) => {
@@ -109,7 +111,8 @@
           const cDesc = (c.description || c.MoTa || '').toLowerCase();
           const cId = (c.id || c.MaCombo || '').toLowerCase();
           const cRealId = (c.real_id || '').toLowerCase();
-          return !q || cName.includes(q) || cDesc.includes(q) || cId.includes(q) || cRealId.includes(q) || dispCode.includes(q);
+          const cStatus = (c.status || c.TrangThai || '').toLowerCase();
+          return !q || cName.includes(q) || cDesc.includes(q) || cId.includes(q) || cRealId.includes(q) || dispCode.includes(q) || cStatus.includes(q);
         });
       }
 
@@ -199,9 +202,9 @@
       this.catalogPage = 1;
       const content = document.getElementById('adminSubTabContent');
       if (content && this.adminSubTab === 'catalog') {
-        const services = window.store.getServices();
-        const combos = window.store.getCombos();
-        const products = window.store.getProducts();
+        const services = window.store.getServices(null, true);
+        const combos = window.store.getCombos(true);
+        const products = window.store.getProducts(null, true);
         content.innerHTML = this.renderCatalogTab(services, combos, products);
         return;
       }
@@ -233,9 +236,9 @@
       const content = document.getElementById('adminSubTabContent');
       if (!content || this.adminSubTab !== 'catalog') return;
 
-      const services = window.store.getServices();
-      const combos = window.store.getCombos();
-      const products = window.store.getProducts();
+      const services = window.store.getServices(null, true);
+      const combos = window.store.getCombos(true);
+      const products = window.store.getProducts(null, true);
 
       let type = this.catalogTabType || 'services';
       if (type !== 'services' && type !== 'combos') {
@@ -274,7 +277,7 @@
       const defaultCat = isCombo ? 'Combo VIP' : 'Cắt & Tạo Kiểu';
       const defaultPrice = isCombo ? 300000 : 120000;
       const defaultDur = isCombo ? 60 : 45;
-      const allServices = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
+      const allServices = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices(null, true) : [];
 
       return `
         <div id="adminCatalogBottomEditor" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 26px; margin-top: 24px; width: 100%; box-sizing: border-box;">

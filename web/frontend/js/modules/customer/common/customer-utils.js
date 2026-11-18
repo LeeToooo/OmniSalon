@@ -116,7 +116,7 @@
       if (role === 'CASHIER' || role === 'THU NGÂN' || chucVu === 'THU NGÂN' || chucVu.includes('THU NGÂN')) {
         return 'Thu Ngân Tiếp Tân';
       }
-      if (role === 'STYLIST' || role === 'STAFF' || role === 'NHÂN VIÊN' || chucVu === 'THỢ CHÍNH' || chucVu === 'THỢ PHỤ' || chucVu.includes('THỢ') || chucVu.includes('BARBER')) {
+      if (role === 'BARBER' || role === 'STYLIST' || role === 'STAFF' || role === 'NHÂN VIÊN' || chucVu === 'THỢ CHÍNH' || chucVu === 'THỢ PHỤ' || chucVu.includes('THỢ') || chucVu.includes('BARBER')) {
         return user.CapBac ? `${user.CapBac} (${user.ChucVu || 'Thợ Tóc'})` : (user.ChucVu || 'Thợ Barber Chuyên Nghiệp');
       }
       return 'Khách Hàng';

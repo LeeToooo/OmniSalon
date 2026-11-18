@@ -128,13 +128,13 @@
       return `
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px;">
           ${pagedStylists.map(st => {
-            const brName = this._getBranchShortName(st.branchId, bMap);
-            const comm = stylistStatsMap.get(st.id) || { completedCutsCount: 0, totalCutValue: 0, commissionAmount: 0, todayQueue: [] };
-            const isAssis = (st.role || '').toLowerCase().includes('phụ');
-            const isLead = (st.role || '').toLowerCase().includes('chính');
-            const isCashier = (st.role || st.ChucVu || '').toLowerCase().includes('thu ngân') || (st.role || '').toUpperCase() === 'CASHIER';
+        const brName = this._getBranchShortName(st.branchId, bMap);
+        const comm = stylistStatsMap.get(st.id) || { completedCutsCount: 0, totalCutValue: 0, commissionAmount: 0, todayQueue: [] };
+        const isAssis = (st.role || '').toLowerCase().includes('phụ');
+        const isLead = (st.role || '').toLowerCase().includes('chính');
+        const isCashier = (st.role || st.ChucVu || '').toLowerCase().includes('thu ngân') || (st.role || '').toUpperCase() === 'CASHIER';
 
-            return `
+        return `
               <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                   <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 14px;">
@@ -219,7 +219,7 @@
                 </div>
               </div>
             `;
-          }).join('')}
+      }).join('')}
         </div>
         ${this._renderPaginationControls(this.stylistsPage, stylTotalPages, filteredStylists.length, 'AdminWeb.setStylistsPage', 'nhân viên / thợ')}
       `;
@@ -334,8 +334,8 @@
 
           <div style="max-height: 480px; overflow-y: auto; margin-bottom: 24px; padding-right: 4px;">
             ${queue.length > 0 ? queue.map(b => {
-              const statusInfo = SalonUtils.formatBookingStatus(b.status);
-              return `
+        const statusInfo = SalonUtils.formatBookingStatus(b.status);
+        return `
                 <div style="border-bottom: 1px solid var(--border-color, #e5e7eb); padding: 16px 8px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
                   <div style="flex: 1; min-width: 0;">
                     <div style="font-size: 15.5px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
@@ -354,7 +354,7 @@
                   </div>
                 </div>
               `;
-            }).join('') : `
+      }).join('') : `
               <div style="text-align: center; padding: 36px 20px; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -381,7 +381,7 @@
       `, 'queue');
     },
 
-    
+
     // Inline bottom stylist editor (form thêm & sửa nhân sự nằm dưới bảng)
     _renderStylistBottomEditor(user, branches) {
       const isSuper = this.isSuperAdmin(user);
@@ -500,11 +500,11 @@
               <!-- Hàng 5: Avatar URL & Mẫu nhanh -->
               <div>
                 <label class="sub-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
-                  Đường Dẫn Ảnh Đại Diện (Avatar URL)
+                  Đường Dẫn Ảnh Đại Diện (Avatar)
                 </label>
-                <input type="url" id="stEditorAvatar" class="form-control-custom" 
+                <input type="text" id="stEditorAvatar" class="form-control-custom" 
                        style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
-                       placeholder="https://..." value="${avatarPresets[0]}">
+                       placeholder="/DataPicture/ChanDungTho/... hoặc https://..." value="${avatarPresets[0]}">
                 <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap;">
                   <span style="font-size: 11.5px; color: var(--text-secondary);">Chọn nhanh ảnh đại diện mẫu:</span>
                   ${avatarPresets.map((av, idx) => `
@@ -615,7 +615,7 @@
       if (phoneInput) phoneInput.value = st.phone || st.SoDienThoai || '';
       if (emailInput) emailInput.value = st.email || '';
       if (specialtyInput) specialtyInput.value = st.specialty || '';
-      if (avatarInput) avatarInput.value = st.avatar || '';
+      if (avatarInput) avatarInput.value = st.avatar || st.HinhAnh || '';
 
       if (titleEl) {
         titleEl.textContent = 'Chỉnh Sửa Nhân Sự: ' + (st.name || st.HoTen);
@@ -698,6 +698,19 @@
         return;
       }
 
+      let finalAvatar = avatar;
+      if (!finalAvatar) {
+        if (stylistId) {
+          const curSt = (window.store && typeof window.store.getStylistById === 'function' ? window.store.getStylistById(stylistId) : null)
+            || (window.store?.getAllStaff?.() || window.store?.getStylists?.() || []).find(s => String(s.id || '').trim().toLowerCase() === String(stylistId || '').trim().toLowerCase() || String(s.MaTho || s.MaNhanVien || '').trim().toLowerCase() === String(stylistId || '').trim().toLowerCase());
+          finalAvatar = curSt?.avatar || curSt?.HinhAnh || '';
+        }
+        if (!finalAvatar) {
+          if (window.UICommon) window.UICommon.showToast('Vui lòng chọn hoặc nhập đường dẫn ảnh đại diện cho nhân sự!', 'warning');
+          return;
+        }
+      }
+
       if (!isSuper) {
         if (stylistId) {
           const curSt = window.store.getStylistById(stylistId);
@@ -724,7 +737,8 @@
         phone,
         email,
         specialty,
-        avatar,
+        avatar: finalAvatar,
+        HinhAnh: finalAvatar,
         requestUserRole: isSuper ? 'SUPER_ADMIN' : (isManager ? 'BRANCH_MANAGER' : 'STAFF')
       };
 
@@ -854,8 +868,8 @@
             </div>
 
             <div style="margin-bottom: 12px;">
-              <label class="sub-label">Ảnh Đại Diện (Avatar URL):</label>
-              <input type="url" id="stAvatar" class="form-control-custom" placeholder="https://..." value="${this.escapeHtml(st?.avatar || avatarPresets[0])}">
+              <label class="sub-label">Ảnh Đại Diện (Avatar / Đường dẫn):</label>
+              <input type="text" id="stAvatar" class="form-control-custom" placeholder="/DataPicture/ChanDungTho/... hoặc https://..." value="${this.escapeHtml(st?.avatar || st?.HinhAnh || avatarPresets[0])}">
               <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap;">
                 <span style="font-size: 11px; color: var(--text-secondary);">Chọn nhanh ảnh mẫu:</span>
                 ${avatarPresets.map((av, idx) => `
@@ -913,6 +927,19 @@
         return;
       }
 
+      let finalAvatar = avatar;
+      if (!finalAvatar) {
+        if (stylistId) {
+          const curSt = (window.store && typeof window.store.getStylistById === 'function' ? window.store.getStylistById(stylistId) : null)
+            || (window.store?.getAllStaff?.() || window.store?.getStylists?.() || []).find(s => String(s.id || '').trim().toLowerCase() === String(stylistId || '').trim().toLowerCase() || String(s.MaTho || s.MaNhanVien || '').trim().toLowerCase() === String(stylistId || '').trim().toLowerCase());
+          finalAvatar = curSt?.avatar || curSt?.HinhAnh || '';
+        }
+        if (!finalAvatar) {
+          if (window.UICommon) window.UICommon.showToast('Vui lòng chọn hoặc nhập đường dẫn ảnh đại diện cho nhân sự!', 'warning');
+          return;
+        }
+      }
+
       if (!isSuper) {
         if (stylistId) {
           const curSt = window.store.getStylistById(stylistId);
@@ -939,7 +966,8 @@
         phone,
         email,
         specialty,
-        avatar,
+        avatar: finalAvatar,
+        HinhAnh: finalAvatar,
         requestUserRole: isSuper ? 'SUPER_ADMIN' : (isManager ? 'BRANCH_MANAGER' : 'STAFF')
       };
 

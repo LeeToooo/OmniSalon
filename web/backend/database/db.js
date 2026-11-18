@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DB_NAME = process.env.SQL_DATABASE || 'QL_SALON';
-const DB_CANDIDATES = [process.env.SQL_DATABASE, 'QL_SALON', 'QL_SALONTOC'].filter(Boolean);
+const DB_CANDIDATES = [process.env.SQL_DATABASE || 'QL_SALON'];
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
 const SQL_FILE = fs.existsSync(path.join(__dirname, 'QL_SALON.sql'))

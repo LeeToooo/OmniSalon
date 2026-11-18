@@ -23,7 +23,8 @@ async function handleOrderRoutes(req, res, ctx) {
              dh.TongTien, dh.DiaChiGiaoHang, dh.HinhThucNhan, dh.TrangThai, dh.GhiChu,
              kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
              cn.TenChiNhanh,
-             (SELECT TOP 1 hd.TrangThai FROM HoaDon hd WHERE hd.MaDonHang = dh.MaDonHang) AS TrangThaiHoaDon
+             (SELECT TOP 1 hd.TrangThai FROM HoaDon hd WHERE hd.MaDonHang = dh.MaDonHang ORDER BY (CASE WHEN hd.TrangThai = N'Đã thanh toán' THEN 1 ELSE 2 END) ASC) AS TrangThaiHoaDon,
+             (SELECT TOP 1 tt.TrangThai FROM ThanhToan tt JOIN HoaDon hd2 ON tt.MaHoaDon = hd2.MaHoaDon WHERE hd2.MaDonHang = dh.MaDonHang ORDER BY (CASE WHEN tt.TrangThai = N'Thành công' THEN 1 ELSE 2 END) ASC) AS TrangThaiThanhToan
       FROM DonHang dh
       LEFT JOIN KhachHang kh ON dh.MaKhachHang = kh.MaKhachHang
       LEFT JOIN ChiNhanh cn ON dh.MaChiNhanh = cn.MaChiNhanh
@@ -74,7 +75,12 @@ async function handleOrderRoutes(req, res, ctx) {
           image: it.HinhAnh || ''
         }));
 
-      const isPaid = (r.TrangThaiHoaDon === 'Đã thanh toán' || r.TrangThai === 'Đã thanh toán' || (r.GhiChu && r.GhiChu.includes('Đã thanh toán')));
+      const isPaid = (
+        r.TrangThaiHoaDon === 'Đã thanh toán' ||
+        r.TrangThaiThanhToan === 'Thành công' ||
+        r.TrangThai === 'Đã thanh toán' ||
+        (r.GhiChu && r.GhiChu.includes('Đã thanh toán'))
+      );
       const isPickup = (
         (r.HinhThucNhan && r.HinhThucNhan.toLowerCase().includes('quầy')) ||
         (r.DiaChiGiaoHang && r.DiaChiGiaoHang.toLowerCase().includes('quầy')) ||
@@ -113,6 +119,8 @@ async function handleOrderRoutes(req, res, ctx) {
         deliveryType: isPickup ? 'PICKUP_BRANCH' : 'DELIVERY',
         paymentMethod: isPickup ? 'Thanh toán tại quầy' : 'VietQR',
         paymentStatus: isPaid ? 'Paid' : 'Unpaid',
+        isPaid: Boolean(isPaid),
+        TrangThaiHoaDon: r.TrangThaiHoaDon || (isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'),
         orderStatus: oStatus,
         TrangThai: r.TrangThai,
         notes: r.GhiChu,
@@ -338,11 +346,27 @@ async function handleOrderRoutes(req, res, ctx) {
   // PUT /api/orders/:id - Cập nhật trạng thái giao hàng và xử lý thanh toán
   // Khi đơn hàng chuyển sang 'Đã thanh toán', tự động sinh hóa đơn và bản ghi thanh toán
   if (pathname.startsWith('/api/orders/') && !pathname.endsWith('/cancel') && method === 'PUT') {
-    const id = pathname.replace('/api/orders/', '').replace('/payment', '').replace('/status', '').trim();
+    const rawId = pathname.replace('/api/orders/', '').replace('/payment', '').replace('/status', '').trim();
+    const id = decodeURIComponent(rawId).replace(/^#+/, '').trim();
     const body = parsedBody || {};
+
+    const existingOrder = await querySql('SELECT MaDonHang, MaKhachHang, MaChiNhanh, TongTien FROM DonHang WHERE MaDonHang = ? OR MaDonHang = ?', [id, '#' + id]);
+    if (!existingOrder || existingOrder.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${id} trong hệ thống!` }));
+      return true;
+    }
+    const actualId = existingOrder[0].MaDonHang;
+
     const statusRaw = body.status || body.TrangThai || body.orderStatus || '';
     const notes = body.notes !== undefined ? body.notes : (body.GhiChu !== undefined ? body.GhiChu : null);
-    const isPaymentConfirmed = body.paymentStatus === 'Paid' || body.isPaid || body.TrangThaiThanhToan === 'Đã thanh toán' || statusRaw.toLowerCase().includes('thanh toán');
+    const isPaymentConfirmed = body.isPaymentConfirmed || body.paymentStatus === 'Paid' || body.isPaid || body.TrangThaiThanhToan === 'Đã thanh toán' || statusRaw.toLowerCase().includes('thanh toán');
+
+    // Kiểm tra xem đơn hàng đã từng được ghi nhận hóa đơn/thanh toán thành công trong CSDL chưa
+    const existingPaidHd = await querySql("SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaDonHang = ? AND TrangThai = N'Đã thanh toán'", [actualId]);
+    const existingPaidTt = await querySql("SELECT TOP 1 tt.MaThanhToan FROM ThanhToan tt JOIN HoaDon hd ON tt.MaHoaDon = hd.MaHoaDon WHERE hd.MaDonHang = ? AND tt.TrangThai = N'Thành công'", [actualId]);
+    const alreadyPaid = (existingPaidHd && existingPaidHd.length > 0) || (existingPaidTt && existingPaidTt.length > 0);
+    const isFinalPaid = Boolean(isPaymentConfirmed || alreadyPaid || body.paymentStatus === 'Paid' || body.isPaid === true);
 
     let trangThai = null;
     if (statusRaw) {
@@ -374,14 +398,14 @@ async function handleOrderRoutes(req, res, ctx) {
     }
 
     if (updateFields.length > 0) {
-      params.push(id);
+      params.push(actualId);
       await querySql(`UPDATE DonHang SET ${updateFields.join(', ')} WHERE MaDonHang = ?`, params);
     }
 
     if (trangThai === 'Đã hủy') {
-      const ordInfo = await querySql('SELECT MaChiNhanh FROM DonHang WHERE MaDonHang = ?', [id]);
+      const ordInfo = await querySql('SELECT MaChiNhanh FROM DonHang WHERE MaDonHang = ?', [actualId]);
       const branchId = ordInfo && ordInfo[0] ? ordInfo[0].MaChiNhanh : 'CN01';
-      const ctdhRows = await querySql('SELECT MaChiTietPhieuNhap, SoLuong, MaSanPham FROM ChiTietDonHang WHERE MaDonHang = ?', [id]);
+      const ctdhRows = await querySql('SELECT MaChiTietPhieuNhap, SoLuong, MaSanPham FROM ChiTietDonHang WHERE MaDonHang = ?', [actualId]);
       if (ctdhRows && ctdhRows.length > 0) {
         for (const item of ctdhRows) {
           if (item.SoLuong > 0) {
@@ -399,10 +423,10 @@ async function handleOrderRoutes(req, res, ctx) {
     // Xử lý tạo / cập nhật hóa đơn và giao dịch thanh toán khi xác nhận thanh toán đơn hàng
     if (isPaymentConfirmed) {
       try {
-        const ordRows = await querySql('SELECT MaDonHang, MaKhachHang, MaChiNhanh, TongTien FROM DonHang WHERE MaDonHang = ?', [id]);
+        const ordRows = await querySql('SELECT MaDonHang, MaKhachHang, MaChiNhanh, TongTien FROM DonHang WHERE MaDonHang = ?', [actualId]);
         if (ordRows && ordRows[0]) {
           const ord = ordRows[0];
-          let hdRows = await querySql('SELECT MaHoaDon FROM HoaDon WHERE MaDonHang = ?', [id]);
+          let hdRows = await querySql('SELECT MaHoaDon FROM HoaDon WHERE MaDonHang = ?', [actualId]);
           let hdId = null;
           if (hdRows && hdRows[0]) {
             hdId = hdRows[0].MaHoaDon;
@@ -419,33 +443,70 @@ async function handleOrderRoutes(req, res, ctx) {
             await querySql(
               `INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, NgayLap, TongTien, TrangThai, MaSoHoaDon)
                VALUES (?, ?, NULL, ?, ?, GETDATE(), ?, N'Đã thanh toán', ?)`,
-              [hdId, ord.MaKhachHang, id, ord.MaChiNhanh || 'CN01', ord.TongTien || 0, invNo]
+              [hdId, ord.MaKhachHang, actualId, ord.MaChiNhanh || 'CN01', ord.TongTien || 0, invNo]
             );
           }
           if (hdId) {
-            const maxTt = await querySql("SELECT TOP 1 MaThanhToan FROM ThanhToan WHERE MaThanhToan LIKE 'TT%' AND LEN(MaThanhToan) <= 10 ORDER BY LEN(MaThanhToan) DESC, MaThanhToan DESC");
-            let nextTt = 11;
-            if (maxTt && maxTt[0]) {
-              const m = maxTt[0].MaThanhToan.match(/TT(\d+)/i);
-              if (m) nextTt = parseInt(m[1], 10) + 1;
-            }
-            const ttId = 'TT' + (nextTt < 10 ? '0' + nextTt : nextTt);
-            const pMethod = body.paymentMethod || 'Chuyển khoản VietQR';
-
-            // Xác định nhân viên thu ngân ghi nhận thanh toán
-            const authUser = extractAuthUser(req);
-            let cashierStaffId = (authUser && authUser.MaNhanVien) || body.cashierId || body.staffId || null;
-            if (!cashierStaffId) {
-              const cashiers = await querySql(
-                "SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaChiNhanh = ? AND ChucVu = N'Thu ngân' AND TrangThai = N'Đang làm việc'",
-                [ord.MaChiNhanh || 'CN01']
+            // Đảm bảo chi tiết sản phẩm của đơn hàng được lưu đầy đủ vào ChiTietHoaDon_SanPham
+            const existingItems = await querySql('SELECT TOP 1 1 FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = ?', [hdId]);
+            if (!existingItems || existingItems.length === 0) {
+              const orderItems = await querySql(
+                `SELECT MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien 
+                 FROM ChiTietDonHang WHERE MaDonHang = ?`,
+                [actualId]
               );
-              cashierStaffId = (cashiers && cashiers[0]) ? cashiers[0].MaNhanVien : 'NV61';
+              if (orderItems && orderItems.length > 0) {
+                for (let idx = 0; idx < orderItems.length; idx++) {
+                  const it = orderItems[idx];
+                  const cthdId = `CTHD${Date.now().toString().slice(-8)}${idx + 1}`.slice(0, 30);
+                  await querySql(
+                    `INSERT INTO ChiTietHoaDon_SanPham (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                      cthdId,
+                      hdId,
+                      it.MaSanPham,
+                      it.MaChiTietPhieuNhap || null,
+                      Number(it.SoLuong || 1),
+                      Number(it.DonGiaGoc || it.DonGiaThucTe || 0),
+                      Number(it.PhanTramGiamGia || 0),
+                      Number(it.DonGiaThucTe || 0),
+                      Number(it.ThanhTien || 0)
+                    ]
+                  ).catch(e => console.warn('[ChiTietHoaDon_SanPham Insert]', e.message));
+                }
+              }
             }
-            await querySql(
-              "INSERT INTO ThanhToan (MaThanhToan, MaHoaDon, MaNhanVien, SoTien, PhuongThuc, ThoiGianThanhToan, TrangThai, MaGiaoDich) VALUES (?, ?, ?, ?, ?, GETDATE(), N'Thành công', ?)",
-              [ttId, hdId, cashierStaffId, ord.TongTien || 0, pMethod, 'TXN_' + Date.now()]
-            ).catch(e => console.warn('[Payment Insert]', e.message));
+
+            const existingPaidForHd = await querySql(
+              "SELECT TOP 1 MaThanhToan FROM ThanhToan WHERE MaHoaDon = ? AND TrangThai = N'Thành công'",
+              [hdId]
+            );
+            if (!existingPaidForHd || existingPaidForHd.length === 0) {
+              const maxTt = await querySql("SELECT TOP 1 MaThanhToan FROM ThanhToan WHERE MaThanhToan LIKE 'TT%' AND LEN(MaThanhToan) <= 10 ORDER BY LEN(MaThanhToan) DESC, MaThanhToan DESC");
+              let nextTt = 11;
+              if (maxTt && maxTt[0]) {
+                const m = maxTt[0].MaThanhToan.match(/TT(\d+)/i);
+                if (m) nextTt = parseInt(m[1], 10) + 1;
+              }
+              const ttId = 'TT' + (nextTt < 10 ? '0' + nextTt : nextTt);
+              const pMethod = body.paymentMethod || 'Chuyển khoản VietQR';
+
+              // Xác định nhân viên thu ngân ghi nhận thanh toán
+              const authUser = extractAuthUser(req);
+              let cashierStaffId = (authUser && authUser.MaNhanVien) || body.cashierId || body.staffId || null;
+              if (!cashierStaffId) {
+                const cashiers = await querySql(
+                  "SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaChiNhanh = ? AND ChucVu = N'Thu ngân' AND TrangThai = N'Đang làm việc'",
+                  [ord.MaChiNhanh || 'CN01']
+                );
+                cashierStaffId = (cashiers && cashiers[0]) ? cashiers[0].MaNhanVien : 'NV61';
+              }
+              await querySql(
+                "INSERT INTO ThanhToan (MaThanhToan, MaHoaDon, MaNhanVien, SoTien, PhuongThuc, ThoiGianThanhToan, TrangThai, MaGiaoDich) VALUES (?, ?, ?, ?, ?, GETDATE(), N'Thành công', ?)",
+                [ttId, hdId, cashierStaffId, ord.TongTien || 0, pMethod, 'TXN_' + Date.now()]
+              ).catch(e => console.warn('[Payment Insert]', e.message));
+            }
           }
         }
       } catch (pErr) {
@@ -456,9 +517,10 @@ async function handleOrderRoutes(req, res, ctx) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ 
       success: true, 
-      message: `Cập nhật đơn hàng #${id} thành công!`, 
+      message: `Cập nhật đơn hàng #${actualId} thành công!`, 
       TrangThai: trangThai,
-      paymentStatus: isPaymentConfirmed ? 'Paid' : (body.paymentStatus || 'Unpaid')
+      paymentStatus: isFinalPaid ? 'Paid' : (body.paymentStatus || 'Unpaid'),
+      isPaid: isFinalPaid
     }));
     return true;
   }

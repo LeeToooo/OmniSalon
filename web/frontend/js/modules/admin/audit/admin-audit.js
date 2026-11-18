@@ -9,6 +9,7 @@
       this.auditSearchQuery = '';
       this.auditActionFilter = 'all';
       this.auditRoleFilter = 'all';
+      this.auditOperatorRoleFilter = 'all';
       this.auditBranchFilter = 'all';
       this.auditPaymentStatusFilter = 'all';
       this.auditOrderStatusFilter = 'all';
@@ -37,6 +38,128 @@
       const clearBtn = document.getElementById('adminAuditSearchClear');
       if (clearBtn) clearBtn.style.display = 'none';
       this._updateAuditContentOnly();
+    },
+
+    getUserRoleCode(u) {
+      if (!u) return 'CUSTOMER';
+      const role = (u.role || '').toString().trim().toUpperCase();
+      const rawRole = (u.VaiTro || u.vaiTro || u.vaiTroSql || '').toString().trim().toUpperCase();
+      const chucVu = (u.ChucVu || u.chucVuSql || '').toString().trim().toUpperCase();
+      const maNV = (u.MaNhanVien || u.staffId || '').toString().trim().toUpperCase();
+      const maTK = (u.id || u.MaTaiKhoan || '').toString().trim().toUpperCase();
+      const username = (u.username || u.TenDangNhap || '').toString().trim().toUpperCase();
+
+      // 1. Quản trị viên (SUPER_ADMIN)
+      if (
+        role === 'SUPER_ADMIN' || role === 'ADMIN' ||
+        rawRole === 'SUPER_ADMIN' || rawRole === 'ADMIN' ||
+        rawRole.includes('QUẢN TRỊ') || rawRole.includes('QUAN TRI') || rawRole.includes('TỐI CAO') || rawRole.includes('TOI CAO') ||
+        chucVu.includes('QUẢN TRỊ') || chucVu.includes('QUAN TRI') ||
+        maNV === 'NV00' || maTK === 'TK_ADMIN' || username === 'ADMIN'
+      ) {
+        return 'SUPER_ADMIN';
+      }
+
+      // 2. Quản lý chi nhánh (BRANCH_MANAGER)
+      if (
+        role === 'BRANCH_MANAGER' ||
+        rawRole === 'BRANCH_MANAGER' ||
+        rawRole.includes('QUẢN LÝ') || rawRole.includes('QUAN LY') ||
+        chucVu.includes('QUẢN LÝ') || chucVu.includes('QUAN LY') || chucVu.includes('BRANCH_MANAGER')
+      ) {
+        return 'BRANCH_MANAGER';
+      }
+
+      // 3. Thu ngân POS (CASHIER)
+      if (
+        role === 'CASHIER' ||
+        rawRole === 'CASHIER' ||
+        rawRole.includes('THU NGÂN') || rawRole.includes('THU NGAN') ||
+        chucVu.includes('THU NGÂN') || chucVu.includes('THU NGAN') || chucVu.includes('TIẾP TÂN') || chucVu.includes('TIEP TAN') || chucVu.includes('CASHIER')
+      ) {
+        return 'CASHIER';
+      }
+
+      // 4. Nếu tài khoản thuần túy là Khách hàng (không mang chức vụ/vai trò nhân sự nào)
+      if (
+        (role === 'CUSTOMER' || rawRole === 'KHÁCH HÀNG' || rawRole === 'KHACH HANG') &&
+        !chucVu.includes('THỢ') && !chucVu.includes('THO') && !chucVu.includes('QUẢN LÝ') && !chucVu.includes('QUAN LY') && !chucVu.includes('THU NGÂN') && !chucVu.includes('THU NGAN') && !chucVu.includes('QUẢN TRỊ') && !chucVu.includes('QUAN TRI') &&
+        !rawRole.includes('THỢ') && !rawRole.includes('THO') && !rawRole.includes('QUẢN LÝ') && !rawRole.includes('QUAN LY') && !rawRole.includes('THU NGÂN') && !rawRole.includes('THU NGAN') && !rawRole.includes('QUẢN TRỊ') && !rawRole.includes('QUAN TRI') &&
+        username !== 'ADMIN' && maNV !== 'NV00' && maTK !== 'TK_ADMIN' &&
+        !maTK.startsWith('TK_NV') && !Boolean(maNV)
+      ) {
+        return 'CUSTOMER';
+      }
+
+      // 5. Thợ / Barber / Stylist / Nhân viên (BARBER)
+      if (
+        role === 'BARBER' || role === 'STYLIST' || role === 'STAFF' ||
+        rawRole === 'BARBER' || rawRole === 'STYLIST' || rawRole === 'STAFF' ||
+        rawRole.includes('THỢ') || rawRole.includes('THO') || rawRole.includes('BARBER') || rawRole.includes('STYLIST') ||
+        rawRole.includes('NHÂN VIÊN') || rawRole.includes('NHAN VIEN') ||
+        chucVu.includes('THỢ') || chucVu.includes('THO') || chucVu.includes('BARBER') || chucVu.includes('STYLIST') ||
+        chucVu.includes('KỸ THUẬT') || chucVu.includes('KY THUAT') ||
+        chucVu.includes('NHÂN VIÊN') || chucVu.includes('NHAN VIEN') ||
+        Boolean(maNV) ||
+        maTK.startsWith('TK_NV')
+      ) {
+        return 'BARBER';
+      }
+
+      // 6. Khách hàng (CUSTOMER)
+      return 'CUSTOMER';
+    },
+
+    _isInvoicePaid(inv) {
+      if (!inv) return false;
+      if (inv.isPaid === true) return true;
+      const st = String(inv.status || inv.TrangThai || '').toLowerCase();
+      const pSt = String(inv.paymentStatus || '').toLowerCase();
+      return pSt === 'paid' || st.includes('đã thanh toán') || st.includes('paid') || st.includes('hoàn tất') || st.includes('thành công') || inv.TrangThai === 'Đã thanh toán';
+    },
+
+    _extractAuditOperatorRole(log) {
+      if (!log) return 'SYSTEM';
+      if (log.operatorRole) {
+        const opR = String(log.operatorRole).trim().toUpperCase();
+        if (opR.includes('BRANCH_MANAGER') || opR.includes('QUẢN LÝ') || opR.includes('MANAGER')) return 'BRANCH_MANAGER';
+        if (opR.includes('CASHIER') || opR.includes('THU NGÂN') || opR.includes('TIẾP TÂN')) return 'CASHIER';
+        if (opR.includes('SUPER_ADMIN') || opR.includes('ADMIN') || opR.includes('QUẢN TRỊ')) return 'SUPER_ADMIN';
+        if (opR.includes('BARBER') || opR.includes('STYLIST') || opR.includes('THỢ') || opR.includes('STAFF') || opR.includes('NHÂN VIÊN') || opR.includes('NHAN VIEN')) return 'STYLIST';
+        if (opR.includes('CUSTOMER') || opR.includes('KHÁCH')) return 'CUSTOMER';
+        if (opR.includes('SYSTEM') || opR.includes('HỆ THỐNG')) return 'SYSTEM';
+        return opR;
+      }
+      const str = String(log.operatorName || log.operator || '').toUpperCase();
+      if (!str || str.includes('HỆ THỐNG') || str.includes('SYSTEM')) return 'SYSTEM';
+      if (str.includes('BRANCH_MANAGER') || str.includes('QUẢN LÝ') || str.includes('MANAGER')) return 'BRANCH_MANAGER';
+      if (str.includes('CASHIER') || str.includes('THU NGÂN') || str.includes('TIẾP TÂN')) return 'CASHIER';
+      if (str.includes('SUPER_ADMIN') || str.includes('ADMIN') || str.includes('QUẢN TRỊ') || str.includes('NV00') || str.includes('TK_ADMIN')) return 'SUPER_ADMIN';
+      if (str.includes('BARBER') || str.includes('STYLIST') || str.includes('THỢ') || str.includes('STAFF') || str.includes('NHÂN VIÊN') || str.includes('NHAN VIEN')) return 'STYLIST';
+      if (str.includes('CUSTOMER') || str.includes('KHÁCH')) return 'CUSTOMER';
+      return 'SYSTEM';
+    },
+
+    _getAuditRoleBadge(role) {
+      const r = String(role || 'SYSTEM').toUpperCase();
+      switch (r) {
+        case 'SUPER_ADMIN':
+        case 'ADMIN':
+          return { label: 'SUPER_ADMIN', text: 'Quản Trị Viên', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', border: 'rgba(245, 158, 11, 0.35)' };
+        case 'BRANCH_MANAGER':
+          return { label: 'BRANCH_MANAGER', text: 'Quản Lý Chi Nhánh', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.12)', border: 'rgba(56, 189, 248, 0.35)' };
+        case 'CASHIER':
+          return { label: 'CASHIER', text: 'Thu Ngân', color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)' };
+        case 'STYLIST':
+        case 'BARBER':
+        case 'STAFF':
+          return { label: 'STYLIST', text: 'Thợ / Stylist', color: '#c084fc', bg: 'rgba(192, 132, 252, 0.12)', border: 'rgba(192, 132, 252, 0.35)' };
+        case 'CUSTOMER':
+          return { label: 'CUSTOMER', text: 'Khách Hàng', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.12)', border: 'rgba(251, 146, 60, 0.35)' };
+        case 'SYSTEM':
+        default:
+          return { label: r || 'SYSTEM', text: 'Hệ Thống', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.12)', border: 'rgba(148, 163, 184, 0.35)' };
+      }
     },
 
     onAuditRowClick(subType, rowId, evt) {
@@ -226,12 +349,21 @@
         'BARBER': 'Nhân viên',
         'CUSTOMER': 'Khách hàng'
       };
+      const chucVuMap = {
+        'SUPER_ADMIN': 'Quản trị viên',
+        'ADMIN': 'Quản trị viên',
+        'BRANCH_MANAGER': 'Quản lý chi nhánh',
+        'CASHIER': 'Thu ngân',
+        'BARBER': 'Thợ chính',
+        'CUSTOMER': 'Khách hàng'
+      };
       const users = (window.store && window.store.state && window.store.state.users) || [];
       const u = users.find(x => x.id === userId || x.username === userId || x.MaTaiKhoan === userId || x.TenDangNhap === userId);
       if (u) {
         u.role = newRole;
         u.VaiTro = roleMap[newRole] || newRole;
         u.roleName = roleMap[newRole] || newRole;
+        if (chucVuMap[newRole]) u.ChucVu = chucVuMap[newRole];
         if (window.store.saveState) window.store.saveState();
         if (typeof window.store.logAudit === 'function') {
           window.store.logAudit('UPDATE_USER_ROLE', `Tài khoản: ${u.username || u.TenDangNhap || userId}`, `Cập nhật vai trò sang: ${roleMap[newRole] || newRole}`);
@@ -322,6 +454,67 @@
         this._updateAuditContentOnly();
       }
     },
+
+    computeInvoiceFinancials(inv) {
+      if (!inv) {
+        return { sTotal: 0, pTotal: 0, total: 0, services: [], products: [] };
+      }
+
+      let sTotal = Number(inv.serviceTotal !== undefined ? inv.serviceTotal : (inv.TongTienDichVu !== undefined ? inv.TongTienDichVu : (inv.TienDichVu || 0)));
+      let pTotal = Number(inv.productTotal !== undefined ? inv.productTotal : (inv.TongTienSanPham !== undefined ? inv.TongTienSanPham : (inv.TienSanPham || 0)));
+      let total = Number(inv.totalAmount || inv.TongThanhToan || inv.TongTien || inv.total || 0);
+
+      const ordersList = (window.store && typeof window.store.getOrders === 'function') ? window.store.getOrders() : (window.store?.state?.orders || []);
+      const bookingsList = (window.store && typeof window.store.getBookings === 'function') ? window.store.getBookings() : (window.store?.state?.bookings || []);
+
+      const invOrderId = inv.MaDonHang || inv.orderId || inv.orderCode;
+      const invBookingId = inv.MaLichHen || inv.bookingId || inv.bookingCode;
+
+      const relatedOrder = invOrderId ? ordersList.find(o => (o.id || o.orderCode || o.MaDonHang) === invOrderId) : null;
+      const relatedBooking = invBookingId ? bookingsList.find(b => (b.id || b.bookingCode || b.MaLichHen) === invBookingId) : null;
+
+      let services = (Array.isArray(inv.services) && inv.services.length > 0) ? inv.services : [];
+      let products = (Array.isArray(inv.items) && inv.items.length > 0) ? inv.items : ((Array.isArray(inv.products) && inv.products.length > 0) ? inv.products : []);
+
+      if (products.length === 0 && relatedOrder && Array.isArray(relatedOrder.items) && relatedOrder.items.length > 0) {
+        products = relatedOrder.items;
+      }
+      if (services.length === 0 && relatedBooking) {
+        if (Array.isArray(relatedBooking.services) && relatedBooking.services.length > 0) {
+          services = relatedBooking.services;
+        } else if (relatedBooking.serviceName || relatedBooking.TenDichVu) {
+          services = [{
+            name: relatedBooking.serviceName || relatedBooking.TenDichVu,
+            price: Number(relatedBooking.totalPrice || relatedBooking.TongTien || 0)
+          }];
+        }
+      }
+
+      if (sTotal === 0 && services.length > 0) {
+        sTotal = services.reduce((sum, s) => sum + Number(s.price || s.DonGia || 0), 0);
+      }
+      if (pTotal === 0 && products.length > 0) {
+        pTotal = products.reduce((sum, it) => sum + (Number(it.price || it.DonGia || it.DonGiaThucTe || 0) * (it.qty || it.quantity || it.SoLuong || 1)), 0);
+      }
+
+      if (total === 0) {
+        total = sTotal + pTotal;
+      } else if (sTotal === 0 && pTotal === 0 && total > 0) {
+        if (invOrderId || relatedOrder) {
+          pTotal = total;
+          sTotal = 0;
+        } else if (invBookingId || relatedBooking) {
+          sTotal = total;
+          pTotal = 0;
+        } else {
+          sTotal = total;
+          pTotal = 0;
+        }
+      }
+
+      return { sTotal, pTotal, total, services, products, relatedOrder, relatedBooking };
+    },
+
     _formatTableDateTime(val) {
       if (!val) return '—';
       try {
@@ -430,12 +623,14 @@
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
               </span>
               <input type="text" id="adminAuditSearchInput" class="form-control-custom"
+                     aria-label="Tìm kiếm trong kiểm toán"
                      style="padding-left: 34px !important; padding-right: 28px !important; height: 34px; font-size: 13px; border-radius: 6px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                      placeholder="${placeholder}"
                      value="${this.escapeHtml(this.auditSearchQuery || '')}"
                      oninput="AdminWeb.handleAuditSearch(this.value);">
               <button type="button" id="adminAuditSearchClear"
                       onclick="AdminWeb.clearAuditSearch();"
+                      aria-label="Xóa từ khóa tìm kiếm"
                       style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 4px; display: ${this.auditSearchQuery ? 'inline-flex' : 'none'}; align-items: center; justify-content: center; z-index: 2;"
                       title="Xóa tìm kiếm">✕</button>
             </div>
@@ -451,9 +646,20 @@
                     <option value="BOOKING" ${this.auditActionFilter === 'BOOKING' ? 'selected' : ''}>Lịch Hẹn</option>
                     <option value="STOCK" ${this.auditActionFilter === 'STOCK' ? 'selected' : ''}>Kho Hàng</option>
                     <option value="PRODUCT" ${this.auditActionFilter === 'PRODUCT' ? 'selected' : ''}>Sản Phẩm</option>
-                    <option value="SERVICE" ${this.auditActionFilter === 'SERVICE' ? 'selected' : ''}>Dịch Vụ</option>
+                    <option value="STYLIST" ${this.auditActionFilter === 'STYLIST' ? 'selected' : ''}>Nhân Sự / Thợ</option>
+                    <option value="SERVICE" ${this.auditActionFilter === 'SERVICE' ? 'selected' : ''}>Dịch Vụ & Combo</option>
                     <option value="ORDER" ${this.auditActionFilter === 'ORDER' ? 'selected' : ''}>Hóa Đơn / POS</option>
                     <option value="AUTH" ${this.auditActionFilter === 'AUTH' ? 'selected' : ''}>Xác Thực</option>
+                  </select>
+                  <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
+                          onchange="AdminWeb.auditOperatorRoleFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
+                    <option value="all" ${(!this.auditOperatorRoleFilter || this.auditOperatorRoleFilter === 'all') ? 'selected' : ''}>Tất cả người thao tác</option>
+                    <option value="SUPER_ADMIN" ${this.auditOperatorRoleFilter === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên (SUPER_ADMIN)</option>
+                    <option value="BRANCH_MANAGER" ${this.auditOperatorRoleFilter === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh (BRANCH_MANAGER)</option>
+                    <option value="CASHIER" ${this.auditOperatorRoleFilter === 'CASHIER' ? 'selected' : ''}>Thu Ngân (CASHIER)</option>
+                    <option value="STYLIST" ${this.auditOperatorRoleFilter === 'STYLIST' ? 'selected' : ''}>Thợ / Nhân Viên (STYLIST)</option>
+                    <option value="CUSTOMER" ${this.auditOperatorRoleFilter === 'CUSTOMER' ? 'selected' : ''}>Khách Hàng (CUSTOMER)</option>
+                    <option value="SYSTEM" ${this.auditOperatorRoleFilter === 'SYSTEM' ? 'selected' : ''}>Hệ Thống (SYSTEM)</option>
                   </select>
                 `;
               }
@@ -462,12 +668,11 @@
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditRoleFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
                     <option value="all" ${this.auditRoleFilter === 'all' ? 'selected' : ''}>Tất cả vai trò</option>
-                    <option value="SUPER_ADMIN" ${this.auditRoleFilter === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên</option>
-                    <option value="ADMIN" ${this.auditRoleFilter === 'ADMIN' ? 'selected' : ''}>Quản Trị Viên</option>
-                    <option value="BRANCH_MANAGER" ${this.auditRoleFilter === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh</option>
-                    <option value="CASHIER" ${this.auditRoleFilter === 'CASHIER' ? 'selected' : ''}>Thu Ngân POS</option>
-                    <option value="BARBER" ${this.auditRoleFilter === 'BARBER' ? 'selected' : ''}>Thợ / Barber</option>
-                    <option value="CUSTOMER" ${this.auditRoleFilter === 'CUSTOMER' ? 'selected' : ''}>Khách Hàng</option>
+                    <option value="SUPER_ADMIN" ${(this.auditRoleFilter === 'SUPER_ADMIN' || this.auditRoleFilter === 'ADMIN') ? 'selected' : ''}>Quản Trị Viên (SUPER_ADMIN)</option>
+                    <option value="BRANCH_MANAGER" ${this.auditRoleFilter === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh (BRANCH_MANAGER)</option>
+                    <option value="CASHIER" ${this.auditRoleFilter === 'CASHIER' ? 'selected' : ''}>Thu Ngân POS (CASHIER)</option>
+                    <option value="BARBER" ${this.auditRoleFilter === 'BARBER' ? 'selected' : ''}>Thợ / Barber (BARBER)</option>
+                    <option value="CUSTOMER" ${this.auditRoleFilter === 'CUSTOMER' ? 'selected' : ''}>Khách Hàng (CUSTOMER)</option>
                   </select>
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditBranchFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
@@ -575,50 +780,94 @@
 
       // 1. PHÂN HỆ SỰ KIỆN KIỂM TOÁN (LOGS) - CHUẨN THEO BẢNG CHI NHÁNH
       if (subType === 'logs') {
-        let filtered = [...logs];
-        if (this.auditActionFilter && this.auditActionFilter !== 'all') {
-          filtered = filtered.filter(l => (l.action || '').toUpperCase().includes(this.auditActionFilter.toUpperCase()));
-        }
-        if (q) {
-          const norm = str => (str || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-          const normQ = norm(q);
-          filtered = filtered.filter(l =>
-            norm(l.operatorName).includes(normQ) ||
-            norm(l.entity).includes(normQ) ||
-            norm(l.details).includes(normQ) ||
-            norm(l.action).includes(normQ) ||
-            norm(l.id).includes(normQ)
-          );
-        }
-
-        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
-        if (this.auditPage > totalPages) this.auditPage = totalPages;
-        const paged = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
-
         const cleanActionLabels = {
           'UPDATE_BOOKING_STATUS': 'Cập nhật lịch hẹn',
           'UPDATE_BRANCH': 'Cập nhật chi nhánh',
           'CREATE_BRANCH': 'Thêm chi nhánh',
           'DELETE_BRANCH': 'Xóa chi nhánh',
+          'CHANGE_BRANCH': 'Đổi chi nhánh',
           'CREATE_BOOKING': 'Đặt lịch mới',
           'UPDATE_BOOKING': 'Cập nhật lịch',
           'CANCEL_BOOKING': 'Hủy lịch hẹn',
           'COMPLETE_BOOKING': 'Hoàn tất ca',
           'CHECKIN_WAITING': 'Khách vào sảnh',
-          'UPDATE_STOCK': 'Cập nhật kho',
+          'EARLY_CHECKIN': 'Khách check-in sớm',
+          'EARLY_WAITING': 'Khách chờ sảnh sớm',
+          'DELETE_BOOKING': 'Xóa lịch hẹn',
+          'UPDATE_STOCK': 'Điều chỉnh tồn kho',
           'ADJUST_STOCK': 'Điều chỉnh kho',
-          'CREATE_PRODUCT': 'Thêm sản phẩm',
-          'UPDATE_PRODUCT': 'Sửa sản phẩm',
+          'STOCK_DECREMENT': 'Xuất giảm tồn kho',
+          'STOCK_INCREMENT': 'Hoàn nhập tồn kho',
+          'CREATE_PRODUCT': 'Thêm sản phẩm mới',
+          'UPDATE_PRODUCT': 'Sửa thông tin sản phẩm',
           'DELETE_PRODUCT': 'Xóa sản phẩm',
-          'CREATE_RECEIPT': 'Tạo phiếu nhập',
+          'CREATE_STYLIST': 'Thêm mới nhân sự / thợ',
+          'UPDATE_STYLIST': 'Cập nhật nhân sự / thợ',
+          'DELETE_STYLIST': 'Xóa nhân sự / thợ',
+          'REGISTER_SHIFT': 'Đăng ký ca làm',
+          'APPROVE_SHIFT': 'Duyệt ca làm',
+          'CREATE_SERVICE': 'Thêm dịch vụ mới',
+          'UPDATE_SERVICE': 'Cập nhật dịch vụ',
+          'DELETE_SERVICE': 'Xóa dịch vụ',
+          'CREATE_COMBO': 'Thêm gói combo mới',
+          'UPDATE_COMBO': 'Cập nhật gói combo',
+          'DELETE_COMBO': 'Xóa gói combo',
+          'CREATE_RECEIPT': 'Tạo phiếu nhập kho',
           'APPROVE_RECEIPT': 'Duyệt nhập kho',
-          'POS_CHECKOUT': 'Thanh toán POS',
-          'AUTH_LOGIN': 'Đăng nhập',
-          'AUTH_LOGOUT': 'Đăng xuất',
+          'CREATE_INVOICE': 'Tạo hóa đơn',
+          'POS_CHECKOUT': 'Xuất hóa đơn quầy POS',
+          'CREATE_ORDER': 'Tạo đơn hàng mới',
+          'CANCEL_ORDER': 'Hủy đơn hàng',
+          'ORDER_PAYMENT': 'Xác nhận thanh toán đơn',
+          'UPDATE_ORDER_STATUS': 'Cập nhật trạng thái đơn',
+          'AUTH_LOGIN': 'Đăng nhập hệ thống',
+          'AUTH_LOGOUT': 'Đăng xuất hệ thống',
           'LOGIN': 'Đăng nhập',
           'LOGOUT': 'Đăng xuất',
-          'UPDATE_USER_ROLE': 'Phân quyền tài khoản'
+          'CREATE_USER': 'Thêm tài khoản',
+          'UPDATE_USER_ROLE': 'Phân quyền tài khoản',
+          'UPDATE_USER_BRANCH': 'Đổi chi nhánh tài khoản',
+          'UPDATE_USER_STATUS': 'Khóa / Mở khóa tài khoản',
+          'DELETE_USER': 'Xóa tài khoản'
         };
+
+        let filtered = [...logs];
+        if (this.auditActionFilter && this.auditActionFilter !== 'all') {
+          const actFilter = this.auditActionFilter.toUpperCase();
+          filtered = filtered.filter(l => {
+            const act = (l.action || '').toUpperCase();
+            if (actFilter === 'PRODUCT') return act.includes('PRODUCT') || act.includes('CATEGORY') || act.includes('SUPPLIER');
+            if (actFilter === 'STOCK') return act.includes('STOCK') || act.includes('RECEIPT') || act.includes('INVENTORY');
+            if (actFilter === 'SERVICE') return act.includes('SERVICE') || act.includes('COMBO');
+            if (actFilter === 'STYLIST') return act.includes('STYLIST') || act.includes('SHIFT') || act.includes('STAFF');
+            if (actFilter === 'ORDER') return act.includes('ORDER') || act.includes('INVOICE') || act.includes('POS');
+            if (actFilter === 'AUTH') return act.includes('AUTH') || act.includes('LOGIN') || act.includes('LOGOUT') || act.includes('USER') || act.includes('ROLE');
+            if (actFilter === 'BRANCH') return act.includes('BRANCH');
+            if (actFilter === 'BOOKING') return act.includes('BOOKING') || act.includes('CHECKIN') || act.includes('WAITING');
+            return act.includes(actFilter);
+          });
+        }
+        if (this.auditOperatorRoleFilter && this.auditOperatorRoleFilter !== 'all') {
+          const roleFilter = this.auditOperatorRoleFilter.toUpperCase();
+          filtered = filtered.filter(l => {
+            const opRole = this._extractAuditOperatorRole(l);
+            return opRole.toUpperCase() === roleFilter;
+          });
+        }
+        if (q) {
+          const norm = str => (str || '').toString().toLowerCase().replace(/[đĐ]/g, 'd').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          const normQ = norm(q);
+          filtered = filtered.filter(l => {
+            const opRole = this._extractAuditOperatorRole(l);
+            const actLabel = cleanActionLabels[l.action] || '';
+            const searchCorpus = `${l.id || ''} ${l.action || ''} ${actLabel} ${l.operatorName || ''} ${opRole} ${l.entity || ''} ${l.details || ''}`;
+            return norm(searchCorpus).includes(normQ);
+          });
+        }
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.auditPage > totalPages) this.auditPage = totalPages;
+        const paged = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
 
         return `
           <div class="admin-table-container" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 26px;">
@@ -646,6 +895,8 @@
                     const isSelected = this.selectedAuditRowId === rowId;
                     const isExpanded = this.expandedAuditRowId === rowId;
                     const actLabel = cleanActionLabels[l.action] || l.action || 'Sự kiện';
+                    const opRole = this._extractAuditOperatorRole(l);
+                    const roleBadge = this._getAuditRoleBadge(opRole);
 
                     return `
                       <tr id="auditRow_${rowId}"
@@ -664,7 +915,11 @@
                         <td style="padding: 12px 14px;">
                           <div>
                             <div style="font-weight: 800; color: var(--text-primary); font-size: 13px;">${this.escapeHtml(l.operatorName || 'Hệ Thống')}</div>
-                            <div style="font-size: 11.5px; color: var(--brand-accent); font-weight: 700;">${this.escapeHtml(l.operatorRole || 'SUPER_ADMIN')}</div>
+                            <div style="margin-top: 3px;">
+                              <span style="display: inline-flex; align-items: center; font-size: 11px; font-weight: 800; color: ${roleBadge.color}; background: ${roleBadge.bg}; border: 1px solid ${roleBadge.border}; padding: 1px 7px; border-radius: 9999px;">
+                                ${this.escapeHtml(opRole)}
+                              </span>
+                            </div>
                           </div>
                         </td>
                         <td style="padding: 12px 10px; white-space: nowrap;">
@@ -695,7 +950,7 @@
                                 </button>
                               </div>
                               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 12.5px; margin-bottom: 12px;">
-                                <div><span style="color: var(--text-secondary);">NGƯỜI THỰC HIỆN:</span> <strong style="color: var(--text-primary);">${this.escapeHtml(l.operatorName || 'Hệ Thống')} (${this.escapeHtml(l.operatorRole || 'SUPER_ADMIN')})</strong></div>
+                                <div><span style="color: var(--text-secondary);">NGƯỜI THỰC HIỆN:</span> <strong style="color: var(--text-primary); margin-right: 6px;">${this.escapeHtml(l.operatorName || 'Hệ Thống')}</strong><span style="display: inline-flex; align-items: center; font-size: 11px; font-weight: 800; color: ${roleBadge.color}; background: ${roleBadge.bg}; border: 1px solid ${roleBadge.border}; padding: 1px 7px; border-radius: 9999px;">${this.escapeHtml(opRole)}</span></div>
                                 <div><span style="color: var(--text-secondary);">THAO TÁC GHI NHẬN:</span> <strong style="color: var(--text-primary);">${this.escapeHtml(actLabel)} (${this.escapeHtml(l.action)})</strong></div>
                                 <div><span style="color: var(--text-secondary);">MỤC TIÊU / ĐỐI TƯỢNG:</span> <strong style="color: #f59e0b;">${this.escapeHtml(String(l.entity || '—').replace(/#/g, ''))}</strong></div>
                                 <div><span style="color: var(--text-secondary);">ĐỊA CHỈ KẾT NỐI / KÊNH:</span> <strong style="color: var(--text-primary);">${this.escapeHtml(l.ip || '127.0.0.1 • Web Enterprise Console')}</strong></div>
@@ -723,8 +978,13 @@
         const normQ = (q || '').toLowerCase().trim();
         let filteredUsers = uList.filter(u => {
           if (this.auditRoleFilter && this.auditRoleFilter !== 'all') {
-            const role = (u.role || u.VaiTro || '').toUpperCase();
-            if (!role.includes(this.auditRoleFilter.toUpperCase())) return false;
+            const uRole = this.getUserRoleCode(u);
+            const targetFilter = this.auditRoleFilter.toUpperCase();
+            if (targetFilter === 'ADMIN' || targetFilter === 'SUPER_ADMIN') {
+              if (uRole !== 'SUPER_ADMIN') return false;
+            } else if (uRole !== targetFilter) {
+              return false;
+            }
           }
           if (this.auditBranchFilter && this.auditBranchFilter !== 'all') {
             const bId = (u.branchId || u.MaChiNhanh || '').toUpperCase();
@@ -808,20 +1068,8 @@
                     const fname = u.fullName || u.HoTen || '—';
                     const phone = u.phone || u.SoDienThoai || '0901111000';
 
-                    // Parse role accurately
-                    const rawRole = (u.role || u.VaiTro || 'CUSTOMER').toString().toUpperCase();
-                    let roleCode = 'CUSTOMER';
-                    if (rawRole.includes('TỐI CAO') || rawRole.includes('TOI CAO') || rawRole.includes('QUẢN TRỊ') || rawRole === 'SUPER_ADMIN') {
-                      roleCode = 'SUPER_ADMIN';
-                    } else if (rawRole.includes('QUẢN LÝ') || rawRole.includes('QUAN LY') || rawRole === 'BRANCH_MANAGER') {
-                      roleCode = 'BRANCH_MANAGER';
-                    } else if (rawRole.includes('THU NGÂN') || rawRole.includes('THU NGAN') || rawRole === 'CASHIER') {
-                      roleCode = 'CASHIER';
-                    } else if (rawRole.includes('THỢ') || rawRole.includes('THO') || rawRole.includes('BARBER') || rawRole.includes('STYLIST')) {
-                      roleCode = 'BARBER';
-                    } else {
-                      roleCode = 'CUSTOMER';
-                    }
+                    // Parse role accurately via helper
+                    const roleCode = this.getUserRoleCode(u);
 
                     const branchId = u.branchId || u.MaChiNhanh || 'ALL';
                     const isSelected = this.selectedAuditRowId === uid;
@@ -901,13 +1149,9 @@
       // 3. PHÂN HỆ HÓA ĐƠN & THU TIỀN (INVOICES) - CHUẨN THEO BẢNG CHI NHÁNH
       if (subType === 'invoices') {
         const filtered = invoices.filter(inv => {
-          if (this.auditPaymentStatusFilter === 'paid') {
-            const isPaid = (inv.status || inv.TrangThai || '').toLowerCase().includes('đã thanh toán') || (inv.paymentStatus || '').toLowerCase() === 'paid';
-            if (!isPaid) return false;
-          } else if (this.auditPaymentStatusFilter === 'pending') {
-            const isPaid = (inv.status || inv.TrangThai || '').toLowerCase().includes('đã thanh toán') || (inv.paymentStatus || '').toLowerCase() === 'paid';
-            if (isPaid) return false;
-          }
+          const isPaid = this._isInvoicePaid(inv);
+          if (this.auditPaymentStatusFilter === 'paid' && !isPaid) return false;
+          if (this.auditPaymentStatusFilter === 'pending' && isPaid) return false;
           if (!q) return true;
           const code = (inv.id || inv.MaHoaDon || '').toLowerCase();
           const cust = (inv.customerName || inv.TenKhachHang || '').toLowerCase();
@@ -946,24 +1190,8 @@
                       </td>
                     </tr>
                   ` : paged.map(inv => {
-                    let sTotal = Number(inv.serviceTotal || inv.TongTienDichVu || 0);
-                    let pTotal = Number(inv.productTotal || inv.TongTienSanPham || 0);
-                    let total = Number(inv.totalAmount || inv.TongThanhToan || inv.TongTien || inv.total || 0);
-
-                    if (sTotal === 0 && Array.isArray(inv.services) && inv.services.length > 0) {
-                      sTotal = inv.services.reduce((sum, s) => sum + Number(s.price || s.DonGia || 0), 0);
-                    }
-                    if (pTotal === 0 && (Array.isArray(inv.items) || Array.isArray(inv.products))) {
-                      const pItems = inv.items || inv.products || [];
-                      pTotal = pItems.reduce((sum, it) => sum + (Number(it.price || it.DonGia || 0) * (it.qty || it.quantity || it.SoLuong || 1)), 0);
-                    }
-                    if (total === 0) {
-                      total = sTotal + pTotal;
-                    } else if (sTotal === 0 && pTotal === 0 && total > 0) {
-                      sTotal = total;
-                    }
-
-                    const isPaid = (inv.status || inv.TrangThai || '').toLowerCase().includes('đã thanh toán') || (inv.paymentStatus || '').toLowerCase() === 'paid';
+                    const { sTotal, pTotal, total, services: invServices, products: invItems } = this.computeInvoiceFinancials(inv);
+                    const isPaid = this._isInvoicePaid(inv);
                     const invId = inv.id || inv.MaHoaDon || 'HD00';
                     const isSelected = this.selectedAuditRowId === invId;
                     const isExpanded = this.expandedInvoiceRowId === invId;
@@ -1007,14 +1235,21 @@
                           </span>
                         </td>
                         <td style="text-align: center; padding: 12px 8px; white-space: nowrap;">
-                          <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px;"
-                                  onclick="event.stopPropagation(); AdminWeb.toggleInvoiceRowDetail('${invId}')">
-                            ${isExpanded ? 'Thu Gọn' : 'Xem In'}
-                          </button>
+                          <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: center;">
+                            <button class="pill-btn-outline" style="padding: 4px 8px; font-size: 11.5px; font-weight: 700; border-radius: 6px;"
+                                    onclick="event.stopPropagation(); AdminWeb.toggleInvoiceRowDetail('${invId}')">
+                              ${isExpanded ? 'Thu Gọn' : 'Xem Nhanh'}
+                            </button>
+                            <button class="pill-btn-outline" style="padding: 4px 8px; font-size: 11.5px; font-weight: 700; border-radius: 6px;"
+                                    title="Xem chi tiết & in hóa đơn"
+                                    onclick="event.stopPropagation(); AdminWeb.openInvoiceDetailModal('${invId}')">
+                              Phiếu In
+                            </button>
+                          </div>
                         </td>
                       </tr>
                       ${isExpanded ? `
-                        <tr id="invoiceDetailRow_${invId}" class="audit-expanded-row" style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                        <tr id="invoiceDetailRow_${invId}" class="admin-branch-detail-row audit-expanded-row" style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                           <td colspan="10" style="padding: 14px 18px;">
                             <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
                               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
@@ -1024,19 +1259,42 @@
                                 </div>
                                 <div style="display: inline-flex; gap: 8px;">
                                   <button type="button" class="pill-btn-outline" style="padding: 3px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px;"
-                                          onclick="window.print()">
-                                    In hóa đơn
+                                          onclick="event.stopPropagation(); AdminWeb.openInvoiceDetailModal('${invId}')">
+                                    Xem Phiếu In
                                   </button>
                                   <button type="button" class="pill-btn-outline" style="padding: 3px 8px; font-size: 11px; border-radius: 4px;"
+                                          aria-label="Đóng chi tiết hóa đơn"
                                           onclick="event.stopPropagation(); AdminWeb.toggleInvoiceRowDetail('${invId}')">
                                     ✕
                                   </button>
                                 </div>
                               </div>
                               <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;">
-                                <div>• <strong>Dịch vụ thực hiện:</strong> ${Array.isArray(inv.services) && inv.services.length > 0 ? inv.services.map(s => `${s.name || s.TenDichVu} (${SalonUtils.formatCurrency(s.price || 0)})`).join(', ') : 'Dịch vụ lẻ tại quầy'}</div>
-                                <div>• <strong>Sản phẩm đính kèm:</strong> ${Array.isArray(inv.items) && inv.items.length > 0 ? inv.items.map(it => `${it.name || it.TenSanPham} (x${it.qty || 1} - ${SalonUtils.formatCurrency(it.price || 0)})`).join(', ') : 'Không có'}</div>
-                                <div>• <strong>Phương thức &amp; Thu ngân:</strong> ${this.escapeHtml(inv.paymentMethod || 'VietQR')} • Thu ngân: ${this.escapeHtml(inv.cashierName || 'Thu Ngân 01')}</div>
+                                <div>• <strong>Dịch vụ thực hiện:</strong> ${
+                                  invServices.length > 0 
+                                    ? invServices.map(s => `${this.escapeHtml(s.name || s.TenDichVu || 'Dịch vụ')} (${SalonUtils.formatCurrency(s.price || s.DonGia || 0)})`).join(', ') 
+                                    : (sTotal > 0 ? 'Dịch vụ lẻ tại quầy' : 'Không có')
+                                }</div>
+                                <div>• <strong>Sản phẩm đính kèm:</strong> ${
+                                  invItems.length > 0 
+                                    ? invItems.map(it => `${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || it.SoLuong || 1} - ${SalonUtils.formatCurrency(it.price || it.DonGia || 0)})`).join(', ') 
+                                    : (pTotal > 0 ? 'Sản phẩm tại quầy / Đơn online' : 'Không có')
+                                }</div>
+                                <div>• <strong>Phương thức &amp; Thu ngân:</strong> ${this.escapeHtml(inv.paymentMethod || 'VietQR')} • Thu ngân: ${this.escapeHtml(inv.cashierName || 'Thu Ngân Quầy')}</div>
+                                <div style="margin-top: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.03); border: 1px dashed var(--border-color); border-radius: 6px; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; max-width: 320px;">
+                                  <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                                    <span>Tiền dịch vụ:</span>
+                                    <strong style="color: var(--text-primary);">${SalonUtils.formatCurrency(sTotal)}</strong>
+                                  </div>
+                                  <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                                    <span>Tiền sản phẩm:</span>
+                                    <strong style="color: var(--text-primary);">${SalonUtils.formatCurrency(pTotal)}</strong>
+                                  </div>
+                                  <div style="display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 4px;">
+                                    <span>Tổng Thanh Toán:</span>
+                                    <strong style="color: #10b981; font-size: 14.5px;">${SalonUtils.formatCurrency(total)}</strong>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </td>
@@ -1101,8 +1359,21 @@
                       </td>
                     </tr>
                   ` : paged.map(o => {
-                    const oCode = o.id || o.orderCode || o.MaDonHang;
-                    const isPaid = (o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán');
+                    const oCode = String(o.id || o.orderCode || o.MaDonHang || '');
+                    const inv = (window.store && typeof window.store.getInvoices === 'function') 
+                      ? (window.store.getInvoices().find(i => {
+                          const iCode = String(i.MaDonHang || '');
+                          return iCode && (iCode === oCode || iCode === '#' + oCode || oCode.endsWith(iCode)) && i.TrangThai === 'Đã thanh toán';
+                        }))
+                      : null;
+                    const isPaid = (
+                      o.paymentStatus === 'Paid' || 
+                      o.paymentStatus === 'Đã thanh toán' || 
+                      o.isPaid === true || 
+                      o.TrangThai === 'Đã thanh toán' || 
+                      o.TrangThaiHoaDon === 'Đã thanh toán' ||
+                      Boolean(inv)
+                    );
                     const items = o.items || [];
                     const itemsSummary = items.map(it => `${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || 1})`).join(', ');
                     const isPickup = o.deliveryType === 'PICKUP_BRANCH' || (o.shippingAddress && o.shippingAddress.toLowerCase().includes('quầy'));
@@ -1291,7 +1562,7 @@
       if (!userId) return;
       const users = (window.store && typeof window.store.getUsers === 'function') ? window.store.getUsers() : [];
       const user = users.find(u => u.id === userId || u.MaTaiKhoan === userId || u.username === userId) || { id: userId, username: userId };
-      const currentRole = (user.role || user.VaiTro || 'CUSTOMER').toUpperCase();
+      const currentRole = this.getUserRoleCode(user);
       const currentBranch = user.branchId || user.MaChiNhanh || '';
       const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
 
@@ -1370,11 +1641,29 @@
       if (window.store && typeof window.store.updateUserRole === 'function') {
         await window.store.updateUserRole(userId, newRole);
       }
+      const roleMap = {
+        'SUPER_ADMIN': 'Quản trị viên',
+        'ADMIN': 'Quản trị viên',
+        'BRANCH_MANAGER': 'Quản lý',
+        'CASHIER': 'Thu ngân',
+        'BARBER': 'Nhân viên',
+        'CUSTOMER': 'Khách hàng'
+      };
+      const chucVuMap = {
+        'SUPER_ADMIN': 'Quản trị viên',
+        'ADMIN': 'Quản trị viên',
+        'BRANCH_MANAGER': 'Quản lý chi nhánh',
+        'CASHIER': 'Thu ngân',
+        'BARBER': 'Thợ chính',
+        'CUSTOMER': 'Khách hàng'
+      };
       const users = (window.store && typeof window.store.getUsers === 'function') ? window.store.getUsers() : [];
       const user = users.find(u => u.id === userId || u.MaTaiKhoan === userId || u.username === userId);
       if (user) {
         user.role = newRole;
-        user.VaiTro = newRole;
+        user.VaiTro = roleMap[newRole] || newRole;
+        user.roleName = roleMap[newRole] || newRole;
+        if (chucVuMap[newRole]) user.ChucVu = chucVuMap[newRole];
         user.branchId = newBranch;
         user.MaChiNhanh = newBranch;
       }
@@ -1592,6 +1881,8 @@
     openAuditLogDetailModal(logId) {
       const logs = (window.store && typeof window.store.getAuditLogs === 'function') ? window.store.getAuditLogs() : [];
       const log = logs.find((l, idx) => l.id === logId || `log_${idx}_${l.timestamp}` === logId) || { id: logId, action: 'Sự kiện kiểm toán', details: 'Chi tiết sự kiện' };
+      const opRole = this._extractAuditOperatorRole(log);
+      const roleBadge = this._getAuditRoleBadge(opRole);
 
       this._openModal(`
         <div style="padding: 12px 8px; max-width: 520px; margin: 0 auto;">
@@ -1628,9 +1919,14 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
               <div>
                 <span style="font-size: 11px; color: var(--text-secondary); display: block;">Người Thao Tác:</span>
-                <strong style="font-size: 12.5px; color: var(--text-primary);">
-                  ${this.escapeHtml(log.operatorName || 'Hệ Thống')}
-                </strong>
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                  <strong style="font-size: 12.5px; color: var(--text-primary);">
+                    ${this.escapeHtml(log.operatorName || 'Hệ Thống')}
+                  </strong>
+                  <span style="display: inline-flex; align-items: center; font-size: 11px; font-weight: 800; color: ${roleBadge.color}; background: ${roleBadge.bg}; border: 1px solid ${roleBadge.border}; padding: 1px 7px; border-radius: 9999px;">
+                    ${this.escapeHtml(opRole)}
+                  </span>
+                </div>
               </div>
               <div>
                 <span style="font-size: 11px; color: var(--text-secondary); display: block;">Đối Tượng Tác Động:</span>
@@ -1662,9 +1958,8 @@
       const inv = invoices.find(i => (i.id || i.MaHoaDon) === invId);
       if (!inv) return;
 
-      const services = inv.services || [];
-      const products = inv.items || inv.products || [];
-      const total = inv.totalAmount || inv.TongThanhToan || inv.TongTien || 0;
+      const { sTotal, pTotal, total, services, products } = this.computeInvoiceFinancials(inv);
+      const isPaid = this._isInvoicePaid(inv);
 
       this._openModal(`
         <div style="padding: 12px 8px; max-width: 520px; margin: 0 auto;">
@@ -1677,8 +1972,8 @@
                 ${this._formatTableDateTime(inv.createdDate || inv.NgayLap)} · ${this.escapeHtml(inv.branchName || 'Chi Nhánh Omni')}
               </div>
             </div>
-            <span class="status-pill status-completed" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 9999px;">
-              ${this.escapeHtml(inv.status || inv.TrangThai || 'Đã thanh toán')}
+            <span class="status-pill ${isPaid ? 'status-completed' : 'status-cancelled'}" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 9999px;">
+              ${this.escapeHtml(inv.status || inv.TrangThai || (isPaid ? 'Đã thanh toán' : 'Chờ xử lý'))}
             </span>
           </div>
 
@@ -1689,21 +1984,44 @@
 
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
             <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--brand-accent); margin-bottom: 8px;">Dịch Vụ &amp; Sản Phẩm:</div>
-            ${services.map(s => `
+            ${services.length > 0 ? services.map(s => `
               <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px;">
                 <span>• ${this.escapeHtml(s.name || s.TenDichVu || 'Dịch vụ')}</span>
                 <strong>${SalonUtils.formatCurrency(s.price || s.DonGia || 0)}</strong>
               </div>
-            `).join('')}
-            ${products.map(p => `
+            `).join('') : (sTotal > 0 ? `
+              <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px;">
+                <span>• Dịch vụ lẻ tại quầy</span>
+                <strong>${SalonUtils.formatCurrency(sTotal)}</strong>
+              </div>
+            ` : '')}
+            ${products.length > 0 ? products.map(p => `
               <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px;">
                 <span>• ${this.escapeHtml(p.name || p.TenSanPham || 'Sản phẩm')} (x${p.qty || p.SoLuong || 1})</span>
                 <strong>${SalonUtils.formatCurrency((p.price || p.DonGia || 0) * (p.qty || p.SoLuong || 1))}</strong>
               </div>
-            `).join('')}
-            <div style="border-top: 1px dashed var(--border-color); margin-top: 8px; padding-top: 8px; display: flex; justify-content: space-between; font-size: 14px;">
-              <strong>Tổng Thanh Toán:</strong>
-              <strong style="color: #10b981; font-size: 16px;">${SalonUtils.formatCurrency(total)}</strong>
+            `).join('') : (pTotal > 0 ? `
+              <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px;">
+                <span>• Sản phẩm tại quầy / Đơn online</span>
+                <strong>${SalonUtils.formatCurrency(pTotal)}</strong>
+              </div>
+            ` : '')}
+            ${services.length === 0 && products.length === 0 && sTotal === 0 && pTotal === 0 ? `
+              <div style="font-size: 12.5px; color: var(--text-secondary); font-style: italic;">Không có thông tin chi tiết</div>
+            ` : ''}
+            <div style="border-top: 1px dashed var(--border-color); margin-top: 8px; padding-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px;">
+              <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                <span>Tiền dịch vụ:</span>
+                <span>${SalonUtils.formatCurrency(sTotal)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                <span>Tiền sản phẩm:</span>
+                <span>${SalonUtils.formatCurrency(pTotal)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 4px;">
+                <strong>Tổng Thanh Toán:</strong>
+                <strong style="color: #10b981; font-size: 16px;">${SalonUtils.formatCurrency(total)}</strong>
+              </div>
             </div>
           </div>
 
@@ -1724,9 +2042,11 @@
 
     exportAuditLogs() {
       const logs = (window.store && typeof window.store.getAuditLogs === 'function') ? window.store.getAuditLogs() : [];
-      let csv = 'Timestamp,Action,Operator,Entity,Details\n';
+      let csv = 'Timestamp,Action,Operator,Role,Entity,Details\n';
+      const escapeCsv = (val) => `"${String(val !== undefined && val !== null ? val : '').replace(/"/g, '""')}"`;
       logs.forEach(l => {
-        csv += `"${l.timestamp || ''}","${l.action || ''}","${l.operatorName || ''}","${l.entity || ''}","${(l.details || '').replace(/"/g, '""')}"\n`;
+        const opRole = this._extractAuditOperatorRole(l);
+        csv += `${escapeCsv(l.timestamp)},${escapeCsv(l.action)},${escapeCsv(l.operatorName || 'Hệ Thống')},${escapeCsv(opRole)},${escapeCsv(l.entity)},${escapeCsv(l.details)}\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -1741,9 +2061,11 @@
 
     exportInvoicesReport() {
       const invoices = (window.store && typeof window.store.getInvoices === 'function') ? window.store.getInvoices() : [];
-      let csv = 'InvoiceId,Branch,Customer,Date,Total,Status,PaymentMethod\n';
+      let csv = 'InvoiceId,Branch,Customer,Date,ServiceTotal,ProductTotal,Total,Status,PaymentMethod\n';
+      const escapeCsv = (val) => `"${String(val !== undefined && val !== null ? val : '').replace(/"/g, '""')}"`;
       invoices.forEach(i => {
-        csv += `"${i.id || i.MaHoaDon || ''}","${i.branchName || ''}","${i.customerName || ''}","${i.createdDate || i.NgayLap || ''}","${i.totalAmount || i.TongThanhToan || 0}","${i.status || ''}","${i.paymentMethod || ''}"\n`;
+        const { sTotal, pTotal, total } = this.computeInvoiceFinancials(i);
+        csv += `${escapeCsv(i.id || i.MaHoaDon || '')},${escapeCsv(i.branchName || '')},${escapeCsv(i.customerName || '')},${escapeCsv(i.createdDate || i.NgayLap || '')},"${sTotal}","${pTotal}","${total}",${escapeCsv(i.status || '')},${escapeCsv(i.paymentMethod || '')}\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);

@@ -1,6 +1,29 @@
 (function (window) {
   'use strict';
 
+  const BRANCH_SQL_MAP = Object.freeze({
+    CN01: 'Omni Salon Barber Q1 - Bến Thành',
+    CN02: 'Omni Salon Barber Tân Bình - Cộng Hòa',
+    CN03: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ',
+    CN04: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa',
+    CN05: 'Omni Salon Barber Q5 - Trần Hưng Đạo',
+    CN06: 'Omni Salon Barber Q7 - Nguyễn Thị Thập',
+    CN07: 'Omni Salon Barber Q10 - 3 Tháng 2',
+    CN08: 'Omni Salon Barber Phú Nhuận - Phan Xích Long',
+    CN09: 'Omni Salon Barber Gò Vấp - Quang Trung',
+    CN10: 'Omni Salon Barber Thủ Đức - Võ Văn Ngân',
+    CN11: 'Omni Salon Barber Thảo Điền - Xuân Thủy',
+    CN12: 'Omni Salon Barber Q4 - Hoàng Diệu',
+    CN13: 'Omni Salon Barber Q6 - Hậu Giang',
+    CN14: 'Omni Salon Barber Q8 - Phạm Hùng',
+    CN15: 'Omni Salon Barber Q11 - Ông Ích Khiêm',
+    CN16: 'Omni Salon Barber Q12 - Lê Văn Khương',
+    CN17: 'Omni Salon Barber Tân Phú - Lũy Bán Bích',
+    CN18: 'Omni Salon Barber Bình Tân - Tên Lửa',
+    CN19: 'Omni Salon Barber Bình Chánh - Quốc Lộ 50',
+    CN20: 'Omni Salon Barber Hóc Môn - Lý Thường Kiệt'
+  });
+
   const AdminShell = {
     render(container) {
       if (!container) return;
@@ -41,23 +64,42 @@
 
       // Nạp dữ liệu từ Store
       const bookings = (window.store && typeof window.store.getBookings === 'function') ? window.store.getBookings() : [];
-      const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
+      const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts(null, true) : [];
       const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
       const stylists = (window.store && typeof window.store.getAllStaff === 'function')
         ? window.store.getAllStaff()
         : ((window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists(null, true) : []);
       const auditLogs = (window.store && typeof window.store.getAuditLogs === 'function') ? window.store.getAuditLogs() : [];
-      const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
-      const combos = (window.store && typeof window.store.getCombos === 'function') ? window.store.getCombos() : [];
+      const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices(null, true) : [];
+      const combos = (window.store && typeof window.store.getCombos === 'function') ? window.store.getCombos(true) : [];
 
-      const branchMap = new Map(branches.map(b => [b.id, b]));
-      const branchName = this.isBranchManager(user)
-        ? (this._getBranchShortName((user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01', branchMap) || 'Chi Nhánh Q1 - Bến Thành')
-        : (this.isCashier(user)
-          ? (this._getBranchShortName((user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01', branchMap) || 'Quầy Thu Ngân Chi Nhánh Q1')
-          : (this.isStylist(user)
-            ? (this._getBranchShortName((user?.branchId && user.branchId !== 'ALL') ? user.branchId : 'CN01', branchMap) || 'Chi Nhánh OmniSalon')
-            : `Toàn Hệ Thống Cơ Sở`));
+      const branchMap = new Map();
+      branches.forEach(b => {
+        if (b.id) branchMap.set(b.id, b);
+        if (b.MaChiNhanh) branchMap.set(b.MaChiNhanh, b);
+      });
+      const userBranchId = (user?.branchId && user.branchId !== 'ALL') ? user.branchId : (user?.MaChiNhanh || null);
+      let resolvedBranchName = '';
+      if (userBranchId && branchMap.has(userBranchId)) {
+        const b = branchMap.get(userBranchId);
+        resolvedBranchName = (b.TenChiNhanh || b.name || '').trim();
+      }
+      if (!resolvedBranchName && user?.branchName && typeof user.branchName === 'string') {
+        const ubn = user.branchName.trim();
+        if (ubn && ubn !== 'Chi Nhánh OmniSalon' && ubn !== 'Omni Salon Barber' && ubn !== 'Toàn Bộ Hệ Thống Salon' && !ubn.startsWith('Omni Salon Barber CN')) {
+          resolvedBranchName = ubn;
+        }
+      }
+      if (!resolvedBranchName && userBranchId) {
+        resolvedBranchName = this._getBranchShortName(userBranchId, branchMap);
+      }
+      if (!resolvedBranchName || /^CN\d+$/i.test(resolvedBranchName)) {
+        resolvedBranchName = 'Omni Salon Barber Q1 - Bến Thành';
+      }
+
+      const branchName = (this.isBranchManager(user) || this.isCashier(user) || this.isStylist(user))
+        ? resolvedBranchName
+        : `Toàn Hệ Thống Cơ Sở`;
 
       const activeRole = this.getActiveRole(user);
 
@@ -173,7 +215,9 @@
 
       const activeTabObj = visibleTabs.find(t => t.id === this.adminSubTab) || visibleTabs[0];
 
-      document.body.classList.add('admin-mode');
+      if (typeof document !== 'undefined' && document.body && document.body.classList) {
+        document.body.classList.add('admin-mode');
+      }
       container.innerHTML = `
         <div class="admin-dashboard-layout ${this.isSidebarCollapsed ? 'sidebar-collapsed' : ''}">
           <!-- Lớp phủ mờ khi mở menu trên di động -->
@@ -400,6 +444,27 @@
           </div>
         </div>
       `;
+    },
+
+    _getBranchShortName(branchObjOrId, branchMap = null) {
+      if (!branchObjOrId) return 'Omni Salon Barber Q1 - Bến Thành';
+      let name = '';
+      if (typeof branchObjOrId === 'object') {
+        name = branchObjOrId.TenChiNhanh || branchObjOrId.name || branchObjOrId.branchName || branchObjOrId.id || '';
+      } else if (branchMap && branchMap.has(branchObjOrId)) {
+        const b = branchMap.get(branchObjOrId);
+        name = b ? (b.TenChiNhanh || b.name || b.branchName || branchObjOrId) : branchObjOrId;
+      } else {
+        name = String(branchObjOrId);
+      }
+      const trimmed = name.split('—')[0].trim();
+      if (/^CN\d+$/i.test(trimmed)) {
+        const full = (typeof window !== 'undefined' && window.BRANCH_SQL_MAP && window.BRANCH_SQL_MAP[trimmed.toUpperCase()])
+          || (typeof BRANCH_SQL_MAP !== 'undefined' && BRANCH_SQL_MAP[trimmed.toUpperCase()])
+          || `Omni Salon Barber ${trimmed.toUpperCase()}`;
+        return full;
+      }
+      return trimmed || 'Omni Salon Barber Q1 - Bến Thành';
     },
 
     goToReceptionCheckin(stylistId = null) {

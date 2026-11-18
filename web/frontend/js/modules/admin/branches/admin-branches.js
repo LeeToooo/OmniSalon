@@ -124,7 +124,7 @@
                     ? window.store.getRevenueAnalytics(b.id)
                     : { totalRevenue: 0 };
                   const bRevenue = bAnalytics.totalRevenue;
-                  const bImg = b.image || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';
+                  const bImg = b.image || b.HinhAnh || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';
                   const bName = b.name || b.TenChiNhanh || b.id;
                   const bAddr = b.address || b.DiaChi || 'TP. Hồ Chí Minh';
                   const bPhone = b.phone || b.SoDienThoai || '0901111000';
@@ -411,9 +411,9 @@
                       Đường Dẫn Ảnh Hoặc Tải Tệp Trực Tiếp
                     </label>
                     <div style="display: flex; width: 100%; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--surface-elevated); transition: border-color 0.15s ease;">
-                      <input type="url" id="branchEditorImageUrl" 
+                      <input type="text" id="branchEditorImageUrl" 
                              style="flex: 1; height: 38px; font-size: 12.5px; border: none; background: transparent; color: var(--text-primary); padding: 0 12px; outline: none;" 
-                             placeholder="https://images.unsplash.com/..." 
+                             placeholder="ChiNhanh_Omni/... hoặc https://..." 
                              value="${branchPresets[0]}"
                              oninput="AdminWeb.onBranchImgUrlChange(this.value);">
                       <label style="display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; font-size: 12px; font-weight: 600; color: var(--brand-accent, #C59B27); background: rgba(197, 155, 39, 0.08); border-left: 1px solid var(--border-color); cursor: pointer; user-select: none; transition: background 0.15s ease; white-space: nowrap;"
@@ -635,7 +635,9 @@
     editBranchBottom(branchId) {
       if (!branchId) return;
       this.selectedBranchId = branchId;
-      const b = window.store.getBranchById(branchId);
+      const b = (window.store && typeof window.store.getBranchById === 'function')
+        ? (window.store.getBranchById(branchId) || (window.store.getBranches?.() || []).find(br => String(br.id || '').trim().toLowerCase() === String(branchId || '').trim().toLowerCase() || String(br.MaChiNhanh || '').trim().toLowerCase() === String(branchId || '').trim().toLowerCase()))
+        : null;
       if (!b) return;
 
       const idInput = document.getElementById('branchEditorId');
@@ -668,7 +670,7 @@
       const statusSel = document.getElementById('branchEditorStatus');
       if (statusSel) statusSel.value = b.status || 'Hoạt động';
 
-      const imgUrl = b.image || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';
+      const imgUrl = b.image || b.HinhAnh || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';
       const urlInp = document.getElementById('branchEditorImageUrl');
       if (urlInp) urlInp.value = imgUrl;
 
@@ -1111,6 +1113,20 @@
         return;
       }
 
+      let finalImage = image;
+      if (!finalImage) {
+        if (branchId) {
+          const currentBranch = (window.store && typeof window.store.getBranchById === 'function')
+            ? (window.store.getBranchById(branchId) || (window.store.getBranches?.() || []).find(b => String(b.id || '').trim().toLowerCase() === String(branchId || '').trim().toLowerCase() || String(b.MaChiNhanh || '').trim().toLowerCase() === String(branchId || '').trim().toLowerCase()))
+            : null;
+          finalImage = currentBranch?.image || currentBranch?.HinhAnh || '';
+        }
+        if (!finalImage) {
+          if (window.UICommon) window.UICommon.showToast('Vui lòng chọn hoặc nhập đường dẫn ảnh cho chi nhánh!', 'warning');
+          return;
+        }
+      }
+
       const branchData = {
         name,
         TenChiNhanh: name,
@@ -1123,7 +1139,8 @@
         closeTime: closeTime.length === 5 ? `${closeTime}:00` : closeTime,
         openHours: `${openTime.substring(0, 5)} - ${closeTime.substring(0, 5)}`,
         status,
-        image: image || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80',
+        image: finalImage,
+        HinhAnh: finalImage,
         imageZoom,
         imagePanX,
         imagePanY,
@@ -1136,6 +1153,9 @@
       } else {
         const created = window.store.addBranch(branchData);
         if (window.UICommon) window.UICommon.showToast(`Đã thêm mới chi nhánh [${name}] (#${created.id}) thành công!`, 'success');
+      }
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        window.store.syncWithLiveServer();
       }
 
       this._updateBranchesContentOnly();
@@ -1157,7 +1177,7 @@
         'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80',
         'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=600&q=80'
       ];
-      const currentImage = br?.image || branchPresets[0];
+      const currentImage = br?.image || br?.HinhAnh || branchPresets[0];
 
       this._openModal(`
         <div style="max-width: 540px; margin: 0 auto;">
@@ -1214,8 +1234,8 @@
             </div>
 
             <div style="margin-bottom: 14px;">
-              <label class="sub-label">Hình Ảnh Chi Nhánh (URL):</label>
-              <input type="url" id="brImage" class="form-control-custom" placeholder="https://..." value="${this.escapeHtml(currentImage)}">
+              <label class="sub-label">Hình Ảnh Chi Nhánh (Đường dẫn / URL):</label>
+              <input type="text" id="brImage" class="form-control-custom" placeholder="ChiNhanh_Omni/... hoặc https://..." value="${this.escapeHtml(currentImage)}">
               <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap;">
                 <span style="font-size: 11px; color: var(--text-secondary);">Chọn mẫu không gian:</span>
                 ${branchPresets.map((img, idx) => `
@@ -1251,6 +1271,20 @@
         return;
       }
 
+      let finalImage = image;
+      if (!finalImage) {
+        if (branchId) {
+          const currentBranch = (window.store && typeof window.store.getBranchById === 'function')
+            ? (window.store.getBranchById(branchId) || (window.store.getBranches?.() || []).find(b => String(b.id || '').trim().toLowerCase() === String(branchId || '').trim().toLowerCase() || String(b.MaChiNhanh || '').trim().toLowerCase() === String(branchId || '').trim().toLowerCase()))
+            : null;
+          finalImage = currentBranch?.image || currentBranch?.HinhAnh || '';
+        }
+        if (!finalImage) {
+          if (window.UICommon) window.UICommon.showToast('Vui lòng chọn hoặc nhập đường dẫn ảnh cho chi nhánh!', 'warning');
+          return;
+        }
+      }
+
       const branchData = {
         name,
         TenChiNhanh: name,
@@ -1263,7 +1297,8 @@
         closeTime: closeTime.length === 5 ? `${closeTime}:00` : closeTime,
         openHours: `${openTime.substring(0, 5)} - ${closeTime.substring(0, 5)}`,
         status,
-        image: image || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80'
+        image: finalImage,
+        HinhAnh: finalImage
       };
 
       if (branchId) {
@@ -1272,6 +1307,9 @@
       } else {
         const created = window.store.addBranch(branchData);
         if (window.UICommon) window.UICommon.showToast(`Đã thêm mới chi nhánh [${name}] (#${created.id}) vào database SQL!`);
+      }
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        window.store.syncWithLiveServer();
       }
 
       this._closeModal();

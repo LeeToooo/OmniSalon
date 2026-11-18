@@ -46,6 +46,7 @@
   max-height: calc(100vh - 140px);
   position: sticky;
   top: 10px;
+  overflow-y: auto;
 }
 
 .pos-panel-header {
@@ -502,4 +503,83 @@ html.light .booking-invoice-card .invoice-item.price-row strong,
 body.light .booking-invoice-card .invoice-item.price-row strong {
   color: #b48312 !important;
 }
+
+/* Khối VietQR thanh toán tại quầy POS & Modal Hóa đơn */
+.pos-vietqr-card,
+.pos-qr-preview-card {
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+.pos-vietqr-info,
+.pos-qr-preview-info {
+  box-sizing: border-box;
+  word-break: break-word;
+}
+
+.pos-qr-val-blue {
+  color: #0284c7 !important;
+}
+
+.pos-qr-val-accent {
+  color: var(--brand-accent, #C59B27) !important;
+}
+
+.pos-qr-val-gold {
+  color: #b48312 !important;
+}
+
+/* Dark mode palette cho VietQR cards */
+[data-theme="dark"] .pos-vietqr-card,
+html.dark .pos-vietqr-card,
+body.dark .pos-vietqr-card,
+[data-theme="dark"] .pos-qr-preview-card,
+html.dark .pos-qr-preview-card,
+body.dark .pos-qr-preview-card {
+  background-color: var(--surface-card, #1c1c1a) !important;
+  border-color: var(--border-color, #2a2a28) !important;
+  color: var(--text-primary, #faf8f5) !important;
+}
+
+[data-theme="dark"] .pos-vietqr-info,
+html.dark .pos-vietqr-info,
+body.dark .pos-vietqr-info,
+[data-theme="dark"] .pos-qr-preview-info,
+html.dark .pos-qr-preview-info,
+body.dark .pos-qr-preview-info {
+  background-color: var(--surface-elevated, #242422) !important;
+  border-color: var(--border-color, #2a2a28) !important;
+  color: var(--text-primary, #faf8f5) !important;
+}
+
+[data-theme="dark"] .pos-vietqr-card strong:not([class*="pos-qr-val-"]),
+html.dark .pos-vietqr-card strong:not([class*="pos-qr-val-"]),
+body.dark .pos-vietqr-card strong:not([class*="pos-qr-val-"]),
+[data-theme="dark"] .pos-qr-preview-info strong:not([class*="pos-qr-val-"]),
+html.dark .pos-qr-preview-info strong:not([class*="pos-qr-val-"]),
+body.dark .pos-qr-preview-info strong:not([class*="pos-qr-val-"]) {
+  color: var(--text-primary, #faf8f5) !important;
+}
+
+[data-theme="dark"] .pos-vietqr-card span,
+html.dark .pos-vietqr-card span,
+body.dark .pos-vietqr-card span,
+[data-theme="dark"] .pos-qr-preview-info span,
+html.dark .pos-qr-preview-info span,
+body.dark .pos-qr-preview-info span {
+  color: var(--text-secondary, #a6a6a0) !important;
+}
+
+[data-theme="dark"] .pos-qr-val-blue,
+html.dark .pos-qr-val-blue,
+body.dark .pos-qr-val-blue {
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .pos-qr-val-gold,
+html.dark .pos-qr-val-gold,
+body.dark .pos-qr-val-gold {
+  color: #fbbf24 !important;
+}
+
 

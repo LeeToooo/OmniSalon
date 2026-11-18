@@ -7,6 +7,7 @@
     SUPER_ADMIN: 'SUPER_ADMIN',
     BRANCH_MANAGER: 'BRANCH_MANAGER',
     STYLIST: 'STYLIST',
+    BARBER: 'BARBER',
     CASHIER: 'CASHIER',
     CUSTOMER: 'CUSTOMER'
   });
@@ -15,9 +16,67 @@
     SUPER_ADMIN: 'Quản Trị Viên',
     BRANCH_MANAGER: 'Quản Lý Chi Nhánh',
     STYLIST: 'Thợ Barber Chuyên Nghiệp',
+    BARBER: 'Thợ Barber Chuyên Nghiệp',
     CASHIER: 'Thu Ngân / Tiếp Tân',
     CUSTOMER: 'Khách Hàng Thành Viên'
   });
+
+  const BRANCH_SQL_MAP = Object.freeze({
+    CN01: 'Omni Salon Barber Q1 - Bến Thành',
+    CN02: 'Omni Salon Barber Tân Bình - Cộng Hòa',
+    CN03: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ',
+    CN04: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa',
+    CN05: 'Omni Salon Barber Q5 - Trần Hưng Đạo',
+    CN06: 'Omni Salon Barber Q7 - Nguyễn Thị Thập',
+    CN07: 'Omni Salon Barber Q10 - 3 Tháng 2',
+    CN08: 'Omni Salon Barber Phú Nhuận - Phan Xích Long',
+    CN09: 'Omni Salon Barber Gò Vấp - Quang Trung',
+    CN10: 'Omni Salon Barber Thủ Đức - Võ Văn Ngân',
+    CN11: 'Omni Salon Barber Thảo Điền - Xuân Thủy',
+    CN12: 'Omni Salon Barber Q4 - Hoàng Diệu',
+    CN13: 'Omni Salon Barber Q6 - Hậu Giang',
+    CN14: 'Omni Salon Barber Q8 - Phạm Hùng',
+    CN15: 'Omni Salon Barber Q11 - Ông Ích Khiêm',
+    CN16: 'Omni Salon Barber Q12 - Lê Văn Khương',
+    CN17: 'Omni Salon Barber Tân Phú - Lũy Bán Bích',
+    CN18: 'Omni Salon Barber Bình Tân - Tên Lửa',
+    CN19: 'Omni Salon Barber Bình Chánh - Quốc Lộ 50',
+    CN20: 'Omni Salon Barber Hóc Môn - Lý Thường Kiệt'
+  });
+
+  /**
+   * Helper phân giải tên chi nhánh đầy đủ một cách phòng thủ và nhất quán
+   */
+  function resolveFullBranchName(bId, rawBranchName, role) {
+    if (role === ROLES.SUPER_ADMIN || role === 'SUPER_ADMIN') {
+      return 'Toàn Bộ Hệ Thống Chuỗi Omni Salon';
+    }
+    if (role === ROLES.CUSTOMER || role === 'CUSTOMER') {
+      return 'Khách Hàng';
+    }
+    const cleanId = (bId || '').toUpperCase().trim();
+    if (rawBranchName && typeof rawBranchName === 'string') {
+      const trimmed = rawBranchName.trim();
+      if (trimmed && trimmed !== 'Chi Nhánh OmniSalon' && trimmed !== 'Omni Salon Barber' && trimmed !== 'Toàn Bộ Hệ Thống Salon' && !trimmed.startsWith('Omni Salon Barber CN')) {
+        return trimmed;
+      }
+      const codeMatch = trimmed.match(/CN\d+/i) || (cleanId ? cleanId.match(/CN\d+/i) : null);
+      if (codeMatch && BRANCH_SQL_MAP[codeMatch[0].toUpperCase()]) {
+        return BRANCH_SQL_MAP[codeMatch[0].toUpperCase()];
+      }
+    }
+    if (cleanId && BRANCH_SQL_MAP[cleanId]) {
+      return BRANCH_SQL_MAP[cleanId];
+    }
+    if (typeof window !== 'undefined' && window.store && typeof window.store.getBranches === 'function') {
+      const branches = window.store.getBranches() || [];
+      const found = branches.find(b => (b.id && b.id.toUpperCase() === cleanId) || (b.MaChiNhanh && b.MaChiNhanh.toUpperCase() === cleanId));
+      if (found && (found.TenChiNhanh || found.name)) {
+        return (found.TenChiNhanh || found.name).trim();
+      }
+    }
+    return cleanId ? (BRANCH_SQL_MAP[cleanId] || ('Omni Salon Barber ' + cleanId)) : 'Omni Salon Barber Q1 - Bến Thành';
+  }
 
   function normalizeRole(value) {
     if (!value) return ROLES.CUSTOMER;
@@ -25,7 +84,7 @@
     if (clean === 'QUẢN TRỊ VIÊN' || clean === 'QUẢN TRỊ' || clean === 'QUẢN TRỊ TỐI CAO' || clean === 'SUPER_ADMIN' || clean === 'ADMIN') return ROLES.SUPER_ADMIN;
     if (clean === 'QUẢN LÝ' || clean === 'QUẢN LÝ CHI NHÁNH' || clean === 'BRANCH_MANAGER') return ROLES.BRANCH_MANAGER;
     if (clean === 'THU NGÂN' || clean === 'THU_NGÂN' || clean === 'CASHIER') return ROLES.CASHIER;
-    if (clean === 'THỢ CHÍNH' || clean === 'THỢ PHỤ' || clean === 'MASTER BARBER' || clean === 'SENIOR BARBER' || clean === 'JUNIOR BARBER' || clean === 'STYLIST' || clean === 'NHÂN VIÊN') return ROLES.STYLIST;
+    if (clean === 'THỢ CHÍNH' || clean === 'THỢ PHỤ' || clean === 'MASTER BARBER' || clean === 'SENIOR BARBER' || clean === 'JUNIOR BARBER' || clean === 'STYLIST' || clean === 'BARBER' || clean === 'NHÂN VIÊN') return ROLES.BARBER;
     return ROLES.CUSTOMER;
   }
 
@@ -77,6 +136,15 @@
       'report:view_all', 'report:view_branch'
     ],
     STYLIST: [
+      'auth:login', 'auth:update_profile',
+      'booking:view_queue', 'booking:update_status', 'booking:checkin',
+      'catalog:view',
+      'inventory:view_branch',
+      'pos:checkout',
+      'ai:restyle',
+      'report:view_stylist'
+    ],
+    BARBER: [
       'auth:login', 'auth:update_profile',
       'booking:view_queue', 'booking:update_status', 'booking:checkin',
       'catalog:view',
@@ -266,7 +334,7 @@
         CapBac: item[5],
         ChucVu: item[6],
         branchId: item[1],
-        branchName: `Omni Salon Barber ${item[1]}`,
+        branchName: BRANCH_SQL_MAP[item[1]] || `Omni Salon Barber ${item[1]}`,
         avatarUrl: isCashier
           ? `/DataPicture/ChanDungTho/Tho${((parseInt(item[0].replace(/\D/g, '') || 1) - 1) % 20) + 1}.jpg`
           : `/DataPicture/ChanDungTho/Tho${((parseInt(item[0].replace(/\D/g, '') || 1) - 1) % 20) + 1}.jpg`,
@@ -511,13 +579,32 @@
           const uEmail = (u.email || '').trim().toLowerCase();
           const uUser = (u.username || '').trim().toLowerCase();
           if ((uPhone && valPhone === uPhone) || (uEmail && valEmail === uEmail) || (uUser && valUser === uUser)) {
-            val.password = u.password;
-            val.alternatePassword = u.alternatePassword || u.password;
+            val.password = u.password || val.password;
+            val.alternatePassword = u.alternatePassword || u.password || val.alternatePassword;
             val.MaKhachHang = u.MaKhachHang || val.MaKhachHang;
             val.MaNhanVien = u.MaNhanVien || val.MaNhanVien;
+            val.branchId = u.branchId || val.branchId;
+            val.branchName = resolveFullBranchName(u.branchId || val.branchId, u.branchName || val.branchName, val.role);
+            val.TenChiNhanh = u.TenChiNhanh || val.TenChiNhanh;
           }
         }
-        if (k) userMap.set(k, u);
+        if (k) {
+          const existing = userMap.get(k);
+          if (existing) {
+            userMap.set(k, {
+              ...existing,
+              ...u,
+              password: existing.password || u.password,
+              alternatePassword: existing.alternatePassword || u.alternatePassword || existing.password,
+              branchName: resolveFullBranchName(u.branchId || existing.branchId, u.branchName || existing.branchName, existing.role || u.role)
+            });
+          } else {
+            userMap.set(k, {
+              ...u,
+              branchName: resolveFullBranchName(u.branchId, u.branchName, u.role)
+            });
+          }
+        }
       });
 
       return Array.from(userMap.values());
@@ -673,7 +760,12 @@
       if (user.role === ROLES.SUPER_ADMIN) return true; // SuperAdmin bypass
 
       const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
-      return roles.includes(user.role);
+      if (roles.includes(user.role)) return true;
+      // Đồng nhất BARBER và STYLIST
+      if ((user.role === 'BARBER' || user.role === 'STYLIST') && (roles.includes('BARBER') || roles.includes('STYLIST'))) {
+        return true;
+      }
+      return false;
     }
 
     static hasPermission(user, permissionCode) {
@@ -787,14 +879,17 @@
     }
 
     _mapPayloadToUser(payload) {
+      const bId = payload.branchId || null;
+      const bName = resolveFullBranchName(bId, payload.branchName, payload.role);
+
       return {
         id: payload.sub,
         username: payload.username,
         fullName: payload.fullName,
         role: payload.role,
         roleName: payload.roleName || ROLE_NAMES[payload.role] || payload.role,
-        branchId: payload.branchId || null,
-        branchName: payload.branchName || 'Toàn Bộ Hệ Thống Salon',
+        branchId: bId,
+        branchName: bName,
         email: payload.email || '',
         phone: payload.phone || '',
         avatarUrl: payload.avatarUrl || '/DataPicture/ChanDungTho/Tho1.jpg',
@@ -1123,6 +1218,9 @@
     setSessionFromBackend(backendUser, token) {
       if (!backendUser) return null;
       const role = backendUser.role || ROLES.CUSTOMER;
+      const bId = backendUser.branchId || backendUser.MaChiNhanh || null;
+      const bName = resolveFullBranchName(bId, backendUser.branchName || backendUser.TenChiNhanh, role);
+
       const mappedUser = {
         id: backendUser.id || backendUser.MaTaiKhoan || ('TK_' + (backendUser.MaKhachHang || backendUser.MaNhanVien || Date.now())),
         username: backendUser.username || backendUser.TenDangNhap || backendUser.phone || '',
@@ -1136,8 +1234,8 @@
         CapBac: backendUser.CapBac || backendUser.capBacSql || null,
         ChucVu: backendUser.ChucVu || backendUser.chucVuSql || null,
         vaiTroSql: backendUser.vaiTroSql || null,
-        branchId: backendUser.branchId || null,
-        branchName: backendUser.branchName || 'Chi Nhánh OmniSalon',
+        branchId: bId,
+        branchName: bName,
         avatarUrl: backendUser.avatarUrl || '/DataPicture/ChanDungTho/Tho1.jpg',
         rewardPoints: backendUser.rewardPoints || 100,
         tier: backendUser.tier || 'Thành Viên',
@@ -1389,6 +1487,8 @@
   window.ROLE_NAMES = ROLE_NAMES;
   window.ROLE_PERMISSIONS = ROLE_PERMISSIONS;
   window.normalizeRole = normalizeRole;
+  window.BRANCH_SQL_MAP = BRANCH_SQL_MAP;
+  window.resolveFullBranchName = resolveFullBranchName;
   window.UserRepository = UserRepository;
   window.AuthEngine = authInstance;
   window.Auth = authInstance;

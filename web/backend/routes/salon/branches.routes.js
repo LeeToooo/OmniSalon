@@ -1,4 +1,4 @@
-﻿const { querySql } = require('../../database/db');
+const { querySql } = require('../../database/db');
 const { formatTime } = require('../../services/helper_service');
 const { enforceAuth } = require('../../middlewares/auth_middleware');
 
@@ -59,6 +59,26 @@ async function handleBranchesRoutes(req, res, ctx) {
     const closeTime = b.closeTime || '20:30:00';
     const image = b.image || b.HinhAnh || '';
     const status = b.status || b.TrangThai || 'Hoạt động';
+
+    // Kiểm tra nếu chi nhánh đã tồn tại thì thực hiện UPDATE (Upsert an toàn tránh lỗi trùng khóa chính)
+    const existing = await querySql(`SELECT 1 FROM ChiNhanh WHERE MaChiNhanh = ?`, [cnId]);
+    if (existing && existing.length > 0) {
+      await querySql(
+        `UPDATE ChiNhanh SET 
+           TenChiNhanh = COALESCE(?, TenChiNhanh), 
+           DiaChi = COALESCE(?, DiaChi), 
+           SoDienThoai = COALESCE(?, SoDienThoai), 
+           GioMoCua = COALESCE(?, GioMoCua), 
+           GioDongCua = COALESCE(?, GioDongCua), 
+           HinhAnh = COALESCE(?, HinhAnh), 
+           TrangThai = COALESCE(?, TrangThai) 
+         WHERE MaChiNhanh = ?`,
+        [name, address, phone, openTime, closeTime, image, status, cnId]
+      );
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true, branch: { id: cnId, MaChiNhanh: cnId, name, address, phone, status } }));
+      return true;
+    }
 
     await querySql(
       `INSERT INTO ChiNhanh (MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, GioMoCua, GioDongCua, HinhAnh, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,

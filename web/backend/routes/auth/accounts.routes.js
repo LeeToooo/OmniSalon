@@ -1,7 +1,14 @@
 // Các api quản lý tài khoản người dùng
 const { querySql } = require('../../database/db');
 const { enforceAuth } = require('../../middlewares/auth_middleware');
-const { getFullSqlDatabase } = require('../../services/helper_service');
+const {
+  getFullSqlDatabase,
+  resolveUserRole,
+  resolveBranchName,
+  ROLE_NAME_MAP,
+  ROLE_SQL_MAP,
+  BRANCH_NAME_MAP
+} = require('../../services/helper_service');
 
 async function handleAccountsRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
@@ -11,31 +18,34 @@ async function handleAccountsRoutes(req, res, ctx) {
     const rows = await querySql(`
       SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.VaiTro, tk.TrangThai AS TrangThaiTK,
              nv.MaNhanVien, nv.HoTen AS HoTenNV, nv.MaChiNhanh, nv.SoDienThoai AS SdtNV, nv.Email AS EmailNV, nv.CapBac, nv.ChucVu,
-             kh.MaKhachHang, kh.HoTen AS HoTenKH, kh.SoDienThoai AS SdtKH, kh.Email AS EmailKH
+             kh.MaKhachHang, kh.HoTen AS HoTenKH, kh.SoDienThoai AS SdtKH, kh.Email AS EmailKH,
+             cn.TenChiNhanh
       FROM TaiKhoan tk
       LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
       LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang
+      LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
     `);
 
-    const roleMap = {
-      'Quản trị viên': 'SUPER_ADMIN',
-      'Quản lý': 'BRANCH_MANAGER',
-      'Thu ngân': 'CASHIER',
-      'Nhân viên': 'STAFF',
-      'Khách hàng': 'CUSTOMER'
-    };
+    const accounts = (rows || []).map(r => {
+      const role = resolveUserRole(r);
+      const bName = resolveBranchName(r.MaChiNhanh, r.TenChiNhanh, role);
 
-    const accounts = rows.map(r => ({
-      id: r.MaTaiKhoan,
-      username: r.TenDangNhap,
-      fullName: r.HoTenNV || r.HoTenKH || r.TenDangNhap,
-      phone: r.SdtNV || r.SdtKH || r.TenDangNhap,
-      email: r.EmailNV || r.EmailKH || '',
-      role: roleMap[r.VaiTro] || 'CUSTOMER',
-      vaiTro: r.VaiTro,
-      branchId: r.MaChiNhanh || null,
-      status: r.TrangThaiTK || 'Hoạt động'
-    }));
+      return {
+        id: r.MaTaiKhoan,
+        username: r.TenDangNhap,
+        fullName: r.HoTenNV || r.HoTenKH || r.TenDangNhap,
+        phone: r.SdtNV || r.SdtKH || r.TenDangNhap,
+        email: r.EmailNV || r.EmailKH || '',
+        role: role,
+        roleName: (role === 'BARBER' && r.ChucVu) ? r.ChucVu : (ROLE_NAME_MAP[role] || role),
+        vaiTro: r.VaiTro,
+        chucVu: r.ChucVu,
+        branchId: r.MaChiNhanh || (role === 'CUSTOMER' ? null : 'ALL'),
+        branchName: bName,
+        TenChiNhanh: r.TenChiNhanh || bName,
+        status: r.TrangThaiTK || 'Hoạt động'
+      };
+    });
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(accounts));
@@ -57,10 +67,12 @@ async function handleAccountsRoutes(req, res, ctx) {
              ISNULL(nv.HoTen, kh.HoTen) AS HoTen,
              ISNULL(nv.SoDienThoai, kh.SoDienThoai) AS SoDienThoai,
              ISNULL(nv.Email, kh.Email) AS Email,
-             nv.MaChiNhanh, nv.ChucVu, tk.MaNhanVien, tk.MaKhachHang
+             nv.MaChiNhanh, nv.ChucVu, tk.MaNhanVien, tk.MaKhachHang,
+             cn.TenChiNhanh
       FROM TaiKhoan tk
       LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
       LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang
+      LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
       ORDER BY tk.NgayTao DESC
     `);
     const result = (rows || []).map(r => {
@@ -68,8 +80,22 @@ async function handleAccountsRoutes(req, res, ctx) {
       const m = String(code).match(/(\d+)/);
       const n = m ? parseInt(m[1], 10) : 1;
       const idx = ((n - 1) % 20) + 1;
+
+      const role = resolveUserRole(r);
+      const bName = resolveBranchName(r.MaChiNhanh, r.TenChiNhanh, role);
+
       return {
         ...r,
+        id: r.MaTaiKhoan,
+        username: r.TenDangNhap,
+        fullName: r.HoTen,
+        phone: r.SoDienThoai,
+        email: r.Email,
+        role: role,
+        roleName: (role === 'BARBER' && r.ChucVu) ? r.ChucVu : (ROLE_NAME_MAP[role] || role),
+        branchId: r.MaChiNhanh || (role === 'CUSTOMER' ? null : 'ALL'),
+        branchName: bName,
+        TenChiNhanh: r.TenChiNhanh || bName,
         avatarUrl: `/DataPicture/ChanDungTho/Tho${idx}.jpg`,
         avatar: `/DataPicture/ChanDungTho/Tho${idx}.jpg`
       };
@@ -98,18 +124,11 @@ async function handleAccountsRoutes(req, res, ctx) {
   /* POST /api/users/role hoac PUT /api/users/:id/role - Phan quyen vai tro tai khoan vao SQL */
   if ((pathname === '/api/users/role' && method === 'POST') || (pathname.startsWith('/api/users/') && pathname.endsWith('/role') && (method === 'PUT' || method === 'POST'))) {
     const body = parsedBody || {};
-    const userId = pathname.startsWith('/api/users/') ? pathname.split('/')[3] : (body.id || body.userId || body.username);
+    const userId = (pathname !== '/api/users/role' && pathname.startsWith('/api/users/')) ? pathname.split('/')[3] : (body.id || body.userId || body.username);
     const { role, vaiTro } = body;
+    const roleKey = (role || '').toString().trim().toUpperCase();
 
-    const roleMap = {
-      'SUPER_ADMIN': 'Quản trị viên',
-      'BRANCH_MANAGER': 'Quản lý',
-      'CASHIER': 'Thu ngân',
-      'STYLIST': 'Nhân viên',
-      'STAFF': 'Nhân viên',
-      'CUSTOMER': 'Khách hàng'
-    };
-    const finalVaiTro = vaiTro || roleMap[role] || role || 'Khách hàng';
+    const finalVaiTro = vaiTro || ROLE_SQL_MAP[roleKey] || role || 'Khách hàng';
 
     try {
       await querySql('UPDATE TaiKhoan SET VaiTro = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, userId, userId]);
@@ -146,17 +165,7 @@ async function handleAccountsRoutes(req, res, ctx) {
     }
 
     const isStaff = ['SUPER_ADMIN', 'ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STYLIST', 'STAFF'].includes(role);
-    const roleMapSql = {
-      'SUPER_ADMIN': 'Quản trị viên',
-      'ADMIN': 'Quản trị viên',
-      'BRANCH_MANAGER': 'Quản lý',
-      'CASHIER': 'Thu ngân',
-      'BARBER': 'Nhân viên',
-      'STYLIST': 'Nhân viên',
-      'STAFF': 'Nhân viên',
-      'CUSTOMER': 'Khách hàng'
-    };
-    const vaiTroSql = roleMapSql[role] || (isStaff ? 'Nhân viên' : 'Khách hàng');
+    const vaiTroSql = ROLE_SQL_MAP[role] || (isStaff ? 'Nhân viên' : 'Khách hàng');
 
     let newTkId = '';
     let newMaNhanVien = null;

@@ -219,7 +219,7 @@
             ${stylists.map(st => `
               <div class="stylist-showcase-card">
                 <div class="stylist-showcase-avatar-wrap">
-                  <img src="${(st.avatar && !st.avatar.includes('images.unsplash.com')) ? st.avatar : ('/DataPicture/ChanDungTho/Tho' + ((((parseInt((st.id || st.MaNhanVien || st.name || '').match(/(\d+)/)?.[1] || 1) - 1) % 20) + 1) + '.jpg')}" alt="${this.escapeHtml(st.name)}" class="stylist-showcase-avatar" loading="lazy" onerror="this.onerror=null; this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
+                  <img src="${(st.avatar && !st.avatar.includes('images.unsplash.com')) ? st.avatar : ('/DataPicture/ChanDungTho/Tho' + (((parseInt((st.id || st.MaNhanVien || st.name || '').match(/(\d+)/)?.[1] || 1) - 1) % 20) + 1) + '.jpg')}" alt="${this.escapeHtml(st.name)}" class="stylist-showcase-avatar" loading="lazy" onerror="this.onerror=null; this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
                   <span class="stylist-master-badge">Stylist Chuyên Nghiệp</span>
                 </div>
                 <div class="stylist-showcase-body">

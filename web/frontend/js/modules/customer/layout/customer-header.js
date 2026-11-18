@@ -216,37 +216,56 @@
                           </div>
                         `;
                       }
-                      if (isBranchMgr) {
-                        const bObj = user?.branchId ? branches.find(b => b.id === user.branchId || b.MaChiNhanh === user.branchId) : null;
-                        const userBranchName = (bObj ? (bObj.TenChiNhanh || bObj.name) : null) || user?.branchName || currentBranch?.TenChiNhanh || currentBranch?.name || 'Chi Nhánh Quản Trị';
-                        return `
-                          <div class="dropdown-branch-pill">
-                            <div class="branch-pill-header">
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                              <span>Chi nhánh quản trị:</span>
-                            </div>
-                            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); padding: 2px 0;">
-                              ${escapeFn(userBranchName.split('—')[0].trim())}
-                            </div>
-                          </div>
-                        `;
-                      }
-                      if (isStf) {
-                        const userBranchName = user?.branchName || (user?.branchId ? branches.find(b => b.id === user.branchId)?.name : null) || currentBranch?.name || 'Omni Salon Barber';
-                        return `
-                          <div class="dropdown-branch-pill">
-                            <div class="branch-pill-header">
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                              <span>Chi nhánh công tác:</span>
-                            </div>
-                            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); padding: 2px 0;">
-                              ${escapeFn(userBranchName.split('—')[0].trim())}
-                            </div>
-                          </div>
+
+                      // Đồng bộ và tối ưu hóa logic nhận diện chi nhánh đầy đủ cho Quản lý & Nhân sự
+                      const resolveStaffBranchName = (u) => {
+                        if (!u) return 'Omni Salon Barber Q1 - Bến Thành';
+                        const stfStylist = (window.store && typeof window.store.getStylistById === 'function')
+                          ? window.store.getStylistById(u.id || u.MaNhanVien || u.staffId)
+                          : null;
+                        const bId = u.branchId || u.MaChiNhanh || stfStylist?.branchId || stfStylist?.MaChiNhanh || null;
+                        const bObj = bId ? branches.find(b => b.id === bId || b.MaChiNhanh === bId) : null;
+                        if (bObj && (bObj.TenChiNhanh || bObj.name)) {
+                          return (bObj.TenChiNhanh || bObj.name).trim();
+                        }
+                        const rawName = u.branchName || u.TenChiNhanh;
+                        if (rawName && typeof rawName === 'string') {
+                          const t = rawName.trim();
+                          if (t && t !== 'Chi Nhánh OmniSalon' && t !== 'Omni Salon Barber' && t !== 'Toàn Bộ Hệ Thống Salon' && !t.startsWith('Omni Salon Barber CN')) {
+                            return t;
+                          }
+                          const code = t.match(/CN\d+/i) || (bId ? String(bId).match(/CN\d+/i) : null);
+                          if (code) {
+                            const matched = branches.find(b => b.id === code[0] || b.MaChiNhanh === code[0]);
+                            if (matched && (matched.TenChiNhanh || matched.name)) {
+                              return (matched.TenChiNhanh || matched.name).trim();
+                            }
+                          }
+                        }
+                        return (currentBranch?.TenChiNhanh || currentBranch?.name || 'Omni Salon Barber Q1 - Bến Thành').trim();
+                      };
+
+                      if (isBranchMgr || isStf) {
+                        const userBranchName = resolveStaffBranchName(user);
+                        const pillLabel = isBranchMgr ? 'Chi nhánh quản trị:' : 'Chi nhánh công tác:';
+                        const extraActions = isStf ? `
                           <button class="dropdown-item-btn" style="background: var(--surface-card); color: var(--text-primary); font-weight: 700; border: 1px solid var(--border-color); border-radius: 8px; margin: 2px 0;" onclick="CustomerWeb.closeUserMenu(); if(window.AdminWeb) { AdminWeb.adminSubTab = 'receipts'; AdminWeb.inventorySubTab = 'receipts'; CustomerWeb.switchTab('admin'); setTimeout(() => { AdminWeb.switchSubTab('receipts'); AdminWeb.openAddReceiptModal(); }, 200); }">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                             <span>Lập phiếu nhập kho</span>
                           </button>
+                        ` : '';
+
+                        return `
+                          <div class="dropdown-branch-pill">
+                            <div class="branch-pill-header">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                              <span>${pillLabel}</span>
+                            </div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); padding: 2px 0;">
+                              ${escapeFn(userBranchName.split('—')[0].trim())}
+                            </div>
+                          </div>
+                          ${extraActions}
                         `;
                       }
                       return '';

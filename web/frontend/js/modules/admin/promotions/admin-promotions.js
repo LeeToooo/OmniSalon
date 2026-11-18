@@ -194,8 +194,8 @@
     // 2. Render Bảng Danh Sách Khuyến Mãi
     _renderPromotionsListTable() {
       const allPromos = (window.store && typeof window.store.getPromotions === 'function') ? window.store.getPromotions() : [];
-      const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
-      const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
+      const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices(null, true) : [];
+      const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts(null, true) : [];
       const sMap = new Map(services.map(s => [s.id || s.MaDichVu, s]));
       const pMap = new Map(products.map(p => [p.id || p.MaSanPham, p]));
 
@@ -521,8 +521,8 @@
         document.body.appendChild(modalEl);
       }
 
-      const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices() : [];
-      const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
+      const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices(null, true) : [];
+      const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts(null, true) : [];
       const selectedSIds = new Set(data.serviceIds || []);
       const selectedPIds = new Set(data.productIds || []);
 

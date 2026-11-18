@@ -7,6 +7,139 @@ const catIcons = {
   DM06: 'treatment', DM07: 'chemical', DM08: 'beard', DM09: 'tools'
 };
 
+const BRANCH_NAME_MAP = {
+  CN01: 'Omni Salon Barber Q1 - Bến Thành',
+  CN02: 'Omni Salon Barber Tân Bình - Cộng Hòa',
+  CN03: 'Omni Salon Barber Bình Thạnh - Điện Biên Phủ',
+  CN04: 'Omni Salon Barber Q3 - Nam Kỳ Khởi Nghĩa',
+  CN05: 'Omni Salon Barber Q5 - Trần Hưng Đạo',
+  CN06: 'Omni Salon Barber Q7 - Nguyễn Thị Thập',
+  CN07: 'Omni Salon Barber Q10 - 3 Tháng 2',
+  CN08: 'Omni Salon Barber Phú Nhuận - Phan Xích Long',
+  CN09: 'Omni Salon Barber Gò Vấp - Quang Trung',
+  CN10: 'Omni Salon Barber Thủ Đức - Võ Văn Ngân',
+  CN11: 'Omni Salon Barber Thảo Điền - Xuân Thủy',
+  CN12: 'Omni Salon Barber Q4 - Hoàng Diệu',
+  CN13: 'Omni Salon Barber Q6 - Hậu Giang',
+  CN14: 'Omni Salon Barber Q8 - Phạm Hùng',
+  CN15: 'Omni Salon Barber Q11 - Ông Ích Khiêm',
+  CN16: 'Omni Salon Barber Q12 - Lê Văn Khương',
+  CN17: 'Omni Salon Barber Tân Phú - Lũy Bán Bích',
+  CN18: 'Omni Salon Barber Bình Tân - Tên Lửa',
+  CN19: 'Omni Salon Barber Bình Chánh - Quốc Lộ 50',
+  CN20: 'Omni Salon Barber Hóc Môn - Lý Thường Kiệt'
+};
+
+const ROLE_NAME_MAP = {
+  SUPER_ADMIN: 'Quản trị viên',
+  BRANCH_MANAGER: 'Quản lý chi nhánh',
+  CASHIER: 'Thu ngân POS',
+  BARBER: 'Thợ / Barber',
+  CUSTOMER: 'Khách hàng'
+};
+
+const ROLE_SQL_MAP = {
+  SUPER_ADMIN: 'Quản trị viên',
+  ADMIN: 'Quản trị viên',
+  BRANCH_MANAGER: 'Quản lý',
+  CASHIER: 'Thu ngân',
+  BARBER: 'Nhân viên',
+  STYLIST: 'Nhân viên',
+  STAFF: 'Nhân viên',
+  CUSTOMER: 'Khách hàng'
+};
+
+/**
+ * Phân giải chuẩn vai trò người dùng hệ thống từ nhiều nguồn dữ liệu (SQL, Session, Token)
+ * Thứ tự ưu tiên phòng thủ: SUPER_ADMIN -> BRANCH_MANAGER -> CASHIER -> BARBER -> CUSTOMER
+ */
+function resolveUserRole(u) {
+  if (!u) return 'CUSTOMER';
+  const role = (u.role || '').toString().trim().toUpperCase();
+  const rawRole = (u.VaiTro || u.vaiTro || u.vaiTroSql || '').toString().trim().toUpperCase();
+  const chucVu = (u.ChucVu || u.chucVu || u.chucVuSql || '').toString().trim().toUpperCase();
+  const username = (u.TenDangNhap || u.username || '').toString().trim().toUpperCase();
+  const maNV = (u.MaNhanVien || u.staffId || '').toString().trim().toUpperCase();
+  const maTK = (u.MaTaiKhoan || u.id || '').toString().trim().toUpperCase();
+
+  // 1. Quản trị viên (SUPER_ADMIN)
+  if (
+    role === 'SUPER_ADMIN' || role === 'ADMIN' ||
+    rawRole === 'SUPER_ADMIN' || rawRole === 'ADMIN' ||
+    rawRole.includes('QUẢN TRỊ') || rawRole.includes('QUAN TRI') || rawRole.includes('TỐI CAO') || rawRole.includes('TOI CAO') ||
+    chucVu.includes('QUẢN TRỊ') || chucVu.includes('QUAN TRI') ||
+    username === 'ADMIN' || maNV === 'NV00' || maTK === 'TK_ADMIN'
+  ) {
+    return 'SUPER_ADMIN';
+  }
+
+  // 2. Quản lý chi nhánh (BRANCH_MANAGER)
+  if (
+    role === 'BRANCH_MANAGER' ||
+    rawRole === 'BRANCH_MANAGER' ||
+    rawRole.includes('QUẢN LÝ') || rawRole.includes('QUAN LY') ||
+    chucVu.includes('QUẢN LÝ') || chucVu.includes('QUAN LY') || chucVu.includes('BRANCH_MANAGER')
+  ) {
+    return 'BRANCH_MANAGER';
+  }
+
+  // 3. Thu ngân POS (CASHIER)
+  if (
+    role === 'CASHIER' ||
+    rawRole === 'CASHIER' ||
+    rawRole.includes('THU NGÂN') || rawRole.includes('THU NGAN') ||
+    chucVu.includes('THU NGÂN') || chucVu.includes('THU NGAN') || chucVu.includes('TIẾP TÂN') || chucVu.includes('TIEP TAN') || chucVu.includes('CASHIER')
+  ) {
+    return 'CASHIER';
+  }
+
+  // 4. Nếu tài khoản thuần túy là Khách hàng (không có chức vụ/vai trò nhân sự nào)
+  if (
+    (role === 'CUSTOMER' || rawRole === 'KHÁCH HÀNG' || rawRole === 'KHACH HANG') &&
+    !chucVu.includes('THỢ') && !chucVu.includes('THO') && !chucVu.includes('QUẢN LÝ') && !chucVu.includes('QUAN LY') && !chucVu.includes('THU NGÂN') && !chucVu.includes('THU NGAN') && !chucVu.includes('QUẢN TRỊ') && !chucVu.includes('QUAN TRI') &&
+    !rawRole.includes('THỢ') && !rawRole.includes('THO') && !rawRole.includes('QUẢN LÝ') && !rawRole.includes('QUAN LY') && !rawRole.includes('THU NGÂN') && !rawRole.includes('THU NGAN') && !rawRole.includes('QUẢN TRỊ') && !rawRole.includes('QUAN TRI') &&
+    username !== 'ADMIN' && maNV !== 'NV00' && maTK !== 'TK_ADMIN' &&
+    !maTK.startsWith('TK_NV') && !Boolean(maNV)
+  ) {
+    return 'CUSTOMER';
+  }
+
+  // 5. Thợ / Barber / Stylist / Kỹ thuật viên (BARBER)
+  if (
+    role === 'BARBER' || role === 'STYLIST' || role === 'STAFF' ||
+    rawRole === 'BARBER' || rawRole === 'STYLIST' || rawRole === 'STAFF' ||
+    rawRole.includes('THỢ') || rawRole.includes('THO') || rawRole.includes('BARBER') || rawRole.includes('STYLIST') ||
+    rawRole.includes('NHÂN VIÊN') || rawRole.includes('NHAN VIEN') ||
+    chucVu.includes('THỢ') || chucVu.includes('THO') || chucVu.includes('BARBER') || chucVu.includes('STYLIST') ||
+    chucVu.includes('KỸ THUẬT') || chucVu.includes('KY THUAT') ||
+    chucVu.includes('NHÂN VIÊN') || chucVu.includes('NHAN VIEN') ||
+    Boolean(maNV) ||
+    maTK.startsWith('TK_NV')
+  ) {
+    return 'BARBER';
+  }
+
+  // 6. Khách hàng mặc định (CUSTOMER)
+  return 'CUSTOMER';
+}
+
+/**
+ * Chuẩn hóa tên chi nhánh từ mã chi nhánh và dữ liệu SQL
+ */
+function resolveBranchName(branchCode, branchName, role = 'CUSTOMER') {
+  const bCode = (branchCode || '').toString().trim().toUpperCase();
+  if (branchName && typeof branchName === 'string' && branchName.trim()) {
+    return branchName.trim();
+  }
+  if (bCode && BRANCH_NAME_MAP[bCode]) {
+    return BRANCH_NAME_MAP[bCode];
+  }
+  if (bCode) {
+    return 'Omni Salon Barber ' + bCode;
+  }
+  return role === 'CUSTOMER' ? 'Khách Hàng' : 'Toàn Bộ Hệ Thống Salon';
+}
+
 const brandPrefixes = [
   'DoMedia', 'Hanz de Fuko', 'Apestomen', 'Blumaan', 'Kevin Murphy', 'Reuzel',
   'Davines', 'By Vilain', 'Uppercut Deluxe',
@@ -251,7 +384,10 @@ async function getFullSqlDatabase() {
     fefoLotRows,
     lowStockRows,
     inventoryRows,
-    chiTietDonHangRows
+    chiTietDonHangRows,
+    chiTietHoaDonDichVuRows,
+    chiTietHoaDonSanPhamRows,
+    chiTietLichHenRows
   ] = await Promise.all([
     querySql(`SELECT MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, 
                      CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
@@ -319,7 +455,9 @@ async function getFullSqlDatabase() {
                      CONVERT(VARCHAR(19), dh.NgayDat, 120) AS NgayDat,
                      dh.TongTien, dh.DiaChiGiaoHang, dh.HinhThucNhan, dh.TrangThai, dh.GhiChu,
                      kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
-                     cn.TenChiNhanh
+                     cn.TenChiNhanh,
+                     (SELECT TOP 1 hd.TrangThai FROM HoaDon hd WHERE hd.MaDonHang = dh.MaDonHang ORDER BY (CASE WHEN hd.TrangThai = N'Đã thanh toán' THEN 1 ELSE 2 END) ASC) AS TrangThaiHoaDon,
+                     (SELECT TOP 1 tt.TrangThai FROM ThanhToan tt JOIN HoaDon hd2 ON tt.MaHoaDon = hd2.MaHoaDon WHERE hd2.MaDonHang = dh.MaDonHang ORDER BY (CASE WHEN tt.TrangThai = N'Thành công' THEN 1 ELSE 2 END) ASC) AS TrangThaiThanhToan
               FROM DonHang dh
               LEFT JOIN KhachHang kh ON dh.MaKhachHang = kh.MaKhachHang
               LEFT JOIN ChiNhanh cn ON dh.MaChiNhanh = cn.MaChiNhanh
@@ -338,10 +476,11 @@ async function getFullSqlDatabase() {
                      ISNULL(nv.SoDienThoai, kh.SoDienThoai) AS SoDienThoai,
                      ISNULL(nv.Email, kh.Email) AS Email,
                      CONVERT(VARCHAR(10), kh.NgaySinh, 120) AS NgaySinh,
-                     nv.MaChiNhanh
+                     nv.MaChiNhanh, nv.ChucVu, nv.CapBac, cn.TenChiNhanh
               FROM TaiKhoan tk
               LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
-              LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang`),
+              LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang
+              LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh`),
     querySql(`SELECT tb.MaThongBao, tb.MaTaiKhoan, tb.MaKhachHang, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao,
                      CONVERT(VARCHAR(19), tb.ThoiGianGui, 120) AS ThoiGianGui, tb.TrangThaiDoc
                FROM ThongBao tb`),
@@ -376,7 +515,21 @@ async function getFullSqlDatabase() {
     querySql(`SELECT hd.MaHoaDon, hd.MaKhachHang, hd.MaLichHen, hd.MaDonHang, hd.MaChiNhanh, 
                      CONVERT(VARCHAR(19), hd.NgayLap, 120) AS NgayLap, 
                      hd.TongTien, hd.TrangThai, hd.MaSoHoaDon, kh.HoTen AS TenKhachHang, 
-                     kh.SoDienThoai AS SdtKhachHang, cn.TenChiNhanh 
+                     kh.SoDienThoai AS SdtKhachHang, cn.TenChiNhanh,
+                     CASE 
+                       WHEN EXISTS (SELECT 1 FROM ChiTietHoaDon_DichVu WHERE MaHoaDon = hd.MaHoaDon) THEN
+                         (SELECT ISNULL(SUM(ThanhTien), 0) FROM ChiTietHoaDon_DichVu WHERE MaHoaDon = hd.MaHoaDon)
+                       WHEN hd.MaLichHen IS NOT NULL THEN
+                         ISNULL((SELECT SUM(ThanhTien) FROM ChiTietLichHen WHERE MaLichHen = hd.MaLichHen), hd.TongTien)
+                       ELSE 0
+                     END AS TienDichVu,
+                     CASE 
+                       WHEN EXISTS (SELECT 1 FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = hd.MaHoaDon) THEN
+                         (SELECT ISNULL(SUM(ThanhTien), 0) FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = hd.MaHoaDon)
+                       WHEN hd.MaDonHang IS NOT NULL THEN
+                         ISNULL((SELECT SUM(ThanhTien) FROM ChiTietDonHang WHERE MaDonHang = hd.MaDonHang), hd.TongTien)
+                       ELSE 0
+                     END AS TienSanPham
               FROM HoaDon hd 
               LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang 
               LEFT JOIN ChiNhanh cn ON hd.MaChiNhanh = cn.MaChiNhanh 
@@ -400,7 +553,21 @@ async function getFullSqlDatabase() {
                      ctdh.SoLuong, ctdh.DonGiaGoc, ctdh.PhanTramGiamGia, ctdh.DonGiaThucTe, ctdh.ThanhTien, 
                      sp.TenSanPham, sp.HinhAnh 
               FROM ChiTietDonHang ctdh 
-              JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham`)
+              JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham`),
+    querySql(`SELECT ctdv.MaChiTietHDDV, ctdv.MaHoaDon, ctdv.MaDichVu, ctdv.MaCombo, ctdv.SoLuong, ctdv.DonGia, ctdv.ThanhTien,
+                     ISNULL(dv.TenDichVu, cb.TenCombo) AS TenDichVu
+              FROM ChiTietHoaDon_DichVu ctdv
+              LEFT JOIN DichVu dv ON ctdv.MaDichVu = dv.MaDichVu
+              LEFT JOIN ComboDichVu cb ON ctdv.MaCombo = cb.MaCombo`).catch(() => []),
+    querySql(`SELECT ctsp.MaChiTietHDSanPham, ctsp.MaHoaDon, ctsp.MaSanPham, ctsp.SoLuong, ctsp.DonGiaThucTe, ctsp.ThanhTien,
+                     sp.TenSanPham, sp.HinhAnh
+              FROM ChiTietHoaDon_SanPham ctsp
+              JOIN SanPham sp ON ctsp.MaSanPham = sp.MaSanPham`).catch(() => []),
+    querySql(`SELECT ctlh.MaChiTietLichHen, ctlh.MaLichHen, ctlh.MaDichVu, ctlh.MaCombo, ctlh.SoLuong, ctlh.DonGia, ctlh.ThanhTien,
+                     ISNULL(dv.TenDichVu, cb.TenCombo) AS TenDichVu
+              FROM ChiTietLichHen ctlh
+              LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu
+              LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo`).catch(() => [])
   ]);
 
   // Chuẩn hóa danh sách đơn hàng kèm chi tiết sản phẩm chuẩn FEFO
@@ -426,7 +593,12 @@ async function getFullSqlDatabase() {
         image: it.HinhAnh || ''
       }));
 
-    const isPaid = (r.TrangThai === 'Đã thanh toán' || (r.GhiChu && r.GhiChu.includes('Đã thanh toán')));
+    const isPaid = (
+      r.TrangThaiHoaDon === 'Đã thanh toán' ||
+      r.TrangThaiThanhToan === 'Thành công' ||
+      r.TrangThai === 'Đã thanh toán' ||
+      (r.GhiChu && r.GhiChu.includes('Đã thanh toán'))
+    );
 
     return {
       id: r.MaDonHang,
@@ -445,6 +617,8 @@ async function getFullSqlDatabase() {
       deliveryType: (r.HinhThucNhan === 'Nhận tại quầy' || (r.DiaChiGiaoHang && r.DiaChiGiaoHang.includes('quầy'))) ? 'PICKUP_BRANCH' : 'DELIVERY',
       paymentMethod: r.HinhThucNhan === 'Nhận tại quầy' ? 'Thanh toán tại quầy' : 'VietQR',
       paymentStatus: isPaid ? 'Paid' : 'Unpaid',
+      isPaid: Boolean(isPaid),
+      TrangThaiHoaDon: r.TrangThaiHoaDon || (isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'),
       orderStatus: oStatus,
       TrangThai: r.TrangThai,
       notes: r.GhiChu,
@@ -852,24 +1026,170 @@ async function getFullSqlDatabase() {
     status: r.TrangThai || 'Đang áp dụng'
   }));
 
+  const mappedSuppliers = (suppRows || []).map(r => ({
+    id: r.MaNhaCungCap,
+    MaNhaCungCap: r.MaNhaCungCap,
+    name: r.TenNhaCungCap,
+    TenNhaCungCap: r.TenNhaCungCap,
+    phone: r.SoDienThoai || '',
+    SoDienThoai: r.SoDienThoai || '',
+    email: r.Email || '',
+    Email: r.Email || '',
+    address: r.DiaChi || '',
+    DiaChi: r.DiaChi || '',
+    status: r.TrangThai || 'Hoạt động',
+    TrangThai: r.TrangThai || 'Hoạt động'
+  }));
+
+  const mappedInvoices = (invoiceRows || []).map(hd => {
+    let services = (chiTietHoaDonDichVuRows || [])
+      .filter(s => s.MaHoaDon === hd.MaHoaDon)
+      .map(s => ({
+        id: s.MaChiTietHDDV,
+        serviceId: s.MaDichVu || s.MaCombo,
+        name: s.TenDichVu || 'Dịch vụ Salon',
+        price: parseFloat(s.DonGia || 0),
+        qty: s.SoLuong || 1,
+        total: parseFloat(s.ThanhTien || 0)
+      }));
+
+    if (services.length === 0 && hd.MaLichHen) {
+      services = (chiTietLichHenRows || [])
+        .filter(s => s.MaLichHen === hd.MaLichHen)
+        .map(s => ({
+          id: s.MaChiTietLichHen,
+          serviceId: s.MaDichVu || s.MaCombo,
+          name: s.TenDichVu || 'Dịch vụ Salon',
+          price: parseFloat(s.DonGia || 0),
+          qty: s.SoLuong || 1,
+          total: parseFloat(s.ThanhTien || 0)
+        }));
+    }
+
+    let items = (chiTietHoaDonSanPhamRows || [])
+      .filter(p => p.MaHoaDon === hd.MaHoaDon)
+      .map(p => ({
+        id: p.MaChiTietHDSanPham,
+        productId: p.MaSanPham,
+        name: p.TenSanPham || 'Sản phẩm',
+        price: parseFloat(p.DonGiaThucTe || 0),
+        qty: p.SoLuong || 1,
+        quantity: p.SoLuong || 1,
+        total: parseFloat(p.ThanhTien || 0),
+        image: p.HinhAnh || ''
+      }));
+
+    if (items.length === 0 && hd.MaDonHang) {
+      items = (chiTietDonHangRows || [])
+        .filter(p => p.MaDonHang === hd.MaDonHang)
+        .map(p => ({
+          id: p.MaChiTietDonHang,
+          productId: p.MaSanPham,
+          name: p.TenSanPham || 'Sản phẩm',
+          price: parseFloat(p.DonGiaThucTe || 0),
+          qty: p.SoLuong || 1,
+          quantity: p.SoLuong || 1,
+          total: parseFloat(p.ThanhTien || 0),
+          image: p.HinhAnh || ''
+        }));
+    }
+
+    let sTotal = parseFloat(hd.TienDichVu !== undefined && hd.TienDichVu !== null ? hd.TienDichVu : 0);
+    let pTotal = parseFloat(hd.TienSanPham !== undefined && hd.TienSanPham !== null ? hd.TienSanPham : 0);
+
+    if (sTotal === 0 && services.length > 0) {
+      sTotal = services.reduce((sum, s) => sum + (s.total || s.price || 0), 0);
+    }
+    if (pTotal === 0 && items.length > 0) {
+      pTotal = items.reduce((sum, it) => sum + (it.total || it.price || 0), 0);
+    }
+
+    let totalAmount = parseFloat(hd.TongTien || (sTotal + pTotal) || 0);
+    if (totalAmount === 0) {
+      totalAmount = sTotal + pTotal;
+    } else if (sTotal === 0 && pTotal === 0 && totalAmount > 0) {
+      if (hd.MaDonHang) {
+        pTotal = totalAmount;
+        sTotal = 0;
+      } else {
+        sTotal = totalAmount;
+        pTotal = 0;
+      }
+    }
+
+    const payment = (paymentRows || []).find(pm => pm.MaHoaDon === hd.MaHoaDon);
+
+    return {
+      id: hd.MaHoaDon,
+      MaHoaDon: hd.MaHoaDon,
+      orderCode: hd.MaDonHang || null,
+      bookingCode: hd.MaLichHen || null,
+      MaLichHen: hd.MaLichHen || null,
+      MaDonHang: hd.MaDonHang || null,
+      customerId: hd.MaKhachHang,
+      customerName: hd.TenKhachHang || 'Khách Vãng Lai',
+      customerPhone: hd.SdtKhachHang || '',
+      branchId: hd.MaChiNhanh,
+      branchName: hd.TenChiNhanh || 'Omni Salon Chi Nhánh',
+      createdDate: hd.NgayLap,
+      NgayLap: hd.NgayLap,
+      totalAmount: totalAmount,
+      TongTien: totalAmount,
+      serviceTotal: sTotal,
+      TongTienDichVu: sTotal,
+      TienDichVu: sTotal,
+      productTotal: pTotal,
+      TongTienSanPham: pTotal,
+      TienSanPham: pTotal,
+      status: hd.TrangThai || 'Đã thanh toán',
+      TrangThai: hd.TrangThai || 'Đã thanh toán',
+      paymentStatus: (hd.TrangThai === 'Đã thanh toán') ? 'Paid' : 'Unpaid',
+      paymentMethod: (payment && payment.PhuongThuc) || (hd.MaDonHang ? 'VietQR' : 'Tiền mặt'),
+      cashierName: (payment && payment.TenNhanVien) || 'Thu Ngân Quầy',
+      MaSoHoaDon: hd.MaSoHoaDon || `HD-${hd.MaHoaDon}`,
+      services,
+      items,
+      products: items
+    };
+  });
+
+  const mappedUsers = (userRows || []).map(u => {
+    const role = resolveUserRole(u);
+    const bName = resolveBranchName(u.MaChiNhanh, u.TenChiNhanh, role);
+
+    return {
+      ...u,
+      id: u.MaTaiKhoan,
+      username: u.TenDangNhap,
+      fullName: u.HoTen,
+      phone: u.SoDienThoai,
+      email: u.Email,
+      role: role,
+      roleName: (role === 'BARBER' && u.ChucVu) ? u.ChucVu : (ROLE_NAME_MAP[role] || role),
+      branchId: u.MaChiNhanh || (role === 'CUSTOMER' ? null : 'ALL'),
+      branchName: bName,
+      TenChiNhanh: bName
+    };
+  });
+
   return {
     branches: mappedBranches,
     services: mappedServices,
     combos: mappedCombos,
     stylists: mappedStylists,
     categories: mappedCategories,
-    suppliers: suppRows,
+    suppliers: mappedSuppliers,
     products: mappedProducts,
     bookings: mappedBookings,
     orders: mappedOrders,
     promotions: mappedPromotions,
     reviews: reviewRows,
-    users: userRows,
+    users: mappedUsers,
     notifications: thongBaoRows,
     shifts: caLamViecRows,
     inventory: inventoryRows,
     receipts: mappedReceipts,
-    invoices: invoiceRows,
+    invoices: mappedInvoices,
     payments: paymentRows,
     discountRules: mappedDiscountRules,
     fefoLots: mappedFefoLots,
@@ -891,6 +1211,11 @@ module.exports = {
   generateNextOrderId,
   generateNextCtdhId,
   resolveServiceInfo,
-  getFullSqlDatabase
+  getFullSqlDatabase,
+  BRANCH_NAME_MAP,
+  ROLE_NAME_MAP,
+  ROLE_SQL_MAP,
+  resolveUserRole,
+  resolveBranchName
 };
 

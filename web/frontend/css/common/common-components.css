@@ -513,7 +513,8 @@ body.light .dropdown-admin-card-btn .admin-card-arrow,
   box-shadow: 0 1px 4px rgba(29, 78, 216, 0.35);
 }
 
-.header-role-badge.role-stylist {
+.header-role-badge.role-stylist,
+.header-role-badge.role-barber {
   background: #0D9488;
   color: #f0fdfa;
   box-shadow: 0 1px 4px rgba(13, 148, 136, 0.35);
