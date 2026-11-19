@@ -1,4 +1,6 @@
 const { querySql } = require('../../database/db');
+const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
 const { catIcons, brandPrefixes, detectBrand } = require('../../services/helper_service');
 
 function getProductGallery(img) {
@@ -165,6 +167,8 @@ async function handleProductRoutes(req, res, ctx) {
         GiaBan: origPrice,
         costPrice: parseFloat(r.GiaNhap || 0),
         GiaNhap: parseFloat(r.GiaNhap || 0),
+        status: r.TrangThaiKinhDoanh || 'Đang kinh doanh',
+        TrangThaiKinhDoanh: r.TrangThaiKinhDoanh || 'Đang kinh doanh',
         discountPercent,
         PhanTramGiam: discountPercent,
         fefoDiscount,
@@ -237,6 +241,19 @@ async function handleProductRoutes(req, res, ctx) {
       )
     `, [spId, spId]).catch(() => {});
 
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'CREATE_PRODUCT',
+      entityType: 'SanPham',
+      entityId: spId,
+      after: { id: spId, name, price, costPrice: cost, status },
+      details: `${actorName} (${actorRole}) thêm sản phẩm mới: ${name} (Mã: #${spId})`
+    }).catch(() => {});
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, product: { id: spId, MaSanPham: spId, name, price, status } }));
     return true;
@@ -246,6 +263,9 @@ async function handleProductRoutes(req, res, ctx) {
   if (pathname.startsWith('/api/products/') && method === 'PUT') {
     const id = pathname.replace('/api/products/', '').trim();
     const body = parsedBody || {};
+    const oldRows = await querySql(`SELECT TenSanPham, GiaBan, GiaNhap, TrangThaiKinhDoanh, MoTa FROM SanPham WHERE MaSanPham = ?`, [id]);
+    const oldProd = (oldRows && oldRows[0]) ? oldRows[0] : null;
+
     await querySql(
       `UPDATE SanPham SET 
          TenSanPham = COALESCE(?, TenSanPham), 
@@ -267,6 +287,21 @@ async function handleProductRoutes(req, res, ctx) {
         id
       ]
     );
+
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'UPDATE_PRODUCT',
+      entityType: 'SanPham',
+      entityId: id,
+      before: oldProd,
+      after: body,
+      details: `${actorName} (${actorRole}) cập nhật sản phẩm #${id} (${body.name || oldProd?.TenSanPham || ''})`
+    }).catch(() => {});
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -275,6 +310,9 @@ async function handleProductRoutes(req, res, ctx) {
   // DELETE /api/products/:id - Xóa sản phẩm khỏi bảng SanPham trong SQL
   if (pathname.startsWith('/api/products/') && method === 'DELETE') {
     const id = pathname.replace('/api/products/', '').trim();
+    const oldRows = await querySql(`SELECT TenSanPham, GiaBan FROM SanPham WHERE MaSanPham = ?`, [id]);
+    const oldProd = (oldRows && oldRows[0]) ? oldRows[0] : null;
+
     try {
       await querySql(`
         DECLARE @id VARCHAR(30) = ?;
@@ -288,6 +326,20 @@ async function handleProductRoutes(req, res, ctx) {
         ALTER TABLE ChiTietHoaDon_SanPham CHECK CONSTRAINT FK_ChiTietHoaDonSanPham_SanPham;
         ALTER TABLE ChiTietPhieuNhap CHECK CONSTRAINT FK_ChiTietPhieuNhap_SanPham;
       `, [id]);
+
+      const authUser = extractAuthUser(req);
+      const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+      const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+      auditService.logAudit({
+        actor: actorName,
+        role: actorRole,
+        action: 'DELETE_PRODUCT',
+        entityType: 'SanPham',
+        entityId: id,
+        before: oldProd,
+        details: `${actorName} (${actorRole}) xóa sản phẩm #${id} (${oldProd?.TenSanPham || ''})`
+      }).catch(() => {});
+
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: true, message: 'Đã xóa sản phẩm khỏi bảng SanPham trong SQL.', id }));
       return true;

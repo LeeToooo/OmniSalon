@@ -825,13 +825,12 @@
               const sMatch = String(s.id || s.MaNhanVien || s.name || '').match(/(\d+)/);
               const sNum = sMatch ? parseInt(sMatch[1], 10) : (idx + 1);
               const thoIdx = ((sNum - 1) % 20) + 1;
-              const defaultAvatar = `/DataPicture/ChanDungTho/Tho${thoIdx}.jpg`;
-              const avatarUrl = (s.avatar && !s.avatar.includes('images.unsplash.com')) ? s.avatar : defaultAvatar;
+              const avatarUrl = `/DataPicture/ChanDungTho/Tho${thoIdx}.jpg`;
               return `
               <div onclick="BookingPage.onSelectStylist('${s.id}')"
                    style="padding: 20px; border-radius: 14px; cursor: pointer; border: 2px solid ${this.bookingState.stylistId === s.id ? '#f59e0b' : 'var(--border-color)'}; background: ${this.bookingState.stylistId === s.id ? 'rgba(245, 158, 11, 0.08)' : 'var(--surface-card)'}; text-align: center; transition: all 0.2s ease;">
                 <div style="width: 72px; height: 72px; margin: 0 auto 12px; border-radius: 50%; overflow: hidden; border: 2px solid #f59e0b;">
-                  <img src="${avatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${s.name}" onerror="this.onerror=null; this.src='${defaultAvatar}';">
+                  <img src="${avatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${s.name}" onerror="this.onerror=null; this.src='${avatarUrl}';">
                 </div>
                 <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">${s.name}</h4>
                 <div style="margin-bottom: 6px; display: flex; justify-content: center; gap: 6px; align-items: center;">

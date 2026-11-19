@@ -15,9 +15,9 @@
         `;
       }
       return pagedItems.map((item, index) => {
-        const stt = item.stt || (((this.catalogPage - 1) * this.pageSize) + index + 1);
-        const realId = item.real_id || item.id || item.MaCombo || item.MaDichVu || item.MaSanPham || '';
-        const itemId = item.id || item.MaCombo || item.MaDichVu || item.MaSanPham || '';
+        const stt = (((this.catalogPage - 1) * this.pageSize) + index + 1);
+        const realId = item.real_id || item.MaCombo || item.MaDichVu || item.MaSanPham || item.id || '';
+        const itemId = realId;
         const displayCode = type === 'combos' ? `CB${stt}` : (type === 'products' ? `SP${stt}` : `DV${stt}`);
         const itemName = item.name || item.TenCombo || item.TenDichVu || item.TenSanPham || itemId;
         const itemCat = item.category || (type === 'combos' ? 'Combo VIP' : (type === 'products' ? (item.brand || 'Sản Phẩm') : 'Dịch Vụ'));
@@ -202,9 +202,9 @@
       this.catalogPage = 1;
       const content = document.getElementById('adminSubTabContent');
       if (content && this.adminSubTab === 'catalog') {
-        const services = window.store.getServices(null, true);
-        const combos = window.store.getCombos(true);
-        const products = window.store.getProducts(null, true);
+        const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices(null, true) : [];
+        const combos = (window.store && typeof window.store.getCombos === 'function') ? window.store.getCombos(true) : [];
+        const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts(null, true) : [];
         content.innerHTML = this.renderCatalogTab(services, combos, products);
         return;
       }
@@ -236,9 +236,9 @@
       const content = document.getElementById('adminSubTabContent');
       if (!content || this.adminSubTab !== 'catalog') return;
 
-      const services = window.store.getServices(null, true);
-      const combos = window.store.getCombos(true);
-      const products = window.store.getProducts(null, true);
+      const services = (window.store && typeof window.store.getServices === 'function') ? window.store.getServices(null, true) : [];
+      const combos = (window.store && typeof window.store.getCombos === 'function') ? window.store.getCombos(true) : [];
+      const products = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts(null, true) : [];
 
       let type = this.catalogTabType || 'services';
       if (type !== 'services' && type !== 'combos') {

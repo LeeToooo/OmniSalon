@@ -1,5 +1,6 @@
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
 const {
   formatTime,
   formatDate,
@@ -456,6 +457,21 @@ async function handleBookingRoutes(req, res, ctx) {
       console.warn('[ThongBao] Lỗi tạo thông báo đặt lịch:', e.message);
     }
 
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : `${custName} (${custPhone})`;
+    const actorRole = authUser ? (authUser.role || 'CUSTOMER') : 'CUSTOMER';
+
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'CREATE_BOOKING',
+      entityType: 'LichHen',
+      entityId: id,
+      branchId: cnId,
+      after: { id, customer: custName, stylist: nvId, service: srvInfo.name, price, date, timeSlot: startTime.substring(0, 5) },
+      details: `${actorName} tạo lịch hẹn #${id} dịch vụ ${srvInfo.name} (${date} ${startTime.substring(0, 5)})`
+    }).catch(() => {});
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
@@ -486,27 +502,66 @@ async function handleBookingRoutes(req, res, ctx) {
   if (pathname.startsWith('/api/bookings/') && (method === 'DELETE' || method === 'PUT' || method === 'PATCH')) {
     const id = pathname.replace('/api/bookings/', '').replace('/cancel', '').replace('/status', '').replace('/checkin', '').trim();
     const b = parsedBody || {};
+    const authUser = extractAuthUser(req);
+
+    const oldRows = await querySql(`SELECT TrangThai, MaChiNhanh, MaKhachHang, NgayHen, GioBatDau FROM LichHen WHERE MaLichHen = ?`, [id]);
+    const oldData = (oldRows && oldRows[0]) ? oldRows[0] : null;
+
+    let action = 'UPDATE_BOOKING_STATUS';
+    let newStatus = 'Đã xác nhận';
+    let afterData = {};
 
     if (method === 'DELETE' || b.status === 'Cancelled' || b.status === 'cancelled' || b.status === 'Đã hủy' || pathname.includes('/cancel')) {
+      action = 'CANCEL_BOOKING';
+      newStatus = 'Đã hủy';
       const reason = b.cancellationReason || b.reason || 'Khách hủy lịch';
       await querySql(`UPDATE LichHen SET TrangThai = N'Đã hủy', LyDoHuy = ? WHERE MaLichHen = ?`, [reason, id]);
+      afterData = { TrangThai: 'Đã hủy', LyDoHuy: reason };
     } else if (pathname.includes('/checkin') || b.status === 'In_Progress' || b.status === 'in_progress' || b.status === 'Đang phục vụ') {
+      newStatus = 'Đang phục vụ';
       await querySql(`UPDATE LichHen SET TrangThai = N'Đang phục vụ' WHERE MaLichHen = ?`, [id]);
+      afterData = { TrangThai: newStatus };
     } else if (b.status === 'Waiting' || b.status === 'waiting' || b.status === 'Chờ vào ghế') {
+      newStatus = 'Chờ vào ghế';
       await querySql(`UPDATE LichHen SET TrangThai = N'Chờ vào ghế' WHERE MaLichHen = ?`, [id]);
+      afterData = { TrangThai: newStatus };
     } else if (b.status === 'Completed' || b.status === 'completed' || b.status === 'Hoàn thành') {
+      newStatus = 'Hoàn thành';
       await querySql(`UPDATE LichHen SET TrangThai = N'Hoàn thành' WHERE MaLichHen = ?`, [id]);
+      afterData = { TrangThai: newStatus };
     } else if (b.status === 'Confirmed' || b.status === 'confirmed' || b.status === 'Đã xác nhận') {
+      newStatus = 'Đã xác nhận';
       await querySql(`UPDATE LichHen SET TrangThai = N'Đã xác nhận' WHERE MaLichHen = ?`, [id]);
+      afterData = { TrangThai: newStatus };
     } else if (b.date || b.timeSlot) {
+      action = 'RESCHEDULE_BOOKING';
       const newDate = b.date || b.bookingDate || new Date().toISOString().split('T')[0];
       const newTime = b.timeSlot ? (b.timeSlot.length === 5 ? `${b.timeSlot}:00` : b.timeSlot) : '09:00:00';
       const dur = parseInt(b.duration || b.durationMinutes || 45, 10);
       const newEndTime = computeEndTime(newTime, dur);
       await querySql(`UPDATE LichHen SET NgayHen = ?, GioBatDau = ?, GioKetThuc = ?, TrangThai = N'Đã xác nhận' WHERE MaLichHen = ?`, [newDate, newTime, newEndTime, id]);
+      afterData = { NgayHen: newDate, GioBatDau: newTime, GioKetThuc: newEndTime, TrangThai: 'Đã xác nhận' };
     } else {
-      await querySql(`UPDATE LichHen SET TrangThai = ? WHERE MaLichHen = ?`, [b.status || 'Đã xác nhận', id]);
+      newStatus = b.status || 'Đã xác nhận';
+      await querySql(`UPDATE LichHen SET TrangThai = ? WHERE MaLichHen = ?`, [newStatus, id]);
+      afterData = { TrangThai: newStatus };
     }
+
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Khách Hàng';
+    const actorRole = authUser ? (authUser.role || 'CUSTOMER') : 'CUSTOMER';
+    const branchId = oldData ? oldData.MaChiNhanh : (b.branchId || null);
+
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action,
+      entityType: 'LichHen',
+      entityId: id,
+      branchId,
+      before: oldData ? { TrangThai: oldData.TrangThai, NgayHen: oldData.NgayHen, GioBatDau: oldData.GioBatDau } : null,
+      after: afterData,
+      details: `${actorName} (${actorRole}) ${action === 'CANCEL_BOOKING' ? 'hủy lịch' : (action === 'RESCHEDULE_BOOKING' ? 'đổi giờ' : 'cập nhật trạng thái')} lịch hẹn #${id}: ${newStatus}`
+    }).catch(() => {});
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã cập nhật trạng thái lịch hẹn trong SQL Server', id }));

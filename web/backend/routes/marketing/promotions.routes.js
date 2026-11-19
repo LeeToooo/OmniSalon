@@ -45,14 +45,19 @@ async function handlePromotionRoutes(req, res, ctx) {
     const existingIds = new Set((kmRows || []).map(r => String(r.MaKhuyenMai || '').trim().toUpperCase()));
     let maxN = 0;
     (kmRows || []).forEach(r => {
-      const m = String(r.MaKhuyenMai || '').match(/^KM0*(\d+)$/i);
+      const clean = String(r.MaKhuyenMai || '').trim();
+      const m = clean.match(/KM0*(\d+)/i) || clean.match(/(\d+)/);
       if (m) {
         const num = parseInt(m[1], 10);
         if (num > maxN) maxN = num;
       }
     });
-    const nextN = maxN + 1;
-    const autoKmId = 'KM' + (nextN < 10 ? '0' + nextN : nextN);
+    let nextN = maxN + 1;
+    let autoKmId = 'KM' + (nextN < 10 ? '0' + nextN : nextN);
+    while (existingIds.has(autoKmId.toUpperCase())) {
+      nextN++;
+      autoKmId = 'KM' + (nextN < 10 ? '0' + nextN : nextN);
+    }
     let chosenId = (body.id || body.MaKhuyenMai || body.code || '').trim();
     if (!chosenId || existingIds.has(chosenId.toUpperCase())) {
       chosenId = autoKmId;
@@ -201,14 +206,19 @@ async function handlePromotionRoutes(req, res, ctx) {
     const existingIds = new Set((qtRows || []).map(r => String(r.MaQuyTac || '').trim().toUpperCase()));
     let maxN = 0;
     (qtRows || []).forEach(r => {
-      const m = String(r.MaQuyTac || '').match(/^QT0*(\d+)$/i);
+      const clean = String(r.MaQuyTac || '').trim();
+      const m = clean.match(/QT0*(\d+)/i) || clean.match(/(\d+)/);
       if (m) {
         const num = parseInt(m[1], 10);
         if (num > maxN) maxN = num;
       }
     });
-    const nextN = maxN + 1;
-    const autoRuleId = 'QT' + (nextN < 10 ? '0' + nextN : nextN);
+    let nextN = maxN + 1;
+    let autoRuleId = 'QT' + (nextN < 10 ? '0' + nextN : nextN);
+    while (existingIds.has(autoRuleId.toUpperCase())) {
+      nextN++;
+      autoRuleId = 'QT' + (nextN < 10 ? '0' + nextN : nextN);
+    }
     let chosenId = (body.id || body.MaQuyTac || '').trim();
     if (!chosenId || existingIds.has(chosenId.toUpperCase())) {
       chosenId = autoRuleId;

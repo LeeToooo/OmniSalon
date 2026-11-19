@@ -312,8 +312,19 @@
     // ---------------- MODAL QUY TẮC GIẢM GIÁ ----------------
     openAddDiscountRuleModal() {
       this._editingDiscountRuleId = null;
+      let maxN = 0;
+      const allRules = (window.store && typeof window.store.getDiscountRules === 'function') ? window.store.getDiscountRules() : [];
+      allRules.forEach(r => {
+        const str = String(r.id || r.MaQuyTac || '').trim();
+        const m = str.match(/QT0*(\d+)/i) || str.match(/(\d+)/);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (n > maxN) maxN = n;
+        }
+      });
+      const nextId = 'QT' + (maxN + 1 < 10 ? '0' + (maxN + 1) : (maxN + 1));
       this._showDiscountRuleModal({
-        id: '',
+        id: nextId,
         name: '',
         minDays: 30,
         maxDays: 90,
@@ -476,8 +487,19 @@
     openAddPromotionModal() {
       this._editingPromotionId = null;
       const today = new Date().toISOString().split('T')[0];
+      let maxN = 0;
+      const allPromos = (window.store && typeof window.store.getPromotions === 'function') ? window.store.getPromotions() : [];
+      allPromos.forEach(p => {
+        const str = String(p.id || p.MaKhuyenMai || '').trim();
+        const m = str.match(/KM0*(\d+)/i) || str.match(/(\d+)/);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (n > maxN) maxN = n;
+        }
+      });
+      const nextId = 'KM' + (maxN + 1 < 10 ? '0' + (maxN + 1) : (maxN + 1));
       this._showPromotionModal({
-        id: '',
+        id: nextId,
         name: '',
         type: 'Giảm giá %',
         value: 10,

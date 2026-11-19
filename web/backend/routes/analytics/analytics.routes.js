@@ -1,5 +1,6 @@
-﻿const { querySql } = require('../../database/db');
+const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
 
 async function handleAnalyticsRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl } = ctx;
@@ -69,6 +70,68 @@ async function handleAnalyticsRoutes(req, res, ctx) {
       commissionAmount: Math.round(revenue * commissionRate),
       currency: 'VND'
     }));
+    return true;
+  }
+
+  // GET /api/audit/logs hoặc /api/audit - Xem nhật ký kiểm toán (Phân quyền: SUPER_ADMIN, BRANCH_MANAGER)
+  if ((pathname === '/api/audit/logs' || pathname === '/api/audit') && method === 'GET') {
+    const authUser = extractAuthUser(req);
+    if (!authUser) {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Yêu cầu đăng nhập để truy cập nhật ký kiểm toán.' }));
+      return true;
+    }
+
+    try {
+      const branchId = parsedUrl.searchParams.get('branch_id');
+      const role = parsedUrl.searchParams.get('role');
+      const action = parsedUrl.searchParams.get('action');
+      const entityType = parsedUrl.searchParams.get('entity_type');
+      const q = parsedUrl.searchParams.get('q');
+
+      const logs = await auditService.getAuditLogs({ authUser, branchId, role, action, entityType, q });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify(logs));
+      return true;
+    } catch (err) {
+      const status = err.statusCode || 500;
+      res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+      return true;
+    }
+  }
+
+  // POST /api/audit/logs hoặc /api/audit - Ghi nhận nhật ký kiểm toán mới
+  if ((pathname === '/api/audit/logs' || pathname === '/api/audit') && method === 'POST') {
+    const authUser = extractAuthUser(req);
+    const body = ctx.parsedBody || {};
+
+    const actor = authUser ? (authUser.fullName || authUser.name || authUser.username) : (body.actor || 'Hệ Thống');
+    const role = authUser ? (authUser.role || 'CUSTOMER') : (body.role || 'SYSTEM');
+    const branchId = body.branchId || authUser?.branchId || null;
+
+    const log = await auditService.logAudit({
+      actor,
+      role,
+      action: body.action,
+      entityType: body.entityType,
+      entityId: body.entityId,
+      branchId,
+      before: body.before,
+      after: body.after,
+      details: body.details,
+      ip: req.socket?.remoteAddress || '127.0.0.1'
+    });
+
+    res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: true, log }));
+    return true;
+  }
+
+  // Chặn sửa/xóa audit log theo ràng buộc: "Bản ghi audit chỉ được thêm, không có API sửa hoặc xóa."
+  if ((pathname === '/api/audit/logs' || pathname === '/api/audit' || pathname.startsWith('/api/audit/')) && ['PUT', 'PATCH', 'DELETE'].includes(method)) {
+    res.writeHead(405, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: false, error: 'Bản ghi kiểm toán là bất biến (Immutable), không được phép sửa hoặc xóa.' }));
     return true;
   }
 

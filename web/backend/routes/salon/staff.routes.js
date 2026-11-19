@@ -1,5 +1,6 @@
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
 
 // Đường dẫn ảnh chân dung thợ thật từ thư mục ChanDungTho (Tho1.jpg -> Tho20.jpg)
 function getBarberAvatar(id, name, fallback) {
@@ -159,6 +160,19 @@ async function handleStaffRoutes(req, res, ctx) {
       [tkId, nvId, phone || nvId.toLowerCase(), role === 'Quản lý chi nhánh' ? 'Quản lý' : (role === 'Thu ngân' ? 'Thu ngân' : 'Nhân viên')]
     ).catch(() => {});
 
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'CREATE_STYLIST',
+      entityType: 'NhanVien',
+      entityId: nvId,
+      branchId,
+      after: { id: nvId, name: fullName, phone, email, level, role, branchId },
+      details: `${actorName} (${actorRole}) thêm nhân sự mới: ${fullName} (Mã: #${nvId}, Vai trò: ${role})`
+    }).catch(() => {});
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
@@ -231,6 +245,20 @@ async function handleStaffRoutes(req, res, ctx) {
       await querySql(`UPDATE TaiKhoan SET VaiTro = ? WHERE MaNhanVien = ?`, [vaiTroTk, id]).catch(() => {});
     }
 
+    const updateActor = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const updateRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: updateActor,
+      role: updateRole,
+      action: 'UPDATE_STYLIST',
+      entityType: 'NhanVien',
+      entityId: id,
+      branchId: currentEmp?.MaChiNhanh,
+      before: currentEmp,
+      after: st,
+      details: `${updateActor} (${updateRole}) cập nhật nhân sự #${id} (${st.name || currentEmp?.HoTen || ''})`
+    }).catch(() => {});
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -263,6 +291,19 @@ async function handleStaffRoutes(req, res, ctx) {
       );
       reassignMsg = ` Các lịch hẹn chưa hoàn thành đã được tự động chuyển sang thợ ${newStylistId}.`;
     }
+
+    const delAuthUser = extractAuthUser(req);
+    const delActor = delAuthUser ? (delAuthUser.fullName || delAuthUser.name || delAuthUser.username) : 'Quản trị viên';
+    const delRole = delAuthUser ? (delAuthUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: delActor,
+      role: delRole,
+      action: 'DELETE_STYLIST',
+      entityType: 'NhanVien',
+      entityId: id,
+      branchId,
+      details: `${delActor} (${delRole}) cho nhân sự #${id} nghỉ việc.${reassignMsg}`
+    }).catch(() => {});
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
@@ -306,6 +347,19 @@ async function handleStaffRoutes(req, res, ctx) {
        VALUES (?, ?, ?, ?, ?, N'Đã xếp ca')`,
       [newCaId, maNhanVien, date || new Date().toISOString().slice(0, 10), startT, endT]
     );
+
+    const shiftAuthUser = extractAuthUser(req);
+    const shiftActor = shiftAuthUser ? (shiftAuthUser.fullName || shiftAuthUser.name || shiftAuthUser.username) : `Thợ ${maNhanVien}`;
+    const shiftRole = shiftAuthUser ? (shiftAuthUser.role || 'STYLIST') : 'STYLIST';
+    auditService.logAudit({
+      actor: shiftActor,
+      role: shiftRole,
+      action: 'REGISTER_SHIFT',
+      entityType: 'CaLamViec',
+      entityId: newCaId,
+      after: { shiftId: newCaId, staffId: maNhanVien, date: date || new Date().toISOString().slice(0, 10), startT, endT },
+      details: `${shiftActor} (${shiftRole}) đăng ký/xếp ca làm việc #${newCaId} (${startT} - ${endT})`
+    }).catch(() => {});
 
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã xếp ca làm việc thành công!', shiftId: newCaId }));

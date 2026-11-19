@@ -1,4 +1,5 @@
 const { querySql } = require('../database/db');
+const auditService = require('./audit.service');
 
 // Bộ nhớ cache tạm các giao dịch thanh toán thành công gần nhất (lưu trong 30 phút)
 const recentPaymentsCache = new Map();
@@ -199,6 +200,17 @@ async function processBankTransfer({
      VALUES (?, ?, ?, ?, N'VietQR', GETDATE(), N'Thành công', ?)`,
     [paymentId, invoiceId, staffId, amount || targetRecord.TongTien || 0, ref]
   );
+
+  auditService.logAudit({
+    actor: 'Hệ Thống Thanh Toán (VietQR)',
+    role: 'SYSTEM',
+    action: 'ONLINE_PAYMENT',
+    entityType: 'HoaDon',
+    entityId: invoiceId,
+    branchId,
+    after: { invoiceId, paymentId, amount: amount || targetRecord.TongTien || 0, code, gateway },
+    details: `Thanh toán chuyển khoản VietQR thành công ${Number(amount || targetRecord.TongTien || 0).toLocaleString('vi-VN')} đ cho #${code} (Giao dịch: ${ref})`
+  }).catch(() => {});
 
   // 6. Lưu vào cache nhanh để phục vụ realtime polling
   const confirmedData = {

@@ -1,6 +1,6 @@
 // Các api quản lý tài khoản người dùng
 const { querySql } = require('../../database/db');
-const { enforceAuth } = require('../../middlewares/auth_middleware');
+const { enforceAuth, extractAuthUser } = require('../../middlewares/auth_middleware');
 const {
   getFullSqlDatabase,
   resolveUserRole,
@@ -9,6 +9,7 @@ const {
   ROLE_SQL_MAP,
   BRANCH_NAME_MAP
 } = require('../../services/helper_service');
+const auditService = require('../../services/audit.service');
 
 async function handleAccountsRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
@@ -132,6 +133,16 @@ async function handleAccountsRoutes(req, res, ctx) {
 
     try {
       await querySql('UPDATE TaiKhoan SET VaiTro = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, userId, userId]);
+      const authUser = extractAuthUser(req);
+      auditService.logAudit({
+        actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
+        role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+        action: 'UPDATE_USER_ROLE',
+        entityType: 'TaiKhoan',
+        entityId: userId,
+        after: { vaiTro: finalVaiTro, role },
+        details: `Phân quyền tài khoản ${userId} thành ${finalVaiTro}`
+      }).catch(() => {});
     } catch (err) {
       console.warn('SQL update TaiKhoan failed, proceeding with memory state:', err.message);
     }
@@ -220,6 +231,18 @@ async function handleAccountsRoutes(req, res, ctx) {
       newMaKhachHang = khId;
     }
 
+    const authUser = extractAuthUser(req);
+    auditService.logAudit({
+      actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
+      role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+      action: 'CREATE_USER',
+      entityType: 'TaiKhoan',
+      entityId: newTkId,
+      branchId,
+      after: { username, fullName, role, vaiTro: vaiTroSql, branchId },
+      details: `Tạo tài khoản mới ${username} (${fullName}) vai trò ${vaiTroSql}`
+    }).catch(() => {});
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
@@ -243,8 +266,17 @@ async function handleAccountsRoutes(req, res, ctx) {
   // DELETE /api/users/:id - Xóa tài khoản trong CSDL SQL
   if (pathname.startsWith('/api/users/') && method === 'DELETE') {
     const userId = pathname.split('/')[3];
+    const authUser = extractAuthUser(req);
     try {
       await querySql('DELETE FROM TaiKhoan WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [userId, userId]);
+      auditService.logAudit({
+        actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
+        role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+        action: 'DELETE_USER',
+        entityType: 'TaiKhoan',
+        entityId: userId,
+        details: `Xóa tài khoản ${userId}`
+      }).catch(() => {});
     } catch (e) {
       console.warn('SQL delete user warning:', e.message);
     }
@@ -258,8 +290,18 @@ async function handleAccountsRoutes(req, res, ctx) {
     const userId = pathname.split('/')[3];
     const { status, isActive } = parsedBody || {};
     const finalStatus = status || (isActive ? 'Hoạt động' : 'Tạm khóa');
+    const authUser = extractAuthUser(req);
     try {
       await querySql('UPDATE TaiKhoan SET TrangThai = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalStatus, userId, userId]);
+      auditService.logAudit({
+        actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
+        role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+        action: 'UPDATE_USER_STATUS',
+        entityType: 'TaiKhoan',
+        entityId: userId,
+        after: { TrangThai: finalStatus },
+        details: `Cập nhật trạng thái tài khoản ${userId} thành ${finalStatus}`
+      }).catch(() => {});
     } catch (e) {
       console.warn('SQL update user status warning:', e.message);
     }
@@ -272,10 +314,21 @@ async function handleAccountsRoutes(req, res, ctx) {
   if (pathname.startsWith('/api/users/') && pathname.endsWith('/branch') && (method === 'PUT' || method === 'POST')) {
     const userId = pathname.split('/')[3];
     const { branchId } = parsedBody || {};
+    const authUser = extractAuthUser(req);
     try {
       const tk = await querySql('SELECT MaNhanVien FROM TaiKhoan WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [userId, userId]);
       if (tk?.[0]?.MaNhanVien && branchId && branchId !== 'ALL') {
         await querySql('UPDATE NhanVien SET MaChiNhanh = ? WHERE MaNhanVien = ?', [branchId, tk[0].MaNhanVien]);
+        auditService.logAudit({
+          actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
+          role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+          action: 'UPDATE_USER_BRANCH',
+          entityType: 'TaiKhoan',
+          entityId: userId,
+          branchId,
+          after: { branchId },
+          details: `Chuyển tài khoản ${userId} sang chi nhánh ${branchId}`
+        }).catch(() => {});
       }
     } catch (e) {
       console.warn('SQL update user branch warning:', e.message);

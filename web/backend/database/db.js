@@ -71,6 +71,30 @@ async function applyPerformanceOptimizations() {
       END
     `);
 
+    // Bảng lưu nhật ký kiểm toán hệ thống (Audit Log) cho cả 6 vai trò
+    await querySql(`
+      IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'AuditLog')
+      BEGIN
+        CREATE TABLE AuditLog (
+          Id INT IDENTITY(1,1) PRIMARY KEY,
+          LogId VARCHAR(60) NOT NULL UNIQUE,
+          Timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
+          Actor NVARCHAR(120) NOT NULL,
+          Role VARCHAR(50) NOT NULL,
+          Action VARCHAR(100) NOT NULL,
+          EntityType NVARCHAR(60) NOT NULL,
+          EntityId NVARCHAR(100) NOT NULL,
+          BranchId VARCHAR(50) NULL,
+          BeforeData NVARCHAR(MAX) NULL,
+          AfterData NVARCHAR(MAX) NULL,
+          Details NVARCHAR(MAX) NULL,
+          Ip VARCHAR(50) NULL
+        );
+        CREATE INDEX IX_AuditLog_Branch_Time ON AuditLog (BranchId, Timestamp DESC);
+        CREATE INDEX IX_AuditLog_Role ON AuditLog (Role);
+      END
+    `);
+
     // Index cho Lịch Hẹn
     await querySql(`
       IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_LichHen_NgayHen_NhanVien')

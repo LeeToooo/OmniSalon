@@ -769,6 +769,9 @@ async function getFullSqlDatabase() {
       GiaNiemYetGoc: origPrice,
       GiaBan: origPrice,
       costPrice: parseFloat(r.GiaNhap || 0),
+      GiaNhap: parseFloat(r.GiaNhap || 0),
+      status: r.TrangThaiKinhDoanh || 'Đang kinh doanh',
+      TrangThaiKinhDoanh: r.TrangThaiKinhDoanh || 'Đang kinh doanh',
       discountPercent,
       PhanTramGiam: discountPercent,
       fefoDiscount,
@@ -801,22 +804,31 @@ async function getFullSqlDatabase() {
   });
 
   // Chuẩn hóa danh sách chi nhánh
-  const mappedBranches = (branchRows || []).map(r => ({
-    id: r.MaChiNhanh,
-    MaChiNhanh: r.MaChiNhanh,
-    name: r.TenChiNhanh,
-    TenChiNhanh: r.TenChiNhanh,
-    address: r.DiaChi,
-    DiaChi: r.DiaChi,
-    phone: r.SoDienThoai,
-    SoDienThoai: r.SoDienThoai,
-    openTime: r.GioMoCua,
-    closeTime: r.GioDongCua,
-    image: r.HinhAnh,
-    HinhAnh: r.HinhAnh,
-    status: r.TrangThai,
-    TrangThai: r.TrangThai
-  }));
+  const mappedBranches = (branchRows || []).map(r => {
+    const oT = formatTime(r.GioMoCua);
+    const cT = formatTime(r.GioDongCua);
+    const hoursFormatted = `${oT} - ${cT}`;
+    return {
+      id: r.MaChiNhanh,
+      MaChiNhanh: r.MaChiNhanh,
+      name: r.TenChiNhanh,
+      TenChiNhanh: r.TenChiNhanh,
+      address: r.DiaChi,
+      DiaChi: r.DiaChi,
+      phone: r.SoDienThoai,
+      SoDienThoai: r.SoDienThoai,
+      openTime: oT,
+      closeTime: cT,
+      GioMoCua: oT,
+      GioDongCua: cT,
+      openHours: hoursFormatted,
+      hours: hoursFormatted,
+      image: r.HinhAnh,
+      HinhAnh: r.HinhAnh,
+      status: r.TrangThai,
+      TrangThai: r.TrangThai
+    };
+  });
 
   // Chuẩn hóa danh sách dịch vụ và áp dụng khuyến mãi hiện hành  Mục 16 
   const todayDateStr = new Date().toISOString().slice(0, 10);

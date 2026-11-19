@@ -640,16 +640,26 @@
               if (subType === 'logs') {
                 return `
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
+                          onchange="AdminWeb.auditLogRoleFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
+                    <option value="all" ${(!this.auditLogRoleFilter || this.auditLogRoleFilter === 'all') ? 'selected' : ''}>Tất cả vai trò</option>
+                    <option value="SUPER_ADMIN" ${this.auditLogRoleFilter === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên (SUPER_ADMIN)</option>
+                    <option value="BRANCH_MANAGER" ${this.auditLogRoleFilter === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý (BRANCH_MANAGER)</option>
+                    <option value="CASHIER" ${this.auditLogRoleFilter === 'CASHIER' ? 'selected' : ''}>Thu Ngân (CASHIER)</option>
+                    <option value="STYLIST" ${this.auditLogRoleFilter === 'STYLIST' ? 'selected' : ''}>Stylist / Thợ (STYLIST)</option>
+                    <option value="CUSTOMER" ${this.auditLogRoleFilter === 'CUSTOMER' ? 'selected' : ''}>Khách Hàng (CUSTOMER)</option>
+                    <option value="SYSTEM" ${this.auditLogRoleFilter === 'SYSTEM' ? 'selected' : ''}>Hệ Thống (SYSTEM)</option>
+                  </select>
+                  <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditActionFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
-                    <option value="all" ${this.auditActionFilter === 'all' ? 'selected' : ''}>Tất cả hành động</option>
-                    <option value="BRANCH" ${this.auditActionFilter === 'BRANCH' ? 'selected' : ''}>Chi Nhánh</option>
-                    <option value="BOOKING" ${this.auditActionFilter === 'BOOKING' ? 'selected' : ''}>Lịch Hẹn</option>
-                    <option value="STOCK" ${this.auditActionFilter === 'STOCK' ? 'selected' : ''}>Kho Hàng</option>
-                    <option value="PRODUCT" ${this.auditActionFilter === 'PRODUCT' ? 'selected' : ''}>Sản Phẩm</option>
-                    <option value="STYLIST" ${this.auditActionFilter === 'STYLIST' ? 'selected' : ''}>Nhân Sự / Thợ</option>
-                    <option value="SERVICE" ${this.auditActionFilter === 'SERVICE' ? 'selected' : ''}>Dịch Vụ & Combo</option>
-                    <option value="ORDER" ${this.auditActionFilter === 'ORDER' ? 'selected' : ''}>Hóa Đơn / POS</option>
-                    <option value="AUTH" ${this.auditActionFilter === 'AUTH' ? 'selected' : ''}>Xác Thực</option>
+                    <option value="all" ${(!this.auditActionFilter || this.auditActionFilter === 'all') ? 'selected' : ''}>Tất cả đối tượng</option>
+                    <option value="Chi Nhánh" ${this.auditActionFilter === 'Chi Nhánh' || this.auditActionFilter === 'BRANCH' ? 'selected' : ''}>Chi Nhánh</option>
+                    <option value="Lịch Hẹn" ${this.auditActionFilter === 'Lịch Hẹn' || this.auditActionFilter === 'BOOKING' ? 'selected' : ''}>Lịch Hẹn</option>
+                    <option value="Kho Hàng" ${this.auditActionFilter === 'Kho Hàng' || this.auditActionFilter === 'STOCK' ? 'selected' : ''}>Kho Hàng</option>
+                    <option value="Sản Phẩm" ${this.auditActionFilter === 'Sản Phẩm' || this.auditActionFilter === 'PRODUCT' ? 'selected' : ''}>Sản Phẩm</option>
+                    <option value="Nhân Sự / Thợ" ${this.auditActionFilter === 'Nhân Sự / Thợ' || this.auditActionFilter === 'STAFF' || this.auditActionFilter === 'STYLIST' ? 'selected' : ''}>Nhân Sự / Thợ</option>
+                    <option value="Dịch Vụ & Combo" ${this.auditActionFilter === 'Dịch Vụ & Combo' || this.auditActionFilter === 'SERVICE' ? 'selected' : ''}>Dịch Vụ & Combo</option>
+                    <option value="Hóa Đơn / POS" ${this.auditActionFilter === 'Hóa Đơn / POS' || this.auditActionFilter === 'ORDER' ? 'selected' : ''}>Hóa Đơn / POS</option>
+                    <option value="Xác Thực" ${this.auditActionFilter === 'Xác Thực' || this.auditActionFilter === 'AUTH' ? 'selected' : ''}>Xác Thực</option>
                   </select>
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditOperatorRoleFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
@@ -780,6 +790,57 @@
 
       // 1. PHÂN HỆ SỰ KIỆN KIỂM TOÁN (LOGS) - CHUẨN THEO BẢNG CHI NHÁNH
       if (subType === 'logs') {
+        let filtered = [...logs];
+
+        // Lọc theo vai trò người thao tác (6 vai trò: SUPER_ADMIN, BRANCH_MANAGER, CASHIER, STYLIST, CUSTOMER, SYSTEM)
+        if (this.auditLogRoleFilter && this.auditLogRoleFilter !== 'all') {
+          const rf = this.auditLogRoleFilter.toUpperCase();
+          filtered = filtered.filter(l => {
+            const role = String(l.operatorRole || l.role || '').toUpperCase();
+            if (rf === 'STYLIST') return role.includes('STYLIST') || role.includes('BARBER') || role.includes('THỢ');
+            if (rf === 'BRANCH_MANAGER') return role.includes('BRANCH_MANAGER') || role.includes('QUẢN LÝ');
+            if (rf === 'SUPER_ADMIN') return role.includes('SUPER_ADMIN') || role.includes('QUẢN TRỊ');
+            return role.includes(rf);
+          });
+        }
+
+        // Lọc theo nhóm đối tượng
+        if (this.auditActionFilter && this.auditActionFilter !== 'all') {
+          const af = this.auditActionFilter.toUpperCase();
+          filtered = filtered.filter(l => {
+            const ent = String(l.entity || l.entityType || '').toUpperCase();
+            const act = String(l.action || '').toUpperCase();
+            if (af === 'CHI NHÁNH' || af === 'BRANCH') return ent.includes('CHI NHÁNH') || act.includes('BRANCH');
+            if (af === 'LỊCH HẸN' || af === 'BOOKING') return ent.includes('LỊCH HẸN') || ent.includes('LỊCH') || act.includes('BOOKING');
+            if (af === 'KHO HÀNG' || af === 'STOCK') return ent.includes('KHO') || ent.includes('PHIẾU') || act.includes('STOCK') || act.includes('RECEIPT');
+            if (af === 'SẢN PHẨM' || af === 'PRODUCT') return ent.includes('SẢN PHẨM') || ent.includes('SP') || act.includes('PRODUCT');
+            if (af === 'NHÂN SỰ / THỢ' || af === 'STAFF' || af === 'STYLIST') return ent.includes('NHÂN SỰ') || ent.includes('THỢ') || ent.includes('CA') || act.includes('STYLIST') || act.includes('STAFF') || act.includes('SHIFT');
+            if (af === 'DỊCH VỤ & COMBO' || af === 'SERVICE') return ent.includes('DỊCH VỤ') || ent.includes('COMBO') || act.includes('SERVICE') || act.includes('COMBO');
+            if (af === 'HÓA ĐƠN / POS' || af === 'ORDER') return ent.includes('HÓA ĐƠN') || ent.includes('ĐƠN') || ent.includes('POS') || act.includes('ORDER') || act.includes('INVOICE') || act.includes('POS') || act.includes('PAYMENT');
+            if (af === 'XÁC THỰC' || af === 'AUTH') return ent.includes('TÀI KHOẢN') || ent.includes('OTP') || act.includes('AUTH') || act.includes('LOGIN') || act.includes('PASSWORD') || act.includes('ROLE');
+            return ent.includes(af) || act.includes(af);
+          });
+        }
+
+        if (q) {
+          const norm = str => (str || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          const normQ = norm(q);
+          filtered = filtered.filter(l =>
+            norm(l.operatorName).includes(normQ) ||
+            norm(l.actor).includes(normQ) ||
+            norm(l.operatorRole).includes(normQ) ||
+            norm(l.role).includes(normQ) ||
+            norm(l.entity).includes(normQ) ||
+            norm(l.details).includes(normQ) ||
+            norm(l.action).includes(normQ) ||
+            norm(l.id).includes(normQ)
+          );
+        }
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.auditPage > totalPages) this.auditPage = totalPages;
+        const paged = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
+
         const cleanActionLabels = {
           'UPDATE_BOOKING_STATUS': 'Cập nhật lịch hẹn',
           'UPDATE_BRANCH': 'Cập nhật chi nhánh',
@@ -789,6 +850,7 @@
           'CREATE_BOOKING': 'Đặt lịch mới',
           'UPDATE_BOOKING': 'Cập nhật lịch',
           'CANCEL_BOOKING': 'Hủy lịch hẹn',
+          'RESCHEDULE_BOOKING': 'Đổi giờ hẹn',
           'COMPLETE_BOOKING': 'Hoàn tất ca',
           'CHECKIN_WAITING': 'Khách vào sảnh',
           'EARLY_CHECKIN': 'Khách check-in sớm',
@@ -801,73 +863,54 @@
           'CREATE_PRODUCT': 'Thêm sản phẩm mới',
           'UPDATE_PRODUCT': 'Sửa thông tin sản phẩm',
           'DELETE_PRODUCT': 'Xóa sản phẩm',
-          'CREATE_STYLIST': 'Thêm mới nhân sự / thợ',
-          'UPDATE_STYLIST': 'Cập nhật nhân sự / thợ',
-          'DELETE_STYLIST': 'Xóa nhân sự / thợ',
-          'REGISTER_SHIFT': 'Đăng ký ca làm',
-          'APPROVE_SHIFT': 'Duyệt ca làm',
-          'CREATE_SERVICE': 'Thêm dịch vụ mới',
-          'UPDATE_SERVICE': 'Cập nhật dịch vụ',
+          'CREATE_SERVICE': 'Thêm dịch vụ',
+          'UPDATE_SERVICE': 'Sửa dịch vụ',
           'DELETE_SERVICE': 'Xóa dịch vụ',
-          'CREATE_COMBO': 'Thêm gói combo mới',
-          'UPDATE_COMBO': 'Cập nhật gói combo',
-          'DELETE_COMBO': 'Xóa gói combo',
-          'CREATE_RECEIPT': 'Tạo phiếu nhập kho',
-          'APPROVE_RECEIPT': 'Duyệt nhập kho',
-          'CREATE_INVOICE': 'Tạo hóa đơn',
-          'POS_CHECKOUT': 'Xuất hóa đơn quầy POS',
-          'CREATE_ORDER': 'Tạo đơn hàng mới',
+          'CREATE_COMBO': 'Thêm combo VIP',
+          'UPDATE_COMBO': 'Sửa combo VIP',
+          'DELETE_COMBO': 'Xóa combo VIP',
+          'CREATE_STYLIST': 'Thêm nhân sự',
+          'UPDATE_STYLIST': 'Sửa nhân sự',
+          'DELETE_STYLIST': 'Nghỉ việc nhân sự',
+          'REGISTER_SHIFT': 'Đăng ký ca làm',
+          'CREATE_ORDER': 'Đặt hàng mỹ phẩm',
           'CANCEL_ORDER': 'Hủy đơn hàng',
-          'ORDER_PAYMENT': 'Xác nhận thanh toán đơn',
-          'UPDATE_ORDER_STATUS': 'Cập nhật trạng thái đơn',
-          'AUTH_LOGIN': 'Đăng nhập hệ thống',
-          'AUTH_LOGOUT': 'Đăng xuất hệ thống',
+          'UPDATE_ORDER_STATUS': 'Cập nhật đơn hàng',
+          'ORDER_PAYMENT': 'Thanh toán đơn hàng',
+          'CREATE_RECEIPT': 'Tạo phiếu nhập',
+          'APPROVE_RECEIPT': 'Duyệt nhập kho',
+          'REJECT_RECEIPT': 'Từ chối nhập kho',
+          'POS_CHECKOUT': 'Thanh toán POS',
+          'ONLINE_PAYMENT': 'Thanh toán VietQR',
+          'PAYMENT_SUCCESS': 'Thanh toán thành công',
+          'CUSTOMER_REGISTER': 'Đăng ký khách hàng',
+          'AUTH_LOGIN': 'Đăng nhập',
+          'AUTH_LOGOUT': 'Đăng xuất',
           'LOGIN': 'Đăng nhập',
           'LOGOUT': 'Đăng xuất',
-          'CREATE_USER': 'Thêm tài khoản',
-          'UPDATE_USER_ROLE': 'Phân quyền tài khoản',
-          'UPDATE_USER_BRANCH': 'Đổi chi nhánh tài khoản',
-          'UPDATE_USER_STATUS': 'Khóa / Mở khóa tài khoản',
-          'DELETE_USER': 'Xóa tài khoản'
+          'CHANGE_PASSWORD': 'Đổi mật khẩu',
+          'RESET_PASSWORD': 'Đặt lại mật khẩu',
+          'OTP_EXPIRED_OR_INVALID': 'OTP hết hạn',
+          'AUTO_CANCEL_BOOKING': 'Tự động hủy lịch hẹn',
+          'AUTO_CANCEL_ORDER': 'Tự động hủy đơn hàng',
+          'CREATE_USER': 'Tạo tài khoản',
+          'DELETE_USER': 'Xóa tài khoản',
+          'UPDATE_USER_STATUS': 'Khóa/mở tài khoản',
+          'UPDATE_USER_BRANCH': 'Chuyển chi nhánh',
+          'UPDATE_USER_ROLE': 'Phân quyền tài khoản'
         };
 
-        let filtered = [...logs];
-        if (this.auditActionFilter && this.auditActionFilter !== 'all') {
-          const actFilter = this.auditActionFilter.toUpperCase();
-          filtered = filtered.filter(l => {
-            const act = (l.action || '').toUpperCase();
-            if (actFilter === 'PRODUCT') return act.includes('PRODUCT') || act.includes('CATEGORY') || act.includes('SUPPLIER');
-            if (actFilter === 'STOCK') return act.includes('STOCK') || act.includes('RECEIPT') || act.includes('INVENTORY');
-            if (actFilter === 'SERVICE') return act.includes('SERVICE') || act.includes('COMBO');
-            if (actFilter === 'STYLIST') return act.includes('STYLIST') || act.includes('SHIFT') || act.includes('STAFF');
-            if (actFilter === 'ORDER') return act.includes('ORDER') || act.includes('INVOICE') || act.includes('POS');
-            if (actFilter === 'AUTH') return act.includes('AUTH') || act.includes('LOGIN') || act.includes('LOGOUT') || act.includes('USER') || act.includes('ROLE');
-            if (actFilter === 'BRANCH') return act.includes('BRANCH');
-            if (actFilter === 'BOOKING') return act.includes('BOOKING') || act.includes('CHECKIN') || act.includes('WAITING');
-            return act.includes(actFilter);
-          });
-        }
-        if (this.auditOperatorRoleFilter && this.auditOperatorRoleFilter !== 'all') {
-          const roleFilter = this.auditOperatorRoleFilter.toUpperCase();
-          filtered = filtered.filter(l => {
-            const opRole = this._extractAuditOperatorRole(l);
-            return opRole.toUpperCase() === roleFilter;
-          });
-        }
-        if (q) {
-          const norm = str => (str || '').toString().toLowerCase().replace(/[đĐ]/g, 'd').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-          const normQ = norm(q);
-          filtered = filtered.filter(l => {
-            const opRole = this._extractAuditOperatorRole(l);
-            const actLabel = cleanActionLabels[l.action] || '';
-            const searchCorpus = `${l.id || ''} ${l.action || ''} ${actLabel} ${l.operatorName || ''} ${opRole} ${l.entity || ''} ${l.details || ''}`;
-            return norm(searchCorpus).includes(normQ);
-          });
-        }
+        const renderRoleBadge = (role) => {
+          const r = String(role || 'SYSTEM').toUpperCase();
+          let displayRole = 'SYSTEM';
+          if (r.includes('SUPER_ADMIN') || r.includes('QUẢN TRỊ')) displayRole = 'SUPER_ADMIN';
+          else if (r.includes('BRANCH_MANAGER') || r.includes('QUẢN LÝ')) displayRole = 'BRANCH_MANAGER';
+          else if (r.includes('CASHIER') || r.includes('THU NGÂN')) displayRole = 'CASHIER';
+          else if (r.includes('STYLIST') || r.includes('BARBER') || r.includes('THỢ') || r.includes('STAFF')) displayRole = 'STYLIST';
+          else if (r.includes('CUSTOMER') || r.includes('KHÁCH')) displayRole = 'CUSTOMER';
 
-        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
-        if (this.auditPage > totalPages) this.auditPage = totalPages;
-        const paged = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
+          return `<span style="display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 600; font-family: monospace; border-radius: 4px; background: rgba(255, 255, 255, 0.04); color: var(--text-secondary, #9ca3af); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)); text-transform: uppercase; letter-spacing: 0.3px;">${displayRole}</span>`;
+        };
 
         return `
           <div class="admin-table-container" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 26px;">
@@ -895,8 +938,8 @@
                     const isSelected = this.selectedAuditRowId === rowId;
                     const isExpanded = this.expandedAuditRowId === rowId;
                     const actLabel = cleanActionLabels[l.action] || l.action || 'Sự kiện';
-                    const opRole = this._extractAuditOperatorRole(l);
-                    const roleBadge = this._getAuditRoleBadge(opRole);
+                    const role = l.operatorRole || l.role || 'SYSTEM';
+                    const actorName = l.operatorName || l.actor || 'Hệ Thống';
 
                     return `
                       <tr id="auditRow_${rowId}"
@@ -914,12 +957,8 @@
                         </td>
                         <td style="padding: 12px 14px;">
                           <div>
-                            <div style="font-weight: 800; color: var(--text-primary); font-size: 13px;">${this.escapeHtml(l.operatorName || 'Hệ Thống')}</div>
-                            <div style="margin-top: 3px;">
-                              <span style="display: inline-flex; align-items: center; font-size: 11px; font-weight: 800; color: ${roleBadge.color}; background: ${roleBadge.bg}; border: 1px solid ${roleBadge.border}; padding: 1px 7px; border-radius: 9999px;">
-                                ${this.escapeHtml(opRole)}
-                              </span>
-                            </div>
+                            <div style="font-weight: 800; color: var(--text-primary); font-size: 13px; margin-bottom: 4px;">${this.escapeHtml(actorName)}</div>
+                            <div>${renderRoleBadge(role)}</div>
                           </div>
                         </td>
                         <td style="padding: 12px 10px; white-space: nowrap;">
@@ -950,11 +989,24 @@
                                 </button>
                               </div>
                               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 12.5px; margin-bottom: 12px;">
-                                <div><span style="color: var(--text-secondary);">NGƯỜI THỰC HIỆN:</span> <strong style="color: var(--text-primary); margin-right: 6px;">${this.escapeHtml(l.operatorName || 'Hệ Thống')}</strong><span style="display: inline-flex; align-items: center; font-size: 11px; font-weight: 800; color: ${roleBadge.color}; background: ${roleBadge.bg}; border: 1px solid ${roleBadge.border}; padding: 1px 7px; border-radius: 9999px;">${this.escapeHtml(opRole)}</span></div>
+                                <div><span style="color: var(--text-secondary);">NGƯỜI THỰC HIỆN:</span> <strong style="color: var(--text-primary);">${this.escapeHtml(actorName)}</strong> ${renderRoleBadge(role)}</div>
                                 <div><span style="color: var(--text-secondary);">THAO TÁC GHI NHẬN:</span> <strong style="color: var(--text-primary);">${this.escapeHtml(actLabel)} (${this.escapeHtml(l.action)})</strong></div>
                                 <div><span style="color: var(--text-secondary);">MỤC TIÊU / ĐỐI TƯỢNG:</span> <strong style="color: #f59e0b;">${this.escapeHtml(String(l.entity || '—').replace(/#/g, ''))}</strong></div>
+                                <div><span style="color: var(--text-secondary);">CHI NHÁNH:</span> <strong style="color: var(--text-primary);">${this.escapeHtml(l.branchId || 'Toàn hệ thống')}</strong></div>
                                 <div><span style="color: var(--text-secondary);">ĐỊA CHỈ KẾT NỐI / KÊNH:</span> <strong style="color: var(--text-primary);">${this.escapeHtml(l.ip || '127.0.0.1 • Web Enterprise Console')}</strong></div>
                               </div>
+                              ${(l.before || l.beforeData || l.after || l.afterData) ? `
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                                  <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px;">
+                                    <div style="font-size: 11.5px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">GIÁ TRỊ TRƯỚC (BEFORE):</div>
+                                    <div style="font-family: monospace; font-size: 12px; color: var(--text-secondary); white-space: pre-wrap; word-break: break-all;">${this.escapeHtml(typeof (l.before || l.beforeData) === 'object' ? JSON.stringify(l.before || l.beforeData, null, 2) : String(l.before || l.beforeData || '— Không có dữ liệu trước (Tạo mới)'))}</div>
+                                  </div>
+                                  <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px;">
+                                    <div style="font-size: 11.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">GIÁ TRỊ SAU (AFTER):</div>
+                                    <div style="font-family: monospace; font-size: 12px; color: var(--text-primary); white-space: pre-wrap; word-break: break-all;">${this.escapeHtml(typeof (l.after || l.afterData) === 'object' ? JSON.stringify(l.after || l.afterData, null, 2) : String(l.after || l.afterData || '— Không có dữ liệu sau (Đã xóa)'))}</div>
+                                  </div>
+                                </div>
+                              ` : ''}
                               <div style="background: #151413; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px; font-family: monospace; font-size: 12px; color: #a1a1aa; white-space: pre-wrap; word-break: break-all;">
                                 ${this.escapeHtml(l.details || 'Không có payload chi tiết')}
                               </div>
@@ -1368,10 +1420,13 @@
                       : null;
                     const isPaid = (
                       o.paymentStatus === 'Paid' || 
+                      o.paymentStatus === 'PAID' || 
                       o.paymentStatus === 'Đã thanh toán' || 
                       o.isPaid === true || 
                       o.TrangThai === 'Đã thanh toán' || 
                       o.TrangThaiHoaDon === 'Đã thanh toán' ||
+                      o.TrangThaiThanhToan === 'Đã thanh toán' ||
+                      o.TrangThaiThanhToan === 'Paid' ||
                       Boolean(inv)
                     );
                     const items = o.items || [];
@@ -1450,7 +1505,7 @@
                               <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px;" 
                                       onclick="event.stopPropagation(); AdminWeb.updateOrderStatus('${oCode}', 'Completed')">Hoàn Tất</button>
                             ` : ''}
-                            ${!isPaid && step > 0 && step < 4 ? `
+                            ${!isPaid && step > 0 ? `
                               <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
                                       onclick="event.stopPropagation(); AdminWeb.confirmOrderPayment('${oCode}')">Thu Tiền</button>
                             ` : ''}

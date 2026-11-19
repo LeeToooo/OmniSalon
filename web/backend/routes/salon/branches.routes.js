@@ -1,6 +1,7 @@
 const { querySql } = require('../../database/db');
 const { formatTime } = require('../../services/helper_service');
-const { enforceAuth } = require('../../middlewares/auth_middleware');
+const { enforceAuth, extractAuthUser } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
 
 async function handleBranchesRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
@@ -20,6 +21,10 @@ async function handleBranchesRoutes(req, res, ctx) {
       if (addr.includes('Hà Nội')) city = 'Hà Nội';
       else if (addr.includes('Đà Nẵng')) city = 'Đà Nẵng';
 
+      const openT = formatTime(r.GioMoCua);
+      const closeT = formatTime(r.GioDongCua);
+      const hoursStr = `${openT} - ${closeT}`;
+
       return {
         id: r.MaChiNhanh,
         MaChiNhanh: r.MaChiNhanh,
@@ -29,7 +34,12 @@ async function handleBranchesRoutes(req, res, ctx) {
         DiaChi: addr,
         phone: r.SoDienThoai,
         SoDienThoai: r.SoDienThoai,
-        openHours: `${formatTime(r.GioMoCua)} - ${formatTime(r.GioDongCua)}`,
+        openTime: openT,
+        closeTime: closeT,
+        GioMoCua: openT,
+        GioDongCua: closeT,
+        openHours: hoursStr,
+        hours: hoursStr,
         city,
         region: city === 'Hà Nội' ? 'hn' : city === 'Đà Nẵng' ? 'dn' : 'hcm',
         image: r.HinhAnh || '',
@@ -95,6 +105,20 @@ async function handleBranchesRoutes(req, res, ctx) {
       )
     `, [cnId, cnId]).catch(() => {});
 
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'CREATE_BRANCH',
+      entityType: 'ChiNhanh',
+      entityId: cnId,
+      branchId: cnId,
+      after: { id: cnId, name, address, phone, status },
+      details: `${actorName} tạo chi nhánh mới: ${name} (Mã: #${cnId})`
+    }).catch(() => {});
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, branch: { id: cnId, MaChiNhanh: cnId, name, address, phone, status } }));
     return true;
@@ -104,6 +128,9 @@ async function handleBranchesRoutes(req, res, ctx) {
   if (pathname.startsWith('/api/branches/') && method === 'PUT') {
     const id = pathname.replace('/api/branches/', '').trim();
     const b = parsedBody || {};
+    const oldRows = await querySql(`SELECT TenChiNhanh, DiaChi, SoDienThoai, GioMoCua, GioDongCua, TrangThai FROM ChiNhanh WHERE MaChiNhanh = ?`, [id]);
+    const oldBranch = (oldRows && oldRows[0]) ? oldRows[0] : null;
+
     await querySql(
       `UPDATE ChiNhanh SET 
          TenChiNhanh = COALESCE(?, TenChiNhanh), 
@@ -118,13 +145,29 @@ async function handleBranchesRoutes(req, res, ctx) {
         b.name || b.TenChiNhanh || null,
         b.address || b.DiaChi || null,
         b.phone || b.SoDienThoai || null,
-        b.openTime || null,
-        b.closeTime || null,
+        b.openTime || b.GioMoCua || null,
+        b.closeTime || b.GioDongCua || null,
         b.image || b.HinhAnh || null,
         b.status || b.TrangThai || null,
         id
       ]
     );
+
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'UPDATE_BRANCH',
+      entityType: 'ChiNhanh',
+      entityId: id,
+      branchId: id,
+      before: oldBranch,
+      after: b,
+      details: `${actorName} cập nhật thông tin chi nhánh #${id} (${b.name || oldBranch?.TenChiNhanh || ''})`
+    }).catch(() => {});
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -134,6 +177,9 @@ async function handleBranchesRoutes(req, res, ctx) {
   // Lưu ý: Dùng Soft-delete để tránh gãy ràng buộc khóa ngoại với Lịch hẹn và Hóa đơn
   if (pathname.startsWith('/api/branches/') && method === 'DELETE') {
     const id = pathname.replace('/api/branches/', '').trim();
+    const oldRows = await querySql(`SELECT TenChiNhanh, TrangThai FROM ChiNhanh WHERE MaChiNhanh = ?`, [id]);
+    const oldBranch = (oldRows && oldRows[0]) ? oldRows[0] : null;
+
     const hasHistory = await querySql(`
       SELECT TOP 1 MaChiNhanh FROM (
         SELECT MaChiNhanh FROM LichHen WHERE MaChiNhanh = ?
@@ -146,8 +192,24 @@ async function handleBranchesRoutes(req, res, ctx) {
       ) t
     `, [id, id, id, id]);
 
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN';
+
     if (hasHistory && hasHistory.length > 0) {
       await querySql(`UPDATE ChiNhanh SET TrangThai = N'Ngừng hoạt động' WHERE MaChiNhanh = ?`, [id]);
+      auditService.logAudit({
+        actor: actorName,
+        role: actorRole,
+        action: 'DELETE_BRANCH',
+        entityType: 'ChiNhanh',
+        entityId: id,
+        branchId: id,
+        before: oldBranch,
+        after: { TrangThai: 'Ngừng hoạt động' },
+        details: `${actorName} chuyển trạng thái chi nhánh #${id} sang Ngừng hoạt động`
+      }).catch(() => {});
+
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({
         success: true,
@@ -159,6 +221,17 @@ async function handleBranchesRoutes(req, res, ctx) {
     }
 
     await querySql(`DELETE FROM ChiNhanh WHERE MaChiNhanh = ?`, [id]);
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'DELETE_BRANCH',
+      entityType: 'ChiNhanh',
+      entityId: id,
+      branchId: id,
+      before: oldBranch,
+      details: `${actorName} xóa hoàn toàn chi nhánh #${id}`
+    }).catch(() => {});
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã xóa chi nhánh khỏi SQL Server', id }));
     return true;

@@ -135,43 +135,48 @@
             </div>
 
             <!-- Chi tiết bill -->
-            <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
-              Danh Sách Dịch Vụ & Sản Phẩm Trong Bill (${pos.billServices.length + pos.billProducts.length}):
+            <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <span>Danh Sách Dịch Vụ & Sản Phẩm Trong Bill:</span>
+              <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700;">${pos.billServices.length + pos.billProducts.length} mục</span>
             </div>
             <div class="pos-bill-list">
               ${pos.billServices.length === 0 && pos.billProducts.length === 0 ? `
-                <div style="text-align: center; padding: 24px; color: var(--text-secondary); font-size: 12px;">
-                  Chưa có dịch vụ hoặc sản phẩm nào trong bill.<br>Vui lòng nhấp chọn từ bảng bên trái!
+                <div style="text-align: center; padding: 32px 16px; color: var(--text-secondary); font-size: 12.5px; line-height: 1.6;">
+                  <div style="font-size: 24px; margin-bottom: 6px; opacity: 0.6;">🧾</div>
+                  Chưa có dịch vụ hoặc sản phẩm nào trong bill.<br>Vui lòng nhấp chọn từ danh mục bên trái!
                 </div>
               ` : ''}
 
               <!-- Dịch vụ cắt -->
               ${pos.billServices.map((s, idx) => `
-                <div class="pos-bill-row">
-                  <div>
-                    <strong style="color: var(--text-primary);">${this.escapeHtml(s.name)}</strong>
-                    <div style="font-size: 11px; color: var(--text-secondary);">${parseInt(String(s.duration || 45).replace(/\s*phút/gi, ''), 10) || 45} phút</div>
+                <div class="pos-bill-row" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; gap: 10px;">
+                  <div style="flex: 1; min-width: 0;">
+                    <strong style="color: var(--text-primary); font-size: 13.5px; display: block; line-height: 1.35; margin-bottom: 3px; word-break: break-word;">${this.escapeHtml(s.name)}</strong>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                      <span style="opacity: 0.85;">Thời lượng:</span>
+                      <span style="color: var(--brand-accent, #F59E0B); font-weight: 700;">${parseInt(String(s.duration || 45).replace(/\s*phút/gi, ''), 10) || 45} phút</span>
+                    </div>
                   </div>
-                  <div style="display: flex; gap: 8px; align-items: center;">
-                    <strong style="color: var(--brand-accent, #F59E0B);">${SalonUtils.formatCurrency(s.price)}</strong>
-                    <button type="button" style="color: #ef4444; border:none; background:none; cursor:pointer; font-weight:800;" onclick="AdminWeb.removePosService(${idx})">✕</button>
+                  <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                    <strong style="color: var(--brand-accent, #F59E0B); font-size: 13.5px;">${SalonUtils.formatCurrency(s.price)}</strong>
+                    <button type="button" style="color: #ef4444; border:none; background:none; cursor:pointer; font-weight:800; font-size: 15px; padding: 2px 6px;" title="Xóa" onclick="AdminWeb.removePosService(${idx})">✕</button>
                   </div>
                 </div>
               `).join('')}
 
               <!-- Sản phẩm retail -->
               ${pos.billProducts.map(p => `
-                <div class="pos-bill-row">
-                  <div>
-                    <strong style="color: var(--text-primary);">${this.escapeHtml(p.name)}</strong>
-                    <div style="font-size: 11px; color: var(--text-secondary);">${SalonUtils.formatCurrency(p.price)} / hộp</div>
+                <div class="pos-bill-row" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; gap: 10px;">
+                  <div style="flex: 1; min-width: 0;">
+                    <strong style="color: var(--text-primary); font-size: 13.5px; display: block; line-height: 1.35; margin-bottom: 3px; word-break: break-word;">${this.escapeHtml(p.name)}</strong>
+                    <div style="font-size: 11.5px; color: var(--text-secondary);">${SalonUtils.formatCurrency(p.price)} / hộp</div>
                   </div>
-                  <div style="display: flex; gap: 6px; align-items: center;">
-                    <button type="button" class="qty-btn" style="width:20px; height:20px; font-size:10px;" onclick="AdminWeb.changePosProductQty('${p.id}', ${p.qty - 1})">-</button>
-                    <span style="font-weight: 800; font-size: 12px; width: 16px; text-align: center; color: var(--text-primary);">${p.qty}</span>
-                    <button type="button" class="qty-btn" style="width:20px; height:20px; font-size:10px;" onclick="AdminWeb.changePosProductQty('${p.id}', ${p.qty + 1})">+</button>
-                    <strong style="color: var(--brand-accent, #F59E0B); margin-left: 4px;">${SalonUtils.formatCurrency(p.price * p.qty)}</strong>
-                    <button type="button" style="color: #ef4444; border:none; background:none; cursor:pointer; font-weight:800;" onclick="AdminWeb.changePosProductQty('${p.id}', 0)">✕</button>
+                  <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
+                    <button type="button" class="qty-btn" style="width:22px; height:22px; font-size:11px; font-weight:700;" onclick="AdminWeb.changePosProductQty('${p.id}', ${p.qty - 1})">-</button>
+                    <span style="font-weight: 800; font-size: 12px; min-width: 18px; text-align: center; color: var(--text-primary);">${p.qty}</span>
+                    <button type="button" class="qty-btn" style="width:22px; height:22px; font-size:11px; font-weight:700;" onclick="AdminWeb.changePosProductQty('${p.id}', ${p.qty + 1})">+</button>
+                    <strong style="color: var(--brand-accent, #F59E0B); margin-left: 4px; font-size: 13.5px;">${SalonUtils.formatCurrency(p.price * p.qty)}</strong>
+                    <button type="button" style="color: #ef4444; border:none; background:none; cursor:pointer; font-weight:800; font-size: 15px; padding: 2px 6px; margin-left: 2px;" title="Xóa" onclick="AdminWeb.changePosProductQty('${p.id}', 0)">✕</button>
                   </div>
                 </div>
               `).join('')}

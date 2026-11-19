@@ -29,11 +29,11 @@
 
       if (this.filterStylistRole && this.filterStylistRole !== 'all') {
         filteredStylists = filteredStylists.filter(s => {
-          const r = (s.role || s.ChucVu || '').toLowerCase();
+          const r = (s.role || s.ChucVu || s.position || s.title || s.level || s.CapBac || '').toLowerCase();
           if (this.filterStylistRole === 'Thợ chính') return r.includes('chính');
           if (this.filterStylistRole === 'Thợ phụ') return r.includes('phụ');
           if (this.filterStylistRole === 'Quản lý chi nhánh') return r.includes('quản lý');
-          if (this.filterStylistRole === 'Thu ngân') return r.includes('thu ngân') || r === 'cashier';
+          if (this.filterStylistRole === 'Thu ngân') return r.includes('thu ngân') || r.includes('ngân') || r === 'cashier';
           return true;
         });
       }
@@ -138,7 +138,7 @@
               <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                   <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 14px;">
-                    <img src="${st.avatar || '/DataPicture/ChanDungTho/Tho1.jpg'}" onerror="this.src='/DataPicture/ChanDungTho/Tho1.jpg';" 
+                    <img src="${('/DataPicture/ChanDungTho/Tho' + ((((parseInt((st.id || st.MaNhanVien || '').replace(/\D/g, '') || 1) - 1) % 20) + 1) + '.jpg')}" onerror="this.src='/DataPicture/ChanDungTho/Tho1.jpg';" 
                          style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid ${isCashier ? '#10b981' : isAssis ? '#0ea5e9' : '#f59e0b'};" alt="${this.escapeHtml(st.name)}">
                     <div style="flex: 1; min-width: 0;">
                       <div style="display: flex; justify-content: space-between; align-items: baseline;">
@@ -283,11 +283,11 @@
 
       if (this.filterStylistRole && this.filterStylistRole !== 'all') {
         filteredStylists = filteredStylists.filter(s => {
-          const r = (s.role || s.ChucVu || '').toLowerCase();
+          const r = (s.role || s.ChucVu || s.position || s.title || s.level || s.CapBac || '').toLowerCase();
           if (this.filterStylistRole === 'Thợ chính') return r.includes('chính');
           if (this.filterStylistRole === 'Thợ phụ') return r.includes('phụ');
           if (this.filterStylistRole === 'Quản lý chi nhánh') return r.includes('quản lý');
-          if (this.filterStylistRole === 'Thu ngân') return r.includes('thu ngân') || r === 'cashier';
+          if (this.filterStylistRole === 'Thu ngân') return r.includes('thu ngân') || r.includes('ngân') || r === 'cashier';
           return true;
         });
       }

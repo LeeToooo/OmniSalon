@@ -80,6 +80,12 @@
       }
 
       const fefoDiscount = Number(p.fefoDiscount || p.nearExpiryDiscount || 0);
+      const isDiscontinued = Boolean(
+        p.status === 'Ngừng kinh doanh' ||
+        p.TrangThaiKinhDoanh === 'Ngừng kinh doanh' ||
+        (p.status && (p.status.toLowerCase().includes('ngừng') || p.status.toLowerCase().includes('tạm ngưng'))) ||
+        p.isDiscontinued
+      );
       const isExpired = Boolean(
         p.isExpired ||
         (p.daysLeft !== null && p.daysLeft !== undefined && p.daysLeft <= 0) ||
@@ -115,6 +121,7 @@
         discountPercent,
         fefoDiscount,
         isExpired,
+        isDiscontinued,
         rating,
         reviewCount,
         stock,
@@ -140,7 +147,7 @@
 
       const formattedActual = formatCurrency(data.actualPrice);
       const formattedOriginal = formatCurrency(data.originalPrice);
-      const isOutOfStock = data.stock <= 0 || data.isExpired;
+      const isOutOfStock = data.stock <= 0 || data.isExpired || data.isDiscontinued;
 
       // Nhãn giảm giá phẳng tinh tế
       const badgeText = data.fefoDiscount > 0
@@ -207,8 +214,8 @@
             <button type="button"
                     class="btn-card-add-bag ${isOutOfStock ? 'disabled' : ''}"
                     ${isOutOfStock ? 'disabled' : ''}
-                    title="${data.isExpired ? 'Đã hết hạn (Thu hồi tiêu hủy)' : (isOutOfStock ? 'Tạm thời hết hàng' : 'Thêm vào giỏ hàng')}"
-                    aria-label="${data.isExpired ? 'Đã hết hạn' : 'Thêm vào giỏ'}"
+                    title="${data.isDiscontinued ? 'Sản phẩm đã ngừng kinh doanh' : (data.isExpired ? 'Đã hết hạn (Thu hồi tiêu hủy)' : (isOutOfStock ? 'Tạm thời hết hàng' : 'Thêm vào giỏ hàng'))}"
+                    aria-label="${data.isDiscontinued ? 'Ngừng kinh doanh' : (data.isExpired ? 'Đã hết hạn' : 'Thêm vào giỏ')}"
                     onclick="event.stopPropagation(); if(typeof UICommon !== 'undefined' && UICommon.addToCart){ UICommon.addToCart('${data.id}', 'product'); if(typeof ShopPage !== 'undefined' && ShopPage.updateCartBadge) ShopPage.updateCartBadge(); }">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>

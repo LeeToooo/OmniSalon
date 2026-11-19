@@ -106,6 +106,7 @@
       const allStoreProducts = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
       const validProducts = (allStoreProducts || []).filter(function(p) {
         if (p.isExpired || p.SoNgayConLai <= 0) return false;
+        if (p.status === 'Ngừng kinh doanh' || p.TrangThaiKinhDoanh === 'Ngừng kinh doanh') return false;
         return true;
       });
       const displayProducts = HomePage.getDiverseFeaturedProducts(validProducts, 14);
@@ -336,7 +337,10 @@
               .replace(/Barber/gi, 'Thợ Cắt Tóc')
               .replace(/Nghệ Nhân Tạo Mẫu/gi, 'Thợ Chính')
               .trim();
-            const avatarUrl = s.avatar || distinctAvatars[s.id] || distinctAvatars[s.MaNhanVien] || '/DataPicture/ChanDungTho/Tho1.jpg';
+            const sMatch = String(s.id || s.MaNhanVien || s.name || '').match(/(\d+)/);
+            const sNum = sMatch ? parseInt(sMatch[1], 10) : (index + 1);
+            const thoIdx = ((sNum - 1) % 20) + 1;
+            const avatarUrl = `/DataPicture/ChanDungTho/Tho${thoIdx}.jpg`;
             const rating = (s.rating !== undefined ? Number(s.rating) : 5.0).toFixed(1);
             const yearsExp = 6 + ((index * 2) % 5);
 
@@ -353,7 +357,7 @@
                     <div class="stylist-clean-card" id="homeStylistCard_${s.id}">
                       <div class="stylist-clean-card-body">
                         <div class="stylist-avatar-box">
-                          <img src="${avatarUrl}" class="stylist-avatar-img" alt="${cleanName}" loading="lazy" onerror="this.onerror=null; this.src='/DataPicture/ChanDungTho/Tho1.jpg';">
+                          <img src="${avatarUrl}" class="stylist-avatar-img" alt="${cleanName}" loading="lazy" onerror="this.onerror=null; this.src='${avatarUrl}';">
                           <span class="stylist-avatar-rating"><svg width="11" height="11" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" aria-hidden="true" style="display: inline-block; vertical-align: middle; margin-right: 2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${rating}</span>
                         </div>
                         <h3 class="stylist-clean-name font-serif tracking-tight leading-tight">${cleanName}</h3>
@@ -591,13 +595,17 @@
     const attachHomeSync = () => {
       if (window.store && typeof window.store.subscribe === 'function') {
         window.store.subscribe((state, event) => {
-          // Bỏ qua LIVE_SERVER_SYNC định kỳ để chống chớp tắt re-render vòng lặp
-          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED') {
-            const container = document.getElementById('webMainContainer');
-            if (container && window.AppRouter && window.AppRouter.currentRoute === '/' && !window._isHomeRendered) {
-              const currentView = container.querySelector('.page-view') || container;
-              HomePage.render(currentView);
-              window._isHomeRendered = true;
+          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED' || event === 'BRANCHES_UPDATED' || event === 'PRODUCTS_UPDATED' || event === 'LIVE_SERVER_SYNC') {
+            const grid = document.getElementById('homeBranchesGrid');
+            if (grid && window.HomePage && typeof window.HomePage.renderBranchesHTML === 'function') {
+              grid.innerHTML = HomePage.renderBranchesHTML(HomePage.selectedDistrict || 'all');
+            } else {
+              const container = document.getElementById('webMainContainer');
+              if (container && window.AppRouter && window.AppRouter.currentRoute === '/' && !window._isHomeRendered) {
+                const currentView = container.querySelector('.page-view') || container;
+                HomePage.render(currentView);
+                window._isHomeRendered = true;
+              }
             }
           }
         });

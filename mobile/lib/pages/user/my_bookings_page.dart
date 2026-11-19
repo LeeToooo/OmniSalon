@@ -1146,6 +1146,7 @@ class _OrderCardItemState extends State<_OrderCardItem> {
     final isCancelled = o.orderStatus.toLowerCase().contains('hủy') || o.orderStatus.toLowerCase() == 'cancelled';
     final isCompleted = o.orderStatus.toLowerCase().contains('hoàn tất') || o.orderStatus.toLowerCase().contains('đã giao') || o.orderStatus.toLowerCase() == 'completed' || o.orderStatus.toLowerCase() == 'delivered';
     final isPaid = o.paymentStatus.toLowerCase().contains('đã thanh toán') || o.paymentStatus.toLowerCase() == 'paid';
+    final isCompleted = o.orderStatus.toLowerCase().contains('hoàn tất') || o.orderStatus.toLowerCase().contains('đã giao') || o.orderStatus.toLowerCase() == 'completed' || o.orderStatus.toLowerCase() == 'delivered';
     final hasMoreThanTwo = o.items.length > 2;
     final visibleItems = (hasMoreThanTwo && !_isExpanded) ? o.items.take(2).toList() : o.items;
 

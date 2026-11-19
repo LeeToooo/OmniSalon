@@ -2180,7 +2180,16 @@ const UICommon = {
     const bName = branch.TenChiNhanh || branch.name;
     const bAddr = branch.DiaChi || branch.address;
     const bPhone = branch.SoDienThoai || branch.phone || '19008899';
-    const bHours = branch.hours || (branch.GioMoCua && branch.GioDongCua ? `${branch.GioMoCua.substring(0, 5)} - ${branch.GioDongCua.substring(0, 5)}` : '08:30 - 21:30');
+    let bHours = '08:30 - 21:30';
+    const rawO = branch.openTime || branch.GioMoCua;
+    const rawC = branch.closeTime || branch.GioDongCua;
+    if (rawO && rawC) {
+      bHours = `${String(rawO).substring(0, 5)} - ${String(rawC).substring(0, 5)}`;
+    } else if (branch.openHours) {
+      bHours = branch.openHours;
+    } else if (branch.hours) {
+      bHours = branch.hours;
+    }
 
     modalBody.innerHTML = `
       <div style="max-width: 540px; margin: 0 auto; background: #141413; border: 1px solid rgba(197, 155, 39, 0.2); border-radius: 18px; padding: 26px; color: #fff;">

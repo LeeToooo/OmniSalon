@@ -1,5 +1,6 @@
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
 
 function getUserRoleInfo(authUser) {
   if (!authUser) return { isSuper: false, isManager: false, isStaff: false, branchId: null, staffId: null };
@@ -87,6 +88,20 @@ async function handleInventoryRoutes(req, res, ctx) {
       `UPDATE TonKho SET SoLuongTon = ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?`,
       [stock, prodId, bId]
     );
+
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản lý kho';
+    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'UPDATE_STOCK',
+      entityType: 'TonKho',
+      entityId: `${bId}:${prodId}`,
+      branchId: bId,
+      after: { stock, branchId: bId, productId: prodId },
+      details: `${actorName} điều chỉnh tồn kho sản phẩm #${prodId} tại chi nhánh ${bId} thành ${stock}`
+    }).catch(() => {});
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, productId: prodId, newStock: stock }));
     return true;
@@ -333,6 +348,19 @@ async function handleInventoryRoutes(req, res, ctx) {
       }
     }
 
+    const receiptActor = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Nhân viên kho';
+    const receiptRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: receiptActor,
+      role: receiptRole,
+      action: 'CREATE_RECEIPT',
+      entityType: 'PhieuNhapKho',
+      entityId: nextPnId,
+      branchId: bId,
+      after: { id: nextPnId, total: tot, status: stt },
+      details: `${receiptActor} lập phiếu nhập kho #${nextPnId} tại chi nhánh ${bId} trị giá ${tot.toLocaleString('vi-VN')} đ`
+    }).catch(() => {});
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id: nextPnId, MaPhieuNhap: nextPnId, total: tot, status: stt }));
     return true;
@@ -389,6 +417,20 @@ async function handleInventoryRoutes(req, res, ctx) {
       }
     }
 
+    const appActor = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản lý chi nhánh';
+    const appRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: appActor,
+      role: appRole,
+      action: 'APPROVE_RECEIPT',
+      entityType: 'PhieuNhapKho',
+      entityId: id,
+      branchId: bId,
+      before: { TrangThai: receipt.TrangThai },
+      after: { TrangThai: 'Đã duyệt' },
+      details: `${appActor} phê duyệt phiếu nhập kho #${id} chi nhánh ${bId}`
+    }).catch(() => {});
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã duyệt phiếu nhập #' + id + ' thành công!' }));
     return true;
@@ -431,6 +473,20 @@ async function handleInventoryRoutes(req, res, ctx) {
 
     const approverId = userInfo.staffId || (parsedBody && parsedBody.approverId) || 'NV01';
     await querySql("UPDATE PhieuNhapKho SET TrangThai = N'Đã từ chối', LyDoTuChoi = ?, NgayDuyet = GETDATE(), MaNguoiDuyet = ? WHERE MaPhieuNhap = ?", [reason, approverId, id]);
+
+    const rejActor = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản lý chi nhánh';
+    const rejRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: rejActor,
+      role: rejRole,
+      action: 'REJECT_RECEIPT',
+      entityType: 'PhieuNhapKho',
+      entityId: id,
+      branchId: bId,
+      before: { TrangThai: receipt.TrangThai },
+      after: { TrangThai: 'Đã từ chối', LyDoTuChoi: reason },
+      details: `${rejActor} từ chối phiếu nhập #${id} chi nhánh ${bId}. Lý do: ${reason}`
+    }).catch(() => {});
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã từ chối phiếu nhập #' + id + ' thành công!' }));
@@ -576,16 +632,16 @@ async function handleInventoryRoutes(req, res, ctx) {
 
   // Quy tac giam gia theo han dung FEFO
 
-  // GET /api/discount-rules & /api/inventory/discount-rules - Danh sách quy tắc giảm giá cận hạn
-  if ((pathname === '/api/discount-rules' || pathname === '/api/inventory/discount-rules') && method === 'GET') {
+  // GET /api/inventory/discount-rules - Danh sách quy tắc giảm giá cận hạn
+  if (pathname === '/api/inventory/discount-rules' && method === 'GET') {
     const rows = await querySql(`SELECT * FROM QuyTacGiamGiaTheoHan ORDER BY PhanTramGiam ASC`);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(rows));
     return true;
   }
 
-  // POST /api/discount-rules & /api/inventory/discount-rules - Thêm quy tắc mới
-  if ((pathname === '/api/discount-rules' || pathname === '/api/inventory/discount-rules') && method === 'POST') {
+  // POST /api/inventory/discount-rules - Thêm quy tắc mới
+  if (pathname === '/api/inventory/discount-rules' && method === 'POST') {
     const body = parsedBody || {};
     let id = (body.id || body.MaQuyTac || '').trim();
     if (!id) {
@@ -612,9 +668,9 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/discount-rules/:id & /api/inventory/discount-rules/:id - Sửa quy tắc
-  if ((pathname.startsWith('/api/discount-rules/') || pathname.startsWith('/api/inventory/discount-rules/')) && method === 'PUT') {
-    const id = pathname.replace('/api/inventory/discount-rules/', '').replace('/api/discount-rules/', '').trim();
+  // PUT /api/inventory/discount-rules/:id - Sửa quy tắc
+  if (pathname.startsWith('/api/inventory/discount-rules/') && method === 'PUT') {
+    const id = pathname.replace('/api/inventory/discount-rules/', '').trim();
     const body = parsedBody || {};
     await querySql(
       `UPDATE QuyTacGiamGiaTheoHan SET TenQuyTac = COALESCE(?, TenQuyTac), SoNgayConLaiToiThieu = COALESCE(?, SoNgayConLaiToiThieu), SoNgayConLaiToiDa = COALESCE(?, SoNgayConLaiToiDa), PhanTramGiam = COALESCE(?, PhanTramGiam), TrangThai = COALESCE(?, TrangThai) WHERE MaQuyTac = ?`,
@@ -625,9 +681,9 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/discount-rules/:id & /api/inventory/discount-rules/:id - Xóa quy tắc
-  if ((pathname.startsWith('/api/discount-rules/') || pathname.startsWith('/api/inventory/discount-rules/')) && method === 'DELETE') {
-    const id = pathname.replace('/api/inventory/discount-rules/', '').replace('/api/discount-rules/', '').trim();
+  // DELETE /api/inventory/discount-rules/:id - Xóa quy tắc
+  if (pathname.startsWith('/api/inventory/discount-rules/') && method === 'DELETE') {
+    const id = pathname.replace('/api/inventory/discount-rules/', '').trim();
     await querySql(`DELETE FROM QuyTacGiamGiaTheoHan WHERE MaQuyTac = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã xóa quy tắc #' + id }));

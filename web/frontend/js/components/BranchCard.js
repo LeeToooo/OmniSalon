@@ -61,7 +61,31 @@
 
       const address = b.DiaChi || b.address || 'TP. Hồ Chí Minh';
       const phone = String(b.SoDienThoai || b.phone || '0901111222');
-      const hours = b.hours || (b.GioMoCua && b.GioDongCua ? `${b.GioMoCua.substring(0, 5)} - ${b.GioDongCua.substring(0, 5)}` : '08:30 - 21:30');
+      const extractHHMM = (val) => {
+        if (!val) return '';
+        const s = String(val).trim();
+        if (/^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(s)) {
+          const parts = s.split(/[:\s]+/);
+          let h = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10);
+          const ampm = (parts[2] || '').toUpperCase();
+          if (ampm === 'PM' && h < 12) h += 12;
+          if (ampm === 'AM' && h === 12) h = 0;
+          return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+        return s.substring(0, 5);
+      };
+
+      let hours = '08:30 - 21:30';
+      const openVal = b.openTime || b.GioMoCua;
+      const closeVal = b.closeTime || b.GioDongCua;
+      if (openVal && closeVal) {
+        hours = `${extractHHMM(openVal)} - ${extractHHMM(closeVal)}`;
+      } else if (b.openHours && typeof b.openHours === 'string' && b.openHours.includes('-')) {
+        hours = b.openHours;
+      } else if (b.hours && typeof b.hours === 'string' && b.hours.includes('-')) {
+        hours = b.hours;
+      }
       const totalChairs = Number(b.totalChairs || 16);
       const isFlagship = Boolean(
         (b.group && (b.group.includes('FLAGSHIP') || b.group.includes('PRESIDENTIAL'))) ||

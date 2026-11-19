@@ -464,11 +464,18 @@
     const attachSyncListener = () => {
       if (window.store && typeof window.store.subscribe === 'function') {
         window.store.subscribe((state, event) => {
-          // Bỏ qua LIVE_SERVER_SYNC và STATE_CHANGE định kỳ để chống vòng lặp re-render chớp tắt
-          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED' || event === 'BRANCHES_UPDATED') {
-            const container = document.getElementById('webMainContainer');
-            if (container && window.AppRouter && window.AppRouter.currentRoute === '/branches') {
-              BranchesPage.render(container);
+          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED' || event === 'BRANCHES_UPDATED' || event === 'LIVE_SERVER_SYNC') {
+            const grid = document.getElementById('branchesCardsGrid');
+            if (grid && window.BranchesPage && typeof window.BranchesPage.renderBranchCardsHTML === 'function') {
+              const branches = (window.store && typeof window.store.getBranches === 'function')
+                ? window.store.getBranches()
+                : (window.INITIAL_SALON_DATA?.branches || []);
+              grid.innerHTML = BranchesPage.renderBranchCardsHTML(branches);
+            } else {
+              const container = document.getElementById('webMainContainer');
+              if (container && window.AppRouter && window.AppRouter.currentRoute === '/branches') {
+                BranchesPage.render(container);
+              }
             }
           }
         });

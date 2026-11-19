@@ -222,9 +222,10 @@
                     <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap;">DANH MỤC</th>
                     <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap;">ĐƠN GIÁ BÁN</th>
                     <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap;">GIÁ GỐC (VỐN)</th>
+                    <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap; text-align: center;">TRẠNG THÁI KINH DOANH</th>
                     <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap; text-align: center;">TỒN KHO HIỆN TẠI</th>
                     <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap; text-align: center;">ĐIỀU CHỈNH NHANH</th>
-                    <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap; text-align: center;">TRẠNG THÁI</th>
+                    <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap; text-align: center;">TRẠNG THÁI TỒN</th>
                     <th style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--text-secondary); padding: 12px 14px; white-space: nowrap; text-align: center;">THAO TÁC</th>
                   </tr>
                 </thead>
@@ -286,6 +287,21 @@
                           </strong>
                         </td>
 
+                        <!-- Cột 5b: TRẠNG THÁI KINH DOANH (Đang kinh doanh / Ngừng kinh doanh) -->
+                        <td style="padding: 12px 14px; text-align: center; white-space: nowrap;">
+                          ${(() => {
+                            const bizStatus = (item.status || item.TrangThaiKinhDoanh || 'Đang kinh doanh').trim();
+                            const isDiscontinued = bizStatus.toLowerCase().includes('ngừng') || bizStatus.toLowerCase().includes('dừng') || bizStatus.toLowerCase().includes('tạm ngưng');
+                            return `
+                              <span class="status-pill ${isDiscontinued ? 'status-cancelled' : 'status-completed'}" 
+                                    style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 9999px; display: inline-flex; align-items: center; gap: 5px; ${isDiscontinued ? 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);' : ''}">
+                                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor;"></span>
+                                ${isDiscontinued ? 'Ngừng kinh doanh' : 'Đang kinh doanh'}
+                              </span>
+                            `;
+                          })()}
+                        </td>
+
                         <!-- Cột 6: TỒN KHO HIỆN TẠI (Pill bo tròn với chấm tròn) -->
                         <td style="padding: 12px 14px; text-align: center; white-space: nowrap;">
                           <span class="status-pill ${stock > 5 ? 'status-completed' : (stock > 0 ? '' : 'status-cancelled')}" 
@@ -335,7 +351,7 @@
                       </tr>
                     `;
                   }).join('') : `
-                    <tr><td colspan="10" style="text-align: center; padding: 36px; color: var(--text-secondary); font-size: 13.5px;">Không tìm thấy bản ghi tồn kho nào phù hợp.</td></tr>
+                    <tr><td colspan="11" style="text-align: center; padding: 36px; color: var(--text-secondary); font-size: 13.5px;">Không tìm thấy bản ghi tồn kho nào phù hợp.</td></tr>
                   `}
                 </tbody>
               </table>
@@ -643,13 +659,45 @@
       this._updateInventoryContentOnly();
     },
 
+    _getActiveBranchId() {
+      const user = this.getCurrentUser();
+      const isStylist = (typeof this.isStylist === 'function') ? this.isStylist(user) : false;
+      return ((this.isBranchManager(user) || isStylist) && user?.branchId && user?.branchId !== 'ALL')
+        ? user.branchId
+        : ((this.filterBranch && this.filterBranch !== 'all') ? this.filterBranch : null);
+    },
+
+    getProductStockForCurrentBranch(productId) {
+      if (!productId) return 0;
+      const activeBranchId = this._getActiveBranchId();
+      if (!activeBranchId) {
+        if (window.store && typeof window.store.getBranchInventory === 'function') {
+          const allInv = window.store.getBranchInventory(null) || [];
+          const found = allInv.find(it => it.productId === productId || it.id === productId);
+          if (found && found.stock !== undefined) return Number(found.stock);
+        }
+        const p = (window.store && typeof window.store.getProductById === 'function') ? window.store.getProductById(productId) : null;
+        return Number(p?.stock !== undefined ? p.stock : (p?.SoLuongTon || 0));
+      } else {
+        if (window.store && typeof window.store.getBranchInventory === 'function') {
+          const branchInv = window.store.getBranchInventory(activeBranchId) || [];
+          const found = branchInv.find(it => it.productId === productId || it.id === productId);
+          if (found && found.stock !== undefined) return Number(found.stock);
+        }
+        if (window.store && typeof window.store.getProductStock === 'function') {
+          return Number(window.store.getProductStock(activeBranchId, productId) || 0);
+        }
+        return 0;
+      }
+    },
+
     _updateInventoryContentOnly() {
       const container = document.getElementById('adminInventoryContentContainer');
       if (container) {
         const user = this.getCurrentUser();
         const isCashier = this.isCashier(user);
         const isStylist = (typeof this.isStylist === 'function') ? this.isStylist(user) : false;
-        const branchId = ((this.isBranchManager(user) || isStylist) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
+        const branchId = this._getActiveBranchId();
         const subType = (isCashier || isStylist || this.adminSubTab === 'receipts') ? 'receipts' : (this.inventorySubTab || 'stock');
         const inventory = (window.store && typeof window.store.getBranchInventory === 'function') ? window.store.getBranchInventory(branchId) : [];
         const fefoLots = (window.store && typeof window.store.getFefoLots === 'function') ? window.store.getFefoLots(branchId) : [];
@@ -658,6 +706,13 @@
         const discountRules = (window.store && typeof window.store.getDiscountRules === 'function') ? window.store.getDiscountRules() : [];
         const q = (this.inventorySearchQuery || '').trim();
         container.innerHTML = this._renderInventoryContent(subType, { inventory, fefoLots, receipts, suppliers, discountRules, q });
+        if (this.editingProductId) {
+          setTimeout(() => {
+            if (this.editingProductId && document.getElementById('prodEditorId')) {
+              this.editProductBottom(this.editingProductId);
+            }
+          }, 0);
+        }
       } else {
         this.refreshInventoryView();
       }
@@ -753,11 +808,25 @@
         const user = this.getCurrentUser();
         const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
         content.innerHTML = this.renderInventoryTab(user, branches);
+        if (this.editingProductId) {
+          setTimeout(() => {
+            if (this.editingProductId && document.getElementById('prodEditorId')) {
+              this.editProductBottom(this.editingProductId);
+            }
+          }, 0);
+        }
         return;
       }
       const container = document.getElementById('webMainContainer');
       if (container && (this.adminSubTab === 'inventory' || this.adminSubTab === 'receipts')) {
         this.render(container);
+        if (this.editingProductId) {
+          setTimeout(() => {
+            if (this.editingProductId && document.getElementById('prodEditorId')) {
+              this.editProductBottom(this.editingProductId);
+            }
+          }, 0);
+        }
       }
     },
 
@@ -797,8 +866,8 @@
     openProductModal(productId = null) {
       const isEdit = !!productId;
       const product = isEdit ? window.store.getProductById(productId) : null;
-      const currentStock = productId ? window.store.getProductStock(null, productId) : 25;
-      const stockVal = product?.stock !== undefined ? product.stock : currentStock;
+      const currentStock = productId ? this.getProductStockForCurrentBranch(productId) : 25;
+      const stockVal = currentStock;
       const rawImg = product?.image || product?.HinhAnh || '';
       const displayImg = typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatImageUrl === 'function'
         ? SalonUtils.formatImageUrl(rawImg)
@@ -923,11 +992,25 @@
         return;
       }
 
+      const activeBranchId = this._getActiveBranchId();
+
       if (productId) {
-        await window.store.updateProduct(productId, { name, brand, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        if (activeBranchId) {
+          await window.store.updateProduct(productId, { name, brand, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, image, description });
+          window.store.updateProductStock(`inv-${activeBranchId}-${productId}`, stock);
+        } else {
+          await window.store.updateProduct(productId, { name, brand, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        }
         if (window.UICommon) window.UICommon.showToast(`Đã cập nhật sản phẩm [${name}]!`);
       } else {
         await window.store.addProduct({ name, brand, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        if (activeBranchId) {
+          const prods = window.store.getProducts() || [];
+          const newProd = prods.find(p => p.name === name);
+          if (newProd) {
+            window.store.updateProductStock(`inv-${activeBranchId}-${newProd.id}`, stock);
+          }
+        }
         if (window.UICommon) window.UICommon.showToast(`Đã thêm mới sản phẩm [${name}] vào kho hàng!`);
       }
 
@@ -1427,7 +1510,7 @@
                               style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
                               onchange="AdminWeb.syncProductPreviewCard();">
                         <option value="Đang kinh doanh">Đang kinh doanh</option>
-                        <option value="Tạm ngưng">Tạm ngưng</option>
+                        <option value="Ngừng kinh doanh">Ngừng kinh doanh</option>
                       </select>
                     </div>
                   </div>
@@ -1454,7 +1537,7 @@
                     </div>
                     <div>
                       <label class="sub-label" style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
-                        Tồn Kho Ban Đầu
+                        Tồn Kho
                       </label>
                       <input type="number" id="prodEditorStock" class="form-control-custom" 
                              style="height: 38px; font-size: 13px; font-weight: 700; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 10px;" 
@@ -1614,6 +1697,7 @@
     editProductBottom(productId) {
       const product = window.store.getProductById(productId);
       if (!product) return;
+      this.editingProductId = productId;
       const editor = document.getElementById('adminProductBottomEditor');
       if (editor) {
         editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1634,7 +1718,10 @@
       if (catEl) catEl.value = product.category || product.NhomHang || 'Sáp & Pomade';
 
       const statusEl = document.getElementById('prodEditorStatus');
-      if (statusEl) statusEl.value = (product.status || 'Đang kinh doanh');
+      if (statusEl) {
+        const curSt = (product.status || product.TrangThaiKinhDoanh || 'Đang kinh doanh').trim();
+        statusEl.value = (curSt.toLowerCase().includes('ngừng') || curSt.toLowerCase().includes('dừng') || curSt.toLowerCase().includes('tạm ngưng')) ? 'Ngừng kinh doanh' : 'Đang kinh doanh';
+      }
 
       const priceEl = document.getElementById('prodEditorPrice');
       if (priceEl) priceEl.value = product.originalPrice || product.GiaBan || product.price || '';
@@ -1643,8 +1730,8 @@
       if (costEl) costEl.value = product.costPrice || product.GiaNhap || (product.price ? Math.round(product.price * 0.7) : 245000);
 
       const stockEl = document.getElementById('prodEditorStock');
-      const currentStock = window.store.getProductStock(null, productId);
-      if (stockEl) stockEl.value = product.stock !== undefined ? product.stock : currentStock;
+      const currentStock = this.getProductStockForCurrentBranch(productId);
+      if (stockEl) stockEl.value = currentStock;
 
       const imgEl = document.getElementById('prodEditorImage');
       if (imgEl) imgEl.value = product.image || product.HinhAnh || '';
@@ -1659,6 +1746,7 @@
     },
 
     resetProductBottomEditor() {
+      this.editingProductId = null;
       const form = document.getElementById('productBottomForm');
       if (form) form.reset();
       const idEl = document.getElementById('prodEditorId');
@@ -1713,8 +1801,13 @@
       }
 
       const previewStockBadge = document.getElementById('previewProdStockBadge');
+      const status = (document.getElementById('prodEditorStatus')?.value || 'Đang kinh doanh').trim();
+      const isDiscontinued = status.toLowerCase().includes('ngừng') || status.toLowerCase().includes('dừng') || status.toLowerCase().includes('tạm ngưng');
       if (previewStockBadge) {
-        if (stock > 5) {
+        if (isDiscontinued) {
+          previewStockBadge.style.background = 'rgba(239, 68, 68, 0.9)';
+          previewStockBadge.textContent = '✕ Ngừng kinh doanh';
+        } else if (stock > 5) {
           previewStockBadge.style.background = 'rgba(16, 185, 129, 0.9)';
           previewStockBadge.textContent = `✓ Còn hàng (${stock})`;
         } else if (stock > 0) {
@@ -1744,11 +1837,25 @@
         return;
       }
 
+      const activeBranchId = this._getActiveBranchId();
+
       if (prodId) {
-        await window.store.updateProduct(prodId, { name, brand, category, status, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        if (activeBranchId) {
+          await window.store.updateProduct(prodId, { name, brand, category, status, TrangThaiKinhDoanh: status, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, image, description });
+          window.store.updateProductStock(`inv-${activeBranchId}-${prodId}`, stock);
+        } else {
+          await window.store.updateProduct(prodId, { name, brand, category, status, TrangThaiKinhDoanh: status, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        }
         if (window.UICommon) window.UICommon.showToast(`Đã cập nhật sản phẩm [${name}]!`, 'success');
       } else {
-        await window.store.addProduct({ name, brand, category, status, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        await window.store.addProduct({ name, brand, category, status, TrangThaiKinhDoanh: status, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        if (activeBranchId) {
+          const prods = window.store.getProducts() || [];
+          const newProd = prods.find(p => p.name === name);
+          if (newProd) {
+            window.store.updateProductStock(`inv-${activeBranchId}-${newProd.id}`, stock);
+          }
+        }
         if (window.UICommon) window.UICommon.showToast(`Đã thêm mới sản phẩm [${name}] vào kho hàng!`, 'success');
       }
 

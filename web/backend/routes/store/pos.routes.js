@@ -1,4 +1,6 @@
 const { querySql } = require('../../database/db');
+const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
 const {
   resolveOrCreateCustomer,
   resolveStaffMember,
@@ -279,6 +281,20 @@ async function handlePosRoutes(req, res, ctx) {
     } catch (e) {
       console.warn('[ThongBao] Lỗi tạo thông báo POS:', e.message);
     }
+
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : `Thu Ngân (${cnId})`;
+    const actorRole = authUser ? (authUser.role || 'CASHIER') : 'CASHIER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'POS_CHECKOUT',
+      entityType: 'HoaDon',
+      entityId: hdId,
+      branchId: cnId,
+      after: { invoiceId: hdId, total, method: methodPay, customerId: khId },
+      details: `${actorName} hoàn tất thanh toán hóa đơn POS #${hdId} trị giá ${total.toLocaleString('vi-VN')} đ (${methodPay})`
+    }).catch(() => {});
 
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ 

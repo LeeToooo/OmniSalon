@@ -43,7 +43,9 @@
 .pos-panel.pos-receipt-panel {
   justify-content: flex-start;
   height: auto;
-  max-height: calc(100vh - 140px);
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  overflow-x: hidden;
   position: sticky;
   top: 10px;
   overflow-y: auto;
@@ -129,13 +131,14 @@
 }
 
 .pos-bill-list {
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: 180px;
+  max-height: 320px;
   overflow-y: auto;
   margin-bottom: 14px;
   border: 1px solid var(--border-color, #2A2A28);
   border-radius: 12px;
-  padding: 10px;
+  padding: 12px;
   background: var(--bg-primary, #141413) !important;
   color: var(--text-primary, #FAF8F5);
 }

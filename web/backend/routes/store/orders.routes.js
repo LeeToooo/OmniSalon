@@ -1,5 +1,6 @@
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
 const {
   resolveOrCreateCustomer,
   generateNextOrderId,
@@ -270,6 +271,20 @@ async function handleOrderRoutes(req, res, ctx) {
       console.warn('[ThongBao] Lỗi tạo thông báo đơn hàng:', e.message);
     }
 
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : (order.customerName ? `${order.customerName} (${order.customerPhone || ''})` : `Khách Hàng (${khId})`);
+    const actorRole = authUser ? (authUser.role || 'CUSTOMER') : 'CUSTOMER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'CREATE_ORDER',
+      entityType: 'DonHang',
+      entityId: id,
+      branchId: cnId,
+      after: { id, customerId: khId, totalAmount: total, status: 'Processing' },
+      details: `${actorName} tạo đơn hàng mỹ phẩm #${id} trị giá ${total.toLocaleString('vi-VN')} đ`
+    }).catch(() => {});
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ 
       success: true, 
@@ -337,6 +352,21 @@ async function handleOrderRoutes(req, res, ctx) {
         }
       }
     }
+
+    const cancelAuthUser = extractAuthUser(req);
+    const cancelActor = cancelAuthUser ? (cancelAuthUser.fullName || cancelAuthUser.name || cancelAuthUser.username) : 'Khách Hàng';
+    const cancelRole = cancelAuthUser ? (cancelAuthUser.role || 'CUSTOMER') : 'CUSTOMER';
+    auditService.logAudit({
+      actor: cancelActor,
+      role: cancelRole,
+      action: 'CANCEL_ORDER',
+      entityType: 'DonHang',
+      entityId: actualId,
+      branchId,
+      before: { TrangThai: currentStatus },
+      after: { TrangThai: 'Đã hủy', reason },
+      details: `${cancelActor} (${cancelRole}) hủy đơn hàng #${actualId}. Lý do: ${reason}`
+    }).catch(() => {});
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: `Đã hủy đơn hàng #${actualId} thành công!`, orderCode: actualId }));
@@ -513,6 +543,20 @@ async function handleOrderRoutes(req, res, ctx) {
         console.warn('[Lỗi cập nhật thanh toán đơn hàng]', pErr.message);
       }
     }
+
+    const updateAuthUser = extractAuthUser(req);
+    const updateActor = updateAuthUser ? (updateAuthUser.fullName || updateAuthUser.name || updateAuthUser.username) : 'Nhân Viên / Thu Ngân';
+    const updateRole = updateAuthUser ? (updateAuthUser.role || 'CASHIER') : 'CASHIER';
+    const actionName = isPaymentConfirmed ? 'ORDER_PAYMENT' : 'UPDATE_ORDER_STATUS';
+    auditService.logAudit({
+      actor: updateActor,
+      role: updateRole,
+      action: actionName,
+      entityType: 'DonHang',
+      entityId: id,
+      after: { TrangThai: trangThai, paymentStatus: isPaymentConfirmed ? 'Paid' : (body.paymentStatus || 'Unpaid') },
+      details: `${updateActor} (${updateRole}) ${isPaymentConfirmed ? 'xác nhận thanh toán và ' : ''}cập nhật đơn hàng #${id}: ${trangThai || 'Trạng thái mới'}`
+    }).catch(() => {});
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ 

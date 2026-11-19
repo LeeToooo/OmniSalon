@@ -224,7 +224,7 @@
                 <button class="pill-btn-outline" style="font-size: 11px; padding: 4px 10px;" onclick="CustomerWeb.showTicketQr('${b.id}')">
                   Xem Vé QR
                 </button>
-                ${(!isPaid) ? `
+                ${(!isPaid && !isCancelled) ? `
                   <button type="button" class="pill-btn-outline btn-pay" style="font-size: 11px; padding: 4px 10px; color: #10b981 !important; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer;" 
                           onclick="CustomerWeb.openBookingPaymentModal('${escapeFn(bCode)}')">
                     Thanh Toán VietQR

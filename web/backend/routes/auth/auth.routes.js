@@ -7,6 +7,7 @@ const {
   ROLE_NAME_MAP,
   BRANCH_NAME_MAP
 } = require('../../services/helper_service');
+const { logAudit } = require('../../services/audit.service');
 
 /**
  * Chuẩn hóa ngày sinh từ các định dạng dd/mm/yyyy, dd/mm/yy hoặc yyyy-mm-dd
@@ -105,6 +106,14 @@ async function handleAuthRoutes(req, res, ctx) {
 
     const isValid = await otpService.verifyAndConsumeOtp(target, otpCode, purpose || 'LOGIN');
     if (!isValid) {
+      auditService.logAudit({
+        actor: target,
+        role: 'SYSTEM',
+        action: 'OTP_EXPIRED_OR_INVALID',
+        entityType: 'XacThucOTP',
+        entityId: target,
+        details: `Xác thực OTP thất bại hoặc mã đã hết hạn cho ${target}`
+      }).catch(() => {});
       res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn.' }));
       return true;
@@ -194,6 +203,16 @@ async function handleAuthRoutes(req, res, ctx) {
         phone: cleanPhone,
         name: cleanName,
         role: 'CUSTOMER'
+      });
+
+      logAudit({
+        actor: `${cleanName} (${cleanPhone})`,
+        role: 'CUSTOMER',
+        action: 'CUSTOMER_REGISTER',
+        entityType: 'TaiKhoan',
+        entityId: tkId,
+        details: `Khách hàng [${cleanName}] đăng ký tài khoản mới qua số điện thoại ${cleanPhone}`,
+        after: { phone: cleanPhone, fullName: cleanName, email: cleanEmail }
       });
 
       res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -292,6 +311,15 @@ async function handleAuthRoutes(req, res, ctx) {
     // Cập nhật mật khẩu mới trực tiếp vào SQL Server
     await querySql(`UPDATE TaiKhoan SET MatKhau = ? WHERE MaTaiKhoan = ?`, [cleanNew, acc.MaTaiKhoan]);
 
+    auditService.logAudit({
+      actor: acc.TenDangNhap || cleanUsername || acc.MaTaiKhoan,
+      role: 'CUSTOMER',
+      action: 'CHANGE_PASSWORD',
+      entityType: 'TaiKhoan',
+      entityId: acc.MaTaiKhoan,
+      details: `Người dùng ${acc.TenDangNhap || acc.MaTaiKhoan} đổi mật khẩu thành công`
+    }).catch(() => {});
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
@@ -356,6 +384,14 @@ async function handleAuthRoutes(req, res, ctx) {
     // Cập nhật mật khẩu mới trực tiếp vào bảng TaiKhoan trong SQL Server
     for (const acc of accounts) {
       await querySql(`UPDATE TaiKhoan SET MatKhau = ? WHERE MaTaiKhoan = ?`, [cleanNewPass, acc.MaTaiKhoan]);
+      auditService.logAudit({
+        actor: acc.TenDangNhap || cleanIdent || acc.MaTaiKhoan,
+        role: 'CUSTOMER',
+        action: 'RESET_PASSWORD',
+        entityType: 'TaiKhoan',
+        entityId: acc.MaTaiKhoan,
+        details: `Người dùng ${cleanIdent} đặt lại mật khẩu mới qua mã OTP`
+      }).catch(() => {});
     }
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -439,6 +475,17 @@ async function handleAuthRoutes(req, res, ctx) {
         };
 
         const jwtToken = signJwt(userObj);
+
+        logAudit({
+          actor: `${displayName} (${u.TenDangNhap})`,
+          role: sysRole,
+          action: 'AUTH_LOGIN',
+          entityType: 'TaiKhoan',
+          entityId: u.MaTaiKhoan,
+          branchId: u.MaChiNhanh || null,
+          details: `Đăng nhập hệ thống thành công với vai trò [${sysRole}]`,
+          ip: req.socket?.remoteAddress || '127.0.0.1'
+        });
 
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({

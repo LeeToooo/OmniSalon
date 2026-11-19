@@ -1,4 +1,6 @@
 const { querySql } = require('../../database/db');
+const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
 
 async function handleServiceRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
@@ -114,6 +116,19 @@ async function handleServiceRoutes(req, res, ctx) {
       [dvId, name, desc, duration, price, image, status]
     );
 
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'CREATE_SERVICE',
+      entityType: 'DichVu',
+      entityId: dvId,
+      after: { id: dvId, name, price, duration, status },
+      details: `${actorName} (${actorRole}) thêm dịch vụ mới: ${name} (Mã: #${dvId})`
+    }).catch(() => {});
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, service: { id: dvId, MaDichVu: dvId, name, price, duration, status } }));
     return true;
@@ -123,6 +138,9 @@ async function handleServiceRoutes(req, res, ctx) {
   if (pathname.startsWith('/api/services/') && method === 'PUT') {
     const id = pathname.replace('/api/services/', '').trim();
     const body = parsedBody || {};
+    const oldRows = await querySql(`SELECT TenDichVu, Gia, ThoiLuong, TrangThai FROM DichVu WHERE MaDichVu = ?`, [id]);
+    const oldService = (oldRows && oldRows[0]) ? oldRows[0] : null;
+
     await querySql(
       `UPDATE DichVu SET 
          TenDichVu = COALESCE(?, TenDichVu), 
@@ -142,6 +160,21 @@ async function handleServiceRoutes(req, res, ctx) {
         id
       ]
     );
+
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'UPDATE_SERVICE',
+      entityType: 'DichVu',
+      entityId: id,
+      before: oldService,
+      after: body,
+      details: `${actorName} (${actorRole}) cập nhật dịch vụ #${id} (${body.name || oldService?.TenDichVu || ''})`
+    }).catch(() => {});
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -150,6 +183,9 @@ async function handleServiceRoutes(req, res, ctx) {
   // DELETE /api/services/:id - Xóa dịch vụ khỏi bảng DichVu trong SQL
   if (pathname.startsWith('/api/services/') && method === 'DELETE') {
     const id = pathname.replace('/api/services/', '').trim();
+    const oldRows = await querySql(`SELECT TenDichVu, Gia FROM DichVu WHERE MaDichVu = ?`, [id]);
+    const oldService = (oldRows && oldRows[0]) ? oldRows[0] : null;
+
     try {
       await querySql(`
         DECLARE @id VARCHAR(30) = ?;
@@ -161,6 +197,20 @@ async function handleServiceRoutes(req, res, ctx) {
         ALTER TABLE ChiTietLichHen CHECK CONSTRAINT FK_ChiTietLichHen_DichVu;
         ALTER TABLE ChiTietHoaDon_DichVu CHECK CONSTRAINT FK_ChiTietHoaDonDichVu_DichVu;
       `, [id]);
+
+      const authUser = extractAuthUser(req);
+      const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+      const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+      auditService.logAudit({
+        actor: actorName,
+        role: actorRole,
+        action: 'DELETE_SERVICE',
+        entityType: 'DichVu',
+        entityId: id,
+        before: oldService,
+        details: `${actorName} (${actorRole}) xóa dịch vụ #${id} (${oldService?.TenDichVu || ''})`
+      }).catch(() => {});
+
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: true, message: 'Đã xóa dịch vụ khỏi bảng DichVu trong SQL.', id }));
       return true;
@@ -300,6 +350,19 @@ async function handleServiceRoutes(req, res, ctx) {
     `;
     await querySql(sqlBatch, params);
 
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'CREATE_COMBO',
+      entityType: 'ComboDichVu',
+      entityId: cbId,
+      after: { id: cbId, name, price, duration, status, serviceIds },
+      details: `${actorName} (${actorRole}) thêm combo VIP mới: ${name} (Mã: #${cbId})`
+    }).catch(() => {});
+
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
@@ -393,6 +456,19 @@ async function handleServiceRoutes(req, res, ctx) {
       );
     }
 
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'UPDATE_COMBO',
+      entityType: 'ComboDichVu',
+      entityId: id,
+      after: body,
+      details: `${actorName} (${actorRole}) cập nhật combo #${id} (${body.name || ''})`
+    }).catch(() => {});
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -411,6 +487,19 @@ async function handleServiceRoutes(req, res, ctx) {
         ALTER TABLE ChiTietLichHen CHECK CONSTRAINT FK_ChiTietLichHen_Combo;
         ALTER TABLE ChiTietHoaDon_DichVu CHECK CONSTRAINT FK_ChiTietHoaDonDichVu_Combo;
       `, [id]);
+
+      const authUser = extractAuthUser(req);
+      const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+      const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+      auditService.logAudit({
+        actor: actorName,
+        role: actorRole,
+        action: 'DELETE_COMBO',
+        entityType: 'ComboDichVu',
+        entityId: id,
+        details: `${actorName} (${actorRole}) xóa combo #${id}`
+      }).catch(() => {});
+
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: true, message: 'Đã xóa combo khỏi bảng ComboDichVu trong SQL.', id }));
       return true;

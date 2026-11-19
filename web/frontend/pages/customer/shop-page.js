@@ -371,6 +371,7 @@
       return all.filter(p => {
         if (p.isExpired === true) return false;
         if (p.daysRemaining !== undefined && p.daysRemaining <= 0) return false;
+        if (p.status === 'Ngừng kinh doanh' || p.TrangThaiKinhDoanh === 'Ngừng kinh doanh') return false;
         return true;
       });
     },
@@ -382,6 +383,7 @@
       const list = allProducts.filter(p => {
         if (p.isExpired === true) return false;
         if (p.daysRemaining !== undefined && p.daysRemaining <= 0) return false;
+        if (p.status === 'Ngừng kinh doanh' || p.TrangThaiKinhDoanh === 'Ngừng kinh doanh') return false;
         const sold = Number(p.soLuongDaBan || p.soldCount || 0);
         if (sold > 0) return true;
         const disc = Number(p.discountPercent || p.PhanTramGiam || 0);
@@ -704,6 +706,7 @@
       let filtered = allProducts.filter(p => {
         if (p.isExpired === true) return false;
         if (p.daysRemaining !== undefined && p.daysRemaining <= 0) return false;
+        if (p.status === 'Ngừng kinh doanh' || p.TrangThaiKinhDoanh === 'Ngừng kinh doanh') return false;
         return true;
       });
 

@@ -23,10 +23,24 @@
               if (fresh) {
                 this.state = JSON.parse(fresh);
                 this.notify('CROSS_TAB_SYNC');
+                this.notify('BRANCHES_UPDATED');
+                this.notify('PRODUCTS_UPDATED');
+                this.notify('SERVICES_UPDATED');
               }
             }
           };
         } catch (_) { }
+        window.addEventListener('storage', (e) => {
+          if (e.key === this.storageKey && e.newValue) {
+            try {
+              this.state = JSON.parse(e.newValue);
+              this.notify('CROSS_TAB_SYNC');
+              this.notify('BRANCHES_UPDATED');
+              this.notify('PRODUCTS_UPDATED');
+              this.notify('SERVICES_UPDATED');
+            } catch (_) { }
+          }
+        });
       }
 
       // Tự động đồng bộ Live Server SQL định kỳ 2 giây 1 lần
@@ -45,18 +59,22 @@
         let changed = false;
 
         // Đồng bộ Chi Nhánh từ SQL
+        let branchesChanged = false;
         if (Array.isArray(db.branches) && db.branches.length > 0) {
           if (!this.state.branches || JSON.stringify(this.state.branches) !== JSON.stringify(db.branches)) {
             this.state.branches = db.branches;
             changed = true;
+            branchesChanged = true;
           }
         }
 
         // Đồng bộ Sản Phẩm từ SQL
+        let productsChanged = false;
         if (Array.isArray(db.products) && db.products.length > 0) {
           if (!this.state.products || JSON.stringify(this.state.products) !== JSON.stringify(db.products)) {
             this.state.products = db.products;
             changed = true;
+            productsChanged = true;
           }
         }
 
@@ -241,6 +259,12 @@
         if (changed) {
           localStorage.setItem(this.storageKey, JSON.stringify(this.state));
           this.notify('LIVE_SERVER_SYNC');
+          if (branchesChanged) {
+            this.notify('BRANCHES_UPDATED');
+          }
+          if (productsChanged) {
+            this.notify('PRODUCTS_UPDATED');
+          }
         }
       } catch (_) {
         // Live server offline / connecting
@@ -465,14 +489,23 @@
       } catch (_) { }
     }
 
-    async syncBranchToLiveServer(branch) {
+    async syncBranchToLiveServer(branch, isUpdate = false) {
       if (typeof fetch === 'undefined') return;
       try {
-        await fetch(`${this.liveServerUrl}/branches`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
-          body: JSON.stringify(branch)
-        });
+        const id = branch.id || branch.MaChiNhanh;
+        if (isUpdate && id) {
+          await fetch(`${this.liveServerUrl}/branches/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
+            body: JSON.stringify(branch)
+          });
+        } else {
+          await fetch(`${this.liveServerUrl}/branches`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
+            body: JSON.stringify(branch)
+          });
+        }
       } catch (_) { }
     }
 
@@ -869,14 +902,18 @@
           this.state.categories = baseline.categories;
         }
         const hasCashiers = Array.isArray(this.state.stylists) && this.state.stylists.some(s => (s.role || s.ChucVu || '').includes('ngân'));
-        if (!Array.isArray(this.state.stylists) || this.state.stylists.length < 60) {
+        if (!Array.isArray(this.state.stylists) || this.state.stylists.length < 80 || !hasCashiers) {
           this.state.stylists = baseline.stylists;
-        } else if (!hasCashiers) {
-          const existingIds = new Set(this.state.stylists.map(s => s.id || s.MaNhanVien));
-          const missingCashiers = baseline.stylists.filter(b => (b.role === 'Thu ngân' || b.ChucVu === 'Thu ngân') && !existingIds.has(b.id));
-          if (missingCashiers.length > 0) {
-            this.state.stylists.push(...missingCashiers);
-          }
+        }
+        // Chuẩn hóa avatar chân dung thợ theo chu kỳ 1-20 trong thư mục ChanDungTho
+        if (Array.isArray(this.state.stylists)) {
+          this.state.stylists.forEach((st, idx) => {
+            const m = String(st.id || st.MaNhanVien || '').match(/(\d+)/);
+            const n = m ? parseInt(m[1], 10) : (idx + 1);
+            const tIdx = ((n - 1) % 20) + 1;
+            st.avatar = `/DataPicture/ChanDungTho/Tho${tIdx}.jpg`;
+            st.avatarUrl = `/DataPicture/ChanDungTho/Tho${tIdx}.jpg`;
+          });
         }
         if (!Array.isArray(this.state.products) || this.state.products.length < 130) {
           this.state.products = baseline.products;
@@ -1098,8 +1135,24 @@
       if (updates.address) b.DiaChi = updates.address;
       if (updates.phone) b.SoDienThoai = updates.phone;
       if (updates.status) b.TrangThai = updates.status;
+      if (updates.openTime || updates.GioMoCua) {
+        b.openTime = updates.openTime || updates.GioMoCua;
+        b.GioMoCua = b.openTime;
+      }
+      if (updates.closeTime || updates.GioDongCua) {
+        b.closeTime = updates.closeTime || updates.GioDongCua;
+        b.GioDongCua = b.closeTime;
+      }
+      if (b.openTime && b.closeTime) {
+        const oH = String(b.openTime).substring(0, 5);
+        const cH = String(b.closeTime).substring(0, 5);
+        b.openHours = `${oH} - ${cH}`;
+        b.hours = `${oH} - ${cH}`;
+      }
       this.logAudit('UPDATE_BRANCH', `Chi nhánh: ${branchId}`, 'Cập nhật thông tin chi nhánh');
       this.saveState();
+      this.notify('BRANCHES_UPDATED', b);
+      this.syncBranchToLiveServer(b, true);
       this.syncUpdateBranchToLiveServer(branchId, updates);
       return b;
     }
@@ -1271,7 +1324,8 @@
       const services = this.state.services || [];
       return services.find(s => 
         String(s.id || '').trim().toLowerCase() === clean || 
-        String(s.MaDichVu || '').trim().toLowerCase() === clean
+        String(s.MaDichVu || '').trim().toLowerCase() === clean ||
+        String(s.real_id || '').trim().toLowerCase() === clean
       ) || null;
     }
 
@@ -1284,6 +1338,7 @@
       const durationVal = typeof durRaw === 'number' ? durRaw : (parseInt(String(durRaw).replace(/\D/g, ''), 10) || 60);
       const description = c.description || c.MoTa || '';
       const image = c.image || c.HinhAnh || 'DichVu_Men/CBDV1.jpg';
+      const statusVal = c.status || c.TrangThai || 'Đang kinh doanh';
       return {
         ...c,
         id,
@@ -1298,7 +1353,9 @@
         description,
         MoTa: description,
         image,
-        HinhAnh: image
+        HinhAnh: image,
+        status: statusVal,
+        TrangThai: statusVal
       };
     }
 
@@ -1319,7 +1376,8 @@
       const clean = String(comboId).trim().toLowerCase();
       const found = (this.state.combos || []).find(c => 
         String(c.id || '').trim().toLowerCase() === clean || 
-        String(c.MaCombo || '').trim().toLowerCase() === clean
+        String(c.MaCombo || '').trim().toLowerCase() === clean ||
+        String(c.real_id || '').trim().toLowerCase() === clean
       );
       return found ? this._normalizeCombo(found) : null;
     }
@@ -1393,8 +1451,9 @@
     }
 
     updateCombo(comboId, updates) {
-      const clean = String(comboId).trim().toLowerCase();
-      const rawCombo = (this.state.combos || []).find(c => 
+      if (!this.state.combos) this.state.combos = [];
+      const clean = String(comboId || '').trim().toLowerCase();
+      const rawCombo = this.state.combos.find(c => 
         String(c.id || '').trim().toLowerCase() === clean || 
         String(c.MaCombo || '').trim().toLowerCase() === clean
       );
@@ -1922,7 +1981,7 @@
     getBranchInventory(branchId = null) {
       const bId = (!branchId || String(branchId).toLowerCase() === 'all') ? null : branchId;
 
-      const prods = (this.state.products || []).filter(p => !p.isDeleted && p.status !== 'Ngừng kinh doanh' && p.TrangThaiKinhDoanh !== 'Ngừng kinh doanh');
+      const prods = (this.state.products || []).filter(p => !p.isDeleted);
       const invList = this.state.inventory || [];
 
       // Bản đồ tồn kho theo key: branchId_productId
@@ -1976,6 +2035,8 @@
           costPrice: actualCost,
           GiaNhap: actualCost,
           oldPrice: prod.oldPrice || actualCost,
+          status: prod.status || prod.TrangThaiKinhDoanh || 'Đang kinh doanh',
+          TrangThaiKinhDoanh: prod.TrangThaiKinhDoanh || prod.status || 'Đang kinh doanh',
           image: prod.image || prod.HinhAnh || '',
           stock: actualStock,
           minAlert: invItem?.warningThreshold || invItem?.MucCanhBao || invItem?.minAlert || 5,
@@ -2278,6 +2339,10 @@
       Object.assign(p, updates);
       if (updates.name) p.TenSanPham = updates.name;
       if (updates.brand) p.brand = updates.brand;
+      if (updates.status || updates.TrangThaiKinhDoanh) {
+        p.status = updates.status || updates.TrangThaiKinhDoanh;
+        p.TrangThaiKinhDoanh = p.status;
+      }
       if (updates.price) {
         p.price = Number(updates.price);
         p.GiaBanThucTe = Number(updates.price);
@@ -2301,6 +2366,7 @@
       }
       this.logAudit('UPDATE_PRODUCT', `Sản phẩm: ${productId}`, 'Cập nhật thông tin sản phẩm');
       this.saveState();
+      this.notify('PRODUCTS_UPDATED', p);
       await this.syncUpdateProductToLiveServer(productId, updates);
       return p;
     }
@@ -2382,6 +2448,13 @@
     addToCart(productId, qty = 1) {
       const prod = this.getProductById(productId);
       if (!prod) return;
+
+      if (prod.status === 'Ngừng kinh doanh' || prod.TrangThaiKinhDoanh === 'Ngừng kinh doanh') {
+        if (typeof window.UICommon !== 'undefined' && typeof window.UICommon.showToast === 'function') {
+          window.UICommon.showToast('Sản phẩm đã ngừng kinh doanh, không thể thêm vào giỏ hàng!', 'warning');
+        }
+        return false;
+      }
 
       // Lo da het han khong duoc ban tren giao dien khach
       if (prod.isExpired || (prod.daysLeft !== null && prod.daysLeft !== undefined && prod.daysLeft <= 0) || (prod.daysRemaining !== null && prod.daysRemaining !== undefined && prod.daysRemaining <= 0)) {
@@ -3345,96 +3418,134 @@
         });
         if (needsSave) this.saveState();
       }
-      return this.state.auditLogs || [];
+      const user = this.getCurrentUser();
+      const userRole = String(user?.role || '').toUpperCase();
+      const isSuper = userRole.includes('SUPER_ADMIN') || user?.isSuperAdmin;
+      const isManager = userRole.includes('BRANCH_MANAGER') || userRole.includes('QUẢN LÝ');
+
+      let logs = this.state.auditLogs || [];
+      if (isManager && !isSuper && user?.branchId) {
+        logs = logs.filter(l => !l.branchId || l.branchId === user.branchId);
+      }
+      return logs;
     }
 
     _getSeedAuditLogs() {
       const actions = [
-        // Thao tác của Quản Lý Chi Nhánh (BRANCH_MANAGER)
-        { action: "UPDATE_PRODUCT", entity: "Sản phẩm: SP01", details: "Cập nhật giá bán & tồn kho sản phẩm: Sáp Vuốt Tóc Clay Wax (288.000 đ)", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 12 * 60 * 1000 },
-        { action: "UPDATE_STYLIST", entity: "Nhân sự: #NV02", details: "Cập nhật thông tin nhân sự: Đỗ Đình Độ (Thợ chính)", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 25 * 60 * 1000 },
-        { action: "CREATE_STYLIST", entity: "Nhân sự: Nguyễn Văn An", details: "Thêm mới Thợ phụ (#NV15) tại cơ sở CN02", operator: "Phạm Thu Thảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 45 * 60 * 1000 },
-        { action: "UPDATE_SERVICE", entity: "Dịch vụ: #DV02", details: "Cập nhật bảng giá dịch vụ: Uốn Tóc Tiêu Chuẩn (350.000 đ)", operator: "Phạm Thu Thảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 1.5 * 3600 * 1000 },
-        { action: "CREATE_SERVICE", entity: "Dịch vụ: Gội Đầu Dưỡng Sinh Hoàng Gia", details: "Thêm mới dịch vụ thư giãn tại cơ sở CN03", operator: "Võ Quốc Bảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 2.2 * 3600 * 1000 },
-        { action: "UPDATE_COMBO", entity: "Gói: #CB01", details: "Cập nhật giá ưu đãi Combo Cắt Gội Massage", operator: "Võ Quốc Bảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 2.8 * 3600 * 1000 },
-        { action: "UPDATE_STOCK", entity: "Kho [CN01]: SP04", details: "Điều chỉnh số lượng tồn kho: 30 -> 65", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 3.5 * 3600 * 1000 },
-        { action: "CREATE_RECEIPT", entity: "Phiếu nhập: PN08", details: "Tạo phiếu nhập 50 Gôm Sáp Vuốt Tóc", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 4.2 * 3600 * 1000 },
-        { action: "UPDATE_PRODUCT", entity: "Sản phẩm: SP05", details: "Cập nhật mô tả & hình ảnh Gel vuốt tóc Pomade", operator: "Phạm Thu Thảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 5 * 3600 * 1000 },
-        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch: LH28", details: "Chuyển trạng thái: waiting -> In_Progress", operator: "Lê Hoàng Hải (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 6 * 3600 * 1000 },
-        { action: "DELETE_STYLIST", entity: "Nhân sự: #NV12", details: "Cho thôi việc nhân sự thử việc", operator: "Võ Quốc Bảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 7.5 * 3600 * 1000 },
-        { action: "UPDATE_STOCK", entity: "Kho [CN03]: SP02", details: "Điều chỉnh số lượng tồn kho: 15 -> 40", operator: "Võ Quốc Bảo (BRANCH_MANAGER)", role: "BRANCH_MANAGER", timeOffset: 8.5 * 3600 * 1000 },
-
-        // Thao tác của Quản Trị Viên (SUPER_ADMIN)
-        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch: LH17", details: "Chuyển trạng thái: waiting -> In Progress", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 5 * 60 * 1000 },
-        { action: "UPDATE_BRANCH", entity: "Chi nhánh: CN01", details: "Cập nhật thông tin chi nhánh", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 9 * 3600 * 1000 },
-        { action: "UPDATE_USER_ROLE", entity: "Tài khoản: user_kh01", details: "Cập nhật vai trò: Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 10 * 3600 * 1000 },
-        { action: "AUTH_LOGIN", entity: "Tài khoản: admin", details: "Trạng thái: LOGIN", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 12 * 3600 * 1000 },
-        { action: "CREATE_BRANCH", entity: "Chi nhánh: CN04", details: "Thêm chi nhánh mới OmniSalon Tây Hồ", operator: "Lê Minh Hoàng (SUPER_ADMIN)", role: "SUPER_ADMIN", timeOffset: 15 * 3600 * 1000 },
-
-        // Thao tác của Thu Ngân (CASHIER)
-        { action: "POS_CHECKOUT", entity: "Hóa đơn: HD1042", details: "Thu ngân thanh toán thành công 350.000 đ", operator: "Thu Ngân CN01 (CASHIER)", role: "CASHIER", timeOffset: 16 * 3600 * 1000 },
-        { action: "CREATE_INVOICE", entity: "Hóa đơn: INV-2026-088", details: "Xuất hóa đơn thanh toán combo cắt uốn", operator: "Thu Ngân CN02 (CASHIER)", role: "CASHIER", timeOffset: 17 * 3600 * 1000 },
-
-        // Thao tác của Khách Hàng & Hệ Thống
-        { action: "CREATE_BOOKING", entity: "Lịch: LH35", details: "Khách hàng đặt lịch Combo Đế Vương lúc 15:00", operator: "Ngô Văn Tuấn (CUSTOMER)", role: "CUSTOMER", timeOffset: 18 * 3600 * 1000 },
-        { action: "AUTH_LOGOUT", entity: "Tài khoản: user_nv03", details: "Trạng thái: LOGOUT", operator: "Hệ Thống", role: "SYSTEM", timeOffset: 20 * 3600 * 1000 }
+        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch Hẹn: LH17", details: "Chuyển trạng thái: Chờ vào ghế -> Đang phục vụ", operator: "Lê Minh Hoàng", role: "SUPER_ADMIN", branchId: "CN01", before: { TrangThai: "Chờ vào ghế" }, after: { TrangThai: "Đang phục vụ" }, timeOffset: 5 * 60 * 1000 },
+        { action: "UPDATE_BRANCH", entity: "Chi Nhánh: CN01", details: "Cập nhật giờ mở cửa chi nhánh Bến Thành", operator: "Lê Minh Hoàng", role: "SUPER_ADMIN", branchId: "CN01", before: { GioMoCua: "08:30" }, after: { GioMoCua: "09:00" }, timeOffset: 3 * 3600 * 1000 },
+        { action: "UPDATE_USER_ROLE", entity: "Tài Khoản: user_kh01", details: "Phân quyền tài khoản sang Quản lý [BRANCH_MANAGER]", operator: "Lê Minh Hoàng", role: "SUPER_ADMIN", branchId: "CN01", before: { VaiTro: "Khách hàng" }, after: { VaiTro: "Quản lý" }, timeOffset: 4 * 3600 * 1000 },
+        { action: "UPDATE_STOCK", entity: "Kho Hàng: SP03", details: "Quản lý điều chỉnh số lượng tồn kho: 45 -> 95", operator: "Lê Hoàng Hải", role: "BRANCH_MANAGER", branchId: "CN01", before: { SoLuongTon: 45 }, after: { SoLuongTon: 95 }, timeOffset: 7 * 3600 * 1000 },
+        { action: "CREATE_RECEIPT", entity: "Kho Hàng: PN08", details: "Tạo phiếu nhập 50 Gôm Sáp Vuốt Tóc chi nhánh Q1", operator: "Lê Hoàng Hải", role: "BRANCH_MANAGER", branchId: "CN01", after: { SoLuong: 50, TongTien: 12500000 }, timeOffset: 9 * 3600 * 1000 },
+        { action: "UPDATE_PRODUCT", entity: "Sản Phẩm: SP01", details: "Cập nhật giá bán sáp Clay Wax sang 340.000 đ", operator: "Lê Hoàng Hải", role: "BRANCH_MANAGER", branchId: "CN01", before: { GiaBan: 320000 }, after: { GiaBan: 340000 }, timeOffset: 11 * 3600 * 1000 },
+        { action: "POS_CHECKOUT", entity: "Hóa Đơn / POS: HD1042", details: "Thu ngân xuất hóa đơn thanh toán trực tiếp tại quầy 350.000 đ", operator: "Nguyễn Thị Mai (Thu ngân)", role: "CASHIER", branchId: "CN01", after: { TongTien: 350000, PhuongThuc: "Tiền mặt" }, timeOffset: 13 * 3600 * 1000 },
+        { action: "ORDER_PAYMENT", entity: "Hóa Đơn / POS: DH16", details: "Thu ngân xác nhận thu tiền đơn hàng tại quầy 286.000 đ", operator: "Nguyễn Thị Mai (Thu ngân)", role: "CASHIER", branchId: "CN01", after: { TrangThaiThanhToan: "Đã thanh toán" }, timeOffset: 15 * 3600 * 1000 },
+        { action: "UPDATE_BOOKING_STATUS", entity: "Lịch Hẹn: LH28", details: "Stylist nhận khách vào ghế phục vụ cắt tóc", operator: "Trần Đình Độ (Stylist)", role: "STYLIST", branchId: "CN01", before: { TrangThai: "Chờ vào ghế" }, after: { TrangThai: "Đang phục vụ" }, timeOffset: 17 * 3600 * 1000 },
+        { action: "REGISTER_SHIFT", entity: "Nhân Sự / Thợ: CA105", details: "Stylist đăng ký ca làm việc buổi sáng (08:30 - 15:30)", operator: "Trần Đình Độ (Stylist)", role: "STYLIST", branchId: "CN01", after: { GioBatDau: "08:30", GioKetThuc: "15:30" }, timeOffset: 19 * 3600 * 1000 },
+        { action: "CREATE_BOOKING", entity: "Lịch Hẹn: LH42", details: "Khách hàng đặt lịch hẹn Combo Quý Tộc Barber lúc 13:30", operator: "Ngô Văn Tuấn", role: "CUSTOMER", branchId: "CN01", after: { DichVu: "Combo Quý Tộc", Gia: 300000 }, timeOffset: 21 * 3600 * 1000 },
+        { action: "CREATE_ORDER", entity: "Hóa Đơn / POS: DH20", details: "Khách hàng đặt mua online Sáp Vuốt Tóc Clay Wax", operator: "Ngô Văn Tuấn", role: "CUSTOMER", branchId: "CN01", after: { TongTien: 340000 }, timeOffset: 23 * 3600 * 1000 },
+        { action: "CANCEL_BOOKING", entity: "Lịch Hẹn: LH39", details: "Khách hàng hủy lịch hẹn do bận công tác đột xuất", operator: "Vũ Hải Nam", role: "CUSTOMER", branchId: "CN02", before: { TrangThai: "Đã xác nhận" }, after: { TrangThai: "Đã hủy" }, timeOffset: 25 * 3600 * 1000 },
+        { action: "AUTO_CANCEL_BOOKING", entity: "Lịch Hẹn: LH31", details: "Hệ thống tự động hủy lịch hẹn qua 12h đêm do quá hạn khách không đến (No-Show)", operator: "Hệ Thống Tự Động", role: "SYSTEM", branchId: "CN01", before: { TrangThai: "Chờ xác nhận" }, after: { TrangThai: "Đã hủy" }, timeOffset: 27 * 3600 * 1000 },
+        { action: "ONLINE_PAYMENT", entity: "Hóa Đơn / POS: HD1039", details: "Hệ thống xác nhận thanh toán chuyển khoản VietQR tự động 500.000 đ", operator: "Hệ Thống Thanh Toán", role: "SYSTEM", branchId: "CN01", after: { TongTien: 500000, Gateway: "VietQR" }, timeOffset: 29 * 3600 * 1000 }
       ];
 
       const now = Date.now();
       const logs = [];
       for (let i = 0; i < 84; i++) {
         const template = actions[i % actions.length];
-        const logTime = new Date(now - (template.timeOffset + i * 2100 * 1000)).toISOString();
+        const logTime = new Date(now - (template.timeOffset + i * 2800 * 1000)).toISOString();
+        const opName = template.operator;
+        const opRole = template.role;
         logs.push({
           id: "log-" + (now - i * 1000),
+          logId: "log-" + (now - i * 1000),
           timestamp: logTime,
-          operatorName: template.operator,
-          operatorRole: template.role || 'SUPER_ADMIN',
+          actor: opName,
+          operatorName: opName,
+          role: opRole,
+          operatorRole: opRole,
           action: template.action,
           entity: template.entity,
+          entityType: template.entity.split(':')[0].trim(),
+          branchId: template.branchId || "CN01",
+          before: template.before || null,
+          after: template.after || null,
+          beforeData: template.before ? JSON.stringify(template.before) : null,
+          afterData: template.after ? JSON.stringify(template.after) : null,
           details: template.details
         });
       }
       return logs;
     }
 
-    logAudit(action, entity, details, operatorUser = null) {
+    logAudit(actionOrPayload, entity, details, operatorUser = null) {
+      let payload = {};
+      if (typeof actionOrPayload === 'object' && actionOrPayload !== null) {
+        payload = actionOrPayload;
+      } else {
+        payload = {
+          action: actionOrPayload,
+          entity: entity,
+          details: details
+        };
+      }
       const user = operatorUser || this.getCurrentUser();
-      let role = 'SYSTEM';
+      let determinedRole = 'SYSTEM';
       if (user) {
         const rawRole = String(user.role || user.vaiTroSql || user.VaiTro || user.ChucVu || '').toUpperCase();
         if (rawRole.includes('SUPER') || rawRole.includes('ADMIN') || user.username === 'admin') {
-          role = 'SUPER_ADMIN';
+          determinedRole = 'SUPER_ADMIN';
         } else if (rawRole.includes('MANAGER') || rawRole.includes('QUẢN LÝ')) {
-          role = 'BRANCH_MANAGER';
+          determinedRole = 'BRANCH_MANAGER';
         } else if (rawRole.includes('CASHIER') || rawRole.includes('THU NGÂN')) {
-          role = 'CASHIER';
+          determinedRole = 'CASHIER';
         } else if (rawRole.includes('BARBER') || rawRole.includes('STYLIST') || rawRole.includes('THỢ') || rawRole.includes('NHÂN VIÊN') || rawRole.includes('STAFF')) {
-          role = 'STYLIST';
+          determinedRole = 'STYLIST';
         } else if (rawRole.includes('CUSTOMER') || rawRole.includes('KHÁCH')) {
-          role = 'CUSTOMER';
+          determinedRole = 'CUSTOMER';
         } else {
-          role = user.role || 'USER';
+          determinedRole = user.role || 'USER';
         }
       }
 
-      const opName = user ? `${user.fullName || user.username || 'Tài Khoản'} (${role})` : 'Hệ Thống';
+      const actorName = payload.actor || (user ? (user.fullName || user.username) : 'Hệ Thống');
+      const actorRole = payload.role || determinedRole;
+      const branchId = payload.branchId || (user ? user.branchId : null);
+
       const newLog = {
-        id: `log-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        timestamp: new Date().toISOString(),
-        operatorName: opName,
-        operatorRole: role,
-        action,
-        entity,
-        details
+        id: payload.id || `log-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        logId: payload.id || `log-${Date.now()}`,
+        timestamp: payload.timestamp || new Date().toISOString(),
+        actor: actorName,
+        operatorName: actorName,
+        role: actorRole,
+        operatorRole: actorRole,
+        action: payload.action || 'ACTION',
+        entity: payload.entity || `${payload.entityType || 'Đối tượng'}: ${payload.entityId || '—'}`,
+        entityType: payload.entityType || 'Đối tượng',
+        entityId: payload.entityId || '—',
+        branchId: branchId,
+        before: payload.before || null,
+        after: payload.after || null,
+        beforeData: (payload.before !== null && typeof payload.before === 'object') ? JSON.stringify(payload.before) : (payload.before || null),
+        afterData: (payload.after !== null && typeof payload.after === 'object') ? JSON.stringify(payload.after) : (payload.after || null),
+        details: payload.details || ''
       };
 
       if (!this.state.auditLogs) this.state.auditLogs = [];
       this.state.auditLogs.unshift(newLog);
-      if (this.state.auditLogs.length > 300) {
-        this.state.auditLogs = this.state.auditLogs.slice(0, 300);
-      }
+      if (this.state.auditLogs.length > 500) this.state.auditLogs.pop();
       this.saveState();
+
+      // Đồng bộ bất đồng bộ lên Backend API /api/audit/logs
+      try {
+        fetch('/api/audit/logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newLog)
+        }).catch(() => {});
+      } catch (e) {}
+
       return newLog;
     }
 
@@ -3876,6 +3987,8 @@
 
   // Khởi tạo Singleton
   const storeInstance = new SalonStore();
+  storeInstance.saveToStorage = function() { return this.saveState(); };
+  SalonStore.prototype.saveToStorage = function() { return this.saveState(); };
   window.SalonStore = storeInstance;
   window.store = storeInstance;
 

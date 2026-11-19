@@ -1,5 +1,6 @@
 // Dịch vụ tự động hủy lịch hẹn và đơn hàng quá hạn sau 12h đêm (No-Show Auto Cancel)
 const { querySql } = require('../database/db');
+const auditService = require('./audit.service');
 
 let lastRunDay = null;
 let midnightTimer = null;
@@ -40,13 +41,25 @@ async function autoCancelOverdueBookingsAndOrders(customSql = null) {
 
     if (overdueBookings && overdueBookings.length > 0) {
       const bookingIds = overdueBookings.map(b => b.MaLichHen);
-      for (const bId of bookingIds) {
+      for (const b of overdueBookings) {
+        const bId = b.MaLichHen;
         await sql(`
           UPDATE LichHen
           SET TrangThai = N'Đã hủy',
               LyDoHuy = ISNULL(LyDoHuy, N'') + N'[Hệ Thống] Tự động hủy qua 12h đêm do khách không đến theo lịch hẹn.'
           WHERE MaLichHen = ?
         `, [bId]);
+        auditService.logAudit({
+          actor: 'Hệ Thống Tự Động',
+          role: 'SYSTEM',
+          action: 'AUTO_CANCEL_BOOKING',
+          entityType: 'LichHen',
+          entityId: bId,
+          branchId: b.MaChiNhanh || null,
+          before: { TrangThai: b.TrangThai },
+          after: { TrangThai: 'Đã hủy', LyDoHuy: '[Hệ Thống] Tự động hủy qua 12h đêm do khách không đến theo lịch hẹn.' },
+          details: `Hệ thống tự động hủy lịch hẹn ${bId} do khách quá hạn 12h đêm chưa đến phục vụ`
+        }).catch(() => {});
       }
       result.cancelledBookings = overdueBookings;
       result.cancelledBookingsCount = overdueBookings.length;
@@ -64,13 +77,24 @@ async function autoCancelOverdueBookingsAndOrders(customSql = null) {
 
     if (overdueOrders && overdueOrders.length > 0) {
       const orderIds = overdueOrders.map(o => o.MaDonHang);
-      for (const oId of orderIds) {
+      for (const o of overdueOrders) {
+        const oId = o.MaDonHang;
         await sql(`
           UPDATE DonHang
           SET TrangThai = N'Đã hủy',
               GhiChu = ISNULL(GhiChu, N'') + N' [Hệ Thống: Tự động hủy qua 12h đêm do khách không đến nhận hàng]'
           WHERE MaDonHang = ?
         `, [oId]);
+        auditService.logAudit({
+          actor: 'Hệ Thống Tự Động',
+          role: 'SYSTEM',
+          action: 'AUTO_CANCEL_ORDER',
+          entityType: 'DonHang',
+          entityId: oId,
+          before: { TrangThai: o.TrangThai },
+          after: { TrangThai: 'Đã hủy', GhiChu: '[Hệ Thống: Tự động hủy qua 12h đêm do khách không đến nhận hàng]' },
+          details: `Hệ thống tự động hủy đơn hàng ${oId} quá hạn 12h đêm chưa thanh toán/nhận hàng`
+        }).catch(() => {});
       }
       result.cancelledOrders = overdueOrders;
       result.cancelledOrdersCount = overdueOrders.length;
