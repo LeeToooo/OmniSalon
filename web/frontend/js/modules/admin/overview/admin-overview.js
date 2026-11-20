@@ -126,6 +126,13 @@
       const allBookings = bookings || ((window.store && window.store.getBookings) ? window.store.getBookings() : []);
       const branchId = (this.isBranchManager(user) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
       
+      const allOrders = (window.store && window.store.state && Array.isArray(window.store.state.orders))
+        ? (branchId && branchId !== 'all' ? window.store.state.orders.filter(o => o.branchId === branchId || o.MaChiNhanh === branchId) : window.store.state.orders)
+        : [];
+      const allPosOrders = (window.store && window.store.state && Array.isArray(window.store.state.posOrders))
+        ? (branchId && branchId !== 'all' ? window.store.state.posOrders.filter(p => p.branchId === branchId || p.MaChiNhanh === branchId) : window.store.state.posOrders)
+        : [];
+
       const systemAnalytics = (window.store && typeof window.store.getRevenueAnalytics === 'function')
         ? window.store.getRevenueAnalytics(null)
         : { totalRevenue: 0, bookingRevenue: 0, productRevenue: 0, confirmedCount: 0, cancelledCount: 0, inProgressCount: 0, completionRate: 100, weeklyData: [], categoryBreakdown: [] };
@@ -186,82 +193,400 @@
         return (Number(b.rating) || 0) - (Number(a.rating) || 0);
       }).slice(0, 5);
 
-      // Cấu hình dữ liệu biểu đồ theo mốc thời gian: Hôm Nay | 7 Ngày Qua | Tháng Này
+      // Cấu hình dữ liệu biểu đồ theo mốc thời gian: Hôm Nay | 7 Ngày Qua | Tháng Này (100% Doanh Thu Thật)
       let chartData = [];
       let chartTitle = 'Xu hướng doanh thu';
       let peakPeriodLabel = '';
       let currentPeriodRev = totalRevenue;
 
+      // Helper xử lý ngày tháng & khung giờ chung
+      const now = new Date();
+      const curHour = now.getHours();
+      const pad = n => String(n).padStart(2, '0');
+      const todayIso = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      const curMonthStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
+
+      const isSameDate = (dateVal, target) => {
+        if (!dateVal) return false;
+        return String(dateVal).slice(0, 10) === target;
+      };
+
+      const isDateInMonth = (dateVal, mStr) => {
+        if (!dateVal) return false;
+        return String(dateVal).slice(0, 7) === mStr;
+      };
+
+      const extractHour = (timeVal, dateVal) => {
+        if (timeVal) {
+          const m = String(timeVal).match(/(\d{1,2}):/);
+          if (m) return parseInt(m[1], 10);
+        }
+        if (dateVal) {
+          const dt = new Date(dateVal);
+          if (!isNaN(dt.getTime())) return dt.getHours();
+        }
+        return 14;
+      };
+
+      // Xác định ngày có giao dịch thực tế cho "Hôm nay"
+      const hasTodayTrans = allBookings.some(b => isSameDate(b.date || b.bookingDate || b.NgayHen, todayIso)) ||
+        allOrders.some(o => isSameDate(o.orderDate || o.createdAt || o.NgayDat, todayIso)) ||
+        allPosOrders.some(p => isSameDate(p.createdAt || p.date || p.NgayTao, todayIso));
+
+      let targetDate = todayIso;
+      if (!hasTodayTrans) {
+        const allDates = [];
+        allBookings.forEach(b => { const d = String(b.date || b.bookingDate || b.NgayHen || '').slice(0, 10); if (d && d.length === 10) allDates.push(d); });
+        allOrders.forEach(o => { const d = String(o.orderDate || o.createdAt || o.NgayDat || '').slice(0, 10); if (d && d.length === 10) allDates.push(d); });
+        allPosOrders.forEach(p => { const d = String(p.createdAt || p.date || p.NgayTao || '').slice(0, 10); if (d && d.length === 10) allDates.push(d); });
+        if (allDates.length > 0) {
+          allDates.sort();
+          targetDate = allDates[allDates.length - 1];
+        }
+      }
+
+      // Xác định tháng có giao dịch thực tế cho "Tháng này"
+      const hasCurMonthData = allBookings.some(b => isDateInMonth(b.date || b.bookingDate || b.NgayHen, curMonthStr)) ||
+        allOrders.some(o => isDateInMonth(o.orderDate || o.createdAt || o.NgayDat, curMonthStr)) ||
+        allPosOrders.some(p => isDateInMonth(p.createdAt || p.date || p.NgayTao, curMonthStr));
+
+      let targetMonthStr = curMonthStr;
+      if (!hasCurMonthData) {
+        const allMonths = [];
+        allBookings.forEach(b => { const m = String(b.date || b.bookingDate || b.NgayHen || '').slice(0, 7); if (m && m.length === 7) allMonths.push(m); });
+        allOrders.forEach(o => { const m = String(o.orderDate || o.createdAt || o.NgayDat || '').slice(0, 7); if (m && m.length === 7) allMonths.push(m); });
+        allPosOrders.forEach(p => { const m = String(p.createdAt || p.date || p.NgayTao || '').slice(0, 7); if (m && m.length === 7) allMonths.push(m); });
+        if (allMonths.length > 0) {
+          allMonths.sort();
+          targetMonthStr = allMonths[allMonths.length - 1];
+        }
+      }
+
+      // Xác định khoảng 7 ngày gần nhất (rolling 7 days) kết thúc tại targetDate
+      const targetDateObj = new Date(targetDate + 'T00:00:00');
+      const last7DaysList = [];
+      const dayNamesShort = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+      const dayNamesFull = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(targetDateObj);
+        d.setDate(targetDateObj.getDate() - i);
+        const iso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const dayIdx = d.getDay();
+        const dateNum = d.getDate();
+        const monthNum = d.getMonth() + 1;
+        last7DaysList.push({
+          iso,
+          day: dayNamesFull[dayIdx],
+          shortName: `${dayNamesShort[dayIdx]} ${pad(dateNum)}/${pad(monthNum)}`,
+          fullLabel: `${dayNamesFull[dayIdx]} (${pad(dateNum)}/${pad(monthNum)}/${d.getFullYear()})`,
+          revenue: 0,
+          serviceRevenue: 0,
+          productRevenue: 0,
+          bookingsCount: 0,
+          highlight: false
+        });
+      }
+
+      const min7DayIso = last7DaysList[0].iso;
+      const max7DayIso = last7DaysList[last7DaysList.length - 1].iso;
+
+      const isDateIn7Days = (dateVal) => {
+        if (!dateVal) return false;
+        const dStr = String(dateVal).slice(0, 10);
+        return dStr >= min7DayIso && dStr <= max7DayIso;
+      };
+
       if (timePeriod === 'today') {
-        // Biểu đồ theo các khung giờ trong ngày hôm nay
+        // Biểu đồ theo các khung giờ trong ngày hôm nay từ dữ liệu thực tế
         chartTitle = chartMode === 'services' ? 'Doanh thu dịch vụ hôm nay' : (chartMode === 'products' ? 'Doanh số bán lẻ hôm nay' : 'Xu hướng doanh thu hôm nay');
-        const slots = [
-          { label: '08:00', slot: '08h-10h', revShare: 0.12, isCurrent: false },
-          { label: '10:00', slot: '10h-12h', revShare: 0.18, isCurrent: false },
-          { label: '12:00', slot: '12h-14h', revShare: 0.14, isCurrent: false },
-          { label: '14:00', slot: '14h-16h', revShare: 0.24, isCurrent: true },
-          { label: '16:00', slot: '16h-18h', revShare: 0.18, isCurrent: false },
-          { label: '18:00', slot: '18h-20h', revShare: 0.10, isCurrent: false },
-          { label: '20:00', slot: '20h-21h30', revShare: 0.04, isCurrent: false }
+        const timeSlots = [
+          { label: '08:00', slot: '08h-10h', startHour: 8, endHour: 10 },
+          { label: '10:00', slot: '10h-12h', startHour: 10, endHour: 12 },
+          { label: '12:00', slot: '12h-14h', startHour: 12, endHour: 14 },
+          { label: '14:00', slot: '14h-16h', startHour: 14, endHour: 16 },
+          { label: '16:00', slot: '16h-18h', startHour: 16, endHour: 18 },
+          { label: '18:00', slot: '18h-20h', startHour: 18, endHour: 20 },
+          { label: '20:00', slot: '20h-21h30', startHour: 20, endHour: 22 }
         ];
-        chartData = slots.map(s => {
-          const rev = Math.round(totalRevenue * s.revShare);
-          const sRev = Math.round(bookingRevenue * s.revShare);
-          const pRev = Math.round(productRevenue * s.revShare);
+
+        const slotMap = timeSlots.map(s => ({
+          name: s.label,
+          shortName: s.label,
+          fullLabel: `Khung giờ ${s.slot}`,
+          revenue: 0,
+          serviceRevenue: 0,
+          productRevenue: 0,
+          startHour: s.startHour,
+          endHour: s.endHour,
+          slot: s.slot,
+          highlight: false
+        }));
+
+        const addToSlot = (h, sRev, pRev) => {
+          let found = slotMap.find(s => h >= s.startHour && h < s.endHour);
+          if (!found) {
+            if (h < 8) found = slotMap[0];
+            else found = slotMap[slotMap.length - 1];
+          }
+          if (found) {
+            found.serviceRevenue += sRev;
+            found.productRevenue += pRev;
+            found.revenue += (sRev + pRev);
+          }
+        };
+
+        for (const b of allBookings) {
+          const bStatus = String(b.status || b.TrangThai || '').toLowerCase();
+          if (bStatus !== 'cancelled' && bStatus !== 'đã hủy') {
+            if (isSameDate(b.date || b.bookingDate || b.NgayHen, targetDate)) {
+              const h = extractHour(b.timeSlot || b.time || b.GioBatDau, b.createdAt);
+              const val = Number(b.totalPrice || b.TongTien || b.price || 0);
+              addToSlot(h, val, 0);
+            }
+          }
+        }
+
+        for (const pos of allPosOrders) {
+          if (isSameDate(pos.createdAt || pos.date || pos.NgayTao, targetDate)) {
+            const h = extractHour(null, pos.createdAt || pos.date);
+            let sRev = 0;
+            let pRev = 0;
+            if (Array.isArray(pos.services)) {
+              for (const s of pos.services) sRev += Number(s.price || 0);
+            }
+            if (Array.isArray(pos.items)) {
+              for (const it of pos.items) pRev += (Number(it.price || 0) * Number(it.qty || 1));
+            }
+            addToSlot(h, sRev, pRev);
+          }
+        }
+
+        for (const o of allOrders) {
+          const oStatus = String(o.orderStatus || o.TrangThai || '').toLowerCase();
+          if (oStatus !== 'cancelled' && oStatus !== 'đã hủy') {
+            if (isSameDate(o.orderDate || o.createdAt || o.NgayDat, targetDate)) {
+              const h = extractHour(null, o.orderDate || o.createdAt);
+              const val = Number(o.totalAmount || o.TongTien || o.totalPrice || 0);
+              addToSlot(h, 0, val);
+            }
+          }
+        }
+
+        let maxSlotVal = -1;
+        let peakSlotName = slotMap[0].slot;
+        chartData = slotMap.map(s => {
+          const dVal = (chartMode === 'services') ? s.serviceRevenue : ((chartMode === 'products') ? s.productRevenue : s.revenue);
+          if (dVal > maxSlotVal) {
+            maxSlotVal = dVal;
+            peakSlotName = s.slot;
+          }
           return {
-            name: s.label,
-            shortName: s.label,
-            fullLabel: `Khung giờ ${s.slot}`,
-            revenue: rev,
-            serviceRevenue: sRev,
-            productRevenue: pRev,
-            highlight: s.isCurrent
+            name: s.name,
+            shortName: s.shortName,
+            fullLabel: s.fullLabel,
+            revenue: s.revenue,
+            serviceRevenue: s.serviceRevenue,
+            productRevenue: s.productRevenue,
+            highlight: false
           };
         });
-        peakPeriodLabel = 'Khung giờ cao điểm: 14:00 – 16:00';
+
+        const peakSlotIndex = chartData.findIndex(s => {
+          const dVal = (chartMode === 'services') ? s.serviceRevenue : ((chartMode === 'products') ? s.productRevenue : s.revenue);
+          return dVal === maxSlotVal && maxSlotVal > 0;
+        });
+        if (peakSlotIndex >= 0) {
+          chartData[peakSlotIndex].highlight = true;
+        } else {
+          const curSlotIdx = slotMap.findIndex(s => curHour >= s.startHour && curHour < s.endHour);
+          if (curSlotIdx >= 0) chartData[curSlotIdx].highlight = true;
+          else chartData[0].highlight = true;
+        }
+
+        peakPeriodLabel = maxSlotVal > 0 ? `Khung giờ cao điểm: ${peakSlotName}` : 'Khung giờ cao điểm: Hôm nay';
       } else if (timePeriod === 'month') {
-        // Biểu đồ theo các tuần trong tháng này (Tuần 1 - Tuần 4)
+        // Biểu đồ theo 4 tuần thực tế trong tháng (100% doanh thu thật, không giả lập hệ số)
         chartTitle = chartMode === 'services' ? 'Doanh thu dịch vụ tháng này' : (chartMode === 'products' ? 'Doanh số bán lẻ tháng này' : 'Xu hướng doanh thu tháng này');
-        const weeks = [
-          { label: 'Tuần 1', short: 'T1', revMult: 0.88, isCurrent: false },
-          { label: 'Tuần 2', short: 'T2', revMult: 1.15, isCurrent: false },
-          { label: 'Tuần 3', short: 'T3', revMult: 1.05, isCurrent: false },
-          { label: 'Tuần 4', short: 'T4', revMult: 1.25, isCurrent: true }
+        const weeksData = [
+          { label: 'Tuần 1', short: 'T1', fullLabel: 'Tuần 1 (Ngày 01 - 07)', minDay: 1, maxDay: 7, serviceRevenue: 0, productRevenue: 0, revenue: 0 },
+          { label: 'Tuần 2', short: 'T2', fullLabel: 'Tuần 2 (Ngày 08 - 14)', minDay: 8, maxDay: 14, serviceRevenue: 0, productRevenue: 0, revenue: 0 },
+          { label: 'Tuần 3', short: 'T3', fullLabel: 'Tuần 3 (Ngày 15 - 21)', minDay: 15, maxDay: 21, serviceRevenue: 0, productRevenue: 0, revenue: 0 },
+          { label: 'Tuần 4', short: 'T4', fullLabel: 'Tuần 4 (Ngày 22 - cuối tháng)', minDay: 22, maxDay: 31, serviceRevenue: 0, productRevenue: 0, revenue: 0 }
         ];
-        chartData = weeks.map(w => {
-          const base = Math.round(totalRevenue * 3.8);
-          const rev = Math.round(base * w.revMult);
-          const sRev = Math.round(rev * 0.58);
-          const pRev = rev - sRev;
+
+        const getDayOfMonth = (dateVal) => {
+          if (!dateVal) return 0;
+          const dt = new Date(dateVal);
+          if (!isNaN(dt.getTime())) return dt.getDate();
+          const m = String(dateVal).match(/\d{4}-\d{2}-(\d{2})/);
+          if (m) return parseInt(m[1], 10);
+          return 0;
+        };
+
+        const addMonthTrans = (dayNum, sRev, pRev) => {
+          if (dayNum <= 0) return;
+          const w = weeksData.find(item => dayNum >= item.minDay && dayNum <= item.maxDay) || weeksData[weeksData.length - 1];
+          if (w) {
+            w.serviceRevenue += sRev;
+            w.productRevenue += pRev;
+            w.revenue += (sRev + pRev);
+          }
+        };
+
+        for (const b of allBookings) {
+          const bStatus = String(b.status || b.TrangThai || '').toLowerCase();
+          if (bStatus !== 'cancelled' && bStatus !== 'đã hủy') {
+            const dVal = b.date || b.bookingDate || b.NgayHen;
+            if (isDateInMonth(dVal, targetMonthStr)) {
+              const day = getDayOfMonth(dVal);
+              const val = Number(b.totalPrice || b.TongTien || b.price || 0);
+              addMonthTrans(day, val, 0);
+            }
+          }
+        }
+
+        for (const pos of allPosOrders) {
+          const dVal = pos.createdAt || pos.date || pos.NgayTao;
+          if (isDateInMonth(dVal, targetMonthStr)) {
+            const day = getDayOfMonth(dVal);
+            let sRev = 0;
+            let pRev = 0;
+            if (Array.isArray(pos.services)) {
+              for (const s of pos.services) sRev += Number(s.price || 0);
+            }
+            if (Array.isArray(pos.items)) {
+              for (const it of pos.items) pRev += (Number(it.price || 0) * Number(it.qty || 1));
+            }
+            addMonthTrans(day, sRev, pRev);
+          }
+        }
+
+        for (const o of allOrders) {
+          const oStatus = String(o.orderStatus || o.TrangThai || '').toLowerCase();
+          if (oStatus !== 'cancelled' && oStatus !== 'đã hủy') {
+            const dVal = o.orderDate || o.createdAt || o.NgayDat;
+            if (isDateInMonth(dVal, targetMonthStr)) {
+              const day = getDayOfMonth(dVal);
+              const val = Number(o.totalAmount || o.TongTien || o.totalPrice || 0);
+              addMonthTrans(day, 0, val);
+            }
+          }
+        }
+
+        let maxWeekVal = -1;
+        let peakWeekLabel = 'Tuần 1';
+        chartData = weeksData.map(w => {
+          const dVal = (chartMode === 'services') ? w.serviceRevenue : ((chartMode === 'products') ? w.productRevenue : w.revenue);
+          if (dVal > maxWeekVal) {
+            maxWeekVal = dVal;
+            peakWeekLabel = w.label;
+          }
           return {
             name: w.label,
-            shortName: w.label,
-            fullLabel: w.label,
-            revenue: rev,
-            serviceRevenue: sRev,
-            productRevenue: pRev,
-            highlight: w.isCurrent
+            shortName: w.short,
+            fullLabel: w.fullLabel,
+            revenue: w.revenue,
+            serviceRevenue: w.serviceRevenue,
+            productRevenue: w.productRevenue,
+            highlight: false
           };
         });
-        peakPeriodLabel = 'Tuần cao điểm: Tuần 4';
-        currentPeriodRev = chartData.reduce((acc, c) => acc + c.revenue, 0);
-      } else {
-        // Biểu đồ 7 ngày gần nhất gom nhóm theo ngày trong tuần
-        chartTitle = chartMode === 'services' ? 'Doanh thu dịch vụ cắt tóc 7 ngày' : (chartMode === 'products' ? 'Doanh số bán lẻ mỹ phẩm 7 ngày' : 'Xu hướng doanh thu 7 ngày gần nhất');
-        const rawWeekly = (analytics.weeklyData && analytics.weeklyData.length > 0)
-          ? analytics.weeklyData
-          : ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'].map(d => ({ day: d, revenue: 0, serviceRevenue: 0, productRevenue: 0, bookingsCount: 0 }));
 
-        chartData = rawWeekly.map(d => ({
-          name: d.day,
-          shortName: d.day.replace('Thứ ', 'T'),
-          fullLabel: d.day,
-          revenue: Number(d.revenue || 0),
-          serviceRevenue: Number(d.serviceRevenue || 0),
-          productRevenue: Number(d.productRevenue || 0),
-          highlight: (d.day === 'Thứ 3')
-        }));
-        peakPeriodLabel = 'Ngày cao điểm: Thứ 6';
+        const peakWeekIndex = chartData.findIndex(w => {
+          const dVal = (chartMode === 'services') ? w.serviceRevenue : ((chartMode === 'products') ? w.productRevenue : w.revenue);
+          return dVal === maxWeekVal && maxWeekVal > 0;
+        });
+        if (peakWeekIndex >= 0) {
+          chartData[peakWeekIndex].highlight = true;
+        } else {
+          chartData[0].highlight = true;
+        }
+
+        peakPeriodLabel = maxWeekVal > 0 ? `Tuần cao điểm: ${peakWeekLabel}` : 'Tuần cao điểm: Chưa có giao dịch';
+      } else {
+        // Biểu đồ 7 ngày gần nhất từ min7DayIso đến max7DayIso (100% doanh thu thật)
+        chartTitle = chartMode === 'services' ? 'Doanh thu dịch vụ cắt tóc 7 ngày' : (chartMode === 'products' ? 'Doanh số bán lẻ mỹ phẩm 7 ngày' : 'Xu hướng doanh thu 7 ngày gần nhất');
+
+        for (const b of allBookings) {
+          const bStatus = String(b.status || b.TrangThai || '').toLowerCase();
+          if (bStatus !== 'cancelled' && bStatus !== 'đã hủy') {
+            const dVal = String(b.date || b.bookingDate || b.NgayHen || '').slice(0, 10);
+            const targetDay = last7DaysList.find(d => d.iso === dVal);
+            if (targetDay) {
+              const val = Number(b.totalPrice || b.TongTien || b.price || 0);
+              targetDay.serviceRevenue += val;
+              targetDay.revenue += val;
+              targetDay.bookingsCount += 1;
+            }
+          }
+        }
+
+        for (const pos of allPosOrders) {
+          const dVal = String(pos.createdAt || pos.date || pos.NgayTao || '').slice(0, 10);
+          const targetDay = last7DaysList.find(d => d.iso === dVal);
+          if (targetDay) {
+            let sRev = 0;
+            let pRev = 0;
+            if (Array.isArray(pos.services)) {
+              for (const s of pos.services) sRev += Number(s.price || 0);
+            }
+            if (Array.isArray(pos.items)) {
+              for (const it of pos.items) pRev += (Number(it.price || 0) * Number(it.qty || 1));
+            }
+            targetDay.serviceRevenue += sRev;
+            targetDay.productRevenue += pRev;
+            targetDay.revenue += (sRev + pRev);
+          }
+        }
+
+        for (const o of allOrders) {
+          const oStatus = String(o.orderStatus || o.TrangThai || '').toLowerCase();
+          if (oStatus !== 'cancelled' && oStatus !== 'đã hủy') {
+            const dVal = String(o.orderDate || o.createdAt || o.NgayDat || '').slice(0, 10);
+            const targetDay = last7DaysList.find(d => d.iso === dVal);
+            if (targetDay) {
+              const val = Number(o.totalAmount || o.TongTien || o.totalPrice || 0);
+              targetDay.productRevenue += val;
+              targetDay.revenue += val;
+            }
+          }
+        }
+
+        let maxDayVal = -1;
+        let peakDayItem = last7DaysList[last7DaysList.length - 1];
+
+        last7DaysList.forEach(d => {
+          const dVal = (chartMode === 'services') ? d.serviceRevenue : ((chartMode === 'products') ? d.productRevenue : d.revenue);
+          if (dVal > maxDayVal) {
+            maxDayVal = dVal;
+            peakDayItem = d;
+          }
+        });
+
+        chartData = last7DaysList.map(d => {
+          const dVal = (chartMode === 'services') ? d.serviceRevenue : ((chartMode === 'products') ? d.productRevenue : d.revenue);
+          const isPeak = (maxDayVal > 0 && dVal === maxDayVal && d.iso === peakDayItem.iso);
+          return {
+            name: d.day,
+            shortName: d.shortName,
+            fullLabel: d.fullLabel,
+            revenue: d.revenue,
+            serviceRevenue: d.serviceRevenue,
+            productRevenue: d.productRevenue,
+            highlight: isPeak
+          };
+        });
+
+        const peakDayIndex = chartData.findIndex(d => d.highlight);
+        if (peakDayIndex < 0) {
+          const tIdx = chartData.findIndex(d => d.name === peakDayItem.day);
+          if (tIdx >= 0) chartData[tIdx].highlight = true;
+          else chartData[chartData.length - 1].highlight = true;
+          peakPeriodLabel = 'Ngày cao điểm: Chưa có giao dịch';
+        } else {
+          peakPeriodLabel = `Ngày cao điểm: ${peakDayItem.fullLabel}`;
+        }
       }
 
       const getVal = (d) => {
@@ -317,38 +642,151 @@
         `;
       }).join('');
 
-      // Khung giờ cao điểm trong ngày
-      const peakHours = [
-        { range: '08:30 – 11:30', label: 'Buổi Sáng', pct: 18, count: 5, status: 'Thấp điểm', color: '#64748B' },
-        { range: '11:30 – 14:00', label: 'Giờ Trưa', pct: 24, count: 7, status: 'Ổn định', color: '#0EA5E9' },
-        { range: '14:00 – 18:30', label: 'Chiều Vàng (Cao Điểm)', pct: 52, count: 15, status: 'Đỉnh công suất (91%)', color: '#C59B27', isPeak: true },
-        { range: '18:30 – 21:30', label: 'Buổi Tối', pct: 36, count: 10, status: 'Đông khách', color: '#10B981' }
+      // Đồng bộ các chỉ số KPI theo kỳ thời gian đang xem (Hôm nay / 7 ngày qua / Tháng này)
+      const periodLabelMap = {
+        'today': 'Hôm nay',
+        '7days': '7 ngày qua',
+        'month': 'Tháng này'
+      };
+      const currentPeriodName = periodLabelMap[timePeriod] || 'Kỳ này';
+
+      // Doanh thu hiển thị trên thẻ KPI: Đồng bộ 100% với kỳ đang chọn
+      const displayTotalRev = periodTotalRev;
+      const displayBookingRev = periodServiceRev;
+      const displayProductRev = periodProductRev;
+
+      // Lọc số lượng lịch hẹn thực tế trong kỳ đang xem
+      let periodBookings = allBookings;
+      if (timePeriod === 'today') {
+        periodBookings = allBookings.filter(b => isSameDate(b.date || b.bookingDate || b.NgayHen, targetDate));
+      } else if (timePeriod === 'month') {
+        periodBookings = allBookings.filter(b => isDateInMonth(b.date || b.bookingDate || b.NgayHen, targetMonthStr));
+      } else {
+        periodBookings = allBookings.filter(b => isDateIn7Days(b.date || b.bookingDate || b.NgayHen));
+      }
+
+      const periodConfirmed = periodBookings.filter(b => {
+        const s = String(b.status || b.TrangThai || '').toLowerCase();
+        return s === 'completed' || s === 'hoàn thành' || s === 'confirmed' || s === 'đã xác nhận';
+      }).length;
+      const periodCancelled = periodBookings.filter(b => {
+        const s = String(b.status || b.TrangThai || '').toLowerCase();
+        return s === 'cancelled' || s === 'đã hủy';
+      }).length;
+      const periodTotalBookingsCount = periodBookings.length || totalBookings;
+      const periodCompletionRate = periodTotalBookingsCount > 0 ? Math.round((periodConfirmed / periodTotalBookingsCount) * 100) : 100;
+
+      // Tính AOV chuẩn xác theo ngành salon: Doanh thu kỳ chia cho tổng số lượt giao dịch thành công trong kỳ
+      let periodOrdersCount = 0;
+      if (timePeriod === 'today') {
+        periodOrdersCount = allOrders.filter(o => isSameDate(o.orderDate || o.createdAt || o.NgayDat, targetDate) && !String(o.orderStatus || '').toLowerCase().includes('cancel')).length +
+                            allPosOrders.filter(p => isSameDate(p.createdAt || p.date || p.NgayTao, targetDate)).length;
+      } else if (timePeriod === 'month') {
+        periodOrdersCount = allOrders.filter(o => isDateInMonth(o.orderDate || o.createdAt || o.NgayDat, targetMonthStr) && !String(o.orderStatus || '').toLowerCase().includes('cancel')).length +
+                            allPosOrders.filter(p => isDateInMonth(p.createdAt || p.date || p.NgayTao, targetMonthStr)).length;
+      } else {
+        periodOrdersCount = allOrders.filter(o => isDateIn7Days(o.orderDate || o.createdAt || o.NgayDat) && !String(o.orderStatus || '').toLowerCase().includes('cancel')).length +
+                            allPosOrders.filter(p => isDateIn7Days(p.createdAt || p.date || p.NgayTao)).length;
+      }
+      const totalTxInPeriod = periodConfirmed + periodOrdersCount;
+      const displayAov = totalTxInPeriod > 0 ? Math.round(displayTotalRev / totalTxInPeriod) : (periodConfirmed > 0 ? Math.round(displayBookingRev / periodConfirmed) : 285000);
+
+      // Phân bổ mật độ khách theo khung giờ thực tế từ lịch hẹn
+      const timeRanges = [
+        { key: 'morning', range: '08:00 – 11:30', label: 'Buổi Sáng', color: '#64748B' },
+        { key: 'noon', range: '11:30 – 14:00', label: 'Giờ Trưa', color: '#0EA5E9' },
+        { key: 'afternoon', range: '14:00 – 18:30', label: 'Chiều Vàng', color: '#C59B27' },
+        { key: 'evening', range: '18:30 – 21:30', label: 'Buổi Tối', color: '#10B981' }
       ];
 
-      // Cơ cấu dịch vụ thực tế
-      const serviceCategories = [
-        { name: 'Cắt & Tạo Kiểu Chuẩn Barber', count: 18, pct: 42, rev: 14330000, color: '#C59B27' },
-        { name: 'Combo VIP Grooming (Cắt + Cạo + Da Mặt)', count: 12, pct: 28, rev: 9550000, color: '#E07A5F' },
-        { name: 'Uốn Textured / Sóng Lơi Hàn Quốc', count: 7, pct: 16, rev: 5460000, color: '#10B981' },
-        { name: 'Nhuộm Màu Thời Trang & Tẩy Khói', count: 3, pct: 8, rev: 2730000, color: '#3B82F6' },
-        { name: 'Phục Hồi Chuyên Sâu & Tẩy Tế Bào Chết Da Đầu', count: 2, pct: 6, rev: 2060000, color: '#8B5CF6' }
-      ];
+      const hourCounts = { morning: 0, noon: 0, afternoon: 0, evening: 0 };
+      for (const b of allBookings) {
+        const h = extractHour(b.timeSlot || b.time || b.GioBatDau, b.createdAt);
+        if (h < 11.5) hourCounts.morning++;
+        else if (h < 14) hourCounts.noon++;
+        else if (h < 18.5) hourCounts.afternoon++;
+        else hourCounts.evening++;
+      }
+      const totalHourBookings = Math.max(1, allBookings.length);
+      const maxHourCount = Math.max(...Object.values(hourCounts), 1);
 
-      // Ma trận so sánh mạng lưới 5 chi nhánh tiêu biểu
-      const branchBenchmarks = branches.slice(0, 5).map((b, i) => {
-        const isMain = b.id === 'CN01';
-        const brRev = isMain ? 17890000 : Math.max(3500000, 11200000 - i * 1800000);
-        const brBookings = isMain ? 14 : Math.max(3, 9 - i * 1);
-        const brOccupancy = isMain ? 88 : Math.max(52, 80 - i * 7);
-        const brStaff = isMain ? 3 : (b.chairs || 3);
-        const statusText = brOccupancy >= 85 ? 'Tải cao (Giờ vàng)' : (brOccupancy >= 65 ? 'Vận hành tối ưu' : 'Ổn định');
-        const statusColor = brOccupancy >= 85 ? '#F59E0B' : '#10B981';
+      const peakHours = timeRanges.map(tr => {
+        const count = hourCounts[tr.key];
+        const pct = Math.round((count / totalHourBookings) * 100);
+        const isPeak = (count === maxHourCount && count > 0);
+        return {
+          range: tr.range,
+          label: tr.label,
+          pct,
+          count,
+          color: tr.color,
+          isPeak
+        };
+      });
+
+      // Cơ cấu đóng góp doanh thu theo nhóm dịch vụ thực tế từ danh sách lịch hẹn
+      const svcCatMap = new Map();
+      for (const b of allBookings) {
+        const sName = String(b.serviceName || b.TenDichVu || 'Cắt tóc nam').trim();
+        let catName = 'Cắt & Tạo Kiểu Chuẩn Barber';
+        let color = '#C59B27';
+        if (sName.toLowerCase().includes('combo')) {
+          catName = 'Combo VIP Grooming (Cắt + Cạo + Da Mặt)';
+          color = '#E07A5F';
+        } else if (sName.toLowerCase().includes('uốn')) {
+          catName = 'Uốn Textured / Sóng Lơi Hàn Quốc';
+          color = '#10B981';
+        } else if (sName.toLowerCase().includes('nhuộm')) {
+          catName = 'Nhuộm Màu Thời Trang & Tẩy Khói';
+          color = '#3B82F6';
+        } else if (sName.toLowerCase().includes('phục hồi') || sName.toLowerCase().includes('hấp')) {
+          catName = 'Phục Hồi Chuyên Sâu & Tẩy Tế Bào Chết';
+          color = '#8B5CF6';
+        }
+        const price = Number(b.totalPrice || b.TongTien || b.price || 120000);
+        const existing = svcCatMap.get(catName) || { name: catName, count: 0, rev: 0, color };
+        existing.count++;
+        existing.rev += price;
+        svcCatMap.set(catName, existing);
+      }
+
+      const totalSvcRevCalculated = Array.from(svcCatMap.values()).reduce((sum, c) => sum + c.rev, 0) || 1;
+      const serviceCategories = Array.from(svcCatMap.values()).map(cat => ({
+        ...cat,
+        pct: Math.round((cat.rev / totalSvcRevCalculated) * 100)
+      })).sort((a, b) => b.rev - a.rev);
+
+      // Ma trận so sánh mạng lưới 5 chi nhánh dựa trên dữ liệu thực tế
+      const branchBenchmarks = branches.slice(0, 5).map((b) => {
+        const brBookings = allBookings.filter(bk => bk.branchId === b.id || bk.MaChiNhanh === b.id);
+        const brOrders = allOrders.filter(o => o.branchId === b.id || o.MaChiNhanh === b.id);
+        const brPos = allPosOrders.filter(p => p.branchId === b.id || p.MaChiNhanh === b.id);
+        
+        let brRev = 0;
+        brBookings.forEach(bk => {
+          const s = String(bk.status || bk.TrangThai || '').toLowerCase();
+          if (s !== 'cancelled' && s !== 'đã hủy') brRev += Number(bk.totalPrice || bk.TongTien || bk.price || 0);
+        });
+        brOrders.forEach(o => {
+          const s = String(o.orderStatus || o.TrangThai || '').toLowerCase();
+          if (s !== 'cancelled' && s !== 'đã hủy') brRev += Number(o.totalAmount || o.TongTien || 0);
+        });
+        brPos.forEach(p => {
+          if (Array.isArray(p.services)) p.services.forEach(s => brRev += Number(s.price || 0));
+          if (Array.isArray(p.items)) p.items.forEach(it => brRev += (Number(it.price || 0) * Number(it.qty || 1)));
+        });
+
+        const chairs = b.chairs || 5;
+        const brOccupancy = Math.min(95, Math.max(30, Math.round(((brBookings.length + 1) / Math.max(1, chairs * 2)) * 100)));
+        const statusText = brOccupancy >= 80 ? 'Tải cao (Giờ vàng)' : (brOccupancy >= 50 ? 'Vận hành tối ưu' : 'Ổn định');
+        const statusColor = brOccupancy >= 80 ? '#F59E0B' : '#10B981';
+
         return {
           branch: b,
           revenue: brRev,
-          bookings: brBookings,
+          bookings: brBookings.length,
           occupancy: brOccupancy,
-          staff: brStaff,
+          staff: b.chairs || 3,
           statusText,
           statusColor
         };
@@ -403,34 +841,34 @@
           </div>
         </div>
 
-        <!-- CỤM 2: 6 THẺ CHỈ SỐ DOANH NGHIỆP SALON -->
+        <!-- CỤM 2: 6 THẺ CHỈ SỐ DOANH NGHIỆP SALON (ĐỒNG BỘ THEO MỐC THỜI GIAN) -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 22px;">
-          <!-- KPI 1: Doanh Thu -->
+          <!-- KPI 1: Doanh Thu Đồng Bộ Theo Kỳ -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Doanh thu chuỗi</span>
-              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">+14.8%</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Doanh thu chuỗi (${currentPeriodName})</span>
+              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">Thực thu kỳ</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
-              ${SalonUtils.formatCurrency(totalRevenue)}
+              ${SalonUtils.formatCurrency(displayTotalRev)}
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
-              <span>Dịch vụ: <strong style="color: var(--text-primary);">${SalonUtils.formatCurrency(bookingRevenue)}</strong></span>
-              <span>Bán lẻ: <strong style="color: var(--text-primary);">${SalonUtils.formatCurrency(productRevenue)}</strong></span>
+              <span>Dịch vụ: <strong style="color: var(--text-primary);">${SalonUtils.formatCurrency(displayBookingRev)}</strong> (${periodSvcPct}%)</span>
+              <span>Bán lẻ: <strong style="color: var(--text-primary);">${SalonUtils.formatCurrency(displayProductRev)}</strong> (${periodPrdPct}%)</span>
             </div>
           </div>
 
-          <!-- KPI 2: Lượt Phục Vụ & Hoàn Tất -->
+          <!-- KPI 2: Lượt Phục Vụ & Hoàn Tất Đồng Bộ Theo Kỳ -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Lịch hẹn phục vụ</span>
-              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">Tỷ lệ ${analytics.completionRate}%</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Lịch hẹn phục vụ (${currentPeriodName})</span>
+              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">Tỷ lệ ${periodCompletionRate}%</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
-              ${totalBookings} lượt ca
+              ${periodTotalBookingsCount} lượt ca
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
-              <span>${analytics.confirmedCount} thành công • ${analytics.cancelledCount} hủy</span>
+              <span>${periodConfirmed} thành công • ${periodCancelled} hủy</span>
               <span>Chờ tiếp nhận: <strong style="color: #F59E0B;">${waitingCount} khách</strong></span>
             </div>
           </div>
@@ -438,15 +876,15 @@
           <!-- KPI 3: Giá Trị Đơn Trung Bình (AOV) -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Giá trị TB / khách (AOV)</span>
-              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">+35k Upsell</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Giá trị TB / giao dịch (AOV)</span>
+              <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 2px 7px; border-radius: 6px;">Chuẩn ngành</span>
             </div>
             <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
-              ${SalonUtils.formatCurrency(aov)}
+              ${SalonUtils.formatCurrency(displayAov)}
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
-              <span>Biên độ: <strong>150k – 650k</strong></span>
-              
+              <span>Số giao dịch: <strong>${totalTxInPeriod} lượt</strong></span>
+              <span>Biên độ dịch vụ: <strong>150k – 650k</strong></span>
             </div>
           </div>
 
@@ -483,11 +921,11 @@
           <!-- KPI 6: Vốn Kho & Phiếu Nhập -->
           <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px; cursor: pointer;" onclick="AdminWeb.switchSubTab('receipts')" title="Xem chi tiết phiếu nhập kho">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Vốn kho &amp; phiếu nhập</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Vốn tồn kho &amp; nhập hàng</span>
               <span style="font-size: 11px; font-weight: 700; color: #3B82F6; background: rgba(59, 130, 246, 0.12); padding: 2px 7px; border-radius: 6px;">${branchReceipts.length} Phiếu →</span>
             </div>
-            <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;">
-              ${SalonUtils.formatCurrency(branchReceiptsTotal > 0 ? branchReceiptsTotal : productRevenue)}
+            <div style="font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 8px;" title="${SalonUtils.formatCurrency(branchReceiptsTotal)}">
+              ${branchReceiptsTotal >= 1000000000 ? (branchReceiptsTotal / 1000000000).toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Tỷ đ' : SalonUtils.formatCurrency(branchReceiptsTotal > 0 ? branchReceiptsTotal : productRevenue)}
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
               <span>Mặt hàng kho: <strong style="color: var(--text-primary);">${inventoryList.length} mã</strong></span>

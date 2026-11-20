@@ -512,8 +512,8 @@ async function initDbConnection() {
             console.log(`  - Database: ${targetDb}`);
             console.log(`  - Driver:   ${drv}`);
 
-            // Áp dụng các index và view mới ngầm
-            applyPerformanceOptimizations();
+            // Áp dụng các bảng, index và view mới đảm bảo schema hoàn tất trước khi xử lý nghiệp vụ
+            await applyPerformanceOptimizations();
 
             return activeDbConfig;
           }

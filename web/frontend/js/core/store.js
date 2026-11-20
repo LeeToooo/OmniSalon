@@ -30,30 +30,43 @@
             }
           };
         } catch (_) { }
-        window.addEventListener('storage', (e) => {
-          if (e.key === this.storageKey && e.newValue) {
-            try {
-              this.state = JSON.parse(e.newValue);
-              this.notify('CROSS_TAB_SYNC');
-              this.notify('BRANCHES_UPDATED');
-              this.notify('PRODUCTS_UPDATED');
-              this.notify('SERVICES_UPDATED');
-            } catch (_) { }
-          }
-        });
+        if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+          window.addEventListener('storage', (e) => {
+            if (e.key === this.storageKey && e.newValue) {
+              try {
+                this.state = JSON.parse(e.newValue);
+                this.notify('CROSS_TAB_SYNC');
+                this.notify('BRANCHES_UPDATED');
+                this.notify('PRODUCTS_UPDATED');
+                this.notify('SERVICES_UPDATED');
+              } catch (_) { }
+            }
+          });
+        }
       }
 
-      // Tự động đồng bộ Live Server SQL định kỳ 2 giây 1 lần
+      // Tự động đồng bộ Live Server SQL định kỳ 10 giây 1 lần an toàn (có chống nghẽn và timeout)
       if (typeof window !== 'undefined') {
         this.syncWithLiveServer();
-        setInterval(() => this.syncWithLiveServer(), 2000);
+        setInterval(() => {
+          if (typeof document !== 'undefined' && document.hidden) return;
+          this.syncWithLiveServer();
+        }, 10000);
       }
     }
 
     async syncWithLiveServer() {
       if (typeof fetch === 'undefined') return;
+      if (this._isSyncingLiveServer) return;
+      this._isSyncingLiveServer = true;
+      const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
       try {
-        const res = await fetch(`${this.liveServerUrl}/database`, { method: 'GET' });
+        const res = await fetch(`${this.liveServerUrl}/database`, {
+          method: 'GET',
+          signal: controller ? controller.signal : undefined
+        });
+        if (timeoutId) clearTimeout(timeoutId);
         if (!res.ok) return;
         const db = await res.json();
         let changed = false;
@@ -267,7 +280,10 @@
           }
         }
       } catch (_) {
-        // Live server offline / connecting
+        // Live server offline / connecting / aborted
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+        this._isSyncingLiveServer = false;
       }
     }
 
@@ -834,7 +850,7 @@
         this.state.bookings.forEach(b => {
           const bDate = String(b.date || b.bookingDate || b.NgayHen || '').split('T')[0];
           const isNotDone = !['Cancelled', 'Completed', 'Đã hủy', 'Hoàn thành'].includes(b.status) &&
-                            !['Đã hủy', 'Hoàn thành'].includes(b.TrangThai);
+            !['Đã hủy', 'Hoàn thành'].includes(b.TrangThai);
           if (bDate && bDate < todayIso && isNotDone) {
             b.status = 'Cancelled';
             b.TrangThai = 'Đã hủy';
@@ -1181,13 +1197,13 @@
           try {
             const rawAuthUser = localStorage.getItem('omnisalon_auth_user') || localStorage.getItem('OMNISALON_AUTH_USER');
             if (rawAuthUser) user = JSON.parse(rawAuthUser);
-          } catch (_) {}
+          } catch (_) { }
         }
         if (!user) {
           try {
             const rawCurr = localStorage.getItem('currentUser');
             if (rawCurr) user = JSON.parse(rawCurr);
-          } catch (_) {}
+          } catch (_) { }
         }
       }
       if (!user && this.state) {
@@ -1213,9 +1229,9 @@
         }
         const roleName = user.roleName || (
           role === 'SUPER_ADMIN' || role === 'ADMIN' ? 'Quản trị viên' :
-          role === 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' :
-          role === 'CASHIER' ? 'Thu ngân' :
-          role === 'STYLIST' || role === 'BARBER' ? 'Nhân viên / Thợ' : 'Khách hàng'
+            role === 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' :
+              role === 'CASHIER' ? 'Thu ngân' :
+                role === 'STYLIST' || role === 'BARBER' ? 'Nhân viên / Thợ' : 'Khách hàng'
         );
         user.username = user.username || user.TenDangNhap || user.email || 'user';
         user.fullName = user.fullName || user.HoTen || user.name || user.username || 'Người Dùng';
@@ -1322,8 +1338,8 @@
       if (!serviceId) return null;
       const clean = String(serviceId).trim().toLowerCase();
       const services = this.state.services || [];
-      return services.find(s => 
-        String(s.id || '').trim().toLowerCase() === clean || 
+      return services.find(s =>
+        String(s.id || '').trim().toLowerCase() === clean ||
         String(s.MaDichVu || '').trim().toLowerCase() === clean ||
         String(s.real_id || '').trim().toLowerCase() === clean
       ) || null;
@@ -1374,8 +1390,8 @@
     getComboById(comboId) {
       if (!comboId) return null;
       const clean = String(comboId).trim().toLowerCase();
-      const found = (this.state.combos || []).find(c => 
-        String(c.id || '').trim().toLowerCase() === clean || 
+      const found = (this.state.combos || []).find(c =>
+        String(c.id || '').trim().toLowerCase() === clean ||
         String(c.MaCombo || '').trim().toLowerCase() === clean ||
         String(c.real_id || '').trim().toLowerCase() === clean
       );
@@ -1453,8 +1469,8 @@
     updateCombo(comboId, updates) {
       if (!this.state.combos) this.state.combos = [];
       const clean = String(comboId || '').trim().toLowerCase();
-      const rawCombo = this.state.combos.find(c => 
-        String(c.id || '').trim().toLowerCase() === clean || 
+      const rawCombo = this.state.combos.find(c =>
+        String(c.id || '').trim().toLowerCase() === clean ||
         String(c.MaCombo || '').trim().toLowerCase() === clean
       );
       if (!rawCombo) return false;
@@ -1738,7 +1754,7 @@
         const slotStart = this._timeToMinutes(time);
         const slotEnd = slotStart + dur;
         const hasConflict = bookedIntervals.some(iv => slotStart < iv.end && slotEnd > iv.start);
-        
+
         // Khung giờ đã trôi qua: nếu là ngày trong quá khứ, HOẶC là ngày hôm nay và giờ bắt đầu <= giờ hiện tại
         const isPast = isPastDate || (isToday && slotStart <= currentMinutes);
         const available = !isPast && !hasConflict;
@@ -2054,8 +2070,8 @@
       const pId = productId || 'SP01';
 
       const invList = this.state.inventory || [];
-      const item = invList.find(i => 
-        (i.branchId === bId || i.MaChiNhanh === bId) && 
+      const item = invList.find(i =>
+        (i.branchId === bId || i.MaChiNhanh === bId) &&
         (i.productId === pId || i.MaSanPham === pId)
       );
       if (item) {
@@ -2091,8 +2107,8 @@
 
       const qty = Math.max(1, parseInt(quantity) || 1);
       if (!this.state.inventory) this.state.inventory = [];
-      let item = this.state.inventory.find(i => 
-        (i.branchId === bId || i.MaChiNhanh === bId) && 
+      let item = this.state.inventory.find(i =>
+        (i.branchId === bId || i.MaChiNhanh === bId) &&
         (i.productId === pId || i.MaSanPham === pId)
       );
 
@@ -2150,7 +2166,7 @@
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify({ stock: newStock, branchId: bId })
-        }).catch(() => {});
+        }).catch(() => { });
       }
       return true;
     }
@@ -2161,8 +2177,8 @@
 
       const qty = Math.max(1, parseInt(quantity) || 1);
       if (!this.state.inventory) this.state.inventory = [];
-      let item = this.state.inventory.find(i => 
-        (i.branchId === bId || i.MaChiNhanh === bId) && 
+      let item = this.state.inventory.find(i =>
+        (i.branchId === bId || i.MaChiNhanh === bId) &&
         (i.productId === pId || i.MaSanPham === pId)
       );
 
@@ -2215,7 +2231,7 @@
         } else {
           targetProdId = parts.slice(1).join('-');
         }
-        inv = (this.state.inventory || []).find(i => 
+        inv = (this.state.inventory || []).find(i =>
           (i.productId === targetProdId || i.MaSanPham === targetProdId) &&
           (targetBranchId === 'all' || i.branchId === targetBranchId || i.MaChiNhanh === targetBranchId)
         );
@@ -2250,7 +2266,7 @@
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify({ stock: val, branchId: bId })
-        }).catch(() => {});
+        }).catch(() => { });
       }
 
       this.logAudit('UPDATE_STOCK', `Kho [${bId}]: ${pId}`, `Đổi số lượng: ${oldStock} -> ${val}`);
@@ -2278,8 +2294,8 @@
       if (!productId) return null;
       const clean = String(productId).trim().toLowerCase();
       const products = this.state.products || [];
-      return products.find(p => 
-        String(p.id || '').trim().toLowerCase() === clean || 
+      return products.find(p =>
+        String(p.id || '').trim().toLowerCase() === clean ||
         String(p.MaSanPham || '').trim().toLowerCase() === clean
       ) || null;
     }
@@ -2529,8 +2545,8 @@
       if (!orderId) return null;
       const reviews = this.getReviews();
       const norm = String(orderId).trim().toLowerCase();
-      return reviews.find(r => 
-        (r.orderId && String(r.orderId).trim().toLowerCase() === norm) || 
+      return reviews.find(r =>
+        (r.orderId && String(r.orderId).trim().toLowerCase() === norm) ||
         (r.MaDonHang && String(r.MaDonHang).trim().toLowerCase() === norm)
       ) || null;
     }
@@ -2568,8 +2584,8 @@
 
         if (!this.state.reviews) this.state.reviews = [];
         const norm = String(orderId).trim().toLowerCase();
-        const existingIdx = this.state.reviews.findIndex(r => 
-          (r.orderId && String(r.orderId).trim().toLowerCase() === norm) || 
+        const existingIdx = this.state.reviews.findIndex(r =>
+          (r.orderId && String(r.orderId).trim().toLowerCase() === norm) ||
           (r.MaDonHang && String(r.MaDonHang).trim().toLowerCase() === norm)
         );
         if (existingIdx >= 0) {
@@ -2590,8 +2606,8 @@
       if (!bookingId) return null;
       const reviews = this.getReviews();
       const norm = String(bookingId).trim().toLowerCase();
-      return reviews.find(r => 
-        (r.bookingId && String(r.bookingId).trim().toLowerCase() === norm) || 
+      return reviews.find(r =>
+        (r.bookingId && String(r.bookingId).trim().toLowerCase() === norm) ||
         (r.MaLichHen && String(r.MaLichHen).trim().toLowerCase() === norm)
       ) || null;
     }
@@ -2629,8 +2645,8 @@
 
         if (!this.state.reviews) this.state.reviews = [];
         const norm = String(bookingId).trim().toLowerCase();
-        const existingIdx = this.state.reviews.findIndex(r => 
-          (r.bookingId && String(r.bookingId).trim().toLowerCase() === norm) || 
+        const existingIdx = this.state.reviews.findIndex(r =>
+          (r.bookingId && String(r.bookingId).trim().toLowerCase() === norm) ||
           (r.MaLichHen && String(r.MaLichHen).trim().toLowerCase() === norm)
         );
         if (existingIdx >= 0) {
@@ -2650,16 +2666,16 @@
     async payBooking(bookingId) {
       if (!bookingId) return { success: false };
       const norm = String(bookingId).trim().toLowerCase();
-      const booking = (this.state.bookings || []).find(b => 
-        (b.id && String(b.id).trim().toLowerCase() === norm) || 
-        (b.bookingCode && String(b.bookingCode).trim().toLowerCase() === norm) || 
+      const booking = (this.state.bookings || []).find(b =>
+        (b.id && String(b.id).trim().toLowerCase() === norm) ||
+        (b.bookingCode && String(b.bookingCode).trim().toLowerCase() === norm) ||
         (b.MaLichHen && String(b.MaLichHen).trim().toLowerCase() === norm)
       );
       if (booking) {
         booking.paymentStatus = 'Paid';
         booking.TrangThaiThanhToan = 'Đã thanh toán';
         this.saveState();
-        this.syncBookingStatusToLiveServer(booking.id, booking.status, { paymentStatus: 'Paid', TrangThaiThanhToan: 'Đã thanh toán' }).catch(() => {});
+        this.syncBookingStatusToLiveServer(booking.id, booking.status, { paymentStatus: 'Paid', TrangThaiThanhToan: 'Đã thanh toán' }).catch(() => { });
         this.notify('BOOKING_UPDATED', booking);
         return { success: true, booking };
       }
@@ -2682,9 +2698,9 @@
         }
       }
 
-      const isPickup = orderData.deliveryType === 'PICKUP_BRANCH' || 
-                       (orderData.shippingAddress && orderData.shippingAddress.toLowerCase().includes('quầy')) || 
-                       (orderData.deliveryAddress && orderData.deliveryAddress.toLowerCase().includes('chi nhánh'));
+      const isPickup = orderData.deliveryType === 'PICKUP_BRANCH' ||
+        (orderData.shippingAddress && orderData.shippingAddress.toLowerCase().includes('quầy')) ||
+        (orderData.deliveryAddress && orderData.deliveryAddress.toLowerCase().includes('chi nhánh'));
 
       const newOrder = {
         id: '',
@@ -2741,9 +2757,9 @@
 
     async cancelOrder(orderId, reason = 'Khách hàng yêu cầu hủy đơn') {
       const cleanId = String(orderId || '').replace(/^#+/, '').trim().toLowerCase();
-      const order = (this.state.orders || []).find(o => 
-        String(o.id || '').replace(/^#+/, '').trim().toLowerCase() === cleanId || 
-        String(o.orderCode || '').replace(/^#+/, '').trim().toLowerCase() === cleanId || 
+      const order = (this.state.orders || []).find(o =>
+        String(o.id || '').replace(/^#+/, '').trim().toLowerCase() === cleanId ||
+        String(o.orderCode || '').replace(/^#+/, '').trim().toLowerCase() === cleanId ||
         String(o.MaDonHang || '').replace(/^#+/, '').trim().toLowerCase() === cleanId
       );
       if (!order) return { success: false, error: 'Không tìm thấy đơn hàng cần hủy!' };
@@ -2775,8 +2791,8 @@
 
     async confirmOrderPayment(orderId, paymentMethod = 'VietQR') {
       const norm = String(orderId).trim().toLowerCase();
-      const order = (this.state.orders || []).find(o => 
-        (o.id && String(o.id).trim().toLowerCase() === norm) || 
+      const order = (this.state.orders || []).find(o =>
+        (o.id && String(o.id).trim().toLowerCase() === norm) ||
         (o.orderCode && String(o.orderCode).trim().toLowerCase() === norm) ||
         (o.MaDonHang && String(o.MaDonHang).trim().toLowerCase() === norm)
       );
@@ -2856,8 +2872,8 @@
 
     async updateOrderStatus(orderId, newStatus, notes = '') {
       const norm = String(orderId).trim().toLowerCase();
-      const order = (this.state.orders || []).find(o => 
-        (o.id && String(o.id).trim().toLowerCase() === norm) || 
+      const order = (this.state.orders || []).find(o =>
+        (o.id && String(o.id).trim().toLowerCase() === norm) ||
         (o.orderCode && String(o.orderCode).trim().toLowerCase() === norm) ||
         (o.MaDonHang && String(o.MaDonHang).trim().toLowerCase() === norm)
       );
@@ -2887,9 +2903,9 @@
 
       // Bảo tồn trạng thái thanh toán của order nếu đã trả tiền
       const isCurrentPaid = (
-        order.paymentStatus === 'Paid' || 
-        order.isPaid === true || 
-        order.TrangThai === 'Đã thanh toán' || 
+        order.paymentStatus === 'Paid' ||
+        order.isPaid === true ||
+        order.TrangThai === 'Đã thanh toán' ||
         order.TrangThaiHoaDon === 'Đã thanh toán'
       );
       if (isCurrentPaid) {
@@ -2909,7 +2925,7 @@
       if (this.syncChannel) {
         try {
           this.syncChannel.postMessage({ type: 'DATA_UPDATED', entity: 'ORDER', orderId: order.id, status: normalizedStatus });
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // Đồng bộ trực tiếp vào SQL Server backend qua API PUT
@@ -3241,31 +3257,64 @@
       const effectiveConfirmed = confirmedCount + completedBookingsCount;
       const completionRate = totalBookings > 0 ? Math.round((effectiveConfirmed / totalBookings) * 100) : 100;
 
-      // Biểu đồ 7 ngày gom nhóm theo ngày trong tuần thực tế, Phân rã Dịch Vụ & Bán Lẻ
+      // Biểu đồ 7 ngày gần nhất kết thúc tại ngày giao dịch mới nhất (rolling 7 days thực tế)
+      const pad = n => String(n).padStart(2, '0');
+      let latestDateObj = new Date();
+      const allDates = [];
+      for (const b of bookings) {
+        const d = String(b.date || b.bookingDate || b.NgayHen || '').slice(0, 10);
+        if (d && d.length === 10) allDates.push(d);
+      }
+      for (const o of orders) {
+        const d = String(o.orderDate || o.createdAt || o.NgayDat || '').slice(0, 10);
+        if (d && d.length === 10) allDates.push(d);
+      }
+      for (const pos of posOrders) {
+        const d = String(pos.createdAt || pos.date || pos.NgayTao || '').slice(0, 10);
+        if (d && d.length === 10) allDates.push(d);
+      }
+      if (allDates.length > 0) {
+        allDates.sort();
+        const maxD = allDates[allDates.length - 1];
+        const dt = new Date(maxD + 'T00:00:00');
+        if (!isNaN(dt.getTime())) latestDateObj = dt;
+      }
+
       const dayNames = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-      const dayOrder = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
-      const dayMap = {};
-      dayOrder.forEach(d => {
-        dayMap[d] = {
-          day: d,
+      const dayNamesShort = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+      const rolling7Days = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(latestDateObj);
+        d.setDate(latestDateObj.getDate() - i);
+        const iso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const dayIdx = d.getDay();
+        const dateNum = d.getDate();
+        const monthNum = d.getMonth() + 1;
+        rolling7Days.push({
+          iso,
+          day: dayNames[dayIdx],
+          shortName: `${dayNamesShort[dayIdx]} ${pad(dateNum)}/${pad(monthNum)}`,
+          fullLabel: `${dayNames[dayIdx]} (${pad(dateNum)}/${pad(monthNum)}/${d.getFullYear()})`,
           revenue: 0,
           serviceRevenue: 0,
           productRevenue: 0,
           bookingsCount: 0
-        };
-      });
+        });
+      }
+      const min7Iso = rolling7Days[0].iso;
+      const max7Iso = rolling7Days[rolling7Days.length - 1].iso;
 
       for (const b of bookings) {
-        const dStr = b.date || b.bookingDate || b.NgayHen;
-        if (dStr) {
-          const dt = new Date(dStr);
-          if (!isNaN(dt.getTime())) {
-            const dName = dayNames[dt.getDay()];
-            if (dayMap[dName]) {
+        const bStatus = String(b.status || b.TrangThai || '').toLowerCase();
+        if (bStatus !== 'cancelled' && bStatus !== 'đã hủy') {
+          const dStr = String(b.date || b.bookingDate || b.NgayHen || '').slice(0, 10);
+          if (dStr >= min7Iso && dStr <= max7Iso) {
+            const match = rolling7Days.find(d => d.iso === dStr);
+            if (match) {
               const val = Number(b.totalPrice || b.TongTien || 0);
-              dayMap[dName].serviceRevenue += val;
-              dayMap[dName].revenue += val;
-              dayMap[dName].bookingsCount += 1;
+              match.serviceRevenue += val;
+              match.revenue += val;
+              match.bookingsCount += 1;
             }
           }
         }
@@ -3273,22 +3322,23 @@
 
       // Doanh thu dịch vụ & sản phẩm từ POS quầy
       for (const pos of posOrders) {
-        const dStr = pos.createdAt || pos.date || pos.NgayTao;
-        const dt = dStr ? new Date(dStr) : new Date();
-        const dName = !isNaN(dt.getTime()) ? dayNames[dt.getDay()] : 'Thứ 2';
-        if (dayMap[dName]) {
-          if (Array.isArray(pos.services)) {
-            for (const s of pos.services) {
-              const sVal = Number(s.price || 0);
-              dayMap[dName].serviceRevenue += sVal;
-              dayMap[dName].revenue += sVal;
+        const dStr = String(pos.createdAt || pos.date || pos.NgayTao || '').slice(0, 10);
+        if (dStr >= min7Iso && dStr <= max7Iso) {
+          const match = rolling7Days.find(d => d.iso === dStr);
+          if (match) {
+            if (Array.isArray(pos.services)) {
+              for (const s of pos.services) {
+                const sVal = Number(s.price || 0);
+                match.serviceRevenue += sVal;
+                match.revenue += sVal;
+              }
             }
-          }
-          if (Array.isArray(pos.items)) {
-            for (const it of pos.items) {
-              const pVal = Number(it.price || 0) * Number(it.qty || 1);
-              dayMap[dName].productRevenue += pVal;
-              dayMap[dName].revenue += pVal;
+            if (Array.isArray(pos.items)) {
+              for (const it of pos.items) {
+                const pVal = Number(it.price || 0) * Number(it.qty || 1);
+                match.productRevenue += pVal;
+                match.revenue += pVal;
+              }
             }
           }
         }
@@ -3297,22 +3347,19 @@
       for (const o of orders) {
         const oStatus = String(o.orderStatus || o.TrangThai || '').toLowerCase();
         if (oStatus !== 'cancelled' && oStatus !== 'đã hủy') {
-          const dStr = o.orderDate || o.NgayDat;
-          if (dStr) {
-            const dt = new Date(dStr);
-            if (!isNaN(dt.getTime())) {
-              const dName = dayNames[dt.getDay()];
-              if (dayMap[dName]) {
-                const val = Number(o.totalAmount || o.TongTien || 0);
-                dayMap[dName].productRevenue += val;
-                dayMap[dName].revenue += val;
-              }
+          const dStr = String(o.orderDate || o.createdAt || o.NgayDat || '').slice(0, 10);
+          if (dStr >= min7Iso && dStr <= max7Iso) {
+            const match = rolling7Days.find(d => d.iso === dStr);
+            if (match) {
+              const val = Number(o.totalAmount || o.TongTien || 0);
+              match.productRevenue += val;
+              match.revenue += val;
             }
           }
         }
       }
 
-      const weeklyData = dayOrder.map(d => dayMap[d]);
+      const weeklyData = rolling7Days;
 
       // Tỉ trọng danh mục dịch vụ thực tế từ danh sách lịch hẹn
       const catCounts = {};
@@ -3543,8 +3590,8 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newLog)
-        }).catch(() => {});
-      } catch (e) {}
+        }).catch(() => { });
+      } catch (e) { }
 
       return newLog;
     }
@@ -3606,8 +3653,8 @@
     getSupplierById(supplierId) {
       if (!supplierId) return null;
       const clean = String(supplierId).trim().toLowerCase();
-      const s = (this.state.suppliers || []).find(x => 
-        String(x.id || '').trim().toLowerCase() === clean || 
+      const s = (this.state.suppliers || []).find(x =>
+        String(x.id || '').trim().toLowerCase() === clean ||
         String(x.MaNhaCungCap || '').trim().toLowerCase() === clean
       );
       return this._normalizeSupplier(s);
@@ -3648,8 +3695,8 @@
       }
       if (this.state.suppliers) {
         const clean = String(supplierId).trim().toLowerCase();
-        const idx = this.state.suppliers.findIndex(s => 
-          String(s.id || '').trim().toLowerCase() === clean || 
+        const idx = this.state.suppliers.findIndex(s =>
+          String(s.id || '').trim().toLowerCase() === clean ||
           String(s.MaNhaCungCap || '').trim().toLowerCase() === clean
         );
         if (idx !== -1) {
@@ -3673,8 +3720,8 @@
       }
       if (this.state.suppliers) {
         const clean = String(supplierId).trim().toLowerCase();
-        this.state.suppliers = this.state.suppliers.filter(s => 
-          String(s.id || '').trim().toLowerCase() !== clean && 
+        this.state.suppliers = this.state.suppliers.filter(s =>
+          String(s.id || '').trim().toLowerCase() !== clean &&
           String(s.MaNhaCungCap || '').trim().toLowerCase() !== clean
         );
         this.saveState();
@@ -3885,7 +3932,7 @@
           headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(updates)
         });
-      } catch (_) {}
+      } catch (_) { }
     }
 
     async syncComboToLiveServer(combo) {
@@ -3923,7 +3970,7 @@
           headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(updates)
         });
-      } catch (_) {}
+      } catch (_) { }
     }
 
     async syncRegisterShiftToLiveServer(shiftData) {
@@ -3941,7 +3988,7 @@
             this.saveState();
           }
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     login(identifier, password) {
@@ -3987,8 +4034,8 @@
 
   // Khởi tạo Singleton
   const storeInstance = new SalonStore();
-  storeInstance.saveToStorage = function() { return this.saveState(); };
-  SalonStore.prototype.saveToStorage = function() { return this.saveState(); };
+  storeInstance.saveToStorage = function () { return this.saveState(); };
+  SalonStore.prototype.saveToStorage = function () { return this.saveState(); };
   window.SalonStore = storeInstance;
   window.store = storeInstance;
 

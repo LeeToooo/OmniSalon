@@ -11,6 +11,33 @@ const {
 } = require('../../services/helper_service');
 const auditService = require('../../services/audit.service');
 
+// Cache ngắn hạn & Deduplication cho snapshot CSDL tránh quá tải SQL Server
+let _dbSnapshotCache = null;
+let _dbSnapshotCachedAt = 0;
+let _dbSnapshotPendingPromise = null;
+const DB_CACHE_TTL_MS = 5000;
+
+async function getCachedSqlDatabase() {
+  const now = Date.now();
+  if (_dbSnapshotCache && (now - _dbSnapshotCachedAt < DB_CACHE_TTL_MS)) {
+    return _dbSnapshotCache;
+  }
+  if (_dbSnapshotPendingPromise) {
+    return await _dbSnapshotPendingPromise;
+  }
+  _dbSnapshotPendingPromise = (async () => {
+    try {
+      const data = await getFullSqlDatabase();
+      _dbSnapshotCache = data;
+      _dbSnapshotCachedAt = Date.now();
+      return data;
+    } finally {
+      _dbSnapshotPendingPromise = null;
+    }
+  })();
+  return await _dbSnapshotPendingPromise;
+}
+
 async function handleAccountsRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
 
@@ -55,7 +82,7 @@ async function handleAccountsRoutes(req, res, ctx) {
 
   // GET /api/database - Tải snapshot CSDL đồng bộ thời gian thực cho Frontend Store
   if (pathname === '/api/database' && method === 'GET') {
-    const dbData = await getFullSqlDatabase();
+    const dbData = await getCachedSqlDatabase();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(dbData));
     return true;

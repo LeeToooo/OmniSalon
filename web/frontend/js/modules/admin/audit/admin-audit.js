@@ -10,6 +10,7 @@
       this.auditActionFilter = 'all';
       this.auditRoleFilter = 'all';
       this.auditOperatorRoleFilter = 'all';
+      this.auditLogRoleFilter = 'all';
       this.auditBranchFilter = 'all';
       this.auditPaymentStatusFilter = 'all';
       this.auditOrderStatusFilter = 'all';
@@ -260,7 +261,7 @@
       const branchName = branchObj ? branchObj.name : (branchId === 'ALL' ? 'Toàn Hệ Thống' : branchId);
 
       const isStaff = ['SUPER_ADMIN', 'ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER'].includes(role);
-      
+
       // Tạo mã đúng chuẩn: Nhân viên -> TK_NVxx, Khách hàng -> TK_KHxx
       let nextNum = 1;
       const prefix = isStaff ? 'TK_NV' : 'TK_KH';
@@ -399,7 +400,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ branchId: newBranchId })
         });
-      } catch (_) {}
+      } catch (_) { }
       if (window.SalonToast) {
         window.SalonToast.show(`Đã cập nhật cơ sở cho ${userId}`, 'success');
       }
@@ -428,7 +429,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isActive: newActive, status: newActive ? 'Hoạt động' : 'Tạm khóa' })
         });
-      } catch (_) {}
+      } catch (_) { }
       if (window.SalonToast) {
         window.SalonToast.show(`Đã cập nhật trạng thái cho ${userId}`, 'info');
       }
@@ -447,7 +448,7 @@
         }
         try {
           await fetch(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
-        } catch (_) {}
+        } catch (_) { }
         if (window.SalonToast) {
           window.SalonToast.show(`Đã xóa tài khoản ${userId}`, 'success');
         }
@@ -527,7 +528,7 @@
         const mo = String(d.getMonth() + 1).padStart(2, '0');
         const yyyy = d.getFullYear();
         return `${hh}:${mm}:${ss} • ${dd}/${mo}/${yyyy}`;
-      } catch(e) {
+      } catch (e) {
         return this.escapeHtml(String(val));
       }
     },
@@ -637,18 +638,8 @@
 
             <!-- BỘ LỌC CHUYÊN BIỆT CHO TỪNG PHÂN HỆ -->
             ${(() => {
-              if (subType === 'logs') {
-                return `
-                  <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
-                          onchange="AdminWeb.auditLogRoleFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
-                    <option value="all" ${(!this.auditLogRoleFilter || this.auditLogRoleFilter === 'all') ? 'selected' : ''}>Tất cả vai trò</option>
-                    <option value="SUPER_ADMIN" ${this.auditLogRoleFilter === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên (SUPER_ADMIN)</option>
-                    <option value="BRANCH_MANAGER" ${this.auditLogRoleFilter === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý (BRANCH_MANAGER)</option>
-                    <option value="CASHIER" ${this.auditLogRoleFilter === 'CASHIER' ? 'selected' : ''}>Thu Ngân (CASHIER)</option>
-                    <option value="STYLIST" ${this.auditLogRoleFilter === 'STYLIST' ? 'selected' : ''}>Stylist / Thợ (STYLIST)</option>
-                    <option value="CUSTOMER" ${this.auditLogRoleFilter === 'CUSTOMER' ? 'selected' : ''}>Khách Hàng (CUSTOMER)</option>
-                    <option value="SYSTEM" ${this.auditLogRoleFilter === 'SYSTEM' ? 'selected' : ''}>Hệ Thống (SYSTEM)</option>
-                  </select>
+          if (subType === 'logs') {
+            return `
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditActionFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
                     <option value="all" ${(!this.auditActionFilter || this.auditActionFilter === 'all') ? 'selected' : ''}>Tất cả đối tượng</option>
@@ -662,19 +653,19 @@
                     <option value="Xác Thực" ${this.auditActionFilter === 'Xác Thực' || this.auditActionFilter === 'AUTH' ? 'selected' : ''}>Xác Thực</option>
                   </select>
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
-                          onchange="AdminWeb.auditOperatorRoleFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
+                          onchange="AdminWeb.auditOperatorRoleFilter = this.value; AdminWeb.auditLogRoleFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
                     <option value="all" ${(!this.auditOperatorRoleFilter || this.auditOperatorRoleFilter === 'all') ? 'selected' : ''}>Tất cả người thao tác</option>
-                    <option value="SUPER_ADMIN" ${this.auditOperatorRoleFilter === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên (SUPER_ADMIN)</option>
-                    <option value="BRANCH_MANAGER" ${this.auditOperatorRoleFilter === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh (BRANCH_MANAGER)</option>
-                    <option value="CASHIER" ${this.auditOperatorRoleFilter === 'CASHIER' ? 'selected' : ''}>Thu Ngân (CASHIER)</option>
-                    <option value="STYLIST" ${this.auditOperatorRoleFilter === 'STYLIST' ? 'selected' : ''}>Thợ / Nhân Viên (STYLIST)</option>
-                    <option value="CUSTOMER" ${this.auditOperatorRoleFilter === 'CUSTOMER' ? 'selected' : ''}>Khách Hàng (CUSTOMER)</option>
-                    <option value="SYSTEM" ${this.auditOperatorRoleFilter === 'SYSTEM' ? 'selected' : ''}>Hệ Thống (SYSTEM)</option>
+                    <option value="SUPER_ADMIN" ${(this.auditOperatorRoleFilter === 'SUPER_ADMIN' || this.auditLogRoleFilter === 'SUPER_ADMIN') ? 'selected' : ''}>Quản Trị Viên (SUPER_ADMIN)</option>
+                    <option value="BRANCH_MANAGER" ${(this.auditOperatorRoleFilter === 'BRANCH_MANAGER' || this.auditLogRoleFilter === 'BRANCH_MANAGER') ? 'selected' : ''}>Quản Lý Chi Nhánh (BRANCH_MANAGER)</option>
+                    <option value="CASHIER" ${(this.auditOperatorRoleFilter === 'CASHIER' || this.auditLogRoleFilter === 'CASHIER') ? 'selected' : ''}>Thu Ngân (CASHIER)</option>
+                    <option value="STYLIST" ${(this.auditOperatorRoleFilter === 'STYLIST' || this.auditLogRoleFilter === 'STYLIST') ? 'selected' : ''}>Thợ / Nhân Viên (STYLIST)</option>
+                    <option value="CUSTOMER" ${(this.auditOperatorRoleFilter === 'CUSTOMER' || this.auditLogRoleFilter === 'CUSTOMER') ? 'selected' : ''}>Khách Hàng (CUSTOMER)</option>
+                    <option value="SYSTEM" ${(this.auditOperatorRoleFilter === 'SYSTEM' || this.auditLogRoleFilter === 'SYSTEM') ? 'selected' : ''}>Hệ Thống (SYSTEM)</option>
                   </select>
                 `;
-              }
-              if (subType === 'users') {
-                return `
+          }
+          if (subType === 'users') {
+            return `
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditRoleFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
                     <option value="all" ${this.auditRoleFilter === 'all' ? 'selected' : ''}>Tất cả vai trò</option>
@@ -692,9 +683,9 @@
                     `).join('')}
                   </select>
                 `;
-              }
-              if (subType === 'invoices') {
-                return `
+          }
+          if (subType === 'invoices') {
+            return `
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditPaymentStatusFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
                     <option value="all" ${this.auditPaymentStatusFilter === 'all' ? 'selected' : ''}>Tất cả trạng thái</option>
@@ -702,9 +693,9 @@
                     <option value="pending" ${this.auditPaymentStatusFilter === 'pending' ? 'selected' : ''}>Chờ thanh toán</option>
                   </select>
                 `;
-              }
-              if (subType === 'orders') {
-                return `
+          }
+          if (subType === 'orders') {
+            return `
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditOrderStatusFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
                     <option value="all" ${this.auditOrderStatusFilter === 'all' ? 'selected' : ''}>Tất cả tiến trình</option>
@@ -715,9 +706,9 @@
                     <option value="cancelled" ${this.auditOrderStatusFilter === 'cancelled' ? 'selected' : ''}>Đã hủy</option>
                   </select>
                 `;
-              }
-              if (subType === 'notifications') {
-                return `
+          }
+          if (subType === 'notifications') {
+            return `
                   <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
                           onchange="AdminWeb.auditNotifStatusFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
                     <option value="all" ${this.auditNotifStatusFilter === 'all' ? 'selected' : ''}>Tất cả thông báo</option>
@@ -725,56 +716,56 @@
                     <option value="read" ${this.auditNotifStatusFilter === 'read' ? 'selected' : ''}>Đã đọc</option>
                   </select>
                 `;
-              }
-              return '';
-            })()}
+          }
+          return '';
+        })()}
           </div>
 
           <!-- NÚT HÀNH ĐỘNG BÊN PHẢI TINH GỌN (CHỮ 13PX ĐỒNG NHẤT, KHÔNG ICON SẶC SỠ) -->
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             ${(() => {
-              if (subType === 'users') {
-                return `
+          if (subType === 'users') {
+            return `
                   <button style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; background: var(--brand-accent, #C59B27); color: #141413; border: none; display: inline-flex; align-items: center; transition: opacity 0.15s ease;"
                           onclick="AdminWeb.toggleInlineAddUser()">
                     <span>+ Thêm Tài Khoản Mới</span>
                   </button>
                 `;
-              }
-              if (subType === 'logs') {
-                return `
+          }
+          if (subType === 'logs') {
+            return `
                   <button style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); display: inline-flex; align-items: center; transition: all 0.15s ease;"
                           onclick="AdminWeb.exportAuditLogs()">
                     <span>Xuất Báo Cáo Nhật Ký</span>
                   </button>
                 `;
-              }
-              if (subType === 'invoices') {
-                return `
+          }
+          if (subType === 'invoices') {
+            return `
                   <button style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); display: inline-flex; align-items: center; transition: all 0.15s ease;"
                           onclick="AdminWeb.exportInvoicesReport()">
                     <span>Xuất File Doanh Thu</span>
                   </button>
                 `;
-              }
-              if (subType === 'orders') {
-                return `
+          }
+          if (subType === 'orders') {
+            return `
                   <button style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); display: inline-flex; align-items: center; transition: all 0.15s ease;"
                           onclick="AdminWeb.exportOrdersReport()">
                     <span>Xuất Danh Sách Đơn</span>
                   </button>
                 `;
-              }
-              if (subType === 'notifications') {
-                return `
+          }
+          if (subType === 'notifications') {
+            return `
                   <button style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); display: inline-flex; align-items: center; transition: all 0.15s ease;"
                           onclick="AdminWeb.markAllNotificationsRead()">
                     <span>Đánh Dấu Đã Đọc Tất Cả</span>
                   </button>
                 `;
-              }
-              return '';
-            })()}
+          }
+          return '';
+        })()}
           </div>
         </div>
 
@@ -793,14 +784,19 @@
         let filtered = [...logs];
 
         // Lọc theo vai trò người thao tác (6 vai trò: SUPER_ADMIN, BRANCH_MANAGER, CASHIER, STYLIST, CUSTOMER, SYSTEM)
-        if (this.auditLogRoleFilter && this.auditLogRoleFilter !== 'all') {
-          const rf = this.auditLogRoleFilter.toUpperCase();
+        const activeRoleFilter = String(this.auditOperatorRoleFilter || this.auditLogRoleFilter || 'all').trim().toUpperCase();
+        if (activeRoleFilter && activeRoleFilter !== 'ALL') {
           filtered = filtered.filter(l => {
-            const role = String(l.operatorRole || l.role || '').toUpperCase();
-            if (rf === 'STYLIST') return role.includes('STYLIST') || role.includes('BARBER') || role.includes('THỢ');
-            if (rf === 'BRANCH_MANAGER') return role.includes('BRANCH_MANAGER') || role.includes('QUẢN LÝ');
-            if (rf === 'SUPER_ADMIN') return role.includes('SUPER_ADMIN') || role.includes('QUẢN TRỊ');
-            return role.includes(rf);
+            const opRole = (typeof this._extractAuditOperatorRole === 'function')
+              ? this._extractAuditOperatorRole(l)
+              : String(l.operatorRole || l.role || '').toUpperCase();
+            if (activeRoleFilter === 'BRANCH_MANAGER') return opRole.includes('BRANCH_MANAGER') || opRole.includes('QUẢN LÝ');
+            if (activeRoleFilter === 'SUPER_ADMIN') return opRole.includes('SUPER_ADMIN') || opRole.includes('QUẢN TRỊ') || opRole === 'ADMIN';
+            if (activeRoleFilter === 'CASHIER') return opRole.includes('CASHIER') || opRole.includes('THU NGÂN');
+            if (activeRoleFilter === 'STYLIST') return opRole.includes('STYLIST') || opRole.includes('BARBER') || opRole.includes('THỢ');
+            if (activeRoleFilter === 'CUSTOMER') return opRole.includes('CUSTOMER') || opRole.includes('KHÁCH');
+            if (activeRoleFilter === 'SYSTEM') return opRole.includes('SYSTEM') || opRole.includes('HỆ THỐNG');
+            return opRole.includes(activeRoleFilter);
           });
         }
 
@@ -934,14 +930,14 @@
                       </td>
                     </tr>
                   ` : paged.map((l, idx) => {
-                    const rowId = l.id || `log_${idx}_${l.timestamp}`;
-                    const isSelected = this.selectedAuditRowId === rowId;
-                    const isExpanded = this.expandedAuditRowId === rowId;
-                    const actLabel = cleanActionLabels[l.action] || l.action || 'Sự kiện';
-                    const role = l.operatorRole || l.role || 'SYSTEM';
-                    const actorName = l.operatorName || l.actor || 'Hệ Thống';
+          const rowId = l.id || `log_${idx}_${l.timestamp}`;
+          const isSelected = this.selectedAuditRowId === rowId;
+          const isExpanded = this.expandedAuditRowId === rowId;
+          const actLabel = cleanActionLabels[l.action] || l.action || 'Sự kiện';
+          const role = l.operatorRole || l.role || 'SYSTEM';
+          const actorName = l.operatorName || l.actor || 'Hệ Thống';
 
-                    return `
+          return `
                       <tr id="auditRow_${rowId}"
                           class="admin-branch-table-row ${isSelected ? 'is-selected' : ''}"
                           onclick="AdminWeb.onAuditRowClick('logs', '${rowId}', event)"
@@ -1015,7 +1011,7 @@
                         </tr>
                       ` : ''}
                     `;
-                  }).join('')}
+        }).join('')}
                 </tbody>
               </table>
             </div>
@@ -1115,20 +1111,20 @@
                       </td>
                     </tr>
                   ` : paged.map(u => {
-                    const uid = u.id || u.MaTaiKhoan || u.username || u.TenDangNhap || '—';
-                    const uname = u.username || u.TenDangNhap || '—';
-                    const fname = u.fullName || u.HoTen || '—';
-                    const phone = u.phone || u.SoDienThoai || '0901111000';
+          const uid = u.id || u.MaTaiKhoan || u.username || u.TenDangNhap || '—';
+          const uname = u.username || u.TenDangNhap || '—';
+          const fname = u.fullName || u.HoTen || '—';
+          const phone = u.phone || u.SoDienThoai || '0901111000';
 
-                    // Parse role accurately via helper
-                    const roleCode = this.getUserRoleCode(u);
+          // Parse role accurately via helper
+          const roleCode = this.getUserRoleCode(u);
 
-                    const branchId = u.branchId || u.MaChiNhanh || 'ALL';
-                    const isSelected = this.selectedAuditRowId === uid;
-                    const rawStatus = (u.TrangThai || '').toString();
-                    const isActive = !rawStatus.includes('khóa') && !rawStatus.includes('khoa') && rawStatus !== 'inactive' && u.isActive !== false;
+          const branchId = u.branchId || u.MaChiNhanh || 'ALL';
+          const isSelected = this.selectedAuditRowId === uid;
+          const rawStatus = (u.TrangThai || '').toString();
+          const isActive = !rawStatus.includes('khóa') && !rawStatus.includes('khoa') && rawStatus !== 'inactive' && u.isActive !== false;
 
-                    return `
+          return `
                       <tr id="auditRow_${uid}"
                           class="admin-branch-table-row ${isSelected ? 'is-selected' : ''}"
                           onclick="AdminWeb.onAuditRowClick('users', '${uid}', event)"
@@ -1189,7 +1185,7 @@
                         </td>
                       </tr>
                     `;
-                  }).join('')}
+        }).join('')}
                 </tbody>
               </table>
             </div>
@@ -1242,13 +1238,13 @@
                       </td>
                     </tr>
                   ` : paged.map(inv => {
-                    const { sTotal, pTotal, total, services: invServices, products: invItems } = this.computeInvoiceFinancials(inv);
-                    const isPaid = this._isInvoicePaid(inv);
-                    const invId = inv.id || inv.MaHoaDon || 'HD00';
-                    const isSelected = this.selectedAuditRowId === invId;
-                    const isExpanded = this.expandedInvoiceRowId === invId;
+          const { sTotal, pTotal, total, services: invServices, products: invItems } = this.computeInvoiceFinancials(inv);
+          const isPaid = this._isInvoicePaid(inv);
+          const invId = inv.id || inv.MaHoaDon || 'HD00';
+          const isSelected = this.selectedAuditRowId === invId;
+          const isExpanded = this.expandedInvoiceRowId === invId;
 
-                    return `
+          return `
                       <tr id="auditRow_${invId}"
                           class="admin-branch-table-row ${isSelected ? 'is-selected' : ''}"
                           onclick="AdminWeb.onAuditRowClick('invoices', '${invId}', event)"
@@ -1322,16 +1318,14 @@
                                 </div>
                               </div>
                               <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;">
-                                <div>• <strong>Dịch vụ thực hiện:</strong> ${
-                                  invServices.length > 0 
-                                    ? invServices.map(s => `${this.escapeHtml(s.name || s.TenDichVu || 'Dịch vụ')} (${SalonUtils.formatCurrency(s.price || s.DonGia || 0)})`).join(', ') 
-                                    : (sTotal > 0 ? 'Dịch vụ lẻ tại quầy' : 'Không có')
-                                }</div>
-                                <div>• <strong>Sản phẩm đính kèm:</strong> ${
-                                  invItems.length > 0 
-                                    ? invItems.map(it => `${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || it.SoLuong || 1} - ${SalonUtils.formatCurrency(it.price || it.DonGia || 0)})`).join(', ') 
-                                    : (pTotal > 0 ? 'Sản phẩm tại quầy / Đơn online' : 'Không có')
-                                }</div>
+                                <div>• <strong>Dịch vụ thực hiện:</strong> ${invServices.length > 0
+                ? invServices.map(s => `${this.escapeHtml(s.name || s.TenDichVu || 'Dịch vụ')} (${SalonUtils.formatCurrency(s.price || s.DonGia || 0)})`).join(', ')
+                : (sTotal > 0 ? 'Dịch vụ lẻ tại quầy' : 'Không có')
+              }</div>
+                                <div>• <strong>Sản phẩm đính kèm:</strong> ${invItems.length > 0
+                ? invItems.map(it => `${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || it.SoLuong || 1} - ${SalonUtils.formatCurrency(it.price || it.DonGia || 0)})`).join(', ')
+                : (pTotal > 0 ? 'Sản phẩm tại quầy / Đơn online' : 'Không có')
+              }</div>
                                 <div>• <strong>Phương thức &amp; Thu ngân:</strong> ${this.escapeHtml(inv.paymentMethod || 'VietQR')} • Thu ngân: ${this.escapeHtml(inv.cashierName || 'Thu Ngân Quầy')}</div>
                                 <div style="margin-top: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.03); border: 1px dashed var(--border-color); border-radius: 6px; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; max-width: 320px;">
                                   <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
@@ -1353,7 +1347,7 @@
                         </tr>
                       ` : ''}
                     `;
-                  }).join('')}
+        }).join('')}
                 </tbody>
               </table>
             </div>
@@ -1411,49 +1405,49 @@
                       </td>
                     </tr>
                   ` : paged.map(o => {
-                    const oCode = String(o.id || o.orderCode || o.MaDonHang || '');
-                    const inv = (window.store && typeof window.store.getInvoices === 'function') 
-                      ? (window.store.getInvoices().find(i => {
-                          const iCode = String(i.MaDonHang || '');
-                          return iCode && (iCode === oCode || iCode === '#' + oCode || oCode.endsWith(iCode)) && i.TrangThai === 'Đã thanh toán';
-                        }))
-                      : null;
-                    const isPaid = (
-                      o.paymentStatus === 'Paid' || 
-                      o.paymentStatus === 'PAID' || 
-                      o.paymentStatus === 'Đã thanh toán' || 
-                      o.isPaid === true || 
-                      o.TrangThai === 'Đã thanh toán' || 
-                      o.TrangThaiHoaDon === 'Đã thanh toán' ||
-                      o.TrangThaiThanhToan === 'Đã thanh toán' ||
-                      o.TrangThaiThanhToan === 'Paid' ||
-                      Boolean(inv)
-                    );
-                    const items = o.items || [];
-                    const itemsSummary = items.map(it => `${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || 1})`).join(', ');
-                    const isPickup = o.deliveryType === 'PICKUP_BRANCH' || (o.shippingAddress && o.shippingAddress.toLowerCase().includes('quầy'));
+          const oCode = String(o.id || o.orderCode || o.MaDonHang || '');
+          const inv = (window.store && typeof window.store.getInvoices === 'function')
+            ? (window.store.getInvoices().find(i => {
+              const iCode = String(i.MaDonHang || '');
+              return iCode && (iCode === oCode || iCode === '#' + oCode || oCode.endsWith(iCode)) && i.TrangThai === 'Đã thanh toán';
+            }))
+            : null;
+          const isPaid = (
+            o.paymentStatus === 'Paid' ||
+            o.paymentStatus === 'PAID' ||
+            o.paymentStatus === 'Đã thanh toán' ||
+            o.isPaid === true ||
+            o.TrangThai === 'Đã thanh toán' ||
+            o.TrangThaiHoaDon === 'Đã thanh toán' ||
+            o.TrangThaiThanhToan === 'Đã thanh toán' ||
+            o.TrangThaiThanhToan === 'Paid' ||
+            Boolean(inv)
+          );
+          const items = o.items || [];
+          const itemsSummary = items.map(it => `${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || 1})`).join(', ');
+          const isPickup = o.deliveryType === 'PICKUP_BRANCH' || (o.shippingAddress && o.shippingAddress.toLowerCase().includes('quầy'));
 
-                    const rawSt = (o.orderStatus || o.status || o.TrangThai || 'Pending').toLowerCase();
-                    let step = 1;
-                    let stepLabel = 'Chờ xác nhận';
+          const rawSt = (o.orderStatus || o.status || o.TrangThai || 'Pending').toLowerCase();
+          let step = 1;
+          let stepLabel = 'Chờ xác nhận';
 
-                    if (rawSt.includes('hủy') || rawSt === 'cancelled') {
-                      step = 0;
-                      stepLabel = 'Đã hủy';
-                    } else if (rawSt.includes('hoàn tất') || rawSt.includes('đã giao') || rawSt === 'completed' || rawSt === 'delivered') {
-                      step = 4;
-                      stepLabel = 'Hoàn tất';
-                    } else if (rawSt.includes('đang giao') || rawSt === 'delivering' || rawSt === 'shipping' || (rawSt.includes('giao') && !rawSt.includes('đã giao'))) {
-                      step = 3;
-                      stepLabel = 'Đang giao hàng';
-                    } else if (rawSt.includes('đóng gói') || rawSt.includes('xử lý') || rawSt === 'processing') {
-                      step = 2;
-                      stepLabel = 'Đang đóng gói';
-                    }
+          if (rawSt.includes('hủy') || rawSt === 'cancelled') {
+            step = 0;
+            stepLabel = 'Đã hủy';
+          } else if (rawSt.includes('hoàn tất') || rawSt.includes('đã giao') || rawSt === 'completed' || rawSt === 'delivered') {
+            step = 4;
+            stepLabel = 'Hoàn tất';
+          } else if (rawSt.includes('đang giao') || rawSt === 'delivering' || rawSt === 'shipping' || (rawSt.includes('giao') && !rawSt.includes('đã giao'))) {
+            step = 3;
+            stepLabel = 'Đang giao hàng';
+          } else if (rawSt.includes('đóng gói') || rawSt.includes('xử lý') || rawSt === 'processing') {
+            step = 2;
+            stepLabel = 'Đang đóng gói';
+          }
 
-                    const isSelected = this.selectedAuditRowId === oCode;
+          const isSelected = this.selectedAuditRowId === oCode;
 
-                    return `
+          return `
                       <tr id="auditRow_${oCode}"
                           class="admin-branch-table-row ${isSelected ? 'is-selected' : ''}"
                           onclick="AdminWeb.onAuditRowClick('orders', '${oCode}', event)"
@@ -1513,7 +1507,7 @@
                         </td>
                       </tr>
                     `;
-                  }).join('')}
+        }).join('')}
                 </tbody>
               </table>
             </div>
@@ -1561,11 +1555,11 @@
                       </td>
                     </tr>
                   ` : paged.map(n => {
-                    const isRead = n.isRead || n.DaDoc;
-                    const nId = n.id || n.MaThongBao || 'TB00';
-                    const isSelected = this.selectedAuditRowId === nId;
+          const isRead = n.isRead || n.DaDoc;
+          const nId = n.id || n.MaThongBao || 'TB00';
+          const isSelected = this.selectedAuditRowId === nId;
 
-                    return `
+          return `
                       <tr id="auditRow_${nId}"
                           class="admin-branch-table-row ${isSelected ? 'is-selected' : ''}"
                           onclick="AdminWeb.onAuditRowClick('notifications', '${nId}', event)"
@@ -1601,7 +1595,7 @@
                         </td>
                       </tr>
                     `;
-                  }).join('')}
+        }).join('')}
                 </tbody>
               </table>
             </div>
@@ -2107,7 +2101,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `nhat_ky_kiem_toan_${new Date().toISOString().substring(0,10)}.csv`);
+      link.setAttribute('download', `nhat_ky_kiem_toan_${new Date().toISOString().substring(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -2126,7 +2120,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `bao_cao_hoa_don_${new Date().toISOString().substring(0,10)}.csv`);
+      link.setAttribute('download', `bao_cao_hoa_don_${new Date().toISOString().substring(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -2143,7 +2137,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `danh_sach_don_hang_${new Date().toISOString().substring(0,10)}.csv`);
+      link.setAttribute('download', `danh_sach_don_hang_${new Date().toISOString().substring(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
