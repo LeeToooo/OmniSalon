@@ -39,16 +39,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       if (mounted) setState(() {});
     });
 
-    if (AuthService.currentUser != null &&
-        AuthService.currentUser!.phone.isNotEmpty) {
-      final user = AuthService.currentUser!;
-      final isStaffOrAdmin = user.role.toUpperCase() == 'ADMIN' ||
-          user.role.toUpperCase() == 'STAFF' ||
-          user.role.toUpperCase() == 'QUANLY';
-      if (isStaffOrAdmin) {
-        searchController.text = user.phone;
-      }
-    }
     _loadData();
   }
 
@@ -78,100 +68,72 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     }
 
     setState(() => isLoading = true);
-    final role = user.role.toUpperCase();
-    final isStaffOrAdmin =
-        role == 'ADMIN' || role == 'STAFF' || role == 'QUANLY';
     final userPhone = user.phone.trim().replaceAll(RegExp(r'\D'), '');
     final userId = user.id.trim();
     final q = searchController.text.trim();
 
-    // 1. TẢI LỊCH HẸN
-    List<Booking> fetchedBookings = [];
-    if (isStaffOrAdmin) {
-      fetchedBookings = q.isNotEmpty
-          ? await ApiService.lookupBookings(q)
-          : await ApiService.fetchBookings();
-    } else {
-      // Bảo mật riêng tư: Khách hàng chỉ xem lịch của chính mình
-      final queryParam =
-          user.phone.trim().isNotEmpty ? user.phone.trim() : userId;
-      final rawList = await ApiService.lookupBookings(queryParam);
-      fetchedBookings = rawList.where((b) {
-        final bPhone = b.customerPhone.replaceAll(RegExp(r'\D'), '');
-        final matchPhone = userPhone.isNotEmpty &&
-            bPhone.isNotEmpty &&
-            (bPhone == userPhone ||
-                (userPhone.length >= 9 &&
-                    bPhone.length >= 9 &&
-                    bPhone
-                        .endsWith(userPhone.substring(userPhone.length - 9))));
-        final matchUserId = (b.userId != null &&
-            b.userId!.isNotEmpty &&
-            (b.userId == userId || b.userId == user.maKhachHang));
-        return matchPhone || matchUserId;
-      }).toList();
+    // 1. TẢI LỊCH HẸN: Khách hàng chỉ xem lịch của chính mình
+    final queryParam = user.phone.trim().isNotEmpty ? user.phone.trim() : userId;
+    final rawList = await ApiService.lookupBookings(queryParam);
+    List<Booking> fetchedBookings = rawList.where((b) {
+      final bPhone = b.customerPhone.replaceAll(RegExp(r'\D'), '');
+      final matchPhone = userPhone.isNotEmpty &&
+          bPhone.isNotEmpty &&
+          (bPhone == userPhone ||
+              (userPhone.length >= 9 &&
+                  bPhone.length >= 9 &&
+                  bPhone.endsWith(userPhone.substring(userPhone.length - 9))));
+      final matchUserId = (b.userId != null &&
+          b.userId!.isNotEmpty &&
+          (b.userId == userId || b.userId == user.maKhachHang));
+      return matchPhone || matchUserId;
+    }).toList();
 
-      if (q.isNotEmpty) {
-        final qLower = q.toLowerCase();
-        fetchedBookings = fetchedBookings
-            .where((b) =>
-                b.bookingCode.toLowerCase().contains(qLower) ||
-                b.serviceName.toLowerCase().contains(qLower) ||
-                b.stylistName.toLowerCase().contains(qLower) ||
-                b.branchName.toLowerCase().contains(qLower))
-            .toList();
-      }
+    if (q.isNotEmpty) {
+      final qLower = q.toLowerCase();
+      fetchedBookings = fetchedBookings
+          .where((b) =>
+              b.bookingCode.toLowerCase().contains(qLower) ||
+              b.serviceName.toLowerCase().contains(qLower) ||
+              b.stylistName.toLowerCase().contains(qLower) ||
+              b.branchName.toLowerCase().contains(qLower))
+          .toList();
     }
 
-    // 2. TẢI ĐƠN HÀNG MỸ PHẨM
+    // 2. TẢI ĐƠN HÀNG MỸ PHẨM: Khách hàng chỉ xem đơn hàng của chính mình
     List<SalonOrder> fetchedOrders = await ApiService.fetchOrders();
-    if (!isStaffOrAdmin) {
-      // BẢO MẬT BẮT BUỘC: Khách hàng thường TUYỆT ĐỐI CHỈ xem đơn hàng của chính mình
-      final isMyOrder = (SalonOrder o) {
-        final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
-        final matchPhone = userPhone.isNotEmpty &&
-            oPhone.isNotEmpty &&
-            (oPhone == userPhone ||
-                (userPhone.length >= 9 &&
-                    oPhone.length >= 9 &&
-                    oPhone
-                        .endsWith(userPhone.substring(userPhone.length - 9))));
-        final matchUserId = (o.userId != null &&
-            o.userId!.isNotEmpty &&
-            (o.userId == userId ||
-                (user.maKhachHang != null &&
-                    user.maKhachHang!.isNotEmpty &&
-                    o.userId == user.maKhachHang)));
-        return matchPhone || matchUserId;
-      };
+    final isMyOrder = (SalonOrder o) {
+      final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
+      final matchPhone = userPhone.isNotEmpty &&
+          oPhone.isNotEmpty &&
+          (oPhone == userPhone ||
+              (userPhone.length >= 9 &&
+                  oPhone.length >= 9 &&
+                  oPhone.endsWith(userPhone.substring(userPhone.length - 9))));
+      final matchUserId = (o.userId != null &&
+          o.userId!.isNotEmpty &&
+          (o.userId == userId ||
+              (user.maKhachHang != null &&
+                  user.maKhachHang!.isNotEmpty &&
+                  o.userId == user.maKhachHang)));
+      return matchPhone || matchUserId;
+    };
 
-      // 1. Luôn luôn lọc để CHỈ giữ lại đơn hàng của chính tài khoản này
-      fetchedOrders = fetchedOrders.where(isMyOrder).toList();
+    fetchedOrders = fetchedOrders.where(isMyOrder).toList();
 
-      // 2. Nếu người dùng có nhập từ khóa tìm kiếm (q), chỉ tìm kiếm TRONG CÁC ĐƠN HÀNG CỦA CHÍNH MÌNH
-      if (q.isNotEmpty) {
-        final qClean = q.replaceAll('#', '').trim().toLowerCase();
-        fetchedOrders = fetchedOrders
-            .where((o) =>
-                o.orderCode
-                    .replaceAll('#', '')
-                    .toLowerCase()
-                    .contains(qClean) ||
-                o.id.replaceAll('#', '').toLowerCase().contains(qClean) ||
-                o.items.any((it) => it.name.toLowerCase().contains(qClean)) ||
-                o.paymentStatus.toLowerCase().contains(qClean) ||
-                o.orderStatus.toLowerCase().contains(qClean))
-            .toList();
-      }
-    } else if (q.isNotEmpty) {
-      // Quản lý hoặc Nhân viên: Cho phép tra cứu đơn hàng toàn hệ thống
-      final qLower = q.replaceAll('#', '').trim().toLowerCase();
+    // 2. Nếu người dùng có nhập từ khóa tìm kiếm (q), chỉ tìm kiếm TRONG CÁC ĐƠN HÀNG CỦA CHÍNH MÌNH
+    if (q.isNotEmpty) {
+      final qClean = q.replaceAll('#', '').trim().toLowerCase();
       fetchedOrders = fetchedOrders
           .where((o) =>
-              o.orderCode.toLowerCase().contains(qLower) ||
-              o.id.toLowerCase().contains(qLower) ||
-              o.customerPhone.contains(q) ||
-              o.customerName.toLowerCase().contains(qLower))
+              o.orderCode
+                  .replaceAll('#', '')
+                  .toLowerCase()
+                  .contains(qClean) ||
+              o.id.replaceAll('#', '').toLowerCase().contains(qClean) ||
+              o.items.any((it) => it.name.toLowerCase().contains(qClean)) ||
+              o.paymentStatus.toLowerCase().contains(qClean) ||
+              o.orderStatus.toLowerCase().contains(qClean))
           .toList();
     }
     // Sắp xếp lịch hẹn từ mới nhất đến cũ nhất từ trên xuống dưới
@@ -963,15 +925,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       );
     }
 
-    final isStaffOrAdmin = user.role.toUpperCase() == 'ADMIN' ||
-        user.role.toUpperCase() == 'STAFF' ||
-        user.role.toUpperCase() == 'QUANLY';
-
     return Scaffold(
       backgroundColor: AppTheme.bgPrimary,
       appBar: AppBar(
         title: Text(
-          isStaffOrAdmin ? 'Tra Cứu & Lịch Hẹn' : 'Lịch Hẹn & Đơn Hàng Của Tôi',
+          'Lịch Hẹn & Đơn Hàng Của Tôi',
           style: TextStyle(
               fontWeight: FontWeight.w900,
               color: AppTheme.textPrimary,
@@ -1014,9 +972,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                     onSubmitted: (_) => _loadData(),
                     style: TextStyle(color: AppTheme.textPrimary),
                     decoration: InputDecoration(
-                      hintText: isStaffOrAdmin
-                          ? 'Nhập SĐT hoặc Mã (VD: 0988... / LH01 / DH01)'
-                          : 'Tìm theo mã #LH, dịch vụ hoặc sản phẩm...',
+                      hintText: 'Tìm theo mã #LH, #DH, dịch vụ hoặc sản phẩm...',
                       hintStyle: TextStyle(
                           fontSize: 12.5, color: AppTheme.textSecondary),
                       prefixIcon: const Icon(Icons.search,
