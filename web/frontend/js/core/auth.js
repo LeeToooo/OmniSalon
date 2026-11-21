@@ -175,7 +175,7 @@
 
   // Tài khoản mẫu đã xác thực
 
-  // 101 tài khoản & phân quyền rbac trích xuất 100% từ ql_salon.sql
+  // Danh sách tài khoản mẫu từ cơ sở dữ liệu
 
   const RAW_STAFF_SQL = [
     ["NV00","CN01","Lê Minh Hoàng","19008899","admin@omnisalon.vn","Chủ Tịch HĐQT","Quản trị viên"],
@@ -310,7 +310,7 @@
       tier: 'Chủ Tịch HĐQT',
       isActive: true
     },
-    // 80 Nhân Sự chuẩn xác thực SQL
+    // 80 Nhân sự từ cơ sở dữ liệu
     ...RAW_STAFF_SQL.filter(item => item[0] !== 'NV00').map(item => {
       const isManager = item[6] === 'Quản lý chi nhánh';
       const isCashier = item[6] === 'Thu ngân';
@@ -343,7 +343,7 @@
         isActive: true
       };
     }),
-    // 20 Khách Hàng chuẩn xác thực SQL
+    // 20 Khách hàng từ cơ sở dữ liệu
     ...RAW_CUSTOMERS_SQL.map(item => ({
       id: `TK_${item[0]}`,
       MaTaiKhoan: `TK_${item[0]}`,

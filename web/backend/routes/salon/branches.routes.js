@@ -2,6 +2,7 @@ const { querySql } = require('../../database/db');
 const { formatTime } = require('../../services/helper_service');
 const { enforceAuth, extractAuthUser } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
+const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
 async function handleBranchesRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
@@ -85,6 +86,7 @@ async function handleBranchesRoutes(req, res, ctx) {
          WHERE MaChiNhanh = ?`,
         [name, address, phone, openTime, closeTime, image, status, cnId]
       );
+      clearDbSnapshotCache();
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: true, branch: { id: cnId, MaChiNhanh: cnId, name, address, phone, status } }));
       return true;
@@ -119,6 +121,7 @@ async function handleBranchesRoutes(req, res, ctx) {
       details: `${actorName} tạo chi nhánh mới: ${name} (Mã: #${cnId})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, branch: { id: cnId, MaChiNhanh: cnId, name, address, phone, status } }));
     return true;
@@ -168,6 +171,7 @@ async function handleBranchesRoutes(req, res, ctx) {
       details: `${actorName} cập nhật thông tin chi nhánh #${id} (${b.name || oldBranch?.TenChiNhanh || ''})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -232,6 +236,7 @@ async function handleBranchesRoutes(req, res, ctx) {
       details: `${actorName} xóa hoàn toàn chi nhánh #${id}`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã xóa chi nhánh khỏi SQL Server', id }));
     return true;

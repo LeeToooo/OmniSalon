@@ -148,7 +148,7 @@ async function handleAuthRoutes(req, res, ctx) {
         return true;
       }
 
-      // 2. Tìm hoặc sinh mã khách hàng an toàn tuyệt đối chống trùng khóa chính
+      // 2. Tìm hoặc tạo mã khách hàng mới
       let khId = null;
       const existingKh = await querySql('SELECT MaKhachHang FROM KhachHang WHERE SoDienThoai = ?', [cleanPhone]);
       if (existingKh && existingKh.length > 0) {

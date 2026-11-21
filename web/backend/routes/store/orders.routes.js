@@ -7,6 +7,7 @@ const {
   generateNextCtdhId
 } = require('../../services/helper_service');
 const { checkAndAutoCancelOnRequest } = require('../../services/auto_cancel_service');
+const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
 async function handleOrderRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
@@ -285,6 +286,7 @@ async function handleOrderRoutes(req, res, ctx) {
       details: `${actorName} tạo đơn hàng mỹ phẩm #${id} trị giá ${total.toLocaleString('vi-VN')} đ`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ 
       success: true, 
@@ -558,6 +560,7 @@ async function handleOrderRoutes(req, res, ctx) {
       details: `${updateActor} (${updateRole}) ${isPaymentConfirmed ? 'xác nhận thanh toán và ' : ''}cập nhật đơn hàng #${id}: ${trangThai || 'Trạng thái mới'}`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ 
       success: true, 

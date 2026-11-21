@@ -22,7 +22,7 @@
       compareMode: 'split' // 'split' | 'before' | 'after'
     },
 
-    // BỘ SƯU TẬP 28 KIỂU TÓC THỊNH HÀNH CHUẨN BARBERSHOP
+    // Danh sách kiểu tóc thịnh hành
     hairstyles: [
       // --- 1. GỌN GÀNG & FADE (7 KIỂU) ---
       {
@@ -427,7 +427,7 @@
       }
     ],
 
-    // BẢNG 8 MÀU NHUỘM TÔN DA NAM GIỚI CHUẨN SALON
+    // Bảng màu nhuộm tóc nam
     hairColors: [
       { id: 'natural-black', name: 'Đen Tự Nhiên', hex: '#141413', desc: 'Lịch thiệp, chuẩn mực công sở' },
       { id: 'cold-ash-brown', name: 'Nâu Lạnh Sâu', hex: '#523A28', desc: 'Sáng da, không cần tẩy tóc' },
@@ -1015,7 +1015,7 @@
       this._updateColorUI();
     },
 
-    // CHUYỂN CHẾ ĐỘ XEM: ẢNH 3:4 CHUẨN HOẶC ẢNH GỐC
+    // Chuyển chế độ xem ảnh
     switchBaseMode(mode) {
       this.state.activeBaseMode = mode;
       let targetImg = this.state.croppedImage || this.state.originalRawImage;

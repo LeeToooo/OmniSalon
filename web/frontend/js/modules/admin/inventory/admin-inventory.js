@@ -1044,7 +1044,7 @@
       const creatorName = user ? (user.fullName || user.name || user.username || 'Nhân viên') : 'Nhân viên kho';
       const isStaffOnly = !isSuper && !isManager;
 
-      // Sinh mã lô chuẩn LOyyyyMM A001
+      // Tạo tiền tố mã lô theo năm tháng
       const now = new Date();
       const yr = now.getFullYear();
       const mo = String(now.getMonth() + 1).padStart(2, '0');
@@ -1423,7 +1423,7 @@
     },
 
     
-    // Bottom editors chuẩn form quản lý chuỗi chi nhánh (2 cột liền mạch 1:1)
+    // Form chỉnh sửa sản phẩm bên dưới
     _renderProductBottomEditor() {
       const productPresets = [
         'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80',

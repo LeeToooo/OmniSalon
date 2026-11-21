@@ -117,7 +117,7 @@
     }
 
     /**
-     * Tra cứu voucher theo mã và tính toán toàn diện (DRY Pattern cho POS, Cart, Booking)
+     * Tra cứu voucher theo mã và tính tiền giảm giá
      * @param {string} code - Mã voucher nhập từ người dùng
      * @param {number} subtotal - Tổng tiền đơn hàng trước giảm giá
      * @param {Array} vouchersList - Danh sách voucher hợp lệ
@@ -228,7 +228,7 @@
     }
 
     /**
-     * DRY: Tính toán giảm giá theo hạn dùng của lô sản phẩm theo view vw_GiaBanTheoLoHienTai
+     * Tính toán giảm giá theo hạn sử dụng của lô sản phẩm
      * Quy tắc:
      * - Cận hạn khẩn cấp (< 30 ngày): Giảm 70%
      * - Cận hạn vừa (31 - 90 ngày): Giảm 40%

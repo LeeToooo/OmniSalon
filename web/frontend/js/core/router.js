@@ -343,7 +343,7 @@
     },
 
     initGlobalTiltObserver() {
-      // Triệt tiêu observer để tối ưu hiệu năng và tránh gắn lại sự kiện chao đảo
+      // Hủy observer khi chuyển trang
     }
   };
 

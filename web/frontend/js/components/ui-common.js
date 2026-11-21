@@ -1,6 +1,6 @@
 // Các hàm tiện ích giao diện dùng chung
 const UICommon = {
-  // Render thẻ sản phẩm  chuẩn 100% ảnh ngon.png
+  // Render thẻ sản phẩm
   renderProductCard(prod, isMobile = false) {
     if (typeof window.ProductCard !== 'undefined' && typeof window.ProductCard.render === 'function') {
       return window.ProductCard.render(prod, { isMobile });
@@ -19,7 +19,7 @@ const UICommon = {
     `;
   },
 
-  // Render bài viết tin tóc underground  chuẩn ảnh ngon.png
+  // Render bài viết
   renderFeatureArticle(article) {
     return `
       <article class="underground-feature-card" onclick="UICommon.openArticleModal('${article.id}')">
@@ -1322,7 +1322,7 @@ const UICommon = {
       ? 'Chuyển khoản trực tuyến VietQR' 
       : (isPickup ? 'Thanh toán tiền mặt tại quầy' : 'Tiền mặt khi nhận hàng (COD)');
 
-    // Tạo đơn hàng chuẩn qua store
+    // Tạo đơn hàng qua store
     const order = await window.store.createOrder({
       customerName,
       customerPhone,
@@ -2132,7 +2132,7 @@ const UICommon = {
         res = await apiRes.json().catch(() => null);
       }
 
-      // Đồng thời cập nhật đồng bộ 100% vào AuthEngine & UserRepository
+      // Đồng bộ vào AuthEngine & UserRepository
       if (window.AuthEngine && typeof window.AuthEngine.resetPassword === 'function') {
         window.AuthEngine.resetPassword({ identifier, email: identifier, phone: identifier, otp, newPassword });
       }

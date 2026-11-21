@@ -1093,7 +1093,7 @@
       reader.readAsDataURL(file);
     },
 
-    submitBranchBottomEditor() {
+    async submitBranchBottomEditor() {
       const branchId = (document.getElementById('branchEditorId')?.value || '').trim();
       const name = (document.getElementById('branchEditorName')?.value || '').trim();
       const address = (document.getElementById('branchEditorAddress')?.value || '').trim();
@@ -1151,14 +1151,14 @@
       };
 
       if (branchId) {
-        window.store.updateBranch(branchId, branchData);
+        await window.store.updateBranch(branchId, branchData);
         if (window.UICommon) window.UICommon.showToast(`Đã cập nhật chi nhánh [${name}] thành công!`, 'success');
       } else {
         const created = window.store.addBranch(branchData);
         if (window.UICommon) window.UICommon.showToast(`Đã thêm mới chi nhánh [${name}] (#${created.id}) thành công!`, 'success');
       }
       if (window.store && typeof window.store.syncWithLiveServer === 'function') {
-        window.store.syncWithLiveServer();
+        await window.store.syncWithLiveServer();
       }
 
       this._updateBranchesContentOnly();
@@ -1259,7 +1259,7 @@
       `);
     },
 
-    submitBranchForm(branchId) {
+    async submitBranchForm(branchId) {
       const name = (document.getElementById('brName')?.value || '').trim();
       const address = (document.getElementById('brAddress')?.value || '').trim();
       const phone = (document.getElementById('brPhone')?.value || '').trim();
@@ -1308,14 +1308,14 @@
       };
 
       if (branchId) {
-        window.store.updateBranch(branchId, branchData);
+        await window.store.updateBranch(branchId, branchData);
         if (window.UICommon) window.UICommon.showToast(`Đã cập nhật chi nhánh [${name}] vào database SQL!`);
       } else {
         const created = window.store.addBranch(branchData);
         if (window.UICommon) window.UICommon.showToast(`Đã thêm mới chi nhánh [${name}] (#${created.id}) vào database SQL!`);
       }
       if (window.store && typeof window.store.syncWithLiveServer === 'function') {
-        window.store.syncWithLiveServer();
+        await window.store.syncWithLiveServer();
       }
 
       this._closeModal();

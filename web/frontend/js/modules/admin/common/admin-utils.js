@@ -339,7 +339,7 @@
 
     /**
      * Eager Loading & Aggregation: Gom nhóm dữ liệu bookings theo thợ O(B)
-     * Triệt tiêu toàn bộ lỗi N+1 khi duyệt qua danh sách Barber trong dashboard.
+     * Thống kê lịch hẹn theo từng thợ
      */
     _getStylistStatsMap(stylists, bookings, targetDate = null) {
       const todayStr = targetDate || new Date().toISOString().split('T')[0];

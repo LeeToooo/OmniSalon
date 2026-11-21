@@ -146,20 +146,20 @@
       switch (r) {
         case 'SUPER_ADMIN':
         case 'ADMIN':
-          return { label: 'SUPER_ADMIN', text: 'Quản Trị Viên', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', border: 'rgba(245, 158, 11, 0.35)' };
+          return { label: 'SUPER_ADMIN', text: 'Quản Trị Viên', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)' };
         case 'BRANCH_MANAGER':
-          return { label: 'BRANCH_MANAGER', text: 'Quản Lý Chi Nhánh', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.12)', border: 'rgba(56, 189, 248, 0.35)' };
+          return { label: 'BRANCH_MANAGER', text: 'Quản Lý Chi Nhánh', color: '#2563eb', bg: 'rgba(37, 99, 235, 0.12)', border: 'rgba(37, 99, 235, 0.35)' };
         case 'CASHIER':
           return { label: 'CASHIER', text: 'Thu Ngân', color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)' };
         case 'STYLIST':
         case 'BARBER':
         case 'STAFF':
-          return { label: 'STYLIST', text: 'Thợ / Stylist', color: '#c084fc', bg: 'rgba(192, 132, 252, 0.12)', border: 'rgba(192, 132, 252, 0.35)' };
+          return { label: 'STYLIST', text: 'Thợ / Stylist', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', border: 'rgba(245, 158, 11, 0.35)' };
         case 'CUSTOMER':
-          return { label: 'CUSTOMER', text: 'Khách Hàng', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.12)', border: 'rgba(251, 146, 60, 0.35)' };
+          return { label: 'CUSTOMER', text: 'Khách Hàng', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.12)', border: 'rgba(139, 92, 246, 0.35)' };
         case 'SYSTEM':
         default:
-          return { label: r || 'SYSTEM', text: 'Hệ Thống', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.12)', border: 'rgba(148, 163, 184, 0.35)' };
+          return { label: r || 'SYSTEM', text: 'Hệ Thống', color: '#64748b', bg: 'rgba(100, 116, 139, 0.12)', border: 'rgba(100, 116, 139, 0.35)' };
       }
     },
 
@@ -779,7 +779,7 @@
     _renderAuditTableContent(subType, { logs, invoices, payments, notifications, orders, users, branches, q }) {
       this.auditPage = this.auditPage || 1;
 
-      // 1. PHÂN HỆ SỰ KIỆN KIỂM TOÁN (LOGS) - CHUẨN THEO BẢNG CHI NHÁNH
+      // 1. Phân hệ sự kiện kiểm toán (Logs)
       if (subType === 'logs') {
         let filtered = [...logs];
 
@@ -1020,7 +1020,7 @@
         `;
       }
 
-      // 2. PHÂN HỆ TÀI KHOẢN & PHÂN QUYỀN (USERS) - CHUẨN THEO BẢNG CHI NHÁNH 100%
+      // 2. Phân hệ tài khoản và phân quyền (Users)
       if (subType === 'users') {
         const uList = users || [];
         const normQ = (q || '').toLowerCase().trim();
@@ -1194,7 +1194,7 @@
         `;
       }
 
-      // 3. PHÂN HỆ HÓA ĐƠN & THU TIỀN (INVOICES) - CHUẨN THEO BẢNG CHI NHÁNH
+      // 3. Phân hệ hóa đơn & thu tiền (Invoices)
       if (subType === 'invoices') {
         const filtered = invoices.filter(inv => {
           const isPaid = this._isInvoicePaid(inv);
@@ -1356,7 +1356,7 @@
         `;
       }
 
-      // 4. PHÂN HỆ ĐƠN HÀNG TRỰC TUYẾN & XỬ LÝ (ORDERS) - CHUẨN THEO BẢNG CHI NHÁNH
+      // 4. Phân hệ đơn hàng (Orders)
       if (subType === 'orders') {
         const orderList = orders || [];
         let filtered = orderList.filter(o => {
@@ -1408,20 +1408,19 @@
           const oCode = String(o.id || o.orderCode || o.MaDonHang || '');
           const inv = (window.store && typeof window.store.getInvoices === 'function')
             ? (window.store.getInvoices().find(i => {
-              const iCode = String(i.MaDonHang || '');
-              return iCode && (iCode === oCode || iCode === '#' + oCode || oCode.endsWith(iCode)) && i.TrangThai === 'Đã thanh toán';
+              const iCode = String(i.MaDonHang || '').trim();
+              return iCode && (iCode === oCode || iCode === '#' + oCode || '#' + iCode === oCode) && i.TrangThai === 'Đã thanh toán';
             }))
             : null;
-          const isPaid = (
+          const isPaid = Boolean(
             o.paymentStatus === 'Paid' ||
             o.paymentStatus === 'PAID' ||
             o.paymentStatus === 'Đã thanh toán' ||
             o.isPaid === true ||
-            o.TrangThai === 'Đã thanh toán' ||
             o.TrangThaiHoaDon === 'Đã thanh toán' ||
             o.TrangThaiThanhToan === 'Đã thanh toán' ||
             o.TrangThaiThanhToan === 'Paid' ||
-            Boolean(inv)
+            inv
           );
           const items = o.items || [];
           const itemsSummary = items.map(it => `${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || 1})`).join(', ');
@@ -1516,7 +1515,7 @@
         `;
       }
 
-      // 5. PHÂN HỆ THÔNG BÁO HỆ THỐNG (NOTIFICATIONS) - CHUẨN THEO BẢNG CHI NHÁNH
+      // 5. Phân hệ thông báo hệ thống (Notifications)
       if (subType === 'notifications') {
         const filtered = notifications.filter(n => {
           if (this.auditNotifStatusFilter === 'unread' && (n.isRead || n.DaDoc)) return false;

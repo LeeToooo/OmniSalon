@@ -193,7 +193,7 @@
         return (Number(b.rating) || 0) - (Number(a.rating) || 0);
       }).slice(0, 5);
 
-      // Cấu hình dữ liệu biểu đồ theo mốc thời gian: Hôm Nay | 7 Ngày Qua | Tháng Này (100% Doanh Thu Thật)
+      // Dữ liệu biểu đồ doanh thu theo mốc thời gian
       let chartData = [];
       let chartTitle = 'Xu hướng doanh thu';
       let peakPeriodLabel = '';
@@ -406,7 +406,7 @@
 
         peakPeriodLabel = maxSlotVal > 0 ? `Khung giờ cao điểm: ${peakSlotName}` : 'Khung giờ cao điểm: Hôm nay';
       } else if (timePeriod === 'month') {
-        // Biểu đồ theo 4 tuần thực tế trong tháng (100% doanh thu thật, không giả lập hệ số)
+        // Biểu đồ theo 4 tuần trong tháng
         chartTitle = chartMode === 'services' ? 'Doanh thu dịch vụ tháng này' : (chartMode === 'products' ? 'Doanh số bán lẻ tháng này' : 'Xu hướng doanh thu tháng này');
         const weeksData = [
           { label: 'Tuần 1', short: 'T1', fullLabel: 'Tuần 1 (Ngày 01 - 07)', minDay: 1, maxDay: 7, serviceRevenue: 0, productRevenue: 0, revenue: 0 },
@@ -505,7 +505,7 @@
 
         peakPeriodLabel = maxWeekVal > 0 ? `Tuần cao điểm: ${peakWeekLabel}` : 'Tuần cao điểm: Chưa có giao dịch';
       } else {
-        // Biểu đồ 7 ngày gần nhất từ min7DayIso đến max7DayIso (100% doanh thu thật)
+        // Biểu đồ 7 ngày gần nhất
         chartTitle = chartMode === 'services' ? 'Doanh thu dịch vụ cắt tóc 7 ngày' : (chartMode === 'products' ? 'Doanh số bán lẻ mỹ phẩm 7 ngày' : 'Xu hướng doanh thu 7 ngày gần nhất');
 
         for (const b of allBookings) {
@@ -650,7 +650,7 @@
       };
       const currentPeriodName = periodLabelMap[timePeriod] || 'Kỳ này';
 
-      // Doanh thu hiển thị trên thẻ KPI: Đồng bộ 100% với kỳ đang chọn
+      // Doanh thu hiển thị trên thẻ KPI
       const displayTotalRev = periodTotalRev;
       const displayBookingRev = periodServiceRev;
       const displayProductRev = periodProductRev;
@@ -676,7 +676,7 @@
       const periodTotalBookingsCount = periodBookings.length || totalBookings;
       const periodCompletionRate = periodTotalBookingsCount > 0 ? Math.round((periodConfirmed / periodTotalBookingsCount) * 100) : 100;
 
-      // Tính AOV chuẩn xác theo ngành salon: Doanh thu kỳ chia cho tổng số lượt giao dịch thành công trong kỳ
+      // Tính giá trị trung bình đơn hàng (AOV)
       let periodOrdersCount = 0;
       if (timePeriod === 'today') {
         periodOrdersCount = allOrders.filter(o => isSameDate(o.orderDate || o.createdAt || o.NgayDat, targetDate) && !String(o.orderStatus || '').toLowerCase().includes('cancel')).length +

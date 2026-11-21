@@ -2,6 +2,7 @@ const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
 const { catIcons, brandPrefixes, detectBrand } = require('../../services/helper_service');
+const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
 function getProductGallery(img) {
   if (!img || typeof img !== 'string') return [];
@@ -254,6 +255,7 @@ async function handleProductRoutes(req, res, ctx) {
       details: `${actorName} (${actorRole}) thêm sản phẩm mới: ${name} (Mã: #${spId})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, product: { id: spId, MaSanPham: spId, name, price, status } }));
     return true;
@@ -302,6 +304,7 @@ async function handleProductRoutes(req, res, ctx) {
       details: `${actorName} (${actorRole}) cập nhật sản phẩm #${id} (${body.name || oldProd?.TenSanPham || ''})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -340,6 +343,7 @@ async function handleProductRoutes(req, res, ctx) {
         details: `${actorName} (${actorRole}) xóa sản phẩm #${id} (${oldProd?.TenSanPham || ''})`
       }).catch(() => {});
 
+      clearDbSnapshotCache();
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: true, message: 'Đã xóa sản phẩm khỏi bảng SanPham trong SQL.', id }));
       return true;

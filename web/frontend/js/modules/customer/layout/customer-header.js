@@ -217,7 +217,7 @@
                         `;
                       }
 
-                      // Đồng bộ và tối ưu hóa logic nhận diện chi nhánh đầy đủ cho Quản lý & Nhân sự
+                      // Xác định chi nhánh của nhân viên
                       const resolveStaffBranchName = (u) => {
                         if (!u) return 'Omni Salon Barber Q1 - Bến Thành';
                         const stfStylist = (window.store && typeof window.store.getStylistById === 'function')

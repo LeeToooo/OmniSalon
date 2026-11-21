@@ -399,7 +399,7 @@
             </div>
           </div>
 
-          <!-- Bảng Dữ Liệu Enterprise -->
+          <!-- Bảng danh sách lịch hẹn -->
           <div style="overflow-x: auto;">
             <table class="admin-enterprise-table">
               <thead>

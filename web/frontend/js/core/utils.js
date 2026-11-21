@@ -96,7 +96,7 @@
     },
 
     /**
-     * Chuẩn hóa hiển thị trạng thái lịch hẹn (DRY Pattern)
+     * Định dạng hiển thị trạng thái lịch hẹn
      */
     formatBookingStatus(status) {
       const s = String(status || '').toLowerCase().trim();

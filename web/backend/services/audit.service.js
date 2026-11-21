@@ -100,7 +100,7 @@ async function logAudit({
 
     return logEntry;
   } catch (err) {
-    // An toàn tuyệt đối: không để lỗi ghi log làm gián đoạn luồng nghiệp vụ
+    // Không để lỗi ghi log làm gián đoạn luồng chính
     console.error('[AUDIT_LOG_ERROR]', err.message);
     return null;
   }

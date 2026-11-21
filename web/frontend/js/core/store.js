@@ -645,7 +645,7 @@
         { id: 'DH10', orderCode: 'DH10', customerName: 'Trịnh Công Minh', customerPhone: '0988000020', branchId: 'CN20', orderDate: '2026-10-07 16:00:00', totalAmount: 862000, TongTien: 862000, orderStatus: 'Processing', shippingAddress: '52 Lý Thường Kiệt, TT.Hóc Môn, Hóc Môn', receiveMethod: 'Giao hàng tận nơi' }
       ];
 
-      // 10 Dịch Vụ Chuẩn từ CSDL QL_SALON.sql
+      // Danh mục 10 dịch vụ từ CSDL
       const services = [
         { id: 'DV01', MaDichVu: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', price: 130000, Gia: 130000, originalPrice: 130000, NgayApDung: '2026-10-17', duration: '45 phút', durationMinutes: 45, ThoiLuong: 45, description: 'Tư vấn dáng mặt, cắt fade hiện đại, cạo viền sắc nét và vuốt sáp/pomade cao cấp.', category: 'Cắt & Tạo Kiểu', rating: 4.95, reviewCount: 420, image: 'Men_Grooming_Products/DichVu_Men/DV1.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV1.jpg' },
         { id: 'DV02', MaDichVu: 'DV02', name: 'Cắt & Ép Side tóc nam (Down Perm Combo)', price: 250000, Gia: 250000, originalPrice: 250000, NgayApDung: '2026-01-01', duration: '60 phút', durationMinutes: 60, ThoiLuong: 60, description: 'Cắt form chuẩn kết hợp ép xẹp tóc mai và gáy bị vểnh chỉa, giữ nếp 1-2 tháng.', category: 'Cắt & Tạo Kiểu', rating: 4.98, reviewCount: 310, image: 'Men_Grooming_Products/DichVu_Men/DV2.jpg', HinhAnh: 'Men_Grooming_Products/DichVu_Men/DV2.jpg' },
@@ -778,7 +778,7 @@
         { id: 'SP125', name: 'Y.S. Park Dragon Air Vent Styler', brand: 'Y.S. Park', categoryId: 'DM09', price: 862000, originalPrice: 862000, costPrice: 663000, stock: 24, image: 'Men_Grooming_Products/09_Dung_Cu_Tao_Kieu_Nam/Luoc_Ban_Nguyet/Luoc_Ban_Nguyet_YS_Park_Dragon_Air_Vent_Styler.jpg', description: 'Lược sấy tạo kiểu thoáng khí đẳng cấp Nhật Bản.' }
       ];
 
-      // Khuyến Mãi Chuẩn từ CSDL QL_SALON.sql, KM01 - 10%
+      // Danh sách khuyến mãi từ CSDL
       const promotions = [
         { id: 'KM01', MaKhuyenMai: 'KM01', code: 'KM01', name: 'Chào Thu Rực Rỡ', TenKhuyenMai: 'Chào Thu Rực Rỡ', type: 'Giảm giá %', HinhThuc: 'Giảm giá %', discount: 10, GiaTriGiam: 10, target: 'Tất cả khách hàng', DoiTuongApDung: 'Tất cả khách hàng', startDate: '2026-09-01', NgayBatDau: '2026-09-01', endDate: '2026-12-31', NgayKetThuc: '2026-12-31', status: 'Đang áp dụng', TrangThai: 'Đang áp dụng', serviceIds: ['DV03', 'DV04'], productIds: ['SP01'] }
       ];
@@ -1143,7 +1143,7 @@
       return newBranch;
     }
 
-    updateBranch(branchId, updates) {
+    async updateBranch(branchId, updates) {
       const b = this.getBranchById(branchId);
       if (!b) return false;
       Object.assign(b, updates);
@@ -1168,8 +1168,9 @@
       this.logAudit('UPDATE_BRANCH', `Chi nhánh: ${branchId}`, 'Cập nhật thông tin chi nhánh');
       this.saveState();
       this.notify('BRANCHES_UPDATED', b);
-      this.syncBranchToLiveServer(b, true);
-      this.syncUpdateBranchToLiveServer(branchId, updates);
+      try {
+        await this.syncUpdateBranchToLiveServer(branchId, updates);
+      } catch (_) { }
       return b;
     }
 
@@ -1698,7 +1699,7 @@
       const startMin = this._timeToMinutes(timeSlot);
 
       // Kiểm tra thời gian thực, Real-time Past Check:
-      // Tuyệt đối không cho chọn giờ đã trôi qua trong ngày hôm nay hoặc các ngày trong quá khứ!
+      // Không cho chọn giờ trong quá khứ
       if (date < todayIso) {
         return false;
       }
@@ -1740,7 +1741,7 @@
       const isToday = (date === todayIso);
       const isPastDate = (date < todayIso);
 
-      // Tối ưu N+1: Trích xuất trước khoảng thời gian các ca đã đặt trong ngày 1 lần duy nhất
+      // Lấy danh sách khoảng thời gian các ca đã đặt trong ngày
       const dur = Number(durationMinutes || 45);
       const bookedIntervals = (this.state.bookings || [])
         .filter(b => (!stylistId || b.stylistId === stylistId) && b.date === date && String(b.status || '').toLowerCase() !== 'cancelled' && String(b.status || '').toLowerCase() !== 'no_show')
@@ -2279,10 +2280,17 @@
       return this.state.categories || [];
     }
 
+    isProductDiscontinued(p) {
+      if (!p) return false;
+      if (p.isDiscontinued) return true;
+      const s = String(p.status || p.TrangThaiKinhDoanh || '').trim().toLowerCase();
+      return s.includes('ngừng') || s.includes('tạm ngưng') || s.includes('dừng') || s === 'discontinued';
+    }
+
     getProducts(section = null, includeDiscontinued = false) {
       let list = this.state.products || [];
       if (!includeDiscontinued) {
-        list = list.filter(p => !p.isDeleted && p.status !== 'Ngừng kinh doanh' && p.TrangThaiKinhDoanh !== 'Ngừng kinh doanh');
+        list = list.filter(p => !p.isDeleted && !this.isProductDiscontinued(p));
       }
       if (!section || section === 'all') return list;
       if (section === 'new') return list.slice(0, 6);
@@ -2465,7 +2473,7 @@
       const prod = this.getProductById(productId);
       if (!prod) return;
 
-      if (prod.status === 'Ngừng kinh doanh' || prod.TrangThaiKinhDoanh === 'Ngừng kinh doanh') {
+      if (this.isProductDiscontinued(prod)) {
         if (typeof window.UICommon !== 'undefined' && typeof window.UICommon.showToast === 'function') {
           window.UICommon.showToast('Sản phẩm đã ngừng kinh doanh, không thể thêm vào giỏ hàng!', 'warning');
         }

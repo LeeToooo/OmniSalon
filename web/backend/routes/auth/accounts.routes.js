@@ -17,6 +17,12 @@ let _dbSnapshotCachedAt = 0;
 let _dbSnapshotPendingPromise = null;
 const DB_CACHE_TTL_MS = 5000;
 
+function clearDbSnapshotCache() {
+  _dbSnapshotCache = null;
+  _dbSnapshotCachedAt = 0;
+  _dbSnapshotPendingPromise = null;
+}
+
 async function getCachedSqlDatabase() {
   const now = Date.now();
   if (_dbSnapshotCache && (now - _dbSnapshotCachedAt < DB_CACHE_TTL_MS)) {
@@ -370,5 +376,6 @@ async function handleAccountsRoutes(req, res, ctx) {
 
 module.exports = handleAccountsRoutes;
 module.exports.handleAccountsRoutes = handleAccountsRoutes;
+module.exports.clearDbSnapshotCache = clearDbSnapshotCache;
 module.exports.default = handleAccountsRoutes;
 

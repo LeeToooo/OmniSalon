@@ -1,18 +1,4 @@
-/**
- * =========================================================================
- * OmniSalon — DUAL-MODE AI HAIR VISION ENGINE (CANVAS AR + CLOUD GENERATIVE AI)
- * 1. Chế độ Mặc định (Canvas AR Face Fitting):
- *    - Phân tích khuôn mặt thật từ ảnh người dùng tải lên (RGB / YCbCr skin tone segmentation).
- *    - Xác định tỷ lệ ngũ quan, chân mày, vòm trán và đỉnh đầu.
- *    - Dựng và ghép phom tóc 3D nhiều lớp (Layer, Pompadour, Mullet, Side Part) chuẩn góc mặt.
- *    - Hòa sắc màu nhuộm thời thượng (Đen tự nhiên, Nâu lạnh, Xám khói titan, Vàng cát trầm).
- *    - Tạo độ sâu chân tóc (Ambient Occlusion Root Shadow) và ánh sáng highlight sợi tóc.
- *    - Xuất ảnh độ phân giải cao trực tiếp từ Canvas của chính người dùng.
- * 2. Chế độ Nâng cao (Cloud Generative AI):
- *    - Cho phép nhập API Key (Hugging Face / Replicate / OpenAI) để sinh ảnh bằng mô hình GPU đám mây.
- *    - Tự động fallback về Canvas AR khi chưa có Key hoặc khi mạng gián đoạn.
- * =========================================================================
- */
+// Engine thử kiểu tóc trực quan trên trình duyệt (Canvas AR)
 
 (function (window) {
   'use strict';
@@ -20,7 +6,7 @@
   const STORAGE_KEY_CLOUD_CONFIG = 'omni_ai_cloud_config';
 
   const AiHairEngine = {
-    // Cấu hình 6 phom tóc chuẩn Salon
+    // Danh sách kiểu tóc
     hairstyles: {
       'layer-korean': {
         name: 'Layer Texture Tự Nhiên',
@@ -78,7 +64,7 @@
       }
     },
 
-    // Bảng 6 màu nhuộm chuẩn Salon
+    // Bảng màu nhuộm
     hairColors: {
       'natural-black': {
         name: 'Đen Tự Nhiên',
@@ -225,7 +211,7 @@
       };
     },
 
-    // PHÂN TÍCH NGŨ QUAN THẬT
+    // Phân tích khuôn mặt qua API
     async analyzeFace(sourceImageOrUrl) {
       try {
         const srcStr = typeof sourceImageOrUrl === 'string' ? sourceImageOrUrl : (sourceImageOrUrl?.src || '');
@@ -247,10 +233,7 @@
       return null;
     },
 
-    // CÂN BẰNG KHUÔN MẶT CHUẨN GEMINI AI, FACIAL FEATURE BALANCING
-    // - Tự động cân bằng ánh sáng 2 bên mặt, triệt tiêu bóng đổ lệch
-    // - Làm mịn da tự nhiên chuẩn studio portrait, giữ mắt, mũi, môi sắc nét 100%
-    // - Nâng sáng vùng chữ T và gò má, Radiant Facial Symmetry
+    // Cân bằng ánh sáng và làm mịn da trên canvas
     applyGeminiFaceBalancing(ctx, width, height, geo, options = {}) {
       const { balanceLighting = true, smoothSkin = true } = options;
       const { centerX, foreheadY, faceWidth, faceHeight } = geo;
@@ -261,7 +244,7 @@
       if (balanceLighting) {
         ctx.save();
         ctx.globalCompositeOperation = 'soft-light';
-        // Gradient bù sáng từ trái sang phải để triệt tiêu bóng tối lệch bên
+        // Gradient bù sáng 2 bên mặt
         const lightGrad = ctx.createLinearGradient(
           centerX - faceWidth * 0.6, foreheadY,
           centerX + faceWidth * 0.6, foreheadY
@@ -429,7 +412,7 @@
       hCtx.fillRect(0, hh - fH, hw, fH);
       hCtx.restore();
 
-      // Căn chỉnh tóc chuẩn xác 100% với tỉ lệ đầu và góc trán của khách
+      // Tọa độ vẽ kiểu tóc theo tỉ lệ khuôn mặt
       const targetHairWidth = faceWidth * 1.08;
       const targetHairHeight = targetHairWidth * (hh / hw);
 

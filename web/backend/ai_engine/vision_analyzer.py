@@ -377,11 +377,7 @@ def auto_crop_portrait(img, detector=None, target_w=600, target_h=800):
 
 def remove_background_and_old_hair(cropped_img, detector=None, segmenter=None, background_mode='studio'):
     """
-    Tự động tách phông nền sạch sẽ và xóa sạch tóc cũ (Reconstruct bald scalp base):
-    - Thay thế phông nền bằng nền studio sang trọng chuẩn salon với ánh sáng spotlight dịu nhẹ (hoặc trong suốt).
-    - Tẩy sạch tóc cũ bay ngoài nền trời/tường.
-    - Tạo vòm sọ tự nhiên (Cranium Dome), phủ màu da thật từ trán của khách hàng lên vòm sọ, triệt tiêu hoàn toàn tóc cũ.
-    - Bảo toàn 100% ngũ quan, mắt, mũi, miệng, chân mày, râu quai nón, tai, cổ và trang phục.
+    Tách nền và xử lý vùng tóc cũ trên ảnh chân dung.
     """
     if cropped_img is None:
         return None, None, None
@@ -697,9 +693,7 @@ def piecewise_delaunay_warp(style_img, style_alpha, pts_s, pts_c, w_c, h_c):
 
 def synthesize_forehead_shadow(hair_alpha, face_conf_c, lm_c, w_c, h_c):
     """
-    Tạo bóng đổ chân tóc (Forehead Contact Shadow Synthesis):
-    Mô phỏng ánh sáng đèn trần chiếu từ trên xuống, bóng đổ nhẹ 2-4px xuống dưới trán,
-    tạo chiều sâu tự nhiên mà không bị đốm đen loang lổ.
+    Tạo bóng đổ nhẹ ở chân tóc tiếp giáp phần trán.
     """
     hair_thresh = (hair_alpha > 0.40).astype(np.uint8) * 255
     # Dịch chuyển bóng nhẹ xuống dưới theo hướng trọng lực / đèn trần
@@ -720,9 +714,7 @@ def synthesize_forehead_shadow(hair_alpha, face_conf_c, lm_c, w_c, h_c):
 
 def inpaint_old_hair_region(img_cust, hair_conf_c, face_conf_c, bg_conf_c, lm_c, w_c, h_c, inpaint_radius=7):
     """
-    BƯỚC 2: TẨY PHOM TÓC CŨ (INPAINTING & BALD SCALP RECONSTRUCTION)
-    Tẩy sạch các mảng tóc cũ dày/xù/dài, tái tạo vòm sọ tự nhiên (Clean Canvas)
-    để tóc mới ôm khít hoàn hảo mà không bị sợi tóc cũ đâm xuyên ra ngoài.
+    Xóa vùng tóc cũ để chuẩn bị ghép tóc mới.
     """
     ear_l_y = lm_c[234].y * h_c
     ear_r_y = lm_c[454].y * h_c
@@ -832,14 +824,7 @@ def reinhard_color_adaptation(warped_style, warped_alpha, img_cust, hair_conf_c,
 
 def restyle_portrait(image_source, hairstyle_id='layer-korean', color_hex='#141413', balance_lighting=True, smooth_skin=True, auto_preprocess=True):
     """
-    ĐỘNG CƠ THỬ KIỂU TÓC THẬT BẢO TOÀN 100% KHUÔN MẶT ĐỈNH CAO:
-    1. Tự động cắt góc chân dung chuẩn Salon (Auto-Crop 3:4 Headroom Ratio)
-    2. Tự động xóa background sạch sẽ (Studio Luxury Backdrop)
-    3. Tự động xóa sạch tóc cũ (Scalp Dome Reconstruction) để ghép tóc hoàn hảo 0% đè tóc cũ
-    4. Piecewise Delaunay 3D Skull Warping (Uốn phom sọ đầu đa điểm)
-    5. Forehead Contact Shadow Synthesis (Tự sinh bóng đổ chân tóc tự nhiên)
-    6. Guided Filter Sub-Pixel Strand Feathering (Tách sợi tóc tơ viền mái)
-    7. Reinhard LAB Color & Lighting Adaptation (Khớp ánh sáng phòng)
+    Thực hiện ghép kiểu tóc mới vào ảnh chân dung dựa trên các điểm mốc khuôn mặt.
     """
     img_cust = decode_image(image_source)
     if img_cust is None:
@@ -898,7 +883,7 @@ def restyle_portrait(image_source, hairstyle_id='layer-korean', color_hex='#1414
     pts_c = get_skull_anchors(lm_c, w_c, h_c)
     warped_style, warped_alpha = piecewise_delaunay_warp(style_img, style_hair_alpha, pts_s, pts_c, w_c, h_c)
 
-    # 2. Bảo vệ tuyệt đối 100% Chân mày và Mắt của khách hàng
+    # 2. Giữ nguyên vùng chân mày và mắt của khách hàng
     eyebrow_pts_l = np.array([[lm_c[idx].x * w_c, lm_c[idx].y * h_c] for idx in [70, 63, 105, 66, 107, 55, 65, 52, 53, 46, 124, 35, 111, 117]], dtype=np.int32)
     eyebrow_pts_r = np.array([[lm_c[idx].x * w_c, lm_c[idx].y * h_c] for idx in [300, 293, 334, 296, 336, 285, 295, 282, 283, 276, 353, 265, 340, 346]], dtype=np.int32)
     eyes_mask = np.zeros((h_c, w_c), dtype=np.uint8)
@@ -907,7 +892,7 @@ def restyle_portrait(image_source, hairstyle_id='layer-korean', color_hex='#1414
     eyes_protect = cv2.GaussianBlur(eyes_mask, (15, 15), 0).astype(np.float32) / 255.0
     warped_alpha = warped_alpha * (1.0 - eyes_protect)
 
-    # 3. Bảo toàn 100% da mặt dưới (Mắt, mũi, miệng, cằm, má - Tuyệt đối không để tóc đè lên da mặt)
+    # 3. Giữ nguyên vùng da mặt (mắt, mũi, miệng, cằm, má)
     eyebrow_min_y = int(min(lm_c[70].y, lm_c[300].y) * h_c)
     lower_face_protect = (face_conf_c > 0.22).astype(np.float32)
     fringe_styles = ['french-crop', 'layer-korean']

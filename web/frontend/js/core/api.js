@@ -572,7 +572,7 @@
         console.warn('[SalonApi] Backend /api/ai/restyle-hair note:', backendErr.message);
       }
 
-      // Nhận kết quả ảnh thật 100% từ backend AI Vision
+      // Nhận kết quả ảnh từ backend
       const finalImage = (backendRes && backendRes.resultImageUrl) ? backendRes.resultImageUrl : null;
 
       if (!finalImage) {

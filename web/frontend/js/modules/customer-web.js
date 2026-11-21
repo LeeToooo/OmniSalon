@@ -109,10 +109,10 @@
     }
   };
 
-  // Exposure & tương thích hoàn hảo với hệ thống hiện hữu
+  // Gắn CustomerWeb vào window
   window.CustomerWeb = Object.assign(window.CustomerWeb || {}, CustomerWeb);
 
-    // Cầu nối thông minh: Nếu UIWeb đã tồn tại, đồng bộ hóa các hàm gọi từ UIWeb sang CustomerWeb
+    // Đồng bộ các hàm sang UIWeb nếu có
     if(typeof window.UIWeb !== 'undefined') {
       window.UIWeb.customer = CustomerWeb;
   window.UIWeb.openCustomerPortalModal = CustomerWeb.openCustomerPortalModal.bind(CustomerWeb);

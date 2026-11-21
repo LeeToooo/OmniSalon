@@ -106,7 +106,12 @@
       const allStoreProducts = (window.store && typeof window.store.getProducts === 'function') ? window.store.getProducts() : [];
       const validProducts = (allStoreProducts || []).filter(function(p) {
         if (p.isExpired || p.SoNgayConLai <= 0) return false;
-        if (p.status === 'Ngừng kinh doanh' || p.TrangThaiKinhDoanh === 'Ngừng kinh doanh') return false;
+        if (window.store && typeof window.store.isProductDiscontinued === 'function') {
+          if (window.store.isProductDiscontinued(p)) return false;
+        } else {
+          const s = String(p.status || p.TrangThaiKinhDoanh || '').toLowerCase();
+          if (s.includes('ngừng') || s.includes('tạm ngưng') || s.includes('dừng')) return false;
+        }
         return true;
       });
       const displayProducts = HomePage.getDiverseFeaturedProducts(validProducts, 14);

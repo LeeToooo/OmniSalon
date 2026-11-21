@@ -1,6 +1,7 @@
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
+const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
 function getUserRoleInfo(authUser) {
   if (!authUser) return { isSuper: false, isManager: false, isStaff: false, branchId: null, staffId: null };
@@ -102,6 +103,7 @@ async function handleInventoryRoutes(req, res, ctx) {
       details: `${actorName} điều chỉnh tồn kho sản phẩm #${prodId} tại chi nhánh ${bId} thành ${stock}`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, productId: prodId, newStock: stock }));
     return true;

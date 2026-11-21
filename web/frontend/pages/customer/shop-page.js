@@ -371,7 +371,12 @@
       return all.filter(p => {
         if (p.isExpired === true) return false;
         if (p.daysRemaining !== undefined && p.daysRemaining <= 0) return false;
-        if (p.status === 'Ngừng kinh doanh' || p.TrangThaiKinhDoanh === 'Ngừng kinh doanh') return false;
+        if (window.store && typeof window.store.isProductDiscontinued === 'function') {
+          if (window.store.isProductDiscontinued(p)) return false;
+        } else {
+          const s = String(p.status || p.TrangThaiKinhDoanh || '').toLowerCase();
+          if (s.includes('ngừng') || s.includes('tạm ngưng') || s.includes('dừng')) return false;
+        }
         return true;
       });
     },
@@ -383,7 +388,12 @@
       const list = allProducts.filter(p => {
         if (p.isExpired === true) return false;
         if (p.daysRemaining !== undefined && p.daysRemaining <= 0) return false;
-        if (p.status === 'Ngừng kinh doanh' || p.TrangThaiKinhDoanh === 'Ngừng kinh doanh') return false;
+        if (window.store && typeof window.store.isProductDiscontinued === 'function') {
+          if (window.store.isProductDiscontinued(p)) return false;
+        } else {
+          const s = String(p.status || p.TrangThaiKinhDoanh || '').toLowerCase();
+          if (s.includes('ngừng') || s.includes('tạm ngưng') || s.includes('dừng')) return false;
+        }
         const sold = Number(p.soLuongDaBan || p.soldCount || 0);
         if (sold > 0) return true;
         const disc = Number(p.discountPercent || p.PhanTramGiam || 0);
@@ -706,7 +716,12 @@
       let filtered = allProducts.filter(p => {
         if (p.isExpired === true) return false;
         if (p.daysRemaining !== undefined && p.daysRemaining <= 0) return false;
-        if (p.status === 'Ngừng kinh doanh' || p.TrangThaiKinhDoanh === 'Ngừng kinh doanh') return false;
+        if (window.store && typeof window.store.isProductDiscontinued === 'function') {
+          if (window.store.isProductDiscontinued(p)) return false;
+        } else {
+          const s = String(p.status || p.TrangThaiKinhDoanh || '').toLowerCase();
+          if (s.includes('ngừng') || s.includes('tạm ngưng') || s.includes('dừng')) return false;
+        }
         return true;
       });
 
@@ -993,7 +1008,7 @@
       this._currentReviews = null;
       setTimeout(() => this.fetchProductReviews(targetId, prod), 10);
 
-      // Trích xuất thông số từ mô tả sản phẩm trong CSDL chuẩn
+      // Lấy thông số từ mô tả sản phẩm
       const rawDesc = prod.MoTa || prod.description || '';
       let detailsList = [];
       if (rawDesc.includes(';')) {
@@ -1009,7 +1024,7 @@
         ];
       }
 
-      // Phân tích Dung Tích / Quy Cách chuẩn xác theo thuộc tính thực tế
+      // Xác định dung tích hoặc quy cách
       const pName = prod.name || prod.TenSanPham || '';
       const pDesc = prod.description || prod.MoTa || '';
       const cat = prod.category || prod.TenDanhMuc || '';
@@ -1073,10 +1088,10 @@
       }
 
       this.selectedVariant = (variants && variants.length > 0) ? variants[0] : '';
-      // Gợi ý thông minh: Sản phẩm cùng loại (sáp, pomade...) và cùng thương hiệu
+      // Gợi ý sản phẩm liên quan
       const relatedProducts = this.getRelatedProducts(prod, allProducts, 8);
 
-      // Xác định Danh mục chuẩn xác theo bộ lọc của Shop
+      // Lấy danh mục sản phẩm
       let categories = (window.store && typeof window.store.getCategories === 'function')
         ? window.store.getCategories()
         : [];
@@ -1090,7 +1105,7 @@
         ? (matchCat.TenDanhMuc || matchCat.name || '').split(' - ')[0]
         : (prod.TenDanhMuc || prod.category || 'Sáp Vuốt Tóc & Tạo Kiểu');
 
-      // Nhận diện thương hiệu chuẩn xác từ tên sản phẩm thay vì hardcode
+      // Nhận diện thương hiệu từ tên sản phẩm
       const knownBrands = [
         'Hanz de Fuko', 'Apestomen', 'Blumaan', 'Kevin Murphy', 'Reuzel',
         'Davines', 'By Vilain', 'Uppercut Deluxe',

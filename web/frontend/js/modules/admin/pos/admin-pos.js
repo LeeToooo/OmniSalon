@@ -46,10 +46,10 @@
         pos.selectedStylistId = branchStylists[0]?.id || (stylists[0]?.id || '');
       }
 
-      // Danh mục picker bên trái với chuẩn hóa tiếng Việt diacritic-insensitive
+      // Lấy danh sách dịch vụ và sản phẩm theo bộ lọc
       const allOfferings = this._getPosOfferings(pos.activeCategory || 'all', pos.searchQuery || '');
 
-      // DRY: Tính toán hóa đơn tập trung qua _calculatePosSummary
+      // Tính toán tổng tiền hóa đơn
       const summary = this._calculatePosSummary(pos);
       pos.discountAmount = summary.discountAmount;
 
@@ -136,10 +136,10 @@
 
             <!-- Chi tiết bill -->
             <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-              <span>Danh Sách Dịch Vụ & Sản Phẩm Trong Bill:</span>
+              <span>Danh Sách Dịch Vụ &amp; Sản Phẩm Trong Bill (${pos.billServices.length + pos.billProducts.length}):</span>
               <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700;">${pos.billServices.length + pos.billProducts.length} mục</span>
             </div>
-            <div class="pos-bill-list">
+            <div class="pos-bill-list" style="min-height: 220px; max-height: 380px; overflow-y: auto; padding: 10px; margin-bottom: 14px;">
               ${pos.billServices.length === 0 && pos.billProducts.length === 0 ? `
                 <div style="text-align: center; padding: 32px 16px; color: var(--text-secondary); font-size: 12.5px; line-height: 1.6;">
                   <div style="font-size: 24px; margin-bottom: 6px; opacity: 0.6;">🧾</div>

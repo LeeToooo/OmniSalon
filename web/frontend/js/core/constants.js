@@ -1,14 +1,9 @@
-/**
- * =========================================================================
- * Omni Salon — CORE CONSTANTS & DESIGN TOKENS (ANTI-AI CLEAN ARCHITECTURE)
- * Anti-Glare Palette, Strict Lucide Iconography, District Filters & UI Specs
- * =========================================================================
- */
+// Bảng màu và hằng số giao diện chung
 
 (function (window) {
   'use strict';
 
-  // Anti-Glare & Anti-AI Palette Tokens
+  // Bảng màu giao diện tối ưu chống lóa
   const THEME_TOKENS = Object.freeze({
     bg: '#0A0A0B',              // bg-zinc-950 (Không chói, đen tuyền dịu mắt)
     card: '#121214',            // bg-zinc-900/90

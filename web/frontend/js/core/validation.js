@@ -1,10 +1,4 @@
-/**
- * =========================================================================
- * 4RAU BARBERSHOP / OMNISALON — DATA VALIDATION & RUNTIME SCHEMA ENGINE
- * Tuân thủ: Clean Architecture, Separation of Concerns & Edge Case Defense
- * Thay thế giả định Happy Path bằng kiểm tra Schema runtime chặt chẽ (Zero Blind Casting)
- * =========================================================================
- */
+// Tiện ích kiểm tra dữ liệu đầu vào
 
 (function (window) {
   'use strict';

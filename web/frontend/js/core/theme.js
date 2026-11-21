@@ -1,11 +1,4 @@
-/**
- * =========================================================================
- * Omni Salon | THEME ENGINE (DARK / LIGHT MODE CONTROLLER)
- * Quản lý tập trung 2 chế độ:
- *  - 'dark': Charcoal Gold (#141413 / #1C1C1A / #C59B27)
- *  - 'light': Warm Cream (#FAF8F5 / #FFFFFF / #C59B27)
- * =========================================================================
- */
+// Quản lý giao diện sáng / tối (Dark / Light mode)
 (function() {
   'use strict';
 

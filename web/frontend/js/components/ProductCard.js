@@ -55,7 +55,7 @@
         }
       });
 
-      // Toast thông báo ngắn gọn tinh tế
+      // Hiển thị thông báo
       if (typeof window.UICommon !== 'undefined' && typeof window.UICommon.showToast === 'function') {
         window.UICommon.showToast(!isExist ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi yêu thích', 'info');
       }

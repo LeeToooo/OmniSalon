@@ -325,7 +325,7 @@ const HAIR_COLORS = {
   }
 };
 
-// Chạy Python Computer Vision chuẩn 100%
+// Gọi script Python phân tích ảnh
 function runPythonVisionAnalyzer(imageInput) {
   try {
     const pythonPaths = [
@@ -358,7 +358,7 @@ function runPythonVisionAnalyzer(imageInput) {
   return null;
 }
 
-// Chạy Python Computer Vision Restyle
+// Gọi script Python ghép kiểu tóc
 function runPythonVisionRestyle(options) {
   try {
     const pythonPaths = [
@@ -682,7 +682,7 @@ async function analyzeFaceGeometry(imageBase64OrUrl) {
 
 // Tạo ảnh kiểu tóc mẫu phù hợp với khuôn mặt
 
-// Tải và chuẩn hóa ảnh thành Data URI Base64 đảm bảo an toàn 100% chống lỗi CORS / Taint
+// Chuyển ảnh sang định dạng Base64
 async function fetchImageAsDataUri(imageBase64OrUrl) {
   if (!imageBase64OrUrl) return '';
   if (imageBase64OrUrl.startsWith('data:image/')) return imageBase64OrUrl;
@@ -932,8 +932,7 @@ Output ONLY the prompt in one single sentence, no commentary, no markdown.`
       console.warn('[Gemini 2.5 Flash Vision Analysis Note]:', vErr.message);
     }
 
-    // Bảo toàn 100% khuôn mặt khách hàng, chỉ đổi kiểu tóc
-    // Không sinh ảnh người lạ thay thế khuôn mặt của khách
+    // Giữ nguyên khuôn mặt, chỉ thay đổi kiểu tóc
   } catch (err) {
     console.warn('[Google Gemini Restyle Failed]:', err.message);
   }
@@ -955,8 +954,7 @@ async function generateAiHairRestyle(options) {
   const color = HAIR_COLORS[colorId] || HAIR_COLORS['natural-black'];
   const colorHex = options.colorHex || options.hairColorHex || color.hex || '#141413';
 
-  // Chạy Động cơ Real AI Vision Restyle
-  // Bảo toàn 100% ngũ quan, lỗ chân lông, ánh mắt, cổ áo và nền gốc của khách hàng
+  // Ghép kiểu tóc mới vào khuôn mặt gốc
   let pyRestyle = null;
   if (imageBase64OrUrl) {
     pyRestyle = runPythonVisionRestyle({
@@ -1003,7 +1001,7 @@ async function generateAiHairRestyle(options) {
     };
   }
 
-  // Nếu không nhận diện được khuôn mặt, trả về thông báo lỗi rõ ràng, không bao giờ trả ảnh hoạt hình vector
+  // Trả về thông báo lỗi nếu không tìm thấy khuôn mặt
   const errMsg = (pyRestyle && pyRestyle.error) ? pyRestyle.error : 'Không thể phát hiện khuôn mặt rõ nét trong ảnh chân dung của khách hàng. Vui lòng chụp góc thẳng sáng rõ.';
   let faceAnalysis = null;
   try {
