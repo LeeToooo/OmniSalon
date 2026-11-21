@@ -126,8 +126,6 @@ Hệ thống giải quyết triệt để bài toán đồng bộ dữ liệu gi
 
 ```plaintext
 OmniSalon/
-├── .agents/                 # Cấu hình kỹ năng AI Agents (Caveman, Ponytail...)
-├── .antigravity/            # Quy chuẩn kiến trúc & quy tắc kiểm thử
 ├── docs/                    # Tài liệu kỹ thuật, báo cáo bảo mật & phân tích kiến trúc
 │   ├── analysis.md          # Phân rã nghiệp vụ và thiết kế hệ thống
 │   ├── audit_report.md      # Báo cáo kiểm định chất lượng và benchmark UI
@@ -166,7 +164,6 @@ OmniSalon/
 │       └── manifest.json    # Cấu hình PWA (Progressive Web App)
 ├── mobile/                  # Native Mobile App (Dự án Flutter phát triển riêng)
 ├── Men_Grooming_Products/   # Kho tài nguyên ảnh sản phẩm & dịch vụ tóc
-├── AGENTS.md                # Quy định vai trò các Agent trong hệ thống
 ├── start_web.bat         # File thực thi 1-Click khởi chạy tự động toàn hệ thống
 └── README.md                # Tài liệu hướng dẫn sử dụng chi tiết (tệp này)
 ```
