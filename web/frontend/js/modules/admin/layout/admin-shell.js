@@ -32,11 +32,22 @@
       if (window.store && typeof window.store.subscribe === 'function' && !this._isLiveSyncSubscribed) {
         this._isLiveSyncSubscribed = true;
         window.store.subscribe((state, event) => {
-          // Bỏ qua LIVE_SERVER_SYNC định kỳ để chống giật re-render làm gián đoạn cuộn trang Admin
-          if (event === 'ORDER_STATUS_UPDATED' || event === 'BOOKING_UPDATED' || event === 'ADMIN_FORCE_RENDER') {
-            const el = document.getElementById('webMainContainer');
-            if (el && document.body.classList.contains('admin-mode')) {
-              // Lưu vị trí cuộn trang hiện tại của admin viewport
+          const el = document.getElementById('webMainContainer');
+          if (!el || !document.body.classList.contains('admin-mode')) return;
+
+          // Các sự kiện nghiệp vụ trực tiếp
+          const isCoreUpdate = event === 'ORDER_STATUS_UPDATED' || event === 'BOOKING_UPDATED' || event === 'ADMIN_FORCE_RENDER';
+          // Các sự kiện đồng bộ snapshot CSDL SQL Server từ backend Live Server
+          const isServerSync = event === 'LIVE_SERVER_SYNC' || event === 'PRODUCTS_UPDATED' || event === 'BRANCHES_UPDATED' || event === 'STORE_RESET';
+
+          if (isCoreUpdate || isServerSync) {
+            // Kiểm tra an toàn: nếu người dùng đang nhập liệu trên form / modal ở các tab khác thì tránh ngắt quãng
+            const isTyping = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+            const hasActiveModal = Boolean(document.querySelector('.admin-modal:not(.hidden):not([style*="display: none"])'));
+            const isOverviewTab = !this.adminSubTab || this.adminSubTab === 'overview';
+
+            // Phân hệ Báo cáo toàn chuỗi (overview) hoặc khi không đang nhập liệu -> Re-render đồng bộ ngay lập tức
+            if (isCoreUpdate || isOverviewTab || (!isTyping && !hasActiveModal)) {
               const viewport = document.querySelector('.admin-main-viewport');
               const prevScrollTop = viewport ? viewport.scrollTop : 0;
 

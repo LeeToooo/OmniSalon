@@ -123,8 +123,15 @@
     // Sub-tab 1: Tổng Quan Doanh Thu & Kpis
     renderOverviewTab(user, branches, stylists, products, bookings = null, branchMap = null) {
       const bMap = branchMap || new Map(branches.map(b => [b.id, b]));
-      const allBookings = bookings || ((window.store && window.store.getBookings) ? window.store.getBookings() : []);
       const branchId = (this.isBranchManager(user) && user.branchId && user.branchId !== 'ALL') ? user.branchId : (this.filterBranch !== 'all' ? this.filterBranch : null);
+      
+      const rawBookings = bookings || ((window.store && window.store.getBookings) ? window.store.getBookings(branchId) : []);
+      const allBookings = (branchId && branchId !== 'all')
+        ? rawBookings.filter(b => {
+            const bId = b.branchId || b.MaChiNhanh || (b.branch && (b.branch.id || b.branch.MaChiNhanh));
+            return bId === branchId;
+          })
+        : rawBookings;
       
       const allOrders = (window.store && window.store.state && Array.isArray(window.store.state.orders))
         ? (branchId && branchId !== 'all' ? window.store.state.orders.filter(o => o.branchId === branchId || o.MaChiNhanh === branchId) : window.store.state.orders)
@@ -673,8 +680,12 @@
         const s = String(b.status || b.TrangThai || '').toLowerCase();
         return s === 'cancelled' || s === 'đã hủy';
       }).length;
-      const periodTotalBookingsCount = periodBookings.length || totalBookings;
-      const periodCompletionRate = periodTotalBookingsCount > 0 ? Math.round((periodConfirmed / periodTotalBookingsCount) * 100) : 100;
+      const periodWaitingCount = periodBookings.filter(b => {
+        const s = String(b.status || b.TrangThai || '').toLowerCase();
+        return s === 'waiting' || s === 'chờ vào ghế' || s === 'pending' || s === 'chờ phục vụ' || s === 'chờ tiếp nhận';
+      }).length;
+      const periodTotalBookingsCount = periodBookings.length;
+      const periodCompletionRate = periodTotalBookingsCount > 0 ? Math.round((periodConfirmed / periodTotalBookingsCount) * 100) : 0;
 
       // Tính giá trị trung bình đơn hàng (AOV)
       let periodOrdersCount = 0;
@@ -869,7 +880,7 @@
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
               <span>${periodConfirmed} thành công • ${periodCancelled} hủy</span>
-              <span>Chờ tiếp nhận: <strong style="color: #F59E0B;">${waitingCount} khách</strong></span>
+              <span>Chờ tiếp nhận: <strong style="color: #F59E0B;">${periodWaitingCount} khách</strong></span>
             </div>
           </div>
 

@@ -259,7 +259,7 @@
                             <div style="width: 44px; height: 44px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); flex-shrink: 0; background: #111; display: flex; align-items: center; justify-content: center;">
                               <img src="${pImg}" alt="${this.escapeHtml(pName)}"
                                    style="width: 100%; height: 100%; object-fit: contain; padding: 2px;"
-                                   onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=120&q=80');">
+                                   onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
                             </div>
                             <div>
                               <div style="font-weight: 800; color: var(--text-primary); font-size: 13.5px; line-height: 1.3;">${this.escapeHtml(pName)}</div>
@@ -869,9 +869,10 @@
       const currentStock = productId ? this.getProductStockForCurrentBranch(productId) : 25;
       const stockVal = currentStock;
       const rawImg = product?.image || product?.HinhAnh || '';
+      const defaultProdImg = '01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
       const displayImg = typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatImageUrl === 'function'
-        ? SalonUtils.formatImageUrl(rawImg)
-        : (rawImg || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');
+        ? SalonUtils.formatImageUrl(rawImg || defaultProdImg)
+        : (rawImg || '/DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');
 
       let stockBadgeHtml = '';
       if (stockVal > 5) {
@@ -908,7 +909,7 @@
                 <div class="product-modal-img-wrapper">
                   <img id="modalPreviewImg" src="${displayImg}" 
                        alt="${this.escapeHtml(product?.name || 'Ảnh sản phẩm')}" 
-                       onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');">
+                       onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
                 </div>
 
                 <div id="modalStockStatusBox" style="width: 100%; margin-bottom: 12px;">
@@ -1426,11 +1427,11 @@
     // Form chỉnh sửa sản phẩm bên dưới
     _renderProductBottomEditor() {
       const productPresets = [
-        'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1512290900672-1f5bebb1d5f7?auto=format&fit=crop&w=400&q=80'
+        '01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg',
+        '01_Sap_Vuot_Toc_Clay_Wax/Blumaan/Blumaan_Cavalier_Heavy_Clay.jpg',
+        '02_Pomade_Co_Dien_Va_Hien_Dai/Reuzel/Reuzel_Blue_Pomade.jpg',
+        '03_Xit_Tao_Phong_Pre_Styling/Bona_Fide/Bona_Fide_Texture_Spray.jpg',
+        '04_Gom_Xit_Giu_Nep_Toc_Nam/Kevin_Murphy/Kevin_Murphy_Session_Spray.jpg'
       ];
 
       return `
@@ -1616,9 +1617,9 @@
                 <!-- Product Card Preview chuẩn 1:1 giao diện sản phẩm shop -->
                 <div class="product-preview-card" style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--surface-card, #181816); width: 100%; max-width: 380px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);">
                   <div style="position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 240px; background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                    <img id="previewProdImg" src="${productPresets[0]}" alt="Xem trước sản phẩm"
+                    <img id="previewProdImg" src="${SalonUtils.formatImageUrl(productPresets[0])}" alt="Xem trước sản phẩm"
                          style="width: 100%; height: 100%; object-fit: contain; padding: 12px; transition: transform 0.2s ease;"
-                         onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');">
+                         onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
                     <span id="previewProdStockBadge" style="position: absolute; top: 10px; left: 10px; background: rgba(16, 185, 129, 0.9); color: #fff; font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 9999px; letter-spacing: 0.03em;">
                       ✓ Còn hàng (25)
                     </span>
@@ -1756,7 +1757,7 @@
       const btnSubmitText = document.getElementById('btnSubmitProductBottomText');
       if (btnSubmitText) btnSubmitText.textContent = 'Lưu Sản Phẩm Mới';
       const imgEl = document.getElementById('prodEditorImage');
-      if (imgEl) imgEl.value = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80';
+      if (imgEl) imgEl.value = '01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
       const brandEl = document.getElementById('prodEditorBrand');
       if (brandEl) brandEl.value = 'CHÍNH HÃNG';
       const stockEl = document.getElementById('prodEditorStock');
@@ -1795,9 +1796,9 @@
       const previewImg = document.getElementById('previewProdImg');
       if (previewImg) {
         const formattedUrl = typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatImageUrl === 'function'
-          ? SalonUtils.formatImageUrl(rawImg)
-          : rawImg;
-        previewImg.src = formattedUrl || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80';
+          ? SalonUtils.formatImageUrl(rawImg || '01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg')
+          : (rawImg || '/DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');
+        previewImg.src = formattedUrl;
       }
 
       const previewStockBadge = document.getElementById('previewProdStockBadge');

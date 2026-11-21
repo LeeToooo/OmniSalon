@@ -426,7 +426,7 @@
           <div>
             <img src="${SalonUtils.formatImageUrl(item.image || item.HinhAnh)}" 
                  class="pos-item-card-img" alt="${this.escapeHtml(item.name)}"
-                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=300&q=80');">
+                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
             <div style="font-size: 11px; color: var(--brand-accent, #F59E0B); font-weight: 700;">${item.itemType === 'service' ? 'Dịch Vụ' : 'Sản Phẩm'}</div>
             <div style="font-size: 13px; font-weight: 800; color: var(--text-primary); line-height: 1.3; margin: 2px 0 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 34px;">${this.escapeHtml(item.name)}</div>
           </div>

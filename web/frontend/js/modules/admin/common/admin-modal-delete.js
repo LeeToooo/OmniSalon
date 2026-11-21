@@ -9,7 +9,7 @@
       let code = `#${id}`;
       let subTag = 'HỆ THỐNG';
       let name = id;
-      let img = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80';
+      let img = '01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
       let detail1 = '';
       let detail2 = '';
 
@@ -92,7 +92,7 @@
 
       const displayImg = typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatImageUrl === 'function'
         ? SalonUtils.formatImageUrl(img)
-        : (img || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');
+        : (img || '/DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');
 
       this._openModal(`
         <div style="text-align: center; padding: 10px 4px; max-width: 480px; margin: 0 auto;">
@@ -122,7 +122,7 @@
           <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 14px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; text-align: left;">
             <img src="${displayImg}" alt="${this.escapeHtml(name)}" 
                  style="width: 60px; height: 60px; border-radius: 10px; object-fit: cover; background: #ffffff; padding: 2px; border: 1px solid rgba(255, 255, 255, 0.15); flex-shrink: 0;" 
-                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=120&q=80');">
+                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
             <div style="flex: 1; min-width: 0;">
               <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                 <span style="font-family: monospace; font-size: 12px; font-weight: 800; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 1px 6px; border-radius: 4px;">${this.escapeHtml(code)}</span>

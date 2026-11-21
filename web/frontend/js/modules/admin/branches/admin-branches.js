@@ -124,7 +124,7 @@
                     ? window.store.getRevenueAnalytics(b.id)
                     : { totalRevenue: 0 };
                   const bRevenue = bAnalytics.totalRevenue;
-                  const bImg = b.image || b.HinhAnh || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';
+                  const bImg = b.image || b.HinhAnh || 'ChiNhanh_Omni/CN1.jpg';
                   const bName = b.name || b.TenChiNhanh || b.id;
                   const bAddr = b.address || b.DiaChi || 'TP. Hồ Chí Minh';
                   const bPhone = b.phone || b.SoDienThoai || '0901111000';
@@ -142,9 +142,9 @@
                       <td style="padding: 12px 14px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                           <div style="width: 44px; height: 44px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); flex-shrink: 0; background: #111; display: flex; align-items: center; justify-content: center;">
-                            <img src="${bImg}" alt="${this.escapeHtml(bName)}"
+                            <img src="${SalonUtils.formatImageUrl(bImg)}" alt="${this.escapeHtml(bName)}"
                                  style="width: 100%; height: 100%; object-fit: cover; object-position: ${b.imagePosition || '50% 50%'}; transform: scale(${b.imageZoom || 1});"
-                                 onerror="this.src='https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';">
+                                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/ChiNhanh_Omni/CN1.jpg');">
                           </div>
                           <div>
                             <div style="font-weight: 800; color: var(--text-primary); font-size: 13.5px;">${this.escapeHtml(bName)}</div>
@@ -280,12 +280,12 @@
     // Inline bottom branch editor (chỉnh sửa & thêm mới ở đáy trang + live image adjuster)
     _renderBranchBottomEditor() {
       const branchPresets = [
-        'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80'
+        'ChiNhanh_Omni/CN1.jpg',
+        'ChiNhanh_Omni/CN2.jpg',
+        'ChiNhanh_Omni/CN3.jpg',
+        'ChiNhanh_Omni/CN4.jpg',
+        'ChiNhanh_Omni/CN5.jpg',
+        'ChiNhanh_Omni/CN6.jpg'
       ];
 
       return `
@@ -461,11 +461,11 @@
                        title="Bấm giữ chuột và kéo trực tiếp trên ảnh để đổi góc · Cuộn chuột để Phóng to/Thu nhỏ (Zoom)">
                     
                     <img id="branchEditorImgPreview" 
-                         src="${branchPresets[0]}" 
+                         src="${SalonUtils.formatImageUrl(branchPresets[0])}" 
                          alt="Xem trước chi nhánh"
                          class="branch-cover-img"
                          style="width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; transform-origin: 50% 50%; transform: scale(1); pointer-events: none; transition: transform 0.12s ease-out, object-position 0.12s ease-out;"
-                         onerror="this.src='https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';">
+                         onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/ChiNhanh_Omni/CN1.jpg');">
 
                     <div class="branch-badges-top" style="pointer-events: none; z-index: 3;">
                       <span id="branchPreviewDistrictBadge" class="branch-district-tag">TP.HCM</span>
@@ -670,7 +670,7 @@
       const statusSel = document.getElementById('branchEditorStatus');
       if (statusSel) statusSel.value = b.status || 'Hoạt động';
 
-      const imgUrl = b.image || b.HinhAnh || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';
+      const imgUrl = b.image || b.HinhAnh || 'ChiNhanh_Omni/CN1.jpg';
       const urlInp = document.getElementById('branchEditorImageUrl');
       if (urlInp) urlInp.value = imgUrl;
 
@@ -751,7 +751,7 @@
       const statusSel = document.getElementById('branchEditorStatus');
       if (statusSel) statusSel.value = 'Hoạt động';
 
-      const defaultImg = 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';
+      const defaultImg = 'ChiNhanh_Omni/CN1.jpg';
       const urlInp = document.getElementById('branchEditorImageUrl');
       if (urlInp) urlInp.value = defaultImg;
 
@@ -1062,7 +1062,7 @@
     },
 
     resetBranchImgAdjustments() {
-      const url = document.getElementById('branchEditorImageUrl')?.value || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';
+      const url = document.getElementById('branchEditorImageUrl')?.value || 'ChiNhanh_Omni/CN1.jpg';
       this._applyBranchImgTransform(url, 1.0, 50, 50);
     },
 
@@ -1174,11 +1174,11 @@
       const br = branchId ? window.store.getBranchById(branchId) : null;
       const isEdit = !!br;
       const branchPresets = [
-        'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=600&q=80'
+        'ChiNhanh_Omni/CN1.jpg',
+        'ChiNhanh_Omni/CN2.jpg',
+        'ChiNhanh_Omni/CN3.jpg',
+        'ChiNhanh_Omni/CN4.jpg',
+        'ChiNhanh_Omni/CN5.jpg'
       ];
       const currentImage = br?.image || br?.HinhAnh || branchPresets[0];
 

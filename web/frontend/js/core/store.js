@@ -269,14 +269,20 @@
           }
         }
 
-        if (changed) {
+        const isFirstSync = !this._hasInitialSynced;
+        this._hasInitialSynced = true;
+
+        if (changed || isFirstSync) {
           localStorage.setItem(this.storageKey, JSON.stringify(this.state));
           this.notify('LIVE_SERVER_SYNC');
           if (branchesChanged) {
             this.notify('BRANCHES_UPDATED');
           }
-          if (productsChanged) {
+          if (productsChanged || isFirstSync) {
             this.notify('PRODUCTS_UPDATED');
+          }
+          if (isFirstSync) {
+            this.notify('ADMIN_FORCE_RENDER');
           }
         }
       } catch (_) {
@@ -753,7 +759,7 @@
 
       // 130 Sản phẩm thực tế từ CSDL QL_SALON.sql
       const products = [
-        { id: 'SP01', name: 'Apestomen Volcanic Clay', brand: 'Apestomen', categoryId: 'DM01', price: 129600, originalPrice: 480000, discountPercent: 73, PhanTramGiam: 73, fefoDiscount: 70, nearExpiryDiscount: 70, nearExpiryBatch: 'CTPN01001', nearExpiryStock: 19, promoDiscount: 10, daysLeft: 20, daysRemaining: 20, isNearExpiry: true, hasPromotion: true, promotion: { id: 'KM01_FEFO', code: 'KM01_FEFO', name: 'Xả kho cận hạn FEFO (-70%) + Chào Thu (-10%)', discount: 73, discountPercent: 73, fefoDiscount: 70, promoDiscount: 10, type: 'Giảm giá %' }, promo: { id: 'KM01_FEFO', code: 'KM01_FEFO', name: 'Xả kho cận hạn FEFO (-70%) + Chào Thu (-10%)', discount: 73, discountPercent: 73, fefoDiscount: 70, promoDiscount: 10, type: 'Giảm giá %' }, costPrice: 340000, stock: 24, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg', description: 'Tạo texture, tăng độ phồng, giữ tóc vào nếp với hiệu ứng khô tự nhiên. Áp dụng quy tắc cận hạn FEFO (-70%) kết hợp khuyến mãi (-10%) tính lũy tiến.' },
+        { id: 'SP01', name: 'Sáp Vuốt Tóc Clay Wax', TenSanPham: 'Sáp Vuốt Tóc Clay Wax', brand: 'Omni Professional', categoryId: 'DM01', price: 306000, GiaBanThucTe: 306000, originalPrice: 340000, GiaNiemYetGoc: 340000, GiaBan: 340000, costPrice: 295000, GiaNhap: 295000, discountPercent: 10, PhanTramGiam: 10, fefoDiscount: 10, nearExpiryDiscount: 10, nearExpiryBatch: 'CTPN02001', nearExpiryStock: 10, promoDiscount: 0, daysLeft: 208, daysRemaining: 208, isNearExpiry: true, hasPromotion: true, promotion: { id: 'FEFO', code: 'FEFO', name: 'Xả kho cận hạn (208 ngày) - Giảm 10%', discount: 10, discountPercent: 10, fefoDiscount: 10, promoDiscount: 0, type: 'Giảm giá %' }, promo: { id: 'FEFO', code: 'FEFO', name: 'Xả kho cận hạn (208 ngày) - Giảm 10%', discount: 10, discountPercent: 10, fefoDiscount: 10, promoDiscount: 0, type: 'Giảm giá %' }, stock: 354, SoLuongTon: 354, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg', HinhAnh: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg', description: 'Tạo texture, tăng độ phồng, giữ tóc vào nếp với hiệu ứng khô tự nhiên Dung tích: 80g; Loại: Clay; Giữ nếp: Cao; Finish: Matte; Phù hợp: Tóc ngắn – trung bình, tóc dày.' },
         { id: 'SP02', name: 'Hanz de Fuko Gravity Paste', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Gravity_Paste.jpg', description: 'Tạo độ phồng, texture rõ và giữ nếp chắc.' },
         { id: 'SP03', name: 'Hanz de Fuko Claymation', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 879000, originalPrice: 879000, costPrice: 731000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Claymation.jpg', description: 'Clay kết hợp wax, tạo texture mạnh và giữ nếp lâu.' },
         { id: 'SP04', name: 'Hanz de Fuko Heavymade', brand: 'Hanz de Fuko', categoryId: 'DM01', price: 690000, originalPrice: 690000, costPrice: 520000, stock: 25, image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Heavymade.jpg', description: 'Giữ nếp mạnh, tạo độ bóng vừa và kiểu tóc gọn gàng.' },
@@ -829,6 +835,9 @@
         shifts: [],
         inventory,
         posOrders: [],
+        receipts: [],
+        invoices: [],
+        payments: [],
         cart: [],
         favorites: [],
         auditLogs: [],
@@ -935,6 +944,25 @@
           this.state.products = baseline.products;
         } else {
           this.state.products = this.state.products.filter(p => p.id !== 'SP_TOTE');
+        }
+        // Chuẩn hóa và làm sạch SP01 chống cache cũ lệch thông tin khi F5
+        if (Array.isArray(this.state.products)) {
+          const sp1 = this.state.products.find(p => p.id === 'SP01' || p.MaSanPham === 'SP01');
+          if (sp1) {
+            sp1.name = 'Sáp Vuốt Tóc Clay Wax';
+            sp1.TenSanPham = 'Sáp Vuốt Tóc Clay Wax';
+            sp1.price = 306000;
+            sp1.GiaBanThucTe = 306000;
+            sp1.originalPrice = 340000;
+            sp1.GiaNiemYetGoc = 340000;
+            sp1.GiaBan = 340000;
+            sp1.costPrice = 295000;
+            sp1.discountPercent = 10;
+            sp1.PhanTramGiam = 10;
+            sp1.fefoDiscount = 10;
+            sp1.image = 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg';
+            sp1.HinhAnh = 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg';
+          }
         }
         if (!Array.isArray(this.state.bookings) || this.state.bookings.length < 10) {
           this.state.bookings = baseline.bookings;
@@ -1128,7 +1156,7 @@
         closeTime: branchData.closeTime || '21:30:00',
         city: city,
         region: city === 'Hà Nội' ? 'hn' : city === 'Đà Nẵng' ? 'dn' : 'hcm',
-        image: branchData.image || 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80',
+        image: branchData.image || 'DataPicture/ChiNhanh_Omni/CN1.jpg',
         status: branchData.status || 'Hoạt động',
         imagePosition: branchData.imagePosition || 'center',
         imageFit: branchData.imageFit || 'cover',
@@ -2335,7 +2363,7 @@
         oldPrice: Number(productData.oldPrice || costPrice),
         stock: Number(productData.stock !== undefined ? productData.stock : 20),
         section: productData.section || 'new',
-        image: productData.image || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
+        image: productData.image || 'DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Sap_vuot_toc_Clay_Wax_1.png',
         description: productData.description || 'Sản phẩm chăm sóc tóc chuyên nghiệp'
       };
       if (!this.state.products) this.state.products = [];

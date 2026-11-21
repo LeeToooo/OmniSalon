@@ -943,6 +943,7 @@
       if (!prod) {
         prod = allProducts.find(p => p.id === 'SP02') || allProducts.find(p => p.id === 'SP01') || allProducts[0];
       }
+      this.currentPdpProductId = prod ? (prod.id || prod.MaSanPham) : targetId;
       if (!prod) {
         container.innerHTML = `
           <div class="shop-empty-state" style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
@@ -980,6 +981,27 @@
             mainImgUrl.replace('_01.jpg', '_02.jpg'),
             mainImgUrl.replace('_01.jpg', '_03.jpg'),
             mainImgUrl.replace('_01.jpg', '_04.jpg')
+          ];
+        } else if (mainImgUrl && (mainImgUrl.includes('Apestomen') || prod.id === 'SP01' || prod.MaSanPham === 'SP01')) {
+          const basePath = 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay';
+          detailImages = [
+            `${basePath}_01.jpg`,
+            `${basePath}_02.jpg`,
+            `${basePath}_03.jpg`,
+            `${basePath}_04.jpg`
+          ];
+        } else if (mainImgUrl && mainImgUrl.match(/\.(jpe?g|png)$/i)) {
+          const extMatch = mainImgUrl.match(/\.(jpe?g|png)$/i);
+          const ext = extMatch[0];
+          const lastSlash = mainImgUrl.lastIndexOf('/');
+          const fileName = lastSlash !== -1 ? mainImgUrl.substring(lastSlash + 1) : mainImgUrl;
+          const baseName = fileName.replace(/\.(jpe?g|png)$/i, '');
+          const parentPath = lastSlash !== -1 ? mainImgUrl.substring(0, lastSlash) : '';
+          detailImages = [
+            `${parentPath}/${baseName}/${baseName}_01${ext}`,
+            `${parentPath}/${baseName}/${baseName}_02${ext}`,
+            `${parentPath}/${baseName}/${baseName}_03${ext}`,
+            `${parentPath}/${baseName}/${baseName}_04${ext}`
           ];
         } else if (mainImgUrl) {
           detailImages = [mainImgUrl];
@@ -2147,11 +2169,19 @@
     const attachShopSync = () => {
       if (window.store && typeof window.store.subscribe === 'function') {
         window.store.subscribe((state, event) => {
-          // Bỏ qua LIVE_SERVER_SYNC định kỳ để chống chớp tắt re-render vòng lặp
-          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED' || event === 'PRODUCTS_UPDATED') {
+          if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED' || event === 'PRODUCTS_UPDATED' || event === 'LIVE_SERVER_SYNC') {
             const container = document.getElementById('webMainContainer');
-            if (container && window.AppRouter && window.AppRouter.currentRoute === '/shop') {
-              ShopPage.render(container);
+            if (container) {
+              const urlParams = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search) : null;
+              const prodIdFromUrl = urlParams ? urlParams.get('id') : null;
+              const isProductRoute = (window.AppRouter && (window.AppRouter.currentRoute === '/product' || (window.AppRouter.currentRoute && window.AppRouter.currentRoute.startsWith('/product')))) || prodIdFromUrl;
+
+              if (isProductRoute || (window.ShopPage && window.ShopPage.currentPdpProductId)) {
+                const targetId = (window.ShopPage && window.ShopPage.currentPdpProductId) || prodIdFromUrl || 'SP01';
+                ShopPage.renderProductDetail(container, targetId);
+              } else if (window.AppRouter && window.AppRouter.currentRoute === '/shop') {
+                ShopPage.render(container);
+              }
             }
           }
         });

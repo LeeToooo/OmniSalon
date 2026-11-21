@@ -295,7 +295,7 @@
       if (typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatImageUrl === 'function') {
         imgEl.src = SalonUtils.formatImageUrl(cleanUrl);
       } else {
-        imgEl.src = cleanUrl || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80';
+        imgEl.src = cleanUrl || '/DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
       }
     },
 
