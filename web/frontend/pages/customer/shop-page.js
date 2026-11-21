@@ -1916,7 +1916,6 @@
             const author = r.customerName || r.TenKhachHang || r.author || 'Khách Hàng';
             const star = Number(r.rating || r.SoSao || 5);
             const dateStr = r.date ? (window.SalonUtils ? window.SalonUtils.formatDate(r.date) : r.date) : 'Gần đây';
-            const orderInfo = r.orderId ? ` • Đơn hàng #${r.orderId}` : '';
             return `
               <div class="pdp-review-item" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 16px;">
                 <div class="pdp-review-user" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
@@ -1925,7 +1924,7 @@
                   </div>
                   <div class="pdp-review-meta">
                     <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">${this.escapeHtml(author)} <span class="pdp-verified-badge" style="color: #10B981; font-size: 11px; margin-left: 6px; font-weight: 600;">✓ Đã Mua Hàng</span></h4>
-                    <div class="pdp-review-date" style="font-size: 12px; color: var(--text-secondary);">Đánh giá ngày ${dateStr}${orderInfo}</div>
+                    <div class="pdp-review-date" style="font-size: 12px; color: var(--text-secondary);">Đánh giá ngày ${dateStr}</div>
                   </div>
                 </div>
                 <div style="color: #F59E0B; font-size: 13px; margin-bottom: 6px;">${'★'.repeat(star)}${'☆'.repeat(5 - star)}</div>
