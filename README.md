@@ -156,8 +156,9 @@ Tất cả tài khoản mẫu đã được nạp sẵn trong hệ thống:
 ### Khởi Chạy Nhanh (1-Click)
 Nhấp đúp vào tệp:
 ```cmd
-start_web.bat
+start.bat
 ```
+*(Hỗ trợ menu chọn: [1] Web App, [2] Mobile App Flutter, [3] Cả hai)*
 Hoặc mở terminal chạy lệnh:
 ```bash
 node web/backend/server.js
@@ -205,7 +206,7 @@ OmniSalon/
 │       └── pages/                   # Bộ điều khiển view SPA (home, shop, booking, admin...)
 │
 ├── QL_SALON.sql                     # Kịch bản tạo bảng & dữ liệu mẫu SQL Server
-├── start_web.bat                    # Kịch bản khởi chạy nhanh 1-Click
+├── start.bat                        # Kịch bản khởi chạy thống nhất (Web & Mobile)
 └── README.md                        # Tài liệu hướng dẫn sử dụng trung tâm (tệp này)
 ```
 
