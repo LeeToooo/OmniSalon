@@ -12,8 +12,7 @@ Hệ thống ứng dụng Web hoàn chỉnh phục vụ vận hành chuỗi salo
 5. [Hệ Thống Phân Quyền RBAC 6 Vai Trò & Kiểm Toán](#5-hệ-thống-phân-quyền-rbac-6-vai-trò--kiểm-toán)
 6. [Tài Khoản Thử Nghiệm Hệ Thống](#6-tài-khoản-thử-nghiệm-hệ-thống)
 7. [Hướng Dẫn Cài Đặt & Khởi Chạy](#7-hướng-dẫn-cài-đặt--khởi-chạy)
-8. [Bộ Kiểm Thử Tự Động (Automated Tests)](#8-bộ-kiểm-thử-tự-động-automated-tests)
-9. [Cấu Trúc Thư Mục Dự Án](#9-cấu-trúc-thư-mục-dự-án)
+8. [Cấu Trúc Thư Mục Dự Án](#8-cấu-trúc-thư-mục-dự-án)
 
 ---
 
@@ -174,23 +173,7 @@ node web/backend/database/setup_db.js
 
 ---
 
-## 8. Bộ Kiểm Thử Tự Động (Automated Tests)
-
-Dự án tích hợp bộ kiểm thử Jest toàn diện gồm **47 kiểm thử đơn vị & tích hợp**:
-```bash
-npm test
-```
-**Kết quả kiểm thử:**
-- `tests/integration/api.test.js`: Kiểm thử 16 API endpoints (Health, Auth, Branches, Services, Bookings, Orders, Inventory, Analytics).
-- `tests/unit/auth.test.js`: Cấp phát JWT token, chuẩn hóa ngày sinh, kiểm tra RBAC 5 nhóm vai trò.
-- `tests/unit/booking.test.js`: Tính toán giờ kết thúc dịch vụ, phát hiện xung đột lịch hẹn, tự động hủy lịch qua đêm.
-- `tests/unit/payment.test.js`: Bóc tách cú pháp chuyển khoản ngân hàng, tạo liên kết PayOS.
-- `tests/unit/helpers.test.js`: Nhận diện thương hiệu mỹ phẩm, sinh mã tăng dần.
-- `tests/unit/inventory.test.js`: Thuật toán xuất kho FEFO theo hạn sử dụng, ràng buộc từ chối phiếu nhập.
-
----
-
-## 9. Cấu Trúc Thư Mục Dự Án
+## 8. Cấu Trúc Thư Mục Dự Án
 
 ```
 OmniSalon/
@@ -221,7 +204,6 @@ OmniSalon/
 │       │   └── modules/admin/       # Các module chuyên trách giao diện quản trị & POS
 │       └── pages/                   # Bộ điều khiển view SPA (home, shop, booking, admin...)
 │
-├── tests/                           # Bộ kiểm thử tự động Jest (Unit & Integration tests)
 ├── QL_SALON.sql                     # Kịch bản tạo bảng & dữ liệu mẫu SQL Server
 ├── start_web.bat                    # Kịch bản khởi chạy nhanh 1-Click
 └── README.md                        # Tài liệu hướng dẫn sử dụng trung tâm (tệp này)
