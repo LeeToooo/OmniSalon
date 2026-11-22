@@ -515,11 +515,45 @@ async function handleAuthRoutes(req, res, ctx) {
       }));
       return true;
     }
+
+    let userObj = authUser.user || authUser;
+    const userId = userObj.id || userObj.sub || userObj.MaTaiKhoan || userObj.username;
+    try {
+      if (userId) {
+        const rows = await querySql(`
+          SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.VaiTro,
+                 nv.MaNhanVien, nv.HoTen AS HoTenNV, nv.MaChiNhanh, nv.SoDienThoai AS SdtNV, nv.Email AS EmailNV, nv.ChucVu,
+                 kh.MaKhachHang, kh.HoTen AS HoTenKH, kh.SoDienThoai AS SdtKH, kh.Email AS EmailKH,
+                 cn.TenChiNhanh
+          FROM TaiKhoan tk
+          LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
+          LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang
+          LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
+          WHERE tk.MaTaiKhoan = ? OR tk.TenDangNhap = ?
+        `, [userId, userId]);
+        if (rows && rows.length > 0) {
+          const r = rows[0];
+          const freshBranchId = r.MaChiNhanh || userObj.branchId || null;
+          const freshBranchName = r.TenChiNhanh || userObj.branchName || null;
+          userObj = {
+            ...userObj,
+            fullName: r.HoTenNV || r.HoTenKH || userObj.fullName,
+            branchId: freshBranchId,
+            branchName: freshBranchName,
+            MaChiNhanh: freshBranchId,
+            TenChiNhanh: freshBranchName
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Error refreshing me from SQL:', e.message);
+    }
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
       status: 'authenticated',
-      user: authUser.user || authUser
+      user: userObj
     }));
     return true;
   }
@@ -562,6 +596,20 @@ async function handleAuthRoutes(req, res, ctx) {
           await querySql(`UPDATE TaiKhoan SET TenDangNhap = ? WHERE MaKhachHang = ?`, [cleanPhone, khId]);
         }
       }
+
+      const authUser = extractAuthUser(req);
+      const actorName = fullName || authUser?.fullName || authUser?.username || id;
+      const actorRole = authUser?.role || (id?.startsWith('TK_NV') ? 'STYLIST' : 'CUSTOMER');
+      auditService.logAudit({
+        actor: actorName,
+        role: actorRole,
+        action: 'UPDATE_PROFILE',
+        entityType: 'TaiKhoan',
+        entityId: id,
+        branchId: authUser?.branchId || null,
+        after: { fullName, phone: cleanPhone, email: cleanEmail },
+        details: `${actorName} (${actorRole}) cập nhật thông tin hồ sơ cá nhân`
+      }).catch(() => {});
     }
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

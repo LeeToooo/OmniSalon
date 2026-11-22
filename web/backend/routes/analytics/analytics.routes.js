@@ -73,8 +73,8 @@ async function handleAnalyticsRoutes(req, res, ctx) {
     return true;
   }
 
-  // GET /api/audit/logs hoặc /api/audit - Xem nhật ký kiểm toán (Phân quyền: SUPER_ADMIN, BRANCH_MANAGER)
-  if ((pathname === '/api/audit/logs' || pathname === '/api/audit') && method === 'GET') {
+  // GET /api/audit/logs hoặc /api/audit hoặc /api/analytics/audit-logs - Xem nhật ký kiểm toán (Phân quyền: SUPER_ADMIN, BRANCH_MANAGER)
+  if ((pathname === '/api/audit/logs' || pathname === '/api/audit' || pathname === '/api/analytics/audit-logs') && method === 'GET') {
     const authUser = extractAuthUser(req);
     if (!authUser) {
       res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });

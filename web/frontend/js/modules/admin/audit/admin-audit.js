@@ -560,6 +560,20 @@
 
     renderAuditTab(auditLogs) {
       const subType = this.auditSubTab || 'logs';
+
+      // Tự động tải nhật ký sự kiện mới nhất từ Backend API nếu đang xem tab logs
+      if (subType === 'logs' && window.store && typeof window.store.fetchAuditLogsFromServer === 'function' && !this._fetchingAuditLogs) {
+        this._fetchingAuditLogs = true;
+        window.store.fetchAuditLogsFromServer().then(freshLogs => {
+          this._fetchingAuditLogs = false;
+          if (Array.isArray(freshLogs) && (this.auditSubTab || 'logs') === 'logs') {
+            this._updateAuditContentOnly();
+          }
+        }).catch(() => {
+          this._fetchingAuditLogs = false;
+        });
+      }
+
       const logs = auditLogs || (window.store && typeof window.store.getAuditLogs === 'function' ? window.store.getAuditLogs() : []);
       logs.forEach(l => {
         if (l.entity && typeof l.entity === 'string') l.entity = l.entity.replace(/#/g, '');
@@ -897,15 +911,8 @@
         };
 
         const renderRoleBadge = (role) => {
-          const r = String(role || 'SYSTEM').toUpperCase();
-          let displayRole = 'SYSTEM';
-          if (r.includes('SUPER_ADMIN') || r.includes('QUẢN TRỊ')) displayRole = 'SUPER_ADMIN';
-          else if (r.includes('BRANCH_MANAGER') || r.includes('QUẢN LÝ')) displayRole = 'BRANCH_MANAGER';
-          else if (r.includes('CASHIER') || r.includes('THU NGÂN')) displayRole = 'CASHIER';
-          else if (r.includes('STYLIST') || r.includes('BARBER') || r.includes('THỢ') || r.includes('STAFF')) displayRole = 'STYLIST';
-          else if (r.includes('CUSTOMER') || r.includes('KHÁCH')) displayRole = 'CUSTOMER';
-
-          return `<span style="display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 600; font-family: monospace; border-radius: 4px; background: rgba(255, 255, 255, 0.04); color: var(--text-secondary, #9ca3af); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)); text-transform: uppercase; letter-spacing: 0.3px;">${displayRole}</span>`;
+          const badge = this._getAuditRoleBadge(role);
+          return `<span style="display: inline-block; padding: 2.5px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; background: ${badge.bg}; color: ${badge.color}; border: 1px solid ${badge.border}; text-transform: uppercase; letter-spacing: 0.3px;">${badge.label}</span>`;
         };
 
         return `

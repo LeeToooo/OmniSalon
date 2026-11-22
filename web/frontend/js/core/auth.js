@@ -854,9 +854,11 @@
         this.accessToken = session.accessToken;
         this.refreshToken = session.refreshToken;
         this.currentUser = this._mapPayloadToUser(verifyResult.payload);
+        this.syncCurrentUserWithServer();
       } else if (verifyResult.error === 'EXPIRED' && session.refreshToken) {
         // Chỉ cấp mới qua RefreshToken khi AccessToken chỉ đơn thuần bị quá hạn
         this.refreshSession(session.refreshToken);
+        this.syncCurrentUserWithServer();
       } else if (session.userJson) {
         try {
           const user = JSON.parse(session.userJson);
@@ -866,6 +868,7 @@
             this.refreshToken = issued.refreshToken;
             this.currentUser = this._mapPayloadToUser(issued.payload);
             SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
+            this.syncCurrentUserWithServer();
           } else {
             this.clearSession();
           }
@@ -875,6 +878,49 @@
       } else {
         // Chữ ký không hợp lệ, token bị sửa đổi hoặc giả mạo -> Hủy toàn bộ phiên đăng nhập ngay lập tức
         this.clearSession();
+      }
+    }
+
+    async syncCurrentUserWithServer() {
+      if (!this.accessToken) return;
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && data.user) {
+            const u = data.user;
+            let changed = false;
+            if (this.currentUser) {
+              if (u.branchId && this.currentUser.branchId !== u.branchId) {
+                this.currentUser.branchId = u.branchId;
+                this.currentUser.branchName = u.branchName || resolveFullBranchName(u.branchId, null, this.currentUser.role);
+                this.currentUser.MaChiNhanh = u.branchId;
+                this.currentUser.TenChiNhanh = this.currentUser.branchName;
+                changed = true;
+              }
+              if (u.fullName && this.currentUser.fullName !== u.fullName) {
+                this.currentUser.fullName = u.fullName;
+                changed = true;
+              }
+              if (changed) {
+                SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
+                if (window.store && window.store.state) {
+                  window.store.state.currentUser = { ...this.currentUser };
+                  window.store.saveState();
+                }
+                if (typeof window.AdminWeb?.updateHeaderBranchDisplay === 'function') {
+                  window.AdminWeb.updateHeaderBranchDisplay();
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        // im lặng bỏ qua lỗi mạng
       }
     }
 

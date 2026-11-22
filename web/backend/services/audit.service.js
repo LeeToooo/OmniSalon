@@ -144,7 +144,11 @@ async function getAuditLogs({ authUser, branchId, role, action, entityType, q })
     const params = [];
 
     if (effectiveBranchId) {
-      sqlQuery += ` AND (BranchId = ? OR BranchId IS NULL OR BranchId = '')`;
+      if (isBranchManager) {
+        sqlQuery += ` AND (BranchId = ? OR BranchId = 'ALL')`;
+      } else {
+        sqlQuery += ` AND (BranchId = ? OR BranchId IS NULL OR BranchId = '' OR BranchId = 'ALL')`;
+      }
       params.push(effectiveBranchId);
     }
     if (role && role !== 'all') {

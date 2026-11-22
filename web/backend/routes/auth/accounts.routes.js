@@ -352,6 +352,7 @@ async function handleAccountsRoutes(req, res, ctx) {
       const tk = await querySql('SELECT MaNhanVien FROM TaiKhoan WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [userId, userId]);
       if (tk?.[0]?.MaNhanVien && branchId && branchId !== 'ALL') {
         await querySql('UPDATE NhanVien SET MaChiNhanh = ? WHERE MaNhanVien = ?', [branchId, tk[0].MaNhanVien]);
+        clearDbSnapshotCache();
         auditService.logAudit({
           actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
           role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
@@ -366,6 +367,7 @@ async function handleAccountsRoutes(req, res, ctx) {
     } catch (e) {
       console.warn('SQL update user branch warning:', e.message);
     }
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Cập nhật chi nhánh thành công' }));
     return true;

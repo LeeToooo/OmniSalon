@@ -162,6 +162,32 @@
             this.state.users = db.users;
             changed = true;
           }
+          // Tự động đồng bộ chi nhánh của currentUser nếu bị quản trị viên đổi trên máy chủ
+          const curr = this.state.currentUser || (window.Auth && window.Auth.currentUser);
+          if (curr) {
+            const currId = curr.id || curr.MaTaiKhoan || curr.username;
+            const fresh = db.users.find(u => (u.id === currId || u.MaTaiKhoan === currId || u.username === currId));
+            if (fresh && fresh.branchId && fresh.branchId !== curr.branchId) {
+              curr.branchId = fresh.branchId;
+              curr.branchName = fresh.branchName || fresh.TenChiNhanh || curr.branchName;
+              curr.MaChiNhanh = fresh.branchId;
+              curr.TenChiNhanh = curr.branchName;
+              this.state.currentUser = { ...curr };
+              changed = true;
+              if (window.Auth && window.Auth.currentUser) {
+                window.Auth.currentUser.branchId = fresh.branchId;
+                window.Auth.currentUser.branchName = curr.branchName;
+                window.Auth.currentUser.MaChiNhanh = fresh.branchId;
+                window.Auth.currentUser.TenChiNhanh = curr.branchName;
+                try {
+                  localStorage.setItem('OMNISALON_USER', JSON.stringify(window.Auth.currentUser));
+                } catch (_) {}
+              }
+              if (typeof window.AdminWeb?.updateHeaderBranchDisplay === 'function') {
+                window.AdminWeb.updateHeaderBranchDisplay();
+              }
+            }
+          }
         }
 
         // Đồng bộ Khuyến mãi & Đánh giá từ SQL
@@ -3512,6 +3538,27 @@
       this.state.notifications.unshift(notif);
       this.saveState();
       return notif;
+    }
+
+    async fetchAuditLogsFromServer() {
+      if (typeof fetch === 'undefined') return this.state.auditLogs || [];
+      try {
+        const token = window.Auth?.accessToken || localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN');
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch('/api/audit/logs', { headers });
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list) && list.length > 0) {
+            this.state.auditLogs = list;
+            this.saveState();
+            return list;
+          }
+        }
+      } catch (e) {
+        console.warn('[store] fetchAuditLogsFromServer error:', e.message);
+      }
+      return this.state.auditLogs || [];
     }
 
     getAuditLogs() {

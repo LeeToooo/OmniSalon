@@ -461,6 +461,80 @@ async function handlePosRoutes(req, res, ctx) {
     return true;
   }
 
+  // POST hoặc PUT /api/invoices/:id/cancel - Hủy hóa đơn (CASHIER / MANAGER)
+  if (pathname.startsWith('/api/invoices/') && pathname.endsWith('/cancel') && (method === 'POST' || method === 'PUT')) {
+    const rawId = pathname.replace('/api/invoices/', '').replace('/cancel', '').trim();
+    const hdId = decodeURIComponent(rawId).replace(/^#+/, '').trim();
+    const reason = (parsedBody && parsedBody.reason) || 'Thu ngân hủy hóa đơn theo yêu cầu';
+
+    const currentRows = await querySql('SELECT MaHoaDon, MaChiNhanh, TrangThai, TongTien FROM HoaDon WHERE MaHoaDon = ?', [hdId]);
+    const current = currentRows?.[0];
+    if (!current) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không tìm thấy hóa đơn' }));
+      return true;
+    }
+
+    await querySql('UPDATE HoaDon SET TrangThai = N\'Đã hủy\' WHERE MaHoaDon = ?', [hdId]);
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Thu Ngân';
+    const actorRole = authUser ? (authUser.role || 'CASHIER') : 'CASHIER';
+
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'CANCEL_INVOICE',
+      entityType: 'HoaDon',
+      entityId: hdId,
+      branchId: current.MaChiNhanh,
+      before: { TrangThai: current.TrangThai },
+      after: { TrangThai: 'Đã hủy', reason },
+      details: `${actorName} (${actorRole}) hủy hóa đơn #${hdId}. Lý do: ${reason}`
+    }).catch(() => {});
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: true, message: `Đã hủy hóa đơn #${hdId} thành công!` }));
+    return true;
+  }
+
+  // POST hoặc PUT /api/invoices/:id/refund - Hoàn tiền hóa đơn (CASHIER)
+  if (pathname.startsWith('/api/invoices/') && pathname.endsWith('/refund') && (method === 'POST' || method === 'PUT')) {
+    const rawId = pathname.replace('/api/invoices/', '').replace('/refund', '').trim();
+    const hdId = decodeURIComponent(rawId).replace(/^#+/, '').trim();
+    const { amount, reason } = parsedBody || {};
+
+    const currentRows = await querySql('SELECT MaHoaDon, MaChiNhanh, TrangThai, TongTien FROM HoaDon WHERE MaHoaDon = ?', [hdId]);
+    const current = currentRows?.[0];
+    if (!current) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không tìm thấy hóa đơn' }));
+      return true;
+    }
+
+    const refundAmount = amount || current.TongTien || 0;
+    await querySql('UPDATE HoaDon SET TrangThai = N\'Đã hoàn tiền\' WHERE MaHoaDon = ?', [hdId]);
+
+    const authUser = extractAuthUser(req);
+    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Thu Ngân';
+    const actorRole = authUser ? (authUser.role || 'CASHIER') : 'CASHIER';
+
+    auditService.logAudit({
+      actor: actorName,
+      role: actorRole,
+      action: 'REFUND_PAYMENT',
+      entityType: 'HoaDon',
+      entityId: hdId,
+      branchId: current.MaChiNhanh,
+      before: { TrangThai: current.TrangThai },
+      after: { TrangThai: 'Đã hoàn tiền', refundAmount, reason: reason || 'Hoàn tiền cho khách hàng' },
+      details: `${actorName} (${actorRole}) hoàn tiền ${Number(refundAmount).toLocaleString('vi-VN')} đ cho hóa đơn #${hdId}`
+    }).catch(() => {});
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: true, message: `Đã hoàn tiền hóa đơn #${hdId} thành công!`, refundAmount }));
+    return true;
+  }
+
   return false;
 }
 
