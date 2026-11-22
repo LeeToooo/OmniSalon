@@ -7,7 +7,8 @@ const {
   ROLE_NAME_MAP,
   BRANCH_NAME_MAP
 } = require('../../services/helper_service');
-const { logAudit } = require('../../services/audit.service');
+const auditService = require('../../services/audit.service');
+const { logAudit } = auditService;
 
 /**
  * Chuẩn hóa ngày sinh từ các định dạng dd/mm/yyyy, dd/mm/yy hoặc yyyy-mm-dd
