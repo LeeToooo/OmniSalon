@@ -1324,7 +1324,12 @@
         user.VaiTro = vaiTro;
         user.role = roleCode;
         user.roleName = vaiTro;
-        if (roleCode === 'BARBER') {
+        if (roleCode === 'CUSTOMER') {
+          user.ChucVu = 'Khách hàng';
+          user.branchId = null;
+          user.branchName = 'Khách Hàng';
+          user.TenChiNhanh = 'Khách Hàng';
+        } else if (roleCode === 'BARBER') {
           if (!user.ChucVu || user.ChucVu.includes('Khách hàng')) user.ChucVu = 'Thợ chính';
         } else if (roleCode === 'CASHIER') {
           user.ChucVu = 'Thu ngân';

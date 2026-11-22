@@ -61,7 +61,15 @@
         return 'SUPER_ADMIN';
       }
 
-      // 2. Quản lý chi nhánh (BRANCH_MANAGER)
+      // 2. Khách hàng: Nếu vai trò hoặc chức vụ được chỉ định là Khách hàng thì ưu tiên nhận diện là CUSTOMER
+      if (
+        (role === 'CUSTOMER' || rawRole === 'KHÁCH HÀNG' || rawRole === 'KHACH HANG' || rawRole === 'CUSTOMER' || chucVu === 'KHÁCH HÀNG' || chucVu === 'KHACH HANG') &&
+        username !== 'ADMIN' && maNV !== 'NV00' && maTK !== 'TK_ADMIN'
+      ) {
+        return 'CUSTOMER';
+      }
+
+      // 3. Quản lý chi nhánh (BRANCH_MANAGER)
       if (
         role === 'BRANCH_MANAGER' ||
         rawRole === 'BRANCH_MANAGER' ||
@@ -71,7 +79,7 @@
         return 'BRANCH_MANAGER';
       }
 
-      // 3. Thu ngân POS (CASHIER)
+      // 4. Thu ngân POS (CASHIER)
       if (
         role === 'CASHIER' ||
         rawRole === 'CASHIER' ||
@@ -79,17 +87,6 @@
         chucVu.includes('THU NGÂN') || chucVu.includes('THU NGAN') || chucVu.includes('TIẾP TÂN') || chucVu.includes('TIEP TAN') || chucVu.includes('CASHIER')
       ) {
         return 'CASHIER';
-      }
-
-      // 4. Nếu tài khoản thuần túy là Khách hàng (không mang chức vụ/vai trò nhân sự nào)
-      if (
-        (role === 'CUSTOMER' || rawRole === 'KHÁCH HÀNG' || rawRole === 'KHACH HANG') &&
-        !chucVu.includes('THỢ') && !chucVu.includes('THO') && !chucVu.includes('QUẢN LÝ') && !chucVu.includes('QUAN LY') && !chucVu.includes('THU NGÂN') && !chucVu.includes('THU NGAN') && !chucVu.includes('QUẢN TRỊ') && !chucVu.includes('QUAN TRI') &&
-        !rawRole.includes('THỢ') && !rawRole.includes('THO') && !rawRole.includes('QUẢN LÝ') && !rawRole.includes('QUAN LY') && !rawRole.includes('THU NGÂN') && !rawRole.includes('THU NGAN') && !rawRole.includes('QUẢN TRỊ') && !rawRole.includes('QUAN TRI') &&
-        username !== 'ADMIN' && maNV !== 'NV00' && maTK !== 'TK_ADMIN' &&
-        !maTK.startsWith('TK_NV') && !Boolean(maNV)
-      ) {
-        return 'CUSTOMER';
       }
 
       // 5. Thợ / Barber / Stylist / Nhân viên (BARBER)
@@ -107,7 +104,7 @@
         return 'BARBER';
       }
 
-      // 6. Khách hàng (CUSTOMER)
+      // 6. Khách hàng mặc định (CUSTOMER)
       return 'CUSTOMER';
     },
 
@@ -364,7 +361,14 @@
         u.role = newRole;
         u.VaiTro = roleMap[newRole] || newRole;
         u.roleName = roleMap[newRole] || newRole;
-        if (chucVuMap[newRole]) u.ChucVu = chucVuMap[newRole];
+        if (newRole === 'CUSTOMER') {
+          u.ChucVu = 'Khách hàng';
+          u.branchId = null;
+          u.branchName = 'Khách Hàng';
+          u.TenChiNhanh = 'Khách Hàng';
+        } else if (chucVuMap[newRole]) {
+          u.ChucVu = chucVuMap[newRole];
+        }
         if (window.store.saveState) window.store.saveState();
         if (typeof window.store.logAudit === 'function') {
           window.store.logAudit('UPDATE_USER_ROLE', `Tài khoản: ${u.username || u.TenDangNhap || userId}`, `Cập nhật vai trò sang: ${roleMap[newRole] || newRole}`);
@@ -1091,7 +1095,6 @@
                           <option value="BARBER">Thợ / Barber</option>
                           <option value="CASHIER">Thu Ngân POS</option>
                           <option value="BRANCH_MANAGER">Quản Lý Chi Nhánh</option>
-                          <option value="ADMIN">Quản Trị Viên</option>
                         </select>
                       </td>
                       <td style="padding: 12px 14px;">
@@ -1155,14 +1158,19 @@
                         </td>
                         <!-- Cột Vai trò điều khiển trực tiếp -->
                         <td style="padding: 12px 14px;">
-                          <select class="admin-table-inline-select" style="height: 30px; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 2px 8px; border: 1px solid var(--border-color); background: #1c1b18; color: var(--text-primary); cursor: pointer; width: 100%; max-width: 165px;"
-                                  onchange="AdminWeb.changeUserRoleDirect('${this.escapeHtml(String(uid).replace(/^#/, ""))}', this.value)">
-                            <option value="SUPER_ADMIN" ${roleCode === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên</option>
-                            <option value="BRANCH_MANAGER" ${roleCode === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh</option>
-                            <option value="CASHIER" ${roleCode === 'CASHIER' ? 'selected' : ''}>Thu Ngân POS</option>
-                            <option value="BARBER" ${roleCode === 'BARBER' ? 'selected' : ''}>Thợ / Barber</option>
-                            <option value="CUSTOMER" ${roleCode === 'CUSTOMER' ? 'selected' : ''}>Khách Hàng</option>
-                          </select>
+                          ${roleCode === 'SUPER_ADMIN' ? `
+                            <select class="admin-table-inline-select" style="height: 30px; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 2px 8px; border: 1px solid rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.12); color: #ef4444; cursor: not-allowed; width: 100%; max-width: 165px;" disabled title="Quản Trị Viên tối cao là vai trò cố định, không thể thay đổi">
+                              <option value="SUPER_ADMIN" selected>Quản Trị Viên</option>
+                            </select>
+                          ` : `
+                            <select class="admin-table-inline-select" style="height: 30px; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 2px 8px; border: 1px solid var(--border-color); background: #1c1b18; color: var(--text-primary); cursor: pointer; width: 100%; max-width: 165px;"
+                                    onchange="AdminWeb.changeUserRoleDirect('${this.escapeHtml(String(uid).replace(/^#/, ""))}', this.value)">
+                              <option value="BRANCH_MANAGER" ${roleCode === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh</option>
+                              <option value="CASHIER" ${roleCode === 'CASHIER' ? 'selected' : ''}>Thu Ngân POS</option>
+                              <option value="BARBER" ${roleCode === 'BARBER' || roleCode === 'STYLIST' ? 'selected' : ''}>Thợ / Barber</option>
+                              <option value="CUSTOMER" ${roleCode === 'CUSTOMER' ? 'selected' : ''}>Khách Hàng</option>
+                            </select>
+                          `}
                         </td>
                         <!-- Cột Cơ sở điều khiển trực tiếp -->
                         <td style="padding: 12px 14px;">

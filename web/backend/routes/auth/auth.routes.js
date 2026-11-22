@@ -83,6 +83,7 @@ async function handleAuthRoutes(req, res, ctx) {
         success: true,
         message: result.message || `Mã OTP xác thực đã được gửi tới ${target}. Mã có hiệu lực trong 5 phút.`,
         target,
+        otp: result.otp,
         expiresAt: result.expiresAt
       }));
     } catch (err) {

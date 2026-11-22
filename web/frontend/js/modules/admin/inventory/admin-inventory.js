@@ -1461,6 +1461,10 @@
 
     _setCategorySelectValue(catEl, product) {
       if (!catEl || !product) return;
+      if (!catEl.options || catEl.options.length === 0) {
+        catEl.innerHTML = this._renderProductCategoryOptions();
+      }
+
       const targetId = String(product.categoryId || product.MaDanhMuc || '').trim().toLowerCase();
       const targetName = String(product.category || product.categoryName || product.TenDanhMuc || product.NhomHang || '').trim().toLowerCase();
 
@@ -1502,18 +1506,7 @@
         }
       }
 
-      // 4. Nếu có tên danh mục mới chưa tồn tại trong danh sách -> tự động bổ sung option
-      const rawCustomName = (product.category || product.categoryName || product.TenDanhMuc || product.NhomHang || '').trim();
-      if (rawCustomName) {
-        const newOpt = document.createElement('option');
-        newOpt.value = product.categoryId || product.MaDanhMuc || rawCustomName;
-        newOpt.textContent = rawCustomName;
-        catEl.appendChild(newOpt);
-        catEl.selectedIndex = catEl.options.length - 1;
-        return;
-      }
-
-      // 5. Dự đoán từ tên sản phẩm nếu dữ liệu danh mục bị trống
+      // 4. Dự đoán từ tên sản phẩm nếu dữ liệu danh mục bị trống
       const pName = String(product.name || product.TenSanPham || '').toLowerCase();
       const keywordMap = [
         { kw: ['sáp', 'clay', 'wax'], id: 'DM01' },
@@ -1537,8 +1530,21 @@
         }
       }
 
+      // 5. Nếu có tên danh mục mới chưa tồn tại trong danh sách -> tự động bổ sung option
+      const rawCustomName = (product.category || product.categoryName || product.TenDanhMuc || product.NhomHang || '').trim();
+      if (rawCustomName) {
+        const newOpt = document.createElement('option');
+        newOpt.value = product.categoryId || product.MaDanhMuc || rawCustomName;
+        newOpt.textContent = rawCustomName;
+        catEl.appendChild(newOpt);
+        catEl.selectedIndex = catEl.options.length - 1;
+        return;
+      }
+
       // 6. Luôn đảm bảo chọn phần tử đầu tiên, tuyệt đối không để trống
-      catEl.selectedIndex = 0;
+      if (catEl.options.length > 0) {
+        catEl.selectedIndex = 0;
+      }
     },
 
     // Form chỉnh sửa sản phẩm bên dưới
@@ -1830,6 +1836,9 @@
       const catEl = document.getElementById('prodEditorCategory');
       if (catEl) {
         this._setCategorySelectValue(catEl, product);
+        if (catEl.selectedIndex < 0 && catEl.options.length > 0) {
+          catEl.selectedIndex = 0;
+        }
       }
 
       const statusEl = document.getElementById('prodEditorStatus');

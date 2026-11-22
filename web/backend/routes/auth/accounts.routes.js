@@ -162,10 +162,56 @@ async function handleAccountsRoutes(req, res, ctx) {
     const { role, vaiTro } = body;
     const roleKey = (role || '').toString().trim().toUpperCase();
 
-    const finalVaiTro = vaiTro || ROLE_SQL_MAP[roleKey] || role || 'Khách hàng';
+    // Ràng buộc bảo vệ: Không cho phép gán vai trò Quản Trị Viên (SUPER_ADMIN) từ giao diện
+    if (roleKey === 'SUPER_ADMIN' || roleKey === 'ADMIN' || (vaiTro && vaiTro.toLowerCase().includes('quản trị'))) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không được phép cấp vai trò Quản Trị Viên tối cao.' }));
+      return true;
+    }
+
+    const isCustomer = (roleKey === 'CUSTOMER' || (vaiTro && vaiTro.toLowerCase().includes('khách')));
+    const finalVaiTro = isCustomer ? 'Khách hàng' : (vaiTro || ROLE_SQL_MAP[roleKey] || role || 'Khách hàng');
 
     try {
-      await querySql('UPDATE TaiKhoan SET VaiTro = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, userId, userId]);
+      if (isCustomer) {
+        // Chuyển nhân viên sang Khách hàng: Cập nhật VaiTro = N'Khách hàng', đảm bảo liên kết MaKhachHang
+        const tkRows = await querySql(`
+          SELECT tk.MaTaiKhoan, tk.MaKhachHang, tk.MaNhanVien,
+                 nv.HoTen AS HoTenNV, nv.SoDienThoai AS SdtNV, nv.Email AS EmailNV
+          FROM TaiKhoan tk
+          LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
+          WHERE tk.MaTaiKhoan = ? OR tk.TenDangNhap = ?
+        `, [userId, userId]);
+
+        if (tkRows && tkRows.length > 0) {
+          const tk = tkRows[0];
+          let khId = tk.MaKhachHang;
+          if (!khId) {
+            const maxKhRows = await querySql("SELECT MAX(CAST(SUBSTRING(MaKhachHang, 3, 10) AS INT)) AS maxKh FROM KhachHang WHERE MaKhachHang LIKE 'KH%'");
+            const nextKhNum = (maxKhRows?.[0]?.maxKh || 20) + 1;
+            khId = 'KH' + (nextKhNum < 10 ? '0' + nextKhNum : nextKhNum);
+            await querySql(
+              'INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email) VALUES (?, ?, ?, ?)',
+              [khId, tk.HoTenNV || 'Khách Hàng', tk.SdtNV || null, tk.EmailNV || null]
+            ).catch(() => {});
+          }
+          await querySql('UPDATE TaiKhoan SET VaiTro = N\'Khách hàng\', MaKhachHang = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [khId, userId, userId]);
+          if (tk.MaNhanVien) {
+            await querySql('UPDATE NhanVien SET ChucVu = N\'Khách hàng\' WHERE MaNhanVien = ?', [tk.MaNhanVien]).catch(() => {});
+          }
+        } else {
+          await querySql('UPDATE TaiKhoan SET VaiTro = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, userId, userId]);
+        }
+      } else {
+        const staffChucVu = roleKey === 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' : (roleKey === 'CASHIER' ? 'Thu ngân' : 'Thợ chính');
+        await querySql('UPDATE TaiKhoan SET VaiTro = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, userId, userId]);
+        const tkRows = await querySql('SELECT MaNhanVien FROM TaiKhoan WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [userId, userId]);
+        if (tkRows?.[0]?.MaNhanVien) {
+          await querySql('UPDATE NhanVien SET ChucVu = ? WHERE MaNhanVien = ?', [staffChucVu, tkRows[0].MaNhanVien]).catch(() => {});
+        }
+      }
+
+      clearDbSnapshotCache();
       const authUser = extractAuthUser(req);
       auditService.logAudit({
         actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
@@ -173,15 +219,16 @@ async function handleAccountsRoutes(req, res, ctx) {
         action: 'UPDATE_USER_ROLE',
         entityType: 'TaiKhoan',
         entityId: userId,
-        after: { vaiTro: finalVaiTro, role },
+        after: { vaiTro: finalVaiTro, role: isCustomer ? 'CUSTOMER' : roleKey },
         details: `Phân quyền tài khoản ${userId} thành ${finalVaiTro}`
       }).catch(() => {});
     } catch (err) {
       console.warn('SQL update TaiKhoan failed, proceeding with memory state:', err.message);
     }
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Phan quyen tai khoan thanh cong', userId, vaiTro: finalVaiTro }));
+    res.end(JSON.stringify({ success: true, message: 'Phân quyền tài khoản thành công', userId, vaiTro: finalVaiTro }));
     return true;
   }
 

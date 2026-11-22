@@ -538,7 +538,8 @@
     static async syncWithServer() {
       try {
         if (typeof fetch === 'function') {
-          const res = await fetch('/api/accounts');
+          const accUrl = (typeof location !== 'undefined' && location.port === '3000') ? '/api/accounts' : 'http://localhost:3000/api/accounts';
+          const res = await fetch(accUrl);
           if (res && res.ok) {
             const list = await res.json();
             if (Array.isArray(list) && list.length > 0) {
@@ -884,7 +885,8 @@
     async syncCurrentUserWithServer() {
       if (!this.accessToken) return;
       try {
-        const res = await fetch('/api/auth/me', {
+        const meUrl = (typeof location !== 'undefined' && location.port === '3000') ? '/api/auth/me' : 'http://localhost:3000/api/auth/me';
+        const res = await fetch(meUrl, {
           headers: {
             'Authorization': `Bearer ${this.accessToken}`
           }

@@ -73,7 +73,15 @@ function resolveUserRole(u) {
     return 'SUPER_ADMIN';
   }
 
-  // 2. Quản lý chi nhánh (BRANCH_MANAGER)
+  // 2. Khách hàng: Nếu vai trò hoặc chức vụ được chỉ định là Khách hàng thì ưu tiên nhận diện là CUSTOMER
+  if (
+    (role === 'CUSTOMER' || rawRole === 'KHÁCH HÀNG' || rawRole === 'KHACH HANG' || rawRole === 'CUSTOMER' || chucVu === 'KHÁCH HÀNG' || chucVu === 'KHACH HANG') &&
+    username !== 'ADMIN' && maNV !== 'NV00' && maTK !== 'TK_ADMIN'
+  ) {
+    return 'CUSTOMER';
+  }
+
+  // 3. Quản lý chi nhánh (BRANCH_MANAGER)
   if (
     role === 'BRANCH_MANAGER' ||
     rawRole === 'BRANCH_MANAGER' ||
@@ -83,7 +91,7 @@ function resolveUserRole(u) {
     return 'BRANCH_MANAGER';
   }
 
-  // 3. Thu ngân POS (CASHIER)
+  // 4. Thu ngân POS (CASHIER)
   if (
     role === 'CASHIER' ||
     rawRole === 'CASHIER' ||
@@ -91,17 +99,6 @@ function resolveUserRole(u) {
     chucVu.includes('THU NGÂN') || chucVu.includes('THU NGAN') || chucVu.includes('TIẾP TÂN') || chucVu.includes('TIEP TAN') || chucVu.includes('CASHIER')
   ) {
     return 'CASHIER';
-  }
-
-  // 4. Nếu tài khoản thuần túy là Khách hàng (không có chức vụ/vai trò nhân sự nào)
-  if (
-    (role === 'CUSTOMER' || rawRole === 'KHÁCH HÀNG' || rawRole === 'KHACH HANG') &&
-    !chucVu.includes('THỢ') && !chucVu.includes('THO') && !chucVu.includes('QUẢN LÝ') && !chucVu.includes('QUAN LY') && !chucVu.includes('THU NGÂN') && !chucVu.includes('THU NGAN') && !chucVu.includes('QUẢN TRỊ') && !chucVu.includes('QUAN TRI') &&
-    !rawRole.includes('THỢ') && !rawRole.includes('THO') && !rawRole.includes('QUẢN LÝ') && !rawRole.includes('QUAN LY') && !rawRole.includes('THU NGÂN') && !rawRole.includes('THU NGAN') && !rawRole.includes('QUẢN TRỊ') && !rawRole.includes('QUAN TRI') &&
-    username !== 'ADMIN' && maNV !== 'NV00' && maTK !== 'TK_ADMIN' &&
-    !maTK.startsWith('TK_NV') && !Boolean(maNV)
-  ) {
-    return 'CUSTOMER';
   }
 
   // 5. Thợ / Barber / Stylist / Kỹ thuật viên (BARBER)

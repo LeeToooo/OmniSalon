@@ -31,7 +31,9 @@ jobs:
           if [ -d "DataPicture" ]; then
             cp -r DataPicture _site/DataPicture
           fi
-          if [ -d "Men_Grooming_Products" ]; then
+          if [ -d "DataPicture/Men_Grooming_Products" ]; then
+            cp -r DataPicture/Men_Grooming_Products _site/Men_Grooming_Products
+          elif [ -d "Men_Grooming_Products" ]; then
             cp -r Men_Grooming_Products _site/Men_Grooming_Products
           fi
 

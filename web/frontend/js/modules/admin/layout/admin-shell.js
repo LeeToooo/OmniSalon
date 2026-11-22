@@ -97,15 +97,16 @@
       }
       if (!resolvedBranchName && user?.branchName && typeof user.branchName === 'string') {
         const ubn = user.branchName.trim();
-        if (ubn && ubn !== 'Chi Nhánh OmniSalon' && ubn !== 'Omni Salon Barber' && ubn !== 'Toàn Bộ Hệ Thống Salon' && !ubn.startsWith('Omni Salon Barber CN')) {
+        if (ubn && ubn !== 'Chi Nhánh OmniSalon' && ubn !== 'Omni Salon Barber' && ubn !== 'Toàn Bộ Hệ Thống Salon') {
           resolvedBranchName = ubn;
         }
       }
       if (!resolvedBranchName && userBranchId) {
-        resolvedBranchName = this._getBranchShortName(userBranchId, branchMap);
+        resolvedBranchName = (typeof BRANCH_SQL_MAP !== 'undefined' && BRANCH_SQL_MAP[userBranchId]) || this._getBranchShortName(userBranchId, branchMap);
       }
       if (!resolvedBranchName || /^CN\d+$/i.test(resolvedBranchName)) {
-        resolvedBranchName = 'Omni Salon Barber Q1 - Bến Thành';
+        const fallbackBid = (userBranchId && userBranchId !== 'ALL') ? userBranchId : 'CN01';
+        resolvedBranchName = (typeof BRANCH_SQL_MAP !== 'undefined' && BRANCH_SQL_MAP[fallbackBid]) || this._getBranchShortName(fallbackBid, branchMap) || 'Omni Salon Barber Q1 - Bến Thành';
       }
 
       const branchName = (this.isBranchManager(user) || this.isCashier(user) || this.isStylist(user))
@@ -476,6 +477,45 @@
         return full;
       }
       return trimmed || 'Omni Salon Barber Q1 - Bến Thành';
+    },
+
+    updateHeaderBranchDisplay() {
+      const user = this.getCurrentUser();
+      const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
+      const branchMap = new Map();
+      branches.forEach(b => {
+        if (b.id) branchMap.set(b.id, b);
+        if (b.MaChiNhanh) branchMap.set(b.MaChiNhanh, b);
+      });
+      const userBranchId = (user?.branchId && user.branchId !== 'ALL') ? user.branchId : (user?.MaChiNhanh || null);
+      let resolvedBranchName = '';
+      if (userBranchId && branchMap.has(userBranchId)) {
+        const b = branchMap.get(userBranchId);
+        resolvedBranchName = (b.TenChiNhanh || b.name || '').trim();
+      }
+      if (!resolvedBranchName && user?.branchName && typeof user.branchName === 'string') {
+        const ubn = user.branchName.trim();
+        if (ubn && ubn !== 'Chi Nhánh OmniSalon' && ubn !== 'Omni Salon Barber' && ubn !== 'Toàn Bộ Hệ Thống Salon') {
+          resolvedBranchName = ubn;
+        }
+      }
+      if (!resolvedBranchName && userBranchId) {
+        resolvedBranchName = (typeof BRANCH_SQL_MAP !== 'undefined' && BRANCH_SQL_MAP[userBranchId]) || this._getBranchShortName(userBranchId, branchMap);
+      }
+      if (!resolvedBranchName || /^CN\d+$/i.test(resolvedBranchName)) {
+        const fallbackBid = (userBranchId && userBranchId !== 'ALL') ? userBranchId : 'CN01';
+        resolvedBranchName = (typeof BRANCH_SQL_MAP !== 'undefined' && BRANCH_SQL_MAP[fallbackBid]) || this._getBranchShortName(fallbackBid, branchMap) || 'Omni Salon Barber Q1 - Bến Thành';
+      }
+
+      const branchName = (this.isBranchManager(user) || this.isCashier(user) || this.isStylist(user))
+        ? resolvedBranchName
+        : `Toàn Hệ Thống Cơ Sở`;
+
+      const branchEls = document.querySelectorAll('.admin-sidebar-branch-text');
+      branchEls.forEach(el => {
+        el.textContent = branchName;
+        el.title = branchName;
+      });
     },
 
     goToReceptionCheckin(stylistId = null) {
