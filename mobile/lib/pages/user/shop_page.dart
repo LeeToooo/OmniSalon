@@ -718,6 +718,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   final _categories = [
     {'id': 'all', 'name': 'Tất Cả'},
+    {'id': 'fefo_expiry', 'name': '🔥 Đang giảm giá'},
     {'id': 'DM01', 'name': 'Sáp & Clay'},
     {'id': 'DM02', 'name': 'Pomade'},
     {'id': 'DM03', 'name': 'Pre-Styling'},
@@ -771,7 +772,10 @@ class _ShopScreenState extends State<ShopScreen> {
 
       // 2. Lọc theo danh mục
       if (_selectedCategory != 'all') {
-        if (_selectedCategory == 'bestsellers') {
+        if (_selectedCategory == 'fefo_expiry' || _selectedCategory == 'discount') {
+          final bool isDiscounted = p.discountPercent > 0 || p.hasDiscount || (p.originalPrice > p.actualPrice && p.actualPrice > 0);
+          if (!isDiscounted) return false;
+        } else if (_selectedCategory == 'bestsellers') {
           if (p.discountPercent == 0 && !p.name.toLowerCase().contains('volcanic') && !p.name.toLowerCase().contains('claymation')) {
             return false;
           }
@@ -798,7 +802,8 @@ class _ShopScreenState extends State<ShopScreen> {
 
       // 5. Lọc sản phẩm đang giảm giá khi chọn 'discount'
       if (_sortOption == 'discount') {
-        if (!p.hasDiscount && p.discountPercent <= 0 && p.actualPrice >= p.originalPrice) {
+        final bool isDiscounted = p.discountPercent > 0 || p.hasDiscount || (p.originalPrice > p.actualPrice && p.actualPrice > 0);
+        if (!isDiscounted) {
           return false;
         }
       }
@@ -811,7 +816,9 @@ class _ShopScreenState extends State<ShopScreen> {
         } else if (_sortOption == 'price_desc') {
           return b.actualPrice.compareTo(a.actualPrice);
         } else if (_sortOption == 'discount') {
-          return b.discountPercent.compareTo(a.discountPercent);
+          final cmp = b.discountPercent.compareTo(a.discountPercent);
+          if (cmp != 0) return cmp;
+          return a.actualPrice.compareTo(b.actualPrice);
         }
         return 0;
       });
@@ -1755,7 +1762,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   fit: StackFit.expand,
                   children: [
                     const EditorialImage(
-                      imageUrl: 'assets/hairstyles/sidepart-gentleman.jpg',
+                      imageUrl: 'DataPicture/DichVu_Men/CBDV1.jpg',
                       fit: BoxFit.cover,
                     ),
                     Container(
@@ -1820,7 +1827,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         fit: StackFit.expand,
                         children: [
                           const EditorialImage(
-                            imageUrl: 'assets/hairstyles/short-quiff.jpg',
+                            imageUrl: 'DataPicture/DichVu_Men/CBDV3.jpg',
                             fit: BoxFit.cover,
                           ),
                           Container(
@@ -1857,7 +1864,10 @@ class _ShopScreenState extends State<ShopScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _sortOption = 'discount'),
+                  onTap: () => setState(() {
+                    _sortOption = 'discount';
+                    _selectedCategory = 'fefo_expiry';
+                  }),
                   child: Container(
                     height: 110,
                     decoration: BoxDecoration(
@@ -1870,7 +1880,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         fit: StackFit.expand,
                         children: [
                           const EditorialImage(
-                            imageUrl: 'assets/hairstyles/pompadour-luxury.jpg',
+                            imageUrl: 'DataPicture/DichVu_Men/CBDV4.jpg',
                             fit: BoxFit.cover,
                           ),
                           Container(
@@ -1938,7 +1948,7 @@ class _ShopScreenState extends State<ShopScreen> {
               fit: StackFit.expand,
               children: [
                 const EditorialImage(
-                  imageUrl: 'assets/hairstyles/undercut-slick.jpg',
+                  imageUrl: 'DataPicture/DichVu_Men/DV7.jpg',
                   fit: BoxFit.cover,
                 ),
                 Container(
@@ -1983,6 +1993,7 @@ class _ShopScreenState extends State<ShopScreen> {
   // CHẾ ĐỘ BỘ LỌC, FILTERED GRID VIEW
   // =========================================================================
   Widget _buildFilteredGridView(List<Product> filtered) {
+    final bool isDiscountFiltering = _sortOption == 'discount' || _selectedCategory == 'fefo_expiry';
     return Column(
       children: [
         // Thanh thông tin bộ lọc & nút quay lại Lookbook
@@ -1992,9 +2003,34 @@ class _ShopScreenState extends State<ShopScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  'Hiển thị: ${filtered.length} sản phẩm',
-                  style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                child: Row(
+                  children: [
+                    if (isDiscountFiltering) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.statusDanger.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.statusDanger.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('🔥 ', style: TextStyle(fontSize: 10)),
+                            Text(
+                              'Đang giảm giá',
+                              style: AppTheme.labelUppercase(fontSize: 9.5, color: AppTheme.statusDanger),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    Text(
+                      'Hiển thị: ${filtered.length} sản phẩm',
+                      style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
               ),
               GestureDetector(

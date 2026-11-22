@@ -1,4 +1,5 @@
 import 'package:omni_salon_mobile/core/auth/auth_service.dart';
+import 'package:omni_salon_mobile/core/api/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
 import 'package:omni_salon_mobile/pages/auth/login_page.dart';
@@ -706,8 +707,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6),
-                    child: Image.asset(
-                      'assets/hairstyles/sidepart-gentleman.jpg',
+                    child: Image.network(
+                      ApiService.getImageUrl('DataPicture/DichVu_Men/CBDV1.jpg'),
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,

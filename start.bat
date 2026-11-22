@@ -143,7 +143,7 @@ if errorlevel 1 (
     echo [*] Đang khởi động Backend Server ngầm trên cổng 3000...
     net start MSSQL$SQLEXPRESS >nul 2>&1
     net start MSSQLSERVER >nul 2>&1
-    start "OmniSalon API" /min cmd /c "node "%~dp0web\backend\server.js""
+    start "OmniSalon API" /min cmd /c node "%~dp0web\backend\server.js"
     timeout /t 2 /nobreak >nul
 ) else (
     echo [*] Máy chủ API Backend đang sẵn sàng trên cổng 3000.
@@ -164,25 +164,29 @@ if "%dev_choice%"=="" set "dev_choice=1"
 
 cd /d "%~dp0mobile"
 
-if "%dev_choice%"=="3" (
-    echo [*] Đang khởi chạy trên Android...
-    flutter run -d android
-    goto EXIT_SCRIPT
-)
-if "%dev_choice%"=="2" (
-    echo [*] Đang khởi chạy trên Windows Desktop...
-    flutter run -d windows
-    if errorlevel 1 (
-        echo.
-        echo [CẢNH BÁO] Không thể chạy Windows Desktop (Cần bật Developer Mode).
-        echo [*] Đang tự động chuyển sang Google Chrome...
-        flutter run -d chrome
-    )
-    goto EXIT_SCRIPT
-)
+if "%dev_choice%"=="3" goto RUN_DEV_ANDROID
+if "%dev_choice%"=="2" goto RUN_DEV_WINDOWS
+goto RUN_DEV_CHROME
 
+:RUN_DEV_ANDROID
+echo [*] Đang khởi chạy trên Android...
+call flutter run -d android
+goto EXIT_SCRIPT
+
+:RUN_DEV_WINDOWS
+echo [*] Đang khởi chạy trên Windows Desktop...
+call flutter run -d windows
+if errorlevel 1 (
+    echo.
+    echo [CẢNH BÁO] Không thể chạy Windows Desktop - Cần bật Developer Mode.
+    echo [*] Đang tự động chuyển sang Google Chrome...
+    call flutter run -d chrome
+)
+goto EXIT_SCRIPT
+
+:RUN_DEV_CHROME
 echo [*] Đang khởi chạy trên Google Chrome...
-flutter run -d chrome
+call flutter run -d chrome
 goto EXIT_SCRIPT
 
 REM ===================================================
@@ -207,4 +211,5 @@ echo.
 echo ==================================================
 echo [THÔNG BÁO] Phiên làm việc đã kết thúc.
 echo ==================================================
+pause
 exit /b 0

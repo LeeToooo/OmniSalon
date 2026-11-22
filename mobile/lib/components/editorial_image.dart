@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
+import 'package:omni_salon_mobile/core/api/api_service.dart';
 
 class EditorialImage extends StatelessWidget {
   final String imageUrl;
@@ -50,15 +51,7 @@ class EditorialImage extends StatelessWidget {
       } catch (_) {
         imageWidget = _buildPlaceholder();
       }
-    } else if (cleanUrl.startsWith('assets/')) {
-      imageWidget = Image.asset(
-        cleanUrl,
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: (_, __, ___) => _buildPlaceholder(),
-      );
-    } else {
+    } else if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
       final int? targetCacheWidth =
           (!kIsWeb && width != null && width!.isFinite && width! > 0)
               ? (width! * 2).clamp(160, 1200).toInt()
@@ -80,6 +73,21 @@ class EditorialImage extends StatelessWidget {
           return _buildPlaceholder();
         },
       );
+    } else {
+      final networkUrl = ApiService.getImageUrl(cleanUrl);
+      if (networkUrl.isNotEmpty &&
+          (networkUrl.startsWith('http://') ||
+              networkUrl.startsWith('https://'))) {
+        imageWidget = Image.network(
+          networkUrl,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+        );
+      } else {
+        imageWidget = _buildPlaceholder();
+      }
     }
 
     if (overlay != null) {

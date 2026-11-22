@@ -51,7 +51,7 @@ class ApiService {
       return Uri.encodeFull(trimmed);
     }
 
-    if (trimmed.startsWith('assets/')) {
+    if (trimmed.startsWith('assets/banners/') || trimmed.startsWith('assets/images/')) {
       return trimmed;
     }
 
@@ -72,7 +72,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/health'))
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes));
       }
@@ -85,7 +85,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/branches'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data
@@ -104,7 +104,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/services'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         allServices.addAll(data.map(
@@ -117,7 +117,7 @@ class ApiService {
     try {
       final resCombo = await http
           .get(Uri.parse('$baseUrl/combos'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (resCombo.statusCode == 200) {
         final List comboData = jsonDecode(utf8.decode(resCombo.bodyBytes));
         allServices.addAll(comboData.map((json) {
@@ -140,7 +140,7 @@ class ApiService {
           ? '$baseUrl/stylists?branch_id=$branchId'
           : '$baseUrl/stylists';
       final res =
-          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data
@@ -179,7 +179,7 @@ class ApiService {
             Uri.parse(
                 '$baseUrl/bookings/available-slots?date=$date&stylistId=$stylistId'),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data
@@ -207,7 +207,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/products'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         products = data
@@ -237,7 +237,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/bookings'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data
@@ -270,7 +270,7 @@ class ApiService {
             Uri.parse(
                 '$baseUrl/bookings/lookup?q=${Uri.encodeComponent(clean)}'),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data
@@ -318,7 +318,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(booking.toJson()),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200 || res.statusCode == 201) {
         final data = jsonDecode(utf8.decode(res.bodyBytes));
         String finalCode = booking.bookingCode;
@@ -362,7 +362,7 @@ class ApiService {
               if (stylistId != null) 'stylistId': stylistId,
             }),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       return res.statusCode == 200;
     } catch (e) {
       debugPrint('[ApiService] updateBookingStatus error: $e');
@@ -387,7 +387,7 @@ class ApiService {
             body: jsonEncode(
                 {'date': newDate, 'timeSlot': newTime, 'status': 'Confirmed'}),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       return res.statusCode == 200;
     } catch (e) {
       debugPrint('[ApiService] rescheduleBooking error: $e');
@@ -400,7 +400,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/orders'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data
@@ -422,7 +422,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(order.toJson()),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 200 || res.statusCode == 201) {
         final data = jsonDecode(utf8.decode(res.bodyBytes));
@@ -456,7 +456,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'reason': reason}),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
       return res.statusCode == 200;
     } catch (e) {
       debugPrint('[ApiService] cancelOrder error: $e');
@@ -489,7 +489,7 @@ class ApiService {
               if (customerPhone != null) 'customerPhone': customerPhone,
             }),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
       return res.statusCode == 200 || res.statusCode == 201;
     } catch (e) {
       debugPrint('[ApiService] submitReview error: $e');
@@ -525,7 +525,7 @@ class ApiService {
       final queryStr = params.isNotEmpty ? '?${params.join('&')}' : '';
       final res = await http
           .get(Uri.parse('$baseUrl/reviews$queryStr'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data.map((e) => Map<String, dynamic>.from(e)).toList();
@@ -541,7 +541,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/promotions'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data.cast<Map<String, dynamic>>();
@@ -561,7 +561,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(reviewData),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       return res.statusCode == 200 || res.statusCode == 201;
     } catch (e) {
       debugPrint('[ApiService] createReview error: $e');
@@ -574,7 +574,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/notifications'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
         return data.cast<Map<String, dynamic>>();
@@ -591,7 +591,7 @@ class ApiService {
       final res = await http.put(
         Uri.parse('$baseUrl/notifications/$notifId/read'),
         headers: {'Content-Type': 'application/json'},
-      ).timeout(const Duration(seconds: 3));
+      ).timeout(const Duration(seconds: 10));
       return res.statusCode == 200;
     } catch (e) {
       debugPrint('[ApiService] markNotificationRead error: $e');
@@ -609,7 +609,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'image': imageBase64OrUrl}),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
@@ -699,7 +699,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/payment/check-status/$orderId'))
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
       }
