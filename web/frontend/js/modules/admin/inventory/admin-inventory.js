@@ -239,7 +239,7 @@
                     const pImg = SalonUtils.formatImageUrl(item.image || item.HinhAnh);
                     const pName = item.productName || item.name || 'Sản phẩm';
                     const pBrand = item.brand || 'CHÍNH HÃNG';
-                    const pCategory = item.category || item.NhomHang || 'Chăm sóc nam';
+                    const pCategory = this.getCategoryName(item.categoryId || item.MaDanhMuc || item.category || item.categoryName || item.TenDanhMuc || item.NhomHang);
 
                     return `
                       <tr class="admin-inventory-table-row"
@@ -1424,6 +1424,123 @@
     },
 
     
+    getCategoryName(catIdOrName) {
+      if (!catIdOrName) return 'Sáp vuốt tóc - Clay & Wax';
+      const str = String(catIdOrName).trim();
+      const categories = (window.store && typeof window.store.getCategories === 'function') ? window.store.getCategories() : [];
+      const found = categories.find(c => 
+        String(c.id || '').toLowerCase() === str.toLowerCase() ||
+        String(c.MaDanhMuc || '').toLowerCase() === str.toLowerCase() ||
+        String(c.name || '').toLowerCase() === str.toLowerCase() ||
+        String(c.TenDanhMuc || '').toLowerCase() === str.toLowerCase()
+      );
+      if (found) return found.name || found.TenDanhMuc || str;
+      return str;
+    },
+
+    _renderProductCategoryOptions() {
+      const storeCats = (window.store && typeof window.store.getCategories === 'function') ? window.store.getCategories() : [];
+      const fallbackCategories = [
+        { id: 'DM01', MaDanhMuc: 'DM01', name: 'Sáp vuốt tóc - Clay & Wax' },
+        { id: 'DM02', MaDanhMuc: 'DM02', name: 'Pomade cổ điển & hiện đại' },
+        { id: 'DM03', MaDanhMuc: 'DM03', name: 'Xịt tạo phồng & Pre-Styling' },
+        { id: 'DM04', MaDanhMuc: 'DM04', name: 'Gôm xịt giữ nếp tóc nam' },
+        { id: 'DM05', MaDanhMuc: 'DM05', name: 'Dầu gội & xả nam - trị gàu' },
+        { id: 'DM06', MaDanhMuc: 'DM06', name: 'Bột tạo phồng' },
+        { id: 'DM07', MaDanhMuc: 'DM07', name: 'Thuốc uốn lạnh & ép side' },
+        { id: 'DM08', MaDanhMuc: 'DM08', name: 'Chăm sóc râu - Beard Care' },
+        { id: 'DM09', MaDanhMuc: 'DM09', name: 'Dụng cụ tạo kiểu nam' }
+      ];
+      const list = (Array.isArray(storeCats) && storeCats.length > 0) ? storeCats : fallbackCategories;
+      return list.map(c => {
+        const id = c.id || c.MaDanhMuc || 'DM01';
+        const name = c.name || c.TenDanhMuc || id;
+        return `<option value="${id}">${this.escapeHtml(name)}</option>`;
+      }).join('\n                        ');
+    },
+
+    _setCategorySelectValue(catEl, product) {
+      if (!catEl || !product) return;
+      const targetId = String(product.categoryId || product.MaDanhMuc || '').trim().toLowerCase();
+      const targetName = String(product.category || product.categoryName || product.TenDanhMuc || product.NhomHang || '').trim().toLowerCase();
+
+      // 1. Tìm chính xác theo ID danh mục (DM01..DM09) hoặc value option
+      if (targetId) {
+        for (let i = 0; i < catEl.options.length; i++) {
+          const val = String(catEl.options[i].value || '').trim().toLowerCase();
+          if (val === targetId) {
+            catEl.selectedIndex = i;
+            return;
+          }
+        }
+      }
+
+      // 2. Tìm chính xác theo tên danh mục
+      if (targetName) {
+        for (let i = 0; i < catEl.options.length; i++) {
+          const val = String(catEl.options[i].value || '').trim().toLowerCase();
+          const txt = String(catEl.options[i].text || '').trim().toLowerCase();
+          if (val === targetName || txt === targetName) {
+            catEl.selectedIndex = i;
+            return;
+          }
+        }
+      }
+
+      // 3. Khớp mờ theo chuỗi từ khóa danh mục
+      if (targetName || targetId) {
+        for (let i = 0; i < catEl.options.length; i++) {
+          const txt = String(catEl.options[i].text || '').trim().toLowerCase();
+          if (targetName && (txt.includes(targetName) || targetName.includes(txt))) {
+            catEl.selectedIndex = i;
+            return;
+          }
+          if (targetId && txt.includes(targetId)) {
+            catEl.selectedIndex = i;
+            return;
+          }
+        }
+      }
+
+      // 4. Nếu có tên danh mục mới chưa tồn tại trong danh sách -> tự động bổ sung option
+      const rawCustomName = (product.category || product.categoryName || product.TenDanhMuc || product.NhomHang || '').trim();
+      if (rawCustomName) {
+        const newOpt = document.createElement('option');
+        newOpt.value = product.categoryId || product.MaDanhMuc || rawCustomName;
+        newOpt.textContent = rawCustomName;
+        catEl.appendChild(newOpt);
+        catEl.selectedIndex = catEl.options.length - 1;
+        return;
+      }
+
+      // 5. Dự đoán từ tên sản phẩm nếu dữ liệu danh mục bị trống
+      const pName = String(product.name || product.TenSanPham || '').toLowerCase();
+      const keywordMap = [
+        { kw: ['sáp', 'clay', 'wax'], id: 'DM01' },
+        { kw: ['pomade'], id: 'DM02' },
+        { kw: ['xịt', 'pre-styling', 'tonic'], id: 'DM03' },
+        { kw: ['gôm', 'hairspray'], id: 'DM04' },
+        { kw: ['gội', 'xả', 'shampoo', 'conditioner'], id: 'DM05' },
+        { kw: ['bột', 'powder'], id: 'DM06' },
+        { kw: ['uốn', 'ép side', 'perm'], id: 'DM07' },
+        { kw: ['râu', 'beard', 'shave'], id: 'DM08' },
+        { kw: ['lược', 'máy sấy', 'dụng cụ', 'kéo', 'tông đơ'], id: 'DM09' }
+      ];
+      for (const item of keywordMap) {
+        if (item.kw.some(k => pName.includes(k))) {
+          for (let i = 0; i < catEl.options.length; i++) {
+            if (String(catEl.options[i].value || '').toLowerCase() === item.id.toLowerCase()) {
+              catEl.selectedIndex = i;
+              return;
+            }
+          }
+        }
+      }
+
+      // 6. Luôn đảm bảo chọn phần tử đầu tiên, tuyệt đối không để trống
+      catEl.selectedIndex = 0;
+    },
+
     // Form chỉnh sửa sản phẩm bên dưới
     _renderProductBottomEditor() {
       const productPresets = [
@@ -1495,12 +1612,7 @@
                       <select id="prodEditorCategory" class="admin-select-filter" 
                               style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;" 
                               onchange="AdminWeb.syncProductPreviewCard();" required>
-                        <option value="Sáp & Pomade">Sáp &amp; Pomade</option>
-                        <option value="Dầu Gội & Xả">Dầu Gội &amp; Xả</option>
-                        <option value="Dưỡng Tóc & Tạo Kiểu">Dưỡng Tóc &amp; Tạo Kiểu</option>
-                        <option value="Nước Hoa Nam">Nước Hoa Nam</option>
-                        <option value="Chăm Sóc Râu & Da Mặt">Chăm Sóc Râu &amp; Da Mặt</option>
-                        <option value="Chăm sóc nam">Chăm sóc nam</option>
+                        ${this._renderProductCategoryOptions()}
                       </select>
                     </div>
                     <div>
@@ -1716,7 +1828,9 @@
       if (brandEl) brandEl.value = product.brand || 'CHÍNH HÃNG';
 
       const catEl = document.getElementById('prodEditorCategory');
-      if (catEl) catEl.value = product.category || product.NhomHang || 'Sáp & Pomade';
+      if (catEl) {
+        this._setCategorySelectValue(catEl, product);
+      }
 
       const statusEl = document.getElementById('prodEditorStatus');
       if (statusEl) {
@@ -1760,6 +1874,8 @@
       if (imgEl) imgEl.value = '01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
       const brandEl = document.getElementById('prodEditorBrand');
       if (brandEl) brandEl.value = 'CHÍNH HÃNG';
+      const catEl = document.getElementById('prodEditorCategory');
+      if (catEl) catEl.selectedIndex = 0;
       const stockEl = document.getElementById('prodEditorStock');
       if (stockEl) stockEl.value = '25';
       this.syncProductPreviewCard();
@@ -1768,7 +1884,8 @@
     syncProductPreviewCard() {
       const name = document.getElementById('prodEditorName')?.value || 'Tên Sản Phẩm Demo';
       const brand = document.getElementById('prodEditorBrand')?.value || 'CHÍNH HÃNG';
-      const category = document.getElementById('prodEditorCategory')?.value || 'Sáp & Pomade';
+      const catEl = document.getElementById('prodEditorCategory');
+      const category = (catEl && catEl.selectedIndex >= 0) ? (catEl.options[catEl.selectedIndex].text || catEl.value) : 'Sáp vuốt tóc - Clay & Wax';
       const price = Number(document.getElementById('prodEditorPrice')?.value) || 0;
       const cost = Number(document.getElementById('prodEditorCostPrice')?.value) || 0;
       const stock = parseInt(document.getElementById('prodEditorStock')?.value) || 0;
@@ -1825,7 +1942,9 @@
       const prodId = document.getElementById('prodEditorId')?.value || '';
       const name = (document.getElementById('prodEditorName')?.value || '').trim();
       const brand = (document.getElementById('prodEditorBrand')?.value || '').trim();
-      const category = (document.getElementById('prodEditorCategory')?.value || 'Sáp & Pomade').trim();
+      const catEl = document.getElementById('prodEditorCategory');
+      const categoryId = catEl?.value || 'DM01';
+      const categoryName = (catEl && catEl.selectedIndex >= 0) ? (catEl.options[catEl.selectedIndex].text || categoryId) : 'Sáp vuốt tóc - Clay & Wax';
       const status = (document.getElementById('prodEditorStatus')?.value || 'Đang kinh doanh').trim();
       const price = Number(document.getElementById('prodEditorPrice')?.value) || 0;
       const costPrice = Number(document.getElementById('prodEditorCostPrice')?.value) || Math.round(price * 0.7);
@@ -1839,17 +1958,36 @@
       }
 
       const activeBranchId = this._getActiveBranchId();
+      const productPayload = {
+        name,
+        brand,
+        categoryId,
+        MaDanhMuc: categoryId,
+        category: categoryName,
+        categoryName,
+        TenDanhMuc: categoryName,
+        status,
+        TrangThaiKinhDoanh: status,
+        price,
+        originalPrice: price,
+        GiaBan: price,
+        costPrice,
+        GiaNhap: costPrice,
+        oldPrice: price,
+        image,
+        description
+      };
 
       if (prodId) {
         if (activeBranchId) {
-          await window.store.updateProduct(prodId, { name, brand, category, status, TrangThaiKinhDoanh: status, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, image, description });
+          await window.store.updateProduct(prodId, productPayload);
           window.store.updateProductStock(`inv-${activeBranchId}-${prodId}`, stock);
         } else {
-          await window.store.updateProduct(prodId, { name, brand, category, status, TrangThaiKinhDoanh: status, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+          await window.store.updateProduct(prodId, { ...productPayload, stock });
         }
         if (window.UICommon) window.UICommon.showToast(`Đã cập nhật sản phẩm [${name}]!`, 'success');
       } else {
-        await window.store.addProduct({ name, brand, category, status, TrangThaiKinhDoanh: status, price, originalPrice: price, GiaBan: price, costPrice, GiaNhap: costPrice, oldPrice: price, stock, image, description });
+        await window.store.addProduct({ ...productPayload, stock });
         if (activeBranchId) {
           const prods = window.store.getProducts() || [];
           const newProd = prods.find(p => p.name === name);

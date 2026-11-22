@@ -2070,12 +2070,19 @@
 
         const actualPrice = prod.price || prod.GiaBanThucTe || 350000;
         const actualCost = prod.costPrice !== undefined ? prod.costPrice : (prod.GiaNhap !== undefined ? prod.GiaNhap : Math.round(actualPrice * 0.7));
+        const catId = prod.categoryId || prod.MaDanhMuc || 'DM01';
+        const catName = prod.category || prod.categoryName || prod.TenDanhMuc || (this.getCategoryById && this.getCategoryById(catId)?.name) || 'Sáp vuốt tóc - Clay & Wax';
 
         return {
           id: invItem ? (invItem.id || `inv-${bId || 'all'}-${prod.id}`) : `inv-${bId || 'all'}-${prod.id}`,
           productId: prod.id,
           productName: prod.name || prod.TenSanPham || prod.id,
           brand: prod.brand || 'CHÍNH HÃNG',
+          categoryId: catId,
+          MaDanhMuc: catId,
+          category: catName,
+          categoryName: catName,
+          TenDanhMuc: catName,
           price: actualPrice,
           costPrice: actualCost,
           GiaNhap: actualCost,
@@ -2308,6 +2315,16 @@
       return this.state.categories || [];
     }
 
+    getCategoryById(catId) {
+      if (!catId) return null;
+      const clean = String(catId).trim().toLowerCase();
+      const list = this.state.categories || [];
+      return list.find(c => 
+        String(c.id || '').trim().toLowerCase() === clean || 
+        String(c.MaDanhMuc || '').trim().toLowerCase() === clean
+      ) || null;
+    }
+
     isProductDiscontinued(p) {
       if (!p) return false;
       if (p.isDiscontinued) return true;
@@ -2351,12 +2368,19 @@
       const nextId = productData.id || `SP${String(maxSpNum + 1).padStart(2, '0')}`;
       const price = Number(productData.price);
       const costPrice = Number(productData.costPrice !== undefined ? productData.costPrice : (productData.GiaNhap !== undefined ? productData.GiaNhap : Math.round(price * 0.7)));
+      const catId = productData.categoryId || productData.MaDanhMuc || 'DM01';
+      const catName = productData.category || productData.categoryName || productData.TenDanhMuc || (this.getCategoryById && this.getCategoryById(catId)?.name) || 'Sáp vuốt tóc - Clay & Wax';
       const newProd = {
         id: productData.id || nextId,
         MaSanPham: productData.id || nextId,
         name: productData.name.trim(),
         TenSanPham: productData.name.trim(),
         brand: productData.brand || 'CHÍNH HÃNG',
+        categoryId: catId,
+        MaDanhMuc: catId,
+        category: catName,
+        categoryName: catName,
+        TenDanhMuc: catName,
         price: price,
         costPrice: costPrice,
         GiaNhap: costPrice,
@@ -2409,6 +2433,17 @@
         p.GiaBan = Number(updates.oldPrice);
       }
       if (updates.image) p.HinhAnh = updates.image;
+      if (updates.categoryId || updates.MaDanhMuc) {
+        const cid = updates.categoryId || updates.MaDanhMuc;
+        p.categoryId = cid;
+        p.MaDanhMuc = cid;
+      }
+      if (updates.category || updates.categoryName || updates.TenDanhMuc) {
+        const cname = updates.categoryName || updates.TenDanhMuc || updates.category;
+        p.category = cname;
+        p.categoryName = cname;
+        p.TenDanhMuc = cname;
+      }
       if (updates.stock !== undefined) {
         p.SoLuongTon = updates.stock;
         if (this.state.inventory) {

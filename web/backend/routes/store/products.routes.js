@@ -159,6 +159,7 @@ async function handleProductRoutes(req, res, ctx) {
         MaDanhMuc: r.MaDanhMuc,
         categoryName: r.TenDanhMuc || 'Sản Phẩm Nam',
         TenDanhMuc: r.TenDanhMuc || 'Sản Phẩm Nam',
+        category: r.TenDanhMuc || 'Sản Phẩm Nam',
         brand: detectBrand(r.TenSanPham),
         ThuongHieu: detectBrand(r.TenSanPham),
         price: finalPrice,
