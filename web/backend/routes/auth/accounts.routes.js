@@ -288,6 +288,12 @@ async function handleAccountsRoutes(req, res, ctx) {
       return true;
     }
 
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không được phép tạo tài khoản Quản Trị Viên tối cao.' }));
+      return true;
+    }
+
     // Kiểm tra tên đăng nhập đã tồn tại trong SQL chưa
     const checkUser = await querySql('SELECT MaTaiKhoan FROM TaiKhoan WHERE TenDangNhap = ?', [username]);
     if (checkUser && checkUser.length > 0) {
@@ -330,17 +336,30 @@ async function handleAccountsRoutes(req, res, ctx) {
       newMaNhanVien = nvId;
     } else {
       // 2. Tạo khách hàng: TK_KH + KH
+      let existingKhId = null;
+      if (phone) {
+        const foundKh = await querySql('SELECT MaKhachHang FROM KhachHang WHERE SoDienThoai = ?', [phone]);
+        if (foundKh && foundKh.length > 0) existingKhId = foundKh[0].MaKhachHang;
+      }
       const maxKhRows = await querySql("SELECT MAX(CAST(SUBSTRING(MaKhachHang, 3, 10) AS INT)) AS maxKh FROM KhachHang WHERE MaKhachHang LIKE 'KH%'");
       const maxTkRows = await querySql("SELECT MAX(CAST(SUBSTRING(MaTaiKhoan, 6, 10) AS INT)) AS maxTk FROM TaiKhoan WHERE MaTaiKhoan LIKE 'TK_KH%'");
       const nextNum = Math.max(maxKhRows?.[0]?.maxKh || 0, maxTkRows?.[0]?.maxTk || 0, 20) + 1;
-      const khId = 'KH' + (nextNum < 10 ? '0' + nextNum : nextNum);
+      const khId = existingKhId || ('KH' + (nextNum < 10 ? '0' + nextNum : nextNum));
       const tkId = 'TK_' + khId;
 
-      await querySql(
-        `INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh)
-         VALUES (?, ?, ?, NULL, NULL)`,
-        [khId, fullName, phone || null]
-      ).catch(() => {});
+      if (!existingKhId) {
+        await querySql(
+          `INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh)
+           VALUES (?, ?, ?, NULL, NULL)`,
+          [khId, fullName, phone || null]
+        ).catch(async () => {
+          await querySql(
+            `INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email, NgaySinh)
+             VALUES (?, ?, NULL, NULL, NULL)`,
+            [khId, fullName]
+          ).catch(() => {});
+        });
+      }
 
       await querySql(
         `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao)
@@ -352,6 +371,7 @@ async function handleAccountsRoutes(req, res, ctx) {
       newMaKhachHang = khId;
     }
 
+    clearDbSnapshotCache();
     const authUser = extractAuthUser(req);
     auditService.logAudit({
       actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
@@ -390,6 +410,7 @@ async function handleAccountsRoutes(req, res, ctx) {
     const authUser = extractAuthUser(req);
     try {
       await querySql('DELETE FROM TaiKhoan WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [userId, userId]);
+      clearDbSnapshotCache();
       auditService.logAudit({
         actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
         role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
@@ -401,6 +422,7 @@ async function handleAccountsRoutes(req, res, ctx) {
     } catch (e) {
       console.warn('SQL delete user warning:', e.message);
     }
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã xóa tài khoản khỏi CSDL SQL' }));
     return true;
@@ -414,6 +436,7 @@ async function handleAccountsRoutes(req, res, ctx) {
     const authUser = extractAuthUser(req);
     try {
       await querySql('UPDATE TaiKhoan SET TrangThai = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalStatus, userId, userId]);
+      clearDbSnapshotCache();
       auditService.logAudit({
         actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
         role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
@@ -426,6 +449,7 @@ async function handleAccountsRoutes(req, res, ctx) {
     } catch (e) {
       console.warn('SQL update user status warning:', e.message);
     }
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Cập nhật trạng thái thành công' }));
     return true;

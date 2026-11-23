@@ -1,6 +1,7 @@
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
+const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
 async function handleServiceRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
@@ -129,6 +130,7 @@ async function handleServiceRoutes(req, res, ctx) {
       details: `${actorName} (${actorRole}) thêm dịch vụ mới: ${name} (Mã: #${dvId})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, service: { id: dvId, MaDichVu: dvId, name, price, duration, status } }));
     return true;
@@ -175,6 +177,7 @@ async function handleServiceRoutes(req, res, ctx) {
       details: `${actorName} (${actorRole}) cập nhật dịch vụ #${id} (${body.name || oldService?.TenDichVu || ''})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -211,6 +214,7 @@ async function handleServiceRoutes(req, res, ctx) {
         details: `${actorName} (${actorRole}) xóa dịch vụ #${id} (${oldService?.TenDichVu || ''})`
       }).catch(() => {});
 
+      clearDbSnapshotCache();
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: true, message: 'Đã xóa dịch vụ khỏi bảng DichVu trong SQL.', id }));
       return true;
@@ -363,6 +367,7 @@ async function handleServiceRoutes(req, res, ctx) {
       details: `${actorName} (${actorRole}) thêm combo VIP mới: ${name} (Mã: #${cbId})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
@@ -469,6 +474,7 @@ async function handleServiceRoutes(req, res, ctx) {
       details: `${actorName} (${actorRole}) cập nhật combo #${id} (${body.name || ''})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -500,6 +506,7 @@ async function handleServiceRoutes(req, res, ctx) {
         details: `${actorName} (${actorRole}) xóa combo #${id}`
       }).catch(() => {});
 
+      clearDbSnapshotCache();
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: true, message: 'Đã xóa combo khỏi bảng ComboDichVu trong SQL.', id }));
       return true;

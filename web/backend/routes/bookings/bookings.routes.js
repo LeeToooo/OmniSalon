@@ -1,6 +1,7 @@
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
+const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 const {
   formatTime,
   formatDate,
@@ -21,6 +22,7 @@ async function handleBookingRoutes(req, res, ctx) {
   // POST /api/bookings/auto-cancel-overdue - Kích hoạt tự động hủy lịch hẹn & đơn hàng quá hạn qua 12h đêm
   if (pathname === '/api/bookings/auto-cancel-overdue' && method === 'POST') {
     const result = await autoCancelOverdueBookingsAndOrders();
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(result));
     return true;
@@ -495,6 +497,7 @@ async function handleBookingRoutes(req, res, ctx) {
         TrangThai: initialStatus
       }
     }));
+    clearDbSnapshotCache();
     return true;
   }
 
@@ -563,6 +566,7 @@ async function handleBookingRoutes(req, res, ctx) {
       details: `${actorName} (${actorRole}) ${action === 'CANCEL_BOOKING' ? 'hủy lịch' : (action === 'RESCHEDULE_BOOKING' ? 'đổi giờ' : 'cập nhật trạng thái')} lịch hẹn #${id}: ${newStatus}`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã cập nhật trạng thái lịch hẹn trong SQL Server', id }));
     return true;

@@ -1628,6 +1628,10 @@
       const users = (window.store && typeof window.store.getUsers === 'function') ? window.store.getUsers() : [];
       const user = users.find(u => u.id === userId || u.MaTaiKhoan === userId || u.username === userId) || { id: userId, username: userId };
       const currentRole = this.getUserRoleCode(user);
+      if (currentRole === 'SUPER_ADMIN' || currentRole === 'ADMIN') {
+        if (window.UICommon) window.UICommon.showToast('Không thể thay đổi vai trò Quản Trị Viên tối cao.', 'warning');
+        return;
+      }
       const currentBranch = user.branchId || user.MaChiNhanh || '';
       const branches = (window.store && typeof window.store.getBranches === 'function') ? window.store.getBranches() : [];
 
@@ -1662,8 +1666,6 @@
                 Vai Trò Phân Quyền: <span style="color: #ef4444;">*</span>
               </label>
               <select id="userModalRoleSelect" class="admin-select-filter" style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;">
-                <option value="SUPER_ADMIN" ${currentRole === 'SUPER_ADMIN' ? 'selected' : ''}>Quản Trị Viên (SUPER_ADMIN)</option>
-                <option value="ADMIN" ${currentRole === 'ADMIN' ? 'selected' : ''}>Quản Trị Viên (ADMIN)</option>
                 <option value="BRANCH_MANAGER" ${currentRole === 'BRANCH_MANAGER' ? 'selected' : ''}>Quản Lý Chi Nhánh (BRANCH_MANAGER)</option>
                 <option value="CASHIER" ${currentRole === 'CASHIER' ? 'selected' : ''}>Thu Ngân POS (CASHIER)</option>
                 <option value="BARBER" ${currentRole === 'BARBER' ? 'selected' : ''}>Thợ Cắt Tóc / Barber (BARBER)</option>

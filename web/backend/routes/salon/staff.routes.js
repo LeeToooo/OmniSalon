@@ -1,6 +1,7 @@
 const { querySql } = require('../../database/db');
 const { extractAuthUser } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
+const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
 // Đường dẫn ảnh chân dung thợ thật từ thư mục ChanDungTho (Tho1.jpg -> Tho20.jpg)
 function getBarberAvatar(id, name, fallback) {
@@ -173,6 +174,7 @@ async function handleStaffRoutes(req, res, ctx) {
       details: `${actorName} (${actorRole}) thêm nhân sự mới: ${fullName} (Mã: #${nvId}, Vai trò: ${role})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
@@ -259,6 +261,7 @@ async function handleStaffRoutes(req, res, ctx) {
       details: `${updateActor} (${updateRole}) cập nhật nhân sự #${id} (${st.name || currentEmp?.HoTen || ''})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, id }));
     return true;
@@ -305,6 +308,7 @@ async function handleStaffRoutes(req, res, ctx) {
       details: `${delActor} (${delRole}) cho nhân sự #${id} nghỉ việc.${reassignMsg}`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
@@ -361,6 +365,7 @@ async function handleStaffRoutes(req, res, ctx) {
       details: `${shiftActor} (${shiftRole}) đăng ký/xếp ca làm việc #${newCaId} (${startT} - ${endT})`
     }).catch(() => {});
 
+    clearDbSnapshotCache();
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ success: true, message: 'Đã xếp ca làm việc thành công!', shiftId: newCaId }));
     return true;

@@ -202,6 +202,7 @@ async function handleBranchesRoutes(req, res, ctx) {
 
     if (hasHistory && hasHistory.length > 0) {
       await querySql(`UPDATE ChiNhanh SET TrangThai = N'Ngừng hoạt động' WHERE MaChiNhanh = ?`, [id]);
+      clearDbSnapshotCache();
       auditService.logAudit({
         actor: actorName,
         role: actorRole,
