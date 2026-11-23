@@ -78,12 +78,18 @@ async function handleAuthRoutes(req, res, ctx) {
       }
 
       const result = await otpService.generateAndSaveOtp(target, purpose || 'LOGIN');
+      const host = (req.headers && (req.headers.host || req.headers['x-forwarded-host'])) || '';
+      const isLocalDev = host.includes('localhost') || host.includes('127.0.0.1');
+      // Trả kèm mã OTP hỗ trợ kiểm thử khi chạy môi trường dev/localhost hoặc khi cấu hình SHOW_OTP_DEV=true hoặc khi không gửi được email thật
+      const isDevHintAllowed = isLocalDev || process.env.SHOW_OTP_DEV === 'true' || !result.sentEmail;
+
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({
         success: true,
-        message: result.message || `Mã OTP xác thực đã được gửi tới ${target}. Mã có hiệu lực trong 5 phút.`,
+        message: result.message || `Mã OTP xác thực đã được gửi tới ${target}. Mã có hiệu lực trong 5 phút. Vui lòng kiểm tra Hộp thư đến hoặc mục Thư rác (Spam).`,
         target,
-        otp: result.otp,
+        sentEmail: result.sentEmail,
+        ...(isDevHintAllowed ? { otp: result.otp } : {}),
         expiresAt: result.expiresAt
       }));
     } catch (err) {
@@ -106,18 +112,19 @@ async function handleAuthRoutes(req, res, ctx) {
       return true;
     }
 
-    const isValid = await otpService.verifyAndConsumeOtp(target, otpCode, purpose || 'LOGIN');
-    if (!isValid) {
+    const verifyResult = await otpService.verifyOtp(target, otpCode, null);
+    if (!verifyResult || !verifyResult.valid) {
+      const errMsg = verifyResult?.message || 'Mã OTP không đúng hoặc đã hết hạn.';
       auditService.logAudit({
         actor: target,
         role: 'SYSTEM',
         action: 'OTP_EXPIRED_OR_INVALID',
         entityType: 'XacThucOTP',
         entityId: target,
-        details: `Xác thực OTP thất bại hoặc mã đã hết hạn cho ${target}`
+        details: `Xác thực OTP thất bại cho ${target}: ${errMsg}`
       }).catch(() => {});
       res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn.' }));
+      res.end(JSON.stringify({ success: false, message: errMsg }));
       return true;
     }
 

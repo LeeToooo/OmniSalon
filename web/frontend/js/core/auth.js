@@ -855,6 +855,20 @@
         this.accessToken = session.accessToken;
         this.refreshToken = session.refreshToken;
         this.currentUser = this._mapPayloadToUser(verifyResult.payload);
+        // Ưu tiên các trường mới nhất đã lưu trong session.userJson (tránh bị token cũ đè lại chi nhánh cũ khi F5)
+        if (session.userJson) {
+          try {
+            const cachedUser = JSON.parse(session.userJson);
+            if (cachedUser && (cachedUser.id === this.currentUser.id || cachedUser.username === this.currentUser.username)) {
+              if (cachedUser.branchId) this.currentUser.branchId = cachedUser.branchId;
+              if (cachedUser.branchName) this.currentUser.branchName = cachedUser.branchName;
+              if (cachedUser.MaChiNhanh) this.currentUser.MaChiNhanh = cachedUser.MaChiNhanh;
+              if (cachedUser.TenChiNhanh) this.currentUser.TenChiNhanh = cachedUser.TenChiNhanh;
+              if (cachedUser.role) this.currentUser.role = cachedUser.role;
+              if (cachedUser.roleName) this.currentUser.roleName = cachedUser.roleName;
+            }
+          } catch (_) {}
+        }
         this.syncCurrentUserWithServer();
       } else if (verifyResult.error === 'EXPIRED' && session.refreshToken) {
         // Chỉ cấp mới qua RefreshToken khi AccessToken chỉ đơn thuần bị quá hạn
@@ -909,6 +923,10 @@
                 changed = true;
               }
               if (changed) {
+                // Tái phát hành token mới chứa chi nhánh cập nhật để các lần F5 tiếp theo luôn đồng bộ
+                const issued = this._issueTokens(this.currentUser);
+                this.accessToken = issued.accessToken;
+                this.refreshToken = issued.refreshToken;
                 SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
                 if (window.store && window.store.state) {
                   window.store.state.currentUser = { ...this.currentUser };

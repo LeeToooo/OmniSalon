@@ -1461,14 +1461,13 @@
 
     _setCategorySelectValue(catEl, product) {
       if (!catEl || !product) return;
-      if (!catEl.options || catEl.options.length === 0) {
-        catEl.innerHTML = this._renderProductCategoryOptions();
-      }
+      // Luôn làm mới options để đồng bộ với danh mục mới nhất từ store
+      catEl.innerHTML = this._renderProductCategoryOptions();
 
       const targetId = String(product.categoryId || product.MaDanhMuc || '').trim().toLowerCase();
       const targetName = String(product.category || product.categoryName || product.TenDanhMuc || product.NhomHang || '').trim().toLowerCase();
 
-      // 1. Tìm chính xác theo ID danh mục (DM01..DM09) hoặc value option
+      // 1. Tìm chính xác theo ID danh mục (DM01..DM09)
       if (targetId) {
         for (let i = 0; i < catEl.options.length; i++) {
           const val = String(catEl.options[i].value || '').trim().toLowerCase();
@@ -1491,7 +1490,7 @@
         }
       }
 
-      // 3. Khớp mờ theo chuỗi từ khóa danh mục
+      // 3. Khớp mờ theo chuỗi từ khóa danh mục hoặc alias cũ (Sáp & Pomade...)
       if (targetName || targetId) {
         for (let i = 0; i < catEl.options.length; i++) {
           const txt = String(catEl.options[i].text || '').trim().toLowerCase();
@@ -1511,7 +1510,7 @@
       const keywordMap = [
         { kw: ['sáp', 'clay', 'wax'], id: 'DM01' },
         { kw: ['pomade'], id: 'DM02' },
-        { kw: ['xịt', 'pre-styling', 'tonic'], id: 'DM03' },
+        { kw: ['xịt', 'pre-styling', 'tonic', 'spray'], id: 'DM03' },
         { kw: ['gôm', 'hairspray'], id: 'DM04' },
         { kw: ['gội', 'xả', 'shampoo', 'conditioner'], id: 'DM05' },
         { kw: ['bột', 'powder'], id: 'DM06' },
@@ -1530,7 +1529,7 @@
         }
       }
 
-      // 5. Nếu có tên danh mục mới chưa tồn tại trong danh sách -> tự động bổ sung option
+      // 5. Nếu có tên danh mục mới chưa tồn tại trong danh sách -> bổ sung option
       const rawCustomName = (product.category || product.categoryName || product.TenDanhMuc || product.NhomHang || '').trim();
       if (rawCustomName) {
         const newOpt = document.createElement('option');

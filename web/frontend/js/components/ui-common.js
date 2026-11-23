@@ -1909,9 +1909,10 @@ const UICommon = {
         });
       }
       const devHint = res.otp ? ` [Mã thử nghiệm: ${res.otp}]` : '';
-      this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${email}!${devHint}`, 'success');
+      const spamNotice = ' (Vui lòng kiểm tra cả Hộp thư đến & Thư rác / Spam)';
+      this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${email}!${devHint}${spamNotice}`, 'success');
       if (tip) {
-        tip.innerHTML = `Đã gửi mã OTP đến <b>${email}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span>` : ''}`;
+        tip.innerHTML = `Đã gửi mã OTP đến <b>${email}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span> ` : ''}<span style="color:#94a3b8; font-size:12px;">(Lưu ý: Vui lòng kiểm tra cả <b>Hộp thư đến</b> &amp; mục <b>Thư rác / Spam / Quảng cáo</b> trong Gmail)</span>`;
       }
       document.getElementById('regOtp')?.focus();
 
@@ -2069,9 +2070,10 @@ const UICommon = {
 
     if (res && res.success) {
       const devHint = res.otp ? ` [Mã thử nghiệm: ${res.otp}]` : '';
-      this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${identifier}!${devHint}`, 'success');
+      const spamNotice = res.otp ? '' : ' Vui lòng kiểm tra Hộp thư đến hoặc Thư rác (Spam).';
+      this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${identifier}!${devHint}${spamNotice}`, 'success');
       if (tip) {
-        tip.innerHTML = `Đã gửi mã OTP đến <b>${identifier}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span>` : ''}`;
+        tip.innerHTML = `Đã gửi mã OTP đến <b>${identifier}</b>. ${res.otp ? `<span style="color:#f59e0b; font-weight:800;">(Mã: ${res.otp})</span>` : '<span style="color:#94a3b8; font-size:11.5px;">(Kiểm tra cả Hộp thư đến &amp; Thư rác / Spam)</span>'}`;
       }
       document.getElementById('resetOtp')?.focus();
 

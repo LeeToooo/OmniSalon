@@ -181,6 +181,12 @@
                 window.Auth.currentUser.TenChiNhanh = curr.branchName;
                 try {
                   localStorage.setItem('OMNISALON_USER', JSON.stringify(window.Auth.currentUser));
+                  localStorage.setItem('OMNISALON_AUTH_USER', JSON.stringify(window.Auth.currentUser));
+                  if (typeof window.Auth._issueTokens === 'function') {
+                    const freshToken = window.Auth._issueTokens(window.Auth.currentUser);
+                    localStorage.setItem('OMNISALON_JWT_ACCESS_TOKEN', freshToken.accessToken);
+                    window.Auth.accessToken = freshToken.accessToken;
+                  }
                 } catch (_) {}
               }
               if (typeof window.AdminWeb?.updateHeaderBranchDisplay === 'function') {
@@ -1329,6 +1335,8 @@
           user.branchId = null;
           user.branchName = 'Khách Hàng';
           user.TenChiNhanh = 'Khách Hàng';
+          user.MaNhanVien = null;
+          user.staffId = null;
         } else if (roleCode === 'BARBER') {
           if (!user.ChucVu || user.ChucVu.includes('Khách hàng')) user.ChucVu = 'Thợ chính';
         } else if (roleCode === 'CASHIER') {

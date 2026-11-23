@@ -81,8 +81,14 @@ async function sendGmail(toEmail, otp) {
     from: `"${cfg.fromName}" <${cfg.user}>`,
     to: toEmail,
     subject: `[OmniSalon] ${otp} là mã xác thực tài khoản của bạn`,
-    text: `Mã xác thực OTP của bạn là: ${otp}. Mã có hiệu lực trong 5 phút.`,
-    html: mailHtml
+    text: `Mã xác thực OTP của bạn là: ${otp}. Mã có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.`,
+    html: mailHtml,
+    headers: {
+      'X-Priority': '1 (Highest)',
+      'X-MSMail-Priority': 'High',
+      'Importance': 'High',
+      'Auto-Submitted': 'auto-generated'
+    }
   });
 
   return { sentReal: true };
@@ -100,9 +106,17 @@ async function ensureOtpTable(customSql = null) {
           MaOTP VARCHAR(10) NOT NULL,
           HetHanLuc DATETIME2 NOT NULL,
           TrangThai NVARCHAR(50) DEFAULT N'Chờ xác thực',
+          SoLanNhapSai INT DEFAULT 0,
           NgayTao DATETIME2 DEFAULT GETDATE()
         );
         CREATE INDEX IX_XacThucOTP_Target ON XacThucOTP (Identifier, MaOTP, HetHanLuc);
+      END
+      ELSE
+      BEGIN
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('XacThucOTP') AND name = 'SoLanNhapSai')
+        BEGIN
+          ALTER TABLE XacThucOTP ADD SoLanNhapSai INT DEFAULT 0;
+        END
       END
     `);
   } catch (err) {
@@ -129,15 +143,22 @@ async function generateAndSendOtp(target, customSql = null) {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = now + 5 * 60 * 1000;
 
-  otpMemoryCache.set(cleanTarget, { otp, expiresAt, lastSentAt: now });
+  otpMemoryCache.set(cleanTarget, { otp, expiresAt, lastSentAt: now, attempts: 0 });
 
   const sql = customSql || querySql;
   if (sql) {
     try {
       await ensureOtpTable(sql);
+      // Hủy mọi mã OTP cũ còn đang chờ để đảm bảo chỉ có 1 mã mới nhất hợp lệ
       await sql(
-        `INSERT INTO XacThucOTP (Identifier, MaOTP, HetHanLuc, TrangThai)
-         VALUES (?, ?, DATEADD(minute, 5, GETDATE()), N'Chờ xác thực')`,
+        `UPDATE XacThucOTP SET TrangThai = N'Đã bị thay thế bởi mã mới'
+         WHERE Identifier = ? AND TrangThai = N'Chờ xác thực'`,
+        [cleanTarget]
+      ).catch(() => {});
+
+      await sql(
+        `INSERT INTO XacThucOTP (Identifier, MaOTP, HetHanLuc, TrangThai, SoLanNhapSai)
+         VALUES (?, ?, DATEADD(minute, 5, GETDATE()), N'Chờ xác thực', 0)`,
         [cleanTarget, otp]
       );
     } catch (dbErr) {
@@ -160,7 +181,7 @@ async function generateAndSendOtp(target, customSql = null) {
   return {
     success: true,
     message: emailResult?.sentReal
-      ? `Mã xác nhận đã gửi về ${cleanTarget}. Vui lòng kiểm tra hộp thư đến hoặc Spam.`
+      ? `Mã xác nhận đã gửi về ${cleanTarget}. Vui lòng kiểm tra Hộp thư đến hoặc Thư rác (Spam).`
       : `Mã OTP xác thực: ${otp}`,
     identifier: cleanTarget,
     otp,
@@ -184,18 +205,39 @@ async function verifyOtp(target, rawOtp, customSql = null) {
   const sql = customSql || querySql;
   if (sql) {
     try {
+      await ensureOtpTable(sql);
       const rows = await sql(
-        `SELECT TOP 1 Id, MaOTP, HetHanLuc, TrangThai 
+        `SELECT TOP 1 Id, MaOTP, HetHanLuc, TrangThai, ISNULL(SoLanNhapSai, 0) AS SoLanNhapSai 
          FROM XacThucOTP 
-         WHERE Identifier = ? AND MaOTP = ? AND TrangThai = N'Chờ xác thực' AND HetHanLuc > GETDATE()
+         WHERE Identifier = ? AND TrangThai = N'Chờ xác thực' AND HetHanLuc > GETDATE()
          ORDER BY Id DESC`,
-        [cleanTarget, otp]
+        [cleanTarget]
       );
 
       if (rows && rows.length > 0) {
-        await sql(`UPDATE XacThucOTP SET TrangThai = N'Đã sử dụng' WHERE Id = ?`, [rows[0].Id]);
-        otpMemoryCache.delete(cleanTarget);
-        return { valid: true };
+        const record = rows[0];
+        if (record.SoLanNhapSai >= 5) {
+          await sql(`UPDATE XacThucOTP SET TrangThai = N'Bị khóa (quá số lần thử)' WHERE Id = ?`, [record.Id]);
+          otpMemoryCache.delete(cleanTarget);
+          return { valid: false, message: 'Mã OTP đã bị khóa do nhập sai quá 5 lần. Vui lòng yêu cầu mã mới.' };
+        }
+
+        if (record.MaOTP === otp) {
+          await sql(`UPDATE XacThucOTP SET TrangThai = N'Đã sử dụng' WHERE Id = ?`, [record.Id]);
+          otpMemoryCache.delete(cleanTarget);
+          return { valid: true };
+        } else {
+          const nextAttempts = record.SoLanNhapSai + 1;
+          if (nextAttempts >= 5) {
+            await sql(`UPDATE XacThucOTP SET SoLanNhapSai = ?, TrangThai = N'Bị khóa (quá số lần thử)' WHERE Id = ?`, [nextAttempts, record.Id]);
+            otpMemoryCache.delete(cleanTarget);
+            return { valid: false, message: 'Mã OTP đã bị khóa do nhập sai quá 5 lần. Vui lòng yêu cầu mã mới.' };
+          } else {
+            await sql(`UPDATE XacThucOTP SET SoLanNhapSai = ? WHERE Id = ?`, [nextAttempts, record.Id]);
+            const remaining = 5 - nextAttempts;
+            return { valid: false, message: `Mã OTP không chính xác. Bạn còn ${remaining} lần thử.` };
+          }
+        }
       }
     } catch (dbErr) {
       console.warn('[OTP DB Verify Warning]', dbErr.message);
@@ -212,8 +254,15 @@ async function verifyOtp(target, rawOtp, customSql = null) {
     return { valid: false, message: 'Mã OTP đã hết hạn (chỉ có hiệu lực trong 5 phút).' };
   }
 
+  entry.attempts = (entry.attempts || 0) + 1;
+  if (entry.attempts >= 5) {
+    otpMemoryCache.delete(cleanTarget);
+    return { valid: false, message: 'Mã OTP đã bị khóa do nhập sai quá 5 lần. Vui lòng yêu cầu mã mới.' };
+  }
+
   if (entry.otp !== otp) {
-    return { valid: false, message: 'Mã OTP không chính xác.' };
+    const remaining = 5 - entry.attempts;
+    return { valid: false, message: `Mã OTP không chính xác. Bạn còn ${remaining} lần thử.` };
   }
 
   otpMemoryCache.delete(cleanTarget);

@@ -366,6 +366,8 @@
           u.branchId = null;
           u.branchName = 'Khách Hàng';
           u.TenChiNhanh = 'Khách Hàng';
+          u.MaNhanVien = null;
+          u.staffId = null;
         } else if (chucVuMap[newRole]) {
           u.ChucVu = chucVuMap[newRole];
         }
@@ -1804,7 +1806,6 @@
                   <option value="CASHIER">Thu Ngân POS</option>
                   <option value="BRANCH_MANAGER">Quản Lý Chi Nhánh</option>
                   <option value="CUSTOMER">Khách Hàng</option>
-                  <option value="ADMIN">Quản Trị Viên</option>
                 </select>
               </div>
               <div>
