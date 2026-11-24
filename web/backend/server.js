@@ -112,7 +112,9 @@ const server = http.createServer(async (req, res) => {
         path.join(ROOT_DIR, 'DataPicture', cleanRelPath),
         path.join(ROOT_DIR, relPath),
         path.join(FRONTEND_DIR, 'DataPicture', cleanRelPath),
-        path.join(FRONTEND_DIR, relPath)
+        path.join(FRONTEND_DIR, relPath),
+        path.join(__dirname, 'ai_engine', 'hairstyles', path.basename(relPath)),
+        path.join(FRONTEND_DIR, 'assets', 'hairstyles', path.basename(relPath))
       ];
 
       for (const targetPath of candidatePaths) {

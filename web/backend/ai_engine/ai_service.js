@@ -720,7 +720,32 @@ async function fetchImageAsDataUri(imageBase64OrUrl) {
     });
   }
 
-  return `data:image/jpeg;base64,${targetUrl}`;
+  // Nếu là file ảnh cục bộ trên ổ đĩa
+  const localCandidates = [
+    targetUrl,
+    path.join(__dirname, 'hairstyles', path.basename(targetUrl)),
+    path.join(__dirname, '..', '..', 'frontend', 'assets', 'hairstyles', path.basename(targetUrl)),
+    path.join(__dirname, '..', '..', 'frontend', targetUrl),
+    path.join(__dirname, '..', '..', targetUrl)
+  ];
+  for (const cPath of localCandidates) {
+    if (fs.existsSync(cPath)) {
+      try {
+        const stat = fs.statSync(cPath);
+        if (stat.isFile()) {
+          const buf = fs.readFileSync(cPath);
+          return `data:image/jpeg;base64,${buf.toString('base64')}`;
+        }
+      } catch (_) {}
+    }
+  }
+
+  // Nếu chuỗi là Base64 thuần chưa có tiền tố data:image/
+  if (typeof targetUrl === 'string' && /^[A-Za-z0-9+/=]+$/.test(targetUrl.replace(/\s+/g, '')) && targetUrl.length > 200) {
+    return `data:image/jpeg;base64,${targetUrl}`;
+  }
+
+  return targetUrl;
 }
 
 // Kiểm tra tính hợp lệ của Google Gemini API Key

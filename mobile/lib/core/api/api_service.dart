@@ -599,6 +599,21 @@ class ApiService {
     }
   }
 
+  // Lấy danh mục 12 phom tóc mẫu và bảng màu nhuộm từ server
+  static Future<Map<String, dynamic>?> fetchAiHairstyles() async {
+    try {
+      final res = await http
+          .get(Uri.parse('$baseUrl/ai/hairstyles'))
+          .timeout(const Duration(seconds: 15));
+      if (res.statusCode == 200) {
+        return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] fetchAiHairstyles error: $e');
+    }
+    return null;
+  }
+
   // Phân tích ngũ quan và dáng mặt
   static Future<Map<String, dynamic>?> analyzeFace(
       String imageBase64OrUrl) async {
@@ -609,7 +624,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'image': imageBase64OrUrl}),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 40));
 
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
@@ -630,7 +645,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'image': imageBase64OrUrl}),
           )
-          .timeout(const Duration(seconds: 8));
+          .timeout(const Duration(seconds: 30));
 
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
@@ -658,7 +673,7 @@ class ApiService {
               'colorId': colorId,
             }),
           )
-          .timeout(const Duration(seconds: 12));
+          .timeout(const Duration(seconds: 60));
 
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
