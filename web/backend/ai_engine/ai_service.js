@@ -342,9 +342,9 @@ function runPythonVisionAnalyzer(imageInput) {
 
     let proc;
     if (typeof imageInput === 'string' && fs.existsSync(imageInput)) {
-      proc = spawnSync(selectedPython, [scriptPath, imageInput], { encoding: 'utf-8', timeout: 8000, maxBuffer: 15 * 1024 * 1024 });
+      proc = spawnSync(selectedPython, [scriptPath, imageInput], { encoding: 'utf-8', timeout: 30000, maxBuffer: 15 * 1024 * 1024 });
     } else {
-      proc = spawnSync(selectedPython, [scriptPath], { input: imageInput || '', encoding: 'utf-8', timeout: 8000, maxBuffer: 15 * 1024 * 1024 });
+      proc = spawnSync(selectedPython, [scriptPath], { input: imageInput || '', encoding: 'utf-8', timeout: 30000, maxBuffer: 15 * 1024 * 1024 });
     }
 
     if (!proc || proc.error || !proc.stdout) return null;
@@ -384,7 +384,7 @@ function runPythonVisionRestyle(options) {
     const proc = spawnSync(selectedPython, [scriptPath, 'restyle'], {
       input: payload,
       encoding: 'utf-8',
-      timeout: 15000,
+      timeout: 45000,
       maxBuffer: 25 * 1024 * 1024
     });
 
@@ -428,7 +428,7 @@ function runPythonVisionPreprocess(options) {
     const proc = spawnSync(selectedPython, [scriptPath, 'preprocess'], {
       input: payload,
       encoding: 'utf-8',
-      timeout: 15000,
+      timeout: 35000,
       maxBuffer: 25 * 1024 * 1024
     });
 
@@ -472,7 +472,7 @@ function runPythonVisionMask(options) {
     const proc = spawnSync(selectedPython, [scriptPath, 'mask'], {
       input: payload,
       encoding: 'utf-8',
-      timeout: 15000,
+      timeout: 35000,
       maxBuffer: 25 * 1024 * 1024
     });
 

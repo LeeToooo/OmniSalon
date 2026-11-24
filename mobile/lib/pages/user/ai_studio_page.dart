@@ -284,7 +284,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
       _scanProgressTimer?.cancel();
       if (!mounted) return;
 
-      if (res != null && res['resultImageUrl'] != null) {
+      if (res != null && res['resultImageUrl'] != null && res['resultImageUrl'].toString().isNotEmpty) {
         setState(() {
           _isScanning = false;
           _hasResult = true;
@@ -296,45 +296,46 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
         });
         _showToast('Đã mô phỏng kiểu tóc AI thành công!', isSuccess: true);
       } else {
-        // Fallback an toàn nếu backend mất kết nối hoặc quá tải
-        final selectedStyle = _hairstyles.firstWhere(
-          (h) => h['id'] == _selectedHairstyle,
-          orElse: () => _hairstyles[0],
-        );
+        // Tuyệt đối không fallback sang ảnh mẫu tĩnh để đảm bảo tính xác thực
+        final errMsg = res?['message']?.toString() ??
+            'Không thể nhận diện khuôn mặt rõ nét từ ảnh đã chọn. Vui lòng chọn góc chụp thẳng, sáng rõ!';
         setState(() {
           _isScanning = false;
-          _hasResult = true;
-          _sliderPosition = 0.5;
-          _resultImageUrl = selectedStyle['preview'] ?? _currentPhotoUrl;
+          _hasResult = false;
+          _resultImageUrl = null;
         });
-        _showToast('Đã áp dụng phom tóc mẫu hoàn tất!');
+        _showToast(errMsg, isError: true);
       }
     } catch (e) {
       _scanProgressTimer?.cancel();
       if (!mounted) return;
-      final selectedStyle = _hairstyles.firstWhere(
-        (h) => h['id'] == _selectedHairstyle,
-        orElse: () => _hairstyles[0],
-      );
       setState(() {
         _isScanning = false;
-        _hasResult = true;
-        _sliderPosition = 0.5;
-        _resultImageUrl = selectedStyle['preview'] ?? _currentPhotoUrl;
+        _hasResult = false;
+        _resultImageUrl = null;
       });
-      _showToast('Đã xem trước kiểu tóc mẫu!');
+      _showToast('Lỗi kết nối AI: $e. Vui lòng thử lại!', isError: true);
     }
   }
 
-  void _showToast(String message, {bool isSuccess = false}) {
+  void _showToast(String message, {bool isSuccess = false, bool isError = false}) {
     if (!mounted) return;
+    final iconColor = isSuccess
+        ? const Color(0xFF10B981)
+        : (isError ? const Color(0xFFEF4444) : AppTheme.accentGold);
+    final borderColor = isSuccess
+        ? const Color(0xFF10B981).withValues(alpha: 0.4)
+        : (isError ? const Color(0xFFEF4444).withValues(alpha: 0.5) : AppTheme.accentGold.withValues(alpha: 0.3));
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             Icon(
-              isSuccess ? Icons.check_circle_rounded : Icons.info_outline_rounded,
-              color: isSuccess ? const Color(0xFF10B981) : AppTheme.accentGold,
+              isSuccess
+                  ? Icons.check_circle_rounded
+                  : (isError ? Icons.error_outline_rounded : Icons.info_outline_rounded),
+              color: iconColor,
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -350,9 +351,9 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: AppTheme.accentGold.withValues(alpha: 0.3)),
+          side: BorderSide(color: borderColor),
         ),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
