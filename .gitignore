@@ -24,6 +24,8 @@ AGENTS.md
 
 # Documentation & internal project docs
 docs/
+LUONG_XU_LY_HE_THONG.md
+GIAI_THICH_CHI_TIET_LUONG_XU_LY.md
 
 # Test suites, local QA benchmarks & test run artifacts
 tests/
