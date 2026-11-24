@@ -1899,7 +1899,7 @@ const UICommon = {
       res = { success: false, message: e.message };
     }
 
-    if (res && res.success) {
+    if (res && res.success && res.sentEmail !== false) {
       if (window.AuthEngine && window.AuthEngine.clientOtpStore && res.otp) {
         window.AuthEngine.clientOtpStore.set(email.toLowerCase(), {
           otp: String(res.otp).trim(),
@@ -1934,7 +1934,11 @@ const UICommon = {
         }
       }, 1000);
     } else {
-      this.showToast(res?.message || 'Không thể gửi mã xác nhận. Vui lòng thử lại sau ít phút.', 'error');
+      const errMsg = res?.message || 'Không thể gửi mã xác nhận. Vui lòng kiểm tra kết nối mạng và thử lại.';
+      this.showToast(errMsg, 'error');
+      if (tip) {
+        tip.innerHTML = `<span style="color: #ef4444; font-size: 12px; font-weight: 600;">⚠️ ${errMsg}</span>`;
+      }
       if (btn) {
         btn.disabled = false;
         btn.innerText = 'Gửi Mã';
@@ -2068,7 +2072,7 @@ const UICommon = {
       res = { success: false, message: e.message };
     }
 
-    if (res && res.success) {
+    if (res && res.success && res.sentEmail !== false) {
       const devHint = res.otp ? ` [Mã thử nghiệm: ${res.otp}]` : '';
       const spamNotice = res.otp ? '' : ' Vui lòng kiểm tra Hộp thư đến hoặc Thư rác (Spam).';
       this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${identifier}!${devHint}${spamNotice}`, 'success');
@@ -2094,7 +2098,11 @@ const UICommon = {
         }
       }, 1000);
     } else {
-      this.showToast(res?.message || 'Không thể gửi mã xác nhận. Vui lòng kiểm tra lại địa chỉ Gmail.', 'error');
+      const errMsg = res?.message || 'Không thể gửi mã xác nhận. Vui lòng kiểm tra lại địa chỉ Gmail.';
+      this.showToast(errMsg, 'error');
+      if (tip) {
+        tip.innerHTML = `<span style="color: #ef4444; font-size: 12px; font-weight: 600;">⚠️ ${errMsg}</span>`;
+      }
       if (btn) {
         btn.disabled = false;
         btn.innerText = 'Gửi Mã';

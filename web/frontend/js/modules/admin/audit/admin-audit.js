@@ -50,21 +50,20 @@
       const maTK = (u.id || u.MaTaiKhoan || '').toString().trim().toUpperCase();
       const username = (u.username || u.TenDangNhap || '').toString().trim().toUpperCase();
 
-      // 1. Quản trị viên (SUPER_ADMIN)
+      // 1. Quản trị viên tối cao: Duy nhất tài khoản root quản trị ban đầu
       if (
-        role === 'SUPER_ADMIN' || role === 'ADMIN' ||
-        rawRole === 'SUPER_ADMIN' || rawRole === 'ADMIN' ||
-        rawRole.includes('QUẢN TRỊ') || rawRole.includes('QUAN TRI') || rawRole.includes('TỐI CAO') || rawRole.includes('TOI CAO') ||
-        chucVu.includes('QUẢN TRỊ') || chucVu.includes('QUAN TRI') ||
-        maNV === 'NV00' || maTK === 'TK_ADMIN' || username === 'ADMIN'
+        maTK === 'TK_ADMIN' || username === 'ADMIN' || maNV === 'NV00' ||
+        ((role === 'SUPER_ADMIN' || rawRole === 'SUPER_ADMIN') && (maTK === 'TK_ADMIN' || username === 'ADMIN'))
       ) {
         return 'SUPER_ADMIN';
       }
 
-      // 2. Khách hàng: Nếu vai trò hoặc chức vụ được chỉ định là Khách hàng thì ưu tiên nhận diện là CUSTOMER
+      // 2. Khách hàng: Ưu tiên nhận diện CUSTOMER nếu được chỉ định hoặc không có mã nhân viên
       if (
-        (role === 'CUSTOMER' || rawRole === 'KHÁCH HÀNG' || rawRole === 'KHACH HANG' || rawRole === 'CUSTOMER' || chucVu === 'KHÁCH HÀNG' || chucVu === 'KHACH HANG') &&
-        username !== 'ADMIN' && maNV !== 'NV00' && maTK !== 'TK_ADMIN'
+        role === 'CUSTOMER' ||
+        rawRole === 'KHÁCH HÀNG' || rawRole === 'KHACH HANG' || rawRole === 'CUSTOMER' ||
+        chucVu === 'KHÁCH HÀNG' || chucVu === 'KHACH HANG' ||
+        (!maNV && Boolean(u.MaKhachHang))
       ) {
         return 'CUSTOMER';
       }
@@ -98,13 +97,12 @@
         chucVu.includes('THỢ') || chucVu.includes('THO') || chucVu.includes('BARBER') || chucVu.includes('STYLIST') ||
         chucVu.includes('KỸ THUẬT') || chucVu.includes('KY THUAT') ||
         chucVu.includes('NHÂN VIÊN') || chucVu.includes('NHAN VIEN') ||
-        Boolean(maNV) ||
-        maTK.startsWith('TK_NV')
+        Boolean(maNV)
       ) {
         return 'BARBER';
       }
 
-      // 6. Khách hàng mặc định (CUSTOMER)
+      // 6. Mặc định là Khách hàng
       return 'CUSTOMER';
     },
 
@@ -337,7 +335,7 @@
       }
     },
 
-    changeUserRoleDirect(userId, newRole) {
+    async changeUserRoleDirect(userId, newRole) {
       if (!userId || !newRole) return;
       const roleMap = {
         'SUPER_ADMIN': 'Quản trị viên',
@@ -377,7 +375,10 @@
         }
       }
       if (window.store && typeof window.store.updateUserRole === 'function') {
-        window.store.updateUserRole(userId, newRole);
+        await window.store.updateUserRole(userId, newRole);
+      }
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        await window.store.syncWithLiveServer();
       }
       if (window.SalonToast) {
         window.SalonToast.show(`Đã cập nhật vai trò cho ${userId} sang ${roleMap[newRole] || newRole}`, 'success');
@@ -1160,7 +1161,7 @@
                         </td>
                         <!-- Cột Vai trò điều khiển trực tiếp -->
                         <td style="padding: 12px 14px;">
-                          ${roleCode === 'SUPER_ADMIN' ? `
+                          ${(uid === 'TK_ADMIN' || uname === 'admin' || roleCode === 'SUPER_ADMIN') ? `
                             <select class="admin-table-inline-select" style="height: 30px; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 2px 8px; border: 1px solid rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.12); color: #ef4444; cursor: not-allowed; width: 100%; max-width: 165px;" disabled title="Quản Trị Viên tối cao là vai trò cố định, không thể thay đổi">
                               <option value="SUPER_ADMIN" selected>Quản Trị Viên</option>
                             </select>
@@ -1176,13 +1177,17 @@
                         </td>
                         <!-- Cột Cơ sở điều khiển trực tiếp -->
                         <td style="padding: 12px 14px;">
-                          <select class="admin-table-inline-select" style="height: 30px; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 2px 8px; border: 1px solid var(--border-color); background: #1c1b18; color: var(--text-primary); cursor: pointer; width: 100%; max-width: 165px;"
-                                  onchange="AdminWeb.changeUserBranchDirect('${this.escapeHtml(String(uid).replace(/^#/, ""))}', this.value)">
-                            <option value="ALL" ${branchId === 'ALL' ? 'selected' : ''}>Toàn Hệ Thống</option>
-                            ${branches.map(b => `
-                              <option value="${b.id}" ${branchId === b.id ? 'selected' : ''}>${this.escapeHtml(this._getBranchShortName(b))}</option>
-                            `).join('')}
-                          </select>
+                          ${roleCode === 'CUSTOMER' ? `
+                            <span style="font-size: 12.5px; color: var(--text-muted); font-weight: 600;">Khách Hàng</span>
+                          ` : `
+                            <select class="admin-table-inline-select" style="height: 30px; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 2px 8px; border: 1px solid var(--border-color); background: #1c1b18; color: var(--text-primary); cursor: pointer; width: 100%; max-width: 165px;"
+                                    onchange="AdminWeb.changeUserBranchDirect('${this.escapeHtml(String(uid).replace(/^#/, ""))}', this.value)">
+                              <option value="ALL" ${branchId === 'ALL' ? 'selected' : ''}>Toàn Hệ Thống</option>
+                              ${branches.map(b => `
+                                <option value="${b.id}" ${branchId === b.id ? 'selected' : ''}>${this.escapeHtml(this._getBranchShortName(b))}</option>
+                              `).join('')}
+                            </select>
+                          `}
                         </td>
                         <!-- Cột Trạng thái: dùng class status-pill status-completed giống hệt bảng Chi Nhánh (Hoạt động) -->
                         <td style="padding: 12px 14px;">
@@ -1730,13 +1735,25 @@
         user.role = newRole;
         user.VaiTro = roleMap[newRole] || newRole;
         user.roleName = roleMap[newRole] || newRole;
-        if (chucVuMap[newRole]) user.ChucVu = chucVuMap[newRole];
-        user.branchId = newBranch;
-        user.MaChiNhanh = newBranch;
+        if (newRole === 'CUSTOMER') {
+          user.ChucVu = 'Khách hàng';
+          user.branchId = null;
+          user.branchName = 'Khách Hàng';
+          user.TenChiNhanh = 'Khách Hàng';
+          user.MaNhanVien = null;
+          user.staffId = null;
+        } else {
+          if (chucVuMap[newRole]) user.ChucVu = chucVuMap[newRole];
+          user.branchId = newBranch;
+          user.MaChiNhanh = newBranch;
+        }
       }
 
       this._closeModal();
-      if (window.UICommon) window.UICommon.showToast(`Đã cập nhật phân quyền tài khoản [${userId}] sang ${newRole} thành công!`, 'success');
+      if (window.store && typeof window.store.syncWithLiveServer === 'function') {
+        await window.store.syncWithLiveServer();
+      }
+      if (window.UICommon) window.UICommon.showToast(`Đã cập nhật phân quyền tài khoản [${userId}] sang ${roleMap[newRole] || newRole} thành công!`, 'success');
       this._updateAuditContentOnly();
     },
 

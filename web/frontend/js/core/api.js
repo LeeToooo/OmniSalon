@@ -5,7 +5,7 @@
     config: {
       baseUrl: (typeof location !== 'undefined' && location.port === '3000') ? `${location.origin}/api` : 'http://localhost:3000/api',
       useLiveApi: true, // Tự động kết nối Live Database Server thời gian thực
-      timeoutMs: 8000,
+      timeoutMs: 30000,
       ai: {
         provider: (typeof localStorage !== 'undefined' && localStorage.getItem('OMNI_ai_provider')) || 'demo_smart',
         apiKey: (typeof localStorage !== 'undefined' && localStorage.getItem('OMNI_ai_key')) || '',
@@ -49,12 +49,14 @@
         });
         clearTimeout(timeout);
         if (!res.ok) {
-          return null;
+          const errData = await res.json().catch(() => null);
+          if (errData) return errData;
+          return { success: false, message: `Máy chủ trả về mã lỗi ${res.status}` };
         }
         return await res.json();
       } catch (err) {
-        console.warn(`[SalonApi] Live API call to ${endpoint} failed, fallback to local store:`, err.message);
-        return null;
+        console.warn(`[SalonApi] Live API call to ${endpoint} failed:`, err.message);
+        return { success: false, message: `Lỗi kết nối máy chủ: ${err.message}` };
       }
     },
 
@@ -72,8 +74,12 @@
     // Module 1: Xác Thực & Người Dùng
     async sendOtp(email) {
       if (this.config.useLiveApi) {
-        const live = await this._request('/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) });
-        if (live) return live;
+        try {
+          const live = await this._request('/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) });
+          if (live) return live;
+        } catch (e) {
+          return { success: false, message: `Không thể kết nối máy chủ gửi OTP: ${e.message}` };
+        }
       }
       if (window.Auth && typeof window.Auth.sendOtp === 'function') {
         return window.Auth.sendOtp(email);

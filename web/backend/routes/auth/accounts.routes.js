@@ -173,31 +173,48 @@ async function handleAccountsRoutes(req, res, ctx) {
     const finalVaiTro = isCustomer ? 'Khách hàng' : (vaiTro || ROLE_SQL_MAP[roleKey] || role || 'Khách hàng');
 
     try {
+      // Tìm tài khoản linh hoạt theo MaTaiKhoan, TenDangNhap, MaNhanVien hoặc MaKhachHang
+      const tkRows = await querySql(`
+        SELECT tk.MaTaiKhoan, tk.MaKhachHang, tk.MaNhanVien, tk.TenDangNhap,
+               nv.HoTen AS HoTenNV, nv.SoDienThoai AS SdtNV, nv.Email AS EmailNV,
+               kh.HoTen AS HoTenKH, kh.SoDienThoai AS SdtKH, kh.Email AS EmailKH
+        FROM TaiKhoan tk
+        LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
+        LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang
+        WHERE tk.MaTaiKhoan = ? 
+           OR tk.TenDangNhap = ? 
+           OR tk.MaNhanVien = ? 
+           OR tk.MaKhachHang = ?
+           OR tk.MaTaiKhoan = 'TK_' + ?
+           OR tk.TenDangNhap = 'user_' + ?
+      `, [userId, userId, userId, userId, userId, userId]);
+
+      const targetTk = (tkRows && tkRows.length > 0) ? tkRows[0] : null;
+      const exactTkId = targetTk ? targetTk.MaTaiKhoan : userId;
+
       if (isCustomer) {
         // Chuyển nhân viên sang Khách hàng: Cập nhật VaiTro = N'Khách hàng', liên kết MaKhachHang, và gán MaNhanVien = NULL
         // (Tuân thủ ràng buộc CHECK constraint CK_TaiKhoan_ChuSoHuu: chỉ được có 1 trong 2 khóa ngoại)
-        const tkRows = await querySql(`
-          SELECT tk.MaTaiKhoan, tk.MaKhachHang, tk.MaNhanVien,
-                 nv.HoTen AS HoTenNV, nv.SoDienThoai AS SdtNV, nv.Email AS EmailNV
-          FROM TaiKhoan tk
-          LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
-          WHERE tk.MaTaiKhoan = ? OR tk.TenDangNhap = ?
-        `, [userId, userId]);
+        if (targetTk) {
+          let khId = targetTk.MaKhachHang;
+          const phone = targetTk.SdtNV || targetTk.SdtKH;
+          const email = targetTk.EmailNV || targetTk.EmailKH;
+          const fullName = targetTk.HoTenNV || targetTk.HoTenKH || targetTk.TenDangNhap || 'Khách Hàng';
 
-        if (tkRows && tkRows.length > 0) {
-          const tk = tkRows[0];
-          let khId = tk.MaKhachHang;
-          if (!khId && tk.SdtNV) {
-            const existingKh = await querySql('SELECT MaKhachHang FROM KhachHang WHERE SoDienThoai = ?', [tk.SdtNV]);
+          if (!khId && phone) {
+            const existingKh = await querySql('SELECT MaKhachHang FROM KhachHang WHERE SoDienThoai = ?', [phone]);
             if (existingKh && existingKh.length > 0) {
               khId = existingKh[0].MaKhachHang;
             }
           }
-          if (!khId && tk.EmailNV) {
-            const existingKh = await querySql('SELECT MaKhachHang FROM KhachHang WHERE Email = ?', [tk.EmailNV]);
+          if (!khId && email) {
+            const existingKh = await querySql('SELECT MaKhachHang FROM KhachHang WHERE Email = ?', [email]);
             if (existingKh && existingKh.length > 0) {
               khId = existingKh[0].MaKhachHang;
             }
+          }
+          if (!khId && targetTk.MaTaiKhoan && targetTk.MaTaiKhoan.startsWith('TK_KH')) {
+            khId = targetTk.MaTaiKhoan.replace('TK_', '');
           }
           if (!khId) {
             const maxKhRows = await querySql("SELECT MAX(CAST(SUBSTRING(MaKhachHang, 3, 10) AS INT)) AS maxKh FROM KhachHang WHERE MaKhachHang LIKE 'KH%'");
@@ -206,49 +223,49 @@ async function handleAccountsRoutes(req, res, ctx) {
             try {
               await querySql(
                 'INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email) VALUES (?, ?, ?, ?)',
-                [khId, tk.HoTenNV || 'Khách Hàng', tk.SdtNV || null, tk.EmailNV || null]
+                [khId, fullName, phone || null, email || null]
               );
             } catch (insErr) {
               await querySql(
                 'INSERT INTO KhachHang (MaKhachHang, HoTen, SoDienThoai, Email) VALUES (?, ?, NULL, ?)',
-                [khId, tk.HoTenNV || 'Khách Hàng', tk.EmailNV || null]
+                [khId, fullName, email || null]
               ).catch(() => {});
             }
           }
-          await querySql('UPDATE TaiKhoan SET VaiTro = N\'Khách hàng\', MaKhachHang = ?, MaNhanVien = NULL WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [khId, userId, userId]);
-          if (tk.MaNhanVien) {
-            await querySql('UPDATE NhanVien SET ChucVu = N\'Khách hàng\' WHERE MaNhanVien = ?', [tk.MaNhanVien]).catch(() => {});
+          await querySql('UPDATE TaiKhoan SET VaiTro = N\'Khách hàng\', MaKhachHang = ?, MaNhanVien = NULL WHERE MaTaiKhoan = ?', [khId, exactTkId]);
+          if (targetTk.MaNhanVien) {
+            await querySql('UPDATE NhanVien SET ChucVu = N\'Khách hàng\' WHERE MaNhanVien = ?', [targetTk.MaNhanVien]).catch(() => {});
           }
         } else {
-          await querySql('UPDATE TaiKhoan SET VaiTro = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, userId, userId]);
+          await querySql('UPDATE TaiKhoan SET VaiTro = N\'Khách hàng\' WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [exactTkId, exactTkId]);
         }
       } else {
         const staffChucVu = roleKey === 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' : (roleKey === 'CASHIER' ? 'Thu ngân' : 'Thợ chính');
-        const tkRows = await querySql(`
-          SELECT tk.MaTaiKhoan, tk.MaKhachHang, tk.MaNhanVien,
-                 kh.HoTen AS HoTenKH, kh.SoDienThoai AS SdtKH, kh.Email AS EmailKH
-          FROM TaiKhoan tk
-          LEFT JOIN KhachHang kh ON tk.MaKhachHang = kh.MaKhachHang
-          WHERE tk.MaTaiKhoan = ? OR tk.TenDangNhap = ?
-        `, [userId, userId]);
+        if (targetTk) {
+          let nvId = targetTk.MaNhanVien || (targetTk.MaTaiKhoan.startsWith('TK_NV') ? targetTk.MaTaiKhoan.replace('TK_', '') : null);
+          const phone = targetTk.SdtKH || targetTk.SdtNV;
+          const email = targetTk.EmailKH || targetTk.EmailNV;
+          const fullName = targetTk.HoTenKH || targetTk.HoTenNV || targetTk.TenDangNhap || 'Nhân Viên Mới';
 
-        if (tkRows && tkRows.length > 0) {
-          const tk = tkRows[0];
-          let nvId = tk.MaNhanVien || (userId.startsWith('TK_NV') ? userId.replace('TK_', '') : null);
+          if (!nvId && phone) {
+            const existingNv = await querySql('SELECT MaNhanVien FROM NhanVien WHERE SoDienThoai = ?', [phone]);
+            if (existingNv && existingNv.length > 0) nvId = existingNv[0].MaNhanVien;
+          }
+
           if (!nvId) {
             const maxNvRows = await querySql("SELECT MAX(CAST(SUBSTRING(MaNhanVien, 3, 10) AS INT)) AS maxNv FROM NhanVien WHERE MaNhanVien LIKE 'NV%'");
             const nextNvNum = (maxNvRows?.[0]?.maxNv || 60) + 1;
             nvId = 'NV' + (nextNvNum < 10 ? '0' + nextNvNum : nextNvNum);
             await querySql(
               'INSERT INTO NhanVien (MaNhanVien, MaChiNhanh, HoTen, SoDienThoai, Email, ChucVu, CapBac) VALUES (?, ?, ?, ?, ?, ?, ?)',
-              [nvId, 'CN01', tk.HoTenKH || 'Nhân Viên Mới', tk.SdtKH || '0901000000', tk.EmailKH || `${userId}@salontoc.vn`, staffChucVu, 'Thợ chính']
+              [nvId, 'CN01', fullName, phone || '0901000000', email || `${exactTkId}@salontoc.vn`, staffChucVu, 'Thợ chính']
             ).catch(() => {});
           } else {
             await querySql('UPDATE NhanVien SET ChucVu = ? WHERE MaNhanVien = ?', [staffChucVu, nvId]).catch(() => {});
           }
-          await querySql('UPDATE TaiKhoan SET VaiTro = ?, MaNhanVien = ?, MaKhachHang = NULL WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, nvId, userId, userId]);
+          await querySql('UPDATE TaiKhoan SET VaiTro = ?, MaNhanVien = ?, MaKhachHang = NULL WHERE MaTaiKhoan = ?', [finalVaiTro, nvId, exactTkId]);
         } else {
-          await querySql('UPDATE TaiKhoan SET VaiTro = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, userId, userId]);
+          await querySql('UPDATE TaiKhoan SET VaiTro = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalVaiTro, exactTkId, exactTkId]);
         }
       }
 

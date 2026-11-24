@@ -16,6 +16,25 @@ const EMAIL_CONFIG_FILE = fs.existsSync(path.join(__dirname, '..', 'config', 'em
     : path.join(__dirname, '..', '..', '..', 'email_config.json'));
 
 const otpMemoryCache = new Map();
+let cachedTransporter = null;
+let cachedTransporterKey = '';
+
+function getTransporter(cfg) {
+  if (!nodemailer || !cfg.user || !cfg.pass) return null;
+  const cleanPass = cfg.pass.replace(/\s+/g, '');
+  const key = `${cfg.user}:${cleanPass}`;
+  if (!cachedTransporter || cachedTransporterKey !== key) {
+    cachedTransporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: cfg.user, pass: cleanPass },
+      pool: true,
+      maxConnections: 3,
+      maxMessages: 100
+    });
+    cachedTransporterKey = key;
+  }
+  return cachedTransporter;
+}
 
 function getEmailConfig() {
   let config = {
@@ -45,11 +64,10 @@ async function sendGmail(toEmail, otp) {
     };
   }
 
-  const cleanPass = cfg.pass.replace(/\s+/g, '');
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: cfg.user, pass: cleanPass }
-  });
+  const transporter = getTransporter(cfg);
+  if (!transporter) {
+    return { sentReal: false, reason: 'Không thể khởi tạo mail transporter' };
+  }
 
   const mailHtml = `
     <div style="max-width: 560px; margin: 0 auto; background: #0f141f; color: #ffffff; padding: 36px 28px; border-radius: 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; border: 1px solid rgba(255, 255, 255, 0.1);">
@@ -58,7 +76,7 @@ async function sendGmail(toEmail, otp) {
           OMNI SALON BARBER SUITE
         </span>
         <h2 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 14px 0 6px;">MÃ XÁC THỰC BẢO MẬT</h2>
-        <p style="color: #94a3b8; font-size: 14px; margin: 0;">Mã xác thực đăng nhập / đổi mật khẩu hệ thống</p>
+        <p style="color: #94a3b8; font-size: 14px; margin: 0;">Mã xác thực đăng ký / đổi mật khẩu hệ thống</p>
       </div>
       <div style="background: #171d2b; border: 1px dashed #f59e0b; border-radius: 14px; padding: 24px; text-align: center; margin: 26px 0;">
         <div style="font-size: 12px; color: #cbd5e1; font-weight: 600; margin-bottom: 8px; letter-spacing: 1.5px; text-transform: uppercase;">
@@ -82,13 +100,7 @@ async function sendGmail(toEmail, otp) {
     to: toEmail,
     subject: `[OmniSalon] ${otp} là mã xác thực tài khoản của bạn`,
     text: `Mã xác thực OTP của bạn là: ${otp}. Mã có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.`,
-    html: mailHtml,
-    headers: {
-      'X-Priority': '1 (Highest)',
-      'X-MSMail-Priority': 'High',
-      'Importance': 'High',
-      'Auto-Submitted': 'auto-generated'
-    }
+    html: mailHtml
   });
 
   return { sentReal: true };
@@ -173,6 +185,16 @@ async function generateAndSendOtp(target, customSql = null) {
     } catch (mailErr) {
       console.error('[GMAIL SEND ERROR]', mailErr.message);
       emailResult = { sentReal: false, error: mailErr.message };
+    }
+
+    if (!emailResult || !emailResult.sentReal) {
+      const errDetail = emailResult?.reason || emailResult?.error || 'Không thể kết nối máy chủ gửi Gmail.';
+      return {
+        success: false,
+        message: `Gửi email thất bại: ${errDetail}. Vui lòng thử lại hoặc liên hệ quản trị viên.`,
+        identifier: cleanTarget,
+        sentEmail: false
+      };
     }
   }
 
