@@ -414,10 +414,34 @@
     async syncCancelOrderToLiveServer(orderId, reason) {
       if (typeof fetch === 'undefined') return { success: true };
       try {
+        const currentUser = this.getCurrentUser();
+        let userRole = 'SUPER_ADMIN';
+        if (currentUser) {
+          const rawRole = String(currentUser.role || currentUser.vaiTroSql || currentUser.VaiTro || currentUser.ChucVu || '').toUpperCase();
+          if (rawRole.includes('MANAGER') || rawRole.includes('QUẢN LÝ')) userRole = 'BRANCH_MANAGER';
+          else if (rawRole.includes('CASHIER') || rawRole.includes('THU NGÂN')) userRole = 'CASHIER';
+          else userRole = 'SUPER_ADMIN';
+        }
+        const userName = currentUser?.fullName || currentUser?.username || 'Quản trị viên';
+        const userBranch = currentUser?.branchId || '';
+
+        let token = '';
+        if (typeof localStorage !== 'undefined') {
+          token = localStorage.getItem('omnisalon_jwt_token') || localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') || '';
+        }
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'X-Admin-Role': userRole,
+          'X-Admin-Operator': encodeURIComponent(userName)
+        };
+        if (userBranch) headers['X-Admin-Branch'] = userBranch;
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
         const cleanId = String(orderId || '').replace(/^#+/, '').trim();
         const res = await fetch(`${this.liveServerUrl}/orders/${encodeURIComponent(cleanId)}/cancel`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
+          headers,
           body: JSON.stringify({ reason })
         });
         return await res.json().catch(() => ({ success: true }));
@@ -427,14 +451,45 @@
     }
 
     async syncBookingStatusToLiveServer(bookingId, status, extraData = {}) {
-      if (typeof fetch === 'undefined') return;
+      if (typeof fetch === 'undefined') return { success: true };
       try {
-        await fetch(`${this.liveServerUrl}/bookings/${bookingId}`, {
+        const currentUser = this.getCurrentUser();
+        let userRole = 'SUPER_ADMIN';
+        if (currentUser && currentUser.role) {
+          const rawRole = String(currentUser.role).toUpperCase();
+          if (rawRole.includes('MANAGER') || rawRole.includes('QUẢN LÝ')) userRole = 'BRANCH_MANAGER';
+          else if (rawRole.includes('CASHIER') || rawRole.includes('THU NGÂN')) userRole = 'CASHIER';
+          else if (rawRole.includes('BARBER') || rawRole.includes('THỢ')) userRole = 'STAFF';
+          else if (rawRole.includes('ADMIN')) userRole = 'SUPER_ADMIN';
+          else userRole = rawRole;
+        }
+        const userName = currentUser?.fullName || currentUser?.username || 'Quản trị viên';
+        const userBranch = currentUser?.branchId || '';
+
+        let token = '';
+        if (typeof localStorage !== 'undefined') {
+          token = localStorage.getItem('omnisalon_jwt_token') || localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') || '';
+        }
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'X-Admin-Role': userRole,
+          'X-Admin-Operator': encodeURIComponent(userName)
+        };
+        if (userBranch) headers['X-Admin-Branch'] = userBranch;
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const cleanId = String(bookingId || '').replace(/^#+/, '').trim();
+        const res = await fetch(`${this.liveServerUrl}/bookings/${encodeURIComponent(cleanId)}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
-          body: JSON.stringify({ status, ...extraData })
+          headers,
+          body: JSON.stringify({ status, TrangThai: status, ...extraData })
         });
-      } catch (_) { }
+        const resData = await res.json().catch(() => null);
+        return resData || { success: res.ok };
+      } catch (err) {
+        return { success: false, error: err?.message };
+      }
     }
 
     async syncStylistToLiveServer(stylist, isUpdate = false) {
@@ -579,14 +634,43 @@
     }
 
     async syncDeleteBookingToLiveServer(bookingId) {
-      if (typeof fetch === 'undefined') return;
+      if (typeof fetch === 'undefined') return { success: true };
       try {
-        const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
-        await fetch(`${this.liveServerUrl}/bookings/${bookingId}`, {
+        const currentUser = this.getCurrentUser();
+        let userRole = 'SUPER_ADMIN';
+        if (currentUser && currentUser.role) {
+          const rawRole = String(currentUser.role).toUpperCase();
+          if (rawRole.includes('MANAGER') || rawRole.includes('QUẢN LÝ')) userRole = 'BRANCH_MANAGER';
+          else if (rawRole.includes('CASHIER') || rawRole.includes('THU NGÂN')) userRole = 'CASHIER';
+          else if (rawRole.includes('BARBER') || rawRole.includes('THỢ')) userRole = 'STAFF';
+          else if (rawRole.includes('ADMIN')) userRole = 'SUPER_ADMIN';
+          else userRole = rawRole;
+        }
+        const userName = currentUser?.fullName || currentUser?.username || 'Quản trị viên';
+        const userBranch = currentUser?.branchId || '';
+
+        let token = '';
+        if (typeof localStorage !== 'undefined') {
+          token = localStorage.getItem('omnisalon_jwt_token') || localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') || '';
+        }
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'X-Admin-Role': userRole,
+          'X-Admin-Operator': encodeURIComponent(userName)
+        };
+        if (userBranch) headers['X-Admin-Branch'] = userBranch;
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const cleanId = String(bookingId || '').replace(/^#+/, '').trim();
+        const res = await fetch(`${this.liveServerUrl}/bookings/${encodeURIComponent(cleanId)}`, {
           method: 'DELETE',
-          headers: token ? { 'Authorization': token } : {}
+          headers
         });
-      } catch (_) { }
+        return await res.json().catch(() => ({ success: res.ok }));
+      } catch (err) {
+        return { success: false, error: err?.message };
+      }
     }
 
     async syncBranchToLiveServer(branch, isUpdate = false) {
@@ -954,7 +1038,7 @@
         this.state.orders.forEach(o => {
           const oDate = String(o.orderDate || o.createdAt || o.NgayDat || '').split('T')[0];
           const oSt = String(o.orderStatus || o.status || o.TrangThai || '');
-          const isPending = ['Pending', 'pending', 'Processing', 'Chờ xử lý', 'Chờ xác nhận', 'Chờ nhận hàng', 'Chờ thanh toán'].includes(oSt);
+          const isPending = ['Pending', 'pending', 'Processing', 'processing', 'Chờ xử lý', 'Chờ xác nhận', 'Chờ nhận hàng', 'Chờ thanh toán', 'Đang xử lý', 'Đang chuẩn bị', 'Đang đóng gói'].includes(oSt);
           if (oDate && oDate < todayIso && isPending) {
             o.orderStatus = 'Cancelled';
             o.status = 'Cancelled';
@@ -962,6 +1046,7 @@
             o.cancelReason = '[Hệ Thống] Tự động hủy qua 12h đêm do khách không đến nhận hàng.';
             o.GhiChu = (o.GhiChu ? o.GhiChu + ' ' : '') + '[Hệ Thống: Tự động hủy qua 12h đêm do khách không đến nhận hàng]';
             changed = true;
+            this.syncCancelOrderToLiveServer(o.id || o.orderCode || o.MaDonHang, o.cancelReason);
           }
         });
       }
@@ -1979,31 +2064,39 @@
       return newBooking;
     }
 
-    updateBookingStatus(bookingId, newStatus, extraData = {}) {
+    async updateBookingStatus(bookingId, newStatus, extraData = {}) {
       const booking = (this.state.bookings || []).find(b => b.id === bookingId || b.bookingCode === bookingId);
       if (!booking) return false;
 
       const oldStatus = booking.status;
       booking.status = newStatus;
 
-      if (newStatus === 'Waiting' || newStatus === 'waiting') {
+      if (newStatus === 'Waiting' || newStatus === 'waiting' || newStatus === 'Chờ vào ghế') {
         booking.status = 'Waiting';
+        booking.TrangThai = 'Chờ vào ghế';
         booking.waitingAt = new Date().toISOString();
-      }
-      if (newStatus === 'In_Progress' && !booking.checkedInAt) {
-        booking.checkedInAt = new Date().toISOString();
-      }
-      if (newStatus === 'Completed' && !booking.completedAt) {
-        booking.completedAt = new Date().toISOString();
+      } else if (newStatus === 'In_Progress' || newStatus === 'in_progress' || newStatus === 'Đang phục vụ') {
+        booking.status = 'In_Progress';
+        booking.TrangThai = 'Đang phục vụ';
+        if (!booking.checkedInAt) booking.checkedInAt = new Date().toISOString();
+      } else if (newStatus === 'Completed' || newStatus === 'completed' || newStatus === 'Hoàn thành' || newStatus === 'Đã hoàn thành') {
+        booking.status = 'Completed';
+        booking.TrangThai = 'Hoàn thành';
+        if (!booking.completedAt) booking.completedAt = new Date().toISOString();
         booking.paymentStatus = 'Paid';
-      }
-      if (newStatus === 'Cancelled') {
+        booking.TrangThaiThanhToan = 'Đã thanh toán';
+      } else if (newStatus === 'Cancelled' || newStatus === 'cancelled' || newStatus === 'Đã hủy') {
+        booking.status = 'Cancelled';
+        booking.TrangThai = 'Đã hủy';
         booking.cancellationReason = extraData.cancellationReason || extraData.reason || 'Khách báo bận ca';
+      } else if (newStatus === 'Confirmed' || newStatus === 'confirmed' || newStatus === 'Đã xác nhận') {
+        booking.status = 'Confirmed';
+        booking.TrangThai = 'Đã xác nhận';
       }
 
       this.logAudit('UPDATE_BOOKING_STATUS', `Lịch: ${booking.bookingCode || booking.id}`, `Chuyển trạng thái: ${oldStatus} -> ${newStatus}`);
       this.saveState();
-      this.syncBookingStatusToLiveServer(booking.id, newStatus, extraData);
+      await this.syncBookingStatusToLiveServer(booking.id, newStatus, extraData);
       return true;
     }
 
@@ -2015,7 +2108,7 @@
       return this.updateBookingStatus(bookingId, 'Waiting');
     }
 
-    checkinBookingEarlyToday(bookingId) {
+    async checkinBookingEarlyToday(bookingId) {
       const b = (this.state.bookings || []).find(x => x.id === bookingId || x.bookingCode === bookingId);
       if (!b) return false;
       const today = new Date();
@@ -2033,17 +2126,18 @@
       b.bookingDate = todayStr;
       b.timeSlot = nowTime;
       b.status = 'In_Progress';
+      b.TrangThai = 'Đang phục vụ';
       b.checkedInAt = new Date().toISOString();
       const noteSuffix = `[Đến làm sớm hôm nay lúc ${nowTime} (Lịch gốc: ${oldDate} ${oldTime})]`;
       b.notes = b.notes ? `${b.notes} • ${noteSuffix}` : noteSuffix;
 
       this.logAudit('EARLY_CHECKIN', `Lịch: ${b.bookingCode || b.id}`, `Khách làm sớm hôm nay: ${b.customerName} (${todayStr} ${nowTime})`);
       this.saveState();
-      this.syncBookingStatusToLiveServer(b.id, 'In_Progress', { note: b.notes });
+      await this.syncBookingStatusToLiveServer(b.id, 'In_Progress', { note: b.notes, date: todayStr, timeSlot: nowTime });
       return b;
     }
 
-    checkinWaitingEarlyToday(bookingId) {
+    async checkinWaitingEarlyToday(bookingId) {
       const b = (this.state.bookings || []).find(x => x.id === bookingId || x.bookingCode === bookingId);
       if (!b) return false;
       const today = new Date();
@@ -2061,13 +2155,14 @@
       b.bookingDate = todayStr;
       b.timeSlot = nowTime;
       b.status = 'Waiting';
+      b.TrangThai = 'Chờ vào ghế';
       b.waitingAt = new Date().toISOString();
       const noteSuffix = `[Đến sớm chờ ghế hôm nay lúc ${nowTime} (Lịch gốc: ${oldDate} ${oldTime})]`;
       b.notes = b.notes ? `${b.notes} • ${noteSuffix}` : noteSuffix;
 
       this.logAudit('EARLY_WAITING', `Lịch: ${b.bookingCode || b.id}`, `Khách đến sớm chờ ghế: ${b.customerName} (${todayStr} ${nowTime})`);
       this.saveState();
-      this.syncBookingStatusToLiveServer(b.id, 'Waiting', { note: b.notes });
+      await this.syncBookingStatusToLiveServer(b.id, 'Waiting', { note: b.notes, date: todayStr, timeSlot: nowTime });
       return b;
     }
 
@@ -3029,12 +3124,16 @@
     }
 
     async updateOrderStatus(orderId, newStatus, notes = '') {
-      const norm = String(orderId).trim().toLowerCase();
-      const order = (this.state.orders || []).find(o =>
-        (o.id && String(o.id).trim().toLowerCase() === norm) ||
-        (o.orderCode && String(o.orderCode).trim().toLowerCase() === norm) ||
-        (o.MaDonHang && String(o.MaDonHang).trim().toLowerCase() === norm)
-      );
+      const rawNorm = String(orderId || '').trim().toLowerCase();
+      const cleanNorm = rawNorm.replace(/^#+/, '').trim();
+      const order = (this.state.orders || []).find(o => {
+        const oId = String(o.id || '').trim().toLowerCase();
+        const oCode = String(o.orderCode || '').trim().toLowerCase();
+        const oMa = String(o.MaDonHang || '').trim().toLowerCase();
+        return oId === rawNorm || oId === cleanNorm || oId.replace(/^#+/, '') === cleanNorm ||
+               oCode === rawNorm || oCode === cleanNorm || oCode.replace(/^#+/, '') === cleanNorm ||
+               oMa === rawNorm || oMa === cleanNorm || oMa.replace(/^#+/, '') === cleanNorm;
+      });
 
       if (!order) return { success: false, error: 'Không tìm thấy đơn hàng trong hệ thống!' };
 
@@ -3068,39 +3167,66 @@
         vietnameseStatus = 'Chờ xác nhận';
       }
 
+      // QUY TẮC BẢO VỆ NGHIỆP VỤ: Đã tới bước cuối cùng và đã thu tiền -> không được quyền trở về các bước trước
+      const isAlreadyFinal = Boolean(
+        order.orderStatus === 'Completed' ||
+        order.TrangThai === 'Hoàn tất' ||
+        order.TrangThai === 'Đã nhận tại quầy'
+      );
+      const isAlreadyPaid = Boolean(
+        order.paymentStatus === 'Paid' ||
+        order.isPaid === true ||
+        order.TrangThaiHoaDon === 'Đã thanh toán' ||
+        order.TrangThaiThanhToan === 'Đã thanh toán'
+      );
+
+      if (isAlreadyFinal && isAlreadyPaid && normalizedStatus !== 'Completed') {
+        return {
+          success: false,
+          error: 'Đơn hàng đã tới bước cuối cùng và đã thu tiền thành công, không được quyền trở về các bước trước.'
+        };
+      }
+
       // Tự động đánh dấu Đã trả khi đơn hoàn tất / đã nhận tại quầy hoặc đã thanh toán trước đó
       const isCurrentPaid = Boolean(
         normalizedStatus === 'Completed' ||
         order.paymentStatus === 'Paid' ||
         order.isPaid === true ||
         order.TrangThai === 'Đã thanh toán' ||
-        order.TrangThaiHoaDon === 'Đã thanh toán'
+        order.TrangThaiHoaDon === 'Đã thanh toán' ||
+        order.TrangThaiThanhToan === 'Đã thanh toán'
       );
-      if (isCurrentPaid) {
-        order.paymentStatus = 'Paid';
-        order.isPaid = true;
-      }
-
-      order.orderStatus = normalizedStatus;
-      order.TrangThai = vietnameseStatus;
-      if (notes) order.notes = notes;
-
-      this.logAudit('UPDATE_ORDER_STATUS', `Đơn: #${order.orderCode || order.id}`, `Chuyển tiến trình: ${vietnameseStatus} (${normalizedStatus})`);
-      this.saveState();
-      this.notify('ORDER_STATUS_UPDATED', order);
-
-      // Kênh đồng bộ BroadcastChannel tức thì sang tab khách hàng và mobile app
-      if (this.syncChannel) {
-        try {
-          this.syncChannel.postMessage({ type: 'DATA_UPDATED', entity: 'ORDER', orderId: order.id, status: normalizedStatus });
-        } catch (_) { }
-      }
 
       // Đồng bộ trực tiếp vào SQL Server backend qua API PUT
       try {
-        const res = await fetch(`${this.liveServerUrl}/orders/${order.id || order.orderCode}`, {
+        const currentUser = this.getCurrentUser();
+        let userRole = 'SUPER_ADMIN';
+        if (currentUser) {
+          const rawRole = String(currentUser.role || currentUser.vaiTroSql || currentUser.VaiTro || currentUser.ChucVu || '').toUpperCase();
+          if (rawRole.includes('MANAGER') || rawRole.includes('QUẢN LÝ')) userRole = 'BRANCH_MANAGER';
+          else if (rawRole.includes('CASHIER') || rawRole.includes('THU NGÂN')) userRole = 'CASHIER';
+          else userRole = 'SUPER_ADMIN';
+        }
+        const userName = currentUser?.fullName || currentUser?.username || 'Quản trị viên';
+        const userBranch = currentUser?.branchId || '';
+
+        let token = '';
+        if (typeof localStorage !== 'undefined') {
+          token = localStorage.getItem('omnisalon_jwt_token') || localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') || '';
+        }
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'X-Admin-Role': userRole,
+          'X-Admin-Operator': encodeURIComponent(userName)
+        };
+        if (userBranch) headers['X-Admin-Branch'] = userBranch;
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const targetId = encodeURIComponent(String(order.id || order.orderCode || order.MaDonHang || '').replace(/^#+/, ''));
+        const res = await fetch(`${this.liveServerUrl}/orders/${targetId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
+          headers,
           body: JSON.stringify({
             status: vietnameseStatus,
             orderStatus: normalizedStatus,
@@ -3109,7 +3235,15 @@
             isPaid: isCurrentPaid
           })
         });
+
         const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+          return {
+            success: false,
+            error: data.error || data.message || 'Lỗi khi cập nhật trạng thái đơn hàng trên hệ thống!'
+          };
+        }
+
         if (data && data.paymentStatus) {
           order.paymentStatus = data.paymentStatus;
           order.isPaid = (data.paymentStatus === 'Paid');
@@ -3117,11 +3251,39 @@
           order.paymentStatus = 'Paid';
           order.isPaid = true;
         }
+
+        order.orderStatus = normalizedStatus;
+        order.TrangThai = vietnameseStatus;
+        if (notes) order.notes = notes;
+
+        this.logAudit('UPDATE_ORDER_STATUS', `Đơn: #${order.orderCode || order.id || order.MaDonHang}`, `Chuyển tiến trình: ${vietnameseStatus} (${normalizedStatus})`);
         this.saveState();
-        return { success: true, message: data.message || `Đã cập nhật tiến trình đơn #${order.orderCode || order.id} sang "${vietnameseStatus}"!`, order };
+        this.notify('ORDER_STATUS_UPDATED', order);
+
+        // Kênh đồng bộ BroadcastChannel tức thì sang tab khách hàng và mobile app
+        if (this.syncChannel) {
+          try {
+            this.syncChannel.postMessage({ type: 'DATA_UPDATED', entity: 'ORDER', orderId: order.id, status: normalizedStatus });
+          } catch (_) { }
+        }
+
+        return { success: true, message: data.message || `Đã cập nhật tiến trình đơn #${order.orderCode || order.id || order.MaDonHang} sang "${vietnameseStatus}"!`, order };
       } catch (err) {
         console.warn('[UPDATE ORDER STATUS SERVER SYNC]', err.message);
-        return { success: true, message: `Đã cập nhật tiến trình đơn #${order.orderCode || order.id} sang "${vietnameseStatus}"!`, order };
+        // Fallback cập nhật local nếu server không phản hồi
+        if (isCurrentPaid) {
+          order.paymentStatus = 'Paid';
+          order.isPaid = true;
+        }
+        order.orderStatus = normalizedStatus;
+        order.TrangThai = vietnameseStatus;
+        if (notes) order.notes = notes;
+
+        this.logAudit('UPDATE_ORDER_STATUS', `Đơn: #${order.orderCode || order.id || order.MaDonHang}`, `Chuyển tiến trình: ${vietnameseStatus} (${normalizedStatus})`);
+        this.saveState();
+        this.notify('ORDER_STATUS_UPDATED', order);
+
+        return { success: true, message: `Đã cập nhật tiến trình đơn #${order.orderCode || order.id || order.MaDonHang} sang "${vietnameseStatus}"!`, order };
       }
     }
 

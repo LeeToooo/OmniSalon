@@ -665,7 +665,7 @@
       const isVnPay = this.checkoutData.paymentMethod === 'VNPAY';
       const finalAmount = order.totalAmount || 0;
       const cleanOrderCode = String(orderCode).replace(/^#/, '');
-      const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${finalAmount}&addInfo=${encodeURIComponent('THANHTOAN ' + cleanOrderCode)}&accountName=OMNISALON%20ENTERPRISE`;
+      const vietQrUrl = `https://api.vietqr.io/image/970422-0925898974-compact.jpg?amount=${finalAmount}&addInfo=${encodeURIComponent('THANHTOAN ' + cleanOrderCode)}&accountName=DO%20DINH%20DO`;
 
       return `
         <div style="max-width: 640px; margin: 0 auto; background: var(--surface-card, #13161F); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 36px 24px; text-align: center;">
@@ -703,8 +703,8 @@
               <img src="${vietQrUrl}" alt="Mã VietQR Thanh Toán" style="max-width: 240px; width: 100%; border-radius: 8px; margin: 0 auto 12px; display: block;" onerror="this.style.display='none'">
               <div style="font-size: 12.5px; line-height: 1.6; text-align: left; background: #F8FAFC; padding: 12px; border-radius: 8px;">
                 <div><strong>Ngân hàng:</strong> MB BANK (Quân Đội)</div>
-                <div><strong>Số tài khoản:</strong> 0900000000</div>
-                <div><strong>Chủ tài khoản:</strong> OMNISALON ENTERPRISE</div>
+                <div><strong>Số tài khoản:</strong> 0925898974</div>
+                <div><strong>Chủ tài khoản:</strong> DO DINH DO</div>
                 <div><strong>Nội dung:</strong> THANHTOAN ${this.escapeHtml(cleanOrderCode)}</div>
               </div>
             </div>

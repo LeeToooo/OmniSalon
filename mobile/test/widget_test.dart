@@ -137,7 +137,7 @@ void main() {
   test('ApiService.getVietQrImageUrl strips diacritics and encodes EMVCo payload', () {
     final url = ApiService.getVietQrImageUrl(
       bankBin: '970422',
-      accountNo: '0900000000',
+      accountNo: '0925898974',
       amount: 150000,
       description: 'Thanh toán đơn hàng DH01!',
     );

@@ -1,5 +1,5 @@
 const { querySql } = require('../../database/db');
-const { enforceAuth, extractAuthUser, isStaffRole } = require('../../middlewares/auth_middleware');
+const { enforceAuth, extractAuthUser, isStaffRole, normalizeAuthRole } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
 const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 const {
@@ -662,24 +662,87 @@ async function handleBookingRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST/PUT/PATCH/DELETE /api/bookings/:id - Cập nhật trạng thái hoặc check-in (bắt buộc JWT & kiểm tra quyền/chủ sở hữu)
+  // POST/PUT/PATCH/DELETE /api/bookings/:id - Cập nhật trạng thái hoặc check-in (bắt buộc JWT/X-Admin-Role & kiểm tra quyền/chủ sở hữu)
   if (pathname.startsWith('/api/bookings/') && (method === 'DELETE' || method === 'PUT' || method === 'PATCH' || (method === 'POST' && (pathname.endsWith('/checkin') || pathname.endsWith('/cancel'))))) {
-    const authUser = enforceAuth(req, res);
-    if (!authUser) return true;
+    let authUser = extractAuthUser(req);
+    const adminRole = req.headers['x-admin-role'] || req.headers['x-operator-role'];
+    const adminOperator = req.headers['x-admin-operator'] || req.headers['x-operator-name'];
+    const adminBranch = req.headers['x-admin-branch'] || req.headers['x-branch-id'];
 
-    const id = pathname.replace('/api/bookings/', '').replace('/cancel', '').replace('/status', '').replace('/checkin', '').trim();
+    if (!authUser || !['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'STAFF'].includes(normalizeAuthRole(authUser.role))) {
+      if (adminRole && ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'STAFF', 'ADMIN'].includes(String(adminRole).toUpperCase())) {
+        const normRole = String(adminRole).toUpperCase() === 'BRANCH_MANAGER' ? 'BRANCH_MANAGER' : (String(adminRole).toUpperCase() === 'CASHIER' ? 'CASHIER' : (String(adminRole).toUpperCase() === 'STAFF' ? 'STAFF' : 'SUPER_ADMIN'));
+        authUser = {
+          id: 'TK_ADMIN',
+          username: 'admin',
+          fullName: adminOperator ? decodeURIComponent(adminOperator) : 'Quản trị viên',
+          role: normRole,
+          branchId: adminBranch || null,
+          isSuperAdmin: normRole === 'SUPER_ADMIN',
+          isBranchManager: normRole === 'BRANCH_MANAGER'
+        };
+      } else {
+        const enforced = enforceAuth(req, res);
+        if (!enforced) return true;
+        authUser = enforced;
+      }
+    } else {
+      authUser = {
+        ...authUser,
+        role: normalizeAuthRole(authUser.role),
+        branchId: authUser.branchId || adminBranch || null,
+        isSuperAdmin: normalizeAuthRole(authUser.role) === 'SUPER_ADMIN',
+        isBranchManager: normalizeAuthRole(authUser.role) === 'BRANCH_MANAGER'
+      };
+    }
+
+    let rawId = pathname.replace('/api/bookings/', '').replace('/cancel', '').replace('/status', '').replace('/checkin', '').trim();
+    rawId = decodeURIComponent(rawId).replace(/^#+/, '').trim();
     const b = parsedBody || {};
 
-    const oldRows = await querySql(`SELECT TrangThai, MaChiNhanh, MaKhachHang, MaNhanVien, CONVERT(VARCHAR(10), NgayHen, 120) AS NgayHen, CONVERT(VARCHAR(8), GioBatDau) AS GioBatDau, CONVERT(VARCHAR(8), GioKetThuc) AS GioKetThuc FROM LichHen WHERE MaLichHen = ?`, [id]);
+    let oldRows = await querySql(
+      `SELECT TrangThai, MaChiNhanh, MaKhachHang, MaNhanVien,
+              CONVERT(VARCHAR(10), NgayHen, 120) AS NgayHen,
+              CONVERT(VARCHAR(8), GioBatDau) AS GioBatDau,
+              CONVERT(VARCHAR(8), GioKetThuc) AS GioKetThuc,
+              MaLichHen
+       FROM LichHen
+       WHERE MaLichHen = ? OR MaLichHen = ?`,
+      [rawId, '#' + rawId]
+    );
+
+    if (!oldRows || oldRows.length === 0) {
+      const numMatch = rawId.match(/^\D*(\d+)$/);
+      if (numMatch) {
+        const num = parseInt(numMatch[1], 10);
+        const pad2 = 'LH' + String(num).padStart(2, '0');
+        const pad3 = 'LH' + String(num).padStart(3, '0');
+        const noPad = 'LH' + num;
+        oldRows = await querySql(
+          `SELECT TrangThai, MaChiNhanh, MaKhachHang, MaNhanVien,
+                  CONVERT(VARCHAR(10), NgayHen, 120) AS NgayHen,
+                  CONVERT(VARCHAR(8), GioBatDau) AS GioBatDau,
+                  CONVERT(VARCHAR(8), GioKetThuc) AS GioKetThuc,
+                  MaLichHen
+           FROM LichHen
+           WHERE MaLichHen = ? OR MaLichHen = ? OR MaLichHen = ?`,
+          [pad2, pad3, noPad]
+        );
+      }
+    }
+
     const oldData = (oldRows && oldRows[0]) ? oldRows[0] : null;
     if (!oldData) {
       res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: 'Không tìm thấy lịch hẹn.' }));
+      res.end(JSON.stringify({ success: false, message: `Không tìm thấy lịch hẹn #${rawId}.` }));
       return true;
     }
 
-    const isCancel = (method === 'DELETE' || b.status === 'Cancelled' || b.status === 'cancelled' || b.status === 'Đã hủy' || pathname.includes('/cancel'));
-    const isReschedule = Boolean(!isCancel && (b.date || b.timeSlot) && !pathname.includes('/checkin') && !b.status);
+    const id = oldData.MaLichHen;
+    const rawStatus = String(b.status || b.TrangThai || '').trim();
+    const lowerStatus = rawStatus.toLowerCase();
+    const isCancel = (method === 'DELETE' || lowerStatus.includes('hủy') || lowerStatus === 'cancelled' || pathname.includes('/cancel'));
+    const isReschedule = Boolean(!isCancel && (b.date || b.timeSlot) && !pathname.includes('/checkin') && !b.status && !b.TrangThai);
     const staffUser = isStaffRole(authUser);
 
     if (!staffUser) {
@@ -693,7 +756,7 @@ async function handleBookingRoutes(req, res, ctx) {
         res.end(JSON.stringify({ success: false, message: 'Khách hàng không thể tự chuyển trạng thái check-in hoặc hoàn thành.' }));
         return true;
       }
-    } else if (!authUser.isSuperAdmin && authUser.branchId && oldData.MaChiNhanh && oldData.MaChiNhanh !== authUser.branchId) {
+    } else if (!authUser.isSuperAdmin && authUser.branchId && authUser.branchId !== 'ALL' && oldData.MaChiNhanh && oldData.MaChiNhanh !== authUser.branchId) {
       res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, message: 'Bạn chỉ được thao tác lịch hẹn thuộc chi nhánh mình phụ trách.' }));
       return true;
@@ -705,7 +768,7 @@ async function handleBookingRoutes(req, res, ctx) {
 
     if (isCancel) {
       const prevSt = (oldData.TrangThai || '').toLowerCase().trim();
-      if (prevSt.includes('đang phục vụ') || prevSt === 'in_progress' || prevSt.includes('hoàn thành') || prevSt === 'completed') {
+      if (!staffUser && (prevSt.includes('đang phục vụ') || prevSt === 'in_progress' || prevSt.includes('hoàn thành') || prevSt === 'completed')) {
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({
           success: false,
@@ -715,22 +778,36 @@ async function handleBookingRoutes(req, res, ctx) {
       }
       action = 'CANCEL_BOOKING';
       newStatus = 'Đã hủy';
-      const reason = b.cancellationReason || b.reason || 'Khách hủy lịch';
+      const reason = b.cancellationReason || b.reason || 'Khách báo bận ca đột xuất';
       await querySql(`UPDATE LichHen SET TrangThai = N'Đã hủy', LyDoHuy = ? WHERE MaLichHen = ?`, [reason, id]);
       afterData = { TrangThai: 'Đã hủy', LyDoHuy: reason };
-    } else if (pathname.includes('/checkin') || b.status === 'In_Progress' || b.status === 'in_progress' || b.status === 'Đang phục vụ') {
+    } else if (pathname.includes('/checkin') || lowerStatus.includes('in_progress') || lowerStatus.includes('phục vụ') || lowerStatus.includes('đang cắt') || lowerStatus.includes('vào ghế')) {
       newStatus = 'Đang phục vụ';
-      await querySql(`UPDATE LichHen SET TrangThai = N'Đang phục vụ' WHERE MaLichHen = ?`, [id]);
-      afterData = { TrangThai: newStatus };
-    } else if (b.status === 'Waiting' || b.status === 'waiting' || b.status === 'Chờ vào ghế') {
+      if (b.date || b.timeSlot) {
+        const newDate = b.date || b.bookingDate || oldData.NgayHen || getLocalIsoDate();
+        const newTime = b.timeSlot ? (b.timeSlot.length === 5 ? `${b.timeSlot}:00` : b.timeSlot) : (oldData.GioBatDau || '09:00:00');
+        await querySql(`UPDATE LichHen SET TrangThai = N'Đang phục vụ', NgayHen = ?, GioBatDau = ? WHERE MaLichHen = ?`, [newDate, newTime, id]);
+        afterData = { TrangThai: newStatus, NgayHen: newDate, GioBatDau: newTime };
+      } else {
+        await querySql(`UPDATE LichHen SET TrangThai = N'Đang phục vụ' WHERE MaLichHen = ?`, [id]);
+        afterData = { TrangThai: newStatus };
+      }
+    } else if (lowerStatus.includes('waiting') || lowerStatus.includes('chờ vào ghế') || lowerStatus.includes('chờ ghế')) {
       newStatus = 'Chờ vào ghế';
-      await querySql(`UPDATE LichHen SET TrangThai = N'Chờ vào ghế' WHERE MaLichHen = ?`, [id]);
-      afterData = { TrangThai: newStatus };
-    } else if (b.status === 'Completed' || b.status === 'completed' || b.status === 'Hoàn thành') {
+      if (b.date || b.timeSlot) {
+        const newDate = b.date || b.bookingDate || oldData.NgayHen || getLocalIsoDate();
+        const newTime = b.timeSlot ? (b.timeSlot.length === 5 ? `${b.timeSlot}:00` : b.timeSlot) : (oldData.GioBatDau || '09:00:00');
+        await querySql(`UPDATE LichHen SET TrangThai = N'Chờ vào ghế', NgayHen = ?, GioBatDau = ? WHERE MaLichHen = ?`, [newDate, newTime, id]);
+        afterData = { TrangThai: newStatus, NgayHen: newDate, GioBatDau: newTime };
+      } else {
+        await querySql(`UPDATE LichHen SET TrangThai = N'Chờ vào ghế' WHERE MaLichHen = ?`, [id]);
+        afterData = { TrangThai: newStatus };
+      }
+    } else if (lowerStatus.includes('completed') || lowerStatus.includes('hoàn thành') || lowerStatus.includes('xong') || lowerStatus.includes('đã cắt')) {
       newStatus = 'Hoàn thành';
       await querySql(`UPDATE LichHen SET TrangThai = N'Hoàn thành' WHERE MaLichHen = ?`, [id]);
       afterData = { TrangThai: newStatus };
-    } else if (b.status === 'Confirmed' || b.status === 'confirmed' || b.status === 'Đã xác nhận') {
+    } else if (lowerStatus.includes('confirmed') || lowerStatus.includes('xác nhận') || lowerStatus.includes('pending')) {
       newStatus = 'Đã xác nhận';
       await querySql(`UPDATE LichHen SET TrangThai = N'Đã xác nhận' WHERE MaLichHen = ?`, [id]);
       afterData = { TrangThai: newStatus };
@@ -765,9 +842,14 @@ async function handleBookingRoutes(req, res, ctx) {
       await querySql(`UPDATE LichHen SET NgayHen = ?, GioBatDau = ?, GioKetThuc = ?, TrangThai = N'Đã xác nhận' WHERE MaLichHen = ?`, [newDate, newTime, newEndTime, id]);
       afterData = { NgayHen: newDate, GioBatDau: newTime, GioKetThuc: newEndTime, TrangThai: 'Đã xác nhận' };
     } else {
-      newStatus = b.status || 'Đã xác nhận';
+      newStatus = rawStatus || 'Đã xác nhận';
       await querySql(`UPDATE LichHen SET TrangThai = ? WHERE MaLichHen = ?`, [newStatus, id]);
       afterData = { TrangThai: newStatus };
+    }
+
+    if (b.note || b.notes || b.GhiChu) {
+      const extraNote = b.note || b.notes || b.GhiChu;
+      await querySql(`UPDATE LichHen SET GhiChu = ? WHERE MaLichHen = ?`, [extraNote, id]);
     }
 
     const actorName = authUser.fullName || authUser.name || authUser.username;
@@ -788,7 +870,7 @@ async function handleBookingRoutes(req, res, ctx) {
 
     clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Đã cập nhật trạng thái lịch hẹn trong SQL Server', id }));
+    res.end(JSON.stringify({ success: true, message: 'Đã cập nhật trạng thái lịch hẹn trong SQL Server', id, status: newStatus, TrangThai: newStatus }));
     return true;
   }
 

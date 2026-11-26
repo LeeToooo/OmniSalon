@@ -113,7 +113,7 @@
       const rawCode = order.id || order.orderCode || order.MaDonHang || orderId;
       const cleanCode = String(rawCode).replace(/^#/, '');
 
-      const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${amount}&addInfo=${encodeURIComponent('THANHTOAN ' + cleanCode)}&accountName=OMNISALON%20ENTERPRISE`;
+      const vietQrUrl = `https://api.vietqr.io/image/970422-0925898974-compact.jpg?amount=${amount}&addInfo=${encodeURIComponent('THANHTOAN ' + cleanCode)}&accountName=DO%20DINH%20DO`;
 
       const escapeFn = (typeof this.escapeHtml === 'function')
         ? this.escapeHtml.bind(this)
@@ -149,11 +149,11 @@
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Số tài khoản:</span>
-              <strong style="color: #0284c7; font-size: 14px;">0900000000</strong>
+              <strong style="color: #0284c7; font-size: 14px;">0925898974</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Chủ tài khoản:</span>
-              <strong>OMNISALON ENTERPRISE</strong>
+              <strong>DO DINH DO</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Số tiền cần trả:</span>

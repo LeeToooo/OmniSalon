@@ -73,7 +73,7 @@
 
       if (clean.includes('hủy') || clean === 'cancelled') return false;
       if (clean.includes('hoàn tất') || clean.includes('đã giao') || clean.includes('đã nhận') || clean === 'completed' || clean === 'delivered') return false;
-      if (clean.includes('đang giao') || clean.includes('vận chuyển') || clean.includes('sẵn sàng') || clean === 'delivering' || clean === 'shipping' || clean === 'ready_for_pickup') return false;
+      if (clean.includes('đang giao') || clean.includes('vận chuyển') || clean.includes('sẵn sàng') || clean === 'delivering' || clean === 'shipping' || clean === 'ready' || clean === 'ready_for_pickup') return false;
       return true;
     },
 
@@ -97,10 +97,10 @@
           step: 4
         };
       }
-      if (s.includes('sẵn sàng') || s === 'ready_for_pickup' || s.includes('đang giao') || s === 'delivering' || s === 'shipping' || (s.includes('giao') && !s.includes('đã giao'))) {
+      if (s.includes('sẵn sàng') || s === 'ready' || s === 'ready_for_pickup' || s.includes('ready') || s.includes('đang giao') || s === 'delivering' || s === 'shipping' || (s.includes('giao') && !s.includes('đã giao'))) {
         return {
           key: 'delivering',
-          label: (isPickup || s.includes('sẵn sàng')) ? 'Sẵn sàng tại quầy' : 'Đang giao hàng',
+          label: (isPickup || s.includes('sẵn sàng') || s === 'ready' || s.includes('ready')) ? 'Sẵn sàng tại quầy' : 'Đang giao hàng',
           cssClass: 'status-shipping',
           step: 3
         };

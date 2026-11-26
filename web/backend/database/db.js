@@ -557,6 +557,20 @@ async function applyPerformanceOptimizations() {
       );
     `);
 
+    // Tự động dọn dẹp các đơn hàng quá hạn qua 12h đêm chưa hoàn tất sang Đã hủy
+    await querySql(`
+      UPDATE DonHang
+      SET TrangThai = N'Đã hủy',
+          GhiChu = ISNULL(GhiChu, N'') + N' [Hệ Thống: Tự động hủy qua 12h đêm do khách không đến nhận hàng]'
+      WHERE CONVERT(VARCHAR(10), NgayDat, 120) < CONVERT(VARCHAR(10), GETDATE(), 120)
+        AND TrangThai IN (
+          N'Chờ xử lý', N'Chờ xác nhận', N'Chờ nhận hàng', N'Chờ thanh toán',
+          N'Đang xử lý', N'Đang chuẩn bị', N'Đang đóng gói',
+          'Pending', 'pending', 'Processing', 'processing'
+        )
+        AND TrangThai NOT IN (N'Đang giao hàng', N'Đã giao', N'Hoàn tất', N'Hoàn thành', N'Đã hủy', 'Delivering', 'Completed', 'Delivered', 'Cancelled');
+    `).catch(() => {});
+
     // Đồng bộ hóa đơn & giao dịch thanh toán cho các đơn hàng đã hoàn tất (bao gồm DH02, DH04, DH05)
     const completedUnpaidOrders = await querySql(`
       SELECT dh.MaDonHang, dh.MaKhachHang, dh.MaChiNhanh, dh.NgayDat, dh.TongTien

@@ -7,8 +7,8 @@
   const VIETQR_CONFIG = Object.freeze({
     bin: '970422',
     bankName: 'MB BANK (Quân Đội)',
-    accountNo: '0900000000',
-    accountName: 'OMNISALON ENTERPRISE',
+    accountNo: '0925898974',
+    accountName: 'DO DINH DO',
     napasText: 'VIETQR 24/7 CHUYỂN NHANH NAPAS'
   });
 

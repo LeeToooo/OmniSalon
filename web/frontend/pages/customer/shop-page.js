@@ -1713,7 +1713,7 @@
                   <div>
                     ${isAvailable ? `
                       <button class="btn-submit-terracotta" style="padding: 7px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; white-space: nowrap; cursor: pointer;"
-                              onclick="ShopPage.chooseBranchForProduct('${b.id}', '${SalonUtils.escapeHtml(b.name)}')">
+                              onclick="ShopPage.chooseBranchForProduct('${b.id}')">
                         Chọn Chi Nhánh
                       </button>
                     ` : `
@@ -1735,13 +1735,17 @@
     },
 
     chooseBranchForProduct(branchId, branchName) {
+      const branch = (window.store && typeof window.store.getBranchById === 'function')
+        ? window.store.getBranchById(branchId)
+        : null;
+      const resolvedName = branchName || branch?.name || branch?.TenChiNhanh || 'Chi Nhánh';
       if (window.CartPage && window.CartPage.checkoutData) {
         window.CartPage.checkoutData.pickupBranchId = branchId;
         window.CartPage.detectedNearestBranchId = branchId;
       }
       if (window.UICommon) {
         window.UICommon.closeGlobalModal();
-        window.UICommon.showToast(`✓ Đã chọn ${branchName}. Đơn hàng nhận tại Salon sẽ được chuẩn bị sẵn tại đây!`, 'success');
+        window.UICommon.showToast(`✓ Đã chọn ${resolvedName}. Đơn hàng nhận tại Salon sẽ được chuẩn bị sẵn tại đây!`, 'success');
       }
     },
 
@@ -1903,7 +1907,7 @@
             <div style="font-size: 34px; margin-bottom: 10px; color: #F59E0B;">⭐</div>
             <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Chưa có đánh giá nào cho sản phẩm này</h4>
             <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0 0 18px;">Hãy là người đầu tiên trải nghiệm chất lượng sản phẩm và chia sẻ cảm nhận của bạn!</p>
-            <button type="button" class="btn-submit-terracotta" style="padding: 10px 24px; font-size: 13.5px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #FFFFFF; border: none; cursor: pointer;" onclick="ShopPage.openWriteProductReviewModal('${this.escapeHtml(product.id || '')}', '${this.escapeHtml(product.name || product.TenSanPham || '')}')">
+            <button type="button" class="btn-submit-terracotta" style="padding: 10px 24px; font-size: 13.5px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #FFFFFF; border: none; cursor: pointer;" onclick="ShopPage.openWriteProductReviewModal('${this.escapeHtml(product.id || '')}')">
               Viết đánh giá ngay
             </button>
           </div>
@@ -1933,7 +1937,7 @@
             <div class="pdp-reviews-big-num" style="font-size: 42px; font-weight: 900; color: #F59E0B; line-height: 1;">${avgScore}</div>
             <div style="color: #F59E0B; font-size: 20px; margin: 6px 0;">${'★'.repeat(fullStars)}${'☆'.repeat(5 - fullStars)}</div>
             <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;">Dựa trên ${totalReviews} đánh giá thực tế</div>
-            <button type="button" class="btn-submit-terracotta" style="padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #FFFFFF; border: none; cursor: pointer;" onclick="ShopPage.openWriteProductReviewModal('${this.escapeHtml(product.id || '')}', '${this.escapeHtml(product.name || product.TenSanPham || '')}')">
+            <button type="button" class="btn-submit-terracotta" style="padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #FFFFFF; border: none; cursor: pointer;" onclick="ShopPage.openWriteProductReviewModal('${this.escapeHtml(product.id || '')}')">
               Viết đánh giá
             </button>
           </div>
@@ -2008,6 +2012,13 @@
       }
       const initialName = user ? (user.fullName || user.name || '') : '';
 
+      const prod = (window.store && typeof window.store.getProductById === 'function')
+        ? window.store.getProductById(productId)
+        : ((window.store && Array.isArray(window.store.state?.products))
+          ? window.store.state.products.find(p => p.id === productId || p.MaSanPham === productId)
+          : null);
+      const resolvedProductName = productName || prod?.name || prod?.TenSanPham || 'Sản phẩm';
+
       modal.classList.remove('modal-wide');
       modal.classList.add('active');
 
@@ -2015,7 +2026,7 @@
         <div style="padding: 10px;">
           <div style="text-align: center; margin-bottom: 16px;">
             <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary, #141413); margin: 0 0 6px;">Đánh giá sản phẩm</h3>
-            <p style="font-size: 13px; color: var(--accent-gold, #C59B27); margin: 0; font-weight: 600;">${this.escapeHtml(productName || 'Sản phẩm')}</p>
+            <p style="font-size: 13px; color: var(--accent-gold, #C59B27); margin: 0; font-weight: 600;">${this.escapeHtml(resolvedProductName)}</p>
           </div>
 
           <div style="margin-bottom: 14px; text-align: center;">

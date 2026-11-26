@@ -71,8 +71,12 @@ async function autoCancelOverdueBookingsAndOrders(customSql = null) {
       SELECT MaDonHang, MaKhachHang, NgayDat, TrangThai, TongTien
       FROM DonHang
       WHERE CONVERT(VARCHAR(10), NgayDat, 120) < ?
-        AND TrangThai IN (N'Chờ xử lý', N'Chờ xác nhận', N'Chờ thanh toán', N'Chờ nhận hàng', 'Pending', 'pending', 'Processing')
-        AND TrangThai NOT IN (N'Đã giao', N'Hoàn tất', N'Hoàn thành', N'Đã hủy', 'Completed', 'Delivered', 'Cancelled')
+        AND TrangThai IN (
+          N'Chờ xử lý', N'Chờ xác nhận', N'Chờ thanh toán', N'Chờ nhận hàng',
+          N'Đang xử lý', N'Đang chuẩn bị', N'Đang đóng gói',
+          'Pending', 'pending', 'Processing', 'processing'
+        )
+        AND TrangThai NOT IN (N'Đang giao hàng', N'Đã giao', N'Hoàn tất', N'Hoàn thành', N'Đã hủy', 'Delivering', 'Completed', 'Delivered', 'Cancelled')
     `, [todayIso]);
 
     if (overdueOrders && overdueOrders.length > 0) {
@@ -96,6 +100,10 @@ async function autoCancelOverdueBookingsAndOrders(customSql = null) {
           details: `Hệ thống tự động hủy đơn hàng ${oId} quá hạn 12h đêm chưa thanh toán/nhận hàng`
         }).catch(() => {});
       }
+      try {
+        const { clearDbSnapshotCache } = require('../routes/auth/accounts.routes');
+        if (typeof clearDbSnapshotCache === 'function') clearDbSnapshotCache();
+      } catch (_) {}
       result.cancelledOrders = overdueOrders;
       result.cancelledOrdersCount = overdueOrders.length;
       console.log(`[AutoCancel] Đã tự động hủy ${overdueOrders.length} đơn hàng quá hạn qua 12h đêm:`, orderIds.join(', '));
@@ -176,8 +184,12 @@ async function checkAndAutoCancelOnRequest(customSql = null) {
         UNION ALL
         SELECT MaDonHang FROM DonHang 
         WHERE CONVERT(VARCHAR(10), NgayDat, 120) < ? 
-          AND TrangThai IN (N'Chờ xử lý', N'Chờ xác nhận', N'Chờ nhận hàng', N'Chờ thanh toán', 'Pending', 'pending', 'Processing')
-          AND TrangThai NOT IN (N'Đã giao', N'Hoàn tất', N'Hoàn thành', N'Đã hủy', 'Completed', 'Delivered', 'Cancelled')
+          AND TrangThai IN (
+            N'Chờ xử lý', N'Chờ xác nhận', N'Chờ nhận hàng', N'Chờ thanh toán',
+            N'Đang xử lý', N'Đang chuẩn bị', N'Đang đóng gói',
+            'Pending', 'pending', 'Processing', 'processing'
+          )
+          AND TrangThai NOT IN (N'Đang giao hàng', N'Đã giao', N'Hoàn tất', N'Hoàn thành', N'Đã hủy', 'Delivering', 'Completed', 'Delivered', 'Cancelled')
       ) t
     `, [todayIso, todayIso]);
 

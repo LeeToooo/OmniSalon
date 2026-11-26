@@ -869,7 +869,7 @@ class ApiService {
 
   static String getVietQrImageUrl({
     String bankBin = '970422',
-    String accountNo = '0900000000',
+    String accountNo = '0925898974',
     required int amount,
     required String description,
   }) {

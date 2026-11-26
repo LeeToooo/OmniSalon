@@ -1611,6 +1611,11 @@
                             <span style="display: inline-block; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; background-color: ${stStyle.selectBg} !important; color: ${stStyle.selectFg} !important; border: 1px solid ${stStyle.selectBd} !important;">
                               Đã hủy
                             </span>
+                          ` : (step === 4 && isPaid) ? `
+                            <span style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 31px; padding: 0 12px; border-radius: 6px; font-size: 12px; font-weight: 700; background-color: #ECFDF5 !important; color: #047857 !important; border: 1px solid #6EE7B7 !important; min-width: 132px;" title="Đơn hàng đã tới bước cuối cùng và đã thu tiền, không thể quay về các bước trước">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                              ${isPickup ? 'Đã nhận tại quầy' : 'Hoàn tất'}
+                            </span>
                           ` : `
                             <select class="admin-order-status-select"
                                     style="height: 31px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 700; background-color: ${stStyle.selectBg} !important; color: ${stStyle.selectFg} !important; border: 1px solid ${stStyle.selectBd} !important; cursor: pointer; min-width: 132px;"
@@ -2504,7 +2509,7 @@
           if (window.UICommon) window.UICommon.showToast(res.message || `Đã chuyển đơn ${orderId} sang "${label}"`, 'success');
           this.refreshAuditView();
         } else {
-          if (window.UICommon) window.UICommon.showToast(res?.error || 'Lỗi khi cập nhật trạng thái đơn hàng!', 'error');
+          if (window.UICommon) window.UICommon.showToast(res?.error || res?.message || 'Lỗi khi cập nhật trạng thái đơn hàng!', 'error');
           this.refreshAuditView();
         }
       }

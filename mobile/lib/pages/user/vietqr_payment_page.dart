@@ -36,8 +36,8 @@ class _VietQrPaymentPageState extends State<VietQrPaymentPage> {
 
   String _qrCodeUrl = '';
   String _qrData = '';
-  String _accountNumber = '0900000000';
-  String _accountName = 'OMNISALON ENTERPRISE';
+  String _accountNumber = '0925898974';
+  String _accountName = 'DO DINH DO';
   final String _bankName = 'MBBank (Ngân hàng Quân Đội)';
   String _transferContent = '';
   num _finalAmount = 0;
@@ -81,7 +81,7 @@ class _VietQrPaymentPageState extends State<VietQrPaymentPage> {
       final returnedData = res['qrData']?.toString() ?? '';
       final finalDesc = res['description']?.toString() ?? 'THANHTOAN ${widget.orderId}';
       final finalAmt = (res['amount'] as num?) ?? widget.amount;
-      final accNo = res['accountNumber']?.toString() ?? '0900000000';
+      final accNo = res['accountNumber']?.toString() ?? '0925898974';
 
       String effectiveQrUrl = returnedQr;
       if (effectiveQrUrl.isEmpty || effectiveQrUrl.contains('api.vietqr.io')) {
@@ -99,7 +99,7 @@ class _VietQrPaymentPageState extends State<VietQrPaymentPage> {
         _qrCodeUrl = effectiveQrUrl;
         _qrData = returnedData.isNotEmpty ? returnedData : effectiveQrUrl;
         _accountNumber = accNo;
-        _accountName = res['accountName']?.toString() ?? 'OMNISALON ENTERPRISE';
+        _accountName = res['accountName']?.toString() ?? 'DO DINH DO';
         _finalAmount = finalAmt;
         _transferContent = finalDesc;
         _payosOrderCode = res['orderCode'] as int?;
@@ -643,7 +643,7 @@ class _VietQrPaymentPageState extends State<VietQrPaymentPage> {
         );
       },
       errorBuilder: (ctx, err, stack) {
-        final fallbackUrl = 'https://quickchart.io/qr?size=300&margin=2&text=${Uri.encodeComponent(_qrData.isNotEmpty ? _qrData : '0900000000 ${_finalAmount.toInt()} $_transferContent')}';
+        final fallbackUrl = 'https://quickchart.io/qr?size=300&margin=2&text=${Uri.encodeComponent(_qrData.isNotEmpty ? _qrData : '0925898974 ${_finalAmount.toInt()} $_transferContent')}';
         return Image.network(
           fallbackUrl,
           width: size,

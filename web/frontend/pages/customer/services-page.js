@@ -652,7 +652,7 @@
                 <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">Đánh giá từ khách hàng</h3>
                 <div style="font-size: 12.5px; color: var(--text-secondary);">Trải nghiệm thực tế của khách hàng khi sử dụng dịch vụ</div>
               </div>
-              <button type="button" class="btn-submit-terracotta" style="padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #FFFFFF; border: none; cursor: pointer;" onclick="ServicesPage.openWriteServiceReviewModal('${this.escapeHtml(item.id)}', '${this.escapeHtml(name)}')">
+              <button type="button" class="btn-submit-terracotta" style="padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #FFFFFF; border: none; cursor: pointer;" onclick="ServicesPage.openWriteServiceReviewModal('${this.escapeHtml(item.id)}')">
                 Viết đánh giá
               </button>
             </div>
@@ -712,6 +712,11 @@
         return;
       }
 
+      const srv = (window.store && typeof window.store.getServiceById === 'function')
+        ? window.store.getServiceById(serviceId)
+        : null;
+      const resolvedServiceName = serviceName || srv?.name || srv?.TenDichVu || 'Dịch vụ';
+
       const initialName = user.fullName || user.name || 'Khách Hàng';
       const modalBody = document.getElementById('globalModalBody');
       const modal = document.getElementById('globalModal');
@@ -722,7 +727,7 @@
         <div style="padding: 8px 4px; max-width: 460px; margin: 0 auto;">
           <div style="text-align: center; margin-bottom: 14px;">
             <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 800; color: var(--text-primary);">Đánh giá dịch vụ</h3>
-            <p style="margin: 0; font-size: 13px; color: var(--text-secondary); font-weight: 600;">${this.escapeHtml(serviceName)}</p>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary); font-weight: 600;">${this.escapeHtml(resolvedServiceName)}</p>
           </div>
           <input type="hidden" id="srvReviewStarInput" value="5">
           <div style="margin-bottom: 14px; text-align: center;">

@@ -147,7 +147,7 @@
       const amount = booking.totalPrice || 0;
       const bCode = booking.id || booking.bookingCode || booking.MaLichHen || bookingId;
 
-      const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${amount}&addInfo=${encodeURIComponent('THANHTOAN ' + bCode)}&accountName=OMNISALON%20ENTERPRISE`;
+      const vietQrUrl = `https://api.vietqr.io/image/970422-0925898974-compact.jpg?amount=${amount}&addInfo=${encodeURIComponent('THANHTOAN ' + bCode)}&accountName=DO%20DINH%20DO`;
 
       const escapeFn = (s) => (typeof this.escapeHtml === 'function' ? this.escapeHtml(s) : (window.CustomerWeb?.escapeHtml ? window.CustomerWeb.escapeHtml(s) : String(s ?? '')));
       const formattedAmount = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.formatCurrency === 'function')
@@ -194,11 +194,11 @@
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Số tài khoản:</span>
-              <strong style="color: #C59B27; font-size: 14px;">0900000000</strong>
+              <strong style="color: #C59B27; font-size: 14px;">0925898974</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Chủ tài khoản:</span>
-              <strong>OMNISALON ENTERPRISE</strong>
+              <strong>DO DINH DO</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-secondary);">Số tiền cần trả:</span>

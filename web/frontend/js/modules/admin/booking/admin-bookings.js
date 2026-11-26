@@ -720,38 +720,38 @@
       }
     },
 
-    checkinEarlyToday(bookingId) {
+    async checkinEarlyToday(bookingId) {
       if (!bookingId) return;
       if (window.store && typeof window.store.checkinBookingEarlyToday === 'function') {
-        const b = window.store.checkinBookingEarlyToday(bookingId);
+        const b = await window.store.checkinBookingEarlyToday(bookingId);
         if (b && window.UICommon) {
           window.UICommon.showToast(`Đã chuyển lịch khách ${b.customerName} sang phục vụ ngay hôm nay (${b.timeSlot})!`, 'success');
         }
       } else {
-        window.store.updateBookingStatus(bookingId, 'In_Progress');
+        await this.updateBookingStatus(bookingId, 'In_Progress');
       }
       this.refreshBookingsTable();
     },
 
-    checkinWaitingEarlyToday(bookingId) {
+    async checkinWaitingEarlyToday(bookingId) {
       if (!bookingId) return;
       if (window.store && typeof window.store.checkinWaitingEarlyToday === 'function') {
-        const b = window.store.checkinWaitingEarlyToday(bookingId);
+        const b = await window.store.checkinWaitingEarlyToday(bookingId);
         if (b && window.UICommon) {
           window.UICommon.showToast(`Đã chuyển khách ${b.customerName} sang danh sách chờ hôm nay (${b.timeSlot})!`, 'success');
         }
       } else {
-        this.updateBookingStatus(bookingId, 'Waiting');
+        await this.updateBookingStatus(bookingId, 'Waiting');
       }
       this.refreshBookingsTable();
     },
 
-    checkinBookingWaiting(bookingId) {
+    async checkinBookingWaiting(bookingId) {
       if (!bookingId) return;
       if (window.store && typeof window.store.checkinBookingWaiting === 'function') {
-        window.store.checkinBookingWaiting(bookingId);
+        await window.store.checkinBookingWaiting(bookingId);
       } else {
-        this.updateBookingStatus(bookingId, 'Waiting');
+        await this.updateBookingStatus(bookingId, 'Waiting');
         return;
       }
       const b = (window.store.getBookings() || []).find(item => item.id === bookingId || item.bookingCode === bookingId);
@@ -761,7 +761,7 @@
       this.refreshBookingsTable();
     },
 
-    updateBookingStatus(bookingId, newStatus) {
+    async updateBookingStatus(bookingId, newStatus) {
       if (!bookingId || !newStatus) return;
 
       if (newStatus === 'Cancelled') {
@@ -769,10 +769,20 @@
         return;
       }
 
-      window.store.updateBookingStatus(bookingId, newStatus);
+      await window.store.updateBookingStatus(bookingId, newStatus);
 
       if (window.UICommon) {
-        const statusLabel = (newStatus === 'Waiting' || newStatus === 'waiting') ? 'Chờ vào ghế' : (newStatus === 'In_Progress' ? 'Đang phục vụ (Vào ghế)' : newStatus);
+        const statusMap = {
+          'Waiting': 'Chờ vào ghế',
+          'waiting': 'Chờ vào ghế',
+          'In_Progress': 'Đang phục vụ (Vào ghế)',
+          'in_progress': 'Đang phục vụ (Vào ghế)',
+          'Completed': 'Đã hoàn thành',
+          'completed': 'Đã hoàn thành',
+          'Confirmed': 'Đã xác nhận',
+          'confirmed': 'Đã xác nhận'
+        };
+        const statusLabel = statusMap[newStatus] || newStatus;
         window.UICommon.showToast(`Đã chuyển lịch #${bookingId} sang [${statusLabel}]!`, 'success');
       }
       this.refreshBookingsTable();
@@ -888,11 +898,11 @@
       }
     },
 
-    confirmCancelBooking(bookingId) {
+    async confirmCancelBooking(bookingId) {
       const input = document.getElementById('cancelBookingReasonInput');
       const reason = (input && input.value.trim()) ? input.value.trim() : 'Khách báo bận ca đột xuất';
       if (window.store && typeof window.store.cancelBooking === 'function') {
-        window.store.cancelBooking(bookingId, reason);
+        await window.store.cancelBooking(bookingId, reason);
       }
       this._closeModal();
       if (window.UICommon) {

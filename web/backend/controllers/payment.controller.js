@@ -50,7 +50,7 @@ function crc16(data) {
   return crc.toString(16).toUpperCase().padStart(4, '0');
 }
 
-function buildVietQREMVCo({ bin = '970422', accountNo = '0900000000', amount = 0, purpose = '' }) {
+function buildVietQREMVCo({ bin = (process.env.VIETQR_BANK_BIN || '970422'), accountNo = (process.env.VIETQR_ACCOUNT_NO || '0925898974'), amount = 0, purpose = '' }) {
   const f00 = '000201';
   const f01 = '010212';
   const sub00 = '0010A000000727';
@@ -127,8 +127,8 @@ const PaymentController = {
         }
       }
 
-      const envAccNo = (process.env.VIETQR_ACCOUNT_NO || '').trim();
-      const envAccName = (process.env.VIETQR_ACCOUNT_NAME || 'OMNISALON ENTERPRISE').trim();
+      const envAccNo = (process.env.VIETQR_ACCOUNT_NO || '0925898974').trim();
+      const envAccName = (process.env.VIETQR_ACCOUNT_NAME || 'DO DINH DO').trim();
       const envBankBin = (process.env.VIETQR_BANK_BIN || '970422').trim();
 
       if (!payosResponse && !envAccNo) {
@@ -251,7 +251,7 @@ const PaymentController = {
       if (syncCode) {
         await processBankTransfer({
           gateway: 'PayOS',
-          accountNumber: webhookData.accountNumber || '0900000000',
+          accountNumber: webhookData.accountNumber || (process.env.VIETQR_ACCOUNT_NO || '0925898974'),
           transferAmount: amount,
           content: `THANHTOAN ${syncCode}`,
           referenceCode: refCode,

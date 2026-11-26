@@ -671,7 +671,7 @@ const UICommon = {
     const vietQrSvg = (SalonUtils && typeof SalonUtils.generateQrSvgCode === 'function')
       ? SalonUtils.generateQrSvgCode(`VIETQR-OMNISALON-BOOKING-${realCode}-${booking.totalPrice}`)
       : qrSvg;
-    const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${encodeURIComponent(booking.totalPrice)}&addInfo=${encodeURIComponent('THANHTOAN ' + realCode)}&accountName=${encodeURIComponent('OMNISALON ENTERPRISE')}`;
+    const vietQrUrl = `https://api.vietqr.io/image/970422-0925898974-compact.jpg?amount=${encodeURIComponent(booking.totalPrice)}&addInfo=${encodeURIComponent('THANHTOAN ' + realCode)}&accountName=${encodeURIComponent('DO DINH DO')}`;
     const endTime = booking.estimatedEndTime || SalonUtils.calculateEndTime(booking.timeSlot, booking.durationMinutes || 45);
 
     modalBody.innerHTML = `
@@ -708,8 +708,8 @@ const UICommon = {
 
             <div style="background: var(--surface-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 10px 14px; text-align: left; font-size: 12.5px; line-height: 1.6; max-width: 380px; margin: 0 auto 12px;">
               <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Ngân hàng:</span><strong>MB BANK (Quân Đội)</strong></div>
-              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số tài khoản:</span><strong style="color: #0284c7; font-size: 13.5px;">0900000000</strong></div>
-              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Chủ tài khoản:</span><strong>OMNISALON ENTERPRISE</strong></div>
+              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số tài khoản:</span><strong style="color: #0284c7; font-size: 13.5px;">0925898974</strong></div>
+              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Chủ tài khoản:</span><strong>DO DINH DO</strong></div>
               <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Số tiền thanh toán:</span><strong style="color: var(--brand-accent, #C59B27); font-size: 14.5px;">${SalonUtils.formatCurrency(booking.totalPrice)}</strong></div>
               <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Nội dung chuyển khoản:</span><strong style="color: #b48312;">THANHTOAN ${realCode}</strong></div>
             </div>
