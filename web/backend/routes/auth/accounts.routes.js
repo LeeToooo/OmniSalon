@@ -1,6 +1,12 @@
 // Các api quản lý tài khoản người dùng
 const { querySql } = require('../../database/db');
-const { enforceAuth, extractAuthUser } = require('../../middlewares/auth_middleware');
+const {
+  enforceAuth,
+  extractAuthUser,
+  normalizeAuthRole,
+  hashPassword
+} = require('../../middlewares/auth_middleware');
+const crypto = require('crypto');
 const {
   getFullSqlDatabase,
   resolveUserRole,
@@ -10,6 +16,7 @@ const {
   BRANCH_NAME_MAP
 } = require('../../services/helper_service');
 const auditService = require('../../services/audit.service');
+const realtimeService = require('../../services/realtime.service');
 
 // Cache ngắn hạn & Deduplication cho snapshot CSDL tránh quá tải SQL Server
 let _dbSnapshotCache = null;
@@ -17,10 +24,13 @@ let _dbSnapshotCachedAt = 0;
 let _dbSnapshotPendingPromise = null;
 const DB_CACHE_TTL_MS = 5000;
 
-function clearDbSnapshotCache() {
+function clearDbSnapshotCache(reason = 'mutation') {
   _dbSnapshotCache = null;
   _dbSnapshotCachedAt = 0;
   _dbSnapshotPendingPromise = null;
+  try {
+    realtimeService.broadcast('database_updated', { reason });
+  } catch (_) { }
 }
 
 async function getCachedSqlDatabase() {
@@ -44,11 +54,129 @@ async function getCachedSqlDatabase() {
   return await _dbSnapshotPendingPromise;
 }
 
+function anonymizeBookingSlot(b) {
+  return {
+    id: b.id || b.MaLichHen,
+    MaLichHen: b.MaLichHen || b.id,
+    branchId: b.branchId || b.MaChiNhanh || null,
+    MaChiNhanh: b.MaChiNhanh || b.branchId || null,
+    stylistId: b.stylistId || b.MaNhanVien || null,
+    MaNhanVien: b.MaNhanVien || b.stylistId || null,
+    date: b.date || b.NgayHen || null,
+    NgayHen: b.NgayHen || b.date || null,
+    timeSlot: b.timeSlot || b.GioBatDau || null,
+    GioBatDau: b.GioBatDau || b.timeSlot || null,
+    endTime: b.endTime || b.GioKetThuc || null,
+    GioKetThuc: b.GioKetThuc || b.endTime || null,
+    duration: b.duration || 45,
+    status: b.status || b.TrangThai || 'Đã đặt',
+    TrangThai: b.TrangThai || b.status || 'Đã đặt',
+    isSlotOnly: true
+  };
+}
+
+function sanitizePublicStylist(s) {
+  const clone = { ...s };
+  delete clone.phone;
+  delete clone.SoDienThoai;
+  delete clone.email;
+  delete clone.Email;
+  delete clone.MatKhau;
+  delete clone.password;
+  return clone;
+}
+
+function sanitizePublicReview(r) {
+  const clone = { ...r };
+  delete clone.SdtKhachHang;
+  delete clone.customerPhone;
+  delete clone.SoDienThoai;
+  return clone;
+}
+
+function filterDatabaseForUser(dbData, authUser) {
+  if (!dbData) return dbData;
+  const role = authUser ? normalizeAuthRole(authUser.role) : 'GUEST';
+  const isSuper = role === 'SUPER_ADMIN';
+  const isManager = role === 'BRANCH_MANAGER';
+  const isStaff = ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STAFF'].includes(role);
+  const userBranchId = authUser?.branchId || null;
+  const userCustId = authUser?.customerId || null;
+  const userId = authUser?.id || null;
+
+  const belongsBranch = (item) => {
+    const bId = item?.branchId || item?.MaChiNhanh || null;
+    return !userBranchId || !bId || bId === userBranchId;
+  };
+
+  if (isSuper) {
+    return dbData;
+  }
+
+  const bookings = (dbData.bookings || []).reduce((acc, b) => {
+    if (isStaff) {
+      if (belongsBranch(b)) acc.push(b);
+      else acc.push(anonymizeBookingSlot(b));
+    } else if (role === 'CUSTOMER' && userCustId && (b.customerId === userCustId || b.MaKhachHang === userCustId)) {
+      acc.push(b);
+    } else {
+      acc.push(anonymizeBookingSlot(b));
+    }
+    return acc;
+  }, []);
+
+  const orders = isStaff
+    ? (dbData.orders || []).filter(belongsBranch)
+    : (role === 'CUSTOMER' && userCustId
+      ? (dbData.orders || []).filter(o => o.customerId === userCustId || o.MaKhachHang === userCustId)
+      : []);
+
+  const users = isManager
+    ? (dbData.users || []).filter(u => u.role === 'CUSTOMER' || (userBranchId && u.branchId === userBranchId))
+    : [];
+
+  const notifications = authUser
+    ? (dbData.notifications || []).filter(n => {
+        if (isStaff && !n.MaKhachHang && !n.MaTaiKhoan) return belongsBranch(n);
+        return (userCustId && n.MaKhachHang === userCustId) || (userId && (n.MaTaiKhoan === userId || n.userId === userId));
+      })
+    : [];
+
+  return {
+    branches: dbData.branches || [],
+    services: dbData.services || [],
+    combos: dbData.combos || [],
+    stylists: isStaff ? (dbData.stylists || []) : (dbData.stylists || []).map(sanitizePublicStylist),
+    categories: dbData.categories || [],
+    suppliers: isStaff ? (dbData.suppliers || []) : [],
+    products: dbData.products || [],
+    bookings,
+    orders,
+    promotions: dbData.promotions || [],
+    reviews: isStaff
+      ? (dbData.reviews || [])
+      : (dbData.reviews || []).filter(r => (r.TrangThai || r.status || 'Hiển thị') !== 'Đã ẩn').map(sanitizePublicReview),
+    users,
+    notifications,
+    shifts: dbData.shifts || [],
+    inventory: isStaff ? (dbData.inventory || []).filter(belongsBranch) : [],
+    receipts: isStaff ? (dbData.receipts || []).filter(belongsBranch) : [],
+    invoices: isStaff ? (dbData.invoices || []).filter(belongsBranch) : [],
+    payments: isStaff ? (dbData.payments || []).filter(belongsBranch) : [],
+    discountRules: isStaff ? (dbData.discountRules || []) : [],
+    fefoLots: isStaff ? (dbData.fefoLots || []).filter(belongsBranch) : [],
+    lowStock: isStaff ? (dbData.lowStock || []).filter(belongsBranch) : []
+  };
+}
+
 async function handleAccountsRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
 
-  // GET /api/accounts - Lấy danh sách tài khoản, đã che trường mật khẩu an toàn
+  // GET /api/accounts - Yêu cầu quyền Quản trị viên hoặc Quản lý chi nhánh
   if (pathname === '/api/accounts' && method === 'GET') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const rows = await querySql(`
       SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.VaiTro, tk.TrangThai AS TrangThaiTK,
              nv.MaNhanVien, nv.HoTen AS HoTenNV, nv.MaChiNhanh, nv.SoDienThoai AS SdtNV, nv.Email AS EmailNV, nv.CapBac, nv.ChucVu,
@@ -60,7 +188,7 @@ async function handleAccountsRoutes(req, res, ctx) {
       LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
     `);
 
-    const accounts = (rows || []).map(r => {
+    let accounts = (rows || []).map(r => {
       const role = resolveUserRole(r);
       const bName = resolveBranchName(r.MaChiNhanh, r.TenChiNhanh, role);
 
@@ -81,21 +209,30 @@ async function handleAccountsRoutes(req, res, ctx) {
       };
     });
 
+    if (authUser.role === 'BRANCH_MANAGER' && authUser.branchId) {
+      accounts = accounts.filter(a => a.role === 'CUSTOMER' || a.branchId === authUser.branchId);
+    }
+
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(accounts));
     return true;
   }
 
-  // GET /api/database - Tải snapshot CSDL đồng bộ thời gian thực cho Frontend Store
+  // GET /api/database - Tải snapshot CSDL đã lọc theo vai trò JWT (an toàn PII)
   if (pathname === '/api/database' && method === 'GET') {
+    const authUser = extractAuthUser(req);
     const dbData = await getCachedSqlDatabase();
+    const safeSnapshot = filterDatabaseForUser(dbData, authUser);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify(dbData));
+    res.end(JSON.stringify(safeSnapshot));
     return true;
   }
 
-  // GET /api/users - Danh sách người dùng hệ thống, phục vụ trang quản trị nội bộ
+  // GET /api/users - Danh sách người dùng hệ thống (chỉ Quản trị viên / Quản lý chi nhánh)
   if (pathname === '/api/users' && method === 'GET') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const rows = await querySql(`
       SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.VaiTro, tk.TrangThai,
              ISNULL(nv.HoTen, kh.HoTen) AS HoTen,
@@ -109,7 +246,7 @@ async function handleAccountsRoutes(req, res, ctx) {
       LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
       ORDER BY tk.NgayTao DESC
     `);
-    const result = (rows || []).map(r => {
+    let result = (rows || []).map(r => {
       const code = r.MaNhanVien || r.MaKhachHang || r.MaTaiKhoan || '1';
       const m = String(code).match(/(\d+)/);
       const n = m ? parseInt(m[1], 10) : 1;
@@ -134,13 +271,19 @@ async function handleAccountsRoutes(req, res, ctx) {
         avatar: `/DataPicture/ChanDungTho/Tho${idx}.jpg`
       };
     });
+    if (authUser.role === 'BRANCH_MANAGER' && authUser.branchId) {
+      result = result.filter(u => u.role === 'CUSTOMER' || u.branchId === authUser.branchId);
+    }
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(result));
     return true;
   }
 
-  // GET /api/customers - Danh sách khách hàng kèm tổng lượt đặt lịch và tổng chi tiêu
+  // GET /api/customers - Danh sách khách hàng (chỉ Quản trị viên / Quản lý / Thu ngân)
   if (pathname === '/api/customers' && method === 'GET') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER']);
+    if (!authUser) return true;
+
     const rows = await querySql(`
       SELECT kh.MaKhachHang, kh.HoTen, kh.SoDienThoai, kh.Email,
              CONVERT(VARCHAR(10), kh.NgaySinh, 120) AS NgaySinh,
@@ -155,10 +298,24 @@ async function handleAccountsRoutes(req, res, ctx) {
     return true;
   }
 
-  /* POST /api/users/role hoac PUT /api/users/:id/role - Phan quyen vai tro tai khoan vao SQL */
+  /* POST /api/users/role hoac PUT /api/users/:id/role - Phan quyen vai tro tai khoan (chi SUPER_ADMIN) */
   if ((pathname === '/api/users/role' && method === 'POST') || (pathname.startsWith('/api/users/') && pathname.endsWith('/role') && (method === 'PUT' || method === 'POST'))) {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN']);
+    if (!authUser) return true;
+
     const body = parsedBody || {};
     const userId = (pathname !== '/api/users/role' && pathname.startsWith('/api/users/')) ? pathname.split('/')[3] : (body.id || body.userId || body.username);
+    if (!userId) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Thiếu mã tài khoản cần phân quyền.' }));
+      return true;
+    }
+    const cleanTargetId = String(userId).trim();
+    if (cleanTargetId === 'TK_ADMIN' || cleanTargetId.toLowerCase() === 'admin' || cleanTargetId === authUser.id) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không được phép thay đổi vai trò của Quản trị viên gốc hoặc chính mình.' }));
+      return true;
+    }
     const { role, vaiTro } = body;
     const roleKey = (role || '').toString().trim().toUpperCase();
 
@@ -270,10 +427,9 @@ async function handleAccountsRoutes(req, res, ctx) {
       }
 
       clearDbSnapshotCache();
-      const authUser = extractAuthUser(req);
       auditService.logAudit({
-        actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
-        role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+        actor: authUser.fullName || authUser.name || authUser.username,
+        role: authUser.role || 'SUPER_ADMIN',
         action: 'UPDATE_USER_ROLE',
         entityType: 'TaiKhoan',
         entityId: userId,
@@ -281,7 +437,10 @@ async function handleAccountsRoutes(req, res, ctx) {
         details: `Phân quyền tài khoản ${userId} thành ${finalVaiTro}`
       }).catch(() => {});
     } catch (err) {
-      console.warn('SQL update TaiKhoan failed, proceeding with memory state:', err.message);
+      console.error('SQL update TaiKhoan failed:', err.message);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Lỗi cập nhật phân quyền vào CSDL.' }));
+      return true;
     }
 
     clearDbSnapshotCache();
@@ -290,14 +449,21 @@ async function handleAccountsRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/users - Thêm mới tài khoản trực tiếp vào CSDL SQL Server (TaiKhoan + NhanVien/KhachHang)
+  // POST /api/users - Thêm mới tài khoản trực tiếp vào CSDL SQL Server (chỉ SUPER_ADMIN)
   if (pathname === '/api/users' && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN']);
+    if (!authUser) return true;
+
     const body = parsedBody || {};
     const username = (body.username || body.TenDangNhap || '').trim();
     const fullName = (body.fullName || body.HoTen || '').trim();
     const phone = (body.phone || body.SoDienThoai || '').trim();
     const role = (body.role || 'CUSTOMER').toUpperCase();
     const branchId = body.branchId || 'CN01';
+    const rawPassword = (body.password && String(body.password).trim().length >= 6)
+      ? String(body.password).trim()
+      : crypto.randomBytes(8).toString('base64url');
+    const hashedPassword = hashPassword(rawPassword);
 
     if (!username || !fullName) {
       res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -319,7 +485,7 @@ async function handleAccountsRoutes(req, res, ctx) {
       return true;
     }
 
-    const isStaff = ['SUPER_ADMIN', 'ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STYLIST', 'STAFF'].includes(role);
+    const isStaff = ['BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STYLIST', 'STAFF'].includes(role);
     const vaiTroSql = ROLE_SQL_MAP[role] || (isStaff ? 'Nhân viên' : 'Khách hàng');
 
     let newTkId = '';
@@ -334,8 +500,8 @@ async function handleAccountsRoutes(req, res, ctx) {
       const nvId = 'NV' + (nextNum < 10 ? '0' + nextNum : nextNum);
       const tkId = 'TK_' + nvId;
 
-      const chucVu = (role === 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' : (role === 'CASHIER' ? 'Thu ngân' : (role === 'SUPER_ADMIN' || role === 'ADMIN' ? 'Quản trị viên' : 'Thợ chính')));
-      const capBac = (role === 'BRANCH_MANAGER' ? 'Quản lý' : (role === 'CASHIER' ? 'Nhân viên' : (role === 'SUPER_ADMIN' || role === 'ADMIN' ? 'Quản trị cấp cao' : 'Master Barber')));
+      const chucVu = (role === 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' : (role === 'CASHIER' ? 'Thu ngân' : 'Thợ chính'));
+      const capBac = (role === 'BRANCH_MANAGER' ? 'Quản lý' : (role === 'CASHIER' ? 'Nhân viên' : 'Master Barber'));
 
       await querySql(
         `INSERT INTO NhanVien (MaNhanVien, MaChiNhanh, HoTen, SoDienThoai, Email, CapBac, ChucVu, TrangThai)
@@ -345,8 +511,8 @@ async function handleAccountsRoutes(req, res, ctx) {
 
       await querySql(
         `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao)
-         VALUES (?, ?, NULL, ?, '123456', ?, N'Hoạt động', GETDATE())`,
-        [tkId, nvId, username, vaiTroSql]
+         VALUES (?, ?, NULL, ?, ?, ?, N'Hoạt động', GETDATE())`,
+        [tkId, nvId, username, hashedPassword, vaiTroSql]
       );
 
       newTkId = tkId;
@@ -380,8 +546,8 @@ async function handleAccountsRoutes(req, res, ctx) {
 
       await querySql(
         `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao)
-         VALUES (?, NULL, ?, ?, '123456', ?, N'Hoạt động', GETDATE())`,
-        [tkId, khId, username, vaiTroSql]
+         VALUES (?, NULL, ?, ?, ?, ?, N'Hoạt động', GETDATE())`,
+        [tkId, khId, username, hashedPassword, vaiTroSql]
       );
 
       newTkId = tkId;
@@ -389,10 +555,9 @@ async function handleAccountsRoutes(req, res, ctx) {
     }
 
     clearDbSnapshotCache();
-    const authUser = extractAuthUser(req);
     auditService.logAudit({
-      actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
-      role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+      actor: authUser.fullName || authUser.name || authUser.username,
+      role: authUser.role || 'SUPER_ADMIN',
       action: 'CREATE_USER',
       entityType: 'TaiKhoan',
       entityId: newTkId,
@@ -405,6 +570,7 @@ async function handleAccountsRoutes(req, res, ctx) {
     res.end(JSON.stringify({
       success: true,
       message: 'Tạo tài khoản và lưu SQL thành công',
+      ...(body.password ? {} : { temporaryPassword: rawPassword }),
       user: {
         id: newTkId,
         MaTaiKhoan: newTkId,
@@ -421,70 +587,90 @@ async function handleAccountsRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/users/:id - Xóa tài khoản trong CSDL SQL
+  // DELETE /api/users/:id - Xóa tài khoản (chỉ SUPER_ADMIN, chặn xóa TK_ADMIN / tự xóa)
   if (pathname.startsWith('/api/users/') && method === 'DELETE') {
-    const userId = pathname.split('/')[3];
-    const authUser = extractAuthUser(req);
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN']);
+    if (!authUser) return true;
+
+    const userId = decodeURIComponent(pathname.split('/')[3] || '').trim();
+    if (!userId || userId === 'TK_ADMIN' || userId.toLowerCase() === 'admin' || userId === authUser.id) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không thể xóa tài khoản Quản trị viên gốc hoặc chính bạn.' }));
+      return true;
+    }
+
     try {
       await querySql('DELETE FROM TaiKhoan WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [userId, userId]);
       clearDbSnapshotCache();
       auditService.logAudit({
-        actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
-        role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+        actor: authUser.fullName || authUser.name || authUser.username,
+        role: authUser.role || 'SUPER_ADMIN',
         action: 'DELETE_USER',
         entityType: 'TaiKhoan',
         entityId: userId,
         details: `Xóa tài khoản ${userId}`
       }).catch(() => {});
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true, message: 'Đã xóa tài khoản khỏi CSDL SQL' }));
     } catch (e) {
-      console.warn('SQL delete user warning:', e.message);
+      console.error('SQL delete user error:', e.message);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không thể xóa tài khoản do ràng buộc dữ liệu lịch sử.' }));
     }
-    clearDbSnapshotCache();
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Đã xóa tài khoản khỏi CSDL SQL' }));
     return true;
   }
 
-  // PUT /api/users/:id/status - Đổi trạng thái hoạt động / tạm khóa
+  // PUT /api/users/:id/status - Đổi trạng thái hoạt động / tạm khóa (chỉ SUPER_ADMIN)
   if (pathname.startsWith('/api/users/') && pathname.endsWith('/status') && (method === 'PUT' || method === 'POST')) {
-    const userId = pathname.split('/')[3];
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN']);
+    if (!authUser) return true;
+
+    const userId = decodeURIComponent(pathname.split('/')[3] || '').trim();
+    if (!userId || userId === 'TK_ADMIN' || userId.toLowerCase() === 'admin' || userId === authUser.id) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không thể khóa tài khoản Quản trị viên gốc hoặc chính bạn.' }));
+      return true;
+    }
+
     const { status, isActive } = parsedBody || {};
     const finalStatus = status || (isActive ? 'Hoạt động' : 'Tạm khóa');
-    const authUser = extractAuthUser(req);
     try {
       await querySql('UPDATE TaiKhoan SET TrangThai = ? WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [finalStatus, userId, userId]);
       clearDbSnapshotCache();
       auditService.logAudit({
-        actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
-        role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+        actor: authUser.fullName || authUser.name || authUser.username,
+        role: authUser.role || 'SUPER_ADMIN',
         action: 'UPDATE_USER_STATUS',
         entityType: 'TaiKhoan',
         entityId: userId,
         after: { TrangThai: finalStatus },
         details: `Cập nhật trạng thái tài khoản ${userId} thành ${finalStatus}`
       }).catch(() => {});
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true, message: 'Cập nhật trạng thái thành công' }));
     } catch (e) {
-      console.warn('SQL update user status warning:', e.message);
+      console.error('SQL update user status error:', e.message);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Lỗi cập nhật trạng thái tài khoản.' }));
     }
-    clearDbSnapshotCache();
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Cập nhật trạng thái thành công' }));
     return true;
   }
 
-  // PUT /api/users/:id/branch - Đổi cơ sở chi nhánh trực thuộc
+  // PUT /api/users/:id/branch - Đổi cơ sở chi nhánh trực thuộc (chỉ SUPER_ADMIN)
   if (pathname.startsWith('/api/users/') && pathname.endsWith('/branch') && (method === 'PUT' || method === 'POST')) {
-    const userId = pathname.split('/')[3];
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN']);
+    if (!authUser) return true;
+
+    const userId = decodeURIComponent(pathname.split('/')[3] || '').trim();
     const { branchId } = parsedBody || {};
-    const authUser = extractAuthUser(req);
     try {
       const tk = await querySql('SELECT MaNhanVien FROM TaiKhoan WHERE MaTaiKhoan = ? OR TenDangNhap = ?', [userId, userId]);
       if (tk?.[0]?.MaNhanVien && branchId && branchId !== 'ALL') {
         await querySql('UPDATE NhanVien SET MaChiNhanh = ? WHERE MaNhanVien = ?', [branchId, tk[0].MaNhanVien]);
         clearDbSnapshotCache();
         auditService.logAudit({
-          actor: authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên',
-          role: authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN',
+          actor: authUser.fullName || authUser.name || authUser.username,
+          role: authUser.role || 'SUPER_ADMIN',
           action: 'UPDATE_USER_BRANCH',
           entityType: 'TaiKhoan',
           entityId: userId,
@@ -493,12 +679,13 @@ async function handleAccountsRoutes(req, res, ctx) {
           details: `Chuyển tài khoản ${userId} sang chi nhánh ${branchId}`
         }).catch(() => {});
       }
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true, message: 'Cập nhật chi nhánh thành công' }));
     } catch (e) {
-      console.warn('SQL update user branch warning:', e.message);
+      console.error('SQL update user branch error:', e.message);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Lỗi cập nhật chi nhánh tài khoản.' }));
     }
-    clearDbSnapshotCache();
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ success: true, message: 'Cập nhật chi nhánh thành công' }));
     return true;
   }
 

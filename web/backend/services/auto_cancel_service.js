@@ -185,7 +185,7 @@ async function checkAndAutoCancelOnRequest(customSql = null) {
       return await autoCancelOverdueBookingsAndOrders(sql);
     }
   } catch (err) {
-    // Không block luồng request nếu xảy ra lỗi
+    console.warn('[AutoCancel] Non-blocking check error:', err.message);
   }
   return null;
 }

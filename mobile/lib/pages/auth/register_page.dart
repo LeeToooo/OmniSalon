@@ -77,32 +77,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
+    final fullName = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+    final email = _emailController.text.trim();
+    final birthday = _birthdayController.text.trim().isNotEmpty
+        ? _birthdayController.text.trim()
+        : null;
+    final password = _passwordController.text.trim();
+
     setState(() => _isLoading = true);
 
-    final res = await AuthService.register(
-      fullName: _nameController.text.trim(),
-      phone: _phoneController.text.trim(),
-      email: _emailController.text.trim(),
-      birthday: _birthdayController.text.trim().isNotEmpty ? _birthdayController.text.trim() : null,
-      password: _passwordController.text.trim(),
-    );
+    final otpRes = await AuthService.sendGmailOtp(email, purpose: 'REGISTER');
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (res['success'] == true) {
-      // Chuẩn bị gửi OTP Gmail, ở chế độ chờ / mock
-      await AuthService.sendGmailOtp(_emailController.text.trim());
-
-      if (!mounted) return;
-
-      // Điều hướng tới màn hình OTP Verification, có nút Bỏ qua test nhanh
+    if (otpRes['success'] == true) {
       final verified = await Navigator.of(context).push<bool>(
         MaterialPageRoute(
           builder: (_) => OtpVerificationScreen(
-            email: _emailController.text.trim(),
+            email: email,
+            otpPurpose: 'REGISTER',
+            onVerifyOtp: (otpCode) => AuthService.register(
+              fullName: fullName,
+              phone: phone,
+              email: email,
+              birthday: birthday,
+              password: password,
+              otp: otpCode,
+            ),
             onVerificationSuccess: () {
-              Navigator.of(context).pop(true); // Đóng OTP screen và trả về true
+              Navigator.of(context).pop(true);
             },
           ),
         ),
@@ -112,12 +117,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (widget.onRegisterSuccess != null) {
           widget.onRegisterSuccess!();
         }
-        Navigator.of(context).pop(true); // Đóng Register screen và quay về màn hình trước
+        Navigator.of(context).pop(true);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(res['message'] ?? 'Đăng ký thất bại.', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          content: Text(
+              otpRes['message'] ?? 'Không thể gửi mã OTP về Email.',
+              style: AppTheme.bodyMedium(color: AppTheme.textLight)),
           backgroundColor: AppTheme.statusDanger,
           behavior: SnackBarBehavior.floating,
         ),
@@ -301,7 +308,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       foregroundColor: AppTheme.charcoal,
                     ),
                     child: _isLoading
-                        ? SizedBox(
+                        ? const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),

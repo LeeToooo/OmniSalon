@@ -29,7 +29,9 @@ function getDynamicServerInstances() {
     );
     if (scOut.includes('MSSQLSERVER')) instances.push('.', 'localhost');
     if (scOut.includes('MSSQL$SQLEXPRESS')) instances.push('.\\SQLEXPRESS', 'localhost\\SQLEXPRESS');
-  } catch (_) { }
+  } catch (err) {
+    console.warn('[SQL Discovery] Cannot query Windows services, using default instances:', err.message);
+  }
   instances.push('.', 'localhost', '.\\SQLEXPRESS', 'localhost\\SQLEXPRESS', '(local)\\SQLEXPRESS');
   return [...new Set(instances)];
 }
@@ -263,6 +265,7 @@ async function applyPerformanceOptimizations() {
           FROM ChiTietPhieuNhap ctpn
           INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
           WHERE pnk.MaChiNhanh = @MaChiNhanh
+            AND pnk.TrangThai = N'Đã duyệt'
             AND ctpn.MaSanPham = @MaSanPham
             AND ctpn.SoLuongConLai > 0
             AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0;
@@ -303,6 +306,7 @@ async function applyPerformanceOptimizations() {
                   ORDER BY km.GiaTriGiam DESC
               ) AS km_sp
               WHERE pnk.MaChiNhanh = @MaChiNhanh
+                AND pnk.TrangThai = N'Đã duyệt'
                 AND ctpn.MaSanPham = @MaSanPham
                 AND ctpn.SoLuongConLai > 0
                 AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
@@ -384,6 +388,7 @@ async function applyPerformanceOptimizations() {
           FROM ChiTietPhieuNhap ctpn
           INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
           WHERE pnk.MaChiNhanh = @MaChiNhanh
+            AND pnk.TrangThai = N'Đã duyệt'
             AND ctpn.MaSanPham = @MaSanPham
             AND ctpn.SoLuongConLai > 0
             AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0;
@@ -424,6 +429,7 @@ async function applyPerformanceOptimizations() {
                   ORDER BY km.GiaTriGiam DESC
               ) AS km_sp
               WHERE pnk.MaChiNhanh = @MaChiNhanh
+                AND pnk.TrangThai = N'Đã duyệt'
                 AND ctpn.MaSanPham = @MaSanPham
                 AND ctpn.SoLuongConLai > 0
                 AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
@@ -478,6 +484,146 @@ async function applyPerformanceOptimizations() {
           WHERE MaHoaDon = @MaHoaDon;
       END;
     `);
+
+    // Đảm bảo trigger tự hoàn tồn kho khi đơn hàng chuyển sang Đã hủy luôn tồn tại trên SQL Server
+    await querySql(`
+      CREATE OR ALTER TRIGGER trg_DonHang_HuyDon_HoanTonKho
+      ON DonHang
+      AFTER UPDATE
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+          IF EXISTS (
+              SELECT 1 FROM inserted i
+              JOIN deleted d ON i.MaDonHang = d.MaDonHang
+              WHERE i.TrangThai = N'Đã hủy' AND d.TrangThai <> N'Đã hủy'
+          )
+          BEGIN
+              ;WITH CancelledQty AS (
+                  SELECT ctdh.MaChiTietPhieuNhap, SUM(ctdh.SoLuong) AS SoLuongHoan
+                  FROM ChiTietDonHang ctdh
+                  JOIN inserted i ON ctdh.MaDonHang = i.MaDonHang
+                  JOIN deleted d ON i.MaDonHang = d.MaDonHang
+                  WHERE i.TrangThai = N'Đã hủy' AND d.TrangThai <> N'Đã hủy'
+                    AND ctdh.MaChiTietPhieuNhap IS NOT NULL
+                  GROUP BY ctdh.MaChiTietPhieuNhap
+              )
+              UPDATE ctpn
+              SET ctpn.SoLuongConLai = CASE
+                  WHEN ctpn.SoLuongConLai + cq.SoLuongHoan > ctpn.SoLuong THEN ctpn.SoLuong
+                  ELSE ctpn.SoLuongConLai + cq.SoLuongHoan
+              END
+              FROM ChiTietPhieuNhap ctpn
+              JOIN CancelledQty cq ON ctpn.MaChiTietPhieuNhap = cq.MaChiTietPhieuNhap;
+
+              UPDATE tk
+              SET tk.SoLuongTon = tk.SoLuongTon + agg.SoLuongHoan,
+                  tk.NgayCapNhat = GETDATE()
+              FROM TonKho tk
+              JOIN (
+                  SELECT ctdh.MaSanPham, i.MaChiNhanh, SUM(ctdh.SoLuong) AS SoLuongHoan
+                  FROM ChiTietDonHang ctdh
+                  JOIN inserted i ON ctdh.MaDonHang = i.MaDonHang
+                  JOIN deleted d ON i.MaDonHang = d.MaDonHang
+                  WHERE i.TrangThai = N'Đã hủy' AND d.TrangThai <> N'Đã hủy'
+                  GROUP BY ctdh.MaSanPham, i.MaChiNhanh
+              ) AS agg ON tk.MaSanPham = agg.MaSanPham AND tk.MaChiNhanh = agg.MaChiNhanh;
+          END
+      END;
+    `);
+
+    // Mở rộng bảng DanhGia hỗ trợ đánh giá trực tiếp Sản Phẩm / Dịch Vụ & Phản hồi Admin (tách riêng batch SQL Server)
+    await querySql(`
+      IF COL_LENGTH('DanhGia', 'MaSanPham') IS NULL
+          ALTER TABLE DanhGia ADD MaSanPham VARCHAR(20) NULL;
+      IF COL_LENGTH('DanhGia', 'MaDichVu') IS NULL
+          ALTER TABLE DanhGia ADD MaDichVu VARCHAR(20) NULL;
+      IF COL_LENGTH('DanhGia', 'PhanHoiAdmin') IS NULL
+          ALTER TABLE DanhGia ADD PhanHoiAdmin NVARCHAR(500) NULL;
+      IF COL_LENGTH('DanhGia', 'NgayPhanHoi') IS NULL
+          ALTER TABLE DanhGia ADD NgayPhanHoi DATETIME NULL;
+    `);
+
+    await querySql(`
+      IF OBJECT_ID('FK_DanhGia_SanPham', 'F') IS NULL AND OBJECT_ID('SanPham', 'U') IS NOT NULL
+          ALTER TABLE DanhGia ADD CONSTRAINT FK_DanhGia_SanPham FOREIGN KEY (MaSanPham) REFERENCES SanPham(MaSanPham);
+      IF OBJECT_ID('FK_DanhGia_DichVu', 'F') IS NULL AND OBJECT_ID('DichVu', 'U') IS NOT NULL
+          ALTER TABLE DanhGia ADD CONSTRAINT FK_DanhGia_DichVu FOREIGN KEY (MaDichVu) REFERENCES DichVu(MaDichVu);
+
+      IF OBJECT_ID('CK_DanhGia_DoiTuong', 'C') IS NOT NULL
+          ALTER TABLE DanhGia DROP CONSTRAINT CK_DanhGia_DoiTuong;
+      ALTER TABLE DanhGia ADD CONSTRAINT CK_DanhGia_DoiTuong CHECK (
+          MaLichHen IS NOT NULL OR MaDonHang IS NOT NULL OR MaSanPham IS NOT NULL OR MaDichVu IS NOT NULL
+      );
+    `);
+
+    // Đồng bộ hóa đơn & giao dịch thanh toán cho các đơn hàng đã hoàn tất (bao gồm DH02, DH04, DH05)
+    const completedUnpaidOrders = await querySql(`
+      SELECT dh.MaDonHang, dh.MaKhachHang, dh.MaChiNhanh, dh.NgayDat, dh.TongTien
+      FROM DonHang dh
+      WHERE (dh.TrangThai IN (N'Hoàn tất', N'Đã giao', N'Đã nhận tại quầy') OR dh.MaDonHang IN ('DH02', 'DH04', 'DH05'))
+        AND dh.TrangThai <> N'Đã hủy'
+        AND (
+          NOT EXISTS (SELECT 1 FROM HoaDon hd WHERE hd.MaDonHang = dh.MaDonHang AND hd.TrangThai = N'Đã thanh toán')
+          OR NOT EXISTS (
+            SELECT 1 FROM ThanhToan tt
+            JOIN HoaDon hd2 ON tt.MaHoaDon = hd2.MaHoaDon
+            WHERE hd2.MaDonHang = dh.MaDonHang AND tt.TrangThai = N'Thành công'
+          )
+        )
+    `).catch(() => []);
+
+    for (const ord of (completedUnpaidOrders || [])) {
+      try {
+        let hdRows = await querySql('SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaDonHang = ?', [ord.MaDonHang]);
+        let hdId = hdRows && hdRows[0] ? hdRows[0].MaHoaDon : null;
+        if (hdId) {
+          await querySql("UPDATE HoaDon SET TrangThai = N'Đã thanh toán' WHERE MaHoaDon = ?", [hdId]);
+        } else {
+          const maxHd = await querySql("SELECT MAX(TRY_CAST(SUBSTRING(MaHoaDon, 3, 20) AS INT)) AS maxNum FROM HoaDon WHERE MaHoaDon LIKE 'HD[0-9]%'");
+          let nextHd = ((maxHd && maxHd[0] && maxHd[0].maxNum) ? parseInt(maxHd[0].maxNum, 10) : 10) + 1;
+          hdId = 'HD' + (nextHd < 10 ? '0' + nextHd : nextHd);
+          const invNo = `HD-SYNC-${ord.MaDonHang}`;
+          await querySql(
+            `INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, NgayLap, TongTien, TrangThai, MaSoHoaDon)
+             VALUES (?, ?, NULL, ?, ?, ISNULL(?, GETDATE()), ?, N'Đã thanh toán', ?)`,
+            [hdId, ord.MaKhachHang, ord.MaDonHang, ord.MaChiNhanh || 'CN01', ord.NgayDat, ord.TongTien || 0, invNo]
+          );
+        }
+
+        if (hdId) {
+          const existingHdItems = await querySql('SELECT TOP 1 1 FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = ?', [hdId]);
+          if (!existingHdItems || existingHdItems.length === 0) {
+            const oItems = await querySql('SELECT MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien FROM ChiTietDonHang WHERE MaDonHang = ?', [ord.MaDonHang]);
+            for (let i = 0; i < (oItems || []).length; i++) {
+              const it = oItems[i];
+              const cthdId = `CTHDS_${ord.MaDonHang}_${i + 1}`.slice(0, 30);
+              await querySql(
+                `INSERT INTO ChiTietHoaDon_SanPham (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [cthdId, hdId, it.MaSanPham, it.MaChiTietPhieuNhap || null, Number(it.SoLuong || 1), Number(it.DonGiaGoc || it.DonGiaThucTe || 0), Number(it.PhanTramGiamGia || 0), Number(it.DonGiaThucTe || 0), Number(it.ThanhTien || 0)]
+              ).catch(() => {});
+            }
+          }
+
+          const hasTt = await querySql("SELECT TOP 1 MaThanhToan FROM ThanhToan WHERE MaHoaDon = ? AND TrangThai = N'Thành công'", [hdId]);
+          if (!hasTt || hasTt.length === 0) {
+            const maxTt = await querySql("SELECT MAX(TRY_CAST(SUBSTRING(MaThanhToan, 3, 20) AS INT)) AS maxNum FROM ThanhToan WHERE MaThanhToan LIKE 'TT[0-9]%'");
+            let nextTt = ((maxTt && maxTt[0] && maxTt[0].maxNum) ? parseInt(maxTt[0].maxNum, 10) : 10) + 1;
+            const ttId = 'TT' + (nextTt < 10 ? '0' + nextTt : nextTt);
+            const cashiers = await querySql("SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaChiNhanh = ? AND ChucVu = N'Thu ngân'", [ord.MaChiNhanh || 'CN01']).catch(() => []);
+            const staffId = (cashiers && cashiers[0]) ? cashiers[0].MaNhanVien : 'NV61';
+            await querySql(
+              `INSERT INTO ThanhToan (MaThanhToan, MaHoaDon, MaNhanVien, SoTien, PhuongThuc, ThoiGianThanhToan, TrangThai, MaGiaoDich)
+               VALUES (?, ?, ?, ?, N'Tiền mặt', ISNULL(?, GETDATE()), N'Thành công', ?)`,
+              [ttId, hdId, staffId, ord.TongTien || 0, ord.NgayDat, `SYNC_${ord.MaDonHang}`]
+            ).catch(() => {});
+          }
+        }
+      } catch (syncErr) {
+        console.warn('[Order Payment Sync]', ord.MaDonHang, syncErr.message);
+      }
+    }
 
     console.log('[DB MIGRATION] Đã áp dụng các Index và View tối ưu hiệu năng thành công!');
   } catch (err) {

@@ -190,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     child: _isLoading
-                        ? SizedBox(
+                        ? const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),
@@ -219,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               builder: (_) => RegisterScreen(onRegisterSuccess: widget.onLoginSuccess),
                             ),
                           );
-                          if (regSuccess == true && mounted) {
+                          if (regSuccess == true && context.mounted) {
                             if (widget.onLoginSuccess != null) {
                               widget.onLoginSuccess!();
                             }

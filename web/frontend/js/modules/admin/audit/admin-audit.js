@@ -15,8 +15,14 @@
       this.auditPaymentStatusFilter = 'all';
       this.auditOrderStatusFilter = 'all';
       this.auditNotifStatusFilter = 'all';
+      this.auditReviewStarFilter = 'all';
+      this.auditReviewStatusFilter = 'all';
+      this.auditReviewTypeFilter = 'all';
       this.selectedAuditRowId = null;
       this.auditPage = 1;
+      if (type === 'reviews') {
+        this.fetchAdminReviews(true);
+      }
       this.refreshAuditView();
     },
 
@@ -169,6 +175,8 @@
         this.toggleInvoiceRowDetail(rowId);
       } else if (subType === 'orders') {
         this.toggleOrderRowDetail(rowId);
+      } else if (subType === 'reviews') {
+        this.openReviewDetailModal(rowId);
       } else {
         const rows = document.querySelectorAll('#adminAuditContentContainer tr.admin-branch-table-row');
         rows.forEach(r => {
@@ -298,11 +306,12 @@
       window.store.state.users.unshift(newUser);
       if (window.store.saveState) window.store.saveState();
 
-      // Đồng bộ trực tiếp vào cơ sở dữ liệu SQL Server
+      // Đồng bộ trực tiếp vào cơ sở dữ liệu SQL Server (bắt buộc Bearer token)
       try {
+        const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
         const res = await fetch('/api/users', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeader },
           body: JSON.stringify({
             username,
             fullName,
@@ -312,7 +321,13 @@
           })
         });
         const resData = await res.json().catch(() => null);
-        if (resData && resData.user && resData.user.id) {
+        if (!res.ok || !resData || resData.success === false) {
+          window.store.state.users = (window.store.state.users || []).filter(u => u.id !== newUser.id);
+          if (window.store.saveState) window.store.saveState();
+          if (window.SalonToast) window.SalonToast.show(resData?.message || 'Không có quyền hoặc lỗi tạo tài khoản.', 'error');
+          return;
+        }
+        if (resData.user && resData.user.id) {
           newUser.id = resData.user.id;
           newUser.MaTaiKhoan = resData.user.MaTaiKhoan;
           if (resData.user.MaNhanVien) newUser.MaNhanVien = resData.user.MaNhanVien;
@@ -320,7 +335,8 @@
           if (window.store.saveState) window.store.saveState();
         }
       } catch (err) {
-        console.warn('Backend sync failed, saved locally:', err);
+        if (window.SalonToast) window.SalonToast.show('Lỗi kết nối máy chủ khi tạo tài khoản.', 'error');
+        return;
       }
 
       if (typeof window.store.logAudit === 'function') {
@@ -390,6 +406,26 @@
       if (!userId) return;
       const users = (window.store && window.store.state && window.store.state.users) || [];
       const u = users.find(x => x.id === userId || x.username === userId || x.MaTaiKhoan === userId || x.TenDangNhap === userId);
+      try {
+        const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+        const res = await fetch(`/api/users/${encodeURIComponent(userId)}/branch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({ branchId: newBranchId })
+        });
+        const resData = await res.json().catch(() => null);
+        if (!res.ok || (resData && resData.success === false)) {
+          if (window.SalonToast) window.SalonToast.show(resData?.message || 'Không thể cập nhật chi nhánh tài khoản.', 'error');
+          if (window.store && typeof window.store.syncWithLiveServer === 'function') await window.store.syncWithLiveServer();
+          this._updateAuditContentOnly();
+          return;
+        }
+      } catch (err) {
+        if (window.SalonToast) window.SalonToast.show(`Lỗi kết nối khi cập nhật chi nhánh: ${err.message}`, 'error');
+        this._updateAuditContentOnly();
+        return;
+      }
+
       if (u) {
         u.branchId = newBranchId;
         u.MaChiNhanh = newBranchId;
@@ -401,13 +437,6 @@
           window.store.logAudit('UPDATE_USER_BRANCH', `Tài khoản: ${u.username || u.TenDangNhap || userId}`, `Đổi cơ sở sang: ${u.branchName}`);
         }
       }
-      try {
-        await fetch(`/api/users/${encodeURIComponent(userId)}/branch`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ branchId: newBranchId })
-        });
-      } catch (_) { }
       if (window.SalonToast) {
         window.SalonToast.show(`Đã cập nhật cơ sở cho ${userId}`, 'success');
       }
@@ -423,6 +452,28 @@
         const rawStatus = (u.TrangThai || '').toString();
         const currentlyActive = !rawStatus.includes('khóa') && !rawStatus.includes('khoa') && rawStatus !== 'inactive' && u.isActive !== false;
         newActive = !currentlyActive;
+      }
+      try {
+        const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+        const res = await fetch(`/api/users/${encodeURIComponent(userId)}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({ isActive: newActive, status: newActive ? 'Hoạt động' : 'Tạm khóa' })
+        });
+        const resData = await res.json().catch(() => null);
+        if (!res.ok || (resData && resData.success === false)) {
+          if (window.SalonToast) window.SalonToast.show(resData?.message || 'Không thể cập nhật trạng thái tài khoản.', 'error');
+          if (window.store && typeof window.store.syncWithLiveServer === 'function') await window.store.syncWithLiveServer();
+          this._updateAuditContentOnly();
+          return;
+        }
+      } catch (err) {
+        if (window.SalonToast) window.SalonToast.show(`Lỗi kết nối khi cập nhật trạng thái: ${err.message}`, 'error');
+        this._updateAuditContentOnly();
+        return;
+      }
+
+      if (u) {
         u.isActive = newActive;
         u.TrangThai = newActive ? 'Hoạt động' : 'Tạm khóa';
         if (window.store.saveState) window.store.saveState();
@@ -430,13 +481,6 @@
           window.store.logAudit('UPDATE_USER_STATUS', `Tài khoản: ${u.username || u.TenDangNhap || userId}`, newActive ? 'Mở khóa tài khoản' : 'Tạm khóa tài khoản');
         }
       }
-      try {
-        await fetch(`/api/users/${encodeURIComponent(userId)}/status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isActive: newActive, status: newActive ? 'Hoạt động' : 'Tạm khóa' })
-        });
-      } catch (_) { }
       if (window.SalonToast) {
         window.SalonToast.show(`Đã cập nhật trạng thái cho ${userId}`, 'info');
       }
@@ -446,6 +490,21 @@
     async deleteUserDirect(userId) {
       if (!userId) return;
       if (confirm(`Bạn có chắc chắn muốn xóa tài khoản "${userId}" không?`)) {
+        try {
+          const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+          const res = await fetch(`/api/users/${encodeURIComponent(userId)}`, {
+            method: 'DELETE',
+            headers: { ...authHeader }
+          });
+          const resData = await res.json().catch(() => null);
+          if (!res.ok || (resData && resData.success === false)) {
+            if (window.SalonToast) window.SalonToast.show(resData?.message || 'Không thể xóa tài khoản.', 'error');
+            return;
+          }
+        } catch (_) {
+          if (window.SalonToast) window.SalonToast.show('Lỗi kết nối khi xóa tài khoản.', 'error');
+          return;
+        }
         if (window.store && window.store.state && window.store.state.users) {
           window.store.state.users = window.store.state.users.filter(u => u.id !== userId && u.username !== userId && u.MaTaiKhoan !== userId && u.TenDangNhap !== userId);
           if (window.store.saveState) window.store.saveState();
@@ -453,9 +512,6 @@
             window.store.logAudit('DELETE_USER', `Tài khoản: ${userId}`, 'Đã xóa tài khoản khỏi hệ thống');
           }
         }
-        try {
-          await fetch(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
-        } catch (_) { }
         if (window.SalonToast) {
           window.SalonToast.show(`Đã xóa tài khoản ${userId}`, 'success');
         }
@@ -601,7 +657,8 @@
         users: 'Tìm tài khoản, họ tên, số điện thoại, chi nhánh...',
         invoices: 'Tìm mã hóa đơn, tên khách, chi nhánh, PT thanh toán...',
         orders: 'Tìm mã đơn hàng, tên khách, số điện thoại...',
-        notifications: 'Tìm tiêu đề, nội dung, phân loại thông báo...'
+        notifications: 'Tìm tiêu đề, nội dung, phân loại thông báo...',
+        reviews: 'Tìm mã đánh giá, tên khách, nội dung, mã đối tượng...'
       };
       const placeholder = searchPlaceholders[subType] || 'Tìm kiếm...';
 
@@ -632,6 +689,11 @@
                   style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${subType === 'notifications' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
                   onclick="AdminWeb.switchAuditSubTab('notifications')">
             Thông Báo Hệ Thống
+          </button>
+          <button type="button" class="admin-tab-btn ${subType === 'reviews' ? 'active' : ''}" 
+                  style="padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-weight: 700; background: transparent; border: none; border-radius: 6px; ${subType === 'reviews' ? 'color: var(--brand-accent, #C59B27); border-bottom: 2px solid var(--brand-accent, #C59B27);' : 'color: var(--text-secondary);'}" 
+                  onclick="AdminWeb.switchAuditSubTab('reviews')">
+            Đánh Giá Khách Hàng
           </button>
         </div>
 
@@ -721,9 +783,9 @@
                           onchange="AdminWeb.auditOrderStatusFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
                     <option value="all" ${this.auditOrderStatusFilter === 'all' ? 'selected' : ''}>Tất cả tiến trình</option>
                     <option value="pending" ${this.auditOrderStatusFilter === 'pending' ? 'selected' : ''}>Chờ xác nhận</option>
-                    <option value="processing" ${this.auditOrderStatusFilter === 'processing' ? 'selected' : ''}>Đang đóng gói</option>
-                    <option value="delivering" ${this.auditOrderStatusFilter === 'delivering' ? 'selected' : ''}>Đang giao hàng</option>
-                    <option value="completed" ${this.auditOrderStatusFilter === 'completed' ? 'selected' : ''}>Hoàn tất</option>
+                    <option value="processing" ${this.auditOrderStatusFilter === 'processing' ? 'selected' : ''}>Đang đóng gói / chuẩn bị</option>
+                    <option value="delivering" ${this.auditOrderStatusFilter === 'delivering' ? 'selected' : ''}>Đang giao / Sẵn sàng tại quầy</option>
+                    <option value="completed" ${this.auditOrderStatusFilter === 'completed' ? 'selected' : ''}>Hoàn tất / Đã nhận</option>
                     <option value="cancelled" ${this.auditOrderStatusFilter === 'cancelled' ? 'selected' : ''}>Đã hủy</option>
                   </select>
                 `;
@@ -735,6 +797,33 @@
                     <option value="all" ${this.auditNotifStatusFilter === 'all' ? 'selected' : ''}>Tất cả thông báo</option>
                     <option value="unread" ${this.auditNotifStatusFilter === 'unread' ? 'selected' : ''}>Chưa đọc</option>
                     <option value="read" ${this.auditNotifStatusFilter === 'read' ? 'selected' : ''}>Đã đọc</option>
+                  </select>
+                `;
+          }
+          if (subType === 'reviews') {
+            return `
+                  <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
+                          onchange="AdminWeb.auditReviewStarFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
+                    <option value="all" ${(!this.auditReviewStarFilter || this.auditReviewStarFilter === 'all') ? 'selected' : ''}>Tất cả mức sao</option>
+                    <option value="5" ${this.auditReviewStarFilter === '5' ? 'selected' : ''}>5 sao</option>
+                    <option value="4" ${this.auditReviewStarFilter === '4' ? 'selected' : ''}>4 sao</option>
+                    <option value="3" ${this.auditReviewStarFilter === '3' ? 'selected' : ''}>3 sao</option>
+                    <option value="2" ${this.auditReviewStarFilter === '2' ? 'selected' : ''}>2 sao</option>
+                    <option value="1" ${this.auditReviewStarFilter === '1' ? 'selected' : ''}>1 sao</option>
+                  </select>
+                  <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
+                          onchange="AdminWeb.auditReviewStatusFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
+                    <option value="all" ${(!this.auditReviewStatusFilter || this.auditReviewStatusFilter === 'all') ? 'selected' : ''}>Tất cả trạng thái</option>
+                    <option value="visible" ${this.auditReviewStatusFilter === 'visible' ? 'selected' : ''}>Hiển thị</option>
+                    <option value="hidden" ${this.auditReviewStatusFilter === 'hidden' ? 'selected' : ''}>Đã ẩn</option>
+                    <option value="replied" ${this.auditReviewStatusFilter === 'replied' ? 'selected' : ''}>Đã phản hồi</option>
+                    <option value="unreplied" ${this.auditReviewStatusFilter === 'unreplied' ? 'selected' : ''}>Chưa phản hồi</option>
+                  </select>
+                  <select class="admin-select-filter" style="height: 34px; font-size: 13px; border-radius: 6px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary);"
+                          onchange="AdminWeb.auditReviewTypeFilter = this.value; AdminWeb.auditPage = 1; AdminWeb._updateAuditContentOnly();">
+                    <option value="all" ${(!this.auditReviewTypeFilter || this.auditReviewTypeFilter === 'all') ? 'selected' : ''}>Tất cả đối tượng</option>
+                    <option value="service" ${this.auditReviewTypeFilter === 'service' ? 'selected' : ''}>Dịch vụ / Lịch hẹn</option>
+                    <option value="product" ${this.auditReviewTypeFilter === 'product' ? 'selected' : ''}>Sản phẩm / Đơn hàng</option>
                   </select>
                 `;
           }
@@ -782,6 +871,18 @@
                   <button style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); display: inline-flex; align-items: center; transition: all 0.15s ease;"
                           onclick="AdminWeb.markAllNotificationsRead()">
                     <span>Đánh Dấu Đã Đọc Tất Cả</span>
+                  </button>
+                `;
+          }
+          if (subType === 'reviews') {
+            return `
+                  <button style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); display: inline-flex; align-items: center; transition: all 0.15s ease;"
+                          onclick="AdminWeb.fetchAdminReviews(false)">
+                    <span>Làm Mới</span>
+                  </button>
+                  <button style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); display: inline-flex; align-items: center; transition: all 0.15s ease;"
+                          onclick="AdminWeb.exportReviewsReport()">
+                    <span>Xuất File Đánh Giá</span>
                   </button>
                 `;
           }
@@ -1385,9 +1486,9 @@
           if (this.auditOrderStatusFilter && this.auditOrderStatusFilter !== 'all') {
             const rawSt = (o.orderStatus || o.status || o.TrangThai || '').toLowerCase();
             if (this.auditOrderStatusFilter === 'pending' && !rawSt.includes('chờ') && rawSt !== 'pending') return false;
-            if (this.auditOrderStatusFilter === 'processing' && !rawSt.includes('xử lý') && !rawSt.includes('gói') && rawSt !== 'processing') return false;
-            if (this.auditOrderStatusFilter === 'delivering' && !rawSt.includes('giao') && rawSt !== 'delivering') return false;
-            if (this.auditOrderStatusFilter === 'completed' && !rawSt.includes('hoàn tất') && !rawSt.includes('xong') && rawSt !== 'completed') return false;
+            if (this.auditOrderStatusFilter === 'processing' && !rawSt.includes('chuẩn bị') && !rawSt.includes('đóng gói') && !rawSt.includes('xử lý') && rawSt !== 'processing') return false;
+            if (this.auditOrderStatusFilter === 'delivering' && !rawSt.includes('sẵn sàng') && !rawSt.includes('giao') && rawSt !== 'delivering' && rawSt !== 'ready' && rawSt !== 'ready_for_pickup') return false;
+            if (this.auditOrderStatusFilter === 'completed' && !rawSt.includes('đã nhận') && !rawSt.includes('hoàn tất') && !rawSt.includes('đã giao') && rawSt !== 'completed' && rawSt !== 'delivered') return false;
             if (this.auditOrderStatusFilter === 'cancelled' && !rawSt.includes('hủy') && rawSt !== 'cancelled') return false;
           }
           if (!q) return true;
@@ -1405,18 +1506,18 @@
         return `
           <div class="admin-table-container" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 26px;">
             <div style="overflow-x: auto;">
-              <table class="admin-enterprise-table" style="width: 100%;">
+              <table class="admin-enterprise-table" style="width: 100%; table-layout: auto;">
                 <thead>
                   <tr>
-                    <th style="width: 90px; padding: 12px 14px;">MÃ ĐƠN</th>
-                    <th style="padding: 12px 14px;">KHÁCH HÀNG &amp; SĐT</th>
-                    <th style="padding: 12px 14px;">THỜI GIAN</th>
-                    <th style="padding: 12px 14px;">SẢN PHẨM</th>
-                    <th style="padding: 12px 14px; text-align: right;">TỔNG TIỀN</th>
-                    <th style="padding: 12px 14px;">HÌNH THỨC</th>
-                    <th style="padding: 12px 14px;">THANH TOÁN</th>
-                    <th style="padding: 12px 14px;">TIẾN TRÌNH</th>
-                    <th style="text-align: center; width: 140px; padding: 12px 14px;">THAO TÁC</th>
+                    <th style="width: 72px; padding: 10px 8px;">MÃ ĐƠN</th>
+                    <th style="padding: 10px 8px;">KHÁCH HÀNG &amp; SĐT</th>
+                    <th style="padding: 10px 8px;">THỜI GIAN</th>
+                    <th style="padding: 10px 8px;">SẢN PHẨM</th>
+                    <th style="padding: 10px 8px; text-align: right;">TỔNG TIỀN</th>
+                    <th style="padding: 10px 8px;">HÌNH THỨC</th>
+                    <th style="padding: 10px 8px;">THANH TOÁN</th>
+                    <th style="padding: 10px 8px;">TIẾN TRÌNH</th>
+                    <th style="text-align: center; width: 150px; padding: 10px 8px;">THAO TÁC</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1446,26 +1547,25 @@
           );
           const items = o.items || [];
           const itemsSummary = items.map(it => `${this.escapeHtml(it.name || it.TenSanPham || 'Sản phẩm')} (x${it.qty || it.quantity || 1})`).join(', ');
-          const isPickup = o.deliveryType === 'PICKUP_BRANCH' || (o.shippingAddress && o.shippingAddress.toLowerCase().includes('quầy'));
+          const isPickup = (window.SalonUtils && typeof window.SalonUtils.isPickupOrder === 'function')
+            ? window.SalonUtils.isPickupOrder(o)
+            : (o.deliveryType === 'PICKUP_BRANCH' || (o.shippingAddress && o.shippingAddress.toLowerCase().includes('quầy')));
 
-          const rawSt = (o.orderStatus || o.status || o.TrangThai || 'Pending').toLowerCase();
-          let step = 1;
-          let stepLabel = 'Chờ xác nhận';
+          const rawSt = (o.orderStatus || o.status || o.TrangThai || 'Pending');
+          const stInfo = (window.SalonUtils && typeof window.SalonUtils.formatOrderStatus === 'function')
+            ? window.SalonUtils.formatOrderStatus(rawSt, isPickup)
+            : { step: 1, label: rawSt };
+          const step = stInfo.step;
+          const stepLabel = stInfo.label;
 
-          if (rawSt.includes('hủy') || rawSt === 'cancelled') {
-            step = 0;
-            stepLabel = 'Đã hủy';
-          } else if (rawSt.includes('hoàn tất') || rawSt.includes('đã giao') || rawSt === 'completed' || rawSt === 'delivered') {
-            step = 4;
-            stepLabel = 'Hoàn tất';
-          } else if (rawSt.includes('đang giao') || rawSt === 'delivering' || rawSt === 'shipping' || (rawSt.includes('giao') && !rawSt.includes('đã giao'))) {
-            step = 3;
-            stepLabel = 'Đang giao hàng';
-          } else if (rawSt.includes('đóng gói') || rawSt.includes('xử lý') || rawSt === 'processing') {
-            step = 2;
-            stepLabel = 'Đang đóng gói';
-          }
-
+          const stepStyles = {
+            0: { pillBg: 'rgba(239, 68, 68, 0.12)', pillFg: '#EF4444', selectBg: 'rgba(239, 68, 68, 0.12)', selectFg: '#EF4444', selectBd: 'rgba(239, 68, 68, 0.3)' },
+            1: { pillBg: 'rgba(245, 158, 11, 0.14)', pillFg: '#B45309', selectBg: '#FFFBEB', selectFg: '#92400E', selectBd: '#FCD34D' },
+            2: { pillBg: 'rgba(245, 158, 11, 0.16)', pillFg: '#D97706', selectBg: '#FEF3C7', selectFg: '#B45309', selectBd: '#F59E0B' },
+            3: { pillBg: 'rgba(14, 165, 233, 0.14)', pillFg: '#0284C7', selectBg: '#E0F2FE', selectFg: '#0369A1', selectBd: '#7DD3FC' },
+            4: { pillBg: 'rgba(16, 185, 129, 0.14)', pillFg: '#059669', selectBg: '#ECFDF5', selectFg: '#047857', selectBd: '#6EE7B7' }
+          };
+          const stStyle = stepStyles[step] || stepStyles[1];
           const isSelected = this.selectedAuditRowId === oCode;
 
           return `
@@ -1473,58 +1573,61 @@
                           class="admin-branch-table-row ${isSelected ? 'is-selected' : ''}"
                           onclick="AdminWeb.onAuditRowClick('orders', '${oCode}', event)"
                           style="cursor: pointer; transition: background 0.15s ease, box-shadow 0.15s ease; ${isSelected ? 'background: rgba(197, 155, 39, 0.16); box-shadow: inset 3px 0 0 #C59B27;' : ''}">
-                        <td style="white-space: nowrap; font-family: monospace; font-size: 12.5px; font-weight: 700; color: var(--text-primary); padding: 12px 14px;">
+                        <td style="white-space: nowrap; font-family: monospace; font-size: 12.5px; font-weight: 700; color: var(--text-primary); padding: 10px 8px;">
                           ${this.escapeHtml(String(oCode).replace(/^#/, ''))}
                         </td>
-                        <td style="padding: 12px 10px; white-space: nowrap;">
+                        <td style="padding: 10px 8px; white-space: nowrap;">
                           <div>
                             <div style="font-weight: 800; color: var(--text-primary); font-size: 13px; white-space: nowrap;">${this.escapeHtml(o.customerName || 'Khách Hàng')}</div>
                             <div style="font-size: 11.5px; color: #f59e0b; font-weight: 700; white-space: nowrap;">${this.escapeHtml(String(o.customerPhone || '090xxxxxxx').replace(/^#/, ''))}</div>
                           </div>
                         </td>
-                        <td style="white-space: nowrap; font-size: 12px; color: var(--text-secondary); padding: 12px 14px; font-variant-numeric: tabular-nums;">
-                          ${this._formatTableDateTime(o.createdAt || o.NgayDat)}
+                        <td style="white-space: nowrap; font-size: 11.5px; color: var(--text-secondary); padding: 10px 8px; font-variant-numeric: tabular-nums;">
+                          ${this._formatTableDateTime(o.createdAt || o.orderDate || o.NgayDat)}
                         </td>
-                        <td style="padding: 12px 14px; font-size: 12.5px; color: var(--text-secondary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <td style="padding: 10px 8px; font-size: 12px; color: var(--text-secondary); max-width: 145px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                           ${itemsSummary || '—'}
                         </td>
-                        <td style="padding: 12px 10px; text-align: right; white-space: nowrap;">
+                        <td style="padding: 10px 8px; text-align: right; white-space: nowrap;">
                           <strong style="color: #10b981; font-size: 13px; font-weight: 800;">
                             ${SalonUtils.formatCurrency(o.totalAmount || o.finalTotal || o.TongTien || 0)}
                           </strong>
                         </td>
-                        <td style="padding: 12px 14px; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">
+                        <td style="padding: 10px 8px; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">
                           ${isPickup ? 'Tại quầy' : 'Giao tận nơi'}
                         </td>
-                        <td style="padding: 12px 10px; white-space: nowrap;">
-                          <span class="status-pill ${isPaid ? 'status-completed' : 'status-cancelled'}" style="padding: 4px 12px; font-size: 11.5px; font-weight: 700; border-radius: 9999px; white-space: nowrap; display: inline-block;">
+                        <td style="padding: 10px 8px; white-space: nowrap;">
+                          <span class="status-pill" style="background: ${isPaid ? 'rgba(16, 185, 129, 0.14)' : 'rgba(239, 68, 68, 0.1)'}; color: ${isPaid ? '#059669' : '#DC2626'}; padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 9999px; white-space: nowrap; display: inline-block;">
                             ${isPaid ? 'Đã trả' : 'Chưa thu'}
                           </span>
                         </td>
-                        <td style="padding: 12px 10px; white-space: nowrap;">
-                          <span class="status-pill ${step === 4 ? 'status-completed' : (step === 0 ? 'status-cancelled' : 'status-completed')}" style="padding: 4px 12px; font-size: 11.5px; font-weight: 700; border-radius: 9999px; white-space: nowrap; display: inline-block;">
-                            ${stepLabel}
+                        <td style="padding: 10px 8px; white-space: nowrap;">
+                          <span class="status-pill" style="background: ${stStyle.pillBg}; color: ${stStyle.pillFg}; padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 9999px; white-space: nowrap; display: inline-block;">
+                            ${this.escapeHtml(stepLabel)}
                           </span>
                         </td>
-                        <td style="text-align: center; padding: 12px 10px; white-space: nowrap;">
-                          <div style="display: inline-flex; gap: 6px;">
-                            ${step === 1 ? `
-                              <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px;" 
-                                      onclick="event.stopPropagation(); AdminWeb.updateOrderStatus('${oCode}', 'Processing')">Xác Nhận</button>
-                            ` : ''}
-                            ${step === 2 ? `
-                              <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px;" 
-                                      onclick="event.stopPropagation(); AdminWeb.updateOrderStatus('${oCode}', 'Delivering')">Giao Hàng</button>
-                            ` : ''}
-                            ${step === 3 ? `
-                              <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px;" 
-                                      onclick="event.stopPropagation(); AdminWeb.updateOrderStatus('${oCode}', 'Completed')">Hoàn Tất</button>
-                            ` : ''}
-                            ${!isPaid && step > 0 ? `
-                              <button class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" 
-                                      onclick="event.stopPropagation(); AdminWeb.confirmOrderPayment('${oCode}')">Thu Tiền</button>
-                            ` : ''}
-                          </div>
+                        <td style="text-align: center; padding: 10px 8px; white-space: nowrap;" onclick="event.stopPropagation()">
+                          ${step === 0 ? `
+                            <span style="display: inline-block; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; background-color: ${stStyle.selectBg} !important; color: ${stStyle.selectFg} !important; border: 1px solid ${stStyle.selectBd} !important;">
+                              Đã hủy
+                            </span>
+                          ` : `
+                            <select class="admin-order-status-select"
+                                    style="height: 31px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 700; background-color: ${stStyle.selectBg} !important; color: ${stStyle.selectFg} !important; border: 1px solid ${stStyle.selectBd} !important; cursor: pointer; min-width: 132px;"
+                                    onchange="AdminWeb.updateOrderStatus('${oCode}', this.value)">
+                              ${isPickup ? `
+                                <option value="Pending" ${step === 1 ? 'selected' : ''}>Chờ xác nhận</option>
+                                <option value="Processing" ${step === 2 ? 'selected' : ''}>Đang chuẩn bị</option>
+                                <option value="Ready" ${step === 3 ? 'selected' : ''}>Sẵn sàng tại quầy</option>
+                                <option value="Completed" ${step === 4 ? 'selected' : ''}>Đã nhận tại quầy</option>
+                              ` : `
+                                <option value="Pending" ${step === 1 ? 'selected' : ''}>Chờ xác nhận</option>
+                                <option value="Processing" ${step === 2 ? 'selected' : ''}>Đang đóng gói</option>
+                                <option value="Delivering" ${step === 3 ? 'selected' : ''}>Đang giao hàng</option>
+                                <option value="Completed" ${step === 4 ? 'selected' : ''}>Hoàn tất</option>
+                              `}
+                            </select>
+                          `}
                         </td>
                       </tr>
                     `;
@@ -1621,6 +1724,177 @@
               </table>
             </div>
             ${this._renderPaginationControls(this.auditPage, totalPages, filtered.length, 'AdminWeb.setAuditPage', 'thông báo')}
+          </div>
+        `;
+      }
+
+      // 6. Phân hệ đánh giá khách hàng (Reviews)
+      if (subType === 'reviews') {
+        const rawReviews = Array.isArray(this._adminReviewsList)
+          ? this._adminReviewsList
+          : ((window.store && typeof window.store.getReviews === 'function') ? window.store.getReviews() : []);
+
+        const allReviews = rawReviews.map(r => {
+          const code = String(r.id || r.MaDanhGia || '');
+          const shortCode = code.replace(/^DG/i, '').padStart(4, '0');
+          const stars = Number(r.rating || r.SoSao || 5);
+          const statusStr = r.status || r.TrangThai || 'Hiển thị';
+          const isHidden = statusStr === 'Đã ẩn' || statusStr === 'hidden';
+          const replyText = String(r.adminReply || r.PhanHoiAdmin || '').trim();
+          const targetBadge = r.MaSanPham
+            ? `SP ${r.MaSanPham}`
+            : (r.MaDichVu ? `DV ${r.MaDichVu}` : (r.MaDonHang || r.orderId ? `ĐƠN #${r.MaDonHang || r.orderId}` : (r.MaLichHen || r.bookingId ? `LỊCH #${r.MaLichHen || r.bookingId}` : 'SALON')));
+          const isProdTarget = Boolean(r.MaSanPham || r.productId || r.MaDonHang || r.orderId);
+          return {
+            ...r,
+            _id: code,
+            _shortCode: shortCode,
+            _stars: stars,
+            _isHidden: isHidden,
+            _replyText: replyText,
+            _targetBadge: targetBadge,
+            _targetName: r.targetName || 'Omni Salon',
+            _isProdTarget: isProdTarget
+          };
+        });
+
+        const totalAll = allReviews.length;
+        const avgAll = totalAll > 0
+          ? (allReviews.reduce((s, r) => s + r._stars, 0) / totalAll).toFixed(1)
+          : '0.0';
+        const hiddenCount = allReviews.filter(r => r._isHidden).length;
+        const repliedCount = allReviews.filter(r => Boolean(r._replyText)).length;
+
+        const filtered = allReviews.filter(r => {
+          if (this.auditReviewStarFilter && this.auditReviewStarFilter !== 'all') {
+            if (String(r._stars) !== String(this.auditReviewStarFilter)) return false;
+          }
+          if (this.auditReviewStatusFilter && this.auditReviewStatusFilter !== 'all') {
+            if (this.auditReviewStatusFilter === 'visible' && r._isHidden) return false;
+            if (this.auditReviewStatusFilter === 'hidden' && !r._isHidden) return false;
+            if (this.auditReviewStatusFilter === 'replied' && !r._replyText) return false;
+            if (this.auditReviewStatusFilter === 'unreplied' && r._replyText) return false;
+          }
+          if (this.auditReviewTypeFilter && this.auditReviewTypeFilter !== 'all') {
+            if (this.auditReviewTypeFilter === 'product' && !r._isProdTarget) return false;
+            if (this.auditReviewTypeFilter === 'service' && r._isProdTarget) return false;
+          }
+          if (!q) return true;
+          const hay = `${r._id} ${r._shortCode} ${r.customerName || ''} ${r.customerPhone || ''} ${r.comment || r.NoiDung || ''} ${r._targetBadge} ${r._targetName}`.toLowerCase();
+          return hay.includes(q);
+        });
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+        if (this.auditPage > totalPages) this.auditPage = totalPages;
+        const paged = filtered.slice((this.auditPage - 1) * this.pageSize, this.auditPage * this.pageSize);
+
+        return `
+          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 10px 16px; margin-bottom: 14px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 10px; font-size: 13px; color: var(--text-secondary);">
+            <span>Tổng: <strong style="color: var(--text-primary);">${totalAll}</strong> đánh giá</span>
+            <span style="color: var(--border-color);">|</span>
+            <span>Điểm TB: <strong style="color: #F59E0B;">${avgAll}★</strong></span>
+            <span style="color: var(--border-color);">|</span>
+            <span>Đang ẩn: <strong style="color: ${hiddenCount > 0 ? '#EF4444' : 'var(--text-primary)'};">${hiddenCount}</strong></span>
+            <span style="color: var(--border-color);">|</span>
+            <span>Đã phản hồi: <strong style="color: #10B981;">${repliedCount}</strong></span>
+          </div>
+
+          <div class="admin-table-container" style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 26px;">
+            <div style="overflow-x: auto;">
+              <table class="admin-enterprise-table" style="width: 100%;">
+                <thead>
+                  <tr>
+                    <th style="width: 64px; padding: 10px 8px;">MÃ ĐG</th>
+                    <th style="padding: 10px 8px;">KHÁCH HÀNG</th>
+                    <th style="padding: 10px 8px;">ĐỐI TƯỢNG</th>
+                    <th style="padding: 10px 8px;">ĐÁNH GIÁ</th>
+                    <th style="padding: 10px 8px; min-width: 190px;">NỘI DUNG NHẬN XÉT</th>
+                    <th style="padding: 10px 8px;">THỜI GIAN</th>
+                    <th style="padding: 10px 8px;">TRẠNG THÁI</th>
+                    <th style="text-align: center; width: 175px; padding: 10px 8px;">KIỂM DUYỆT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${paged.length === 0 ? `
+                    <tr>
+                      <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        Chưa có đánh giá nào phù hợp với bộ lọc.
+                      </td>
+                    </tr>
+                  ` : paged.map(r => {
+          const isSelected = this.selectedAuditRowId === r._id;
+          return `
+                      <tr id="auditRow_${r._id}"
+                          class="admin-branch-table-row ${isSelected ? 'is-selected' : ''}"
+                          onclick="AdminWeb.onAuditRowClick('reviews', '${this.escapeHtml(r._id)}', event)"
+                          style="cursor: pointer; ${isSelected ? 'background: rgba(197, 155, 39, 0.14); box-shadow: inset 3px 0 0 #C59B27;' : ''}">
+                        <td style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--text-primary); padding: 10px 8px; white-space: nowrap;">
+                          ${this.escapeHtml(r._shortCode)}
+                        </td>
+                        <td style="padding: 10px 8px; white-space: nowrap;">
+                          <div style="font-weight: 800; color: var(--text-primary); font-size: 12.5px;">${this.escapeHtml(r.customerName || 'Khách Hàng')}</div>
+                          ${r.customerPhone ? `<div style="font-size: 11px; color: var(--text-secondary);">${this.escapeHtml(r.customerPhone)}</div>` : ''}
+                        </td>
+                        <td style="padding: 10px 8px; max-width: 140px;">
+                          <span style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 800; margin-bottom: 3px; ${r._isProdTarget ? 'background: rgba(16, 185, 129, 0.14); color: #059669;' : 'background: rgba(14, 165, 233, 0.14); color: #0284C7;'}">
+                            ${this.escapeHtml(r._targetBadge)}
+                          </span>
+                          <div style="font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${this.escapeHtml(r._targetName)}
+                          </div>
+                        </td>
+                        <td style="padding: 10px 8px; white-space: nowrap;">
+                          <div style="color: #F59E0B; font-size: 12.5px; letter-spacing: 1px;">${'★'.repeat(r._stars)}${'☆'.repeat(5 - r._stars)}</div>
+                          <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-top: 2px;">${r._stars.toFixed(1)} / 5</div>
+                        </td>
+                        <td style="padding: 10px 8px; max-width: 230px;">
+                          <div style="font-size: 12px; color: var(--text-primary); line-height: 1.45;">
+                            ${this.escapeHtml(r.comment || r.NoiDung || '')}
+                          </div>
+                          ${r._replyText ? `
+                            <div style="margin-top: 6px; padding: 4px 8px; border-radius: 6px; background: rgba(197, 155, 39, 0.12); border-left: 2px solid #C59B27; font-size: 11px; color: var(--text-secondary);">
+                              <strong style="color: #8A6208;">Phản hồi:</strong> ${this.escapeHtml(r._replyText)}
+                            </div>
+                          ` : ''}
+                        </td>
+                        <td style="white-space: nowrap; font-size: 11.5px; color: var(--text-secondary); padding: 10px 8px; font-variant-numeric: tabular-nums;">
+                          ${this._formatTableDateTime(r.date || r.NgayDanhGia)}
+                        </td>
+                        <td style="padding: 10px 8px; white-space: nowrap;">
+                          <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                            <span style="padding: 3px 9px; border-radius: 9999px; font-size: 11px; font-weight: 700; ${r._isHidden ? 'background: rgba(239, 68, 68, 0.12); color: #DC2626;' : 'background: rgba(16, 185, 129, 0.14); color: #059669;'}">
+                              ${r._isHidden ? 'Đã ẩn' : 'Hiển thị'}
+                            </span>
+                            ${r._replyText ? `
+                              <span style="padding: 2px 8px; border-radius: 9999px; font-size: 10.5px; font-weight: 700; background: rgba(16, 185, 129, 0.1); color: #059669;">
+                                ✓ Đã phản hồi
+                              </span>
+                            ` : ''}
+                          </div>
+                        </td>
+                        <td style="text-align: center; padding: 10px 8px; white-space: nowrap;" onclick="event.stopPropagation()">
+                          <div style="display: inline-flex; gap: 5px; align-items: center;">
+                            <button type="button" class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; cursor: pointer;"
+                                    onclick="AdminWeb.openReplyReviewModal('${this.escapeHtml(r._id)}')">
+                              ${r._replyText ? 'Sửa phản hồi' : 'Phản hồi'}
+                            </button>
+                            <button type="button" class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; cursor: pointer; ${r._isHidden ? 'color: #059669;' : ''}"
+                                    onclick="AdminWeb.toggleReviewStatus('${this.escapeHtml(r._id)}', '${r._isHidden ? 'Hiển thị' : 'Đã ẩn'}')">
+                              ${r._isHidden ? 'Hiện' : 'Ẩn'}
+                            </button>
+                            <button type="button" class="pill-btn-outline" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; color: #DC2626; cursor: pointer;"
+                                    onclick="AdminWeb.deleteReviewAdmin('${this.escapeHtml(r._id)}')">
+                              Xóa
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+        }).join('')}
+                </tbody>
+              </table>
+            </div>
+            ${this._renderPaginationControls(this.auditPage, totalPages, filtered.length, 'AdminWeb.setAuditPage', 'đánh giá')}
           </div>
         `;
       }
@@ -1811,7 +2085,7 @@
                 </label>
                 <input type="password" id="newPass" class="form-control-custom"
                        style="height: 38px; font-size: 13px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-primary); padding: 0 12px;"
-                       value="123456">
+                       placeholder="Tối thiểu 6 ký tự (hoặc để trống tự sinh)">
               </div>
             </div>
 
@@ -1857,11 +2131,16 @@
       const uname = (document.getElementById('newUname')?.value || '').trim().toLowerCase();
       const fname = (document.getElementById('newFname')?.value || '').trim();
       const phone = (document.getElementById('newPhone')?.value || '').trim();
+      const rawPassword = (document.getElementById('newPass')?.value || '').trim();
       const role = document.getElementById('newRole')?.value || 'BARBER';
       const branch = document.getElementById('newBranch')?.value || 'ALL';
 
       if (!uname || !fname || !phone) {
         if (window.UICommon) window.UICommon.showToast('Vui lòng điền đầy đủ Tên đăng nhập, Họ tên và Số điện thoại!', 'warning');
+        return;
+      }
+      if (rawPassword && rawPassword.length < 6) {
+        if (window.UICommon) window.UICommon.showToast('Mật khẩu khởi tạo phải có ít nhất 6 ký tự!', 'warning');
         return;
       }
 
@@ -1926,19 +2205,27 @@
       if (window.store.saveState) window.store.saveState();
 
       try {
+        const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
         const res = await fetch('/api/users', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeader },
           body: JSON.stringify({
             username: uname,
             fullName: fname,
             phone: phone,
+            ...(rawPassword ? { password: rawPassword } : {}),
             role: role,
             branchId: branch
           })
         });
         const resData = await res.json().catch(() => null);
-        if (resData && resData.user && resData.user.id) {
+        if (!res.ok || !resData || resData.success === false) {
+          window.store.state.users = (window.store.state.users || []).filter(u => u.id !== newUser.id);
+          if (window.store.saveState) window.store.saveState();
+          if (window.SalonToast) window.SalonToast.show(resData?.message || 'Không có quyền hoặc lỗi tạo tài khoản.', 'error');
+          return;
+        }
+        if (resData.user && resData.user.id) {
           newUser.id = resData.user.id;
           newUser.MaTaiKhoan = resData.user.MaTaiKhoan;
           if (resData.user.MaNhanVien) newUser.MaNhanVien = resData.user.MaNhanVien;
@@ -1946,7 +2233,8 @@
           if (window.store.saveState) window.store.saveState();
         }
       } catch (err) {
-        console.warn('Backend sync failed, saved locally:', err);
+        if (window.SalonToast) window.SalonToast.show('Lỗi kết nối máy chủ khi tạo tài khoản.', 'error');
+        return;
       }
 
       if (typeof window.store.logAudit === 'function') {
@@ -2201,27 +2489,217 @@
     async updateOrderStatus(orderId, newStatus) {
       if (!orderId || !newStatus) return;
       const statusLabels = {
-        'Pending': '① Chờ Xác Nhận',
-        'Processing': '② Đang Đóng Gói',
-        'Delivering': '③ Đang Giao Hàng',
-        'Completed': '④ Hoàn Tất',
-        'Cancelled': 'Hủy Đơn Hàng'
+        'Pending': 'Chờ xác nhận',
+        'Processing': 'Đang chuẩn bị / đóng gói',
+        'Ready': 'Sẵn sàng tại quầy',
+        'Delivering': 'Đang giao hàng',
+        'Completed': 'Hoàn tất / Đã nhận',
+        'Cancelled': 'Đã hủy'
       };
       const label = statusLabels[newStatus] || newStatus;
-      if (!confirm(`Xác nhận chuyển trạng thái đơn hàng ${orderId} sang "${label}"?`)) {
-        this.refreshAuditView();
-        return;
-      }
 
       if (window.store && typeof window.store.updateOrderStatus === 'function') {
         const res = await window.store.updateOrderStatus(orderId, newStatus);
         if (res && res.success) {
-          if (window.UICommon) window.UICommon.showToast(res.message || `Đã chuyển đơn ${orderId} sang "${label}"!`, 'success');
+          if (window.UICommon) window.UICommon.showToast(res.message || `Đã chuyển đơn ${orderId} sang "${label}"`, 'success');
           this.refreshAuditView();
         } else {
           if (window.UICommon) window.UICommon.showToast(res?.error || 'Lỗi khi cập nhật trạng thái đơn hàng!', 'error');
+          this.refreshAuditView();
         }
       }
+    },
+
+    async fetchAdminReviews(silent = true) {
+      try {
+        const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+        const res = await fetch('/api/reviews?include_hidden=true', {
+          headers: { ...authHeader }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          this._adminReviewsList = data;
+          if (window.store && window.store.state) {
+            window.store.state.reviews = data;
+          }
+          if ((this.auditSubTab || '') === 'reviews') {
+            this._updateAuditContentOnly();
+          }
+          if (!silent && window.UICommon) {
+            window.UICommon.showToast('Đã làm mới danh sách đánh giá!', 'success', 1500);
+          }
+        }
+      } catch (e) {
+        if (!silent && window.UICommon) {
+          window.UICommon.showToast('Không thể tải lại đánh giá từ máy chủ.', 'error');
+        }
+      }
+    },
+
+    _findAdminReviewById(reviewId) {
+      const list = Array.isArray(this._adminReviewsList)
+        ? this._adminReviewsList
+        : ((window.store && typeof window.store.getReviews === 'function') ? window.store.getReviews() : []);
+      return list.find(r => String(r.id || r.MaDanhGia) === String(reviewId)) || null;
+    },
+
+    openReviewDetailModal(reviewId) {
+      const r = this._findAdminReviewById(reviewId);
+      if (!r) return;
+      const stars = Number(r.rating || r.SoSao || 5);
+      const reply = (r.adminReply || r.PhanHoiAdmin || '').trim();
+      this._openModal(`
+        <div style="padding: 12px 8px; max-width: 500px; margin: 0 auto;">
+          <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 800; color: var(--text-primary);">
+            Chi Tiết Đánh Giá #${this.escapeHtml(String(r.id || r.MaDanhGia))}
+          </h3>
+          <div style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; font-size: 13px; line-height: 1.65; margin-bottom: 14px;">
+            <div><strong>Khách hàng:</strong> ${this.escapeHtml(r.customerName || 'Khách Hàng')} ${r.customerPhone ? `(${this.escapeHtml(r.customerPhone)})` : ''}</div>
+            <div><strong>Đối tượng:</strong> ${this.escapeHtml(r.targetName || r.MaSanPham || r.MaDichVu || r.MaDonHang || r.MaLichHen || 'Omni Salon')}</div>
+            <div><strong>Số sao:</strong> <span style="color: #F59E0B;">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</span> (${stars}/5)</div>
+            <div><strong>Thời gian:</strong> ${this._formatTableDateTime(r.date || r.NgayDanhGia)}</div>
+            <div><strong>Trạng thái:</strong> ${this.escapeHtml(r.status || r.TrangThai || 'Hiển thị')}</div>
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+              <strong>Nội dung nhận xét:</strong><br>${this.escapeHtml(r.comment || r.NoiDung || '')}
+            </div>
+            ${reply ? `
+              <div style="margin-top: 8px; padding: 8px 10px; border-radius: 6px; background: rgba(197, 155, 39, 0.12); border-left: 3px solid #C59B27;">
+                <strong>Phản hồi của Salon:</strong><br>${this.escapeHtml(reply)}
+              </div>
+            ` : ''}
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="pill-btn-outline" style="height: 36px; padding: 0 14px;" onclick="AdminWeb._closeModal(); AdminWeb.openReplyReviewModal('${this.escapeHtml(String(r.id || r.MaDanhGia))}')">
+              ${reply ? 'Sửa phản hồi' : 'Phản hồi'}
+            </button>
+            <button type="button" class="btn-submit-terracotta" style="height: 36px; padding: 0 18px; background: #C59B27; color: #141413; font-weight: 700; border-radius: 8px;" onclick="AdminWeb._closeModal()">
+              Đóng
+            </button>
+          </div>
+        </div>
+      `);
+    },
+
+    openReplyReviewModal(reviewId) {
+      const r = this._findAdminReviewById(reviewId);
+      const currentReply = (r && (r.adminReply || r.PhanHoiAdmin)) ? (r.adminReply || r.PhanHoiAdmin) : '';
+      this._openModal(`
+        <div style="padding: 12px 8px; max-width: 480px; margin: 0 auto;">
+          <h3 style="margin: 0 0 6px; font-size: 18px; font-weight: 800; color: var(--text-primary);">
+            ${currentReply ? 'Chỉnh sửa phản hồi đánh giá' : 'Phản hồi đánh giá khách hàng'}
+          </h3>
+          <div style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px;">
+            Khách hàng: <strong>${this.escapeHtml(r?.customerName || 'Khách Hàng')}</strong> • "${this.escapeHtml((r?.comment || r?.NoiDung || '').slice(0, 80))}"
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Nội dung phản hồi từ Omni Salon:</label>
+            <textarea id="adminReviewReplyInput" rows="4" class="form-control-custom" style="width: 100%; border-radius: 8px; padding: 10px; font-size: 13.5px;" placeholder="Cảm ơn quý khách đã tin tưởng sử dụng dịch vụ / sản phẩm tại Omni Salon...">${this.escapeHtml(currentReply)}</textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="pill-btn-outline" style="height: 38px; padding: 0 16px;" onclick="AdminWeb._closeModal()">Hủy Bỏ</button>
+            <button type="button" class="btn-submit-terracotta" style="height: 38px; padding: 0 18px; background: #C59B27; color: #141413; font-weight: 800; border-radius: 8px;" onclick="AdminWeb.submitReviewReply('${this.escapeHtml(String(reviewId))}')">
+              Lưu phản hồi
+            </button>
+          </div>
+        </div>
+      `);
+    },
+
+    async submitReviewReply(reviewId) {
+      const replyText = (document.getElementById('adminReviewReplyInput')?.value || '').trim();
+      if (!replyText) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập nội dung phản hồi!', 'warning');
+        return;
+      }
+      try {
+        const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+        const res = await fetch(`/api/reviews/${encodeURIComponent(reviewId)}/reply`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({ reply: replyText })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+          if (window.UICommon) window.UICommon.showToast(data?.message || 'Không thể lưu phản hồi!', 'error');
+          return;
+        }
+        this._closeModal();
+        if (window.UICommon) window.UICommon.showToast('Đã lưu phản hồi đánh giá thành công!', 'success');
+        await this.fetchAdminReviews(true);
+      } catch (e) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối máy chủ khi phản hồi đánh giá!', 'error');
+      }
+    },
+
+    async toggleReviewStatus(reviewId, nextStatus) {
+      try {
+        const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+        const res = await fetch(`/api/reviews/${encodeURIComponent(reviewId)}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({ status: nextStatus })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+          if (window.UICommon) window.UICommon.showToast(data?.message || 'Không thể đổi trạng thái đánh giá!', 'error');
+          return;
+        }
+        if (window.UICommon) window.UICommon.showToast(data.message || `Đã chuyển sang "${nextStatus}"`, 'success');
+        await this.fetchAdminReviews(true);
+      } catch (e) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối khi cập nhật trạng thái đánh giá!', 'error');
+      }
+    },
+
+    async deleteReviewAdmin(reviewId) {
+      if (!confirm(`Xác nhận xóa vĩnh viễn đánh giá ${reviewId}?`)) return;
+      try {
+        const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+        const res = await fetch(`/api/reviews/${encodeURIComponent(reviewId)}`, {
+          method: 'DELETE',
+          headers: { ...authHeader }
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+          if (window.UICommon) window.UICommon.showToast(data?.message || 'Không thể xóa đánh giá!', 'error');
+          return;
+        }
+        if (window.UICommon) window.UICommon.showToast(data.message || `Đã xóa đánh giá ${reviewId}!`, 'success');
+        await this.fetchAdminReviews(true);
+      } catch (e) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối khi xóa đánh giá!', 'error');
+      }
+    },
+
+    exportReviewsReport() {
+      const reviews = Array.isArray(this._adminReviewsList)
+        ? this._adminReviewsList
+        : ((window.store && typeof window.store.getReviews === 'function') ? window.store.getReviews() : []);
+      const escapeCsv = (val) => `"${String(val !== undefined && val !== null ? val : '').replace(/"/g, '""')}"`;
+      let csv = 'MaDG,KhachHang,SDT,DoiTuong,SoSao,NoiDung,PhanHoiAdmin,ThoiGian,TrangThai\n';
+      reviews.forEach(r => {
+        csv += [
+          escapeCsv(r.id || r.MaDanhGia || ''),
+          escapeCsv(r.customerName || 'Khách Hàng'),
+          escapeCsv(r.customerPhone || ''),
+          escapeCsv(r.targetName || r.MaSanPham || r.MaDichVu || r.MaDonHang || r.MaLichHen || ''),
+          escapeCsv(r.rating || r.SoSao || 5),
+          escapeCsv(r.comment || r.NoiDung || ''),
+          escapeCsv(r.adminReply || r.PhanHoiAdmin || ''),
+          escapeCsv(r.date || r.NgayDanhGia || ''),
+          escapeCsv(r.status || r.TrangThai || 'Hiển thị')
+        ].join(',') + '\n';
+      });
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `danh_sach_danh_gia_${new Date().toISOString().substring(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      if (window.UICommon) window.UICommon.showToast('Đã xuất file danh sách đánh giá thành công!', 'success');
     },
 
     async confirmOrderPayment(orderId) {

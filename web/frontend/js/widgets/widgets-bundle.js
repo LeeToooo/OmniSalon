@@ -76,8 +76,8 @@
       const esc = window.SalonUtils && window.SalonUtils.escapeHtml ? window.SalonUtils.escapeHtml : (str => str || '');
       const name = esc(stylist.name || 'Master Stylist');
       const level = esc(stylist.level || stylist.role || 'Senior Stylist & Colorist');
-      const rating = (stylist.rating !== undefined ? Number(stylist.rating) : 4.9).toFixed(1);
-      const reviews = Number(stylist.reviewsCount || stylist.reviews_count || 120);
+      const rating = stylist.rating != null ? Number(stylist.rating) : 0;
+      const reviews = Number(stylist.reviewsCount ?? stylist.reviews_count ?? 0);
       
       const avatar = stylist.avatar || stylist.avatar_url || 
         '/DataPicture/ChanDungTho/Tho1.jpg';
@@ -101,11 +101,11 @@
           <div class="md3-stylist-level-badge">${level}</div>
 
           <div class="md3-stylist-rating-bar">
-            <span class="rating-value">${rating} / 5</span>
-            <span class="rating-reviews-tag">(${reviews})</span>
+            <span class="rating-value">${rating > 0 ? `${rating.toFixed(1)} / 5` : 'Chưa có đánh giá'}</span>
+            ${reviews > 0 ? `<span class="rating-reviews-tag">(${reviews})</span>` : ''}
           </div>
           <div class="md3-stylist-served-metric">
-            <span class="served-count-num">${reviews.toLocaleString('vi-VN')}</span> lượt phục vụ
+            <span class="served-count-num">${reviews > 0 ? reviews.toLocaleString('vi-VN') : '0'}</span> đánh giá khách hàng
           </div>
 
           <div class="md3-stylist-specialty-tags">

@@ -40,17 +40,17 @@ class Stylist {
     final rawAvatar = json['avatar'] ?? json['HinhAnh'] ?? '';
     final formattedAvatar = ApiService.getImageUrl(
       rawAvatar.toString(),
-      fallback: 'assets/images/placeholder_avatar.png',
+      fallback: 'ChanDungTho/Tho1.jpg',
     );
 
-    final rawRating = json['rating'] ?? 5.0;
-    final num ratingNum = rawRating is num ? rawRating : (num.tryParse(rawRating.toString()) ?? 5.0);
+    final rawRating = json['rating'] ?? 0.0;
+    final num ratingNum = rawRating is num ? rawRating : (num.tryParse(rawRating.toString()) ?? 0.0);
 
-    final rawReviews = json['reviewCount'] ?? json['SoDanhGia'] ?? 150;
-    final int reviewCount = int.tryParse(rawReviews.toString()) ?? 150;
+    final rawReviews = json['reviewsCount'] ?? json['reviewCount'] ?? json['SoDanhGia'] ?? 0;
+    final int reviewCount = int.tryParse(rawReviews.toString()) ?? 0;
 
-    final rawExp = json['experienceYears'] ?? json['KinhNghiem'] ?? 7;
-    final int expYears = int.tryParse(rawExp.toString()) ?? 7;
+    final rawExp = json['experienceYears'] ?? json['KinhNghiem'] ?? 0;
+    final int expYears = int.tryParse(rawExp.toString()) ?? 0;
 
     List<String> specs = ['Fade Kỹ Thuật Cao', 'Uốn Texture', 'Tạo Phom Quý Tộc'];
     if (json['specialties'] is List) {

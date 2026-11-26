@@ -15,7 +15,17 @@ class AuthService {
   static final ValueNotifier<UserModel?> userNotifier =
       ValueNotifier<UserModel?>(null);
 
-  static bool get isLoggedIn => currentUser != null;
+  static bool get isLoggedIn =>
+      currentUser != null &&
+      currentToken != null &&
+      currentToken!.split('.').length == 3;
+
+  static Map<String, String> get authHeaders => {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json',
+        if (currentToken != null && currentToken!.isNotEmpty)
+          'Authorization': 'Bearer $currentToken',
+      };
 
   static Future<void> init() async {
     try {
@@ -59,11 +69,17 @@ class AuthService {
 
       final data = jsonDecode(utf8.decode(res.bodyBytes));
       if (res.statusCode == 200 && data['success'] == true) {
+        final rawToken = data['token']?.toString() ?? '';
+        if (rawToken.isEmpty || rawToken.split('.').length != 3) {
+          return {
+            'success': false,
+            'message': 'Phiên đăng nhập từ máy chủ không hợp lệ.'
+          };
+        }
         final userData = data['user'] as Map<String, dynamic>;
         final user = UserModel.fromJson(userData);
         currentUser = user;
-        currentToken = data['token']?.toString() ??
-            'TOKEN_${DateTime.now().millisecondsSinceEpoch}';
+        currentToken = rawToken;
         userNotifier.value = user;
 
         final prefs = await SharedPreferences.getInstance();
@@ -97,11 +113,13 @@ class AuthService {
     required String email,
     String? birthday,
     required String password,
+    required String otp,
   }) async {
     final cleanName = fullName.trim();
     final cleanPhone = phone.trim();
     final cleanEmail = email.trim();
     final cleanPass = password.trim();
+    final cleanOtp = otp.trim();
     final cleanBirthday = (birthday ?? '').trim();
     String? normalizedBirthday;
     if (cleanBirthday.isNotEmpty) {
@@ -124,10 +142,11 @@ class AuthService {
     if (cleanName.isEmpty ||
         cleanPhone.isEmpty ||
         cleanEmail.isEmpty ||
-        cleanPass.isEmpty) {
+        cleanPass.isEmpty ||
+        cleanOtp.isEmpty) {
       return {
         'success': false,
-        'message': 'Vui lòng điền đầy đủ các thông tin.'
+        'message': 'Vui lòng điền đầy đủ thông tin và mã OTP xác thực.'
       };
     }
 
@@ -142,6 +161,7 @@ class AuthService {
               'email': cleanEmail,
               'birthday': normalizedBirthday,
               'password': cleanPass,
+              'otp': cleanOtp,
             }),
           )
           .timeout(const Duration(seconds: 20));
@@ -149,11 +169,17 @@ class AuthService {
       final data = jsonDecode(utf8.decode(res.bodyBytes));
       if ((res.statusCode == 200 || res.statusCode == 201) &&
           data['success'] == true) {
+        final rawToken = data['token']?.toString() ?? '';
+        if (rawToken.isEmpty || rawToken.split('.').length != 3) {
+          return {
+            'success': false,
+            'message': 'Không nhận được token xác thực từ máy chủ.'
+          };
+        }
         final userData = data['user'] as Map<String, dynamic>;
         final user = UserModel.fromJson(userData);
         currentUser = user;
-        currentToken = data['token']?.toString() ??
-            'TOKEN_${DateTime.now().millisecondsSinceEpoch}';
+        currentToken = rawToken;
         userNotifier.value = user;
 
         final prefs = await SharedPreferences.getInstance();
@@ -181,10 +207,11 @@ class AuthService {
     }
   }
 
-  static Future<bool> sendGmailOtp(String email) async {
+  static Future<Map<String, dynamic>> sendGmailOtp(
+    String email, {
+    String purpose = 'REGISTER',
+  }) async {
     final cleanEmail = email.trim();
-    debugPrint(
-        '[AuthService] Gửi mã OTP xác thực Gmail đến địa chỉ thực tế: nonamenood0809@gmail.com (Tài khoản: $cleanEmail)');
     try {
       final res = await http
           .post(
@@ -192,24 +219,38 @@ class AuthService {
             headers: {'Content-Type': 'application/json; charset=utf-8'},
             body: jsonEncode({
               'email': cleanEmail,
-              'purpose': 'VERIFY_ACCOUNT',
+              'purpose': purpose,
             }),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 30));
 
       final data = jsonDecode(utf8.decode(res.bodyBytes));
-      return res.statusCode == 200 && data['success'] == true;
+      final ok = res.statusCode == 200 &&
+          data['success'] == true &&
+          data['sentEmail'] != false;
+      return {
+        'success': ok,
+        'message': data['message']?.toString() ??
+            (ok
+                ? 'Đã gửi mã xác thực OTP về $cleanEmail.'
+                : 'Không thể gửi mã OTP qua Email.'),
+      };
     } catch (e) {
       debugPrint('[AuthService] Send OTP error: $e');
-      return false;
+      return {
+        'success': false,
+        'message': 'Không thể kết nối máy chủ gửi OTP. Vui lòng thử lại.'
+      };
     }
   }
 
-  static Future<bool> verifyGmailOtp(String email, String otp) async {
+  static Future<Map<String, dynamic>> verifyGmailOtp(
+    String email,
+    String otp, {
+    String purpose = 'REGISTER',
+  }) async {
     final cleanEmail = email.trim();
     final cleanOtp = otp.trim();
-    debugPrint(
-        '[AuthService] Xác thực mã OTP qua backend cho nonamenood0809@gmail.com (Tài khoản: $cleanEmail)');
     try {
       final res = await http
           .post(
@@ -218,16 +259,24 @@ class AuthService {
             body: jsonEncode({
               'email': cleanEmail,
               'otp': cleanOtp,
-              'purpose': 'VERIFY_ACCOUNT',
+              'purpose': purpose,
             }),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 15));
 
       final data = jsonDecode(utf8.decode(res.bodyBytes));
-      return res.statusCode == 200 && data['success'] == true;
+      final ok = res.statusCode == 200 && data['success'] == true;
+      return {
+        'success': ok,
+        'message': data['message']?.toString() ??
+            (ok ? 'Xác thực OTP thành công!' : 'Mã OTP không đúng hoặc đã hết hạn.'),
+      };
     } catch (e) {
       debugPrint('[AuthService] Verify OTP error: $e');
-      return false;
+      return {
+        'success': false,
+        'message': 'Lỗi kết nối khi xác thực mã OTP.'
+      };
     }
   }
 
@@ -239,11 +288,7 @@ class AuthService {
         'message': 'Vui lòng nhập địa chỉ email đã đăng ký.'
       };
     }
-    await sendGmailOtp(cleanEmail);
-    return {
-      'success': true,
-      'message': 'Đã gửi hướng dẫn và mã đặt lại mật khẩu về $cleanEmail'
-    };
+    return await sendGmailOtp(cleanEmail, purpose: 'RESET_PASSWORD');
   }
 
   static Future<Map<String, dynamic>> resetPasswordWithOtp({
@@ -255,17 +300,16 @@ class AuthService {
     final cleanOtp = otp.trim();
     final cleanPass = newPassword.trim();
 
+    if (cleanOtp.length < 6) {
+      return {
+        'success': false,
+        'message': 'Vui lòng nhập đủ 6 chữ số mã OTP.'
+      };
+    }
     if (cleanPass.length < 6) {
       return {
         'success': false,
         'message': 'Mật khẩu mới phải có ít nhất 6 ký tự.'
-      };
-    }
-    final isValid = await verifyGmailOtp(cleanEmail, cleanOtp);
-    if (!isValid) {
-      return {
-        'success': false,
-        'message': 'Mã OTP không chính xác hoặc đã hết hạn.'
       };
     }
     try {
@@ -279,7 +323,7 @@ class AuthService {
               'newPassword': cleanPass,
             }),
           )
-          .timeout(const Duration(seconds: 8));
+          .timeout(const Duration(seconds: 15));
 
       final data = jsonDecode(utf8.decode(res.bodyBytes));
       if (res.statusCode == 200 && data['success'] == true) {
@@ -375,8 +419,8 @@ class AuthService {
     String? email,
     String? birthday,
   }) async {
-    if (currentUser == null) {
-      return {'success': false, 'message': 'Chưa đăng nhập'};
+    if (currentUser == null || currentToken == null || currentToken!.isEmpty) {
+      return {'success': false, 'message': 'Vui lòng đăng nhập lại.'};
     }
     final updatedUser = UserModel(
       id: currentUser!.id,
@@ -393,32 +437,45 @@ class AuthService {
       role: currentUser!.role,
       roleName: currentUser!.roleName,
     );
-    currentUser = updatedUser;
-    userNotifier.value = updatedUser;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_userKey, jsonEncode(updatedUser.toJson()));
-      await http
+      final res = await http
           .put(
             Uri.parse('${ApiService.baseUrl}/auth/profile'),
-            headers: {'Content-Type': 'application/json'},
+            headers: authHeaders,
             body: jsonEncode({
-              'userId': updatedUser.id,
+              'id': updatedUser.id,
               'fullName': updatedUser.fullName,
               'phone': updatedUser.phone,
               'email': updatedUser.email,
               'birthday': birthday,
             }),
           )
-          .timeout(const Duration(seconds: 4));
-    } catch (_) {}
+          .timeout(const Duration(seconds: 10));
 
-    return {
-      'success': true,
-      'message': 'Cập nhật thông tin thành công!',
-      'user': updatedUser
-    };
+      final data = jsonDecode(utf8.decode(res.bodyBytes));
+      if (res.statusCode == 200 && data['success'] == true) {
+        currentUser = updatedUser;
+        userNotifier.value = updatedUser;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_userKey, jsonEncode(updatedUser.toJson()));
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Cập nhật thông tin thành công!',
+          'user': updatedUser
+        };
+      }
+      return {
+        'success': false,
+        'message': data['message'] ?? 'Không thể cập nhật thông tin hồ sơ.'
+      };
+    } catch (e) {
+      debugPrint('[AuthService] Update profile error: $e');
+      return {
+        'success': false,
+        'message': 'Không thể kết nối máy chủ khi cập nhật hồ sơ.'
+      };
+    }
   }
 
   static Future<void> logout() async {

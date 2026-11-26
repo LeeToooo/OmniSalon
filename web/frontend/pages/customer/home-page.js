@@ -184,8 +184,8 @@
                   <!-- Floating Badge không dùng shadow -->
                   <div class="hero-floating-badge" style="position: absolute; left: 14px; bottom: 28px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 20px; color: var(--text-primary); z-index: 5; box-shadow: none;">
                     <div style="display: flex; align-items: center; gap: 6px; font-size: 14.5px; font-weight: 800; color: var(--brand-accent);">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                      <span>4.9 (2.500+ đánh giá)</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2.2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>20 chi nhánh tại TP.HCM</span>
                     </div>
                     <div style="font-size: 13.5px; color: var(--text-primary); margin-top: 4px; font-weight: 600;">
                       Bảo hành kiểu tóc 7 ngày
@@ -201,7 +201,7 @@
               <!-- Thẻ 1: Không gian chi nhánh -->
               <a href="/branches" onclick="event.preventDefault(); AppRouter.navigate('/branches')" class="feature-experience-card" style="background: var(--surface-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; text-decoration: none; cursor: pointer; box-shadow: none;">
                 <div style="position: relative; height: 260px; overflow: hidden; background: #141413;">
-                  <img src="${SalonUtils.formatImageUrl('Men_Grooming_Products/ChiNhanh_Omni/CN1.jpg')}" alt="Không gian chi nhánh OmniSalon" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
+                  <img src="${SalonUtils.formatImageUrl('ChiNhanh_Omni/CN1.jpg')}" alt="Không gian chi nhánh OmniSalon" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" onerror="SalonUtils.handleImgError(this)">
                 </div>
                 <div style="padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
                   <h3 class="font-serif tracking-tight leading-tight" style="font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin: 0; transition: color 0.25s ease;">Không gian barbershop đương đại</h3>
@@ -313,7 +313,7 @@
               </button>
             </div>
 
-            <div class="stylists-clean-grid" id="homeStylistsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+            <div class="stylists-clean-grid" id="homeStylistsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 24px;">
               ${(() => {
           const allStylists = (window.store && typeof window.store.getStylists === 'function') ? window.store.getStylists() : stylists;
           // Lọc chỉ lấy thợ
@@ -464,7 +464,7 @@
             <div style="background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; padding: 36px 28px;">
               <div style="text-align: center; max-width: 680px; margin: 0 auto 28px;">
                 <h2 class="font-serif tracking-tight leading-tight" style="font-size: clamp(22px, 2.5vw, 30px); font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">Studio Tạo Kiểu &amp; Thử Phom Tóc Barbershop</h2>
-                <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Khám phá bộ sưu tập 28 kiểu tóc nam chuẩn tỉ lệ vàng và xem trước trên ảnh chân dung của bạn.</p>
+                <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Khám phá bộ sưu tập 12 kiểu tóc nam thịnh hành và xem trước trực tiếp trên ảnh chân dung của bạn.</p>
               </div>
 
               <div style="max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;">
@@ -484,16 +484,16 @@
                     2. Chọn kiểu tóc thịnh hành:
                   </label>
                   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
-                    <button type="button" class="ai-home-style-pill active" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
+                    <button type="button" data-style="layer-korean" class="ai-home-style-pill active" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
                       Layer texture Hàn Quốc
                     </button>
-                    <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
+                    <button type="button" data-style="sidepart-gentleman" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
                       Side Part 7/3 cổ điển
                     </button>
-                    <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
+                    <button type="button" data-style="pompadour-luxury" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
                       Pompadour lịch lãm
                     </button>
-                    <button type="button" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
+                    <button type="button" data-style="short-quiff" class="ai-home-style-pill" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">
                       Short Quiff &amp; Taper
                     </button>
                   </div>
@@ -564,13 +564,9 @@
     startAiStudio() {
       const fileInput = document.getElementById('homeAiFileInput');
       const activePill = document.querySelector('.ai-home-style-pill.active');
-      let selectedStyle = 'layer-korean';
-      if (activePill) {
-        const text = activePill.textContent.trim();
-        if (text.includes('Vuốt Ngược')) selectedStyle = 'pompadour-luxury';
-        else if (text.includes('Đuôi Dài')) selectedStyle = 'mullet-modern';
-        else if (text.includes('Rẽ Ngôi')) selectedStyle = 'sidepart-gentleman';
-      }
+      const selectedStyle = (activePill && activePill.dataset && activePill.dataset.style)
+        ? activePill.dataset.style
+        : 'layer-korean';
 
       if (window.AiStudioPage) {
         window.AiStudioPage.state.selectedHairstyle = selectedStyle;
@@ -580,9 +576,14 @@
         const reader = new FileReader();
         reader.onload = (e) => {
           if (window.AiStudioPage) {
+            window.AiStudioPage.state.originalRawImage = e.target.result;
             window.AiStudioPage.state.uploadedImage = e.target.result;
+            window.AiStudioPage.state.croppedImage = null;
+            window.AiStudioPage.state.faceAnalysis = null;
+            window.AiStudioPage.state.activeBaseMode = 'cropped';
             window.AiStudioPage.state.hasResult = false;
             window.AiStudioPage.state.resultImage = null;
+            window.AiStudioPage.state.pendingAutoAnalyze = true;
           }
           if (window.AppRouter) window.AppRouter.navigate('/ai-studio');
         };

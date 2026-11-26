@@ -42,21 +42,23 @@ class Product {
 
     // Chính sách Flash sale theo cận date
     final daysLeft = json['SoNgayConLai'] ?? json['daysRemaining'];
-    bool expired = false;
+    bool expired = json['isExpired'] == true;
 
     if (daysLeft != null) {
       final days = (daysLeft is num ? daysLeft : (num.tryParse(daysLeft.toString()) ?? 999)).toInt();
       if (days <= 0) {
         expired = true;
-      } else if (days <= 30) {
-        discountPct = 70;
-        actual = (orig * 0.3).round();
-      } else if (days <= 90) {
-        discountPct = 40;
-        actual = (orig * 0.6).round();
-      } else if (days <= 180) {
-        discountPct = 20;
-        actual = (orig * 0.8).round();
+      } else if (actual == orig && discountPct == 0) {
+        if (days <= 30) {
+          discountPct = 70;
+          actual = (orig * 0.3).round();
+        } else if (days <= 90) {
+          discountPct = 40;
+          actual = (orig * 0.6).round();
+        } else if (days <= 180) {
+          discountPct = 20;
+          actual = (orig * 0.8).round();
+        }
       }
     }
 

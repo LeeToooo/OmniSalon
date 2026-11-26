@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -35,9 +36,13 @@ class _AuthModalState extends State<AuthModal> {
   final _regPhoneCtrl = TextEditingController();
   final _regBirthdayCtrl = TextEditingController();
   final _regEmailCtrl = TextEditingController();
+  final _regOtpCtrl = TextEditingController();
   final _regPassCtrl = TextEditingController();
 
   DateTime? _selectedBirthday;
+  bool _sendingOtp = false;
+  int _otpCountdown = 0;
+  Timer? _otpTimer;
 
   @override
   void initState() {
@@ -47,12 +52,14 @@ class _AuthModalState extends State<AuthModal> {
 
   @override
   void dispose() {
+    _otpTimer?.cancel();
     _loginIdentCtrl.dispose();
     _loginPassCtrl.dispose();
     _regNameCtrl.dispose();
     _regPhoneCtrl.dispose();
     _regBirthdayCtrl.dispose();
     _regEmailCtrl.dispose();
+    _regOtpCtrl.dispose();
     _regPassCtrl.dispose();
     super.dispose();
   }
@@ -109,11 +116,51 @@ class _AuthModalState extends State<AuthModal> {
     }
   }
 
+  Future<void> _handleSendModalOtp() async {
+    final email = _regEmailCtrl.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      _showError('Vui lòng nhập địa chỉ Gmail hợp lệ để nhận mã OTP');
+      return;
+    }
+    if (_sendingOtp || _otpCountdown > 0) return;
+
+    setState(() => _sendingOtp = true);
+    final res = await AuthService.sendGmailOtp(email, purpose: 'REGISTER');
+    if (!mounted) return;
+    setState(() => _sendingOtp = false);
+
+    if (res['success'] == true) {
+      _otpTimer?.cancel();
+      setState(() => _otpCountdown = 60);
+      _otpTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (!mounted) {
+          t.cancel();
+          return;
+        }
+        if (_otpCountdown <= 1) {
+          t.cancel();
+          setState(() => _otpCountdown = 0);
+        } else {
+          setState(() => _otpCountdown--);
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res['message']?.toString() ?? 'Đã gửi mã OTP về $email'),
+          backgroundColor: const Color(0xFF16A34A),
+        ),
+      );
+    } else {
+      _showError(res['message']?.toString() ?? 'Không thể gửi mã OTP qua Gmail');
+    }
+  }
+
   Future<void> _handleRegister() async {
     final name = _regNameCtrl.text.trim();
     final phone = _regPhoneCtrl.text.trim();
     final birthday = _regBirthdayCtrl.text.trim();
     final email = _regEmailCtrl.text.trim();
+    final otp = _regOtpCtrl.text.trim();
     final pass = _regPassCtrl.text.trim();
 
     if (name.isEmpty) {
@@ -132,6 +179,10 @@ class _AuthModalState extends State<AuthModal> {
       _showError('Vui lòng nhập địa chỉ email hợp lệ');
       return;
     }
+    if (otp.length < 6) {
+      _showError('Vui lòng nhập đủ 6 chữ số mã OTP gửi về Gmail');
+      return;
+    }
     if (pass.length < 6) {
       _showError('Mật khẩu tối thiểu 6 ký tự');
       return;
@@ -144,6 +195,7 @@ class _AuthModalState extends State<AuthModal> {
       email: email,
       birthday: birthday,
       password: pass,
+      otp: otp,
     );
     if (!mounted) return;
     setState(() => isLoading = false);
@@ -363,18 +415,57 @@ class _AuthModalState extends State<AuthModal> {
                     controller: _regBirthdayCtrl,
                     hintText: 'Chọn ngày sinh (VD: 20/05/1998)',
                     prefixIcon: Icons.cake_outlined,
-                    suffixIcon: const Icon(Icons.calendar_today, color: Colors.black, size: 18),
+                    suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFFC59B27), size: 18),
                   ),
                 ),
               ),
               const SizedBox(height: 12),
 
-              _buildFieldLabel('GMAIL XÁC THỰC:'),
+              _buildFieldLabel('GMAIL XÁC THỰC NHẬN MÃ OTP:'),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildInputField(
+                      controller: _regEmailCtrl,
+                      hintText: 'khachhang@gmail.com',
+                      prefixIcon: Icons.mail_outline,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    height: 46,
+                    child: ElevatedButton(
+                      onPressed: (_sendingOtp || _otpCountdown > 0) ? null : _handleSendModalOtp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC59B27),
+                        foregroundColor: const Color(0xFF141413),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      child: _sendingOtp
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF141413)),
+                            )
+                          : Text(
+                              _otpCountdown > 0 ? '${_otpCountdown}s' : 'Gửi mã',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              _buildFieldLabel('MÃ XÁC NHẬN OTP GMAIL (6 SỐ):'),
               _buildInputField(
-                controller: _regEmailCtrl,
-                hintText: 'khachhang@gmail.com',
-                prefixIcon: Icons.mail_outline,
-                keyboardType: TextInputType.emailAddress,
+                controller: _regOtpCtrl,
+                hintText: 'Nhập mã OTP 6 chữ số',
+                prefixIcon: Icons.verified_user_outlined,
+                keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
 

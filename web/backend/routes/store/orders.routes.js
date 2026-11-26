@@ -1,5 +1,5 @@
 const { querySql } = require('../../database/db');
-const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const { enforceAuth, extractAuthUser, isStaffRole } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
 const {
   resolveOrCreateCustomer,
@@ -12,13 +12,32 @@ const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 async function handleOrderRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
 
-  // GET /api/orders hoặc GET /api/orders/:id - Tra cứu danh sách hoặc chi tiết đơn hàng
+  // GET /api/orders, GET /api/orders/my-orders hoặc GET /api/orders/:id - Tra cứu đơn hàng (bắt buộc JWT & kiểm tra chủ sở hữu/chi nhánh)
   if ((pathname === '/api/orders' || pathname.startsWith('/api/orders/')) && !pathname.endsWith('/cancel') && method === 'GET') {
+    const authUser = enforceAuth(req, res);
+    if (!authUser) return true;
+
     await checkAndAutoCancelOnRequest();
-    let orderIdParam = pathname.startsWith('/api/orders/') ? pathname.replace('/api/orders/', '').trim() : null;
+    const isMyOrders = pathname === '/api/orders/my-orders';
+    let orderIdParam = (!isMyOrders && pathname.startsWith('/api/orders/'))
+      ? pathname.replace('/api/orders/', '').trim()
+      : null;
     if (orderIdParam) {
       orderIdParam = decodeURIComponent(orderIdParam).replace(/^#+/, '').trim();
     }
+
+    const staffUser = isStaffRole(authUser);
+    if ((isMyOrders || !staffUser) && !authUser.customerId) {
+      if (orderIdParam && !isMyOrders) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Bạn không có quyền truy cập đơn hàng này.' }));
+      } else {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify([]));
+      }
+      return true;
+    }
+
     let queryStr = `
       SELECT dh.MaDonHang, dh.MaKhachHang, dh.MaChiNhanh, 
              CONVERT(VARCHAR(19), dh.NgayDat, 120) AS NgayDat,
@@ -31,17 +50,29 @@ async function handleOrderRoutes(req, res, ctx) {
       LEFT JOIN KhachHang kh ON dh.MaKhachHang = kh.MaKhachHang
       LEFT JOIN ChiNhanh cn ON dh.MaChiNhanh = cn.MaChiNhanh
     `;
+    const conditions = [];
     const params = [];
     if (orderIdParam) {
-      queryStr += ' WHERE dh.MaDonHang = ? OR dh.MaDonHang = ? OR dh.MaDonHang LIKE ?';
+      conditions.push('(dh.MaDonHang = ? OR dh.MaDonHang = ? OR dh.MaDonHang LIKE ?)');
       params.push(orderIdParam, '#' + orderIdParam, '%' + orderIdParam);
-    } else {
+    }
+    if (isMyOrders || !staffUser) {
+      conditions.push('dh.MaKhachHang = ?');
+      params.push(authUser.customerId);
+    } else if (!authUser.isSuperAdmin && authUser.branchId) {
+      conditions.push('dh.MaChiNhanh = ?');
+      params.push(authUser.branchId);
+    }
+    if (conditions.length > 0) {
+      queryStr += ' WHERE ' + conditions.join(' AND ');
+    }
+    if (!orderIdParam) {
       queryStr += ' ORDER BY dh.NgayDat DESC';
     }
 
     const rows = await querySql(queryStr, params);
     if (orderIdParam && (!rows || rows.length === 0)) {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${orderIdParam}!` }));
       return true;
     }
@@ -55,14 +86,15 @@ async function handleOrderRoutes(req, res, ctx) {
     `, orderIdParam ? [orderIdParam] : []);
 
     const mapOrder = (r) => {
-      let oStatus = 'Processing';
+      let oStatus = 'Pending';
       const tt = (r.TrangThai || '').trim();
       const ttLow = tt.toLowerCase();
       if (ttLow.includes('hủy') || ttLow === 'cancelled') oStatus = 'Cancelled';
-      else if (ttLow.includes('hoàn tất') || ttLow.includes('đã giao') || ttLow === 'completed' || ttLow === 'delivered') oStatus = 'Completed';
+      else if (ttLow.includes('đã nhận') || ttLow.includes('hoàn tất') || ttLow.includes('đã giao') || ttLow === 'completed' || ttLow === 'delivered') oStatus = 'Completed';
+      else if (ttLow.includes('sẵn sàng') || ttLow === 'ready' || ttLow === 'ready_for_pickup') oStatus = 'Ready';
       else if (ttLow.includes('đang giao') || ttLow === 'delivering' || ttLow === 'shipping' || (ttLow.includes('giao') && !ttLow.includes('đã giao'))) oStatus = 'Delivering';
+      else if (ttLow.includes('chuẩn bị') || ttLow.includes('đóng gói') || ttLow.includes('đang xử lý') || ttLow === 'processing') oStatus = 'Processing';
       else if (ttLow.includes('chờ') || ttLow === 'pending') oStatus = 'Pending';
-      else if (ttLow.includes('đóng gói') || ttLow.includes('đang xử lý') || ttLow === 'processing') oStatus = 'Processing';
 
       const items = (allOrderItems || [])
         .filter(it => it.MaDonHang === r.MaDonHang)
@@ -112,6 +144,8 @@ async function handleOrderRoutes(req, res, ctx) {
         branchId: r.MaChiNhanh,
         branchName: r.TenChiNhanh || 'Omni Salon Chi Nhánh',
         orderDate: r.NgayDat,
+        createdAt: r.NgayDat,
+        NgayDat: r.NgayDat,
         totalAmount: parseFloat(r.TongTien || 0),
         TongTien: parseFloat(r.TongTien || 0),
         shippingFee: shippingFee,
@@ -150,60 +184,74 @@ async function handleOrderRoutes(req, res, ctx) {
     const cnId = order.branchId || 'CN01';
     const orderItems = Array.isArray(order.items) ? order.items : (Array.isArray(order.cartItems) ? order.cartItems : []);
 
-    // Kiểm tra tồn kho khả dụng từng sản phẩm tại chi nhánh trước khi tạo đơn hàng
+    if (orderItems.length === 0) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Đơn hàng phải có ít nhất 1 sản phẩm.' }));
+      return true;
+    }
+
+    // Kiểm tra tồn kho khả dụng từng sản phẩm tại chi nhánh trước khi tạo đơn hàng (chỉ tính lô đã duyệt và còn hạn)
     for (let i = 0; i < orderItems.length; i++) {
       const it = orderItems[i];
       const prodId = it.productId || it.id || it.MaSanPham;
       const qty = parseInt(it.quantity || it.qty || it.SoLuong || 1, 10);
-      if (prodId && qty > 0) {
-        const stockCheck = await querySql(`
-          SELECT 
-            ISNULL(SUM(ctpn.SoLuongConLai), 0) AS TongTonKhaDung,
-            (SELECT TOP 1 TenSanPham FROM SanPham WHERE MaSanPham = ?) AS TenSanPham
-          FROM ChiTietPhieuNhap ctpn
-          INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
-          WHERE pnk.MaChiNhanh = ?
-            AND ctpn.MaSanPham = ?
-            AND ctpn.SoLuongConLai > 0
-            AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
-        `, [prodId, cnId, prodId]);
+      if (!prodId || isNaN(qty) || qty <= 0) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Thông tin sản phẩm hoặc số lượng không hợp lệ.' }));
+        return true;
+      }
+      const stockCheck = await querySql(`
+        SELECT 
+          ISNULL(SUM(ctpn.SoLuongConLai), 0) AS TongTonKhaDung,
+          (SELECT TOP 1 TenSanPham FROM SanPham WHERE MaSanPham = ?) AS TenSanPham
+        FROM ChiTietPhieuNhap ctpn
+        INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
+        WHERE pnk.MaChiNhanh = ?
+          AND pnk.TrangThai = N'Đã duyệt'
+          AND ctpn.MaSanPham = ?
+          AND ctpn.SoLuongConLai > 0
+          AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
+      `, [prodId, cnId, prodId]);
 
-        const availableStock = stockCheck && stockCheck[0] ? parseInt(stockCheck[0].TongTonKhaDung, 10) : 0;
-        const pName = stockCheck && stockCheck[0] && stockCheck[0].TenSanPham ? stockCheck[0].TenSanPham : (it.name || prodId);
+      const availableStock = stockCheck && stockCheck[0] ? parseInt(stockCheck[0].TongTonKhaDung, 10) : 0;
+      const pName = stockCheck && stockCheck[0] && stockCheck[0].TenSanPham ? stockCheck[0].TenSanPham : (it.name || prodId);
 
-        if (availableStock < qty) {
-          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ 
-            success: false, 
-            error: `Sản phẩm "${pName}" tại chi nhánh chỉ còn ${availableStock} món, không đủ ${qty} yêu cầu!` 
-          }));
-          return true;
-        }
+      if (availableStock < qty) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ 
+          success: false, 
+          error: `Sản phẩm "${pName}" tại chi nhánh chỉ còn ${availableStock} món khả dụng, không đủ ${qty} yêu cầu!` 
+        }));
+        return true;
       }
     }
 
     // Backend luôn là Single Source of Truth cho mã đơn hàng (DH01 -> DH13 -> DH14 -> DH15...)
-    // Tự sinh mã tăng dần chuẩn từ CSDL SQL Server để Web và Mobile luôn đồng đều, không nhảy cóc
+    const authUser = require('../../middlewares/auth_middleware').extractAuthUser(req);
     const id = await generateNextOrderId();
 
+    const requestedCustomerId = (authUser && !isStaffRole(authUser) && authUser.customerId)
+      ? authUser.customerId
+      : (order.customerId || order.userId);
     const khId = await resolveOrCreateCustomer({
-      customerId: order.customerId || order.userId,
-      customerName: order.customerName,
-      customerPhone: order.customerPhone,
-      customerEmail: order.customerEmail
+      customerId: requestedCustomerId,
+      customerName: order.customerName || authUser?.fullName,
+      customerPhone: order.customerPhone || authUser?.phone,
+      customerEmail: order.customerEmail || authUser?.email
     });
 
-    const total = parseFloat(order.totalAmount || order.totalPrice || 500000);
     const addr = (order.shippingAddress || 'Nhận tại quầy').trim();
     const methodStr = (order.receiveMethod || 'Giao hàng tận nơi').trim();
     const notes = (order.notes || 'Đơn hàng online').trim();
+    const isPickupOrder = methodStr.toLowerCase().includes('quầy') || methodStr.toLowerCase().includes('chi nhánh') || addr.toLowerCase().includes('nhận tại quầy');
+    let total = 0;
 
     await querySql(
-      `INSERT INTO DonHang (MaDonHang, MaKhachHang, MaChiNhanh, NgayDat, TongTien, DiaChiGiaoHang, HinhThucNhan, TrangThai, GhiChu) VALUES (?, ?, ?, GETDATE(), ?, ?, ?, N'Đang xử lý', ?)`,
-      [id, khId, cnId, total, addr, methodStr, notes]
+      `INSERT INTO DonHang (MaDonHang, MaKhachHang, MaChiNhanh, NgayDat, TongTien, DiaChiGiaoHang, HinhThucNhan, TrangThai, GhiChu) VALUES (?, ?, ?, GETDATE(), 0, ?, ?, N'Chờ xác nhận', ?)`,
+      [id, khId, cnId, addr, methodStr, notes]
     );
 
-    // Lưu chi tiết đơn hàng vào ChiTietDonHang chuẩn FEFO
+    // Lưu chi tiết đơn hàng vào ChiTietDonHang chuẩn FEFO & tính lại tổng tiền từ CSDL
     try {
       for (let i = 0; i < orderItems.length; i++) {
         const it = orderItems[i];
@@ -217,40 +265,50 @@ async function handleOrderRoutes(req, res, ctx) {
             if (errMsg.includes('Tồn kho') || errMsg.includes('không đủ')) {
               throw spErr;
             }
-                        const ctdhId = await generateNextCtdhId();
-            const unitPrice = parseFloat(it.price || it.actualPrice || it.GiaBan || 250000);
-            
-            // Phân bổ lô hàng thực tế theo nguyên tắc FEFO
+            const ctdhId = await generateNextCtdhId();
             const ctpnRow = await querySql(`
-              SELECT TOP 1 ctpn.MaChiTietPhieuNhap 
+              SELECT TOP 1 ctpn.MaChiTietPhieuNhap, sp.GiaBan,
+                     ISNULL(v.PhanTramGiam, 0) AS PhanTramGiam,
+                     ISNULL(v.GiaBanThucTe, sp.GiaBan) AS GiaBanThucTe
               FROM ChiTietPhieuNhap ctpn
               INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
-              WHERE ctpn.MaSanPham = ? AND pnk.MaChiNhanh = ? AND ctpn.SoLuongConLai > 0
+              INNER JOIN SanPham sp ON ctpn.MaSanPham = sp.MaSanPham
+              LEFT JOIN vw_GiaBanTheoLoHienTai v ON v.MaChiTietPhieuNhap = ctpn.MaChiTietPhieuNhap
+              WHERE ctpn.MaSanPham = ?
+                AND pnk.MaChiNhanh = ?
+                AND pnk.TrangThai = N'Đã duyệt'
+                AND ctpn.SoLuongConLai >= ?
+                AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
               ORDER BY ctpn.HanSuDung ASC
-            `, [prodId, cnId]);
+            `, [prodId, cnId, qty]);
 
             if (!ctpnRow || !ctpnRow[0]) {
-              throw new Error(`Sản phẩm [${prodId}] đã hết lô hàng khả dụng tại chi nhánh ${cnId}.`);
+              throw new Error(`Sản phẩm [${prodId}] không còn đủ lô hàng đã duyệt & còn hạn tại chi nhánh ${cnId}.`);
             }
             const loId = ctpnRow[0].MaChiTietPhieuNhap;
+            const origPrice = parseFloat(ctpnRow[0].GiaBan || 0);
+            const discPct = parseFloat(ctpnRow[0].PhanTramGiam || 0);
+            const unitPrice = Math.round(parseFloat(ctpnRow[0].GiaBanThucTe || origPrice));
 
+            // Trigger trg_ChiTietDonHang_TruTonKho tự động trừ SoLuongConLai & TonKho khi INSERT ChiTietDonHang
             await querySql(
-              `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
-              [ctdhId, id, prodId, loId, qty, unitPrice, unitPrice, unitPrice * qty]
-            );
-
-            await querySql(
-              `UPDATE ChiTietPhieuNhap SET SoLuongConLai = SoLuongConLai - ? WHERE MaChiTietPhieuNhap = ?`,
-              [qty, loId]
+              `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [ctdhId, id, prodId, loId, qty, origPrice, discPct, unitPrice, unitPrice * qty]
             );
           }
         }
       }
 
-      // Cập nhật lại chính xác tổng tiền đơn hàng vào CSDL (bảo toàn phí vận chuyển 30.000 đ và giảm giá)
+      const sumRows = await querySql('SELECT ISNULL(SUM(ThanhTien), 0) AS ItemsTotal FROM ChiTietDonHang WHERE MaDonHang = ?', [id]);
+      const itemsTotal = parseFloat(sumRows?.[0]?.ItemsTotal || 0);
+      const shippingFee = (itemsTotal > 0 && !isPickupOrder) ? 30000 : 0;
+      total = Math.round(itemsTotal + shippingFee);
       await querySql('UPDATE DonHang SET TongTien = ? WHERE MaDonHang = ?', [total, id]);
     } catch (detailErr) {
-      await querySql('DELETE FROM DonHang WHERE MaDonHang = ?', [id]);
+      // Hoàn kho qua trigger trước khi dọn chi tiết & đơn hàng lỗi giữa chừng
+      await querySql("UPDATE DonHang SET TrangThai = N'Đã hủy' WHERE MaDonHang = ?", [id]).catch(() => {});
+      await querySql('DELETE FROM ChiTietDonHang WHERE MaDonHang = ?', [id]).catch(() => {});
+      await querySql('DELETE FROM DonHang WHERE MaDonHang = ?', [id]).catch(() => {});
       res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: detailErr.message || 'Lỗi xử lý tồn kho đơn hàng!' }));
       return true;
@@ -266,13 +324,12 @@ async function handleOrderRoutes(req, res, ctx) {
       const tbId = 'TB' + (nextTb < 10 ? '0' + nextTb : nextTb);
       await querySql(
         `INSERT INTO ThongBao (MaThongBao, MaTaiKhoan, MaKhachHang, TieuDe, NoiDung, LoaiThongBao, ThoiGianGui, TrangThaiDoc) VALUES (?, NULL, ?, ?, ?, ?, GETDATE(), 0)`,
-        [tbId, khId, 'Đặt hàng thành công', `Đơn hàng #${id} trị giá ${total.toLocaleString('vi-VN')} đ đã được tiếp nhận và đang xử lý!`, 'Đơn hàng']
+        [tbId, khId, 'Đặt hàng thành công', `Đơn hàng #${id} trị giá ${total.toLocaleString('vi-VN')} đ đã được tiếp nhận và đang chờ xác nhận!`, 'Đơn hàng']
       );
     } catch (e) {
       console.warn('[ThongBao] Lỗi tạo thông báo đơn hàng:', e.message);
     }
 
-    const authUser = extractAuthUser(req);
     const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : (order.customerName ? `${order.customerName} (${order.customerPhone || ''})` : `Khách Hàng (${khId})`);
     const actorRole = authUser ? (authUser.role || 'CUSTOMER') : 'CUSTOMER';
     auditService.logAudit({
@@ -282,7 +339,7 @@ async function handleOrderRoutes(req, res, ctx) {
       entityType: 'DonHang',
       entityId: id,
       branchId: cnId,
-      after: { id, customerId: khId, totalAmount: total, status: 'Processing' },
+      after: { id, customerId: khId, totalAmount: total, status: 'Pending', TrangThai: 'Chờ xác nhận' },
       details: `${actorName} tạo đơn hàng mỹ phẩm #${id} trị giá ${total.toLocaleString('vi-VN')} đ`
     }).catch(() => {});
 
@@ -296,68 +353,90 @@ async function handleOrderRoutes(req, res, ctx) {
         MaDonHang: id, 
         customerId: khId, 
         totalAmount: total, 
-        status: 'Processing' 
+        status: 'Pending',
+        orderStatus: 'Pending',
+        TrangThai: 'Chờ xác nhận'
       } 
     }));
     return true;
   }
 
-  // POST /api/orders/:id/cancel - Hủy đơn hàng và hoàn lại tồn kho
-  // Không cho hủy nếu đơn đang giao hoặc đã giao xong
+  // POST /api/orders/:id/cancel - Hủy đơn hàng và hoàn lại tồn kho (bắt buộc chủ sở hữu/nhân sự chi nhánh)
   if (pathname.startsWith('/api/orders/') && pathname.endsWith('/cancel') && method === 'POST') {
+    const cancelAuthUser = enforceAuth(req, res);
+    if (!cancelAuthUser) return true;
+
     let rawId = pathname.replace('/api/orders/', '').replace('/cancel', '').trim();
     rawId = decodeURIComponent(rawId).replace(/^#+/, '').trim();
     const reason = (parsedBody && parsedBody.reason) || 'Khách hàng yêu cầu hủy đơn';
 
-    // Tìm kiếm đơn hàng theo mã chính xác hoặc các biến thể DH13, DH013, ...
-    let orderRow = await querySql('SELECT MaDonHang, MaChiNhanh, TrangThai FROM DonHang WHERE MaDonHang = ? OR MaDonHang = ?', [rawId, '#' + rawId]);
+    // Tìm kiếm đơn hàng theo mã chính xác hoặc các biến thể DH13, DH013, DH01...
+    let orderRow = await querySql('SELECT MaDonHang, MaKhachHang, MaChiNhanh, TrangThai FROM DonHang WHERE MaDonHang = ? OR MaDonHang = ?', [rawId, '#' + rawId]);
     if (!orderRow || orderRow.length === 0) {
-      const numMatch = rawId.match(/\d+/);
+      const numMatch = rawId.match(/^\D*(\d+)$/);
       if (numMatch) {
-        const num = parseInt(numMatch[0], 10);
+        const num = parseInt(numMatch[1], 10);
+        const pad2 = 'DH' + String(num).padStart(2, '0');
         const pad3 = 'DH' + String(num).padStart(3, '0');
         const noPad = 'DH' + num;
-        orderRow = await querySql('SELECT MaDonHang, MaChiNhanh, TrangThai FROM DonHang WHERE MaDonHang = ? OR MaDonHang = ? OR MaDonHang LIKE ?', [pad3, noPad, '%' + rawId + '%']);
+        orderRow = await querySql(
+          'SELECT MaDonHang, MaKhachHang, MaChiNhanh, TrangThai FROM DonHang WHERE MaDonHang = ? OR MaDonHang = ? OR MaDonHang = ?',
+          [pad2, pad3, noPad]
+        );
       }
     }
 
     if (!orderRow || orderRow.length === 0) {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${rawId}!` }));
+      return true;
+    }
+
+    const staffUser = isStaffRole(cancelAuthUser);
+    if (!staffUser) {
+      if (!cancelAuthUser.customerId || orderRow[0].MaKhachHang !== cancelAuthUser.customerId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Bạn chỉ được phép hủy đơn hàng của chính mình.' }));
+        return true;
+      }
+    } else if (!cancelAuthUser.isSuperAdmin && cancelAuthUser.branchId && orderRow[0].MaChiNhanh && orderRow[0].MaChiNhanh !== cancelAuthUser.branchId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Không thể hủy đơn hàng của chi nhánh khác.' }));
       return true;
     }
 
     const actualId = orderRow[0].MaDonHang;
     const currentStatus = (orderRow[0].TrangThai || '').trim();
     const cleanStatus = currentStatus.toLowerCase();
-    // Đơn hàng ở trạng thái nào cũng được hủy, trừ khi đã ở trạng thái Đã hủy
-    if (cleanStatus === 'đã hủy' || cleanStatus === 'cancelled') {
+    // Chặn hủy lại nếu đơn đã hủy, và chặn khách tự hủy khi đơn đang giao / sẵn sàng tại quầy / hoàn tất
+    if (cleanStatus.includes('hủy') || cleanStatus === 'cancelled') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: `Đơn hàng #${actualId} đã được hủy trước đó, không thể hủy lại.` }));
       return true;
     }
-
-    await querySql("UPDATE DonHang SET TrangThai = N'Đã hủy', GhiChu = ISNULL(GhiChu, '') + ' [Lý do hủy: ' + ? + ']' WHERE MaDonHang = ?", [reason, actualId]);
-
-    // Hoàn lại số lượng tồn kho theo từng lô ChiTietDonHang và đồng bộ TonKho chi nhánh
-    const ctdhRows = await querySql('SELECT MaChiTietPhieuNhap, SoLuong, MaSanPham FROM ChiTietDonHang WHERE MaDonHang = ?', [actualId]);
-    const branchId = orderRow[0].MaChiNhanh || 'CN01';
-    if (ctdhRows && ctdhRows.length > 0) {
-      for (const item of ctdhRows) {
-        if (item.SoLuong > 0) {
-          if (item.MaChiTietPhieuNhap) {
-            await querySql('UPDATE ChiTietPhieuNhap SET SoLuongConLai = SoLuongConLai + ? WHERE MaChiTietPhieuNhap = ?', [item.SoLuong, item.MaChiTietPhieuNhap]);
-          }
-          if (item.MaSanPham) {
-            await querySql('UPDATE TonKho SET SoLuongTon = SoLuongTon + ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?', [item.SoLuong, item.MaSanPham, branchId]);
-          }
-        }
-      }
+    if (!staffUser && (
+      cleanStatus.includes('đang giao') ||
+      cleanStatus.includes('sẵn sàng') ||
+      cleanStatus.includes('hoàn tất') ||
+      cleanStatus.includes('đã giao') ||
+      cleanStatus.includes('đã nhận')
+    )) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        success: false,
+        error: `Đơn hàng #${actualId} đang ở trạng thái "${currentStatus}", không thể hủy!`
+      }));
+      return true;
     }
 
-    const cancelAuthUser = extractAuthUser(req);
-    const cancelActor = cancelAuthUser ? (cancelAuthUser.fullName || cancelAuthUser.name || cancelAuthUser.username) : 'Khách Hàng';
-    const cancelRole = cancelAuthUser ? (cancelAuthUser.role || 'CUSTOMER') : 'CUSTOMER';
+    const branchId = orderRow[0].MaChiNhanh || 'CN01';
+    await querySql("UPDATE DonHang SET TrangThai = N'Đã hủy', GhiChu = ISNULL(GhiChu, '') + ' [Lý do hủy: ' + ? + ']' WHERE MaDonHang = ?", [reason, actualId]);
+    // Trigger trg_DonHang_HuyDon_HoanTonKho trong SQL Server tự động hoàn lại ChiTietPhieuNhap & TonKho khi chuyển sang Đã hủy.
+
+    clearDbSnapshotCache();
+
+    const cancelActor = cancelAuthUser.fullName || cancelAuthUser.name || cancelAuthUser.username;
+    const cancelRole = cancelAuthUser.role;
     auditService.logAudit({
       actor: cancelActor,
       role: cancelRole,
@@ -375,48 +454,71 @@ async function handleOrderRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/orders/:id - Cập nhật trạng thái giao hàng và xử lý thanh toán
-  // Khi đơn hàng chuyển sang 'Đã thanh toán', tự động sinh hóa đơn và bản ghi thanh toán
+  // PUT /api/orders/:id - Cập nhật trạng thái giao hàng và xử lý thanh toán (chỉ Thu ngân / Quản lý / Admin)
   if (pathname.startsWith('/api/orders/') && !pathname.endsWith('/cancel') && method === 'PUT') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER']);
+    if (!authUser) return true;
+
     const rawId = pathname.replace('/api/orders/', '').replace('/payment', '').replace('/status', '').trim();
     const id = decodeURIComponent(rawId).replace(/^#+/, '').trim();
     const body = parsedBody || {};
 
-    const existingOrder = await querySql('SELECT MaDonHang, MaKhachHang, MaChiNhanh, TongTien FROM DonHang WHERE MaDonHang = ? OR MaDonHang = ?', [id, '#' + id]);
+    const existingOrder = await querySql('SELECT MaDonHang, MaKhachHang, MaChiNhanh, TongTien, HinhThucNhan, DiaChiGiaoHang, TrangThai FROM DonHang WHERE MaDonHang = ? OR MaDonHang = ?', [id, '#' + id]);
     if (!existingOrder || existingOrder.length === 0) {
       res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: `Không tìm thấy đơn hàng #${id} trong hệ thống!` }));
       return true;
     }
+    if (!authUser.isSuperAdmin && authUser.branchId && existingOrder[0].MaChiNhanh && existingOrder[0].MaChiNhanh !== authUser.branchId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Không được phép cập nhật đơn hàng thuộc chi nhánh khác.' }));
+      return true;
+    }
     const actualId = existingOrder[0].MaDonHang;
+    const isPickupOrder = Boolean(
+      (existingOrder[0].HinhThucNhan && existingOrder[0].HinhThucNhan.toLowerCase().includes('quầy')) ||
+      (existingOrder[0].DiaChiGiaoHang && existingOrder[0].DiaChiGiaoHang.toLowerCase().includes('quầy'))
+    );
 
     const statusRaw = body.status || body.TrangThai || body.orderStatus || '';
     const notes = body.notes !== undefined ? body.notes : (body.GhiChu !== undefined ? body.GhiChu : null);
-    const isPaymentConfirmed = body.isPaymentConfirmed || body.paymentStatus === 'Paid' || body.isPaid || body.TrangThaiThanhToan === 'Đã thanh toán' || statusRaw.toLowerCase().includes('thanh toán');
+
+    let trangThai = null;
+    let isCompletedTransition = false;
+    if (statusRaw) {
+      const sLower = statusRaw.toLowerCase().trim();
+      if (sLower === 'cancelled' || sLower.includes('hủy')) {
+        trangThai = 'Đã hủy';
+      } else if (sLower === 'completed' || sLower === 'delivered' || sLower.includes('đã nhận') || sLower.includes('hoàn tất') || sLower.includes('đã giao')) {
+        trangThai = isPickupOrder ? 'Đã nhận tại quầy' : 'Hoàn tất';
+        isCompletedTransition = true;
+      } else if (sLower === 'ready' || sLower === 'ready_for_pickup' || sLower.includes('sẵn sàng')) {
+        trangThai = 'Sẵn sàng tại quầy';
+      } else if (sLower === 'delivering' || sLower === 'shipping' || sLower.includes('đang giao')) {
+        trangThai = isPickupOrder ? 'Sẵn sàng tại quầy' : 'Đang giao hàng';
+      } else if (sLower === 'processing' || sLower.includes('chuẩn bị') || sLower.includes('đóng gói') || sLower.includes('xử lý')) {
+        trangThai = isPickupOrder ? 'Đang chuẩn bị' : 'Đang đóng gói';
+      } else if (sLower === 'pending' || sLower.includes('chờ')) {
+        trangThai = 'Chờ xác nhận';
+      } else {
+        trangThai = statusRaw;
+      }
+    }
+
+    const isPaymentConfirmed = Boolean(
+      body.isPaymentConfirmed ||
+      body.paymentStatus === 'Paid' ||
+      body.isPaid ||
+      body.TrangThaiThanhToan === 'Đã thanh toán' ||
+      statusRaw.toLowerCase().includes('thanh toán') ||
+      isCompletedTransition
+    );
 
     // Kiểm tra xem đơn hàng đã từng được ghi nhận hóa đơn/thanh toán thành công trong CSDL chưa
     const existingPaidHd = await querySql("SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaDonHang = ? AND TrangThai = N'Đã thanh toán'", [actualId]);
     const existingPaidTt = await querySql("SELECT TOP 1 tt.MaThanhToan FROM ThanhToan tt JOIN HoaDon hd ON tt.MaHoaDon = hd.MaHoaDon WHERE hd.MaDonHang = ? AND tt.TrangThai = N'Thành công'", [actualId]);
     const alreadyPaid = (existingPaidHd && existingPaidHd.length > 0) || (existingPaidTt && existingPaidTt.length > 0);
     const isFinalPaid = Boolean(isPaymentConfirmed || alreadyPaid || body.paymentStatus === 'Paid' || body.isPaid === true);
-
-    let trangThai = null;
-    if (statusRaw) {
-      const sLower = statusRaw.toLowerCase();
-      if (sLower === 'pending' || sLower.includes('chờ')) {
-        trangThai = 'Chờ xử lý';
-      } else if (sLower === 'processing' || sLower.includes('đóng gói') || sLower.includes('xử lý')) {
-        trangThai = 'Đang xử lý';
-      } else if (sLower === 'delivering' || sLower === 'shipping' || (sLower.includes('giao') && !sLower.includes('đã giao'))) {
-        trangThai = 'Đang giao';
-      } else if (sLower === 'completed' || sLower === 'delivered' || sLower.includes('hoàn tất') || sLower.includes('đã giao')) {
-        trangThai = 'Đã giao';
-      } else if (sLower === 'cancelled' || sLower.includes('hủy')) {
-        trangThai = 'Đã hủy';
-      } else {
-        trangThai = statusRaw;
-      }
-    }
 
     const updateFields = [];
     const params = [];
@@ -433,24 +535,7 @@ async function handleOrderRoutes(req, res, ctx) {
       params.push(actualId);
       await querySql(`UPDATE DonHang SET ${updateFields.join(', ')} WHERE MaDonHang = ?`, params);
     }
-
-    if (trangThai === 'Đã hủy') {
-      const ordInfo = await querySql('SELECT MaChiNhanh FROM DonHang WHERE MaDonHang = ?', [actualId]);
-      const branchId = ordInfo && ordInfo[0] ? ordInfo[0].MaChiNhanh : 'CN01';
-      const ctdhRows = await querySql('SELECT MaChiTietPhieuNhap, SoLuong, MaSanPham FROM ChiTietDonHang WHERE MaDonHang = ?', [actualId]);
-      if (ctdhRows && ctdhRows.length > 0) {
-        for (const item of ctdhRows) {
-          if (item.SoLuong > 0) {
-            if (item.MaChiTietPhieuNhap) {
-              await querySql('UPDATE ChiTietPhieuNhap SET SoLuongConLai = SoLuongConLai + ? WHERE MaChiTietPhieuNhap = ?', [item.SoLuong, item.MaChiTietPhieuNhap]);
-            }
-            if (item.MaSanPham) {
-              await querySql('UPDATE TonKho SET SoLuongTon = SoLuongTon + ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?', [item.SoLuong, item.MaSanPham, branchId]);
-            }
-          }
-        }
-      }
-    }
+    // Khi TrangThai đổi từ trạng thái khác sang N'Đã hủy', trigger trg_DonHang_HuyDon_HoanTonKho tự động hoàn lại tồn kho.
 
     // Xử lý tạo / cập nhật hóa đơn và giao dịch thanh toán khi xác nhận thanh toán đơn hàng
     if (isPaymentConfirmed) {
@@ -464,12 +549,8 @@ async function handleOrderRoutes(req, res, ctx) {
             hdId = hdRows[0].MaHoaDon;
             await querySql("UPDATE HoaDon SET TrangThai = N'Đã thanh toán' WHERE MaHoaDon = ?", [hdId]);
           } else {
-            const maxHd = await querySql("SELECT TOP 1 MaHoaDon FROM HoaDon WHERE MaHoaDon LIKE 'HD%' AND LEN(MaHoaDon) <= 10 ORDER BY LEN(MaHoaDon) DESC, MaHoaDon DESC");
-            let nextHd = 11;
-            if (maxHd && maxHd[0]) {
-              const m = maxHd[0].MaHoaDon.match(/HD(\d+)/i);
-              if (m) nextHd = parseInt(m[1], 10) + 1;
-            }
+            const maxHd = await querySql("SELECT MAX(TRY_CAST(SUBSTRING(MaHoaDon, 3, 20) AS INT)) AS maxNum FROM HoaDon WHERE MaHoaDon LIKE 'HD[0-9]%'");
+            const nextHd = ((maxHd && maxHd[0] && maxHd[0].maxNum) ? parseInt(maxHd[0].maxNum, 10) : 10) + 1;
             hdId = 'HD' + (nextHd < 10 ? '0' + nextHd : nextHd);
             const invNo = `HD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(100 + Math.random() * 900)}`;
             await querySql(
@@ -515,12 +596,8 @@ async function handleOrderRoutes(req, res, ctx) {
               [hdId]
             );
             if (!existingPaidForHd || existingPaidForHd.length === 0) {
-              const maxTt = await querySql("SELECT TOP 1 MaThanhToan FROM ThanhToan WHERE MaThanhToan LIKE 'TT%' AND LEN(MaThanhToan) <= 10 ORDER BY LEN(MaThanhToan) DESC, MaThanhToan DESC");
-              let nextTt = 11;
-              if (maxTt && maxTt[0]) {
-                const m = maxTt[0].MaThanhToan.match(/TT(\d+)/i);
-                if (m) nextTt = parseInt(m[1], 10) + 1;
-              }
+              const maxTt = await querySql("SELECT MAX(TRY_CAST(SUBSTRING(MaThanhToan, 3, 20) AS INT)) AS maxNum FROM ThanhToan WHERE MaThanhToan LIKE 'TT[0-9]%'");
+              const nextTt = ((maxTt && maxTt[0] && maxTt[0].maxNum) ? parseInt(maxTt[0].maxNum, 10) : 10) + 1;
               const ttId = 'TT' + (nextTt < 10 ? '0' + nextTt : nextTt);
               const pMethod = body.paymentMethod || 'Chuyển khoản VietQR';
 

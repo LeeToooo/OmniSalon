@@ -34,8 +34,16 @@ class SalonService {
     final rawPrice = json['price'] ?? json['Gia'] ?? json['GiaCombo'] ?? json['DonGia'] ?? 120000;
     final num priceNum = rawPrice is num ? rawPrice : (num.tryParse(rawPrice.toString()) ?? 120000);
 
-    final rawDur = json['duration'] ?? json['durationMinutes'] ?? json['ThoiLuong'] ?? 45;
-    final num durNum = rawDur is num ? rawDur : (num.tryParse(rawDur.toString()) ?? 45);
+    final rawDur = json['durationMinutes'] ?? json['ThoiLuong'] ?? json['duration'] ?? 45;
+    int durVal = 45;
+    if (rawDur is num) {
+      durVal = rawDur.toInt();
+    } else {
+      final m = RegExp(r'\d+').firstMatch(rawDur.toString());
+      if (m != null) {
+        durVal = int.tryParse(m.group(0)!) ?? 45;
+      }
+    }
 
     final rawCat = (json['category'] ?? json['LoaiDichVu'] ?? json['TenLoai'] ?? '').toString().trim();
     final nameStr = (json['name'] ?? json['TenDichVu'] ?? json['TenCombo'] ?? '').toString();
@@ -70,7 +78,7 @@ class SalonService {
       name: nameStr,
       description: descStr,
       price: priceNum.toInt(),
-      duration: durNum.toInt(),
+      duration: durVal,
       category: resolvedCat,
       image: formattedImg,
       isCombo: isVipCombo,

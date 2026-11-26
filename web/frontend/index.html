@@ -161,8 +161,7 @@
   <script src="js/core/pricing.js?v=20261026_ghfix1"></script>
   <script src="js/core/auth.js?v=20261026_ghfix1"></script>
   <script src="js/core/store.js?v=20261103_v22"></script>
-  <script src="js/core/api.js?v=20261026_ghfix1"></script>
-  <script src="js/core/ai-hair-engine.js?v=20261026_ghfix1"></script>
+  <script src="js/core/api.js?v=20261126_aifix2"></script>
   <script src="js/widgets/widgets-bundle.js?v=20261026_ghfix1"></script>
   <script src="js/components/ui-common.js?v=20261029_loginfix1"></script>
   <script src="js/components/ProductCard.js?v=20261026_ghfix1"></script>
@@ -188,9 +187,8 @@
   <script src="js/modules/customer/order/order-payment.js?v=20261105"></script>
   <script src="js/modules/customer/order/order-review.js?v=20261105"></script>
   <script src="js/modules/customer/order/order-cancel.js?v=20261105"></script>
-  <script src="js/modules/customer/portal/customer-portal.js?v=20261105"></script>
+  <script src="js/modules/customer/portal/customer-portal.js?v=20261126_aifix2"></script>
   <script src="js/modules/customer/staff/customer-staff-shift.js?v=20261105"></script>
-  <script src="js/modules/customer/ai/customer-ai-studio.js?v=20261105"></script>
   <script src="js/modules/admin-web.js?v=20261104_v30"></script>
   <!-- Phân hệ Quản trị (Admin Web) tách nhỏ độc lập theo Clean Architecture -->
   <script src="js/modules/admin/common/admin-utils.js?v=20261105"></script>
@@ -208,14 +206,14 @@
   <script src="js/modules/ui-web.js?v=20261026_ghfix1"></script>
 
   <!-- Các trang giao diện người dùng -->
-  <script src="pages/customer/home-page.js?v=20261026_ghfix1"></script>
+  <script src="pages/customer/home-page.js?v=20261126_aifix1"></script>
   <script src="pages/customer/services-page.js?v=20261026_ghfix1"></script>
   <script src="pages/customer/stylists-page.js?v=20261026_ghfix1"></script>
   <script src="pages/customer/booking-page.js?v=20261026_ghfix1"></script>
   <script src="pages/customer/shop-page.js?v=20261026_ghfix1"></script>
   <script src="pages/customer/cart-page.js?v=20261026_ghfix1"></script>
   <script src="pages/customer/branches-page.js?v=20261026_ghfix1"></script>
-  <script src="pages/customer/ai-studio-page.js?v=20261026_ghfix1"></script>
+  <script src="pages/customer/ai-studio-page.js?v=20261126_aifix1"></script>
   <script src="pages/customer/profile-page.js?v=20261030_profile"></script>
 
   <!-- Trang quản trị -->
@@ -229,23 +227,6 @@
     const _searchParams = new URLSearchParams(window.location.search);
     if (_searchParams.get('theme') && typeof ThemeEngine !== 'undefined') {
       ThemeEngine.setTheme(_searchParams.get('theme'));
-    }
-    if (_searchParams.get('loginAs') && typeof AuthEngine !== 'undefined') {
-      const roleOrUser = _searchParams.get('loginAs');
-      const seed = AuthEngine.getSeedAccounts().find(u => u.username === roleOrUser || u.role === roleOrUser);
-      if (seed) {
-        AuthEngine.login(seed.username, seed.password);
-        if (['SUPER_ADMIN', 'ADMIN', 'BRANCH_MANAGER'].includes(seed.role) || seed.username === 'admin') {
-          if (typeof CustomerWeb !== 'undefined') {
-            CustomerWeb.currentTab = 'admin';
-          }
-          setTimeout(() => {
-            if (typeof AppRouter !== 'undefined' && !_searchParams.get('route')) {
-              AppRouter.navigate('/admin');
-            }
-          }, 60);
-        }
-      }
     }
 
     if (typeof CustomerWeb !== 'undefined' && typeof CustomerWeb.init === 'function') {

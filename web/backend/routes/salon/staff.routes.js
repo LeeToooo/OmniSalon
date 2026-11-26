@@ -1,6 +1,8 @@
 const { querySql } = require('../../database/db');
-const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const { enforceAuth, extractAuthUser, isStaffRole, hashPassword } = require('../../middlewares/auth_middleware');
+const crypto = require('crypto');
 const auditService = require('../../services/audit.service');
+const { getLocalIsoDate } = require('../../services/helper_service');
 const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
 // Đường dẫn ảnh chân dung thợ thật từ thư mục ChanDungTho (Tho1.jpg -> Tho20.jpg)
@@ -23,6 +25,13 @@ async function handleStaffRoutes(req, res, ctx) {
 
   // GET /api/stylists hoặc /api/admin/staff - Danh sách nhân sự / stylist
   if ((pathname === '/api/stylists' || pathname === '/api/admin/staff') && method === 'GET') {
+    const isAdminEndpoint = pathname === '/api/admin/staff';
+    const authUserStaff = isAdminEndpoint
+      ? enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER'])
+      : extractAuthUser(req);
+    if (isAdminEndpoint && !authUserStaff) return true;
+    const canViewContact = isStaffRole(authUserStaff);
+
     const branchParam = parsedUrl.searchParams.get('branch_id');
     const forBookingOnly = (parsedUrl.searchParams.get('for_booking') === 'true' || parsedUrl.searchParams.get('role') === 'stylist');
     const isPublicStylists = (pathname === '/api/stylists' && forBookingOnly);
@@ -43,7 +52,6 @@ async function handleStaffRoutes(req, res, ctx) {
     } else {
       q += ` AND (nv.ChucVu LIKE N'%Quản lý%' OR nv.ChucVu LIKE N'%Thợ chính%' OR nv.ChucVu LIKE N'%Thợ phụ%' OR nv.ChucVu LIKE N'%Thu ngân%')`;
     }
-        const authUserStaff = extractAuthUser(req);
     if (authUserStaff) {
       const roleUpper = String(authUserStaff.role || authUserStaff.vaiTroSql || '').toUpperCase();
       const uid = String(authUserStaff.id || authUserStaff.MaNhanVien || authUserStaff.staffId || '').toUpperCase();
@@ -85,7 +93,7 @@ async function handleStaffRoutes(req, res, ctx) {
 
     const stylists = rows.map(r => {
       const ratings = ratingMap.get(r.MaNhanVien) || [];
-      const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 4.9;
+      const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 0;
 
       return {
         id: r.MaNhanVien,
@@ -102,9 +110,9 @@ async function handleStaffRoutes(req, res, ctx) {
         rating: avgRating,
         reviewsCount: ratings.length,
         avatar: getBarberAvatar(r.MaNhanVien, r.HoTen),
-        phone: r.SoDienThoai,
-        SoDienThoai: r.SoDienThoai,
-        email: r.Email,
+        phone: canViewContact ? r.SoDienThoai : '',
+        SoDienThoai: canViewContact ? r.SoDienThoai : '',
+        email: canViewContact ? r.Email : '',
         status: r.TrangThai || 'Đang làm việc'
       };
     });
@@ -114,12 +122,153 @@ async function handleStaffRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/stylists hoặc /api/admin/staff - Thêm mới nhân sự salon
+  // GET /api/stylists/:id/schedule - Lịch ca làm việc & giờ bận của thợ
+  if (pathname.startsWith('/api/stylists/') && pathname.endsWith('/schedule') && method === 'GET') {
+    const stylistId = decodeURIComponent(pathname.slice('/api/stylists/'.length, -'/schedule'.length)).trim();
+    if (!stylistId || stylistId.includes('/')) return false;
+    const dateParam = parsedUrl.searchParams.get('date') || getLocalIsoDate();
+
+    const [shifts, bookings] = await Promise.all([
+      querySql(`
+        SELECT clv.MaCa, clv.MaNhanVien, CONVERT(VARCHAR(10), clv.NgayLam, 120) AS NgayLam,
+               CONVERT(VARCHAR(8), clv.GioBatDau) AS GioBatDau,
+               CONVERT(VARCHAR(8), clv.GioKetThuc) AS GioKetThuc,
+               clv.TrangThai
+        FROM CaLamViec clv
+        WHERE clv.MaNhanVien = ? AND CONVERT(VARCHAR(10), clv.NgayLam, 120) = ?
+        ORDER BY clv.GioBatDau ASC
+      `, [stylistId, dateParam]),
+      querySql(`
+        SELECT CONVERT(VARCHAR(8), GioBatDau) AS GioBatDau,
+               CONVERT(VARCHAR(8), GioKetThuc) AS GioKetThuc,
+               TrangThai
+        FROM LichHen
+        WHERE MaNhanVien = ? AND CONVERT(VARCHAR(10), NgayHen, 120) = ? AND TrangThai NOT IN (N'Đã hủy')
+        ORDER BY GioBatDau ASC
+      `, [stylistId, dateParam])
+    ]);
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({
+      success: true,
+      stylistId,
+      date: dateParam,
+      shifts: shifts || [],
+      bookedSlots: bookings || []
+    }));
+    return true;
+  }
+
+  // GET /api/stylists/:id/today-queue - Hàng đợi khách trong ngày của thợ (che PII nếu chưa xác thực nhân sự)
+  if (pathname.startsWith('/api/stylists/') && pathname.endsWith('/today-queue') && method === 'GET') {
+    const stylistId = decodeURIComponent(pathname.slice('/api/stylists/'.length, -'/today-queue'.length)).trim();
+    if (!stylistId || stylistId.includes('/')) return false;
+
+    const authUserQueue = extractAuthUser(req);
+    const canViewPii = isStaffRole(authUserQueue);
+
+    const rows = await querySql(`
+      SELECT lh.MaLichHen, lh.MaNhanVien, lh.MaChiNhanh,
+             CONVERT(VARCHAR(10), lh.NgayHen, 120) AS NgayHen,
+             CONVERT(VARCHAR(8), lh.GioBatDau) AS GioBatDau,
+             CONVERT(VARCHAR(8), lh.GioKetThuc) AS GioKetThuc,
+             lh.TrangThai,
+             kh.HoTen AS TenKhachHang,
+             kh.SoDienThoai AS SdtKhachHang
+      FROM LichHen lh
+      LEFT JOIN KhachHang kh ON lh.MaKhachHang = kh.MaKhachHang
+      WHERE lh.MaNhanVien = ?
+        AND CONVERT(VARCHAR(10), lh.NgayHen, 120) = CONVERT(VARCHAR(10), GETDATE(), 120)
+        AND lh.TrangThai NOT IN (N'Đã hủy')
+      ORDER BY lh.GioBatDau ASC
+    `, [stylistId]);
+
+    const queue = (rows || []).map(r => ({
+      id: r.MaLichHen,
+      MaLichHen: r.MaLichHen,
+      stylistId: r.MaNhanVien,
+      branchId: r.MaChiNhanh,
+      date: r.NgayHen,
+      timeSlot: String(r.GioBatDau || '').slice(0, 5),
+      endTime: String(r.GioKetThuc || '').slice(0, 5),
+      status: r.TrangThai,
+      customerName: canViewPii ? (r.TenKhachHang || 'Khách Hàng') : 'Khách đã đặt lịch',
+      customerPhone: canViewPii ? (r.SdtKhachHang || '') : ''
+    }));
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(queue));
+    return true;
+  }
+
+  // GET /api/stylists/:id - Chi tiết một nhân sự / stylist
+  if ((pathname.startsWith('/api/stylists/') || pathname.startsWith('/api/admin/staff/')) && method === 'GET') {
+    const isAdminEndpoint = pathname.startsWith('/api/admin/staff/');
+    const authUserSingle = isAdminEndpoint
+      ? enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER'])
+      : extractAuthUser(req);
+    if (isAdminEndpoint && !authUserSingle) return true;
+    const canViewContact = isStaffRole(authUserSingle);
+
+    const prefix = isAdminEndpoint ? '/api/admin/staff/' : '/api/stylists/';
+    const stylistId = decodeURIComponent(pathname.slice(prefix.length)).trim();
+    if (!stylistId || stylistId.includes('/')) return false;
+
+    const rows = await querySql(`
+      SELECT nv.MaNhanVien, nv.MaChiNhanh, nv.HoTen, nv.SoDienThoai, nv.Email,
+             nv.CapBac, nv.ChucVu, nv.TrangThai, cn.TenChiNhanh
+      FROM NhanVien nv
+      LEFT JOIN ChiNhanh cn ON nv.MaChiNhanh = cn.MaChiNhanh
+      WHERE nv.MaNhanVien = ? AND nv.MaNhanVien <> 'NV00'
+    `, [stylistId]);
+
+    if (!rows || rows.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: `Không tìm thấy stylist ${stylistId}.` }));
+      return true;
+    }
+
+    const r = rows[0];
+    const reviewRows = await querySql(`
+      SELECT dg.SoSao FROM DanhGia dg
+      JOIN LichHen lh ON dg.MaLichHen = lh.MaLichHen
+      WHERE lh.MaNhanVien = ?
+    `, [r.MaNhanVien]).catch(() => []);
+    const ratings = (reviewRows || []).map(rv => Number(rv.SoSao || 5));
+    const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 0;
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({
+      id: r.MaNhanVien,
+      MaNhanVien: r.MaNhanVien,
+      name: r.HoTen,
+      HoTen: r.HoTen,
+      branchId: r.MaChiNhanh,
+      MaChiNhanh: r.MaChiNhanh,
+      branchName: r.TenChiNhanh || `Chi Nhánh ${r.MaChiNhanh}`,
+      role: r.ChucVu || 'Master Stylist',
+      ChucVu: r.ChucVu || 'Master Stylist',
+      level: r.CapBac || 'Senior',
+      CapBac: r.CapBac || 'Senior',
+      rating: avgRating,
+      reviewsCount: ratings.length,
+      avatar: getBarberAvatar(r.MaNhanVien, r.HoTen),
+      phone: canViewContact ? r.SoDienThoai : '',
+      SoDienThoai: canViewContact ? r.SoDienThoai : '',
+      email: canViewContact ? r.Email : '',
+      status: r.TrangThai || 'Đang làm việc'
+    }));
+    return true;
+  }
+
+  // POST /api/stylists hoặc /api/admin/staff - Thêm mới nhân sự salon (chỉ Admin/Quản lý)
   if ((pathname === '/api/stylists' || pathname === '/api/admin/staff') && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const st = parsedBody || {};
     const role = st.role || st.ChucVu || 'Thợ chính';
-    const authUser = extractAuthUser(req);
-    const isSuper = (authUser && (authUser.role === 'SUPER_ADMIN' || authUser.isSuperAdmin || String(authUser.id || '').toUpperCase() === 'TK_ADMIN' || String(authUser.vaiTroSql || '').includes('Quản trị')));
+    const isSuper = authUser.isSuperAdmin;
 
     // Chỉ Quản trị viên mới có quyền phân quyền Quản lý chi nhánh
     if (role.includes('Quản lý') && !isSuper) {
@@ -155,14 +304,18 @@ async function handleStaffRoutes(req, res, ctx) {
     );
 
     const tkId = 'TK_' + nvId;
+    const tempStaffPass = (st.password && String(st.password).trim().length >= 6)
+      ? String(st.password).trim()
+      : crypto.randomBytes(8).toString('base64url');
+    const hashedStaffPass = hashPassword(tempStaffPass);
     await querySql(
       `INSERT INTO TaiKhoan (MaTaiKhoan, MaNhanVien, MaKhachHang, TenDangNhap, MatKhau, VaiTro, TrangThai, NgayTao) 
-       VALUES (?, ?, NULL, ?, 'nv123', ?, N'Hoạt động', GETDATE())`,
-      [tkId, nvId, phone || nvId.toLowerCase(), role === 'Quản lý chi nhánh' ? 'Quản lý' : (role === 'Thu ngân' ? 'Thu ngân' : 'Nhân viên')]
+       VALUES (?, ?, NULL, ?, ?, ?, N'Hoạt động', GETDATE())`,
+      [tkId, nvId, phone || nvId.toLowerCase(), hashedStaffPass, role === 'Quản lý chi nhánh' ? 'Quản lý' : (role === 'Thu ngân' ? 'Thu ngân' : 'Nhân viên')]
     ).catch(() => {});
 
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -178,17 +331,20 @@ async function handleStaffRoutes(req, res, ctx) {
     res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       success: true,
+      ...(st.password ? {} : { temporaryPassword: tempStaffPass }),
       stylist: { id: nvId, MaNhanVien: nvId, branchId, name: fullName, phone, email, level, role }
     }));
     return true;
   }
 
-  // PUT /api/stylists/:id hoặc /api/admin/staff/:id - Cập nhật thông tin nhân viên
+  // PUT /api/stylists/:id hoặc /api/admin/staff/:id - Cập nhật thông tin nhân viên (chỉ Admin/Quản lý)
   if ((pathname.startsWith('/api/stylists/') || pathname.startsWith('/api/admin/staff/')) && method === 'PUT') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/stylists/', '').replace('/api/admin/staff/', '').trim();
     const st = parsedBody || {};
-    const authUser = extractAuthUser(req);
-    const isSuper = (authUser && (authUser.role === 'SUPER_ADMIN' || authUser.isSuperAdmin || String(authUser.id || '').toUpperCase() === 'TK_ADMIN' || String(authUser.vaiTroSql || '').includes('Quản trị')));
+    const isSuper = authUser.isSuperAdmin;
 
     // Kiểm tra quyền đối với vai trò Quản lý chi nhánh
     const currentRows = await querySql(`SELECT MaNhanVien, MaChiNhanh, ChucVu, CapBac FROM NhanVien WHERE MaNhanVien = ?`, [id]);
@@ -267,13 +423,26 @@ async function handleStaffRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/stylists/:id - Cho nhân sự nghỉ việc
+  // DELETE /api/stylists/:id - Cho nhân sự nghỉ việc (chỉ Admin/Quản lý chi nhánh)
   // Lưu ý: Tự động điều chuyển các lịch hẹn chưa hoàn thành sang stylist khác cùng chi nhánh
   if ((pathname.startsWith('/api/stylists/') || pathname.startsWith('/api/admin/staff/')) && method === 'DELETE') {
+    const delAuthUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!delAuthUser) return true;
+
     const id = pathname.replace('/api/stylists/', '').replace('/api/admin/staff/', '').trim();
+    if (id.toUpperCase() === 'NV00') {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không thể xóa tài khoản Quản trị tối cao.' }));
+      return true;
+    }
 
     const empRows = await querySql(`SELECT MaChiNhanh FROM NhanVien WHERE MaNhanVien = ?`, [id]);
     const branchId = empRows && empRows[0] ? empRows[0].MaChiNhanh : 'CN01';
+    if (!delAuthUser.isSuperAdmin && delAuthUser.branchId && branchId && branchId !== delAuthUser.branchId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Quản lý chỉ được cho nhân sự thuộc chi nhánh mình nghỉ việc.' }));
+      return true;
+    }
 
     // Cập nhật trạng thái nhân sự thành 'Đã nghỉ việc'
     await querySql(`UPDATE NhanVien SET TrangThai = N'Đã nghỉ việc' WHERE MaNhanVien = ?`, [id]);
@@ -295,9 +464,8 @@ async function handleStaffRoutes(req, res, ctx) {
       reassignMsg = ` Các lịch hẹn chưa hoàn thành đã được tự động chuyển sang thợ ${newStylistId}.`;
     }
 
-    const delAuthUser = extractAuthUser(req);
-    const delActor = delAuthUser ? (delAuthUser.fullName || delAuthUser.name || delAuthUser.username) : 'Quản trị viên';
-    const delRole = delAuthUser ? (delAuthUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const delActor = delAuthUser.fullName || delAuthUser.name || delAuthUser.username;
+    const delRole = delAuthUser.role;
     auditService.logAudit({
       actor: delActor,
       role: delRole,
@@ -333,9 +501,32 @@ async function handleStaffRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/shifts - Phân ca làm việc mới
+  // POST /api/shifts - Phân ca làm việc mới (bắt buộc Nhân sự/Quản lý/Admin)
   if (pathname === '/api/shifts' && method === 'POST') {
+    const shiftAuthUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'BARBER', 'CASHIER']);
+    if (!shiftAuthUser) return true;
+
     const { maNhanVien, date, startTime, endTime } = parsedBody || {};
+    const targetStaffId = (maNhanVien || shiftAuthUser.staffId || '').trim();
+    if (!targetStaffId) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Thiếu mã nhân viên xếp ca.' }));
+      return true;
+    }
+    if ((shiftAuthUser.role === 'BARBER' || shiftAuthUser.role === 'CASHIER') && shiftAuthUser.staffId !== targetStaffId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Nhân sự chỉ được đăng ký ca cho chính mình.' }));
+      return true;
+    }
+    if (shiftAuthUser.role === 'BRANCH_MANAGER' && shiftAuthUser.branchId) {
+      const nvRows = await querySql('SELECT MaChiNhanh FROM NhanVien WHERE MaNhanVien = ?', [targetStaffId]);
+      if (nvRows?.[0]?.MaChiNhanh && nvRows[0].MaChiNhanh !== shiftAuthUser.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Quản lý chỉ được xếp ca cho nhân viên chi nhánh mình.' }));
+        return true;
+      }
+    }
+
     const maxCa = await querySql(`SELECT TOP 1 MaCa FROM CaLamViec ORDER BY LEN(MaCa) DESC, MaCa DESC`);
     let nextCaN = 101;
     if (maxCa && maxCa[0]) {
@@ -346,22 +537,22 @@ async function handleStaffRoutes(req, res, ctx) {
     const startT = (startTime || '08:30').length === 5 ? `${startTime || '08:30'}:00` : (startTime || '08:30:00');
     const endT = (endTime || '15:30').length === 5 ? `${endTime || '15:30'}:00` : (endTime || '15:30:00');
 
+    const shiftDate = date || getLocalIsoDate();
     await querySql(
       `INSERT INTO CaLamViec (MaCa, MaNhanVien, NgayLam, GioBatDau, GioKetThuc, TrangThai) 
        VALUES (?, ?, ?, ?, ?, N'Đã xếp ca')`,
-      [newCaId, maNhanVien, date || new Date().toISOString().slice(0, 10), startT, endT]
+      [newCaId, targetStaffId, shiftDate, startT, endT]
     );
 
-    const shiftAuthUser = extractAuthUser(req);
-    const shiftActor = shiftAuthUser ? (shiftAuthUser.fullName || shiftAuthUser.name || shiftAuthUser.username) : `Thợ ${maNhanVien}`;
-    const shiftRole = shiftAuthUser ? (shiftAuthUser.role || 'STYLIST') : 'STYLIST';
+    const shiftActor = shiftAuthUser.fullName || shiftAuthUser.name || shiftAuthUser.username;
+    const shiftRole = shiftAuthUser.role;
     auditService.logAudit({
       actor: shiftActor,
       role: shiftRole,
       action: 'REGISTER_SHIFT',
       entityType: 'CaLamViec',
       entityId: newCaId,
-      after: { shiftId: newCaId, staffId: maNhanVien, date: date || new Date().toISOString().slice(0, 10), startT, endT },
+      after: { shiftId: newCaId, staffId: targetStaffId, date: shiftDate, startT, endT },
       details: `${shiftActor} (${shiftRole}) đăng ký/xếp ca làm việc #${newCaId} (${startT} - ${endT})`
     }).catch(() => {});
 

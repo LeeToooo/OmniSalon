@@ -1,5 +1,5 @@
 const { querySql } = require('../../database/db');
-const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const { enforceAuth } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
 const { catIcons, brandPrefixes, detectBrand } = require('../../services/helper_service');
 const { clearDbSnapshotCache } = require('../auth/accounts.routes');
@@ -17,6 +17,192 @@ function getProductGallery(img) {
   return [img];
 }
 
+async function fetchEnrichedProducts(productIdFilter = null) {
+  const whereClause = productIdFilter ? 'WHERE sp.MaSanPham = ?' : '';
+  const whereParams = productIdFilter ? [productIdFilter] : [];
+  const [rows, promoRows, kmSanPhamRows, discountRules, reviewRows] = await Promise.all([
+    querySql(`
+      SELECT ROW_NUMBER() OVER (ORDER BY LEN(sp.MaSanPham) ASC, sp.MaSanPham ASC) AS stt,
+             sp.MaSanPham AS real_id,
+             sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
+             sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
+             dm.TenDanhMuc,
+             ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 0) AS SoLuongTon,
+             ISNULL((SELECT SUM(ctdh.SoLuong) FROM ChiTietDonHang ctdh WHERE ctdh.MaSanPham = sp.MaSanPham), 0) + ISNULL((SELECT SUM(cthd.SoLuong) FROM ChiTietHoaDon_SanPham cthd WHERE cthd.MaSanPham = sp.MaSanPham), 0) AS SoLuongDaBan,
+             CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung,
+             ctpn.SoLuongConLai,
+             ctpn.SoLo,
+             ctpn.MaChiTietPhieuNhap,
+             ctpn.SoNgayConLai
+      FROM SanPham sp
+      LEFT JOIN DanhMucSanPham dm ON sp.MaDanhMuc = dm.MaDanhMuc
+      OUTER APPLY (
+          SELECT TOP 1 ctpn.HanSuDung, ctpn.SoLuongConLai, ctpn.SoLo, ctpn.MaChiTietPhieuNhap,
+                 DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) AS SoNgayConLai
+          FROM ChiTietPhieuNhap ctpn
+          INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
+          WHERE ctpn.MaSanPham = sp.MaSanPham
+            AND ctpn.SoLuongConLai > 0
+            AND pnk.TrangThai = N'Đã duyệt'
+          ORDER BY ctpn.HanSuDung ASC
+      ) ctpn
+      ${whereClause}
+    `, whereParams),
+    querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai, DoiTuongApDung FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND (DoiTuongApDung IS NULL OR DoiTuongApDung NOT LIKE N'%Hội viên%') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
+    querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`),
+    querySql(`SELECT MaQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam FROM QuyTacGiamGiaTheoHan WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng' OR TrangThai IS NULL) ORDER BY PhanTramGiam DESC`),
+    querySql(`SELECT dg.SoSao, ctdh.MaSanPham FROM DanhGia dg JOIN ChiTietDonHang ctdh ON dg.MaDonHang = ctdh.MaDonHang WHERE ctdh.MaSanPham IS NOT NULL`)
+  ]);
+
+  const ratingMap = new Map();
+  (reviewRows || []).forEach(rv => {
+    if (!ratingMap.has(rv.MaSanPham)) ratingMap.set(rv.MaSanPham, []);
+    ratingMap.get(rv.MaSanPham).push(Number(rv.SoSao || 5));
+  });
+
+  const now = new Date();
+
+  return rows.map((r, index) => {
+    const origPrice = parseFloat(r.GiaBan || 0);
+    let finalPrice = origPrice;
+    let discountPercent = 0;
+    let promoInfo = null;
+
+    let fefoDiscount = 0;
+    let daysLeft = 999;
+    if (r.HanSuDung) {
+      if (r.SoNgayConLai !== null && r.SoNgayConLai !== undefined) {
+        daysLeft = parseInt(r.SoNgayConLai, 10);
+      } else {
+        const expParts = String(r.HanSuDung).split('T')[0].split('-');
+        const expMid = new Date(parseInt(expParts[0], 10), parseInt(expParts[1], 10) - 1, parseInt(expParts[2], 10));
+        const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        daysLeft = Math.round((expMid - todayMid) / (1000 * 60 * 60 * 24));
+      }
+
+      const matchedRule = (discountRules || []).find(rl => daysLeft >= rl.SoNgayConLaiToiThieu && daysLeft <= rl.SoNgayConLaiToiDa);
+      if (matchedRule) {
+        fefoDiscount = parseFloat(matchedRule.PhanTramGiam || 0);
+      } else if (daysLeft <= 0) {
+        fefoDiscount = 100;
+      }
+    }
+
+    let promoDiscount = 0;
+    let matchedPromo = null;
+    const linkedPromos = (kmSanPhamRows || []).filter(km => km.MaSanPham === r.MaSanPham);
+    for (const link of linkedPromos) {
+      const p = (promoRows || []).find(pr => pr.MaKhuyenMai === link.MaKhuyenMai);
+      if (p && parseFloat(p.GiaTriGiam || 0) > promoDiscount) {
+        promoDiscount = parseFloat(p.GiaTriGiam || 0);
+        matchedPromo = p;
+      }
+    }
+
+    if (daysLeft <= 0) {
+      finalPrice = 0;
+      discountPercent = 100;
+      fefoDiscount = 100;
+      promoInfo = {
+        code: 'QT05',
+        name: 'Đã hết hạn (Thu hồi tiêu hủy)',
+        discountPercent: 100,
+        fefoDiscount: 100
+      };
+    } else if (fefoDiscount > 0 && promoDiscount > 0) {
+      const d1 = Math.max(fefoDiscount, promoDiscount);
+      const d2 = Math.min(fefoDiscount, promoDiscount);
+      const price1 = origPrice * (1 - d1 / 100);
+      finalPrice = Math.round(price1 * (1 - d2 / 100));
+      discountPercent = Math.round((1 - (finalPrice / origPrice)) * 100);
+      promoInfo = {
+        code: (matchedPromo ? matchedPromo.MaKhuyenMai : 'KM') + '_FEFO',
+        name: 'Cận hạn ' + daysLeft + ' ngày (-' + fefoDiscount + '%) + ' + (matchedPromo ? matchedPromo.TenKhuyenMai : 'Khuyến mãi') + ' (-' + promoDiscount + '%)',
+        discountPercent,
+        fefoDiscount,
+        promoDiscount
+      };
+    } else if (fefoDiscount > 0) {
+      finalPrice = Math.round(origPrice * (1 - fefoDiscount / 100));
+      discountPercent = fefoDiscount;
+      promoInfo = {
+        code: 'FEFO',
+        name: 'Xả kho cận hạn (' + daysLeft + ' ngày) - Giảm ' + fefoDiscount + '%',
+        discountPercent,
+        fefoDiscount
+      };
+    } else if (promoDiscount > 0) {
+      finalPrice = Math.round(origPrice * (1 - promoDiscount / 100));
+      discountPercent = promoDiscount;
+      promoInfo = {
+        code: matchedPromo ? matchedPromo.MaKhuyenMai : 'KM',
+        name: (matchedPromo ? matchedPromo.TenKhuyenMai : 'Khuyến mãi') + ' - Giảm ' + promoDiscount + '%',
+        discountPercent,
+        promoDiscount
+      };
+    }
+
+    const pStock = parseInt(r.SoLuongTon || 0, 10);
+    const ratings = ratingMap.get(r.MaSanPham) || [];
+    const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 5.0;
+
+    return {
+      stt: Number(r.stt || (index + 1)),
+      real_id: r.real_id || r.MaSanPham,
+      id: r.MaSanPham,
+      MaSanPham: r.MaSanPham,
+      name: r.TenSanPham,
+      TenSanPham: r.TenSanPham,
+      categoryId: r.MaDanhMuc,
+      MaDanhMuc: r.MaDanhMuc,
+      categoryName: r.TenDanhMuc || 'Sản Phẩm Nam',
+      TenDanhMuc: r.TenDanhMuc || 'Sản Phẩm Nam',
+      category: r.TenDanhMuc || 'Sản Phẩm Nam',
+      brand: detectBrand(r.TenSanPham),
+      ThuongHieu: detectBrand(r.TenSanPham),
+      price: finalPrice,
+      GiaBanThucTe: finalPrice,
+      originalPrice: origPrice,
+      GiaNiemYetGoc: origPrice,
+      GiaBan: origPrice,
+      costPrice: parseFloat(r.GiaNhap || 0),
+      GiaNhap: parseFloat(r.GiaNhap || 0),
+      status: r.TrangThaiKinhDoanh || 'Đang kinh doanh',
+      TrangThaiKinhDoanh: r.TrangThaiKinhDoanh || 'Đang kinh doanh',
+      discountPercent,
+      PhanTramGiam: discountPercent,
+      fefoDiscount,
+      nearExpiryDiscount: fefoDiscount,
+      promoDiscount,
+      isNearExpiry: fefoDiscount > 0 && daysLeft > 0,
+      isExpired: daysLeft <= 0,
+      isAvailable: daysLeft > 0,
+      stock: pStock,
+      SoLuongTon: pStock,
+      soldCount: Number(r.SoLuongDaBan) || 0,
+      soLuongDaBan: Number(r.SoLuongDaBan) || 0,
+      unit: r.DonViTinh || 'Hộp',
+      DonViTinh: r.DonViTinh || 'Hộp',
+      rating: avgRating,
+      reviewCount: ratings.length,
+      image: r.HinhAnh || '',
+      HinhAnh: r.HinhAnh || '',
+      description: r.MoTa || '',
+      MoTa: r.MoTa || '',
+      lotNumber: r.SoLo || null,
+      SoLo: r.SoLo || null,
+      batchId: r.MaChiTietPhieuNhap || null,
+      expiryDate: r.HanSuDung || null,
+      HanSuDung: r.HanSuDung || null,
+      daysLeft: (r.HanSuDung && daysLeft !== 999) ? daysLeft : null,
+      daysRemaining: (r.HanSuDung && daysLeft !== 999) ? daysLeft : null,
+      promo: promoInfo,
+      promotion: promoInfo,
+      hasPromotion: discountPercent > 0
+    };
+  }).filter(Boolean);
+}
+
 async function handleProductRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
 
@@ -24,193 +210,32 @@ async function handleProductRoutes(req, res, ctx) {
 
   // GET /api/products - Danh sách mỹ phẩm kèm thông tin tồn kho, lô hạn dùng và giảm giá cận date
   if (pathname === '/api/products' && method === 'GET') {
-    const [rows, promoRows, kmSanPhamRows, discountRules, reviewRows] = await Promise.all([
-      querySql(`
-        SELECT ROW_NUMBER() OVER (ORDER BY LEN(sp.MaSanPham) ASC, sp.MaSanPham ASC) AS stt,
-               sp.MaSanPham AS real_id,
-               sp.MaSanPham, sp.MaDanhMuc, sp.MaNhaCungCap, sp.TenSanPham, sp.MoTa, 
-               sp.HinhAnh, sp.GiaNhap, sp.GiaBan, sp.TrangThaiKinhDoanh,
-               dm.TenDanhMuc,
-               ISNULL((SELECT SUM(tk.SoLuongTon) FROM TonKho tk WHERE tk.MaSanPham = sp.MaSanPham), 0) AS SoLuongTon,
-               ISNULL((SELECT SUM(ctdh.SoLuong) FROM ChiTietDonHang ctdh WHERE ctdh.MaSanPham = sp.MaSanPham), 0) + ISNULL((SELECT SUM(cthd.SoLuong) FROM ChiTietHoaDon_SanPham cthd WHERE cthd.MaSanPham = sp.MaSanPham), 0) AS SoLuongDaBan,
-               CONVERT(VARCHAR(10), ctpn.HanSuDung, 120) AS HanSuDung,
-               ctpn.SoLuongConLai,
-               ctpn.SoLo,
-               ctpn.MaChiTietPhieuNhap,
-               ctpn.SoNgayConLai
-        FROM SanPham sp
-        LEFT JOIN DanhMucSanPham dm ON sp.MaDanhMuc = dm.MaDanhMuc
-        OUTER APPLY (
-            SELECT TOP 1 HanSuDung, SoLuongConLai, SoLo, MaChiTietPhieuNhap,
-                   DATEDIFF(DAY, CAST(GETDATE() AS DATE), HanSuDung) AS SoNgayConLai
-            FROM ChiTietPhieuNhap 
-            WHERE MaSanPham = sp.MaSanPham AND SoLuongConLai > 0
-            ORDER BY HanSuDung ASC
-        ) ctpn
-      `),
-      querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai, DoiTuongApDung FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND (DoiTuongApDung IS NULL OR DoiTuongApDung NOT LIKE N'%Hội viên%') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
-      querySql(`SELECT MaKhuyenMai, MaSanPham FROM KhuyenMai_SanPham`),
-      querySql(`SELECT MaQuyTac, SoNgayConLaiToiThieu, SoNgayConLaiToiDa, PhanTramGiam FROM QuyTacGiamGiaTheoHan WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng' OR TrangThai IS NULL) ORDER BY PhanTramGiam DESC`),
-      querySql(`SELECT dg.SoSao, ctdh.MaSanPham FROM DanhGia dg JOIN ChiTietDonHang ctdh ON dg.MaDonHang = ctdh.MaDonHang WHERE ctdh.MaSanPham IS NOT NULL`)
-    ]);
-
-    const ratingMap = new Map();
-    (reviewRows || []).forEach(rv => {
-      if (!ratingMap.has(rv.MaSanPham)) ratingMap.set(rv.MaSanPham, []);
-      ratingMap.get(rv.MaSanPham).push(Number(rv.SoSao || 5));
-    });
-
-    const now = new Date();
-
-    const products = rows.map((r, index) => {
-      const origPrice = parseFloat(r.GiaBan || 0);
-      let finalPrice = origPrice;
-      let discountPercent = 0;
-      let promoInfo = null;
-
-      let fefoDiscount = 0;
-      let daysLeft = 999;
-      if (r.HanSuDung) {
-        if (r.SoNgayConLai !== null && r.SoNgayConLai !== undefined) {
-          daysLeft = parseInt(r.SoNgayConLai, 10);
-        } else {
-          const expParts = String(r.HanSuDung).split('T')[0].split('-');
-          const expMid = new Date(parseInt(expParts[0], 10), parseInt(expParts[1], 10) - 1, parseInt(expParts[2], 10));
-          const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          daysLeft = Math.round((expMid - todayMid) / (1000 * 60 * 60 * 24));
-        }
-
-        const matchedRule = (discountRules || []).find(rl => daysLeft >= rl.SoNgayConLaiToiThieu && daysLeft <= rl.SoNgayConLaiToiDa);
-        if (matchedRule) {
-          fefoDiscount = parseFloat(matchedRule.PhanTramGiam || 0);
-        } else if (daysLeft <= 0) {
-          fefoDiscount = 100;
-        }
-      }
-
-      // Khuyến mãi áp dụng cho sản phẩm  ví dụ KM01 - Chào Thu Rực Rỡ 10% 
-      let promoDiscount = 0;
-      let matchedPromo = null;
-      const linkedPromos = (kmSanPhamRows || []).filter(km => km.MaSanPham === r.MaSanPham);
-      for (const link of linkedPromos) {
-        const p = (promoRows || []).find(pr => pr.MaKhuyenMai === link.MaKhuyenMai);
-        if (p && parseFloat(p.GiaTriGiam || 0) > promoDiscount) {
-          promoDiscount = parseFloat(p.GiaTriGiam || 0);
-          matchedPromo = p;
-        }
-      }
-
-      // Giảm giá lũy tiến FEFO  Mục 23 : Mức giảm cao nhất áp dụng trước, sau đó áp tiếp mức giảm còn lại
-      if (daysLeft <= 0) {
-        finalPrice = 0;
-        discountPercent = 100;
-        fefoDiscount = 100;
-        promoInfo = {
-          code: 'QT05',
-          name: 'Đã hết hạn (Thu hồi tiêu hủy)',
-          discountPercent: 100,
-          fefoDiscount: 100
-        };
-      } else if (fefoDiscount > 0 && promoDiscount > 0) {
-        const d1 = Math.max(fefoDiscount, promoDiscount);
-        const d2 = Math.min(fefoDiscount, promoDiscount);
-        const price1 = origPrice * (1 - d1 / 100);
-        finalPrice = Math.round(price1 * (1 - d2 / 100));
-        discountPercent = Math.round((1 - (finalPrice / origPrice)) * 100);
-        promoInfo = {
-          code: (matchedPromo ? matchedPromo.MaKhuyenMai : 'KM') + '_FEFO',
-          name: 'Cận hạn ' + daysLeft + ' ngày (-' + fefoDiscount + '%) + ' + (matchedPromo ? matchedPromo.TenKhuyenMai : 'Khuyến mãi') + ' (-' + promoDiscount + '%)',
-          discountPercent,
-          fefoDiscount,
-          promoDiscount
-        };
-      } else if (fefoDiscount > 0) {
-        finalPrice = Math.round(origPrice * (1 - fefoDiscount / 100));
-        discountPercent = fefoDiscount;
-        promoInfo = {
-          code: 'FEFO',
-          name: 'Xả kho cận hạn (' + daysLeft + ' ngày) - Giảm ' + fefoDiscount + '%',
-          discountPercent,
-          fefoDiscount
-        };
-      } else if (promoDiscount > 0) {
-        finalPrice = Math.round(origPrice * (1 - promoDiscount / 100));
-        discountPercent = promoDiscount;
-        promoInfo = {
-          code: matchedPromo ? matchedPromo.MaKhuyenMai : 'KM',
-          name: (matchedPromo ? matchedPromo.TenKhuyenMai : 'Khuyến mãi') + ' - Giảm ' + promoDiscount + '%',
-          discountPercent,
-          promoDiscount
-        };
-      }
-
-      const pStock = parseInt(r.SoLuongTon || 0, 10);
-      const ratings = ratingMap.get(r.MaSanPham) || [];
-      const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 5.0;
-
-      return {
-        stt: Number(r.stt || (index + 1)),
-        real_id: r.real_id || r.MaSanPham,
-        id: r.MaSanPham,
-        MaSanPham: r.MaSanPham,
-        name: r.TenSanPham,
-        TenSanPham: r.TenSanPham,
-        categoryId: r.MaDanhMuc,
-        MaDanhMuc: r.MaDanhMuc,
-        categoryName: r.TenDanhMuc || 'Sản Phẩm Nam',
-        TenDanhMuc: r.TenDanhMuc || 'Sản Phẩm Nam',
-        category: r.TenDanhMuc || 'Sản Phẩm Nam',
-        brand: detectBrand(r.TenSanPham),
-        ThuongHieu: detectBrand(r.TenSanPham),
-        price: finalPrice,
-        GiaBanThucTe: finalPrice,
-        originalPrice: origPrice,
-        GiaNiemYetGoc: origPrice,
-        GiaBan: origPrice,
-        costPrice: parseFloat(r.GiaNhap || 0),
-        GiaNhap: parseFloat(r.GiaNhap || 0),
-        status: r.TrangThaiKinhDoanh || 'Đang kinh doanh',
-        TrangThaiKinhDoanh: r.TrangThaiKinhDoanh || 'Đang kinh doanh',
-        discountPercent,
-        PhanTramGiam: discountPercent,
-        fefoDiscount,
-        nearExpiryDiscount: fefoDiscount,
-        promoDiscount,
-        isNearExpiry: fefoDiscount > 0 && daysLeft > 0,
-        isExpired: daysLeft <= 0,
-        isAvailable: daysLeft > 0,
-        stock: pStock,
-        SoLuongTon: pStock,
-        soldCount: Number(r.SoLuongDaBan) || 0,
-        soLuongDaBan: Number(r.SoLuongDaBan) || 0,
-        unit: r.DonViTinh || 'Hộp',
-        DonViTinh: r.DonViTinh || 'Hộp',
-        rating: avgRating,
-        reviewCount: ratings.length,
-        image: r.HinhAnh || '',
-        HinhAnh: r.HinhAnh || '',
-        description: r.MoTa || '',
-        MoTa: r.MoTa || '',
-        lotNumber: r.SoLo || null,
-        SoLo: r.SoLo || null,
-        batchId: r.MaChiTietPhieuNhap || null,
-        expiryDate: r.HanSuDung || null,
-        HanSuDung: r.HanSuDung || null,
-        daysLeft: (r.HanSuDung && daysLeft !== 999) ? daysLeft : null,
-        daysRemaining: (r.HanSuDung && daysLeft !== 999) ? daysLeft : null,
-        promo: promoInfo,
-        promotion: promoInfo,
-        hasPromotion: discountPercent > 0
-      };
-    }).filter(Boolean);
-
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    const products = await fetchEnrichedProducts(null);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(products));
     return true;
   }
 
-  // POST /api/products - Thêm sản phẩm mỹ phẩm mới vào kho
+  // GET /api/products/:id - Chi tiết một sản phẩm mỹ phẩm
+  if (pathname.startsWith('/api/products/') && method === 'GET') {
+    const productId = decodeURIComponent(pathname.replace('/api/products/', '').trim());
+    if (!productId || productId.includes('/')) return false;
+    const products = await fetchEnrichedProducts(productId);
+    if (!products || products.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: `Không tìm thấy sản phẩm ${productId}.` }));
+      return true;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(products[0]));
+    return true;
+  }
+
+  // POST /api/products - Thêm sản phẩm mỹ phẩm mới vào kho (chỉ Admin/Quản lý)
   if (pathname === '/api/products' && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const body = parsedBody || {};
     const maxRows = await querySql(`SELECT TOP 1 MaSanPham FROM SanPham ORDER BY LEN(MaSanPham) DESC, MaSanPham DESC`);
     let nextN = 21;
@@ -243,9 +268,8 @@ async function handleProductRoutes(req, res, ctx) {
       )
     `, [spId, spId]).catch(() => {});
 
-    const authUser = extractAuthUser(req);
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -262,8 +286,11 @@ async function handleProductRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/products/:id - Cập nhật thông tin sản phẩm
+  // PUT /api/products/:id - Cập nhật thông tin sản phẩm (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/products/') && method === 'PUT') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/products/', '').trim();
     const body = parsedBody || {};
     const oldRows = await querySql(`SELECT TenSanPham, GiaBan, GiaNhap, TrangThaiKinhDoanh, MoTa FROM SanPham WHERE MaSanPham = ?`, [id]);
@@ -291,9 +318,8 @@ async function handleProductRoutes(req, res, ctx) {
       ]
     );
 
-    const authUser = extractAuthUser(req);
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -311,28 +337,38 @@ async function handleProductRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/products/:id - Xóa sản phẩm khỏi bảng SanPham trong SQL
+  // DELETE /api/products/:id - Xóa sản phẩm khỏi bảng SanPham trong SQL (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/products/') && method === 'DELETE') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/products/', '').trim();
     const oldRows = await querySql(`SELECT TenSanPham, GiaBan FROM SanPham WHERE MaSanPham = ?`, [id]);
     const oldProd = (oldRows && oldRows[0]) ? oldRows[0] : null;
 
     try {
-      await querySql(`
-        DECLARE @id VARCHAR(30) = ?;
-        ALTER TABLE ChiTietDonHang NOCHECK CONSTRAINT FK_ChiTietDonHang_SanPham;
-        ALTER TABLE ChiTietHoaDon_SanPham NOCHECK CONSTRAINT FK_ChiTietHoaDonSanPham_SanPham;
-        ALTER TABLE ChiTietPhieuNhap NOCHECK CONSTRAINT FK_ChiTietPhieuNhap_SanPham;
-        DELETE FROM KhuyenMai_SanPham WHERE MaSanPham = @id;
-        DELETE FROM TonKho WHERE MaSanPham = @id;
-        DELETE FROM SanPham WHERE MaSanPham = @id;
-        ALTER TABLE ChiTietDonHang CHECK CONSTRAINT FK_ChiTietDonHang_SanPham;
-        ALTER TABLE ChiTietHoaDon_SanPham CHECK CONSTRAINT FK_ChiTietHoaDonSanPham_SanPham;
-        ALTER TABLE ChiTietPhieuNhap CHECK CONSTRAINT FK_ChiTietPhieuNhap_SanPham;
-      `, [id]);
+      const refCheck = await querySql(`
+        SELECT TOP 1 1 AS HasRef FROM (
+          SELECT MaSanPham FROM ChiTietDonHang WHERE MaSanPham = ?
+          UNION ALL
+          SELECT MaSanPham FROM ChiTietHoaDon_SanPham WHERE MaSanPham = ?
+          UNION ALL
+          SELECT MaSanPham FROM ChiTietPhieuNhap WHERE MaSanPham = ?
+        ) t
+      `, [id, id, id]);
 
-      const authUser = extractAuthUser(req);
-      const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
+      let softDeleted = false;
+      if (refCheck && refCheck.length > 0) {
+        softDeleted = true;
+        await querySql(`DELETE FROM KhuyenMai_SanPham WHERE MaSanPham = ?`, [id]);
+        await querySql(`UPDATE SanPham SET TrangThaiKinhDoanh = N'Ngừng bán' WHERE MaSanPham = ?`, [id]);
+      } else {
+        await querySql(`DELETE FROM KhuyenMai_SanPham WHERE MaSanPham = ?`, [id]);
+        await querySql(`DELETE FROM TonKho WHERE MaSanPham = ?`, [id]);
+        await querySql(`DELETE FROM SanPham WHERE MaSanPham = ?`, [id]);
+      }
+
+      const actorName = authUser.fullName || authUser.name || authUser.username;
       const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
       auditService.logAudit({
         actor: actorName,
@@ -341,12 +377,19 @@ async function handleProductRoutes(req, res, ctx) {
         entityType: 'SanPham',
         entityId: id,
         before: oldProd,
-        details: `${actorName} (${actorRole}) xóa sản phẩm #${id} (${oldProd?.TenSanPham || ''})`
+        details: `${actorName} (${actorRole}) ${softDeleted ? 'ngừng kinh doanh' : 'xóa'} sản phẩm #${id} (${oldProd?.TenSanPham || ''})`
       }).catch(() => {});
 
       clearDbSnapshotCache();
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: true, message: 'Đã xóa sản phẩm khỏi bảng SanPham trong SQL.', id }));
+      res.end(JSON.stringify({
+        success: true,
+        softDeleted,
+        message: softDeleted
+          ? 'Sản phẩm đã có lịch sử nhập/bán nên được chuyển sang Ngừng bán để bảo toàn dữ liệu.'
+          : 'Đã xóa sản phẩm khỏi bảng SanPham trong SQL.',
+        id
+      }));
       return true;
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -375,8 +418,11 @@ async function handleProductRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/categories - Thêm danh mục mới
+  // POST /api/categories - Thêm danh mục mới (chỉ Admin/Quản lý)
   if (pathname === '/api/categories' && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const body = parsedBody || {};
     const maxCat = await querySql(`SELECT TOP 1 MaDanhMuc FROM DanhMucSanPham ORDER BY LEN(MaDanhMuc) DESC, MaDanhMuc DESC`);
     let nextN = 5;
@@ -399,8 +445,11 @@ async function handleProductRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/categories/:id - Sửa danh mục
+  // PUT /api/categories/:id - Sửa danh mục (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/categories/') && method === 'PUT') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/categories/', '').trim();
     const body = parsedBody || {};
     await querySql(
@@ -412,8 +461,11 @@ async function handleProductRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/categories/:id - Ngừng kinh doanh danh mục
+  // DELETE /api/categories/:id - Ngừng kinh doanh danh mục (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/categories/') && method === 'DELETE') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/categories/', '').trim();
     await querySql(`UPDATE DanhMucSanPham SET TrangThai = N'Ngừng kinh doanh' WHERE MaDanhMuc = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

@@ -104,7 +104,7 @@
       const rawImg = p.image || p.HinhAnh || '';
       const image = (typeof window.SalonUtils !== 'undefined' && typeof window.SalonUtils.formatImageUrl === 'function')
         ? window.SalonUtils.formatImageUrl(rawImg)
-        : (rawImg || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');
+        : (rawImg || '/DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');
 
       // Mô tả sạch
       const cleanDesc = (p.description || p.MoTa || 'Dòng sản phẩm tạo kiểu và dưỡng tóc nam cao cấp, chuẩn Barber chuyên nghiệp.')
@@ -183,7 +183,7 @@
                  loading="lazy"
                  draggable="false"
                  class="product-clean-img"
-                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');">
+                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
             ${discountBadgeHtml}
           </div>
 

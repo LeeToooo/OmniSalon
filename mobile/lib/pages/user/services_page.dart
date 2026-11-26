@@ -1,4 +1,5 @@
 import 'package:omni_salon_mobile/core/api/api_service.dart';
+import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
@@ -18,6 +19,7 @@ class ServicesScreen extends StatefulWidget {
     void Function({String? serviceId, String? stylistId, String? branchId})? onNavigateToBooking,
   }) {
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
+    Future<List<Map<String, dynamic>>> reviewsFuture = ApiService.fetchReviews(serviceId: service.id);
 
     showModalBottomSheet(
       context: context,
@@ -26,7 +28,8 @@ class ServicesScreen extends StatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (ctx) => SafeArea(
+      builder: (ctx) => StatefulBuilder(
+        builder: (modalCtx, setModalState) => SafeArea(
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(ctx).size.height * 0.85,
@@ -111,7 +114,7 @@ class ServicesScreen extends StatefulWidget {
                 Divider(color: AppTheme.borderColorSubtle),
                 const SizedBox(height: 12),
                 FutureBuilder<List<Map<String, dynamic>>>(
-                  future: ApiService.fetchReviews(serviceId: service.id),
+                  future: reviewsFuture,
                   builder: (context, snapshot) {
                     final reviews = snapshot.data ?? [];
                     final count = reviews.length;
@@ -123,17 +126,48 @@ class ServicesScreen extends StatefulWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('ĐÁNH GIÁ DỊCH VỤ', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
-                        const SizedBox(height: 2),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Icon(Icons.star_rounded, size: 15, color: Color(0xFFF59E0B)),
-                            const SizedBox(width: 4),
-                            Text(
-                              count > 0
-                                  ? '${avg.toStringAsFixed(1)} / 5.0 ($count đánh giá)'
-                                  : 'Chưa có đánh giá',
-                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('ĐÁNH GIÁ DỊCH VỤ', style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold)),
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star_rounded, size: 15, color: Color(0xFFF59E0B)),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      count > 0
+                                          ? '${avg.toStringAsFixed(1)} / 5.0 ($count đánh giá)'
+                                          : 'Chưa có đánh giá',
+                                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.accentGold,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              onPressed: () => _openDirectServiceReviewDialog(
+                                modalCtx,
+                                service: service,
+                                onSubmitted: () => setModalState(() {
+                                  reviewsFuture = ApiService.fetchReviews(serviceId: service.id);
+                                }),
+                              ),
+                              child: const Text(
+                                'Viết đánh giá',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                              ),
                             ),
                           ],
                         ),
@@ -159,15 +193,16 @@ class ServicesScreen extends StatefulWidget {
                               border: Border.all(color: AppTheme.borderColorSubtle),
                             ),
                             child: Text(
-                              'Chưa có đánh giá nào cho dịch vụ này. Hãy đặt lịch và trải nghiệm để lại đánh giá bạn nhé!',
+                              'Chưa có đánh giá nào cho dịch vụ này. Hãy trải nghiệm và chia sẻ cảm nhận của bạn nhé!',
                               style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textSecondary),
                             ),
                           )
                         else
-                          ...reviews.take(3).map((r) {
+                          ...reviews.take(5).map((r) {
                             final stars = int.tryParse(r['rating']?.toString() ?? '5') ?? 5;
                             final dateStr = (r['date'] ?? '').toString();
                             final shortDate = dateStr.length >= 10 ? dateStr.substring(0, 10) : dateStr;
+                            final adminReply = (r['adminReply'] ?? r['PhanHoiAdmin'] ?? '').toString().trim();
                             return Container(
                               margin: const EdgeInsets.only(bottom: 8),
                               padding: const EdgeInsets.all(12),
@@ -208,6 +243,32 @@ class ServicesScreen extends StatefulWidget {
                                     r['comment'] ?? '',
                                     style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textSecondary),
                                   ),
+                                  if (adminReply.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.accentGold.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: const Border(left: BorderSide(color: AppTheme.accentGold, width: 3)),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Phản hồi từ Omni Salon:',
+                                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.accentGold),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            adminReply,
+                                            style: AppTheme.bodySmall(fontSize: 11.5, color: AppTheme.textPrimary),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             );
@@ -219,6 +280,127 @@ class ServicesScreen extends StatefulWidget {
               ],
             ),
           ),
+        ),
+      ),
+      ),
+    );
+  }
+
+  static void _openDirectServiceReviewDialog(
+    BuildContext context, {
+    required SalonService service,
+    required VoidCallback onSubmitted,
+  }) {
+    final user = AuthService.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Quý khách vui lòng đăng nhập để gửi đánh giá dịch vụ.'),
+          backgroundColor: Color(0xFFD97706),
+        ),
+      );
+      return;
+    }
+
+    int selectedRating = 5;
+    final commentCtrl = TextEditingController();
+    bool isSending = false;
+
+    showDialog(
+      context: context,
+      builder: (dlgCtx) => StatefulBuilder(
+        builder: (dlgCtx, setDlgState) => AlertDialog(
+          backgroundColor: AppTheme.surfaceCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Column(
+            children: [
+              Text('Đánh giá dịch vụ', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              const SizedBox(height: 4),
+              Text(service.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12.5, color: AppTheme.accentGold, fontWeight: FontWeight.w600)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (i) {
+                    final st = i + 1;
+                    return IconButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      constraints: const BoxConstraints(),
+                      icon: Icon(
+                        Icons.star_rounded,
+                        size: 32,
+                        color: st <= selectedRating ? const Color(0xFFF59E0B) : AppTheme.borderColor,
+                      ),
+                      onPressed: () => setDlgState(() => selectedRating = st),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: commentCtrl,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Chia sẻ cảm nhận về tay nghề thợ, không gian và chất lượng...',
+                    hintStyle: TextStyle(fontSize: 12.5, color: AppTheme.textMuted),
+                    filled: true,
+                    fillColor: AppTheme.surfaceElevated,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isSending ? null : () => Navigator.of(dlgCtx).pop(),
+              child: Text('Quay Lại', style: TextStyle(color: AppTheme.textSecondary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentGold,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: isSending
+                  ? null
+                  : () async {
+                      final txt = commentCtrl.text.trim();
+                      if (txt.length < 3) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Vui lòng nhập nhận xét tối thiểu 3 ký tự.')),
+                        );
+                        return;
+                      }
+                      setDlgState(() => isSending = true);
+                      final res = await ApiService.submitReviewDetailed(
+                        serviceId: service.id,
+                        rating: selectedRating,
+                        comment: txt,
+                        customerId: user.maKhachHang ?? user.id,
+                        customerName: user.fullName,
+                        customerPhone: user.phone,
+                      );
+                      if (!dlgCtx.mounted) return;
+                      Navigator.of(dlgCtx).pop();
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(res['message']?.toString() ?? 'Cảm ơn bạn đã gửi đánh giá!'),
+                          backgroundColor: res['success'] == true ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                        ),
+                      );
+                      if (res['success'] == true) onSubmitted();
+                    },
+              child: Text(
+                isSending ? 'Đang gửi...' : 'Gửi đánh giá ngay',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
         ),
       ),
     );

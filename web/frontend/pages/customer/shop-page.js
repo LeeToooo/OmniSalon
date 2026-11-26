@@ -1221,7 +1221,7 @@
                       <line x1="3" y1="6" x2="21" y2="6"></line>
                       <path d="M16 10a4 4 0 0 1-8 0"></path>
                     </svg>
-                    <span>Đã bán <strong>${prod.reviewCount || 18}</strong></span>
+                    <span>Đã bán <strong>${Number(prod.salesCount || prod.DaBan || prod.reviewCount || 0)}</strong></span>
                   </div>
                   <div class="pdp-4rau-instock">
                     <span class="pdp-4rau-dot" style="background: ${isExpired ? '#ef4444' : '#10B981'};"></span>
@@ -1486,8 +1486,8 @@
         const relOrigPrice = Number(rel.originalPrice || rel.GiaNiemYetGoc || rel.GiaBan || relPrice);
         const relDiscountPercent = Number(rel.discountPercent || rel.PhanTramGiam || 0) || (relOrigPrice > relPrice ? Math.round(((relOrigPrice - relPrice) / relOrigPrice) * 100) : 0);
         const relHasDiscount = relDiscountPercent > 0;
-        const relRating = Number(rel.rating || 4.9);
-        const relSalesCount = Number(rel.salesCount || rel.DaBan || (50 + (parseInt(String(rel.id).replace(/\D/g, '') || '1', 10) * 17) % 250));
+        const relRating = rel.rating != null ? Number(rel.rating) : 0;
+        const relSalesCount = Number(rel.salesCount || rel.DaBan || rel.reviewCount || 0);
         const relImg = rel.image || rel.HinhAnh || 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg';
         const relName = rel.name || rel.TenSanPham || '';
         const relBrand = rel.brand || rel.ThuongHieu || 'OMNI SALON';
@@ -1512,9 +1512,9 @@
                         </div>
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; margin-top: auto;">
                           <span style="display: inline-flex; align-items: center; gap: 3px; color: #F59E0B; font-weight: 700;">
-                            ★ <span>${relRating.toFixed(1)}</span>
+                            ${relRating > 0 ? `★ <span>${relRating.toFixed(1)}</span>` : `<span>Chính hãng</span>`}
                           </span>
-                          <span style="opacity: 0.85;">Đã bán ${relSalesCount}</span>
+                          <span style="opacity: 0.85;">${relSalesCount > 0 ? `Đã bán ${relSalesCount}` : relBrand}</span>
                         </div>
                         <div class="pdp-related-btns" onclick="event.stopPropagation();" style="display: grid; grid-template-columns: 1fr 42px; gap: 8px;">
                           <button type="button" class="pdp-related-view-btn" onclick="if(window.AppRouter) window.AppRouter.navigate('/product?id=${rel.id}');" style="font-weight: 700; padding: 8px; border-radius: 6px; background: var(--surface-elevated, #F3EFEA); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; font-size: 12.5px;">
@@ -1578,7 +1578,9 @@
         </div>
       `;
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (!window._preserveScrollOnRender) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     },
 
     togglePolicyAccordion(headerEl) {
@@ -1897,11 +1899,14 @@
 
       if (totalReviews === 0) {
         return `
-          <div style="padding: 42px 20px; text-align: center; background: var(--surface-card); border-radius: 12px; border: 1px dashed var(--border-color);">
-            <div style="font-size: 36px; margin-bottom: 10px;">⭐</div>
-            <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px;">Chưa có đánh giá nào cho sản phẩm này</h4>
+          <div style="padding: 42px 20px; text-align: center; background: var(--surface-card, #FFFFFF); border-radius: 14px; border: 1px solid var(--border-color, #E5E7EB);">
+            <div style="font-size: 34px; margin-bottom: 10px; color: #F59E0B;">⭐</div>
+            <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">Chưa có đánh giá nào cho sản phẩm này</h4>
             <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0 0 18px;">Hãy là người đầu tiên trải nghiệm chất lượng sản phẩm và chia sẻ cảm nhận của bạn!</p>
-</div>
+            <button type="button" class="btn-submit-terracotta" style="padding: 10px 24px; font-size: 13.5px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #FFFFFF; border: none; cursor: pointer;" onclick="ShopPage.openWriteProductReviewModal('${this.escapeHtml(product.id || '')}', '${this.escapeHtml(product.name || product.TenSanPham || '')}')">
+              Viết đánh giá ngay
+            </button>
+          </div>
         `;
       }
 
@@ -1923,12 +1928,15 @@
       const fullStars = Math.round(Number(avgScore));
 
       return `
-        <div class="pdp-reviews-summary" style="display: flex; gap: 24px; padding: 20px; background: var(--surface-card); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px; flex-wrap: wrap;">
+        <div class="pdp-reviews-summary" style="display: flex; gap: 24px; padding: 20px; background: var(--surface-card); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px; flex-wrap: wrap; align-items: center;">
           <div class="pdp-reviews-score" style="text-align: center; min-width: 180px;">
             <div class="pdp-reviews-big-num" style="font-size: 42px; font-weight: 900; color: #F59E0B; line-height: 1;">${avgScore}</div>
             <div style="color: #F59E0B; font-size: 20px; margin: 6px 0;">${'★'.repeat(fullStars)}${'☆'.repeat(5 - fullStars)}</div>
-            <div style="font-size: 13px; color: var(--text-secondary);">Dựa trên ${totalReviews} đánh giá thực tế</div>
-</div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;">Dựa trên ${totalReviews} đánh giá thực tế</div>
+            <button type="button" class="btn-submit-terracotta" style="padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #FFFFFF; border: none; cursor: pointer;" onclick="ShopPage.openWriteProductReviewModal('${this.escapeHtml(product.id || '')}', '${this.escapeHtml(product.name || product.TenSanPham || '')}')">
+              Viết đánh giá
+            </button>
+          </div>
           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 240px;">
             ${[
               { star: 5, count: count5, percent: p5 },
@@ -1939,7 +1947,7 @@
             ].map(row => `
               <div style="display: flex; align-items: center; gap: 10px; font-size: 12.5px;">
                 <span style="width: 45px; color: var(--text-secondary);">${row.star} sao</span>
-                <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+                <div style="flex: 1; height: 8px; background: rgba(197, 155, 39, 0.14); border-radius: 4px; overflow: hidden;">
                   <div style="width: ${row.percent}%; height: 100%; background: #F59E0B; border-radius: 4px;"></div>
                 </div>
                 <span style="width: 38px; text-align: right; color: var(--text-secondary); font-size: 12px;">${row.percent}%</span>
@@ -1953,19 +1961,26 @@
             const author = r.customerName || r.TenKhachHang || r.author || 'Khách Hàng';
             const star = Number(r.rating || r.SoSao || 5);
             const dateStr = r.date ? (window.SalonUtils ? window.SalonUtils.formatDate(r.date) : r.date) : 'Gần đây';
+            const adminReply = (r.adminReply || r.PhanHoiAdmin || '').trim();
             return `
               <div class="pdp-review-item" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 16px;">
                 <div class="pdp-review-user" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                  <div style="width: 38px; height: 38px; border-radius: 50%; background: #C59B27; color: #141413; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 38px; height: 38px; border-radius: 50%; background: #C59B27; color: #FFFFFF; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center;">
                     ${(window.SalonUtils && typeof window.SalonUtils.getInitials === 'function') ? window.SalonUtils.getInitials(author) : author.substring(0, 2).toUpperCase()}
                   </div>
                   <div class="pdp-review-meta">
-                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">${this.escapeHtml(author)} <span class="pdp-verified-badge" style="color: #10B981; font-size: 11px; margin-left: 6px; font-weight: 600;">✓ Đã Mua Hàng</span></h4>
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">${this.escapeHtml(author)} ${r.orderId ? '<span class="pdp-verified-badge" style="color: #10B981; font-size: 11px; margin-left: 6px; font-weight: 600;">✓ Đã mua hàng</span>' : ''}</h4>
                     <div class="pdp-review-date" style="font-size: 12px; color: var(--text-secondary);">Đánh giá ngày ${dateStr}</div>
                   </div>
                 </div>
                 <div style="color: #F59E0B; font-size: 13px; margin-bottom: 6px;">${'★'.repeat(star)}${'☆'.repeat(5 - star)}</div>
                 <p class="pdp-review-comment" style="font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); margin: 0;">${this.escapeHtml(r.comment || r.NoiDung || 'Sản phẩm rất tốt!')}</p>
+                ${adminReply ? `
+                  <div style="margin-top: 10px; padding: 10px 14px; border-radius: 8px; background: rgba(197, 155, 39, 0.1); border-left: 3px solid #C59B27; font-size: 12.5px; color: var(--text-primary);">
+                    <strong style="color: #8A6208; display: block; margin-bottom: 2px;">Phản hồi từ Omni Salon:</strong>
+                    <span>${this.escapeHtml(adminReply)}</span>
+                  </div>
+                ` : ''}
               </div>
             `;
           }).join('')}
@@ -2026,9 +2041,9 @@
           </div>
 
           <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button type="button" class="btn-cancel" onclick="UICommon.closeGlobalModal()" style="height: 40px; padding: 0 16px; font-size: 13px;">Hủy Bỏ</button>
-            <button type="button" class="btn-submit-terracotta" style="height: 40px; padding: 0 20px; font-size: 13px; font-weight: 800; background: #d97706;" onclick="ShopPage.submitProductReview('${productId}')">
-              Gửi Đánh Giá Ngay
+            <button type="button" class="btn-cancel" onclick="UICommon.closeGlobalModal()" style="height: 40px; padding: 0 18px; font-size: 13px; border-radius: 8px;">Hủy Bỏ</button>
+            <button type="button" class="btn-submit-terracotta" style="height: 40px; padding: 0 22px; font-size: 13px; font-weight: 800; background: #C59B27; color: #FFFFFF; border-radius: 8px;" onclick="ShopPage.submitProductReview('${productId}')">
+              Gửi đánh giá ngay
             </button>
           </div>
         </div>
@@ -2057,38 +2072,67 @@
         return;
       }
 
-      const newReview = {
-        id: 'DG_' + Date.now(),
-        productId,
-        MaSanPham: productId,
-        customerName: author,
-        author,
-        rating: star,
-        SoSao: star,
-        comment,
-        NoiDung: comment,
-        date: new Date().toISOString()
-      };
-
-      if (window.store && window.store.state) {
-        if (!Array.isArray(window.store.state.reviews)) window.store.state.reviews = [];
-        window.store.state.reviews.unshift(newReview);
-        if (typeof window.store.saveState === 'function') window.store.saveState();
+      const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+      if (!authHeader.Authorization) {
+        if (window.UICommon) {
+          window.UICommon.showToast('Vui lòng đăng nhập tài khoản khách hàng để đánh giá sản phẩm.', 'warning');
+          if (typeof window.UICommon.openAuthModal === 'function') window.UICommon.openAuthModal('login');
+        }
+        return;
       }
 
-      // Gửi đồng bộ lên backend API
+      let serverReview = null;
       try {
-        await fetch('/api/reviews', {
+        const revRes = await fetch('/api/reviews', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeader },
           body: JSON.stringify({
             productId,
             rating: star,
             comment,
             customerName: author
           })
-        }).catch(() => {});
-      } catch (e) {}
+        });
+        const revData = await revRes.json().catch(() => null);
+        if (revRes.status === 401 || revRes.status === 403) {
+          if (window.UICommon) {
+            window.UICommon.showToast(revData?.message || 'Vui lòng đăng nhập tài khoản để đánh giá sản phẩm.', 'warning');
+          }
+          return;
+        }
+        if (!revRes.ok || !revData || revData.success === false) {
+          if (window.UICommon) {
+            window.UICommon.showToast(revData?.message || 'Không thể gửi đánh giá sản phẩm lúc này.', 'warning');
+          }
+          return;
+        }
+        serverReview = revData.review || null;
+      } catch (e) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối máy chủ khi gửi đánh giá.', 'error');
+        return;
+      }
+
+      const newReview = {
+        id: serverReview?.id || ('DG_' + Date.now()),
+        productId,
+        MaSanPham: productId,
+        orderId: serverReview?.orderId || null,
+        customerName: author,
+        author,
+        rating: serverReview?.rating || star,
+        SoSao: serverReview?.rating || star,
+        comment: serverReview?.comment || comment,
+        NoiDung: serverReview?.comment || comment,
+        date: new Date().toISOString()
+      };
+
+      if (window.store && window.store.state) {
+        if (!Array.isArray(window.store.state.reviews)) window.store.state.reviews = [];
+        const existingIdx = window.store.state.reviews.findIndex(r => r.id === newReview.id || (newReview.orderId && (r.orderId === newReview.orderId || r.MaDonHang === newReview.orderId)));
+        if (existingIdx >= 0) window.store.state.reviews[existingIdx] = newReview;
+        else window.store.state.reviews.unshift(newReview);
+        if (typeof window.store.saveState === 'function') window.store.saveState();
+      }
 
       if (window.UICommon) {
         window.UICommon.closeGlobalModal();
@@ -2099,7 +2143,9 @@
       if (!Array.isArray(this._currentReviews)) {
         this._currentReviews = [];
       }
-      this._currentReviews.unshift(newReview);
+      const curIdx = this._currentReviews.findIndex(r => r.id === newReview.id || (newReview.orderId && (r.orderId === newReview.orderId || r.MaDonHang === newReview.orderId)));
+      if (curIdx >= 0) this._currentReviews[curIdx] = newReview;
+      else this._currentReviews.unshift(newReview);
 
       // Cập nhật số đếm đánh giá trên tab
       const countEl = document.getElementById('pdpReviewTabCount');
@@ -2170,8 +2216,16 @@
       if (window.store && typeof window.store.subscribe === 'function') {
         window.store.subscribe((state, event) => {
           if (event === 'DATABASE_LOADED' || event === 'ADMIN_DATA_UPDATED' || event === 'PRODUCTS_UPDATED' || event === 'LIVE_SERVER_SYNC') {
+            const activeModal = document.getElementById('globalModal');
+            if (activeModal && activeModal.classList.contains('active')) return;
+            const isTyping = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+            if (isTyping && event === 'LIVE_SERVER_SYNC') return;
+
             const container = document.getElementById('webMainContainer');
             if (container) {
+              const prevY = window.scrollY;
+              const prevPreserve = window._preserveScrollOnRender;
+              window._preserveScrollOnRender = true;
               const urlParams = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search) : null;
               const prodIdFromUrl = urlParams ? urlParams.get('id') : null;
               const isProductRoute = (window.AppRouter && (window.AppRouter.currentRoute === '/product' || (window.AppRouter.currentRoute && window.AppRouter.currentRoute.startsWith('/product')))) || prodIdFromUrl;
@@ -2182,6 +2236,10 @@
               } else if (window.AppRouter && window.AppRouter.currentRoute === '/shop') {
                 ShopPage.render(container);
               }
+              requestAnimationFrame(() => {
+                window._preserveScrollOnRender = prevPreserve;
+                if (prevY > 0) window.scrollTo(0, prevY);
+              });
             }
           }
         });

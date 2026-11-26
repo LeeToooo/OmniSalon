@@ -110,6 +110,13 @@
         this.expandedSteps.step2 = true;
       }
       if (params.branch) this.bookingState.branchId = String(params.branch).replace(/[^a-zA-Z0-9_-]/g, '');
+      if (params.notes) {
+        try {
+          this.bookingState.notes = decodeURIComponent(String(params.notes)).slice(0, 500);
+        } catch (_) {
+          this.bookingState.notes = String(params.notes).slice(0, 500);
+        }
+      }
       if (params.stylist) {
         const stId = String(params.stylist).replace(/[^a-zA-Z0-9_-]/g, '');
         this.bookingState.stylistId = stId;
@@ -1059,7 +1066,7 @@
       const estimatedEndTime = SalonUtils.calculateEndTime(this.bookingState.timeSlot, duration);
 
       return `
-        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 24px; align-items: start;">
           <!-- CỘT TRÁI: NHẬP THÔNG TIN LIÊN HỆ -->
           <div>
             <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 16px;">

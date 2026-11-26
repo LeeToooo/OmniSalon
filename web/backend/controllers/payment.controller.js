@@ -127,14 +127,27 @@ const PaymentController = {
         }
       }
 
+      const envAccNo = (process.env.VIETQR_ACCOUNT_NO || '').trim();
+      const envAccName = (process.env.VIETQR_ACCOUNT_NAME || 'OMNISALON ENTERPRISE').trim();
+      const envBankBin = (process.env.VIETQR_BANK_BIN || '970422').trim();
+
+      if (!payosResponse && !envAccNo) {
+        res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+          success: false,
+          message: 'Cổng thanh toán PayOS/VietQR chưa được cấu hình trên máy chủ (thiếu PAYOS_* hoặc VIETQR_ACCOUNT_NO).'
+        }));
+        return true;
+      }
+
       const finalCheckoutUrl = payosResponse?.checkoutUrl || `https://pay.payos.vn/web/${orderCode}`;
-      const accountNumber = payosResponse?.accountNumber || '0900000000';
-      const accountName = payosResponse?.accountName || 'OMNISALON ENTERPRISE';
+      const accountNumber = payosResponse?.accountNumber || envAccNo;
+      const accountName = payosResponse?.accountName || envAccName;
 
       const emvcoString = (payosResponse?.qrCode && String(payosResponse.qrCode).startsWith('000201'))
         ? payosResponse.qrCode
         : buildVietQREMVCo({
-            bin: '970422',
+            bin: envBankBin,
             accountNo: accountNumber,
             amount: numAmount,
             purpose: cleanDescription
@@ -194,6 +207,10 @@ const PaymentController = {
             webhookData = await payos.webhooks.verify(parsedBody);
           } else if (typeof payos.verifyPaymentWebhookData === 'function') {
             webhookData = payos.verifyPaymentWebhookData(parsedBody);
+          } else {
+            res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ success: false, message: 'PayOS SDK không hỗ trợ xác thực chữ ký.' }));
+            return true;
           }
         } catch (verifyErr) {
           console.error('PayOS signature verification failed:', verifyErr.message);
@@ -202,7 +219,10 @@ const PaymentController = {
           return true;
         }
       } else {
-        webhookData = parsedBody.data || parsedBody;
+        console.warn('[PayOS Webhook Rejected] PayOS credentials not configured');
+        res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'PayOS webhook chưa được cấu hình khóa xác thực chữ ký.' }));
+        return true;
       }
 
       const orderCode = Number(webhookData.orderCode);

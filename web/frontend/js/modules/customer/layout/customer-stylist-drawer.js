@@ -68,7 +68,7 @@
         avatar.onerror = () => { avatar.onerror = null; avatar.src = defaultAvatar; };
       }
       if (name) name.textContent = st.name;
-      if (title) title.textContent = `${st.title || st.role || 'Senior Artisan'} • ${st.rating || '4.9'}`;
+      if (title) title.textContent = st.rating ? `${st.title || st.role || 'Senior Artisan'} • ${st.rating}` : (st.title || st.role || 'Senior Artisan');
 
       const specialties = st.specialties || ['Cắt Fade', 'Uốn Con Sâu', 'Nhuộm Tẩy'];
       const todaySlots = ['09:00', '10:30', '14:00', '16:30', '19:00'];

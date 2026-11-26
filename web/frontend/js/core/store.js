@@ -45,14 +45,49 @@
         }
       }
 
-      // Tự động đồng bộ Live Server SQL định kỳ 10 giây 1 lần an toàn (có chống nghẽn và timeout)
+      // Kết nối kênh Server-Sent Events (SSE) /api/events để đồng bộ tức thì theo thay đổi CSDL SQL
       if (typeof window !== 'undefined') {
         this.syncWithLiveServer();
+        this.connectRealtimeSse();
         setInterval(() => {
           if (typeof document !== 'undefined' && document.hidden) return;
           this.syncWithLiveServer();
-        }, 10000);
+        }, 15000);
       }
+    }
+
+    connectRealtimeSse() {
+      if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
+      if (this._sseSource) {
+        try { this._sseSource.close(); } catch (_) { }
+      }
+      try {
+        const eventsUrl = `${this.liveServerUrl.replace(/\/api\/?$/, '')}/api/events`;
+        const es = new EventSource(eventsUrl);
+        this._sseSource = es;
+
+        const scheduleSync = () => {
+          if (this._sseSyncTimer) clearTimeout(this._sseSyncTimer);
+          this._sseSyncTimer = setTimeout(() => {
+            this._sseSyncTimer = null;
+            this.syncWithLiveServer();
+          }, 120);
+        };
+
+        es.addEventListener('database_updated', scheduleSync);
+        es.onmessage = scheduleSync;
+        es.onerror = () => {
+          // Tự động kết nối lại an toàn nếu mất kết nối tạm thời
+          try { es.close(); } catch (_) { }
+          this._sseSource = null;
+          if (!this._sseReconnectTimer) {
+            this._sseReconnectTimer = setTimeout(() => {
+              this._sseReconnectTimer = null;
+              this.connectRealtimeSse();
+            }, 5000);
+          }
+        };
+      } catch (_) { }
     }
 
     async syncWithLiveServer() {
@@ -62,8 +97,10 @@
       const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
       const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
       try {
+        const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
         const res = await fetch(`${this.liveServerUrl}/database`, {
           method: 'GET',
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {},
           signal: controller ? controller.signal : undefined
         });
         if (timeoutId) clearTimeout(timeoutId);
@@ -116,40 +153,24 @@
         }
 
         // Đồng bộ danh sách đặt lịch từ SQL: Lấy chuẩn CSDL SQL Server làm nguồn sự thật duy nhất
-        if (Array.isArray(db.bookings) && db.bookings.length > 0) {
-          this.state.bookings = db.bookings;
-          changed = true;
+        if (Array.isArray(db.bookings)) {
+          if (!this.state.bookings || JSON.stringify(this.state.bookings) !== JSON.stringify(db.bookings)) {
+            this.state.bookings = db.bookings;
+            changed = true;
+          }
           this.checkAutoCancelOverdueBookings();
         }
 
         // Đồng bộ danh sách đơn hàng từ SQL: Lấy chuẩn CSDL SQL Server làm nguồn sự thật duy nhất
-        if (Array.isArray(db.orders) && db.orders.length > 0) {
-          const prevOrdersMap = new Map();
-          (this.state.orders || []).forEach(o => {
-            const code = String(o.id || o.orderCode || o.MaDonHang || '').trim();
-            if (code) prevOrdersMap.set(code, o);
-          });
-          const mergedOrders = db.orders.map(newOrder => {
-            const code = String(newOrder.id || newOrder.orderCode || newOrder.MaDonHang || '').trim();
-            const prev = code ? prevOrdersMap.get(code) : null;
-            if (prev && (prev.paymentStatus === 'Paid' || prev.isPaid === true) && newOrder.paymentStatus !== 'Paid') {
-              return {
-                ...newOrder,
-                paymentStatus: 'Paid',
-                isPaid: true,
-                TrangThaiHoaDon: newOrder.TrangThaiHoaDon || 'Đã thanh toán'
-              };
-            }
-            return newOrder;
-          });
-          if (!this.state.orders || JSON.stringify(this.state.orders) !== JSON.stringify(mergedOrders)) {
-            this.state.orders = mergedOrders;
+        if (Array.isArray(db.orders)) {
+          if (!this.state.orders || JSON.stringify(this.state.orders) !== JSON.stringify(db.orders)) {
+            this.state.orders = db.orders;
             changed = true;
           }
         }
 
         // Đồng bộ Combos từ SQL
-        if (Array.isArray(db.combos) && db.combos.length > 0) {
+        if (Array.isArray(db.combos)) {
           if (!this.state.combos || JSON.stringify(this.state.combos) !== JSON.stringify(db.combos)) {
             this.state.combos = db.combos;
             changed = true;
@@ -157,7 +178,7 @@
         }
 
         // Đồng bộ Tài khoản Người dùng từ SQL
-        if (Array.isArray(db.users) && db.users.length > 0) {
+        if (Array.isArray(db.users)) {
           if (!this.state.users || JSON.stringify(this.state.users) !== JSON.stringify(db.users)) {
             this.state.users = db.users;
             changed = true;
@@ -182,11 +203,6 @@
                 try {
                   localStorage.setItem('OMNISALON_USER', JSON.stringify(window.Auth.currentUser));
                   localStorage.setItem('OMNISALON_AUTH_USER', JSON.stringify(window.Auth.currentUser));
-                  if (typeof window.Auth._issueTokens === 'function') {
-                    const freshToken = window.Auth._issueTokens(window.Auth.currentUser);
-                    localStorage.setItem('OMNISALON_JWT_ACCESS_TOKEN', freshToken.accessToken);
-                    window.Auth.accessToken = freshToken.accessToken;
-                  }
                 } catch (_) {}
               }
               if (typeof window.AdminWeb?.updateHeaderBranchDisplay === 'function') {
@@ -306,15 +322,34 @@
 
         if (changed || isFirstSync) {
           localStorage.setItem(this.storageKey, JSON.stringify(this.state));
-          this.notify('LIVE_SERVER_SYNC');
-          if (branchesChanged) {
-            this.notify('BRANCHES_UPDATED');
-          }
-          if (productsChanged || isFirstSync) {
-            this.notify('PRODUCTS_UPDATED');
-          }
-          if (isFirstSync) {
-            this.notify('ADMIN_FORCE_RENDER');
+          const prevWinY = (typeof window !== 'undefined') ? window.scrollY : 0;
+          const prevAdminVp = (typeof document !== 'undefined') ? document.querySelector('.admin-main-viewport') : null;
+          const prevVpScroll = prevAdminVp ? prevAdminVp.scrollTop : 0;
+          if (typeof window !== 'undefined') window._preserveScrollOnRender = true;
+          try {
+            this.notify('LIVE_SERVER_SYNC');
+            if (branchesChanged) {
+              this.notify('BRANCHES_UPDATED');
+            }
+            if (productsChanged || isFirstSync) {
+              this.notify('PRODUCTS_UPDATED');
+            }
+            if (isFirstSync) {
+              this.notify('ADMIN_FORCE_RENDER');
+            }
+          } finally {
+            if (typeof window !== 'undefined' && typeof requestAnimationFrame === 'function') {
+              requestAnimationFrame(() => {
+                window._preserveScrollOnRender = false;
+                if (prevWinY > 0 && typeof window.scrollTo === 'function') {
+                  window.scrollTo(0, prevWinY);
+                }
+                const newVp = document.querySelector('.admin-main-viewport');
+                if (newVp && prevVpScroll > 0) newVp.scrollTop = prevVpScroll;
+              });
+            } else if (typeof window !== 'undefined') {
+              window._preserveScrollOnRender = false;
+            }
           }
         }
       } catch (_) {
@@ -335,6 +370,9 @@
         });
         if (res && res.ok) {
           const data = await res.json();
+          if (data && data.success === false) {
+            return { success: false, error: data.error || data.message };
+          }
           const serverBooking = data && data.booking ? data.booking : data;
           const assignedId = serverBooking.id || serverBooking.bookingCode || serverBooking.MaLichHen;
           if (assignedId) {
@@ -429,10 +467,12 @@
     async syncDeleteStylistToLiveServer(stylistId) {
       if (typeof fetch === 'undefined') return { success: true };
       try {
+        const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
         const res = await fetch(`${this.liveServerUrl}/stylists/${stylistId}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: token ? { 'Authorization': token } : {}
         });
-        return await res.json().catch(() => ({ success: true }));
+        return await res.json().catch(() => ({ success: res.ok }));
       } catch (err) {
         return { success: false, error: err };
       }
@@ -460,8 +500,10 @@
     async syncDeleteServiceToLiveServer(serviceId) {
       if (typeof fetch === 'undefined') return;
       try {
+        const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
         await fetch(`${this.liveServerUrl}/services/${serviceId}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: token ? { 'Authorization': token } : {}
         });
       } catch (_) { }
     }
@@ -507,10 +549,12 @@
     async syncDeleteProductToLiveServer(productId) {
       if (typeof fetch === 'undefined') return { success: true };
       try {
+        const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
         const res = await fetch(`${this.liveServerUrl}/products/${productId}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: token ? { 'Authorization': token } : {}
         });
-        return await res.json().catch(() => ({ success: true }));
+        return await res.json().catch(() => ({ success: res.ok }));
       } catch (err) {
         return { success: false, error: err };
       }
@@ -537,8 +581,10 @@
     async syncDeleteBookingToLiveServer(bookingId) {
       if (typeof fetch === 'undefined') return;
       try {
+        const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
         await fetch(`${this.liveServerUrl}/bookings/${bookingId}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: token ? { 'Authorization': token } : {}
         });
       } catch (_) { }
     }
@@ -577,8 +623,10 @@
     async syncDeleteBranchToLiveServer(branchId) {
       if (typeof fetch === 'undefined') return;
       try {
+        const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
         await fetch(`${this.liveServerUrl}/branches/${branchId}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: token ? { 'Authorization': token } : {}
         });
       } catch (_) { }
     }
@@ -1614,7 +1662,7 @@
       const srv = this.getServiceById(serviceId);
       if (!srv) return false;
       if (updates.price !== undefined && Number(updates.price) !== Number(srv.price || srv.Gia)) {
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = this._getTodayIso();
         updates.NgayApDung = todayStr;
         updates.effectiveDate = todayStr;
       }
@@ -1732,7 +1780,7 @@
     }
 
     getStylistQueue(stylistId, targetDate = null) {
-      const date = targetDate || new Date().toISOString().split('T')[0];
+      const date = targetDate || this._getTodayIso();
       return (this.state.bookings || []).filter(b =>
         b.stylistId === stylistId &&
         b.date === date &&
@@ -2426,7 +2474,7 @@
         oldPrice: Number(productData.oldPrice || costPrice),
         stock: Number(productData.stock !== undefined ? productData.stock : 20),
         section: productData.section || 'new',
-        image: productData.image || 'DataPicture/01_Sap_Vuot_Toc_Clay_Wax/Sap_vuot_toc_Clay_Wax_1.png',
+        image: productData.image || 'DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg',
         description: productData.description || 'Sản phẩm chăm sóc tóc chuyên nghiệp'
       };
       if (!this.state.products) this.state.products = [];
@@ -2990,29 +3038,39 @@
 
       if (!order) return { success: false, error: 'Không tìm thấy đơn hàng trong hệ thống!' };
 
-      let normalizedStatus = 'Processing';
-      let vietnameseStatus = 'Đang xử lý';
+      const isPickup = Boolean(
+        order.deliveryType === 'PICKUP_BRANCH' ||
+        (order.receiveMethod && String(order.receiveMethod).toLowerCase().includes('quầy')) ||
+        (order.shippingAddress && String(order.shippingAddress).toLowerCase().includes('quầy'))
+      );
 
-      const sLow = (newStatus || '').toLowerCase();
-      if (sLow === 'pending' || sLow.includes('chờ')) {
-        normalizedStatus = 'Pending';
-        vietnameseStatus = 'Chờ xử lý';
-      } else if (sLow === 'processing' || sLow.includes('đóng gói') || sLow.includes('xử lý')) {
-        normalizedStatus = 'Processing';
-        vietnameseStatus = 'Đang xử lý';
-      } else if (sLow === 'delivering' || sLow === 'shipping' || (sLow.includes('giao') && !sLow.includes('đã giao'))) {
-        normalizedStatus = 'Delivering';
-        vietnameseStatus = 'Đang giao';
-      } else if (sLow === 'completed' || sLow === 'delivered' || sLow.includes('hoàn tất') || sLow.includes('đã giao')) {
-        normalizedStatus = 'Completed';
-        vietnameseStatus = 'Đã giao';
-      } else if (sLow === 'cancelled' || sLow.includes('hủy')) {
+      let normalizedStatus = 'Pending';
+      let vietnameseStatus = 'Chờ xác nhận';
+
+      const sLow = (newStatus || '').toLowerCase().trim();
+      if (sLow === 'cancelled' || sLow.includes('hủy')) {
         normalizedStatus = 'Cancelled';
         vietnameseStatus = 'Đã hủy';
+      } else if (sLow === 'completed' || sLow === 'delivered' || sLow.includes('đã nhận') || sLow.includes('hoàn tất') || sLow.includes('đã giao')) {
+        normalizedStatus = 'Completed';
+        vietnameseStatus = isPickup ? 'Đã nhận tại quầy' : 'Hoàn tất';
+      } else if (sLow === 'ready' || sLow === 'ready_for_pickup' || sLow.includes('sẵn sàng')) {
+        normalizedStatus = 'Ready';
+        vietnameseStatus = 'Sẵn sàng tại quầy';
+      } else if (sLow === 'delivering' || sLow === 'shipping' || sLow.includes('đang giao')) {
+        normalizedStatus = isPickup ? 'Ready' : 'Delivering';
+        vietnameseStatus = isPickup ? 'Sẵn sàng tại quầy' : 'Đang giao hàng';
+      } else if (sLow === 'processing' || sLow.includes('chuẩn bị') || sLow.includes('đóng gói') || sLow.includes('xử lý')) {
+        normalizedStatus = 'Processing';
+        vietnameseStatus = isPickup ? 'Đang chuẩn bị' : 'Đang đóng gói';
+      } else if (sLow === 'pending' || sLow.includes('chờ')) {
+        normalizedStatus = 'Pending';
+        vietnameseStatus = 'Chờ xác nhận';
       }
 
-      // Bảo tồn trạng thái thanh toán của order nếu đã trả tiền
-      const isCurrentPaid = (
+      // Tự động đánh dấu Đã trả khi đơn hoàn tất / đã nhận tại quầy hoặc đã thanh toán trước đó
+      const isCurrentPaid = Boolean(
+        normalizedStatus === 'Completed' ||
         order.paymentStatus === 'Paid' ||
         order.isPaid === true ||
         order.TrangThai === 'Đã thanh toán' ||
@@ -3081,7 +3139,7 @@
             branchName: 'Omni Salon Barber Q1 - Bến Thành',
             shiftType: 'CA_SANG',
             shiftName: 'Ca Sáng (08:30 - 14:30)',
-            date: new Date().toISOString().split('T')[0],
+            date: this._getTodayIso(),
             status: 'ACTIVE',
             note: 'Phục vụ khách cắt tóc theo lịch hẹn'
           },
@@ -3094,7 +3152,7 @@
             branchName: 'Omni Salon Barber Q1 - Bến Thành',
             shiftType: 'FULL_DAY',
             shiftName: 'Ca Trực Quản Lý (08:00 - 20:30)',
-            date: new Date().toISOString().split('T')[0],
+            date: this._getTodayIso(),
             status: 'ACTIVE',
             note: 'Điều hành ca và tiếp đón khách'
           },
@@ -3107,7 +3165,7 @@
             branchName: 'Omni Salon Barber Q1 - Bến Thành',
             shiftType: 'CA_SANG',
             shiftName: 'Ca Thu Ngân Sáng (08:30 - 15:00)',
-            date: new Date().toISOString().split('T')[0],
+            date: this._getTodayIso(),
             status: 'ACTIVE',
             note: 'Phụ trách máy POS và in hóa đơn thanh toán'
           }
@@ -3128,7 +3186,7 @@
         branchName: shiftData.branchName || 'Omni Salon',
         shiftType: shiftData.shiftType || 'CA_SANG',
         shiftName: shiftData.shiftName || 'Ca Sáng (08:30 - 14:30)',
-        date: shiftData.date || new Date().toISOString().split('T')[0],
+        date: shiftData.date || this._getTodayIso(),
         status: 'REGISTERED',
         note: shiftData.note || 'Đăng ký ca trực quầy / phục vụ khách',
         registeredAt: new Date().toISOString()
@@ -3715,13 +3773,19 @@
       if (this.state.auditLogs.length > 500) this.state.auditLogs.pop();
       this.saveState();
 
-      // Đồng bộ bất đồng bộ lên Backend API /api/audit/logs
+      // Đồng bộ bất đồng bộ lên Backend API /api/audit/logs (chỉ gửi khi có JWT Bearer)
       try {
-        fetch('/api/audit/logs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newLog)
-        }).catch(() => { });
+        const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
+        if (token) {
+          fetch('/api/audit/logs', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(newLog)
+          }).catch(() => { });
+        }
       } catch (e) { }
 
       return newLog;
@@ -3869,13 +3933,17 @@
     }
 
     async addPromotion(data) {
+      const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       const res = await fetch('/api/promotions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': token } : {})
+        },
         body: JSON.stringify(data)
       });
       const resJson = await res.json();
-      if (resJson && resJson.success && resJson.promotion) {
+      if (res.ok && resJson && resJson.success && resJson.promotion) {
         if (!this.state.promotions) this.state.promotions = [];
         this.state.promotions.push(resJson.promotion);
         this.saveState();
@@ -3885,9 +3953,13 @@
     }
 
     async updatePromotion(promoId, data) {
+      const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       const res = await fetch('/api/promotions/' + encodeURIComponent(promoId), {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': token } : {})
+        },
         body: JSON.stringify(data)
       });
       const resJson = await res.json();
@@ -3905,8 +3977,10 @@
     }
 
     async deletePromotion(promoId) {
+      const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       const res = await fetch('/api/promotions/' + encodeURIComponent(promoId), {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: token ? { 'Authorization': token } : {}
       });
       const resJson = await res.json();
       if (!res.ok || (resJson && resJson.success === false)) {
@@ -3920,13 +3994,17 @@
     }
 
     async addDiscountRule(data) {
+      const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       const res = await fetch('/api/discount-rules', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': token } : {})
+        },
         body: JSON.stringify(data)
       });
       const resJson = await res.json();
-      if (resJson && resJson.success && resJson.rule) {
+      if (res.ok && resJson && resJson.success && resJson.rule) {
         if (!this.state.discountRules) this.state.discountRules = [];
         this.state.discountRules.push(resJson.rule);
         this.saveState();
@@ -3936,9 +4014,13 @@
     }
 
     async updateDiscountRule(ruleId, data) {
+      const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       const res = await fetch('/api/discount-rules/' + encodeURIComponent(ruleId), {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': token } : {})
+        },
         body: JSON.stringify(data)
       });
       const resJson = await res.json();
@@ -3956,8 +4038,10 @@
     }
 
     async deleteDiscountRule(ruleId) {
+      const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       const res = await fetch('/api/discount-rules/' + encodeURIComponent(ruleId), {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: token ? { 'Authorization': token } : {}
       });
       const resJson = await res.json();
       if (!res.ok || (resJson && resJson.success === false)) {
@@ -4058,7 +4142,7 @@
 
     async syncUpdateServiceToLiveServer(serviceId, updates) {
       try {
-        await fetch(`/api/services/${serviceId}`, {
+        await fetch(`${this.liveServerUrl}/services/${serviceId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(updates)
@@ -4088,15 +4172,17 @@
     async syncDeleteComboToLiveServer(comboId) {
       if (typeof fetch === 'undefined') return;
       try {
+        const token = (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
         await fetch(`${this.liveServerUrl}/combos/${comboId}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: token ? { 'Authorization': token } : {}
         });
       } catch (_) { }
     }
 
     async syncUpdateComboToLiveServer(comboId, updates) {
       try {
-        await fetch(`/api/combos/${comboId}`, {
+        await fetch(`${this.liveServerUrl}/combos/${comboId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(updates)
@@ -4106,7 +4192,7 @@
 
     async syncRegisterShiftToLiveServer(shiftData) {
       try {
-        const res = await fetch('/api/shifts', {
+        const res = await fetch(`${this.liveServerUrl}/shifts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': (typeof localStorage !== 'undefined' && localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN')) ? 'Bearer ' + localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '' },
           body: JSON.stringify(shiftData)

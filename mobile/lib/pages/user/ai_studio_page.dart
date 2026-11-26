@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:omni_salon_mobile/core/api/api_service.dart';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
@@ -17,39 +16,41 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
   // Trạng thái kiểu tóc và màu nhuộm đang chọn
   String _selectedHairstyle = 'layer-korean';
   String _selectedColor = 'natural-black';
+  String _selectedVolume = 'standard'; // 'natural' | 'standard' | 'high'
+  String _selectedFinish = 'matte'; // 'matte' | 'gloss'
   String _selectedCategory = 'all';
 
-  // Quản lý ảnh
-  String _currentPhotoUrl = 'assets/hairstyles/sidepart-gentleman.jpg';
+  // Quản lý ảnh chân dung người dùng (trống ban đầu cho đến khi chọn/nhập ảnh thật)
+  String? _currentPhotoUrl;
   String? _rawOriginalPhotoUrl;
   String? _croppedImageUrl;
   String _viewMode = 'cropped'; // 'cropped' (3:4) hoặc 'raw'
 
-  // Trạng thái AI Scanning
+  // Trạng thái AI xử lý thực tế
   bool _isScanning = false;
-  String _scanStageText = '';
-  double _scanProgress = 0.0;
-  Timer? _scanProgressTimer;
 
-  // Trạng thái kết quả mô phỏng
+  // Trạng thái kết quả sau khi ghép tóc
   bool _hasResult = false;
   String? _resultImageUrl;
+  Map<String, dynamic>? _restyleMeta;
   double _sliderPosition = 0.5;
 
   // Dữ liệu phân tích ngũ quan từ MediaPipe 3D Mesh
   Map<String, dynamic>? _faceAnalysis;
+  bool _isAnalyzingFace = false;
+  String? _faceAnalysisError;
 
   // Bộ sưu tập 12 phom tóc nam chuẩn Salon Barbershop
   final List<Map<String, dynamic>> _hairstyles = [
     {
       'id': 'layer-korean',
       'name': 'Layer Texture Hàn Quốc',
-      'category': 'korean',
+      'category': 'trends',
       'tag': 'THỜI THƯỢNG',
       'desc': 'Tỉa tầng bay bổng, uốn texture tạo độ phồng tự nhiên cho khuôn mặt Á Đông.',
-      'preview': 'assets/hairstyles/layer-korean.jpg',
-      'serviceId': 'DV2',
-      'serviceName': 'Uốn Tóc Texture / Hàn Quốc',
+      'preview': '/assets/hairstyles/layer-korean.jpg',
+      'serviceId': 'DV03',
+      'serviceName': 'Uốn tóc xoăn Texture / Ziczac phồng Hàn Quốc',
     },
     {
       'id': 'pompadour-luxury',
@@ -57,69 +58,69 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
       'category': 'classic',
       'tag': 'LỊCH LÃM',
       'desc': 'Độ phồng vuốt ngược pomade kết hợp đường fade sắc nét 2 bên mang phong thái quý ông.',
-      'preview': 'assets/hairstyles/pompadour-luxury.jpg',
-      'serviceId': 'DV1',
-      'serviceName': 'Cắt Tóc Tạo Kiểu Master Barber',
+      'preview': '/assets/hairstyles/pompadour-luxury.jpg',
+      'serviceId': 'DV01',
+      'serviceName': 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade',
     },
     {
       'id': 'mullet-modern',
       'name': 'Modern Mullet & Taper Fade',
-      'category': 'modern',
+      'category': 'trends',
       'tag': 'PHONG CÁCH',
       'desc': 'Gáy tỉa so le mềm mại kết hợp đường cạo viền dứt khoát, phá cách và nam tính.',
-      'preview': 'assets/hairstyles/mullet-modern.jpg',
-      'serviceId': 'DV1',
-      'serviceName': 'Cắt Tóc Tạo Kiểu Master Barber',
+      'preview': '/assets/hairstyles/mullet-modern.jpg',
+      'serviceId': 'DV03',
+      'serviceName': 'Uốn tóc xoăn Texture / Ziczac phồng Hàn Quốc',
     },
     {
       'id': 'sidepart-gentleman',
       'name': 'Side Part 7/3 Cổ Điển',
       'category': 'classic',
       'tag': 'QUÝ ÔNG',
-      'desc': 'Đường rẽ ngôi tỉ lệ vàng tôn phom mặt, dễ dàng chải sáp vào nếp suốt cả ngày.',
-      'preview': 'assets/hairstyles/sidepart-gentleman.jpg',
-      'serviceId': 'DV1',
-      'serviceName': 'Cắt Tóc Tạo Kiểu Master Barber',
+      'desc': 'Đường rẽ ngôi cân đối tôn phom mặt, dễ dàng chải sáp vào nếp suốt cả ngày.',
+      'preview': '/assets/hairstyles/sidepart-gentleman.jpg',
+      'serviceId': 'CB01',
+      'serviceName': 'Combo Quý Tộc Barber (Cắt + Gội + Cạo râu)',
     },
     {
       'id': 'buzzcut-fade',
       'name': 'Buzz Cut & High Fade',
-      'category': 'modern',
+      'category': 'edgy',
       'tag': 'DỨT KHOÁT',
       'desc': 'Húi cua ngắn gọn gàng, tôn trọn vẹn xương hàm góc cạnh và đường nét nam tính.',
-      'preview': 'assets/hairstyles/buzzcut-fade.jpg',
-      'serviceId': 'DV1',
-      'serviceName': 'Cắt Tóc Tạo Kiểu Master Barber',
+      'preview': '/assets/hairstyles/buzzcut-fade.jpg',
+      'serviceId': 'DV01',
+      'serviceName': 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade',
     },
     {
       'id': 'french-crop',
       'name': 'French Crop Textured',
-      'category': 'korean',
+      'category': 'edgy',
       'tag': 'HIỆN ĐẠI',
       'desc': 'Mái bằng textured tỉa nhọn che khuyết điểm trán cao, fade cao 2 bên mai.',
-      'preview': 'assets/hairstyles/french-crop.jpg',
-      'serviceId': 'DV1',
-      'serviceName': 'Cắt Tóc Tạo Kiểu Master Barber',
+      'preview': '/assets/hairstyles/french-crop.jpg',
+      'serviceId': 'DV02',
+      'serviceName': 'Cắt & Ép Side tóc nam (Down Perm Combo)',
     },
     {
       'id': 'short-quiff',
       'name': 'Short Quiff & Mid Taper',
-      'category': 'modern',
+      'category': 'trends',
       'tag': 'NĂNG ĐỘNG',
       'desc': 'Mái vuốt nhẹ dựng trẻ trung, tôn sống mũi cao và phom mặt sáng ngời.',
-      'preview': 'assets/hairstyles/short-quiff.jpg',
-      'serviceId': 'DV1',
-      'serviceName': 'Cắt Tóc Tạo Kiểu Master Barber',
+      'preview': '/assets/hairstyles/short-quiff.jpg',
+      'serviceId': 'DV01',
+      'serviceName': 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade',
     },
     {
       'id': 'two-block',
       'name': 'Two-Block 6/4 Lãng Tử',
-      'category': 'korean',
+      'category': 'trends',
       'tag': 'K-STYLE IDOL',
       'desc': 'Chia 2 tầng tóc bồng bềnh, che phủ gò má và mang phong thái thần tượng xứ Hàn.',
-      'preview': 'assets/hairstyles/two-block.jpg',
-      'serviceId': 'DV2',
-      'serviceName': 'Uốn Tóc Texture / Hàn Quốc',
+      'preview': '/assets/hairstyles/two-block.jpg',
+      'serviceId': 'DV02',
+      'serviceName': 'Cắt & Ép Side tóc nam (Down Perm Combo)',
     },
     {
       'id': 'ivy-league',
@@ -127,9 +128,9 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
       'category': 'classic',
       'tag': 'DOANH NHÂN',
       'desc': 'Phom tóc giới thượng lưu phương Tây, chỉn chu, thanh lịch cho môi trường công sở.',
-      'preview': 'assets/hairstyles/ivy-league.jpg',
-      'serviceId': 'DV1',
-      'serviceName': 'Cắt Tóc Tạo Kiểu Master Barber',
+      'preview': '/assets/hairstyles/ivy-league.jpg',
+      'serviceId': 'CB01',
+      'serviceName': 'Combo Quý Tộc Barber (Cắt + Gội + Cạo râu)',
     },
     {
       'id': 'undercut-slick',
@@ -137,29 +138,29 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
       'category': 'classic',
       'tag': 'QUYỀN LỰC',
       'desc': 'Cắt sát 2 bên và sau gáy, chải mượt toàn bộ mái về sau thể hiện quyền lực.',
-      'preview': 'assets/hairstyles/undercut-slick.jpg',
-      'serviceId': 'DV1',
-      'serviceName': 'Cắt Tóc Tạo Kiểu Master Barber',
+      'preview': '/assets/hairstyles/undercut-slick.jpg',
+      'serviceId': 'DV01',
+      'serviceName': 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade',
     },
     {
       'id': 'ripple-perm',
       'name': 'Uốn Con Sâu / Ripple Curls',
-      'category': 'modern',
+      'category': 'wavy',
       'tag': 'CÁ TÍNH',
       'desc': 'Sóng xoăn dập xù bùng nổ năng lượng, tạo độ dày gấp đôi cho mái tóc mỏng.',
-      'preview': 'assets/hairstyles/ripple-perm.jpg',
-      'serviceId': 'DV2',
-      'serviceName': 'Uốn Tóc Texture / Hàn Quốc',
+      'preview': '/assets/hairstyles/ripple-perm.jpg',
+      'serviceId': 'DV05',
+      'serviceName': 'Uốn tóc con sâu Dreadlocks / Uốn Ruffled phá cách',
     },
     {
       'id': 'mohican-fade',
       'name': 'Mohican Ngắn & Sharp Fade',
-      'category': 'modern',
+      'category': 'edgy',
       'tag': 'BỤI BẶM',
       'desc': 'Dọc sống tóc vuốt nhọn cá tính, đường cạo fade bén ngót đậm chất đường phố.',
-      'preview': 'assets/hairstyles/mohican-fade.jpg',
-      'serviceId': 'DV1',
-      'serviceName': 'Cắt Tóc Tạo Kiểu Master Barber',
+      'preview': '/assets/hairstyles/mohican-fade.jpg',
+      'serviceId': 'DV01',
+      'serviceName': 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade',
     },
   ];
 
@@ -171,31 +172,73 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     {'id': 'nordic-platinum', 'name': 'Vàng Cát Trầm', 'color': const Color(0xFFC59B27), 'hex': '#C59B27'},
     {'id': 'chestnut-brown', 'name': 'Nâu Hạt Dẻ', 'color': const Color(0xFF6F4E37), 'hex': '#6F4E37'},
     {'id': 'moss-ash', 'name': 'Rêu Khói', 'color': const Color(0xFF4A5568), 'hex': '#4A5568'},
-    {'id': 'chocolate-brown', 'name': 'Nâu Socola', 'color': const Color(0xFF3D2817), 'hex': '#3D2817'},
-    {'id': 'smoky-silver', 'name': 'Bạch Kim Bạc', 'color': const Color(0xFFD1D5DB), 'hex': '#D1D5DB'},
+    {'id': 'caramel-mocha', 'name': 'Nâu Mocha Caramel', 'color': const Color(0xFF8B5A2B), 'hex': '#8B5A2B'},
+    {'id': 'pure-platinum', 'name': 'Bạch Kim Khói', 'color': const Color(0xFFE5E7EB), 'hex': '#E5E7EB'},
   ];
 
-  // Danh sách ảnh mẫu chân dung góc chuẩn studio
+  // Danh sách ảnh chụp người thật tại salon (không dùng ảnh AI)
   final List<Map<String, String>> _demoPortraits = [
-    {'name': 'Mẫu 01 (Side Part)', 'url': 'assets/hairstyles/sidepart-gentleman.jpg'},
-    {'name': 'Mẫu 02 (Pompadour)', 'url': 'assets/hairstyles/pompadour-luxury.jpg'},
-    {'name': 'Mẫu 03 (Layer Hàn)', 'url': 'assets/hairstyles/layer-korean.jpg'},
-    {'name': 'Mẫu 04 (Mullet)', 'url': 'assets/hairstyles/mullet-modern.jpg'},
-    {'name': 'Mẫu 05 (Short Quiff)', 'url': 'assets/hairstyles/short-quiff.jpg'},
-    {'name': 'Mẫu 06 (Two-Block)', 'url': 'assets/hairstyles/two-block.jpg'},
+    {'name': 'Ảnh thật 01', 'url': '/DataPicture/ChanDungTho/Tho4.jpg'},
+    {'name': 'Ảnh thật 02', 'url': '/DataPicture/ChanDungTho/Tho2.jpg'},
+    {'name': 'Ảnh thật 03', 'url': '/DataPicture/ChanDungTho/Tho7.jpg'},
   ];
 
   @override
   void initState() {
     super.initState();
     AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
-    _rawOriginalPhotoUrl = _currentPhotoUrl;
-    _triggerFaceAnalysis();
+    _syncAiCatalogFromServer();
+  }
+
+  Future<void> _syncAiCatalogFromServer() async {
+    try {
+      final data = await ApiService.fetchAiHairstyles();
+      if (!mounted || data == null) return;
+      final serverColors = data['hairColors'];
+      final serverStyles = data['hairstyles'];
+      setState(() {
+        if (serverColors is List && serverColors.isNotEmpty) {
+          for (final sc in serverColors) {
+            if (sc is Map) {
+              final sid = sc['id']?.toString();
+              final sname = sc['name']?.toString();
+              final idx = _hairColors.indexWhere((c) => c['id'] == sid);
+              if (idx != -1 && sname != null && sname.isNotEmpty) {
+                _hairColors[idx]['name'] = sname.split(' (').first;
+              }
+            }
+          }
+        }
+      if (serverStyles is List && serverStyles.isNotEmpty) {
+          for (final ss in serverStyles) {
+            if (ss is Map) {
+              final sid = ss['id']?.toString();
+              final idx = _hairstyles.indexWhere((h) => h['id'] == sid);
+              if (idx != -1) {
+                if (ss['name'] != null) _hairstyles[idx]['name'] = ss['name'].toString();
+                if (ss['category'] != null) _hairstyles[idx]['category'] = ss['category'].toString();
+                if (ss['tag'] != null) _hairstyles[idx]['tag'] = ss['tag'].toString();
+                if (ss['desc'] != null) _hairstyles[idx]['desc'] = ss['desc'].toString();
+                if (ss['suggestedService'] is Map) {
+                  final svc = ss['suggestedService'] as Map;
+                  if (svc['id'] != null) _hairstyles[idx]['serviceId'] = svc['id'].toString();
+                  if (svc['name'] != null) _hairstyles[idx]['serviceName'] = svc['name'].toString();
+                }
+                if (ss['suggestedProduct'] is Map) {
+                  _hairstyles[idx]['suggestedProduct'] = Map<String, dynamic>.from(ss['suggestedProduct'] as Map);
+                }
+              }
+            }
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('[AiStudio] Sync catalog skipped: $e');
+    }
   }
 
   @override
   void dispose() {
-    _scanProgressTimer?.cancel();
     AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     super.dispose();
   }
@@ -208,7 +251,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     setState(() {
       _viewMode = mode;
       if (mode == 'cropped' && _croppedImageUrl != null) {
-        _currentPhotoUrl = _croppedImageUrl!;
+        _currentPhotoUrl = _croppedImageUrl;
       } else {
         _currentPhotoUrl = _rawOriginalPhotoUrl ?? _currentPhotoUrl;
       }
@@ -217,87 +260,92 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
 
   Future<void> _triggerFaceAnalysis() async {
     final targetPhoto = _rawOriginalPhotoUrl ?? _currentPhotoUrl;
+    if (targetPhoto == null || targetPhoto.isEmpty) return;
+    if (mounted) {
+      setState(() {
+        _isAnalyzingFace = true;
+        _faceAnalysisError = null;
+      });
+    }
     try {
       final res = await ApiService.analyzeFace(targetPhoto);
       if (!mounted) return;
-      if (res != null && (res['faceShape'] != null || res['success'] == true)) {
+      if (res['faceShape'] != null) {
         setState(() {
+          _isAnalyzingFace = false;
           _faceAnalysis = res;
+          _faceAnalysisError = null;
           if (res['croppedImageUrl'] != null) {
             _croppedImageUrl = res['croppedImageUrl'].toString();
           }
           if (_viewMode == 'cropped' && _croppedImageUrl != null) {
-            _currentPhotoUrl = _croppedImageUrl!;
+            _currentPhotoUrl = _croppedImageUrl;
           } else {
             _currentPhotoUrl = _rawOriginalPhotoUrl ?? _currentPhotoUrl;
           }
         });
+      } else {
+        setState(() {
+          _isAnalyzingFace = false;
+          _faceAnalysis = null;
+          _faceAnalysisError = res['message']?.toString() ?? 'Không thể nhận diện khuôn mặt rõ nét từ ảnh.';
+        });
       }
-    } catch (_) {}
-  }
-
-  void _startScanProgressSimulation() {
-    _scanProgress = 0.05;
-    _scanStageText = '1/4: Đang quét 478 điểm ngũ quan 3D Face Mesh...';
-    _scanProgressTimer?.cancel();
-
-    _scanProgressTimer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
-      if (!mounted || !_isScanning) {
-        timer.cancel();
-        return;
-      }
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
-        if (_scanProgress < 0.28) {
-          _scanProgress += 0.03;
-          _scanStageText = '1/4: Đang quét 478 điểm ngũ quan 3D Face Mesh...';
-        } else if (_scanProgress < 0.58) {
-          _scanProgress += 0.025;
-          _scanStageText = '2/4: Tách lớp tóc & nhận diện đường viền hairline...';
-        } else if (_scanProgress < 0.82) {
-          _scanProgress += 0.02;
-          _scanStageText = '3/4: Ghép phom tóc mẫu & mô phỏng sợi tóc thật...';
-        } else if (_scanProgress < 0.95) {
-          _scanProgress += 0.01;
-          _scanStageText = '4/4: Hòa sắc màu nhuộm & cân bằng ánh sáng studio...';
-        }
+        _isAnalyzingFace = false;
+        _faceAnalysis = null;
+        _faceAnalysisError = 'Lỗi phân tích khuôn mặt: $e';
       });
-    });
+    }
   }
 
-  Future<void> _runRestyleSimulation() async {
+  Future<void> _runRestyle() async {
     if (_isScanning) return;
+    // Luôn gửi ảnh gốc ban đầu (tránh cắt 2 lần làm lệch khung Before/After)
+    final photoToSend = _rawOriginalPhotoUrl ?? _currentPhotoUrl ?? _croppedImageUrl;
+    if (photoToSend == null || photoToSend.isEmpty) {
+      _showToast('Vui lòng chọn ảnh thật hoặc nhập link ảnh chân dung trước!', isError: true);
+      return;
+    }
 
     setState(() {
       _isScanning = true;
       _hasResult = false;
     });
-    _startScanProgressSimulation();
 
     try {
-      final photoToSend = _croppedImageUrl ?? _rawOriginalPhotoUrl ?? _currentPhotoUrl;
       final res = await ApiService.restyleHair(
         imageBase64OrUrl: photoToSend,
         hairstyleId: _selectedHairstyle,
         colorId: _selectedColor,
+        volume: _selectedVolume,
+        finish: _selectedFinish,
       );
 
-      _scanProgressTimer?.cancel();
       if (!mounted) return;
 
-      if (res != null && res['resultImageUrl'] != null && res['resultImageUrl'].toString().isNotEmpty) {
+      if (res['resultImageUrl'] != null && res['resultImageUrl'].toString().isNotEmpty) {
         setState(() {
           _isScanning = false;
           _hasResult = true;
+          _viewMode = 'cropped';
+          if (_croppedImageUrl != null) {
+            _currentPhotoUrl = _croppedImageUrl;
+          }
           _sliderPosition = 0.5;
           _resultImageUrl = res['resultImageUrl']?.toString();
+          _restyleMeta = res;
           if (res['faceAnalysis'] != null) {
             _faceAnalysis = res['faceAnalysis'] as Map<String, dynamic>;
+            _faceAnalysisError = null;
           }
         });
-        _showToast('Đã mô phỏng kiểu tóc AI thành công!', isSuccess: true);
+        _showToast('Đã tạo mẫu kiểu tóc mới thành công!', isSuccess: true);
       } else {
         // Tuyệt đối không fallback sang ảnh mẫu tĩnh để đảm bảo tính xác thực
-        final errMsg = res?['message']?.toString() ??
+        final errMsg = res['message']?.toString() ??
             'Không thể nhận diện khuôn mặt rõ nét từ ảnh đã chọn. Vui lòng chọn góc chụp thẳng, sáng rõ!';
         setState(() {
           _isScanning = false;
@@ -307,7 +355,6 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
         _showToast(errMsg, isError: true);
       }
     } catch (e) {
-      _scanProgressTimer?.cancel();
       if (!mounted) return;
       setState(() {
         _isScanning = false;
@@ -435,10 +482,14 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final shapeName = _faceAnalysis?['faceShape']?['name']?.toString() ?? 'Mặt Vuông Chữ Điền (Square)';
-    final skinTone = _faceAnalysis?['skinUndertone']?['name']?.toString() ?? 'Sắc Tố Da Ấm (Warm Undertone)';
+    final shapeName = _faceAnalysis?['faceShape']?['name']?.toString() ??
+        (_isAnalyzingFace ? 'Đang phân tích 3D...' : 'Chưa có dữ liệu phân tích');
+    final skinTone = _faceAnalysis?['skinUndertone']?['name']?.toString() ?? '--';
     final barberAdvice = _faceAnalysis?['barberAdvice']?.toString() ??
-        'Master Barber khuyên: Với khuôn mặt này, bạn nên chọn các kiểu tóc có độ phồng đỉnh đầu để kéo dài tỷ lệ khuôn mặt và làm mềm đường nét xương hàm.';
+        (_isAnalyzingFace
+            ? 'Hệ thống đang đo tỷ lệ khuôn mặt qua MediaPipe 3D Mesh...'
+            : (_faceAnalysisError ??
+                'Vui lòng chọn ảnh chân dung rõ nét để AI phân tích hình dáng khuôn mặt và tư vấn kiểu tóc thực tế.'));
     final suggestedService = _faceAnalysis?['suggestedService'] as Map<String, dynamic>?;
     final suggestedProduct = _faceAnalysis?['suggestedProduct'] as Map<String, dynamic>?;
 
@@ -536,7 +587,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Mô phỏng 12 phom tóc nam thịnh hành và phân tích ngũ quan 3D trước khi bước vào ghế cắt.',
+          'Thử trực tiếp 12 phom tóc nam thịnh hành và phân tích ngũ quan 3D trước khi bước vào ghế cắt.',
           style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontSize: 11.5),
         ),
       ],
@@ -544,6 +595,9 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
   }
 
   Widget _buildPortraitViewer() {
+    final activePhoto = _currentPhotoUrl;
+    final hasPhoto = activePhoto != null && activePhoto.isNotEmpty;
+
     return Container(
       width: double.infinity,
       height: 330,
@@ -564,10 +618,34 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (!_hasResult) ...[
+            if (!hasPhoto) ...[
+              Container(
+                color: AppTheme.surfaceElevated,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.face_retouching_natural, size: 46, color: AppTheme.accentGold),
+                    const SizedBox(height: 12),
+                    Text(
+                      'CHỌN ẢNH CHÂN DUNG ĐỂ BẮT ĐẦU',
+                      style: AppTheme.headingSmall(fontSize: 14, color: AppTheme.textPrimary),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Chọn một trong 3 ảnh chụp người thật bên dưới hoặc dán link ảnh rõ khuôn mặt.',
+                      style: AppTheme.bodySmall(color: AppTheme.textSecondary, fontSize: 11.5),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ] else if (!_hasResult) ...[
               EditorialImage(
-                imageUrl: _currentPhotoUrl,
+                imageUrl: activePhoto,
                 fit: BoxFit.cover,
+                enableWarmFilter: false,
               ),
               // Khung định vị mặt AI Scanner
               Positioned(
@@ -603,29 +681,28 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
               _buildInteractiveSliderViewer(),
             ],
 
-            // Thanh điều khiển tỉ lệ ảnh phía dưới
-            Positioned(
-              top: 12,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.75),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildViewModeChip('cropped', '3:4 Studio'),
-                    const SizedBox(width: 4),
-                    _buildViewModeChip('raw', 'Ảnh Gốc'),
-                  ],
+            if (hasPhoto)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildViewModeChip('cropped', '3:4 Studio'),
+                      const SizedBox(width: 4),
+                      _buildViewModeChip('raw', 'Ảnh Gốc'),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Màn hình HUD AI quét tiến trình (không laser sci-fi, chuyên nghiệp sang trọng)
             if (_isScanning) _buildScanningHudOverlay(),
           ],
         ),
@@ -634,8 +711,13 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
   }
 
   Widget _buildInteractiveSliderViewer() {
-    final resultUrl = _resultImageUrl ?? _currentPhotoUrl;
-    final originalUrl = _rawOriginalPhotoUrl ?? _currentPhotoUrl;
+    final resultUrl = _resultImageUrl ?? _currentPhotoUrl ?? '/DataPicture/ChanDungTho/Tho4.jpg';
+    // Ưu tiên ảnh 3:4 đã căn chuẩn đầu để khung Before/After trùng khít từng milimet trên thanh trượt
+    final originalUrl = (_viewMode == 'raw' ? _rawOriginalPhotoUrl : _croppedImageUrl) ??
+        _croppedImageUrl ??
+        _rawOriginalPhotoUrl ??
+        _currentPhotoUrl ??
+        '/DataPicture/ChanDungTho/Tho4.jpg';
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -652,18 +734,20 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // 1. Ảnh kết quả kiểu tóc mới (nằm dưới)
+              // 1. Ảnh kết quả kiểu tóc mới (nằm dưới - tắt warm filter giữ màu thật)
               EditorialImage(
                 imageUrl: resultUrl,
                 fit: BoxFit.cover,
+                enableWarmFilter: false,
               ),
 
-              // 2. Ảnh gốc ban đầu (nằm trên, bị cắt tỉ lệ theo thanh trượt)
+              // 2. Ảnh gốc đã căn khung 3:4 (nằm trên, bị cắt tỉ lệ theo thanh trượt)
               ClipRect(
                 clipper: _HorizontalSplitClipper(split),
                 child: EditorialImage(
                   imageUrl: originalUrl,
                   fit: BoxFit.cover,
+                  enableWarmFilter: false,
                 ),
               ),
 
@@ -780,22 +864,9 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              _scanStageText,
+              'Đang nhận diện khung đầu 3D và ghép kiểu tóc theo ảnh của bạn...',
               style: AppTheme.bodySmall(color: Colors.white, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 14),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: SizedBox(
-                width: 200,
-                height: 5,
-                child: LinearProgressIndicator(
-                  value: _scanProgress,
-                  backgroundColor: Colors.white.withValues(alpha: 0.15),
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentGold),
-                ),
-              ),
             ),
           ],
         ),
@@ -870,6 +941,40 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     );
   }
 
+  List<Widget> _buildFaceMetricPills(String skinTone) {
+    final hasAnalysis = _faceAnalysis != null && _faceAnalysis?['faceShape'] != null;
+    if (!hasAnalysis) {
+      return [
+        _buildInfoPill(
+          'Trạng thái',
+          _isAnalyzingFace ? 'Đang quét 3D...' : 'Chờ ảnh phân tích',
+        ),
+      ];
+    }
+
+    int? maxScore;
+    final scores = _faceAnalysis?['styleScores'];
+    if (scores is Map) {
+      for (final entry in scores.values) {
+        if (entry is Map && entry['score'] != null) {
+          final parsed = int.tryParse(entry['score'].toString());
+          if (parsed != null && (maxScore == null || parsed > maxScore)) {
+            maxScore = parsed;
+          }
+        }
+      }
+    }
+
+    final ratioVal = _faceAnalysis?['metrics']?['ratioLengthToWidth']?.toString() ??
+        _faceAnalysis?['metrics']?['faceRatio']?.toString();
+
+    return [
+      _buildInfoPill('Tông da', skinTone.split(' ').first),
+      if (ratioVal != null && ratioVal.isNotEmpty) _buildInfoPill('Tỉ lệ D/R', ratioVal),
+      if (maxScore != null) _buildInfoPill('Độ hợp cao nhất', '$maxScore%'),
+    ];
+  }
+
   Widget _buildFaceAnalysisCard(
     String shapeName,
     String skinTone,
@@ -925,11 +1030,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 6,
-            children: [
-              _buildInfoPill('Tông da', skinTone.split(' ')[0]),
-              _buildInfoPill('Tỉ lệ mặt', 'Chuẩn Á Đông'),
-              _buildInfoPill('Độ hợp cao nhất', '98%'),
-            ],
+            children: _buildFaceMetricPills(skinTone),
           ),
           if (suggestedProduct != null || suggestedService != null) ...[
             const SizedBox(height: 10),
@@ -943,12 +1044,15 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                       onTap: () {
                         final scaffold = MainScaffold.of(context);
                         if (scaffold != null) {
+                          final prodImage = suggestedProduct['image']?.toString() ?? '';
                           scaffold.addToCart(OrderItem(
                             productId: suggestedProduct['id']?.toString() ?? 'SP01',
-                            name: suggestedProduct['name']?.toString() ?? 'Sáp vuốt tóc',
-                            price: int.tryParse(suggestedProduct['price']?.toString() ?? '480000') ?? 480000,
+                            name: suggestedProduct['name']?.toString() ?? 'Apestomen Volcanic Clay VIP',
+                            price: int.tryParse(suggestedProduct['price']?.toString() ?? '345000') ?? 345000,
                             quantity: 1,
-                            image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg',
+                            image: prodImage.isNotEmpty
+                                ? prodImage
+                                : 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg',
                           ));
                         }
                       },
@@ -983,7 +1087,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                       onTap: () {
                         final scaffold = MainScaffold.of(context);
                         if (scaffold != null) {
-                          scaffold.navigateToBooking(serviceId: suggestedService['id']?.toString() ?? 'DV1');
+                          scaffold.navigateToBooking(serviceId: suggestedService['id']?.toString() ?? 'DV01');
                         }
                       },
                       child: Container(
@@ -1022,8 +1126,9 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
     final categories = [
       {'id': 'all', 'label': 'Tất cả (12)'},
       {'id': 'classic', 'label': 'Lịch Lãm (4)'},
-      {'id': 'korean', 'label': 'Hàn Quốc (3)'},
-      {'id': 'modern', 'label': 'Cá Tính (5)'},
+      {'id': 'trends', 'label': 'K-Style & Trend (4)'},
+      {'id': 'edgy', 'label': 'Gọn & Fade (3)'},
+      {'id': 'wavy', 'label': 'Uốn Texture (1)'},
     ];
 
     return Row(
@@ -1082,7 +1187,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
         final h = styles[index];
         final isSelected = _selectedHairstyle == h['id'];
         final scores = _faceAnalysis?['styleScores'] as Map<String, dynamic>?;
-        final matchScore = scores?[h['id']]?['score']?.toString() ?? '95';
+        final matchScore = scores?[h['id']]?['score']?.toString();
 
         return GestureDetector(
           onTap: () {
@@ -1141,21 +1246,22 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                           ),
                         ),
                       ),
-                      Positioned(
-                        top: 6,
-                        right: 6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: Text(
-                            '$matchScore% Hợp',
-                            style: AppTheme.labelUppercase(fontSize: 7.5, color: Colors.white),
+                      if (matchScore != null)
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Text(
+                              '$matchScore% Hợp',
+                              style: AppTheme.labelUppercase(fontSize: 7.5, color: Colors.white),
+                            ),
                           ),
                         ),
-                      ),
                       if (isSelected)
                         Positioned(
                           bottom: 6,
@@ -1211,9 +1317,84 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
   }
 
   Widget _buildColorPalette() {
+    final volumeOptions = [
+      {'id': 'natural', 'label': 'Tự nhiên'},
+      {'id': 'standard', 'label': 'Tiêu chuẩn'},
+      {'id': 'high', 'label': 'Bồng bềnh'},
+    ];
+    final finishOptions = [
+      {'id': 'matte', 'label': 'Sáp Mờ'},
+      {'id': 'gloss', 'label': 'Bóng Pomade'},
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'ĐỘ PHỒNG & CHẤT LIỆU SÁP:',
+              style: AppTheme.labelUppercase(fontSize: 10, color: AppTheme.accentGold),
+            ),
+            Text(
+              'Tùy chỉnh phom thật',
+              style: AppTheme.bodySmall(fontSize: 10.5, color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              ...volumeOptions.map((v) {
+                final isAct = _selectedVolume == v['id'];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    label: Text(v['label']!),
+                    labelStyle: AppTheme.bodySmall(
+                      fontSize: 10.5,
+                      color: isAct ? AppTheme.charcoal : AppTheme.textPrimary,
+                      fontWeight: isAct ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                    selected: isAct,
+                    selectedColor: AppTheme.accentGold,
+                    backgroundColor: AppTheme.surfaceCard,
+                    side: BorderSide(color: isAct ? AppTheme.accentGold : AppTheme.borderColor),
+                    onSelected: (val) {
+                      if (val) setState(() => _selectedVolume = v['id']!);
+                    },
+                  ),
+                );
+              }),
+              const SizedBox(width: 6),
+              ...finishOptions.map((f) {
+                final isAct = _selectedFinish == f['id'];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    label: Text(f['label']!),
+                    labelStyle: AppTheme.bodySmall(
+                      fontSize: 10.5,
+                      color: isAct ? AppTheme.charcoal : AppTheme.textPrimary,
+                      fontWeight: isAct ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                    selected: isAct,
+                    selectedColor: AppTheme.accentGold,
+                    backgroundColor: AppTheme.surfaceCard,
+                    side: BorderSide(color: isAct ? AppTheme.accentGold : AppTheme.borderColor),
+                    onSelected: (val) {
+                      if (val) setState(() => _selectedFinish = f['id']!);
+                    },
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1276,7 +1457,11 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
       (h) => h['id'] == _selectedHairstyle,
       orElse: () => _hairstyles[0],
     );
-    final targetServiceId = currentStyle['serviceId'] ?? suggestedService?['id']?.toString() ?? 'DV1';
+    final metaService = _restyleMeta?['suggestedService'] as Map<String, dynamic>?;
+    final targetServiceId = metaService?['id']?.toString() ??
+        currentStyle['serviceId']?.toString() ??
+        suggestedService?['id']?.toString() ??
+        'DV01';
 
     return Column(
       children: [
@@ -1284,7 +1469,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
           width: double.infinity,
           height: 48,
           child: ElevatedButton(
-            onPressed: _isScanning ? null : _runRestyleSimulation,
+            onPressed: _isScanning ? null : _runRestyle,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.accentGold,
               foregroundColor: AppTheme.charcoal,
@@ -1303,7 +1488,7 @@ class _AiStylingScreenState extends State<AiStylingScreen> {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'Đang xử lý mô phỏng AI...',
+                    'Đang xử lý ghép kiểu tóc...',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.charcoal),
                   ),
                 ] else ...[

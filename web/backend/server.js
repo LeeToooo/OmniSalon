@@ -67,13 +67,41 @@ const server = http.createServer(async (req, res) => {
   const pathname = parsedUrl.pathname;
   const method = req.method;
 
-  // Thu thập nội dung request body, JSON
-  let body = '';
-  req.on('data', chunk => { body += chunk.toString('utf8'); });
+  // Thu thập nội dung request body, JSON (giới hạn 15MB để chống OOM DoS)
+  const MAX_BODY_BYTES = 15 * 1024 * 1024;
+  const chunks = [];
+  let totalBytes = 0;
+  let bodyAborted = false;
+
+  req.on('error', () => {
+    bodyAborted = true;
+  });
+
+  req.on('data', chunk => {
+    if (bodyAborted) return;
+    totalBytes += chunk.length;
+    if (totalBytes > MAX_BODY_BYTES) {
+      bodyAborted = true;
+      if (!res.headersSent) {
+        res.writeHead(413, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Dữ liệu gửi lên vượt quá giới hạn cho phép (15MB).' }));
+      }
+      req.destroy();
+      return;
+    }
+    chunks.push(chunk);
+  });
+
   req.on('end', async () => {
+    if (bodyAborted) return;
+    const body = chunks.length > 0 ? Buffer.concat(chunks).toString('utf8') : '';
     let parsedBody = null;
     if (body) {
-      try { parsedBody = JSON.parse(body); } catch (_) {}
+      try {
+        parsedBody = JSON.parse(body);
+      } catch (err) {
+        console.warn(`[HTTP] Invalid JSON payload on ${pathname}:`, err.message);
+      }
     }
 
     // Đóng gói ngữ cảnh yêu cầu gửi vào các router con
@@ -87,18 +115,35 @@ const server = http.createServer(async (req, res) => {
     };
 
     try {
-            // Xử lý các yêu cầu api
+      // Kênh Server-Sent Events (SSE) đẩy cập nhật thời gian thực tới trình duyệt
+      if (pathname === '/api/events' && method === 'GET') {
+        const realtimeService = require('./services/realtime.service');
+        realtimeService.addClient(req, res);
+        return;
+      }
+
+      // Xử lý các yêu cầu api
       if (await handleApiRoutes(req, res, ctx)) return;
 
       // Nếu client gọi đường dẫn /api/... nhưng không khớp router nào
       if (pathname.startsWith('/api/')) {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ error: 'Không tìm thấy API yêu cầu', path: pathname }));
+        res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: false, error: 'Không tìm thấy API yêu cầu', path: pathname }));
       }
 
-            // Phục vụ các file tĩnh như ảnh, css và js
+      // Phục vụ các file tĩnh như ảnh, css và js (chặn Path Traversal và file nhạy cảm)
       let rawPath = pathname.replace(/^\/+/, '');
-      try { rawPath = decodeURIComponent(rawPath); } catch (_) {}
+      try {
+        rawPath = decodeURIComponent(rawPath);
+      } catch (_) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: false, error: 'Đường dẫn không hợp lệ' }));
+      }
+
+      if (rawPath.includes('\0') || rawPath.includes('..') || rawPath.includes('\\')) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: false, error: 'Truy cập bị từ chối' }));
+      }
 
       let relPath = rawPath;
       if (relPath.startsWith('static/')) {
@@ -106,23 +151,42 @@ const server = http.createServer(async (req, res) => {
       }
       relPath = relPath.replace(/^web\/frontend\//, '').replace(/^frontend\//, '').replace(/^web\//, '');
 
-      // Phục vụ file tĩnh từ DataPicture, thư mục gốc hoặc frontend
+      const pathSegments = relPath.split('/').filter(Boolean);
+      if (pathSegments.some(seg => seg.startsWith('.') || seg === 'node_modules' || seg === 'config')) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ success: false, error: 'Truy cập bị từ chối' }));
+      }
+
+      const DATAPICTURE_DIR = path.resolve(ROOT_DIR, 'DataPicture');
+      const FRONTEND_BASE = path.resolve(FRONTEND_DIR);
+      const HAIRSTYLES_DIR = path.resolve(__dirname, 'ai_engine', 'hairstyles');
+      const FRONTEND_HAIRSTYLES_DIR = path.resolve(FRONTEND_BASE, 'assets', 'hairstyles');
+
       const cleanRelPath = relPath.replace(/^DataPicture\//i, '');
-      const candidatePaths = [
-        path.join(ROOT_DIR, 'DataPicture', cleanRelPath),
-        path.join(ROOT_DIR, relPath),
-        path.join(FRONTEND_DIR, 'DataPicture', cleanRelPath),
-        path.join(FRONTEND_DIR, relPath),
-        path.join(__dirname, 'ai_engine', 'hairstyles', path.basename(relPath)),
-        path.join(FRONTEND_DIR, 'assets', 'hairstyles', path.basename(relPath))
+      const safeBasename = path.basename(relPath);
+      const candidateRoots = [
+        { base: DATAPICTURE_DIR, target: path.resolve(DATAPICTURE_DIR, cleanRelPath) },
+        { base: FRONTEND_BASE, target: path.resolve(FRONTEND_BASE, 'DataPicture', cleanRelPath) },
+        { base: FRONTEND_BASE, target: path.resolve(FRONTEND_BASE, relPath) },
+        { base: HAIRSTYLES_DIR, target: path.resolve(HAIRSTYLES_DIR, safeBasename) },
+        { base: FRONTEND_HAIRSTYLES_DIR, target: path.resolve(FRONTEND_HAIRSTYLES_DIR, safeBasename) }
       ];
 
-      for (const targetPath of candidatePaths) {
-        if (fs.existsSync(targetPath)) {
+      function isPathInsideBase(baseDir, resolvedTarget) {
+        const rel = path.relative(baseDir, resolvedTarget);
+        return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
+      }
+
+      for (const candidate of candidateRoots) {
+        if (!isPathInsideBase(candidate.base, candidate.target)) continue;
+        if (fs.existsSync(candidate.target)) {
           try {
-            const stat = fs.statSync(targetPath);
+            const realBase = fs.realpathSync(candidate.base);
+            const realTarget = fs.realpathSync(candidate.target);
+            if (!isPathInsideBase(realBase, realTarget)) continue;
+            const stat = fs.statSync(realTarget);
             if (stat.isFile()) {
-              const ext = path.extname(targetPath).toLowerCase();
+              const ext = path.extname(realTarget).toLowerCase();
               const mime = MIME_MAP[ext] || 'application/octet-stream';
               const isCode = ['.js', '.css', '.html', '.json'].includes(ext);
               res.writeHead(200, {
@@ -137,13 +201,15 @@ const server = http.createServer(async (req, res) => {
               if (method === 'HEAD') {
                 return res.end();
               }
-              return fs.createReadStream(targetPath).pipe(res);
+              return fs.createReadStream(realTarget).pipe(res);
             }
-          } catch (_) {}
+          } catch (err) {
+            console.warn(`[HTTP] Static asset serve error (${relPath}):`, err.message);
+          }
         }
       }
 
-            // Trả về file index.html cho các đường dẫn trang
+      // Trả về file index.html cho các đường dẫn trang
       const fileExt = path.extname(relPath).toLowerCase();
       if (!fileExt || fileExt === '.html') {
         const indexPath = path.join(FRONTEND_DIR, 'index.html');
@@ -157,13 +223,15 @@ const server = http.createServer(async (req, res) => {
       }
 
       // Không tìm thấy file
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      return res.end(JSON.stringify({ error: 'File Not Found', path: pathname }));
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({ success: false, error: 'File Not Found', path: pathname }));
 
     } catch (err) {
       console.error(`[Lỗi Server] Yêu cầu ${method} ${pathname} gặp sự cố:`, err);
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, message: err.message }));
+      if (!res.headersSent) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Lỗi xử lý nội bộ máy chủ.' }));
+      }
     }
   });
 });

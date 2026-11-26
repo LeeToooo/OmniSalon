@@ -64,7 +64,7 @@
 
           html += `
             <div class="search-result-item" onclick="CustomerWeb.selectSearchResultService('${s.id}')">
-              <img src="${imgUrl}" class="search-item-thumb" alt="${escapeFn(s.name)}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=120&q=80');">
+              <img src="${imgUrl}" class="search-item-thumb" alt="${escapeFn(s.name)}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
               <div class="search-item-info">
                 <div class="search-item-name" title="${escapeFn(s.name)}">${escapeFn(s.name)}</div>
                 <div class="search-item-meta">
@@ -90,7 +90,7 @@
 
           html += `
             <div class="search-result-item" onclick="CustomerWeb.selectSearchResultProduct('${p.id}')">
-              <img src="${pImg}" class="search-item-thumb" alt="${escapeFn(p.name)}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=120&q=80');">
+              <img src="${pImg}" class="search-item-thumb" alt="${escapeFn(p.name)}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
               <div class="search-item-info">
                 <div class="search-item-name" title="${escapeFn(p.name)}">${escapeFn(p.name)}</div>
                 <div class="search-item-meta">

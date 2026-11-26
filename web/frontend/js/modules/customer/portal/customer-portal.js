@@ -93,18 +93,15 @@
      * Lấy thư viện ảnh tóc AI
      */
     getAiGallery() {
-      // Safe delegated call to getAiGallery
-      if (window.CustomerAiStudio && typeof window.CustomerAiStudio.getAiGallery === "function") { return window.CustomerAiStudio.getAiGallery(); }
-      if (window.CustomerAiStudio && typeof window.CustomerAiStudio.getAiGallery === 'function') {
-        return window.CustomerAiStudio.getAiGallery();
-      }
       try {
         const user = this.getCurrentUser();
         const userId = user ? user.id : 'guest';
         const key = `${STORAGE_KEY_AI_GALLERY}_${userId}`;
         const raw = localStorage.getItem(key);
         if (raw) return JSON.parse(raw);
-      } catch (e) { }
+      } catch (e) {
+        console.warn('[CustomerPortal] Cannot read AI gallery:', e.message || e);
+      }
       return [];
     },
 

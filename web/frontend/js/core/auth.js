@@ -169,204 +169,12 @@
     REGISTERED_USERS: 'OMNISALON_DYNAMIC_USERS'
   });
 
-  const JWT_SECRET = 'OMNI_ENTERPRISE_SECRET_KEY_2026_PRODUCTION_SUPER_SAFE';
   const ACCESS_TOKEN_EXP_SECONDS = 7200; // 2 giờ
   const REFRESH_TOKEN_EXP_SECONDS = 604800; // 7 ngày
 
-  // Tài khoản mẫu đã xác thực
-
-  // Danh sách tài khoản mẫu từ cơ sở dữ liệu
-
-  const RAW_STAFF_SQL = [
-    ["NV00","CN01","Lê Minh Hoàng","19008899","admin@omnisalon.vn","Chủ Tịch HĐQT","Quản trị viên"],
-    ["NV01","CN01","Lê Hoàng Hải","0912001001","hai.lh@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV02","CN01","Đỗ Đình Độ","0912001002","do.dd@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV03","CN01","Lê Hữu Luân","0912001003","luan.lh@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV61","CN01","Nguyễn Thảo My","0912021001","my.nt@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV04","CN02","Phạm Thu Thảo","0912002001","thao.pt@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV05","CN02","Trần Quốc Huy","0912002002","huy.tq@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV06","CN02","Nguyễn Minh Triết","0912002003","triet.nm@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV62","CN02","Trần Bích Phương","0912021002","phuong.tb@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV07","CN03","Võ Quốc Bảo","0912003001","bao.vq@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV08","CN03","Đặng Hoài Nam","0912003002","nam.dh@salontoc.vn","Senior Barber","Thợ chính"],
-    ["NV09","CN03","Bùi Tuấn Anh","0912003003","anh.bt@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV63","CN03","Lê Ngọc Hân","0912021003","han.ln@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV10","CN04","Phan Thanh Tùng","0912004001","tung.pt@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV11","CN04","Hà Quốc Trọng","0912004002","trong.hq@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV12","CN04","Ngô Gia Huy","0912004003","huy.ng@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV64","CN04","Phạm Quỳnh Nga","0912021004","nga.pq@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV13","CN05","Trần Đức Minh","0912005001","minh.td@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV14","CN05","Dương Hoàng Long","0912005002","long.dh@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV15","CN05","Lê Minh Khang","0912005003","khang.lm@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV65","CN05","Hoàng Thùy Linh","0912021005","linh.ht@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV16","CN06","Nguyễn Hữu Đạt","0912006001","dat.nh@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV17","CN06","Trịnh Xuân Phong","0912006002","phong.tx@salontoc.vn","Senior Barber","Thợ chính"],
-    ["NV18","CN06","Vũ Hữu Phước","0912006003","phuoc.vh@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV66","CN06","Đỗ Mỹ Linh","0912021006","linh.dm@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV19","CN07","Võ Hoàng Sơn","0912007001","son.vh@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV20","CN07","Đinh Trọng Nghĩa","0912007002","nghia.dt@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV21","CN07","Phạm Nhật Tân","0912007003","tan.pn@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV67","CN07","Vũ Phương Ly","0912021007","ly.vp@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV22","CN08","Lý Thành Danh","0912008001","danh.lt@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV23","CN08","Đỗ Thái Bảo","0912008002","bao.dt@salontoc.vn","Senior Barber","Thợ chính"],
-    ["NV24","CN08","Trần Vĩnh Phát","0912008003","phat.tv@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV68","CN08","Đặng Thu Hà","0912021008","ha.dt@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV25","CN09","Hồ Quang Hiếu","0912009001","hieu.hq@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV26","CN09","Lâm Trường Giang","0912009002","giang.lt@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV27","CN09","Đoàn Văn Hậu","0912009003","hau.dv@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV69","CN09","Bùi Ánh Tuyết","0912021009","tuyet.ba@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV28","CN10","Nguyễn Quang Dũng","0912010001","dung.nq@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV29","CN10","Bùi Tiến Dũng","0912010002","dung.bt@salontoc.vn","Senior Barber","Thợ chính"],
-    ["NV30","CN10","Võ Đình Trọng","0912010003","trong.vd@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV70","CN10","Ngô Thanh Vân","0912021010","van.nt@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV31","CN11","Trương Minh Tuấn","0912011001","tuan.tm@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV32","CN11","Lê Minh Nhựt","0912011002","nhut.lm@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV33","CN11","Trần Khải Hoàn","0912011003","hoan.tk@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV71","CN11","Dương Cẩm Lynh","0912021011","lynh.dc@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV34","CN12","Đặng Quốc Việt","0912012001","viet.dq@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV35","CN12","Cao Xuân Trường","0912012002","truong.cx@salontoc.vn","Senior Barber","Thợ chính"],
-    ["NV36","CN12","Nguyễn Hữu Thắng","0912012003","thang.nh@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV72","CN12","Lý Nhã Kỳ","0912021012","ky.ln@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV37","CN13","Hà Anh Tuấn","0912013001","tuan.ha@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV38","CN13","Phan Đình Phùng","0912013002","phung.pd@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV39","CN13","Lương Thế Vinh","0912013003","vinh.lt@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV73","CN13","Mai Phương Thúy","0912021013","thuy.mp@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV40","CN14","Tô Hiến Thành","0912014001","thanh.th@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV41","CN14","Nguyễn Trãi","0912014002","trai.nt@salontoc.vn","Senior Barber","Thợ chính"],
-    ["NV42","CN14","Lê Lợi An","0912014003","an.lla@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV74","CN14","Trịnh Kim Chi","0912021014","chi.tk@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV43","CN15","Trần Bình Trọng","0912015001","trong.tb@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV44","CN15","Phạm Ngũ Lão","0912015002","lao.pn@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV45","CN15","Yết Kiêu Hoàng","0912015003","hoang.yk@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV75","CN15","Hà Kiều Anh","0912021015","anh.hk@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV46","CN16","Dã Tượng Khang","0912016001","khang.dt@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV47","CN16","Trần Hưng Long","0912016002","long.th@salontoc.vn","Senior Barber","Thợ chính"],
-    ["NV48","CN16","Lý Thường Kiệt B","0912016003","kiet.ltb@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV76","CN16","Trần Tiểu Vy","0912021016","vy.tt@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV49","CN17","Quang Trung Vũ","0912017001","vu.qt@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV50","CN17","Ngô Quyền Sang","0912017002","sang.nq@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV51","CN17","Đinh Bộ Lĩnh Đức","0912017003","duc.dbl@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV77","CN17","Lương Thùy Linh","0912021017","linh.lt@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV52","CN18","Lê Đại Hành Khôi","0912018001","khoi.ldh@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV53","CN18","Phùng Hưng Thịnh","0912018002","thinh.ph@salontoc.vn","Senior Barber","Thợ chính"],
-    ["NV54","CN18","Mai Hắc Đế Cường","0912018003","cuong.mhd@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV78","CN18","Nguyễn Thúc Thùy Tiên","0912021018","tien.ntt@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV55","CN19","Triệu Quang Phục","0912019001","phuc.tqp@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV56","CN19","Lý Nam Đế Toàn","0912019002","toan.lnd@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV57","CN19","Khúc Thừa Dụ Tâm","0912019003","tam.ktd@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV79","CN19","Đoàn Thiên Ân","0912021019","an.dt@salontoc.vn","Nhân viên","Thu ngân"],
-    ["NV58","CN20","Nguyễn Huệ Tân","0912020001","tan.nh@salontoc.vn","Quản lý","Quản lý chi nhánh"],
-    ["NV59","CN20","Nguyễn Lữ Khoa","0912020002","khoa.nl@salontoc.vn","Master Barber","Thợ chính"],
-    ["NV60","CN20","Nguyễn Nhạc Bình","0912020003","binh.nn@salontoc.vn","Junior Barber","Thợ phụ"],
-    ["NV80","CN20","Huỳnh Thị Thanh Thủy","0912021020","thuy.htt@salontoc.vn","Nhân viên","Thu ngân"]
-  ];
-
-  const RAW_CUSTOMERS_SQL = [
-    ["KH01","Ngô Văn Tuấn","0988000001","vantuan@gmail.com","1998-05-14"],
-    ["KH02","Trần Mỹ Linh","0988000002","mylinh.tran@gmail.com","2001-11-20"],
-    ["KH03","Đặng Thanh Tùng","0988000003","thanhtung.dang@gmail.com","1995-03-08"],
-    ["KH04","Vũ Phương Thảo","0988000004","phuongthao.vu@gmail.com","2000-09-12"],
-    ["KH05","Lê Minh Khôi","0988000005","minhkhoi.le@gmail.com","1992-07-24"],
-    ["KH06","Hoàng Trọng Nghĩa","0988000006","nghia.ht@gmail.com","2001-09-12"],
-    ["KH07","Trần Đình Phong","0988000007","phong.td@gmail.com","1999-12-05"],
-    ["KH08","Nguyễn Hải Đăng","0988000008","haidang.nguyen@gmail.com","1997-04-18"],
-    ["KH09","Dương Gia Bảo","0988000009","giabao.duong@gmail.com","2002-08-25"],
-    ["KH10","Phan Hoàng Long","0988000010","hoanglong.phan@gmail.com","1996-10-30"],
-    ["KH11","Đinh Quốc Việt","0988000011","quocviet.dinh@gmail.com","1994-01-15"],
-    ["KH12","Lâm Thanh Sơn","0988000012","thanhson.lam@gmail.com","1998-12-02"],
-    ["KH13","Mai Tấn Phát","0988000013","tanphat.mai@gmail.com","2003-06-19"],
-    ["KH14","Trương Hoàng Phúc","0988000014","hoangphuc.truong@gmail.com","1997-02-28"],
-    ["KH15","Võ Hoài Nam","0988000015","hoainam.vo@gmail.com","1995-11-11"],
-    ["KH16","Đoàn Hữu Tài","0988000016","huutai.doan@gmail.com","2000-03-22"],
-    ["KH17","Cao Minh Đạt","0988000017","minhdat.cao@gmail.com","1993-07-07"],
-    ["KH18","Bùi Quang Huy","0988000018","quanghuy.bui@gmail.com","1999-05-09"],
-    ["KH19","Hồ Văn Cường","0988000019","vancuong.ho@gmail.com","2001-10-14"],
-    ["KH20","Trịnh Công Minh","0988000020","congminh.trinh@gmail.com","1996-08-08"]
-  ];
-
-  const SEED_USERS = [
-    // Super Admin Hệ Thống
-    {
-      id: 'TK_ADMIN',
-      MaTaiKhoan: 'TK_ADMIN',
-      MaNhanVien: 'NV00',
-      MaKhachHang: null,
-      username: 'admin',
-      password: 'admin123',
-      fullName: 'Lê Minh Hoàng',
-      email: 'admin@omnisalon.vn',
-      phone: '19008899',
-      role: ROLES.SUPER_ADMIN,
-      roleName: 'Quản Trị Viên',
-      vaiTroSql: 'Quản trị viên',
-      chucVuSql: 'Quản trị viên',
-      capBacSql: 'Chủ Tịch HĐQT',
-      CapBac: 'Chủ Tịch HĐQT',
-      ChucVu: 'Quản trị viên',
-      branchId: 'ALL',
-      branchName: 'Toàn Bộ Hệ Thống Chuỗi Omni Salon',
-      avatarUrl: '/DataPicture/ChanDungTho/Tho1.jpg',
-      rewardPoints: 10000,
-      tier: 'Chủ Tịch HĐQT',
-      isActive: true
-    },
-    // 80 Nhân sự từ cơ sở dữ liệu
-    ...RAW_STAFF_SQL.filter(item => item[0] !== 'NV00').map(item => {
-      const isManager = item[6] === 'Quản lý chi nhánh';
-      const isCashier = item[6] === 'Thu ngân';
-      const role = isManager ? ROLES.BRANCH_MANAGER : (isCashier ? ROLES.CASHIER : ROLES.STYLIST);
-      const password = isCashier ? 'tn123' : 'nv123';
-      return {
-        id: `TK_${item[0]}`,
-        MaTaiKhoan: `TK_${item[0]}`,
-        MaNhanVien: item[0],
-        MaKhachHang: null,
-        username: `user_${item[0].toLowerCase()}`,
-        password: password,
-        fullName: item[2],
-        email: item[4],
-        phone: item[3],
-        role: role,
-        roleName: item[6],
-        vaiTroSql: isManager ? 'Quản lý' : (isCashier ? 'Thu ngân' : 'Nhân viên'),
-        chucVuSql: item[6],
-        capBacSql: item[5],
-        CapBac: item[5],
-        ChucVu: item[6],
-        branchId: item[1],
-        branchName: BRANCH_SQL_MAP[item[1]] || `Omni Salon Barber ${item[1]}`,
-        avatarUrl: isCashier
-          ? `/DataPicture/ChanDungTho/Tho${((parseInt(item[0].replace(/\D/g, '') || 1) - 1) % 20) + 1}.jpg`
-          : `/DataPicture/ChanDungTho/Tho${((parseInt(item[0].replace(/\D/g, '') || 1) - 1) % 20) + 1}.jpg`,
-        rewardPoints: isManager ? 5000 : (isCashier ? 1000 : 2000),
-        tier: item[5],
-        isActive: true
-      };
-    }),
-    // 20 Khách hàng từ cơ sở dữ liệu
-    ...RAW_CUSTOMERS_SQL.map(item => ({
-      id: `TK_${item[0]}`,
-      MaTaiKhoan: `TK_${item[0]}`,
-      MaNhanVien: null,
-      MaKhachHang: item[0],
-      username: `user_${item[0].toLowerCase()}`,
-      password: 'kh123',
-      fullName: item[1],
-      email: item[3],
-      phone: item[2],
-      role: ROLES.CUSTOMER,
-      roleName: 'Khách hàng',
-      vaiTroSql: 'Khách hàng',
-      CapBac: null,
-      ChucVu: null,
-      branchId: null,
-      branchName: 'Khách Hàng',
-      avatarUrl: `/DataPicture/ChanDungTho/Tho${((parseInt(item[0].replace(/\D/g, '') || 1) - 1) % 20) + 1}.jpg`,
-      rewardPoints: 0,
-      tier: 'Khách Hàng',
-      isActive: true
-    }))
-  ];
+  // Không lưu khóa ký JWT hay tài khoản/mật khẩu mặc định phía trình duyệt;
+  // mọi xác thực tài khoản và chữ ký JWT đều thực hiện tại Backend Server.
+  const SEED_USERS = [];
 
   // Layer: validator service
 
@@ -451,40 +259,9 @@
       }
     }
 
-    static generateSignature(input, secret) {
-      let hash = 0;
-      const combined = input + '.' + secret;
-      for (let i = 0; i < combined.length; i++) {
-        const char = combined.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash |= 0;
-      }
-      const hex = Math.abs(hash).toString(16).padStart(8, '0');
-      return this.base64UrlEncode('sig_' + hex + '_' + combined.length);
-    }
-
-    static sign(payload, expiresInSeconds = ACCESS_TOKEN_EXP_SECONDS) {
-      const header = { alg: 'HS256', typ: 'JWT' };
-      const now = Math.floor(Date.now() / 1000);
-      const enrichedPayload = {
-        ...payload,
-        iat: now,
-        exp: now + expiresInSeconds
-      };
-
-      const encodedHeader = this.base64UrlEncode(JSON.stringify(header));
-      const encodedPayload = this.base64UrlEncode(JSON.stringify(enrichedPayload));
-      const signature = this.generateSignature(encodedHeader + '.' + encodedPayload, JWT_SECRET);
-
-      const token = `${encodedHeader}.${encodedPayload}.${signature}`;
-      this._tokenCache.set(token, enrichedPayload);
-      return token;
-    }
-
     static verifyDetailed(token) {
       if (!token || typeof token !== 'string') return { valid: false, error: 'EMPTY' };
 
-      // Check cache trước
       if (this._tokenCache.has(token)) {
         const cached = this._tokenCache.get(token);
         const now = Math.floor(Date.now() / 1000);
@@ -496,20 +273,20 @@
       }
 
       const parts = token.split('.');
-      if (parts.length !== 3) return { valid: false, error: 'MALFORMED' };
+      if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) {
+        return { valid: false, error: 'MALFORMED' };
+      }
 
       try {
-        const [encodedHeader, encodedPayload, signature] = parts;
-        const expectedSignature = this.generateSignature(encodedHeader + '.' + encodedPayload, JWT_SECRET);
-        if (signature !== expectedSignature) {
-          return { valid: false, error: 'INVALID_SIGNATURE' };
+        const header = JSON.parse(this.base64UrlDecode(parts[0]));
+        if (!header || header.alg !== 'HS256') {
+          return { valid: false, error: 'INVALID_ALG' };
         }
-
-        const payloadStr = this.base64UrlDecode(encodedPayload);
+        const payloadStr = this.base64UrlDecode(parts[1]);
         const payload = JSON.parse(payloadStr);
 
         const now = Math.floor(Date.now() / 1000);
-        if (payload.exp && payload.exp < now) {
+        if (!payload || (payload.exp && payload.exp < now)) {
           return { valid: false, error: 'EXPIRED', payload };
         }
 
@@ -537,9 +314,13 @@
 
     static async syncWithServer() {
       try {
-        if (typeof fetch === 'function') {
+        if (typeof fetch === 'function' && window.AuthEngine && typeof window.AuthEngine.getAuthHeader === 'function') {
+          const authHeader = window.AuthEngine.getAuthHeader();
+          if (!authHeader || !authHeader.Authorization) return;
+          const cur = window.AuthEngine.getCurrentUser();
+          if (!cur || !['SUPER_ADMIN', 'BRANCH_MANAGER'].includes(String(cur.role || '').toUpperCase())) return;
           const accUrl = (typeof location !== 'undefined' && location.port === '3000') ? '/api/accounts' : 'http://localhost:3000/api/accounts';
-          const res = await fetch(accUrl);
+          const res = await fetch(accUrl, { headers: authHeader });
           if (res && res.ok) {
             const list = await res.json();
             if (Array.isArray(list) && list.length > 0) {
@@ -789,7 +570,8 @@
     static canAccessResource(user, resourceOwnerId) {
       if (!user) return false;
       if (user.role === ROLES.SUPER_ADMIN) return true; // SuperAdmin toàn quyền kiểm toán
-      return user.id === resourceOwnerId;
+      const ownerIds = [user.id, user.userId, user.customerId, user.MaKhachHang, user.staffId, user.MaNhanVien].filter(Boolean);
+      return ownerIds.includes(resourceOwnerId);
     }
 
     static getPermissionsForRole(role) {
@@ -843,7 +625,6 @@
     }
 
     init() {
-      UserRepository.syncWithServer();
       const session = SessionStorageService.getSession();
       if (!session.accessToken) {
         this.clearSession();
@@ -855,7 +636,6 @@
         this.accessToken = session.accessToken;
         this.refreshToken = session.refreshToken;
         this.currentUser = this._mapPayloadToUser(verifyResult.payload);
-        // Ưu tiên các trường mới nhất đã lưu trong session.userJson (tránh bị token cũ đè lại chi nhánh cũ khi F5)
         if (session.userJson) {
           try {
             const cachedUser = JSON.parse(session.userJson);
@@ -870,28 +650,7 @@
           } catch (_) {}
         }
         this.syncCurrentUserWithServer();
-      } else if (verifyResult.error === 'EXPIRED' && session.refreshToken) {
-        // Chỉ cấp mới qua RefreshToken khi AccessToken chỉ đơn thuần bị quá hạn
-        this.refreshSession(session.refreshToken);
-        this.syncCurrentUserWithServer();
-      } else if (session.userJson) {
-        try {
-          const user = JSON.parse(session.userJson);
-          if (user && (user.id || user.username)) {
-            const issued = this._issueTokens(user);
-            this.accessToken = issued.accessToken;
-            this.refreshToken = issued.refreshToken;
-            this.currentUser = this._mapPayloadToUser(issued.payload);
-            SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
-            this.syncCurrentUserWithServer();
-          } else {
-            this.clearSession();
-          }
-        } catch (e) {
-          this.clearSession();
-        }
       } else {
-        // Chữ ký không hợp lệ, token bị sửa đổi hoặc giả mạo -> Hủy toàn bộ phiên đăng nhập ngay lập tức
         this.clearSession();
       }
     }
@@ -905,42 +664,45 @@
             'Authorization': `Bearer ${this.accessToken}`
           }
         });
+        if (res.status === 401 || res.status === 403) {
+          this.clearSession();
+          this._syncStore('LOGOUT', null);
+          this.notifySubscribers('LOGOUT', null);
+          return;
+        }
         if (res.ok) {
           const data = await res.json();
+          if (data && data.status === 'guest') {
+            this.clearSession();
+            this._syncStore('LOGOUT', null);
+            this.notifySubscribers('LOGOUT', null);
+            return;
+          }
           if (data && data.success && data.user) {
             const u = data.user;
-            let changed = false;
             if (this.currentUser) {
               if (u.branchId && this.currentUser.branchId !== u.branchId) {
                 this.currentUser.branchId = u.branchId;
                 this.currentUser.branchName = u.branchName || resolveFullBranchName(u.branchId, null, this.currentUser.role);
                 this.currentUser.MaChiNhanh = u.branchId;
                 this.currentUser.TenChiNhanh = this.currentUser.branchName;
-                changed = true;
               }
               if (u.fullName && this.currentUser.fullName !== u.fullName) {
                 this.currentUser.fullName = u.fullName;
-                changed = true;
               }
-              if (changed) {
-                // Tái phát hành token mới chứa chi nhánh cập nhật để các lần F5 tiếp theo luôn đồng bộ
-                const issued = this._issueTokens(this.currentUser);
-                this.accessToken = issued.accessToken;
-                this.refreshToken = issued.refreshToken;
-                SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
-                if (window.store && window.store.state) {
-                  window.store.state.currentUser = { ...this.currentUser };
-                  window.store.saveState();
-                }
-                if (typeof window.AdminWeb?.updateHeaderBranchDisplay === 'function') {
-                  window.AdminWeb.updateHeaderBranchDisplay();
-                }
+              SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
+              if (window.store && window.store.state) {
+                window.store.state.currentUser = { ...this.currentUser };
+                window.store.saveState();
+              }
+              if (typeof window.AdminWeb?.updateHeaderBranchDisplay === 'function') {
+                window.AdminWeb.updateHeaderBranchDisplay();
               }
             }
           }
         }
       } catch (err) {
-        // im lặng bỏ qua lỗi mạng
+        // Bỏ qua lỗi mạng tạm thời, không giả mạo token
       }
     }
 
@@ -949,9 +711,9 @@
       const bName = resolveFullBranchName(bId, payload.branchName, payload.role);
 
       return {
-        id: payload.sub,
+        id: payload.id || payload.userId || payload.sub,
         username: payload.username,
-        fullName: payload.fullName,
+        fullName: payload.fullName || payload.name || payload.username || '',
         role: payload.role,
         roleName: payload.roleName || ROLE_NAMES[payload.role] || payload.role,
         branchId: bId,
@@ -961,8 +723,10 @@
         avatarUrl: payload.avatarUrl || '/DataPicture/ChanDungTho/Tho1.jpg',
         rewardPoints: payload.rewardPoints || 0,
         tier: payload.tier || 'Thành Viên',
-        MaNhanVien: payload.MaNhanVien || null,
-        MaKhachHang: payload.MaKhachHang || null,
+        staffId: payload.staffId || payload.MaNhanVien || null,
+        customerId: payload.customerId || payload.MaKhachHang || null,
+        MaNhanVien: payload.staffId || payload.MaNhanVien || null,
+        MaKhachHang: payload.customerId || payload.MaKhachHang || null,
         CapBac: payload.CapBac || null,
         ChucVu: payload.ChucVu || null,
         vaiTroSql: payload.vaiTroSql || (payload.role === 'SUPER_ADMIN' ? 'Quản trị viên' : (payload.role === 'BRANCH_MANAGER' ? 'Quản lý' : (payload.role === 'CASHIER' ? 'Thu ngân' : (payload.role === 'CUSTOMER' ? 'Khách hàng' : 'Nhân viên')))),
@@ -972,317 +736,45 @@
       };
     }
 
-    _issueTokens(user) {
-      const permissions = PermissionPolicyService.getPermissionsForRole(user.role);
-      const payload = {
-        sub: user.id,
-        username: user.username,
-        fullName: user.fullName,
-        role: user.role,
-        roleName: user.roleName || ROLE_NAMES[user.role],
-        branchId: user.branchId,
-        branchName: user.branchName,
-        email: user.email,
-        phone: user.phone,
-        avatarUrl: user.avatarUrl,
-        rewardPoints: user.rewardPoints || 0,
-        tier: user.tier || 'Thành Viên',
-        MaNhanVien: user.MaNhanVien || null,
-        MaKhachHang: user.MaKhachHang || null,
-        CapBac: user.CapBac || null,
-        ChucVu: user.ChucVu || null,
-        vaiTroSql: user.vaiTroSql || null,
-        chucVuSql: user.chucVuSql || user.ChucVu || null,
-        capBacSql: user.capBacSql || user.CapBac || null,
-        permissions
-      };
-
-      const accessToken = TokenService.sign(payload, ACCESS_TOKEN_EXP_SECONDS);
-      const refreshPayload = { sub: user.id, username: user.username, type: 'refresh' };
-      const refreshToken = TokenService.sign(refreshPayload, REFRESH_TOKEN_EXP_SECONDS);
-
-      return { accessToken, refreshToken, payload };
-    }
-
     login(identifier, password) {
-      if (!identifier || typeof identifier !== 'string' || !identifier.trim()) {
-        return { success: false, message: 'Vui lòng nhập Tên đăng nhập, Email hoặc Số điện thoại.' };
-      }
-      if (!password || typeof password !== 'string') {
-        return { success: false, message: 'Vui lòng nhập mật khẩu.' };
-      }
-
-      const user = UserRepository.findByIdentifier(identifier);
-      if (!user) {
-        return { success: false, message: 'Tài khoản không tồn tại trên hệ thống OmniSalon.' };
-      }
-
-      if (!user.isActive) {
-        return { success: false, message: 'Tài khoản này hiện đang tạm khóa. Vui lòng liên hệ quản trị viên.' };
-      }
-
-      const cleanPass = password.trim();
-      const isValid = (user.password === password) ||
-                      (user.password === cleanPass) ||
-                      (user.alternatePassword === password) ||
-                      (cleanPass === 'admin123' && (user.username === 'admin' || user.role === ROLES.SUPER_ADMIN)) ||
-                      (cleanPass === 'nv123' && !!user.MaNhanVien) ||
-                      (cleanPass === 'tn123' && user.role === ROLES.CASHIER) ||
-                      (cleanPass === 'kh123' && !!user.MaKhachHang) ||
-                      (stripVietnameseTones(cleanPass).replace(/\s+/g, '') === stripVietnameseTones(user.fullName || '').replace(/\s+/g, '')) ||
-                      (cleanPass === '123456');
-      if (!isValid) {
-        return { success: false, message: 'Mật khẩu không chính xác. Vui lòng kiểm tra lại.' };
-      }
-
-      const { accessToken, refreshToken, payload } = this._issueTokens(user);
-      this.accessToken = accessToken;
-      this.refreshToken = refreshToken;
-      this.currentUser = this._mapPayloadToUser(payload);
-
-      SessionStorageService.saveSession(accessToken, refreshToken, this.currentUser);
-      this._syncStore('LOGIN', user);
-      this.notifySubscribers('LOGIN', this.currentUser);
-
       return {
-        success: true,
-        message: `Đăng nhập thành công! Chào mừng ${user.fullName}`,
-        user: this.currentUser,
-        token: accessToken,
-        refreshToken
+        success: false,
+        message: 'Vui lòng đăng nhập trực tiếp qua máy chủ xác thực (/api/auth/login).'
       };
     }
 
     sendOtp(identifier) {
-      if (!identifier || typeof identifier !== 'string' || !identifier.trim()) {
-        return { success: false, message: 'Vui lòng nhập Email hoặc Số điện thoại.' };
-      }
-      const clean = identifier.trim();
-      const isEmail = clean.includes('@');
-      if (isEmail) {
-        if (!ValidatorService.validateEmail(clean)) {
-          return { success: false, message: 'Địa chỉ Email không đúng định dạng.' };
-        }
-      } else {
-        if (!ValidatorService.validatePhone(clean)) {
-          return { success: false, message: 'Số điện thoại không hợp lệ (cần 9-11 chữ số).' };
-        }
-      }
-      const lower = clean.toLowerCase();
-      const now = Date.now();
-      const existing = this.clientOtpStore.get(lower);
-      if (existing && (now - existing.lastSentAt) < 30000) {
-        const waitSec = Math.ceil((30000 - (now - existing.lastSentAt)) / 1000);
-        return { success: false, message: `Vui lòng đợi ${waitSec} giây trước khi yêu cầu gửi lại.` };
-      }
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      this.clientOtpStore.set(lower, {
-        otp,
-        expiresAt: now + 5 * 60 * 1000,
-        lastSentAt: now,
-        verified: false
-      });
       return {
-        success: true,
-        message: isEmail ? `Mã xác nhận 6 số đã được gửi đến email ${clean}.` : `Mã xác nhận 6 số đã gửi tới số điện thoại ${clean}.`,
-        otp
+        success: false,
+        message: 'Vui lòng gửi mã OTP qua máy chủ (/api/auth/send-otp).'
       };
     }
 
     verifyOtp(identifier, otp) {
-      if (!identifier || !otp) {
-        return { success: false, message: 'Vui lòng nhập đầy đủ Email/Số điện thoại và Mã xác nhận OTP.' };
-      }
-      const lower = String(identifier).trim().toLowerCase();
-      const entry = this.clientOtpStore.get(lower);
-      if (!entry) {
-        return { success: false, message: 'Mã xác nhận chưa được gửi hoặc đã hết hiệu lực.' };
-      }
-      if (Date.now() > entry.expiresAt) {
-        this.clientOtpStore.delete(lower);
-        return { success: false, message: 'Mã xác nhận đã hết hạn (quá 5 phút). Vui lòng yêu cầu gửi lại.' };
-      }
-      if (entry.otp !== String(otp).trim()) {
-        return { success: false, message: 'Mã xác nhận không chính xác. Vui lòng kiểm tra lại.' };
-      }
-      entry.verified = true;
-      return { success: true, message: 'Xác thực mã OTP thành công!' };
-    }
-
-    register(userData) {
-      if (!userData || typeof userData !== 'object') {
-        return { success: false, message: 'Dữ liệu đăng ký không hợp lệ.' };
-      }
-
-      const fullName = (userData.fullName || userData.name || '').trim();
-      const email = (userData.email || '').trim().toLowerCase();
-      const phone = (userData.phone || '').trim();
-      const birthday = (userData.birthday || userData.ngaySinh || '').trim() || null;
-      const password = userData.password || '';
-      const username = (userData.username || (email.split('@')[0] || 'user_' + Date.now())).trim();
-
-      if (!ValidatorService.validateFullName(fullName)) {
-        return { success: false, message: 'Họ và tên phải có ít nhất 2 ký tự.' };
-      }
-      if (!ValidatorService.validateEmail(email)) {
-        return { success: false, message: 'Định dạng Email không hợp lệ (Ví dụ: ten@gmail.com).' };
-      }
-      if (!ValidatorService.validatePhone(phone)) {
-        return { success: false, message: 'Số điện thoại không hợp lệ (Bắt đầu bằng 0 hoặc +84 gồm 10 số).' };
-      }
-      if (!ValidatorService.validatePassword(password)) {
-        return { success: false, message: 'Mật khẩu phải chứa tối thiểu 6 ký tự.' };
-      }
-
-      // Xác thực OTP nếu được cung cấp
-      if (userData.otp !== undefined && userData.otp !== null && userData.otp !== '') {
-        const lower = email.trim().toLowerCase();
-        const entry = this.clientOtpStore.get(lower);
-        const otpStr = String(userData.otp).trim();
-        if (entry && (entry.verified || entry.otp === otpStr)) {
-          // Hợp lệ đã xác thực
-        } else if (otpStr === '123456') {
-          // Bypass dev code
-        } else if (!entry) {
-          // Nếu đã xác thực thành công ở bước UI trước
-          if (otpStr.length !== 6) {
-            return { success: false, message: 'Mã xác nhận OTP cần 6 chữ số.' };
-          }
-        } else {
-          const verifyRes = this.verifyOtp(email, userData.otp);
-          if (!verifyRes.success) {
-            return verifyRes;
-          }
-        }
-      }
-
-      if (UserRepository.exists(email, phone, username)) {
-        return { success: false, message: 'Email, Số điện thoại hoặc Tên đăng nhập này đã được sử dụng.' };
-      }
-
-      const newUser = {
-        id: 'usr-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 6),
-        username,
-        password,
-        fullName,
-        email,
-        phone,
-        birthday,
-        role: ROLES.CUSTOMER,
-        roleName: ROLE_NAMES.CUSTOMER,
-        branchId: null,
-        branchName: 'Khách Hàng',
-        avatarUrl: userData.avatarUrl || '/DataPicture/ChanDungTho/Tho1.jpg',
-        rewardPoints: 100, // Chào mừng 100 điểm
-        tier: 'Standard Member',
-        isActive: true,
-        createdAt: new Date().toISOString()
-      };
-
-      UserRepository.save(newUser);
-
-      // Đồng bộ trực tiếp vào CSDL SQL Server
-      if (typeof fetch !== 'undefined') {
-        const apiUrl = (typeof window !== 'undefined' && window.location.origin)
-          ? `${window.location.origin}/api/auth/register`
-          : 'http://localhost:3000/api/auth/register';
-        fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fullName,
-            phone,
-            email,
-            birthday,
-            password
-          })
-        }).catch(() => {});
-      }
-
-      const { accessToken, refreshToken, payload } = this._issueTokens(newUser);
-      this.accessToken = accessToken;
-      this.refreshToken = refreshToken;
-      this.currentUser = this._mapPayloadToUser(payload);
-
-      SessionStorageService.saveSession(accessToken, refreshToken, this.currentUser);
-      this._syncStore('REGISTER', newUser);
-      this.notifySubscribers('REGISTER', this.currentUser);
-
       return {
-        success: true,
-        message: 'Đăng ký tài khoản thành công! Chào mừng bạn đến với Omni Salon.',
-        user: this.currentUser,
-        token: accessToken
+        success: false,
+        message: 'Vui lòng xác thực mã OTP qua máy chủ (/api/auth/verify-otp).'
       };
     }
 
-    resetPassword(resetData) {
-      if (!resetData || typeof resetData !== 'object') {
-        return { success: false, message: 'Dữ liệu không hợp lệ.' };
-      }
-      const identifier = (resetData.identifier || resetData.email || resetData.phone || '').trim();
-      const email = (resetData.email || '').trim().toLowerCase();
-      const otp = (resetData.otp || '').trim();
-      const newPassword = (resetData.newPassword || resetData.password || '').trim();
-
-      if (!identifier && !email) {
-        return { success: false, message: 'Vui lòng cung cấp email hoặc tên đăng nhập/SĐT.' };
-      }
-      if (!newPassword || newPassword.length < 3) {
-        return { success: false, message: 'Mật khẩu mới phải có tối thiểu 3 ký tự.' };
-      }
-
-      if (otp) {
-        const verifyRes = this.verifyOtp(email || identifier, otp);
-        if (!verifyRes.success) {
-          return verifyRes;
-        }
-      }
-
-      // Cập nhật mật khẩu ngay vào UserRepository local
-      UserRepository.updatePassword(identifier, newPassword);
-      if (email && email !== identifier) {
-        UserRepository.updatePassword(email, newPassword);
-      }
-
-      const user = UserRepository.findByIdentifier(identifier) || (email ? UserRepository.findByEmail(email) : null);
-      if (user) {
-        user.password = newPassword;
-        user.alternatePassword = newPassword;
-        if (user.phone) UserRepository.updatePassword(user.phone, newPassword);
-        if (user.email) UserRepository.updatePassword(user.email, newPassword);
-        if (user.username) UserRepository.updatePassword(user.username, newPassword);
-        UserRepository.save(user);
-        this._syncStore('PASSWORD_RESET', user);
-      }
-
-      // Đồng bộ mật khẩu mới trực tiếp vào CSDL SQL Server
-      if (typeof fetch !== 'undefined') {
-        const apiUrl = (typeof window !== 'undefined' && window.location.origin)
-          ? `${window.location.origin}/api/auth/reset-password`
-          : 'http://localhost:3000/api/auth/reset-password';
-        fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            identifier: identifier || email,
-            email: email || identifier,
-            phone: (user && user.phone) ? user.phone : identifier,
-            newPassword
-          })
-        }).then(() => {
-          UserRepository.syncWithServer();
-        }).catch(() => {});
-      }
-
+    register() {
       return {
-        success: true,
-        message: 'Đổi mật khẩu thành công'
+        success: false,
+        message: 'Vui lòng đăng ký tài khoản trực tiếp qua máy chủ (/api/auth/register).'
+      };
+    }
+
+    resetPassword() {
+      return {
+        success: false,
+        message: 'Vui lòng đặt lại mật khẩu qua máy chủ (/api/auth/reset-password).'
       };
     }
 
     setSessionFromBackend(backendUser, token) {
-      if (!backendUser) return null;
+      if (!backendUser || !token || typeof token !== 'string' || token.split('.').length !== 3) {
+        return null;
+      }
       const role = backendUser.role || ROLES.CUSTOMER;
       const bId = backendUser.branchId || backendUser.MaChiNhanh || null;
       const bName = resolveFullBranchName(bId, backendUser.branchName || backendUser.TenChiNhanh, role);
@@ -1295,6 +787,8 @@
         phone: backendUser.phone || backendUser.SdtNV || backendUser.SdtKH || '',
         role: role,
         roleName: backendUser.roleName || backendUser.ChucVu || backendUser.chucVuSql || backendUser.vaiTroSql || 'Khách Hàng',
+        staffId: backendUser.staffId || backendUser.MaNhanVien || null,
+        customerId: backendUser.customerId || backendUser.MaKhachHang || null,
         MaNhanVien: backendUser.staffId || backendUser.MaNhanVien || null,
         MaKhachHang: backendUser.customerId || backendUser.MaKhachHang || null,
         CapBac: backendUser.CapBac || backendUser.capBacSql || null,
@@ -1308,56 +802,20 @@
         permissions: ROLE_PERMISSIONS[role] || []
       };
 
-      // Luôn cấp JWT chuẩn HS256 nếu token từ backend không phải JWT 3 phần hợp lệ
-      const hasValidJwt = token && typeof token === 'string' && token.split('.').length === 3 && TokenService.verify(token);
-      let sessionToken = token;
-      let sessionRefresh = 'REFRESH_' + Date.now();
-
-      if (!hasValidJwt) {
-        const issued = this._issueTokens(mappedUser);
-        sessionToken = issued.accessToken;
-        sessionRefresh = issued.refreshToken;
-      }
-
       this.currentUser = mappedUser;
-      this.accessToken = sessionToken;
-      this.refreshToken = sessionRefresh;
+      this.accessToken = token;
+      this.refreshToken = null;
 
-      SessionStorageService.saveSession(this.accessToken, this.refreshToken, this.currentUser);
+      SessionStorageService.saveSession(this.accessToken, '', this.currentUser);
       this._syncStore('LOGIN', this.currentUser);
       this.notifySubscribers('LOGIN', this.currentUser);
 
-      UserRepository.save(mappedUser);
       return this.currentUser;
     }
 
-    refreshSession(refreshTokenStr) {
-      const token = refreshTokenStr || this.refreshToken;
-      if (!token) {
-        this.clearSession();
-        return false;
-      }
-
-      const payload = TokenService.verify(token);
-      if (!payload || payload.type !== 'refresh') {
-        this.clearSession();
-        return false;
-      }
-
-      const user = UserRepository.findById(payload.sub);
-      if (!user || !user.isActive) {
-        this.clearSession();
-        return false;
-      }
-
-      const { accessToken, refreshToken: newRefreshToken, payload: newPayload } = this._issueTokens(user);
-      this.accessToken = accessToken;
-      this.refreshToken = newRefreshToken;
-      this.currentUser = this._mapPayloadToUser(newPayload);
-
-      SessionStorageService.saveSession(accessToken, newRefreshToken, this.currentUser);
-      this.notifySubscribers('REFRESH', this.currentUser);
-      return true;
+    refreshSession() {
+      this.clearSession();
+      return false;
     }
 
     logout() {
@@ -1377,17 +835,11 @@
     }
 
     isAuthenticated() {
-      if (!this.currentUser) return false;
-      if (!this.accessToken) return false;
-      if (TokenService.verify(this.accessToken)) return true;
-      if (typeof this.accessToken === 'string' && (this.accessToken.startsWith('JWT_') || this.accessToken.length > 5)) {
-        return true;
-      }
-      return false;
+      if (!this.currentUser || !this.accessToken) return false;
+      return Boolean(TokenService.verify(this.accessToken));
     }
 
     getCurrentUser() {
-      if (this.currentUser) return this.currentUser;
       return this.isAuthenticated() ? this.currentUser : null;
     }
 
@@ -1402,66 +854,73 @@
 
     hasRole(requiredRoles) {
       if (!this.currentUser) return false;
-      const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
-      const userRole = this.currentUser.role || this.currentUser.vaiTroSql || '';
-      return roles.includes(userRole);
+      return PermissionPolicyService.hasRole(this.currentUser, requiredRoles);
     }
 
     hasPermission(permissionCode) {
-      // Đồ án đơn giản: Cho phép mọi quyền
-      return true;
+      return PermissionPolicyService.hasPermission(this.currentUser, permissionCode);
     }
 
     canAccessBranch(branchId) {
-      return true;
+      return PermissionPolicyService.canAccessBranch(this.currentUser, branchId);
     }
 
     canAccessResource(resourceOwnerId) {
-      // Đồ án đơn giản: Không chặn IDOR
-      return true;
+      return PermissionPolicyService.canAccessResource(this.currentUser, resourceOwnerId);
     }
 
-    updateProfile(updates) {
+    async updateProfile(updates) {
       if (!this.isAuthenticated()) {
         return { success: false, message: 'Bạn chưa đăng nhập.' };
       }
 
       const user = this.currentUser;
-      if (updates.fullName) user.fullName = updates.fullName.trim();
-      if (updates.phone) user.phone = updates.phone.trim();
-      if (updates.avatarUrl) user.avatarUrl = updates.avatarUrl.trim();
+      const targetId = user.MaNhanVien ? `TK_${user.MaNhanVien}` : (user.MaKhachHang ? `TK_${user.MaKhachHang}` : user.id);
 
-      const { accessToken, refreshToken, payload } = this._issueTokens(user);
-      this.accessToken = accessToken;
-      this.refreshToken = refreshToken;
-      this.currentUser = this._mapPayloadToUser(payload);
-
-      SessionStorageService.saveSession(accessToken, refreshToken, this.currentUser);
-      this.notifySubscribers('PROFILE_UPDATED', this.currentUser);
-
-      // Đồng bộ thông tin cá nhân trực tiếp vào CSDL SQL Server
-      if (typeof fetch !== 'undefined' && user) {
+      try {
         const apiUrl = (typeof window !== 'undefined' && window.location.origin)
           ? `${window.location.origin}/api/auth/profile`
           : 'http://localhost:3000/api/auth/profile';
-        fetch(apiUrl, {
+        const res = await fetch(apiUrl, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...this.getAuthHeader()
+          },
           body: JSON.stringify({
-            id: user.MaNhanVien ? `TK_${user.MaNhanVien}` : (user.MaKhachHang ? `TK_${user.MaKhachHang}` : user.id),
-            fullName: user.fullName,
-            phone: user.phone,
-            email: user.email
+            id: targetId,
+            fullName: updates.fullName ? updates.fullName.trim() : user.fullName,
+            phone: updates.phone ? updates.phone.trim() : user.phone,
+            email: updates.email ? updates.email.trim() : user.email
           })
-        }).catch(() => {});
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data || data.success === false) {
+          return { success: false, message: data?.message || 'Không thể cập nhật thông tin cá nhân.' };
+        }
+      } catch (e) {
+        return { success: false, message: 'Lỗi kết nối máy chủ khi cập nhật hồ sơ.' };
       }
+
+      if (updates.fullName) user.fullName = updates.fullName.trim();
+      if (updates.phone) user.phone = updates.phone.trim();
+      if (updates.email) user.email = updates.email.trim();
+      if (updates.avatarUrl) user.avatarUrl = updates.avatarUrl.trim();
+
+      SessionStorageService.saveSession(this.accessToken, this.refreshToken || '', this.currentUser);
+      this._syncStore('PROFILE_UPDATED', this.currentUser);
+      this.notifySubscribers('PROFILE_UPDATED', this.currentUser);
 
       return { success: true, message: 'Cập nhật thông tin thành công!', user: this.currentUser };
     }
 
     protectRoute(allowedRoles, onAuthorized, onDenied) {
-      if (typeof onAuthorized === 'function') onAuthorized(this.currentUser);
-      return true;
+      if (this.isAuthenticated() && this.hasRole(allowedRoles)) {
+        if (typeof onAuthorized === 'function') onAuthorized(this.currentUser);
+        return true;
+      }
+      if (typeof onDenied === 'function') onDenied(this.currentUser);
+      return false;
     }
 
     requireAuth(actionFn, fallbackFn) {
@@ -1476,12 +935,15 @@
     }
 
     requirePermission(permissionCode, actionFn, fallbackFn) {
-      if (this.isAuthenticated()) {
+      if (this.isAuthenticated() && this.hasPermission(permissionCode)) {
         if (typeof actionFn === 'function') actionFn(this.currentUser);
         return true;
-      } else {
+      } else if (!this.isAuthenticated()) {
         if (typeof fallbackFn === 'function') fallbackFn();
         else this.triggerLoginModal('Vui lòng đăng nhập để thực hiện tính năng này.');
+        return false;
+      } else {
+        if (typeof fallbackFn === 'function') fallbackFn();
         return false;
       }
     }

@@ -37,7 +37,7 @@
                 <img src="${typeof SalonUtils !== 'undefined' && SalonUtils.formatImageUrl ? SalonUtils.formatImageUrl(item.image) : item.image}" 
                      alt="${item.name}" 
                      class="mini-cart-img"
-                     onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=200&q=80');">
+                     onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
                 <span class="mini-cart-item-qty-badge" title="Đã có trong giỏ">${item.qty > 1 ? item.qty : '!'}</span>
               </div>
               <div class="mini-cart-item-info">

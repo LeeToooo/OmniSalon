@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:omni_salon_mobile/models/branch.dart';
 import 'package:omni_salon_mobile/models/stylist.dart';
 import 'package:omni_salon_mobile/models/product.dart';
@@ -9,6 +10,14 @@ import 'package:omni_salon_mobile/models/order.dart';
 import 'package:omni_salon_mobile/models/service.dart';
 
 class ApiService {
+  static Map<String, String> _authHeaders({bool jsonContent = true}) {
+    final token = AuthService.currentToken;
+    return {
+      if (jsonContent) 'Content-Type': 'application/json; charset=utf-8',
+      'Accept': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
   static String get defaultBaseUrl {
     if (kIsWeb) return 'http://localhost:3000/api';
     if (defaultTargetPlatform == TargetPlatform.android) {
@@ -38,7 +47,7 @@ class ApiService {
   static String getImageUrl(String? rawPath, {String fallback = ''}) {
     if (rawPath == null || rawPath.trim().isEmpty || rawPath.trim() == 'null') {
       if (fallback.isNotEmpty) return getImageUrl(fallback);
-      return 'assets/images/placeholder_avatar.png';
+      return '$baseServerUrl/DataPicture/ChanDungTho/Tho1.jpg';
     }
 
     final trimmed = rawPath.trim();
@@ -46,13 +55,9 @@ class ApiService {
       if (trimmed.contains('images.unsplash.com')) {
         return fallback.isNotEmpty
             ? getImageUrl(fallback)
-            : 'assets/images/placeholder_avatar.png';
+            : '$baseServerUrl/DataPicture/ChanDungTho/Tho1.jpg';
       }
       return Uri.encodeFull(trimmed);
-    }
-
-    if (trimmed.startsWith('assets/banners/') || trimmed.startsWith('assets/images/')) {
-      return trimmed;
     }
 
     String clean =
@@ -76,7 +81,9 @@ class ApiService {
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes));
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[ApiService] checkHealth failed: $e');
+    }
     return {'status': 'disconnected', 'sqlConnected': false};
   }
 
@@ -164,40 +171,24 @@ class ApiService {
     return <Stylist>[];
   }
 
-  // Lấy khung giờ trống cho lịch hẹn
+  // Lấy khung giờ trống cho lịch hẹn (không dùng slot giả khi mất kết nối)
   static Future<List<Map<String, dynamic>>> fetchAvailableSlots(
-      String date, String stylistId) async {
-    final defaultSlots = [
-      '08:30', '09:30', '10:30', '11:30',
-      '13:30', '14:30', '15:30', '16:30',
-      '17:30', '18:30', '19:30', '20:30'
-    ];
-
-    try {
-      final res = await http
-          .get(
-            Uri.parse(
-                '$baseUrl/bookings/available-slots?date=$date&stylistId=$stylistId'),
-          )
-          .timeout(const Duration(seconds: 10));
-      if (res.statusCode == 200) {
-        final List data = jsonDecode(utf8.decode(res.bodyBytes));
-        return data
-            .map<Map<String, dynamic>>(
-                (e) => Map<String, dynamic>.from(e as Map))
-            .toList();
-      }
-    } catch (e) {
-      debugPrint('[ApiService] fetchAvailableSlots error: $e');
+      String date, String stylistId,
+      {int duration = 45}) async {
+    final res = await http
+        .get(
+          Uri.parse(
+              '$baseUrl/bookings/available-slots?date=$date&stylistId=${Uri.encodeComponent(stylistId)}&duration=$duration'),
+        )
+        .timeout(const Duration(seconds: 10));
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(utf8.decode(res.bodyBytes));
+      return data
+          .map<Map<String, dynamic>>(
+              (e) => Map<String, dynamic>.from(e as Map))
+          .toList();
     }
-
-    return defaultSlots
-        .map<Map<String, dynamic>>((t) => <String, dynamic>{
-              'time': t,
-              'available': true,
-              'isBooked': false
-            })
-        .toList();
+    throw Exception('Không thể tải khung giờ trống (HTTP ${res.statusCode})');
   }
 
   // Lấy danh sách sản phẩm và tìm kiếm
@@ -236,7 +227,10 @@ class ApiService {
   static Future<List<Booking>> fetchBookings() async {
     try {
       final res = await http
-          .get(Uri.parse('$baseUrl/bookings'))
+          .get(
+            Uri.parse('$baseUrl/bookings'),
+            headers: _authHeaders(jsonContent: false),
+          )
           .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
@@ -269,6 +263,7 @@ class ApiService {
           .get(
             Uri.parse(
                 '$baseUrl/bookings/lookup?q=${Uri.encodeComponent(clean)}'),
+            headers: _authHeaders(jsonContent: false),
           )
           .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
@@ -315,12 +310,18 @@ class ApiService {
       final res = await http
           .post(
             Uri.parse('$baseUrl/bookings'),
-            headers: {'Content-Type': 'application/json'},
+            headers: _authHeaders(),
             body: jsonEncode(booking.toJson()),
           )
           .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200 || res.statusCode == 201) {
         final data = jsonDecode(utf8.decode(res.bodyBytes));
+        if (data is Map && data['success'] == false) {
+          return {
+            'success': false,
+            'message': (data['error'] ?? data['message'] ?? 'Đặt lịch không thành công').toString(),
+          };
+        }
         String finalCode = booking.bookingCode;
         if (data is Map) {
           final innerBooking = data['booking'] is Map ? data['booking'] : data;
@@ -341,7 +342,9 @@ class ApiService {
                 errData['message'] ??
                 'Đặt lịch không thành công'
           };
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('[ApiService] createBooking error parse failed: $e');
+        }
       }
     } catch (e) {
       debugPrint('[ApiService] createBooking error: $e');
@@ -356,7 +359,7 @@ class ApiService {
       final res = await http
           .put(
             Uri.parse('$baseUrl/bookings/$bookingId'),
-            headers: {'Content-Type': 'application/json'},
+            headers: _authHeaders(),
             body: jsonEncode({
               'status': newStatus,
               if (stylistId != null) 'stylistId': stylistId,
@@ -370,22 +373,42 @@ class ApiService {
     }
   }
 
-  // Hủy lịch hẹn
+  // Hủy lịch hẹn (gửi kèm lý do hủy về backend)
   static Future<bool> cancelBooking(String bookingId,
       {String reason = 'Khách hủy trên app'}) async {
-    return updateBookingStatus(bookingId, 'Cancelled');
+    try {
+      final res = await http
+          .put(
+            Uri.parse('$baseUrl/bookings/$bookingId/cancel'),
+            headers: _authHeaders(),
+            body: jsonEncode({
+              'status': 'Cancelled',
+              'reason': reason,
+              'cancellationReason': reason,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('[ApiService] cancelBooking error: $e');
+      return false;
+    }
   }
 
-  // Đổi lịch hẹn
+  // Đổi lịch hẹn (không gửi status='Confirmed' để backend chạy đúng nhánh reschedule)
   static Future<bool> rescheduleBooking(
-      String bookingId, String newDate, String newTime) async {
+      String bookingId, String newDate, String newTime,
+      {int? duration}) async {
     try {
       final res = await http
           .put(
             Uri.parse('$baseUrl/bookings/$bookingId'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(
-                {'date': newDate, 'timeSlot': newTime, 'status': 'Confirmed'}),
+            headers: _authHeaders(),
+            body: jsonEncode({
+              'date': newDate,
+              'timeSlot': newTime,
+              if (duration != null) 'duration': duration,
+            }),
           )
           .timeout(const Duration(seconds: 10));
       return res.statusCode == 200;
@@ -399,7 +422,10 @@ class ApiService {
   static Future<List<SalonOrder>> fetchOrders() async {
     try {
       final res = await http
-          .get(Uri.parse('$baseUrl/orders'))
+          .get(
+            Uri.parse('$baseUrl/orders'),
+            headers: _authHeaders(jsonContent: false),
+          )
           .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
@@ -413,35 +439,64 @@ class ApiService {
     return <SalonOrder>[];
   }
 
-  // Tạo đơn hàng mới
-  static Future<String?> createOrder(SalonOrder order) async {
+  // Tạo đơn hàng mới (trả đầy đủ kết quả & thông báo lỗi từ server)
+  static Future<Map<String, dynamic>> createOrderDetailed(
+      SalonOrder order) async {
     try {
       final res = await http
           .post(
             Uri.parse('$baseUrl/orders'),
-            headers: {'Content-Type': 'application/json'},
+            headers: _authHeaders(),
             body: jsonEncode(order.toJson()),
           )
           .timeout(const Duration(seconds: 10));
 
+      final bodyText = utf8.decode(res.bodyBytes);
+      final data = bodyText.isNotEmpty ? jsonDecode(bodyText) : null;
       if (res.statusCode == 200 || res.statusCode == 201) {
-        final data = jsonDecode(utf8.decode(res.bodyBytes));
+        if (data is Map && data['success'] == false) {
+          return {
+            'success': false,
+            'message': (data['error'] ?? data['message'] ?? 'Đặt hàng thất bại.').toString(),
+          };
+        }
         String? serverId;
+        num? totalAmt;
         if (data is Map) {
           if (data['order'] is Map) {
             serverId = (data['order']['orderCode'] ??
                     data['order']['id'] ??
                     data['order']['MaDonHang'])
                 ?.toString();
+            totalAmt = data['order']['totalAmount'] as num?;
           } else {
             serverId = (data['orderCode'] ?? data['id'] ?? data['MaDonHang'])
                 ?.toString();
+            totalAmt = data['totalAmount'] as num?;
           }
         }
-        return serverId;
+        return {
+          'success': serverId != null && serverId.isNotEmpty,
+          'orderCode': serverId,
+          'totalAmount': totalAmt ?? order.totalAmount,
+          'message': 'Đặt hàng thành công!',
+        };
       }
+      final errMsg = (data is Map)
+          ? (data['error'] ?? data['message'] ?? 'Đặt hàng thất bại.')
+          : 'Đặt hàng thất bại (HTTP ${res.statusCode}).';
+      return {'success': false, 'message': errMsg.toString()};
     } catch (e) {
-      debugPrint('[ApiService] createOrder error: $e');
+      debugPrint('[ApiService] createOrderDetailed error: $e');
+      return {'success': false, 'message': 'Không thể kết nối máy chủ để đặt hàng.'};
+    }
+  }
+
+  // Tạo đơn hàng mới
+  static Future<String?> createOrder(SalonOrder order) async {
+    final res = await createOrderDetailed(order);
+    if (res['success'] == true) {
+      return res['orderCode']?.toString();
     }
     return null;
   }
@@ -453,7 +508,7 @@ class ApiService {
       final res = await http
           .post(
             Uri.parse('$baseUrl/orders/$orderId/cancel'),
-            headers: {'Content-Type': 'application/json'},
+            headers: _authHeaders(),
             body: jsonEncode({'reason': reason}),
           )
           .timeout(const Duration(seconds: 10));
@@ -464,10 +519,12 @@ class ApiService {
     }
   }
 
-  // Gửi đánh giá
-  static Future<bool> submitReview({
+  // Gửi đánh giá kèm message phản hồi từ backend
+  static Future<Map<String, dynamic>> submitReviewDetailed({
     String? bookingId,
     String? orderId,
+    String? productId,
+    String? serviceId,
     required int rating,
     required String comment,
     String? customerId,
@@ -478,10 +535,12 @@ class ApiService {
       final res = await http
           .post(
             Uri.parse('$baseUrl/reviews'),
-            headers: {'Content-Type': 'application/json'},
+            headers: _authHeaders(),
             body: jsonEncode({
-              if (bookingId != null) 'bookingId': bookingId,
-              if (orderId != null) 'orderId': orderId,
+              if (bookingId != null && bookingId.isNotEmpty) 'bookingId': bookingId,
+              if (orderId != null && orderId.isNotEmpty) 'orderId': orderId,
+              if (productId != null && productId.isNotEmpty) 'productId': productId,
+              if (serviceId != null && serviceId.isNotEmpty) 'serviceId': serviceId,
               'rating': rating,
               'comment': comment,
               if (customerId != null) 'customerId': customerId,
@@ -490,11 +549,49 @@ class ApiService {
             }),
           )
           .timeout(const Duration(seconds: 10));
-      return res.statusCode == 200 || res.statusCode == 201;
+      final bodyText = utf8.decode(res.bodyBytes);
+      final data = bodyText.isNotEmpty ? jsonDecode(bodyText) : null;
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        return {
+          'success': data is Map ? (data['success'] != false) : true,
+          'message': (data is Map ? data['message'] : null)?.toString() ?? 'Gửi đánh giá thành công!',
+        };
+      }
+      return {
+        'success': false,
+        'message': (data is Map ? (data['message'] ?? data['error']) : null)?.toString() ??
+            'Không thể gửi đánh giá (HTTP ${res.statusCode}).',
+      };
     } catch (e) {
-      debugPrint('[ApiService] submitReview error: $e');
-      return false;
+      debugPrint('[ApiService] submitReviewDetailed error: $e');
+      return {'success': false, 'message': 'Lỗi kết nối máy chủ khi gửi đánh giá.'};
     }
+  }
+
+  // Gửi đánh giá
+  static Future<bool> submitReview({
+    String? bookingId,
+    String? orderId,
+    String? productId,
+    String? serviceId,
+    required int rating,
+    required String comment,
+    String? customerId,
+    String? customerName,
+    String? customerPhone,
+  }) async {
+    final res = await submitReviewDetailed(
+      bookingId: bookingId,
+      orderId: orderId,
+      productId: productId,
+      serviceId: serviceId,
+      rating: rating,
+      comment: comment,
+      customerId: customerId,
+      customerName: customerName,
+      customerPhone: customerPhone,
+    );
+    return res['success'] == true;
   }
 
   // Lấy đánh giá thực tế từ backend
@@ -558,7 +655,7 @@ class ApiService {
       final res = await http
           .post(
             Uri.parse('$baseUrl/reviews'),
-            headers: {'Content-Type': 'application/json'},
+            headers: _authHeaders(),
             body: jsonEncode(reviewData),
           )
           .timeout(const Duration(seconds: 10));
@@ -573,7 +670,10 @@ class ApiService {
   static Future<List<Map<String, dynamic>>> fetchNotifications() async {
     try {
       final res = await http
-          .get(Uri.parse('$baseUrl/notifications'))
+          .get(
+            Uri.parse('$baseUrl/notifications'),
+            headers: _authHeaders(jsonContent: false),
+          )
           .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final List data = jsonDecode(utf8.decode(res.bodyBytes));
@@ -590,7 +690,7 @@ class ApiService {
     try {
       final res = await http.put(
         Uri.parse('$baseUrl/notifications/$notifId/read'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _authHeaders(),
       ).timeout(const Duration(seconds: 10));
       return res.statusCode == 200;
     } catch (e) {
@@ -615,7 +715,17 @@ class ApiService {
   }
 
   // Phân tích ngũ quan và dáng mặt
-  static Future<Map<String, dynamic>?> analyzeFace(
+  static Map<String, dynamic> _tryDecodeJsonMap(http.Response res, String tag) {
+    try {
+      return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('[ApiService] $tag JSON parse failed: $e');
+      return {};
+    }
+  }
+
+  // Phân tích dáng mặt từ ảnh chân dung
+  static Future<Map<String, dynamic>> analyzeFace(
       String imageBase64OrUrl) async {
     try {
       final res = await http
@@ -626,41 +736,35 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 40));
 
+      final decoded = _tryDecodeJsonMap(res, 'analyzeFace');
       if (res.statusCode == 200) {
-        return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        return decoded;
       }
+      return {
+        ...decoded,
+        'success': false,
+        'statusCode': res.statusCode,
+        'message': decoded['message'] ??
+            decoded['error'] ??
+            'Máy chủ phân tích khuôn mặt trả về lỗi (${res.statusCode}).',
+      };
     } catch (e) {
       debugPrint('[ApiService] analyzeFace error: $e');
+      return {
+        'success': false,
+        'message': 'Lỗi kết nối máy chủ phân tích khuôn mặt: $e',
+      };
     }
-    return null;
-  }
-
-  // Tiền xử lý ảnh chân dung
-  static Future<Map<String, dynamic>?> preprocessCustomerPhoto(
-      String imageBase64OrUrl) async {
-    try {
-      final res = await http
-          .post(
-            Uri.parse('$baseUrl/ai/preprocess-customer-photo'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'image': imageBase64OrUrl}),
-          )
-          .timeout(const Duration(seconds: 30));
-
-      if (res.statusCode == 200) {
-        return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] preprocessCustomerPhoto error: $e');
-    }
-    return null;
   }
 
   // Tạo mẫu kiểu tóc trên ảnh chân dung
-  static Future<Map<String, dynamic>?> restyleHair({
+  static Future<Map<String, dynamic>> restyleHair({
     required String imageBase64OrUrl,
     required String hairstyleId,
     required String colorId,
+    String volume = 'standard',
+    String finish = 'matte',
+    String? customPrompt,
   }) async {
     try {
       final res = await http
@@ -671,17 +775,36 @@ class ApiService {
               'image': imageBase64OrUrl,
               'hairstyleId': hairstyleId,
               'colorId': colorId,
+              'volume': volume,
+              'finish': finish,
+              if (customPrompt != null && customPrompt.trim().isNotEmpty)
+                'customPrompt': customPrompt.trim(),
+              'preserveBackground': true,
+              'balanceLighting': true,
+              'smoothSkin': true,
             }),
           )
           .timeout(const Duration(seconds: 60));
 
+      final decoded = _tryDecodeJsonMap(res, 'restyleHair');
       if (res.statusCode == 200) {
-        return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        return decoded;
       }
+      return {
+        ...decoded,
+        'success': false,
+        'statusCode': res.statusCode,
+        'message': decoded['message'] ??
+            decoded['error'] ??
+            'Máy chủ AI trả về mã lỗi (${res.statusCode}).',
+      };
     } catch (e) {
       debugPrint('[ApiService] restyleHair error: $e');
+      return {
+        'success': false,
+        'message': 'Lỗi kết nối máy chủ AI: $e',
+      };
     }
-    return null;
   }
 
   static Future<Map<String, dynamic>> createPaymentLink({
@@ -701,13 +824,21 @@ class ApiService {
             }),
           )
           .timeout(const Duration(seconds: 8));
+      final decoded = res.bodyBytes.isNotEmpty
+          ? jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>
+          : <String, dynamic>{};
       if (res.statusCode == 200) {
-        return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        return decoded;
       }
+      return {
+        'success': false,
+        'message': decoded['message']?.toString() ??
+            'Cổng thanh toán chưa sẵn sàng (HTTP ${res.statusCode}).',
+      };
     } catch (e) {
       debugPrint('[ApiService] createPaymentLink error: $e');
     }
-    return {'success': false};
+    return {'success': false, 'message': 'Không thể kết nối máy chủ thanh toán.'};
   }
 
   static Future<Map<String, dynamic>> checkPaymentStatus(String orderId) async {
@@ -724,31 +855,43 @@ class ApiService {
     return {'success': false, 'status': 'PENDING', 'isPaid': false};
   }
 
+  static String _removeVietnameseDiacritics(String input) {
+    const src = 'àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬĐÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴ';
+    const dst = 'aaaaaaaaaaaaaaaaadeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyAAAAAAAAAAAAAAAAADEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYY';
+    final buf = StringBuffer();
+    for (int i = 0; i < input.length; i++) {
+      final ch = input[i];
+      final idx = src.indexOf(ch);
+      buf.write(idx >= 0 ? dst[idx] : ch);
+    }
+    return buf.toString();
+  }
+
   static String getVietQrImageUrl({
     String bankBin = '970422',
     String accountNo = '0900000000',
     required int amount,
     required String description,
   }) {
-    final cleanDesc = description
-        .replaceAll(RegExp(r'[^\w\s]'), '')
+    final cleanDesc = _removeVietnameseDiacritics(description)
+        .replaceAll(RegExp(r'[^A-Za-z0-9\s]'), '')
         .trim()
         .toUpperCase();
-    final f00 = '000201';
-    final f01 = '010212';
-    final sub00 = '0010A000000727';
-    final sub01Inner = '0006$bankBin' + '01' + accountNo.length.toString().padLeft(2, '0') + accountNo;
-    final sub01 = '01' + sub01Inner.length.toString().padLeft(2, '0') + sub01Inner;
-    final sub02 = '0208QRIBFTTA';
+    const f00 = '000201';
+    const f01 = '010212';
+    const sub00 = '0010A000000727';
+    final sub01Inner = '0006${bankBin}01${accountNo.length.toString().padLeft(2, '0')}$accountNo';
+    final sub01 = '01${sub01Inner.length.toString().padLeft(2, '0')}$sub01Inner';
+    const sub02 = '0208QRIBFTTA';
     final f38Inner = sub00 + sub01 + sub02;
-    final f38 = '38' + f38Inner.length.toString().padLeft(2, '0') + f38Inner;
-    final f53 = '5303704';
+    final f38 = '38${f38Inner.length.toString().padLeft(2, '0')}$f38Inner';
+    const f53 = '5303704';
     final amtStr = amount.toString();
-    final f54 = '54' + amtStr.length.toString().padLeft(2, '0') + amtStr;
-    final f58 = '5802VN';
-    final sub6208 = '08' + cleanDesc.length.toString().padLeft(2, '0') + cleanDesc;
-    final f62 = '62' + sub6208.length.toString().padLeft(2, '0') + sub6208;
-    final raw = f00 + f01 + f38 + f53 + f54 + f58 + f62 + '6304';
+    final f54 = '54${amtStr.length.toString().padLeft(2, '0')}$amtStr';
+    const f58 = '5802VN';
+    final sub6208 = '08${cleanDesc.length.toString().padLeft(2, '0')}$cleanDesc';
+    final f62 = '62${sub6208.length.toString().padLeft(2, '0')}$sub6208';
+    final raw = '$f00$f01$f38$f53$f54$f58${f62}6304';
 
     int crc = 0xFFFF;
     for (int i = 0; i < raw.length; i++) {

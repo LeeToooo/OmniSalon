@@ -486,7 +486,7 @@
     // ---------------- MODAL KHUYẾN MÃI ----------------
     openAddPromotionModal() {
       this._editingPromotionId = null;
-      const today = new Date().toISOString().split('T')[0];
+      const today = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.getLocalIsoDate === 'function') ? SalonUtils.getLocalIsoDate() : new Date().toISOString().split('T')[0];
       let maxN = 0;
       const allPromos = (window.store && typeof window.store.getPromotions === 'function') ? window.store.getPromotions() : [];
       allPromos.forEach(p => {

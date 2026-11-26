@@ -347,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: AppTheme.statusSuccess.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(3),
                         ),
-                        child: const Text('NEURAL SCAN', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: AppTheme.statusSuccess)),
+                        child: const Text('THỬ TÓC AR', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: AppTheme.statusSuccess)),
                       ),
                     ],
                   ),
@@ -560,10 +560,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star_rounded, size: 15, color: AppTheme.accentGold),
+                            const Icon(Icons.verified_outlined, size: 15, color: AppTheme.accentGold),
                             const SizedBox(width: 4),
                             Text(
-                              '4.9★ (2,500+ Đánh giá) • Bảo hành kiểu tóc 7 ngày',
+                              'Hệ thống Barbershop • Bảo hành kiểu tóc 7 ngày',
                               style: AppTheme.bodySmall(
                                 fontSize: 11.5,
                                 color: AppTheme.textLight,
@@ -666,7 +666,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 10),
         _buildBentoCard(
           height: 140,
-          title: 'Gội dưỡng sinh & Bấm huyệt đỉnh cao',
+          title: 'Gội dưỡng sinh & Bấm huyệt thư giãn',
           tag: 'THƯ GIÃN CHUYÊN SÂU',
           imageUrl: ApiService.getImageUrl('Men_Grooming_Products/DichVu_Men/DV7.jpg'),
         ),

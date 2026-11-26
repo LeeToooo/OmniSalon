@@ -302,10 +302,10 @@ class _BranchesScreenState extends State<BranchesScreen> {
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.star_rounded, size: 14, color: AppTheme.accentGold),
+                                            const Icon(Icons.access_time_rounded, size: 14, color: AppTheme.accentGold),
                                             const SizedBox(width: 4),
                                             Text(
-                                              '4.9 (500+ Đánh giá)',
+                                              b.hours,
                                               style: AppTheme.labelUppercase(color: AppTheme.textLight, fontSize: 9.5),
                                             ),
                                           ],

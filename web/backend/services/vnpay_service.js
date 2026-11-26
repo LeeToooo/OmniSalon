@@ -9,9 +9,8 @@ const { querySql } = require('../database/db');
  */
 class VNPayService {
   constructor() {
-    // Thông tin cấu hình VNPAY Sandbox (TuanOri / VNPAY Standard Sandbox)
-    this.tmnCode = process.env.VNPAY_TMN_CODE || '2QXUI4B4';
-    this.hashSecret = process.env.VNPAY_HASH_SECRET || 'RAOCTGeometrySecret';
+    this.tmnCode = (process.env.VNPAY_TMN_CODE || '').trim();
+    this.hashSecret = (process.env.VNPAY_HASH_SECRET || '').trim();
     this.vnpUrl = process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
     this.returnUrl = process.env.VNPAY_RETURN_URL || 'http://localhost:3000/api/payment/vnpay-return';
   }
@@ -72,6 +71,9 @@ class VNPayService {
    * @param {Object} params - { orderId, amount, orderInfo, bankCode, returnUrl, req }
    */
   createPaymentUrl({ orderId, amount, orderInfo, bankCode, returnUrl, req }) {
+    if (!this.tmnCode || !this.hashSecret) {
+      throw new Error('Cổng thanh toán VNPAY chưa được cấu hình VNPAY_TMN_CODE / VNPAY_HASH_SECRET trên máy chủ.');
+    }
     if (!orderId || !amount) {
       throw new Error('Thiếu tham số bắt buộc: orderId hoặc amount.');
     }
@@ -133,6 +135,21 @@ class VNPayService {
    * Xác thực kết quả trả về từ VNPAY (Return URL hoặc IPN)
    */
   verifyReturn(queryParams) {
+    if (!this.hashSecret) {
+      return {
+        isValid: false,
+        isSuccess: false,
+        orderId: String(queryParams?.vnp_TxnRef || ''),
+        amount: 0,
+        responseCode: queryParams?.vnp_ResponseCode || '',
+        transactionNo: queryParams?.vnp_TransactionNo || '',
+        bankCode: queryParams?.vnp_BankCode || '',
+        cardType: '',
+        payDate: '',
+        orderInfo: queryParams?.vnp_OrderInfo || '',
+        message: 'VNPAY chưa được cấu hình VNPAY_HASH_SECRET trên máy chủ.'
+      };
+    }
     const vnpParams = {};
     for (const key in queryParams) {
       if (Object.prototype.hasOwnProperty.call(queryParams, key)) {
@@ -191,6 +208,16 @@ class VNPayService {
         referenceCode: vnpResult.transactionNo || `VNP_${orderId}`,
         transactionDate: new Date()
       });
+
+      if (!transferRes || !transferRes.success) {
+        return {
+          success: false,
+          orderId,
+          amount,
+          message: transferRes?.message || 'Xác nhận số tiền thanh toán VNPAY không khớp.',
+          details: transferRes
+        };
+      }
 
       return {
         success: true,

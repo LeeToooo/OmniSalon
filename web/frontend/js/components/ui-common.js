@@ -9,7 +9,7 @@ const UICommon = {
     return `
       <div class="product-clean-card" data-id="${prod.id}" onclick="UICommon.openProductDetailModal('${prod.id}')">
         <div class="product-media-wrapper">
-          <img src="${SalonUtils.formatImageUrl(prod.image || prod.HinhAnh)}" alt="${prod.name}" loading="lazy" class="product-clean-img" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80');">
+          <img src="${SalonUtils.formatImageUrl(prod.image || prod.HinhAnh)}" alt="${prod.name}" loading="lazy" class="product-clean-img" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
         </div>
         <div class="product-body">
           <h4 class="product-title-clean" title="${prod.name}">${prod.name}</h4>
@@ -149,7 +149,9 @@ const UICommon = {
     serviceId: 'DV01',
     branchId: 'CN01',
     stylistId: 'NV02',
-    date: new Date().toISOString().split('T')[0],
+    date: (typeof SalonUtils !== 'undefined' && typeof SalonUtils.getLocalIsoDate === 'function')
+      ? SalonUtils.getLocalIsoDate()
+      : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`,
     timeSlot: '10:30',
     customerName: '',
     customerPhone: '',
@@ -210,7 +212,7 @@ const UICommon = {
     const nextDays = Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() + i);
-      const iso = d.toISOString().split('T')[0];
+      const iso = SalonUtils.getLocalIsoDate(i);
       const dayName = i === 0 ? 'Hôm nay' : (i === 1 ? 'Ngày mai' : `Th ${d.getDay() === 0 ? 'CN' : d.getDay() + 1}`);
       const dateFormatted = `${d.getDate()}/${d.getMonth() + 1}`;
       return { iso, dayName, dateFormatted };
@@ -361,7 +363,7 @@ const UICommon = {
 
             <div style="margin-bottom: 14px;">
               <input type="date" class="form-control-custom" value="${this.bookingData.date}" 
-                     min="${new Date().toISOString().split('T')[0]}" 
+                     min="${SalonUtils.getLocalIsoDate()}" 
                      onchange="UICommon.selectBookingDate(this.value)">
             </div>
 
@@ -753,32 +755,14 @@ const UICommon = {
     if (window.ShopPage && typeof window.ShopPage.updateCartBadge === 'function') {
       window.ShopPage.updateCartBadge();
     }
-    // Hien thi modal thong bao da them vao gio hang
-    this.showAddToCartSuccessModal(prod);
+    const prodName = prod ? (prod.name || prod.TenSanPham || 'Sản phẩm') : 'Sản phẩm';
+    this.showToast(`✓ Đã thêm "${prodName}" vào giỏ hàng`, 'success', 1600);
   },
 
   showAddToCartSuccessModal(prod) {
     const prodName = prod ? (prod.name || prod.TenSanPham || 'Sản phẩm') : 'Sản phẩm';
-    const modal = document.getElementById('addToCartModal');
-    if (modal) {
-      const msgEl = modal.querySelector('.add-cart-modal-message');
-      if (msgEl) {
-        msgEl.innerHTML = `Đã thêm <strong>${this.escapeHtml ? this.escapeHtml(prodName) : prodName}</strong> vào giỏ hàng`;
-      }
-      modal.style.setProperty('display', 'flex', 'important');
-      modal.style.setProperty('visibility', 'visible', 'important');
-      modal.style.setProperty('opacity', '1', 'important');
-      modal.style.setProperty('pointer-events', 'auto', 'important');
-      modal.classList.add('active');
-
-      // Tự động đóng popup sau 4 giây nếu người dùng không thao tác
-      if (this._cartModalTimer) clearTimeout(this._cartModalTimer);
-      this._cartModalTimer = setTimeout(() => {
-        this.closeAddToCartModal();
-      }, 4000);
-    } else {
-      this.showToast(`✓ Đã thêm "${prodName}" vào giỏ hàng thành công!`, 'success');
-    }
+    this.closeAddToCartModal();
+    this.showToast(`✓ Đã thêm "${prodName}" vào giỏ hàng`, 'success', 1600);
   },
 
   closeAddToCartModal() {
@@ -937,7 +921,7 @@ const UICommon = {
               <img src="${SalonUtils.formatImageUrl(item.image || item.HinhAnh)}" 
                    alt="${item.name}" 
                    class="cart-drawer-item-img" 
-                   onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80');">
+                   onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
             </div>
 
             <!-- Chi tiết tên, thương hiệu, giá & số lượng -->
@@ -1148,8 +1132,8 @@ const UICommon = {
 
     const isPickup = this.cartState.deliveryType === 'PICKUP_BRANCH';
     let customerName = (this.cartState.recipientName || (user ? (user.fullName || user.name) : '')).trim() || 'Khách Hàng';
-    let customerPhone = (this.cartState.recipientPhone || (user ? user.phone : '')).trim() || '0908123456';
-    let deliveryAddress = (this.cartState.deliveryAddress || '').trim() || (user?.address || '123 Đường Số 1, TP.HCM');
+    let customerPhone = (this.cartState.recipientPhone || (user ? user.phone : '')).trim() || '';
+    let deliveryAddress = (this.cartState.deliveryAddress || '').trim() || (user?.address || '');
 
     modalBody.innerHTML = `
       <div class="booking-wizard-wrapper" style="max-width: 640px; padding: 24px;">
@@ -1745,16 +1729,6 @@ const UICommon = {
     modal.classList.add('active');
   },
 
-  quickDemoLogin(acc, pass) {
-    const accEl = document.getElementById('loginAccount');
-    const passEl = document.getElementById('loginPassword');
-    if (accEl && passEl) {
-      accEl.value = acc;
-      passEl.value = pass;
-      this.handleLogin();
-    }
-  },
-
   async handleLogin() {
     const acc = document.getElementById('loginAccount')?.value.trim();
     const pass = document.getElementById('loginPassword')?.value;
@@ -1768,9 +1742,8 @@ const UICommon = {
     }
 
     let res = null;
-    let liveAttempted = false;
 
-    // Ưu tiên xác thực trực tiếp qua Backend API / SQL Server, Nguồn chân lý
+    // Xác thực trực tiếp qua Backend API / SQL Server (không cho phép bypass offline)
     try {
       const apiRes = await fetch('/api/auth/login', {
         method: 'POST',
@@ -1778,46 +1751,24 @@ const UICommon = {
         body: JSON.stringify({ identifier: acc, password: pass })
       });
       const data = await apiRes.json().catch(() => null);
-      liveAttempted = true;
 
       if (data && data.success) {
         res = data;
-        // Đồng bộ phiên đăng nhập vào AuthEngine, store và session storage
         if (window.AuthEngine && typeof window.AuthEngine.setSessionFromBackend === 'function') {
           window.AuthEngine.setSessionFromBackend(data.user, data.token);
-        } else if (window.AuthEngine) {
-          window.AuthEngine.currentUser = data.user;
-          window.AuthEngine.accessToken = data.token;
-          if (window.SessionStorageService) {
-            window.SessionStorageService.saveSession(data.token, data.token, data.user);
-          }
-          if (typeof window.AuthEngine.notifySubscribers === 'function') {
-            window.AuthEngine.notifySubscribers('LOGIN', data.user);
-          }
         }
         if (window.store) {
-          window.store.state.currentUser = data.user;
+          window.store.state.currentUser = window.AuthEngine?.getCurrentUser() || data.user;
           if (typeof window.store.saveState === 'function') window.store.saveState();
           if (typeof window.store.notify === 'function') window.store.notify('AUTH_CHANGED', data.user);
         }
-      } else if (data && data.success === false) {
-        // Sai mật khẩu hoặc tài khoản không tồn tại trên CSDL
-        this.showToast(data.message || 'Mật khẩu không chính xác. Vui lòng kiểm tra lại.', 'error');
+      } else {
+        this.showToast(data?.message || 'Sai thông tin đăng nhập hoặc mật khẩu.', 'error');
         return;
       }
     } catch (e) {
-      console.warn('[handleLogin] Không thể kết nối live API, fallback chế độ offline:', e.message);
-    }
-
-    // Chỉ fallback qua AuthEngine / store local nếu server backend hoàn toàn không kết nối được
-    if (!res || !res.success) {
-      if (!liveAttempted) {
-        if (window.AuthEngine && typeof window.AuthEngine.login === 'function') {
-          res = window.AuthEngine.login(acc, pass);
-        } else if (window.store && typeof window.store.login === 'function') {
-          res = window.store.login(acc, pass);
-        }
-      }
+      this.showToast('Không thể kết nối máy chủ xác thực. Vui lòng thử lại.', 'error');
+      return;
     }
 
     if (res && res.success) {
@@ -1826,9 +1777,7 @@ const UICommon = {
       const adminRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO'];
       const isAdmin = user && user.role && (
         adminRoles.includes(String(user.role).toUpperCase()) ||
-        String(user.role).toUpperCase().includes('ADMIN') ||
-        user.username === 'admin' ||
-        user.username === 'hoang.ql'
+        String(user.role).toUpperCase().includes('ADMIN')
       );
 
       this.showToast(`Chào mừng ${user.fullName || user.name} (${roleName})!`, 'success');
@@ -1891,23 +1840,20 @@ const UICommon = {
     let res = null;
     try {
       if (window.SalonApi && typeof window.SalonApi.sendOtp === 'function') {
-        res = await window.SalonApi.sendOtp(email);
-      } else if (window.AuthEngine && typeof window.AuthEngine.sendOtp === 'function') {
-        res = window.AuthEngine.sendOtp(email);
+        res = await window.SalonApi.sendOtp(email, 'REGISTER');
+      } else {
+        const apiRes = await fetch('/api/auth/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, purpose: 'REGISTER' })
+        });
+        res = await apiRes.json().catch(() => null);
       }
     } catch (e) {
       res = { success: false, message: e.message };
     }
 
     if (res && res.success && res.sentEmail !== false) {
-      if (window.AuthEngine && window.AuthEngine.clientOtpStore && res.otp) {
-        window.AuthEngine.clientOtpStore.set(email.toLowerCase(), {
-          otp: String(res.otp).trim(),
-          expiresAt: Date.now() + 5 * 60 * 1000,
-          lastSentAt: Date.now(),
-          verified: true
-        });
-      }
       const devHint = res.otp ? ` [Mã thử nghiệm: ${res.otp}]` : '';
       const spamNotice = ' (Vui lòng kiểm tra cả Hộp thư đến & Thư rác / Spam)';
       this.showToast(`Đã gửi mã xác nhận OTP 6 số đến ${email}!${devHint}${spamNotice}`, 'success');
@@ -1981,36 +1927,40 @@ const UICommon = {
       return;
     }
 
-    // Xác thực OTP
-    let verifyRes = null;
+    // Gửi thẳng mã OTP cùng dữ liệu đăng ký để Backend xác thực nguyên tử và tạo tài khoản SQL
+    let res = null;
     try {
-      if (window.SalonApi && typeof window.SalonApi.verifyOtp === 'function') {
-        verifyRes = await window.SalonApi.verifyOtp(email, otp);
-      } else if (window.AuthEngine && typeof window.AuthEngine.verifyOtp === 'function') {
-        verifyRes = window.AuthEngine.verifyOtp(email, otp);
+      if (window.SalonApi && typeof window.SalonApi.register === 'function') {
+        res = await window.SalonApi.register({
+          fullName,
+          phone,
+          birthday,
+          email,
+          username: phone,
+          password,
+          otp
+        });
+      } else {
+        const apiRes = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName,
+            phone,
+            birthday,
+            email,
+            username: phone,
+            password,
+            otp
+          })
+        });
+        res = await apiRes.json().catch(() => null);
+        if (res && res.success && res.user && res.token && window.AuthEngine && typeof window.AuthEngine.setSessionFromBackend === 'function') {
+          window.AuthEngine.setSessionFromBackend(res.user, res.token);
+        }
       }
     } catch (e) {
-      verifyRes = { success: false, message: e.message };
-    }
-
-    if (!verifyRes || !verifyRes.success) {
-      this.showToast(verifyRes?.message || 'Mã xác nhận OTP không đúng hoặc đã hết hạn!', 'error');
-      return;
-    }
-
-    let res = null;
-    if (window.AuthEngine && typeof window.AuthEngine.register === 'function') {
-      res = window.AuthEngine.register({
-        fullName,
-        phone,
-        birthday,
-        email,
-        username: phone,
-        password,
-        otp
-      });
-    } else {
-      res = { success: true, user: { fullName, phone, email, role: 'CUSTOMER' } };
+      res = { success: false, message: e.message };
     }
 
     if (res && res.success) {
@@ -2064,9 +2014,14 @@ const UICommon = {
     let res = null;
     try {
       if (window.SalonApi && typeof window.SalonApi.sendOtp === 'function') {
-        res = await window.SalonApi.sendOtp(identifier);
-      } else if (window.AuthEngine && typeof window.AuthEngine.sendOtp === 'function') {
-        res = window.AuthEngine.sendOtp(identifier);
+        res = await window.SalonApi.sendOtp(identifier, 'RESET_PASSWORD');
+      } else {
+        const apiRes = await fetch('/api/auth/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: identifier, purpose: 'RESET_PASSWORD' })
+        });
+        res = await apiRes.json().catch(() => null);
       }
     } catch (e) {
       res = { success: false, message: e.message };
@@ -2124,8 +2079,8 @@ const UICommon = {
       document.getElementById('resetOtp')?.focus();
       return;
     }
-    if (!newPassword || newPassword.length < 3) {
-      this.showToast('Mật khẩu mới cần tối thiểu 3 ký tự!', 'warning');
+    if (!newPassword || newPassword.length < 6) {
+      this.showToast('Mật khẩu mới cần tối thiểu 6 ký tự!', 'warning');
       return;
     }
 
@@ -2137,20 +2092,9 @@ const UICommon = {
         const apiRes = await fetch('/api/auth/reset-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, email: identifier, phone: identifier, newPassword })
+          body: JSON.stringify({ identifier, email: identifier, phone: identifier, otp, newPassword })
         });
         res = await apiRes.json().catch(() => null);
-      }
-
-      // Đồng bộ vào AuthEngine & UserRepository
-      if (window.AuthEngine && typeof window.AuthEngine.resetPassword === 'function') {
-        window.AuthEngine.resetPassword({ identifier, email: identifier, phone: identifier, otp, newPassword });
-      }
-      if (window.UserRepository && typeof window.UserRepository.updatePassword === 'function') {
-        window.UserRepository.updatePassword(identifier, newPassword);
-      }
-      if (window.UserRepository && typeof window.UserRepository.syncWithServer === 'function') {
-        window.UserRepository.syncWithServer().catch(() => {});
       }
     } catch (e) {
       res = { success: false, message: e.message };
@@ -2201,6 +2145,10 @@ const UICommon = {
       bHours = branch.hours;
     }
 
+    const bImg = (window.SalonUtils && typeof window.SalonUtils.formatImageUrl === 'function')
+      ? window.SalonUtils.formatImageUrl(branch.image || branch.HinhAnh || 'ChiNhanh_Omni/CN1.jpg')
+      : '/DataPicture/ChiNhanh_Omni/CN1.jpg';
+
     modalBody.innerHTML = `
       <div style="max-width: 540px; margin: 0 auto; background: #141413; border: 1px solid rgba(197, 155, 39, 0.2); border-radius: 18px; padding: 26px; color: #fff;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
@@ -2214,7 +2162,7 @@ const UICommon = {
         </div>
 
         <div style="border-radius: 12px; overflow: hidden; height: 180px; margin-bottom: 16px; position: relative;">
-          <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=700&q=80" style="width: 100%; height: 100%; object-fit: cover;" alt="${bName}">
+          <img src="${bImg}" style="width: 100%; height: 100%; object-fit: cover;" alt="${bName}" onerror="this.onerror=null; this.src='/DataPicture/ChiNhanh_Omni/CN1.jpg';">
           <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(20,20,19,0.85); backdrop-filter: blur(6px); color: #FAF8F5; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 700;">
             Barbershop Đương Đại
           </div>
@@ -2252,508 +2200,8 @@ const UICommon = {
     modal.classList.add('active');
   },
 
-  quickLoginRole(roleKey) {
-    let seedUsers = [];
-    if (window.AuthEngine && typeof window.AuthEngine.getSeedAccounts === 'function') {
-      seedUsers = window.AuthEngine.getSeedAccounts();
-    }
-    const seed = seedUsers.find(u => u.role === roleKey && (roleKey !== 'SUPER_ADMIN' || u.username === 'admin')) || seedUsers.find(u => u.role === roleKey);
-    if (seed) {
-      const res = window.AuthEngine.login(seed.username, seed.password);
-      if (res && res.success) {
-        const adminRoles = ['SUPER_ADMIN', 'ADMIN', 'QUẢN TRỊ VIÊN', 'QUẢN TRỊ TỐI CAO', 'BRANCH_MANAGER', 'CASHIER'];
-        const isAdmin = (
-          adminRoles.includes(String(seed.role).toUpperCase()) ||
-          String(seed.role).toUpperCase().includes('ADMIN') ||
-          String(seed.role).toUpperCase().includes('MANAGER')
-        );
-
-        this.showToast(`Đã đăng nhập: ${seed.fullName} [${seed.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : seed.roleName}]`, 'success');
-        this.closeGlobalModal();
-
-        if (window.CustomerWeb) {
-          window.CustomerWeb.renderHeader();
-          if (isAdmin) {
-            window.CustomerWeb.switchTab('admin');
-          } else {
-            if (window.CustomerWeb.currentTab === 'admin') {
-              window.CustomerWeb.switchTab('home');
-            }
-          }
-        } else if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
-          window.AppRouter.navigate(isAdmin ? '/admin' : '/');
-        }
-
-        if (window.UIWeb) {
-          window.UIWeb.renderHeader();
-          if (isAdmin && typeof window.UIWeb.switchTab === 'function') {
-            window.UIWeb.switchTab('admin');
-          } else if (typeof window.UIWeb.renderMainContent === 'function') {
-            window.UIWeb.renderMainContent();
-          }
-        }
-        if (window.UIApp) {
-          window.UIApp.renderApp();
-        }
-      }
-    } else {
-      const res = window.store.login(roleKey === 'SUPER_ADMIN' ? 'executive@omnisalon.vn' : 'khachhang@gmail.com', 'admin123');
-      if (res && res.success) {
-        this.showToast(`Đã đăng nhập vai trò [${roleKey}]`, 'success');
-        this.closeGlobalModal();
-        if (roleKey === 'SUPER_ADMIN' && window.CustomerWeb) {
-          window.CustomerWeb.switchTab('admin');
-        }
-      }
-    }
-  },
-
-  // AI photo restyle vision studio  kết nối api thật & đổi ảnh tóc khách
-  aiState: {
-    originalImage: null,
-    resultImage: null,
-    selectedStyle: 'Side Part 7/3 Hàn Quốc',
-    selectedColorName: 'Đen Tự Nhiên',
-    selectedColorHex: '#1c1b18',
-    customPrompt: '',
-    isProcessing: false,
-    sliderPos: 50,
-    showApiSettings: false
-  },
-
-  openAiStudioModal(preselectedStyle = null) {
-    if (preselectedStyle && window.UIWeb && typeof window.UIWeb.selectAiStyle === 'function') {
-      window.UIWeb.selectAiStyle(preselectedStyle);
-    }
-    if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
-      window.AppRouter.navigate('/ai-studio');
-      return;
-    }
-    if (window.CustomerWeb && typeof window.CustomerWeb.switchTab === 'function') {
-      window.CustomerWeb.switchTab('ai');
-      return;
-    }
-
-    // Fallback nếu không tìm thấy container inline
-    const modal = document.getElementById('globalModal');
-    const modalBody = document.getElementById('globalModalBody');
-    if (!modal || !modalBody) return;
-    if (preselectedStyle) this.aiState.selectedStyle = preselectedStyle;
-    this.renderAiStudioContent(modalBody);
-    modal.classList.add('active');
-  },
-
-  renderAiStudioContent(containerEl = null) {
-    const modalBody = containerEl || document.getElementById('globalModalBody');
-    if (!modalBody) return;
-
-    const { originalImage, resultImage, selectedStyle, selectedColorName, selectedColorHex, isProcessing, showApiSettings } = this.aiState;
-    const aiConfig = SalonApi ? SalonApi.getAiConfig() : { provider: 'demo_smart', apiKey: '', endpoint: '' };
-
-    const stylePresets = [
-      { name: 'Side Part 7/3 Hàn Quốc', icon: '' },
-      { name: 'Undercut Fade Bén (Hà Hiền)', icon: '' },
-      { name: 'Uốn Con Sâu / Texture Wave', icon: '' },
-      { name: 'Mullet Hiện Đại (Wolf Cut)', icon: '' },
-      { name: 'Buzz Cut Quân Đội', icon: '' },
-      { name: 'Crop Warrior Phá Cách', icon: '' },
-      { name: 'Pompadour Quý Tộc', icon: '' },
-      { name: 'Ép Side Tóc Nam (Down Perm)', icon: '' }
-    ];
-
-    const colorPresets = [
-      { name: 'Đen Tự Nhiên', hex: '#1c1b18' },
-      { name: 'Nâu Tây Lạnh', hex: '#4a3728' },
-      { name: 'Khói Xám Bạc', hex: '#9ca3af' },
-      { name: 'Vàng Rêu Khói', hex: '#7a8264' },
-      { name: 'Nâu Hạt Dẻ', hex: '#6f4e37' },
-      { name: 'Khói Ánh Tím', hex: '#6b46c1' }
-    ];
-
-    modalBody.innerHTML = `
-      <div class="ai-restyle-modal-box">
-        <!-- Header -->
-        <div class="ai-modal-header">
-          <div class="badge-terracotta pulse-animation">AI BARBER VISION • THỬ KIỂU TÓC THỰC TẾ</div>
-          <h2 class="font-serif tracking-tight leading-tight" style="font-size: 24px; font-weight: 800; margin: 8px 0 4px;">
-            OMNI AI BARBER STUDIO: MÔ PHỎNG KIỂU TÓC TRÊN ẢNH THẬT
-          </h2>
-          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
-            Chụp hoặc tải ảnh chân dung để trực quan hóa kiểu tóc và tông màu nhuộm phù hợp với khuôn mặt của bạn.
-          </p>
-        </div>
-
-        <div class="ai-studio-grid-layout">
-          <!-- CỘT TRÁI: KHUNG HIỂN THỊ ẢNH & BEFORE / AFTER SLIDER -->
-          <div class="ai-viewport-column">
-            ${!originalImage
-        ? `
-                <!-- Khung Upload Ảnh Khi Chưa Có Ảnh -->
-                <div class="ai-upload-dropzone" id="aiDropZone" onclick="document.getElementById('aiPhotoFileInput').click()">
-                  <input type="file" id="aiPhotoFileInput" accept="image/*" style="display:none;" onchange="UICommon.handleAiPhotoUpload(event)">
-                  <input type="file" id="aiCameraFileInput" accept="image/*" capture="user" style="display:none;" onchange="UICommon.handleAiPhotoUpload(event)">
-                  
-                  <div class="dropzone-icon-box">
-                    <svg width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                  </div>
-                  <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 6px;">Kéo thả hoặc bấm để tải ảnh chân dung</h4>
-                  <p style="font-size: 12px; color: #888; max-width: 260px; margin: 0 auto 16px;">Hỗ trợ định dạng JPG, PNG rõ khuôn mặt chụp thẳng</p>
-
-                  <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;" onclick="event.stopPropagation();">
-                    <button class="btn-sub-action" onclick="document.getElementById('aiPhotoFileInput').click()">
-                      Chọn Từ Máy
-                    </button>
-                    <button class="btn-sub-action" onclick="document.getElementById('aiCameraFileInput').click()">
-                      Chụp Selfie
-                    </button>
-                  </div>
-
-                  <!-- Thử nhanh với ảnh mẫu -->
-                  <div class="sample-avatar-strip" onclick="event.stopPropagation();">
-                    <span style="font-size: 11px; color: #999; font-weight: 600; display: block; margin-bottom: 8px;">HOẶC THỬ NHANH VỚI ẢNH MẪU:</span>
-                    <div style="display: flex; gap: 8px; justify-content: center;">
-                      <img src="/DataPicture/ChanDungTho/Tho1.jpg" 
-                           class="sample-avatar-thumb" title="Mẫu Nam 1" onclick="UICommon.loadSampleAiPhoto(this.src)">
-                      <img src="/DataPicture/ChanDungTho/Tho2.jpg" 
-                           class="sample-avatar-thumb" title="Mẫu Nam 2" onclick="UICommon.loadSampleAiPhoto(this.src)">
-                      <img src="/DataPicture/ChanDungTho/Tho3.jpg" 
-                           class="sample-avatar-thumb" title="Mẫu Nam 3" onclick="UICommon.loadSampleAiPhoto(this.src)">
-                    </div>
-                  </div>
-                </div>
-                `
-        : isProcessing
-          ? `
-                <!-- Khung Hiển Thị Khi AI Đang Phân Tích & Xử Lý -->
-                <div class="ai-processing-container">
-                  <div class="ai-scan-box">
-                    <img src="${originalImage}" class="ai-base-img" alt="Scanning">
-                    <div class="ai-scan-laser-line"></div>
-                    <div class="ai-scan-grid-overlay"></div>
-                  </div>
-                  <div class="ai-progress-status-box">
-                    <div class="barber-pole-spinner"></div>
-                    <div style="font-size: 14px; font-weight: 800; color: #fff; margin-top: 12px;">
-                      ĐANG LIÊN KẾT AI XỬ LÝ ẢNH...
-                    </div>
-                    <div class="ai-status-step-text" id="aiStatusStep">Đang phân tích cấu trúc khuôn mặt & góc cạnh hộp sọ...</div>
-                  </div>
-                </div>
-                `
-          : resultImage
-            ? `
-                <!-- Khung So Sánh Before / After Sau Khi AI Đổi Ảnh Xong -->
-                <div class="ai-compare-slider-shell" id="aiCompareShell">
-                  <div class="ai-image-compare-wrapper" id="compareWrapper">
-                    <!-- Ảnh Sau  - AI Result -  -->
-                    <img src="${resultImage}" class="compare-img compare-img-after" alt="Ảnh Sau Khi Đổi Tóc">
-                    <span class="compare-label-after">ẢNH TÓC AI</span>
-
-                    <!-- Ảnh Trước  - Original -  -->
-                    <div class="compare-before-clip" id="compareBeforeClip" style="width: 50%;">
-                      <img src="${originalImage}" class="compare-img compare-img-before" alt="Ảnh Gốc">
-                      <span class="compare-label-before">ẢNH GỐC</span>
-                    </div>
-
-                    <!-- Thanh Kéo Phân Chia  - Divider Handle -  -->
-                    <div class="compare-divider-handle" id="compareHandle" style="left: 50%;">
-                      <div class="handle-line"></div>
-                      <div class="handle-circle">↔</div>
-                    </div>
-                  </div>
-
-                  <div class="compare-hint-bar">
-                    <span>Kéo thanh tròn sang trái/phải để so sánh Trước & Sau</span>
-                  </div>
-
-                  <div class="ai-result-actions-strip">
-                    <button class="btn-sub-action" onclick="UICommon.downloadAiResultPhoto()" title="Tải ảnh về máy">
-                      Tải Ảnh HD Về Máy
-                    </button>
-                    <button class="btn-sub-action" onclick="UICommon.resetAiPhoto()">
-                      Đổi Ảnh Khác
-                    </button>
-                  </div>
-                </div>
-                `
-            : `
-                <!-- Ảnh Đã Tải Lên Sẵn Sàng Biến Đổi -->
-                <div class="ai-ready-preview-box">
-                  <div class="ready-img-wrap">
-                    <img src="${originalImage}" class="ready-preview-img" alt="Ảnh Đã Chọn">
-                    <span class="ready-tag">ẢNH SẴN SÀNG</span>
-                    <button class="btn-change-photo-mini" onclick="UICommon.resetAiPhoto()">Đổi ảnh</button>
-                  </div>
-                  <div style="font-size: 13px; color: #555; text-align: center; margin-top: 10px;">
-                    Đã nhận diện ảnh chân dung. Hãy chọn kiểu tóc bên phải và nhấn <strong>Biến Đổi</strong>!
-                  </div>
-                </div>
-                `
-      }
-          </div>
-
-          <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN CHỌN KIỂU TÓC, MÀU & API -->
-          <div class="ai-controls-column">
-            <!-- 1. CHỌN MẪU TÓC NAM -->
-            <div class="control-group">
-              <label class="control-section-label">
-                <span>1. CHỌN KIỂU TÓC XU HƯỚNG</span>
-                <span class="badge-selected-tag">${selectedStyle}</span>
-              </label>
-              <div class="style-cards-grid">
-                ${stylePresets.map(s => `
-                  <button class="style-pill-card ${selectedStyle === s.name ? 'active' : ''}" 
-                          onclick="UICommon.selectAiStyle('${s.name}')">
-                    <span class="style-icon">${s.icon}</span>
-                    <span class="style-title">${s.name}</span>
-                  </button>
-                `).join('')}
-              </div>
-            </div>
-
-            <!-- 2. CHỌN MÀU NHUỘM TÓC -->
-            <div class="control-group" style="margin-top: 14px;">
-              <label class="control-section-label">
-                <span>2. CHỌN MÀU NHUỘM THỜI THƯỢNG</span>
-                <span style="font-size: 12px; font-weight: 700; color: #c85a44;">${selectedColorName}</span>
-              </label>
-              <div class="color-swatches-grid">
-                ${colorPresets.map(c => `
-                  <button class="color-swatch-item ${selectedColorName === c.name ? 'active' : ''}" 
-                          onclick="UICommon.selectAiColor('${c.name}', '${c.hex}')" 
-                          title="${c.name}">
-                    <span class="swatch-circle" style="background: ${c.hex};"></span>
-                    <span class="swatch-name">${c.name}</span>
-                  </button>
-                `).join('')}
-              </div>
-            </div>
-
-            <!-- 3. MÔ TẢ YÊU CẦU TÙY BIẾN -->
-            <div class="control-group" style="margin-top: 14px;">
-              <label class="control-section-label">3. GHI CHÚ YÊU CẦU CHO AI (TÙY CHỌN)</label>
-              <input type="text" id="aiCustomPromptInput" class="ai-custom-input" 
-                     placeholder="Ví dụ: Fade sát chân tóc, uốn sóng phồng nhẹ, vuốt sáp mờ..."
-                     value="${this.aiState.customPrompt || ''}"
-                     onchange="UICommon.aiState.customPrompt = this.value">
-            </div>
-
-            <!-- 4. NÚT MỞ CÀI ĐẶT API -->
-            <div class="ai-api-toggle-row">
-              <button class="btn-text-toggle" onclick="UICommon.toggleAiApiSettings()">
-                Cài đặt API Key & Endpoint (${aiConfig.provider})
-              </button>
-            </div>
-
-            <!-- KHUNG CẤU HÌNH API  - KHI BẬT -  -->
-            ${showApiSettings ? `
-              <div class="ai-settings-collapsible">
-                <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px;">CẤU HÌNH KẾT NỐI AI VISION API:</div>
-                <div class="api-form-row">
-                  <label>Nhà Cung Cấp API:</label>
-                  <select id="aiProviderSelect" class="api-input-control" onchange="UICommon.handleAiProviderChange(this.value)">
-                    <option value="demo_smart" ${aiConfig.provider === 'demo_smart' ? 'selected' : ''}>OMNI Neural Engine (Sẵn có - Không cần Key)</option>
-                    <option value="huggingface" ${aiConfig.provider === 'huggingface' ? 'selected' : ''}>Hugging Face Inference API</option>
-                    <option value="replicate" ${aiConfig.provider === 'replicate' ? 'selected' : ''}>Replicate API (SD / Face-to-Many)</option>
-                    <option value="openai" ${aiConfig.provider === 'openai' ? 'selected' : ''}>OpenAI Vision / DALL-E 3</option>
-                    <option value="custom" ${aiConfig.provider === 'custom' ? 'selected' : ''}>Custom Webhook Backend URL</option>
-                  </select>
-                </div>
-                <div class="api-form-row">
-                  <label>API Key (Mã Token):</label>
-                  <input type="password" id="aiApiKeyInput" class="api-input-control" placeholder="hf_xxxx... hoặc r8_xxxx..." value="${aiConfig.apiKey || ''}">
-                </div>
-                <div class="api-form-row">
-                  <label>API Endpoint (URL):</label>
-                  <input type="text" id="aiEndpointInput" class="api-input-control" placeholder="https://api-inference.huggingface.co/..." value="${aiConfig.endpoint || ''}">
-                </div>
-                <button class="btn-submit-terracotta" style="width: 100%; padding: 8px; margin-top: 8px; font-size: 12px;" onclick="UICommon.saveAiApiSettings()">
-                  Lưu Cấu Hình API
-                </button>
-              </div>
-            ` : ''}
-
-            <!-- 5. CÁC NÚT HÀNH ĐỘNG CHÍNH -->
-            <div class="ai-action-buttons-wrap">
-              ${!resultImage ? `
-                <button class="btn-execute-ai" onclick="UICommon.processAiPhotoRestyle()" ${!originalImage || isProcessing ? 'disabled style="opacity: 0.6;"' : ''}>
-                  BẮT ĐẦU ĐỔI KIỂU TÓC BẰNG AI
-                </button>
-              ` : `
-                <button class="btn-submit-terracotta btn-book-now-ai" onclick="UICommon.bookWithAiHairstyle()">
-                  ĐẶT LỊCH CẮT KIỂU TÓC NÀY
-                </button>
-                <button class="btn-execute-ai" style="margin-top: 8px; background: #222;" onclick="UICommon.processAiPhotoRestyle()">
-                  Thử Đổi Màu / Kiểu Tóc Khác
-                </button>
-              `}
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Nếu đang hiển thị Before/After, khởi tạo tương tác kéo trượt
-    if (resultImage && !isProcessing) {
-      setTimeout(() => this.initCompareSlider(), 60);
-    }
-  },
-
-  handleAiPhotoUpload(event) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.aiState.originalImage = e.target.result;
-      this.aiState.resultImage = null;
-      this.renderAiStudioContent();
-      UICommon.showToast('Đã tải ảnh khuôn mặt lên thành công!');
-    };
-    reader.readAsDataURL(file);
-  },
-
-  loadSampleAiPhoto(imageUrl) {
-    this.aiState.originalImage = imageUrl;
-    this.aiState.resultImage = null;
-    this.renderAiStudioContent();
-    UICommon.showToast('Đã chọn ảnh mẫu. Hãy bấm Bắt Đầu Đổi Kiểu Tóc!');
-  },
-
-  selectAiStyle(styleName) {
-    this.aiState.selectedStyle = styleName;
-    this.renderAiStudioContent();
-    UICommon.showToast(`Đã chọn kiểu tóc: ${styleName}`);
-  },
-
-  selectAiColor(colorName, colorHex) {
-    this.aiState.selectedColorName = colorName;
-    this.aiState.selectedColorHex = colorHex;
-    this.renderAiStudioContent();
-    UICommon.showToast(`Đã chọn màu nhuộm: ${colorName}`);
-  },
-
-  toggleAiApiSettings() {
-    this.aiState.showApiSettings = !this.aiState.showApiSettings;
-    this.renderAiStudioContent();
-  },
-
-  handleAiProviderChange(provider) {
-    const endpointInput = document.getElementById('aiEndpointInput');
-    if (endpointInput) {
-      if (provider === 'huggingface') {
-        endpointInput.value = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0';
-      } else if (provider === 'replicate') {
-        endpointInput.value = 'https://api.replicate.com/v1/predictions';
-      } else if (provider === 'openai') {
-        endpointInput.value = 'https://api.openai.com/v1/images/generations';
-      } else if (provider === 'demo_smart') {
-        endpointInput.value = 'Local Neural Engine';
-      }
-    }
-  },
-
-  saveAiApiSettings() {
-    const provider = document.getElementById('aiProviderSelect')?.value;
-    const apiKey = document.getElementById('aiApiKeyInput')?.value;
-    const endpoint = document.getElementById('aiEndpointInput')?.value;
-
-    if (SalonApi) {
-      SalonApi.saveAiConfig(provider, apiKey, endpoint);
-      UICommon.showToast('Đã lưu cài đặt API thành công!');
-      this.aiState.showApiSettings = false;
-      this.renderAiStudioContent();
-    }
-  },
-
-  async processAiPhotoRestyle() {
-    if (!this.aiState.originalImage) {
-      UICommon.showToast('Vui lòng tải hoặc chụp ảnh khuôn mặt trước.', 'warning');
-      return;
-    }
-
-    this.aiState.isProcessing = true;
-    this.renderAiStudioContent();
-
-    // Mô phỏng text trạng thái từng bước
-    const stepEl = document.getElementById('aiStatusStep');
-    setTimeout(() => { if (stepEl) stepEl.textContent = `Đang cắt phom tóc ${this.aiState.selectedStyle}...`; }, 400);
-    setTimeout(() => { if (stepEl) stepEl.textContent = `Đang hòa sắc màu nhuộm ${this.aiState.selectedColorName}...`; }, 900);
-    setTimeout(() => { if (stepEl) stepEl.textContent = 'Đang hoàn thiện chi tiết ánh sáng và chất tóc 8K...'; }, 1300);
-
-    try {
-      const response = await SalonApi.restyleHairPhoto({
-        originalImageBase64: this.aiState.originalImage,
-        hairstyleName: this.aiState.selectedStyle,
-        hairColorName: this.aiState.selectedColorName,
-        hairColorHex: this.aiState.selectedColorHex,
-        customPrompt: this.aiState.customPrompt
-      });
-
-      this.aiState.isProcessing = false;
-      if (response && response.resultImageUrl) {
-        this.aiState.resultImage = response.resultImageUrl;
-        this.renderAiStudioContent();
-        UICommon.showToast(`Đổi kiểu tóc AI thành công (${response.providerUsed})!`);
-      } else {
-        throw new Error('Không nhận được ảnh kết quả.');
-      }
-    } catch (err) {
-      this.aiState.isProcessing = false;
-      this.renderAiStudioContent();
-      UICommon.showToast(`Có lỗi khi tạo ảnh AI: ${err.message}`, 'error');
-    }
-  },
-
-  initCompareSlider() {
-    const wrapper = document.getElementById('compareWrapper');
-    const beforeClip = document.getElementById('compareBeforeClip');
-    const handle = document.getElementById('compareHandle');
-    if (!wrapper || !beforeClip || !handle) return;
-
-    let isSliding = false;
-
-    const updateSlider = (clientX) => {
-      const rect = wrapper.getBoundingClientRect();
-      let pos = ((clientX - rect.left) / rect.width) * 100;
-      if (pos < 2) pos = 2;
-      if (pos > 98) pos = 98;
-      beforeClip.style.width = `${pos}%`;
-      handle.style.left = `${pos}%`;
-    };
-
-    wrapper.onmousedown = (e) => { isSliding = true; updateSlider(e.clientX); };
-    window.onmousemove = (e) => { if (isSliding) updateSlider(e.clientX); };
-    window.onmouseup = () => { isSliding = false; };
-
-    wrapper.ontouchstart = (e) => { isSliding = true; updateSlider(e.touches[0].clientX); };
-    window.ontouchmove = (e) => { if (isSliding) updateSlider(e.touches[0].clientX); };
-    window.ontouchend = () => { isSliding = false; };
-  },
-
-  downloadAiResultPhoto() {
-    if (!this.aiState.resultImage) return;
-    const a = document.createElement('a');
-    a.href = this.aiState.resultImage;
-    a.download = `OMNI-AI-Hairstyle-${this.aiState.selectedStyle.replace(/\s+/g, '-')}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    UICommon.showToast('Đã tải ảnh kiểu tóc HD về thiết bị của bạn!');
-  },
-
-  resetAiPhoto() {
-    this.aiState.originalImage = null;
-    this.aiState.resultImage = null;
-    this.renderAiStudioContent();
-  },
-
-  bookWithAiHairstyle() {
-    this.closeGlobalModal();
-    UICommon.openBookingModal();
-    UICommon.showToast(`Đã đưa kiểu tóc "${this.aiState.selectedStyle}" vào ghi chú đặt lịch!`);
+  quickLoginRole() {
+    this.openAuthModal('login', 'Vui lòng đăng nhập bằng tài khoản và mật khẩu được cấp.');
   },
 
   // Toast notification và tiện ích modal
@@ -2781,7 +2229,7 @@ const UICommon = {
     }
   },
 
-  showToast(message, type = 'info', duration = 4000) {
+  showToast(message, type = 'info', duration = null) {
     const container = document.getElementById('toastContainer');
     if (!container) return;
 
@@ -2866,8 +2314,9 @@ const UICommon = {
 
     container.appendChild(toast);
 
-    // Tự động tắt sau 4s nếu không nhấn
-    const timeoutMs = typeof duration === 'number' && duration > 0 ? duration : 4000;
+    // Rút ngắn thời gian hiển thị toast: thành công/thông tin 1.8s, lỗi/cảnh báo 3s
+    const defaultMs = (type === 'error' || type === 'warning') ? 3000 : 1800;
+    const timeoutMs = typeof duration === 'number' && duration > 0 ? duration : defaultMs;
     const timer = setTimeout(() => {
       dismiss();
     }, timeoutMs);

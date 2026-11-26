@@ -36,7 +36,9 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  background: var(--surface-elevated, #181d2a);
+  background: #FFFFFF;
+  padding: 10px;
+  box-sizing: border-box;
   overflow: hidden;
   cursor: pointer;
 }
@@ -44,7 +46,8 @@
 .product-clean-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #FFFFFF;
   display: block;
   transition: transform 0.35s ease;
 }

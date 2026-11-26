@@ -61,6 +61,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   List<Map<String, dynamic>> _slotAvailability = [];
   bool _isLoadingSlots = false;
+  String? _slotsLoadError;
 
   final List<String> _timeSlots = [
     '08:30', '09:30', '10:30', '11:30',
@@ -192,45 +193,64 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _loadAvailableSlots() async {
-    setState(() => _isLoadingSlots = true);
+    setState(() {
+      _isLoadingSlots = true;
+      _slotsLoadError = null;
+    });
     final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
     final stylistId = _selectedStylist?.id ?? '';
-    final slots = await ApiService.fetchAvailableSlots(dateStr, stylistId);
-    if (!mounted) return;
-    setState(() {
-      _slotAvailability = slots;
-      _isLoadingSlots = false;
-      // Nếu ca giờ đang chọn bị kín lịch thì tự động đổi sang ca giờ trống đầu tiên
-      final current = _slotAvailability.firstWhere(
-        (s) => s['time'] == _selectedTimeSlot,
-        orElse: () => <String, dynamic>{'available': true, 'isBooked': false},
+    try {
+      final slots = await ApiService.fetchAvailableSlots(
+        dateStr,
+        stylistId,
+        duration: _totalDuration,
       );
-      if (current['available'] == false || current['isBooked'] == true) {
-        final firstAvail = _slotAvailability.firstWhere(
-          (s) => s['available'] == true && s['isBooked'] != true,
-          orElse: () => <String, dynamic>{},
+      if (!mounted) return;
+      setState(() {
+        _slotAvailability = slots;
+        _isLoadingSlots = false;
+        _slotsLoadError = null;
+        // Nếu ca giờ đang chọn bị kín lịch thì tự động đổi sang ca giờ trống đầu tiên
+        final current = _slotAvailability.firstWhere(
+          (s) => s['time'] == _selectedTimeSlot,
+          orElse: () => <String, dynamic>{'available': true, 'isBooked': false},
         );
-        if (firstAvail.isNotEmpty && firstAvail['time'] != null) {
-          _selectedTimeSlot = firstAvail['time'] as String;
+        if (current['available'] == false || current['isBooked'] == true) {
+          final firstAvail = _slotAvailability.firstWhere(
+            (s) => s['available'] == true && s['isBooked'] != true,
+            orElse: () => <String, dynamic>{},
+          );
+          if (firstAvail.isNotEmpty && firstAvail['time'] != null) {
+            _selectedTimeSlot = firstAvail['time'] as String;
+          }
         }
-      }
-    });
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _slotAvailability = [];
+        _isLoadingSlots = false;
+        _slotsLoadError = 'Không thể tải khung giờ trống từ máy chủ. Vui lòng thử lại.';
+      });
+    }
   }
 
   int get _totalPrice {
+    if (_services.isEmpty) return 0;
     int total = 0;
     for (final id in _selectedServiceIds) {
-      final s = _services.firstWhere((item) => item.id == id, orElse: () => _services.first);
-      total += s.price;
+      final s = _services.where((item) => item.id.toUpperCase() == id.toUpperCase()).firstOrNull;
+      if (s != null) total += s.price;
     }
     return total;
   }
 
   int get _totalDuration {
+    if (_services.isEmpty) return 45;
     int dur = 0;
     for (final id in _selectedServiceIds) {
-      final s = _services.firstWhere((item) => item.id == id, orElse: () => _services.first);
-      dur += s.duration;
+      final s = _services.where((item) => item.id.toUpperCase() == id.toUpperCase()).firstOrNull;
+      if (s != null) dur += s.duration;
     }
     return dur > 0 ? dur : 45;
   }
@@ -350,8 +370,8 @@ class _BookingScreenState extends State<BookingScreen> {
       serviceName: selectedServicesList.map((e) => e['name']).join(' + '),
       serviceIds: _selectedServiceIds.toList(),
       servicesList: selectedServicesList,
-      stylistId: _selectedStylist?.id ?? 'NV02',
-      stylistName: _selectedStylist?.name ?? 'Master Barber (Ngẫu nhiên)',
+      stylistId: _selectedStylist?.id ?? '',
+      stylistName: _selectedStylist?.name ?? 'Tự động điều phối',
       date: dateStr,
       timeSlot: _selectedTimeSlot,
       durationMinutes: _totalDuration,
@@ -1192,7 +1212,32 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                 ),
               )
-            : Wrap(
+            : (_slotsLoadError != null
+                ? Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppTheme.statusDanger.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.statusDanger.withValues(alpha: 0.4)),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          _slotsLoadError!,
+                          textAlign: TextAlign.center,
+                          style: AppTheme.bodySmall(color: AppTheme.statusDanger, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: _loadAvailableSlots,
+                          icon: const Icon(Icons.refresh_rounded, size: 16, color: AppTheme.accentGold),
+                          label: Text('Thử tải lại khung giờ', style: AppTheme.bodySmall(color: AppTheme.accentGold, fontWeight: FontWeight.w700)),
+                        ),
+                      ],
+                    ),
+                  )
+                : Wrap(
                 spacing: 10,
                 runSpacing: 10,
                 children: _timeSlots.map((time) {
@@ -1271,7 +1316,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     ),
                   );
                 }).toList(),
-              ),
+              )),
       ],
     );
   }
@@ -1279,13 +1324,6 @@ class _BookingScreenState extends State<BookingScreen> {
   // Xác nhận thông tin và đặt lịch
   Widget _buildStepConfirm() {
     final dateFormatted = DateFormat('dd/MM/yyyy').format(_selectedDate);
-
-    // Tự động đồng bộ thông tin tài khoản hiện tại vào form đặt lịch
-    final currentUser = AuthService.currentUser;
-    if (currentUser != null && (_lastUserId != currentUser.id || _nameController.text.isEmpty)) {
-      _lastUserId = currentUser.id;
-      _initCustomerInfo();
-    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

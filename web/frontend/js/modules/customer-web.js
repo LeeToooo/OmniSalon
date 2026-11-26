@@ -9,18 +9,6 @@
     openFaqIndex: 0,
     portalActiveTab: 'bookings', // 'bookings' | 'orders' | 'gallery' | 'profile'
 
-    // Trạng thái AI Studio Inline
-    aiState: {
-      originalImage: null,
-      resultImage: null,
-      selectedStyle: 'Side Part 7/3 Hàn Quốc',
-      selectedColorName: 'Đen Tự Nhiên',
-      selectedColorHex: '#1c1b18',
-      customPrompt: '',
-      isProcessing: false,
-      showApiSettings: false
-    },
-
     // Khởi tạo module khách hàng trên web
     init() {
       // Xác định tab hiện tại từ URL pathname để không bị ghi đè trang chủ
@@ -80,14 +68,49 @@
         }
       });
 
-      // Lắng nghe Reactive Store thay đổi
+      // Lắng nghe Reactive Store thay đổi (Real-time SSE + BroadcastChannel) mà không làm nhảy cuộn
       if (window.store && typeof window.store.subscribe === 'function') {
         window.store.subscribe((state, event) => {
           this.updateCartBadge();
-          // Tránh gọi renderServicesCards liên tục gây chớp tắt giao diện trang chủ
           if (this.currentTab === 'home' && (event === 'SERVICES_UPDATED' || event === 'ADMIN_CATALOG_CHANGED')) {
             const grid = document.getElementById('servicesGridContainer');
             if (grid) grid.innerHTML = this.renderServicesCards(true);
+          }
+
+          const isProfileRoute = window.AppRouter && window.AppRouter.currentRoute && window.AppRouter.currentRoute.startsWith('/profile');
+          const activeModal = document.getElementById('globalModal');
+          const isModalOpen = activeModal && activeModal.classList.contains('active');
+          const isTyping = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+
+          if (isProfileRoute && !isModalOpen && !isTyping && window.ProfilePage && typeof window.ProfilePage.render === 'function') {
+            if (['LIVE_SERVER_SYNC', 'BOOKING_UPDATED', 'ORDER_STATUS_UPDATED', 'DATABASE_LOADED'].includes(event)) {
+              const container = document.getElementById('webMainContainer');
+              if (container) {
+                const prevY = window.scrollY;
+                const prevPreserve = window._preserveScrollOnRender;
+                window._preserveScrollOnRender = true;
+                try {
+                  window.ProfilePage.render(container);
+                } finally {
+                  requestAnimationFrame(() => {
+                    window._preserveScrollOnRender = prevPreserve;
+                    if (prevY > 0) window.scrollTo(0, prevY);
+                  });
+                }
+              }
+            }
+          }
+
+          if (isModalOpen && document.querySelector('.customer-portal-shell')) {
+            if (['LIVE_SERVER_SYNC', 'BOOKING_UPDATED', 'ORDER_STATUS_UPDATED'].includes(event)) {
+              if (typeof this.renderCustomerPortalModalBody === 'function') {
+                const shellBody = document.querySelector('.customer-portal-shell');
+                const prevTop = shellBody ? shellBody.scrollTop : 0;
+                this.renderCustomerPortalModalBody();
+                const newBody = document.querySelector('.customer-portal-shell');
+                if (newBody && prevTop > 0) newBody.scrollTop = prevTop;
+              }
+            }
           }
         });
       }

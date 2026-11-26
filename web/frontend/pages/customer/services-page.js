@@ -652,7 +652,10 @@
                 <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">Đánh giá từ khách hàng</h3>
                 <div style="font-size: 12.5px; color: var(--text-secondary);">Trải nghiệm thực tế của khách hàng khi sử dụng dịch vụ</div>
               </div>
-</div>
+              <button type="button" class="btn-submit-terracotta" style="padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 8px; background: #C59B27; color: #FFFFFF; border: none; cursor: pointer;" onclick="ServicesPage.openWriteServiceReviewModal('${this.escapeHtml(item.id)}', '${this.escapeHtml(name)}')">
+                Viết đánh giá
+              </button>
+            </div>
 
             <div id="serviceReviewsContainer">
               ${reviews.length === 0 ? `
@@ -666,6 +669,7 @@
                     const star = Number(r.rating || r.SoSao || 5);
                     const comment = r.comment || r.NoiDung || 'Dịch vụ rất chất lượng, tay nghề thợ tuyệt vời!';
                     const dateStr = r.date ? (window.SalonUtils ? window.SalonUtils.formatDate(r.date) : r.date) : 'Gần đây';
+                    const adminReply = (r.adminReply || r.PhanHoiAdmin || '').trim();
                     return `
                       <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
@@ -674,6 +678,12 @@
                         </div>
                         <div style="color: #F59E0B; font-size: 12.5px; margin-bottom: 4px;">${'★'.repeat(star)}${'☆'.repeat(5 - star)}</div>
                         <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0;">${this.escapeHtml(comment)}</p>
+                        ${adminReply ? `
+                          <div style="margin-top: 8px; padding: 8px 12px; border-radius: 8px; background: rgba(197, 155, 39, 0.1); border-left: 3px solid #C59B27; font-size: 12.5px; color: var(--text-primary);">
+                            <strong style="color: #8A6208; display: block; margin-bottom: 2px;">Phản hồi từ Omni Salon:</strong>
+                            <span>${this.escapeHtml(adminReply)}</span>
+                          </div>
+                        ` : ''}
                       </div>
                     `;
                   }).join('')}
@@ -688,10 +698,11 @@
 
     // Mo popup viet danh gia cho dich vu
     openWriteServiceReviewModal(serviceId, serviceName) {
-      const user = (window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function') 
-        ? window.CustomerWeb.getCurrentUser() 
+      const user = (window.CustomerWeb && typeof window.CustomerWeb.getCurrentUser === 'function')
+        ? window.CustomerWeb.getCurrentUser()
         : null;
-      if (!user) {
+      const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+      if (!user || !authHeader.Authorization) {
         if (window.UICommon) {
           window.UICommon.showToast('Quý khách vui lòng đăng nhập để gửi đánh giá dịch vụ!', 'warning');
           if (typeof window.UICommon.openAuthModal === 'function') {
@@ -701,52 +712,128 @@
         return;
       }
 
-      const initialName = user.fullName || user.name || '';
-      const promptComment = window.prompt(`Đánh giá dịch vụ "${serviceName}":\nNhập nội dung nhận xét của bạn:`, 'Dịch vụ rất chuyên nghiệp, tạo kiểu ưng ý!');
-      if (promptComment && promptComment.trim().length >= 4) {
-        this.submitServiceReview(serviceId, 5, promptComment.trim(), initialName);
+      const initialName = user.fullName || user.name || 'Khách Hàng';
+      const modalBody = document.getElementById('globalModalBody');
+      const modal = document.getElementById('globalModal');
+      if (!modal || !modalBody) return;
+
+      modal.classList.remove('modal-wide');
+      modalBody.innerHTML = `
+        <div style="padding: 8px 4px; max-width: 460px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: 14px;">
+            <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 800; color: var(--text-primary);">Đánh giá dịch vụ</h3>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary); font-weight: 600;">${this.escapeHtml(serviceName)}</p>
+          </div>
+          <input type="hidden" id="srvReviewStarInput" value="5">
+          <div style="margin-bottom: 14px; text-align: center;">
+            <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; color: var(--text-secondary);">Chọn số sao đánh giá:</label>
+            <div id="srvReviewStarRow" style="display:inline-flex; gap:8px; font-size:28px; cursor:pointer; user-select:none;">
+              ${[1, 2, 3, 4, 5].map(st => `<span onclick="ServicesPage.selectServiceReviewStar(${st})" style="color:#F59E0B;">★</span>`).join('')}
+            </div>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:4px; color: var(--text-secondary);">Họ và tên của bạn:</label>
+            <input type="text" id="srvReviewAuthorInput" class="form-control-custom" style="width:100%; height:40px; font-size:13.5px; border-radius:10px; padding:8px 12px;" value="${this.escapeHtml(initialName)}" placeholder="Ví dụ: Ngô Văn Tuấn">
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:4px; color: var(--text-secondary);">Nội dung nhận xét về dịch vụ:</label>
+            <textarea id="srvReviewCommentInput" rows="4" class="form-control-custom" style="width:100%; border-radius:10px; padding:10px 12px; font-size:13.5px;" placeholder="Chia sẻ cảm nhận của bạn về tay nghề thợ, không gian và chất lượng dịch vụ..."></textarea>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="btn-cancel" style="height: 40px; padding: 0 18px; border-radius: 8px; font-size: 13px;" onclick="ServicesPage.openServiceDetailModal('${this.escapeHtml(serviceId)}')">Quay Lại</button>
+            <button type="button" class="btn-submit-terracotta" style="height: 40px; padding: 0 22px; border-radius: 8px; background:#C59B27; color:#FFFFFF; font-weight:800; font-size: 13px; border: none;" onclick="ServicesPage.submitServiceReviewFromModal('${this.escapeHtml(serviceId)}', '${this.escapeHtml(initialName)}')">Gửi đánh giá ngay</button>
+          </div>
+        </div>
+      `;
+      modal.classList.add('active');
+    },
+
+    selectServiceReviewStar(star) {
+      const inp = document.getElementById('srvReviewStarInput');
+      if (inp) inp.value = String(star);
+      const row = document.getElementById('srvReviewStarRow');
+      if (row) {
+        row.querySelectorAll('span').forEach((el, idx) => {
+          el.style.color = idx < star ? '#F59E0B' : '#475569';
+        });
       }
+    },
+
+    submitServiceReviewFromModal(serviceId, fallbackAuthor) {
+      const star = parseInt(document.getElementById('srvReviewStarInput')?.value || '5', 10);
+      const author = (document.getElementById('srvReviewAuthorInput')?.value || fallbackAuthor || 'Khách Hàng').trim();
+      const comment = (document.getElementById('srvReviewCommentInput')?.value || '').trim();
+      if (comment.length < 4) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng nhập nhận xét ít nhất 4 ký tự!', 'warning');
+        return;
+      }
+      this.submitServiceReview(serviceId, star, comment, author);
     },
 
     // Gui danh gia dich vu
     async submitServiceReview(serviceId, star = 5, comment = '', author = 'Khách Hàng') {
       const clean = String(serviceId).trim().toLowerCase();
-      const newReview = {
-        id: 'DG_DV_' + Date.now(),
-        serviceId: serviceId,
-        MaDichVu: serviceId,
-        customerName: author,
-        author: author,
-        rating: star,
-        SoSao: star,
-        comment: comment,
-        NoiDung: comment,
-        date: new Date().toISOString()
-      };
-
-      if (!this._currentServiceReviews[clean]) {
-        this._currentServiceReviews[clean] = [];
-      }
-      this._currentServiceReviews[clean].unshift(newReview);
-
-      if (window.store && window.store.state) {
-        if (!Array.isArray(window.store.state.reviews)) window.store.state.reviews = [];
-        window.store.state.reviews.unshift(newReview);
-        if (typeof window.store.saveState === 'function') window.store.saveState();
+      const authHeader = (window.Auth && typeof window.Auth.getAuthHeader === 'function') ? window.Auth.getAuthHeader() : {};
+      if (!authHeader.Authorization) {
+        if (window.UICommon) window.UICommon.showToast('Vui lòng đăng nhập tài khoản khách hàng để gửi đánh giá.', 'warning');
+        return;
       }
 
+      let serverReview = null;
       try {
-        await fetch('/api/reviews', {
+        const revRes = await fetch('/api/reviews', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeader },
           body: JSON.stringify({
             serviceId: serviceId,
             rating: star,
             comment: comment,
             customerName: author
           })
-        }).catch(() => {});
-      } catch (_) {}
+        });
+        const revData = await revRes.json().catch(() => null);
+        if (revRes.status === 401 || revRes.status === 403) {
+          if (window.UICommon) window.UICommon.showToast(revData?.message || 'Vui lòng đăng nhập tài khoản khách hàng để gửi đánh giá.', 'warning');
+          return;
+        }
+        if (!revRes.ok || !revData || revData.success === false) {
+          if (window.UICommon) window.UICommon.showToast(revData?.message || 'Không thể gửi đánh giá dịch vụ lúc này.', 'warning');
+          return;
+        }
+        serverReview = revData.review || null;
+      } catch (_) {
+        if (window.UICommon) window.UICommon.showToast('Lỗi kết nối máy chủ khi gửi đánh giá dịch vụ.', 'error');
+        return;
+      }
+
+      const newReview = {
+        id: serverReview?.id || ('DG_DV_' + Date.now()),
+        serviceId: serviceId,
+        MaDichVu: serviceId,
+        bookingId: serverReview?.bookingId || null,
+        customerName: author,
+        author: author,
+        rating: serverReview?.rating || star,
+        SoSao: serverReview?.rating || star,
+        comment: serverReview?.comment || comment,
+        NoiDung: serverReview?.comment || comment,
+        date: new Date().toISOString()
+      };
+
+      if (!this._currentServiceReviews[clean]) {
+        this._currentServiceReviews[clean] = [];
+      }
+      const curIdx = this._currentServiceReviews[clean].findIndex(r => r.id === newReview.id || (newReview.bookingId && (r.bookingId === newReview.bookingId || r.MaLichHen === newReview.bookingId)));
+      if (curIdx >= 0) this._currentServiceReviews[clean][curIdx] = newReview;
+      else this._currentServiceReviews[clean].unshift(newReview);
+
+      if (window.store && window.store.state) {
+        if (!Array.isArray(window.store.state.reviews)) window.store.state.reviews = [];
+        const sIdx = window.store.state.reviews.findIndex(r => r.id === newReview.id || (newReview.bookingId && (r.bookingId === newReview.bookingId || r.MaLichHen === newReview.bookingId)));
+        if (sIdx >= 0) window.store.state.reviews[sIdx] = newReview;
+        else window.store.state.reviews.unshift(newReview);
+        if (typeof window.store.saveState === 'function') window.store.saveState();
+      }
 
       if (window.UICommon) {
         window.UICommon.showToast('Cảm ơn bạn! Đánh giá dịch vụ đã được gửi thành công.', 'success');

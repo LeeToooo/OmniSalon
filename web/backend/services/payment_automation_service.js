@@ -90,7 +90,7 @@ async function generateNextInvoiceId() {
  */
 async function processBankTransfer({
   gateway = 'MBBank',
-  accountNumber = '0900000000',
+  accountNumber = '',
   transferAmount = 0,
   content = '',
   referenceCode = '',
@@ -147,6 +147,20 @@ async function processBankTransfer({
       success: false,
       message: `Không tìm thấy bản ghi tương ứng với mã #${code} trong CSDL.`,
       code
+    };
+  }
+
+  // Đối chiếu số tiền chuyển khoản thực tế >= số tiền cần thanh toán trên đơn hàng / lịch hẹn
+  const requiredAmount = matchedType === 'booking'
+    ? parseFloat(targetRecord.TienCoc > 0 ? targetRecord.TienCoc : targetRecord.TongTien || 0)
+    : parseFloat(targetRecord.TongTien || 0);
+  if (requiredAmount > 0 && amount < requiredAmount) {
+    return {
+      success: false,
+      message: `Số tiền chuyển khoản (${amount.toLocaleString('vi-VN')} đ) chưa đủ thanh toán #${code} (cần tối thiểu ${requiredAmount.toLocaleString('vi-VN')} đ).`,
+      code,
+      expectedAmount: requiredAmount,
+      receivedAmount: amount
     };
   }
 
@@ -307,10 +321,15 @@ async function checkPaymentStatus(targetCode) {
   return { isPaid: false, code: upper, status: 'Not_Found' };
 }
 
+function getRecentPayments(limit = 50) {
+  return Array.from(recentPaymentsCache.values()).reverse().slice(0, limit);
+}
+
 module.exports = {
   parsePaymentContent,
   processBankTransfer,
   checkPaymentStatus,
+  getRecentPayments,
   recentPaymentsCache
 };
 

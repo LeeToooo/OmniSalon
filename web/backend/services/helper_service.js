@@ -2,6 +2,17 @@
 const { querySql } = require('../database/db');
 const { checkAndAutoCancelOnRequest } = require('./auto_cancel_service');
 
+/**
+ * Lấy chuỗi ngày YYYY-MM-DD theo giờ local (tránh lệch ngày UTC trước 07:00 sáng VN).
+ */
+function getLocalIsoDate(offsetDays = 0) {
+  const d = new Date(Date.now() + Number(offsetDays || 0) * 86400000);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 const catIcons = {
   DM01: 'haircut', DM02: 'styling', DM03: 'haircare', DM04: 'shampoo', DM05: 'soap',
   DM06: 'treatment', DM07: 'chemical', DM08: 'beard', DM09: 'tools'
@@ -212,7 +223,9 @@ async function resolveOrCreateCustomer({ customerId, customerName, customerPhone
        VALUES (?, NULL, ?, ?, 'kh123', N'Khách hàng', N'Hoạt động', GETDATE())`,
       [newTkId, newKhId, cleanPhone || newKhId]
     );
-  } catch (_) { }
+  } catch (err) {
+    console.warn('[HelperService] Auto-create guest account skipped:', err.message);
+  }
 
   return newKhId;
 }
@@ -355,7 +368,11 @@ async function resolveServiceInfo(serviceId, serviceName) {
 }
 
 async function getFullSqlDatabase() {
-  try { await checkAndAutoCancelOnRequest(); } catch (_) {}
+  try {
+    await checkAndAutoCancelOnRequest();
+  } catch (err) {
+    console.warn('[HelperService] Auto-cancel check skipped:', err.message);
+  }
   const [
     branchRows,
     serviceRows,
@@ -463,11 +480,23 @@ async function getFullSqlDatabase() {
                      CONVERT(VARCHAR(10), NgayBatDau, 120) AS NgayBatDau, 
                      CONVERT(VARCHAR(10), NgayKetThuc, 120) AS NgayKetThuc, 
                      TrangThai FROM KhuyenMai`),
-    querySql(`SELECT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, 
-                     dg.NoiDung, dg.HinhAnh, CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGia, 
-                     dg.TrangThai, kh.HoTen AS TenKhachHang 
-              FROM DanhGia dg 
-              LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang`),
+    querySql(`SELECT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.MaSanPham, dg.MaDichVu,
+                     dg.SoSao, dg.NoiDung, dg.HinhAnh,
+                     CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGia,
+                     dg.TrangThai, dg.PhanHoiAdmin,
+                     CONVERT(VARCHAR(19), dg.NgayPhanHoi, 120) AS NgayPhanHoi,
+                     kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
+                     sp.TenSanPham AS TenSanPhamDirect,
+                     dv.TenDichVu AS TenDichVuDirect,
+                     (SELECT TOP 1 sp2.TenSanPham FROM ChiTietDonHang ctdh2 JOIN SanPham sp2 ON ctdh2.MaSanPham = sp2.MaSanPham WHERE ctdh2.MaDonHang = dg.MaDonHang) AS TenSanPhamDon,
+                     (SELECT TOP 1 ctdh2.MaSanPham FROM ChiTietDonHang ctdh2 WHERE ctdh2.MaDonHang = dg.MaDonHang) AS MaSanPhamDon,
+                     (SELECT TOP 1 ISNULL(dv2.TenDichVu, cb2.TenCombo) FROM ChiTietLichHen ctlh2 LEFT JOIN DichVu dv2 ON ctlh2.MaDichVu = dv2.MaDichVu LEFT JOIN ComboDichVu cb2 ON ctlh2.MaCombo = cb2.MaCombo WHERE ctlh2.MaLichHen = dg.MaLichHen) AS TenDichVuLich,
+                     (SELECT TOP 1 ISNULL(ctlh2.MaDichVu, ctlh2.MaCombo) FROM ChiTietLichHen ctlh2 WHERE ctlh2.MaLichHen = dg.MaLichHen) AS MaDichVuLich
+              FROM DanhGia dg
+              LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
+              LEFT JOIN SanPham sp ON dg.MaSanPham = sp.MaSanPham
+              LEFT JOIN DichVu dv ON dg.MaDichVu = dv.MaDichVu
+              ORDER BY dg.NgayDanhGia DESC`),
     querySql(`SELECT tk.MaTaiKhoan, tk.MaNhanVien, tk.MaKhachHang, tk.TenDangNhap, tk.VaiTro, tk.TrangThai,
                      ISNULL(nv.HoTen, kh.HoTen) AS HoTen,
                      ISNULL(nv.SoDienThoai, kh.SoDienThoai) AS SoDienThoai,
@@ -569,13 +598,14 @@ async function getFullSqlDatabase() {
 
   // Chuẩn hóa danh sách đơn hàng kèm chi tiết sản phẩm chuẩn FEFO
   const mappedOrders = (orderRows || []).map(r => {
-    let oStatus = 'Processing';
+    let oStatus = 'Pending';
     const tt = (r.TrangThai || '').trim().toLowerCase();
     if (tt.includes('hủy') || tt === 'cancelled') oStatus = 'Cancelled';
-    else if (tt.includes('hoàn tất') || tt.includes('đã giao') || tt === 'completed' || tt === 'delivered') oStatus = 'Completed';
+    else if (tt.includes('đã nhận') || tt.includes('hoàn tất') || tt.includes('đã giao') || tt === 'completed' || tt === 'delivered') oStatus = 'Completed';
+    else if (tt.includes('sẵn sàng') || tt === 'ready' || tt === 'ready_for_pickup') oStatus = 'Ready';
     else if (tt.includes('đang giao') || tt === 'delivering' || tt === 'shipping' || (tt.includes('giao') && !tt.includes('đã giao'))) oStatus = 'Delivering';
+    else if (tt.includes('chuẩn bị') || tt.includes('đóng gói') || tt.includes('đang xử lý') || tt === 'processing') oStatus = 'Processing';
     else if (tt.includes('chờ') || tt === 'pending') oStatus = 'Pending';
-    else if (tt.includes('đóng gói') || tt.includes('đang xử lý') || tt === 'processing') oStatus = 'Processing';
 
     const items = (chiTietDonHangRows || [])
       .filter(it => it.MaDonHang === r.MaDonHang)
@@ -607,6 +637,8 @@ async function getFullSqlDatabase() {
       branchId: r.MaChiNhanh,
       branchName: r.TenChiNhanh || 'Omni Salon Chi Nhánh',
       orderDate: r.NgayDat,
+      createdAt: r.NgayDat,
+      NgayDat: r.NgayDat,
       totalAmount: parseFloat(r.TongTien || 0),
       TongTien: parseFloat(r.TongTien || 0),
       shippingAddress: r.DiaChiGiaoHang,
@@ -690,7 +722,7 @@ async function getFullSqlDatabase() {
     // Khuyến mãi áp dụng cho sản phẩm  ví dụ KM01 - Chào Thu Rực Rỡ 10% 
     let promoDiscount = 0;
     let matchedPromo = null;
-    const nowStr = new Date().toISOString().slice(0, 10);
+    const nowStr = getLocalIsoDate();
     const linkedPromos = (kmSanPhamRows || []).filter(km => km.MaSanPham === r.MaSanPham);
     for (const link of linkedPromos) {
       const p = (promoRows || []).find(pr => {
@@ -828,7 +860,7 @@ async function getFullSqlDatabase() {
   });
 
   // Chuẩn hóa danh sách dịch vụ và áp dụng khuyến mãi hiện hành  Mục 16 
-  const todayDateStr = new Date().toISOString().slice(0, 10);
+  const todayDateStr = getLocalIsoDate();
   const activeServicePromos = (promoRows || []).filter(p => {
     if (p.DoiTuongApDung && p.DoiTuongApDung.includes('Hội viên')) return false;
     const st = (p.TrangThai || '').trim();
@@ -1181,6 +1213,41 @@ async function getFullSqlDatabase() {
     };
   });
 
+  const mappedReviews = (reviewRows || []).map(r => {
+    const productId = r.MaSanPham || r.MaSanPhamDon || null;
+    const serviceId = r.MaDichVu || r.MaDichVuLich || null;
+    const targetName = r.TenSanPhamDirect || r.TenDichVuDirect || r.TenSanPhamDon || r.TenDichVuLich || (r.MaLichHen ? `Lịch #${r.MaLichHen}` : (r.MaDonHang ? `Đơn #${r.MaDonHang}` : 'Omni Salon'));
+    const targetType = r.MaSanPham || r.MaDonHang ? 'product' : 'service';
+    return {
+      ...r,
+      id: r.MaDanhGia,
+      MaDanhGia: r.MaDanhGia,
+      customerId: r.MaKhachHang,
+      customerName: r.TenKhachHang || 'Khách Hàng',
+      customerPhone: r.SdtKhachHang || '',
+      bookingId: r.MaLichHen || null,
+      orderId: r.MaDonHang || null,
+      productId,
+      MaSanPham: r.MaSanPham || productId,
+      serviceId,
+      MaDichVu: r.MaDichVu || serviceId,
+      targetName,
+      targetType,
+      rating: Number(r.SoSao || 5),
+      SoSao: Number(r.SoSao || 5),
+      comment: r.NoiDung || '',
+      NoiDung: r.NoiDung || '',
+      adminReply: r.PhanHoiAdmin || '',
+      PhanHoiAdmin: r.PhanHoiAdmin || '',
+      replyDate: r.NgayPhanHoi || null,
+      NgayPhanHoi: r.NgayPhanHoi || null,
+      date: r.NgayDanhGia,
+      NgayDanhGia: r.NgayDanhGia,
+      status: r.TrangThai || 'Hiển thị',
+      TrangThai: r.TrangThai || 'Hiển thị'
+    };
+  });
+
   return {
     branches: mappedBranches,
     services: mappedServices,
@@ -1192,7 +1259,7 @@ async function getFullSqlDatabase() {
     bookings: mappedBookings,
     orders: mappedOrders,
     promotions: mappedPromotions,
-    reviews: reviewRows,
+    reviews: mappedReviews,
     users: mappedUsers,
     notifications: thongBaoRows,
     shifts: caLamViecRows,
@@ -1212,6 +1279,7 @@ module.exports = {
   detectBrand,
   formatTime,
   formatDate,
+  getLocalIsoDate,
   computeEndTime,
   resolveOrCreateCustomer,
   resolveStaffMember,

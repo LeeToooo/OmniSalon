@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:omni_salon_mobile/core/theme/app_theme.dart';
 import 'package:omni_salon_mobile/core/auth/auth_service.dart';
 import 'package:omni_salon_mobile/core/api/api_service.dart';
@@ -24,6 +25,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
   final searchController = TextEditingController();
 
   late TabController _tabController;
+  Timer? _autoRefreshTimer;
   List<Booking> bookings = [];
   List<SalonOrder> orders = [];
   bool isLoading = true;
@@ -40,6 +42,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     });
 
     _loadData();
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 6), (_) {
+      if (mounted && AuthService.currentUser != null) {
+        _loadData(silent: true);
+      }
+    });
   }
 
   void _onThemeChanged() {
@@ -48,13 +55,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
 
   @override
   void dispose() {
+    _autoRefreshTimer?.cancel();
     AppTheme.isDarkModeNotifier.removeListener(_onThemeChanged);
     _tabController.dispose();
     searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadData({bool silent = false}) async {
     final user = AuthService.currentUser;
     if (user == null) {
       if (mounted) {
@@ -67,7 +75,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       return;
     }
 
-    setState(() => isLoading = true);
+    if (!silent && mounted) {
+      setState(() => isLoading = true);
+    }
     final userPhone = user.phone.trim().replaceAll(RegExp(r'\D'), '');
     final userId = user.id.trim();
     final q = searchController.text.trim();
@@ -102,7 +112,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
 
     // 2. TẢI ĐƠN HÀNG MỸ PHẨM: Khách hàng chỉ xem đơn hàng của chính mình
     List<SalonOrder> fetchedOrders = await ApiService.fetchOrders();
-    final isMyOrder = (SalonOrder o) {
+    bool isMyOrder(SalonOrder o) {
       final oPhone = o.customerPhone.replaceAll(RegExp(r'\D'), '');
       final matchPhone = userPhone.isNotEmpty &&
           oPhone.isNotEmpty &&
@@ -117,7 +127,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                   user.maKhachHang!.isNotEmpty &&
                   o.userId == user.maKhachHang)));
       return matchPhone || matchUserId;
-    };
+    }
 
     fetchedOrders = fetchedOrders.where(isMyOrder).toList();
 
@@ -497,7 +507,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                   : () async {
                       setDialogState(() => isSubmitting = true);
                       final user = AuthService.currentUser;
-                      await ApiService.submitReview(
+                      final reviewRes = await ApiService.submitReviewDetailed(
                         bookingId: b.bookingCode,
                         rating: rating,
                         comment: commentCtrl.text.trim().isEmpty
@@ -508,15 +518,26 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                         customerPhone: user?.phone ?? b.customerPhone,
                       );
                       if (!dialogCtx.mounted) return;
-                      Navigator.of(dialogCtx).pop();
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Cảm ơn quý khách đã gửi đánh giá cho lịch hẹn #${b.bookingCode}!'),
-                          backgroundColor: const Color(0xFF10B981),
-                        ),
-                      );
+                      if (reviewRes['success'] == true) {
+                        Navigator.of(dialogCtx).pop();
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Cảm ơn quý khách đã gửi đánh giá cho lịch hẹn #${b.bookingCode}!'),
+                            backgroundColor: const Color(0xFF10B981),
+                          ),
+                        );
+                      } else {
+                        setDialogState(() => isSubmitting = false);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(reviewRes['message']?.toString() ?? 'Không thể gửi đánh giá!'),
+                            backgroundColor: const Color(0xFFEF4444),
+                          ),
+                        );
+                      }
                     },
               child: Text(
                 isSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá Ngay',
@@ -717,7 +738,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                   : () async {
                       setDialogState(() => isSubmitting = true);
                       final user = AuthService.currentUser;
-                      await ApiService.submitReview(
+                      final reviewRes = await ApiService.submitReviewDetailed(
                         orderId: o.orderCode,
                         rating: rating,
                         comment: commentCtrl.text.trim().isEmpty
@@ -728,15 +749,26 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                         customerPhone: user?.phone ?? o.customerPhone,
                       );
                       if (!dialogCtx.mounted) return;
-                      Navigator.of(dialogCtx).pop();
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Cảm ơn quý khách đã gửi đánh giá cho đơn hàng #${o.orderCode}!'),
-                          backgroundColor: const Color(0xFF10B981),
-                        ),
-                      );
+                      if (reviewRes['success'] == true) {
+                        Navigator.of(dialogCtx).pop();
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Cảm ơn quý khách đã gửi đánh giá cho đơn hàng #${o.orderCode}!'),
+                            backgroundColor: const Color(0xFF10B981),
+                          ),
+                        );
+                      } else {
+                        setDialogState(() => isSubmitting = false);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(reviewRes['message']?.toString() ?? 'Không thể gửi đánh giá!'),
+                            backgroundColor: const Color(0xFFEF4444),
+                          ),
+                        );
+                      }
                     },
               child: Text(
                 isSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá Ngay',
@@ -760,8 +792,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
         ),
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626)),
-            SizedBox(width: 8),
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626)),
+            const SizedBox(width: 8),
             Text('Xác Nhận Hủy Lịch?',
                 style: TextStyle(
                     fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
@@ -824,16 +856,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
 
     final filteredOrders = (orders.where((o) {
       if (currentOrderFilter == 'all') return true;
-      final low = o.orderStatus.toLowerCase();
-      final isCancelled = low.contains('hủy') || low == 'cancelled';
-      final isCompleted = low.contains('hoàn tất') ||
-          low.contains('đã giao') ||
-          low == 'completed' ||
-          low == 'delivered';
-      if (currentOrderFilter == 'delivering')
-        return !isCancelled && !isCompleted;
-      if (currentOrderFilter == 'cancelled') return isCancelled;
-      if (currentOrderFilter == 'completed') return isCompleted;
+      if (currentOrderFilter == 'delivering') {
+        return !o.isCancelled && !o.isCompleted;
+      }
+      if (currentOrderFilter == 'cancelled') return o.isCancelled;
+      if (currentOrderFilter == 'completed') return o.isCompleted;
       return true;
     }).toList())
       ..sort((a, b) {
@@ -1130,7 +1157,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildFilterTab('all', 'Tất Cả', isOrder: true),
-              _buildFilterTab('delivering', 'Đang Giao', isOrder: true),
+              _buildFilterTab('delivering', 'Đang xử lý', isOrder: true),
               _buildFilterTab('completed', 'Hoàn Thành', isOrder: true),
               _buildFilterTab('cancelled', 'Đã Hủy', isOrder: true),
             ],
@@ -1254,18 +1281,41 @@ class _OrderCardItemState extends State<_OrderCardItem> {
     return 30000;
   }
 
+  String _formatOrderDateTime(String raw) {
+    if (raw.trim().isEmpty) return 'Hôm nay';
+    final parsed = DateTime.tryParse(raw.replaceAll(' ', 'T'));
+    if (parsed != null) {
+      final d = parsed.toLocal();
+      return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    }
+    return raw;
+  }
+
   @override
   Widget build(BuildContext context) {
     final o = widget.order;
     final shippingFee = _calculateShippingFee(o);
-    final isCancelled = o.orderStatus.toLowerCase().contains('hủy') ||
-        o.orderStatus.toLowerCase() == 'cancelled';
-    final isCompleted = o.orderStatus.toLowerCase().contains('hoàn tất') ||
-        o.orderStatus.toLowerCase().contains('đã giao') ||
-        o.orderStatus.toLowerCase() == 'completed' ||
-        o.orderStatus.toLowerCase() == 'delivered';
-    final isPaid = o.paymentStatus.toLowerCase().contains('đã thanh toán') ||
-        o.paymentStatus.toLowerCase() == 'paid';
+    final isCancelled = o.isCancelled;
+    final isCompleted = o.isCompleted;
+    final isPaid = o.isPaid;
+    final canCancel = o.canCancel;
+
+    Color statusBg;
+    Color statusFg;
+    if (isCancelled) {
+      statusBg = const Color(0xFFEF4444).withValues(alpha: 0.14);
+      statusFg = const Color(0xFFEF4444);
+    } else if (isCompleted) {
+      statusBg = const Color(0xFF10B981).withValues(alpha: 0.14);
+      statusFg = const Color(0xFF10B981);
+    } else if (o.isDeliveringOrReady) {
+      statusBg = const Color(0xFF0284C7).withValues(alpha: 0.14);
+      statusFg = const Color(0xFF0284C7);
+    } else {
+      statusBg = const Color(0xFFF59E0B).withValues(alpha: 0.15);
+      statusFg = const Color(0xFFD97706);
+    }
+
     final hasMoreThanTwo = o.items.length > 2;
     final visibleItems =
         (hasMoreThanTwo && !_isExpanded) ? o.items.take(2).toList() : o.items;
@@ -1288,29 +1338,39 @@ class _OrderCardItemState extends State<_OrderCardItem> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentGold.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                      color: AppTheme.accentGold.withValues(alpha: 0.4)),
-                ),
-                child: Text(
-                  '#' + o.orderCode,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.accentGold,
-                      fontSize: 13),
-                ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentGold.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                          color: AppTheme.accentGold.withValues(alpha: 0.4)),
+                    ),
+                    child: Text(
+                      '#${o.orderCode}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.accentGold,
+                          fontSize: 13),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _formatOrderDateTime(o.createdAt),
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ],
               ),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isCancelled
-                      ? const Color(0xFFEF4444).withValues(alpha: 0.15)
-                      : const Color(0xFF10B981).withValues(alpha: 0.15),
+                  color: statusBg,
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Text(
@@ -1318,9 +1378,7 @@ class _OrderCardItemState extends State<_OrderCardItem> {
                   style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 11.5,
-                      color: isCancelled
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFF10B981)),
+                      color: statusFg),
                 ),
               ),
             ],
@@ -1425,17 +1483,32 @@ class _OrderCardItemState extends State<_OrderCardItem> {
             ],
             Divider(height: 14, color: AppTheme.borderColor),
           ],
-          Text('Người nhận: ' + o.customerName + ' • ' + o.customerPhone,
+          Text('Người nhận: ${o.customerName} • ${o.customerPhone}',
               style: TextStyle(
                   color: AppTheme.textPrimary,
                   fontWeight: FontWeight.w700,
                   fontSize: 13)),
           const SizedBox(height: 4),
-          Text('Địa chỉ: ' + o.shippingAddress,
+          Text('Đặt lúc: ${_formatOrderDateTime(o.createdAt)}',
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
           const SizedBox(height: 4),
-          Text('Thanh toán: ' + o.paymentMethod + ' (' + o.paymentStatus + ')',
+          Text('Hình thức: ${o.isPickupOrder ? 'Nhận tại quầy chi nhánh' : o.shippingAddress}',
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Text('Thanh toán: ${o.paymentMethod} • ',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+              Text(
+                o.displayPaymentStatus,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: isPaid ? const Color(0xFF10B981) : const Color(0xFFD97706),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1492,7 +1565,7 @@ class _OrderCardItemState extends State<_OrderCardItem> {
                           TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                   onPressed: widget.onPay,
                 ),
-              if (!isCancelled)
+              if (isCompleted)
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: AppTheme.borderColor),
@@ -1510,7 +1583,7 @@ class _OrderCardItemState extends State<_OrderCardItem> {
                           color: AppTheme.textPrimary)),
                   onPressed: widget.onRate,
                 ),
-              if (!isCancelled && !isCompleted)
+              if (canCancel)
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFDC2626)),
@@ -1564,16 +1637,22 @@ class _BookingCardItemState extends State<_BookingCardItem> {
     final b = widget.booking;
     final isCancelled = b.isCancelled;
     final isCompleted = b.isCompleted;
+    final canCancel = b.canCancel;
 
     Color badgeBg = const Color(0xFF10B981).withValues(alpha: 0.15);
     Color badgeText = const Color(0xFF10B981);
     if (isCancelled) {
       badgeBg = const Color(0xFFEF4444).withValues(alpha: 0.15);
       badgeText = const Color(0xFFEF4444);
-    } else if (b.status.toLowerCase().contains('chờ') ||
-        b.status.toLowerCase() == 'pending') {
+    } else if (b.isInProgress) {
+      badgeBg = const Color(0xFF0284C7).withValues(alpha: 0.15);
+      badgeText = const Color(0xFF0284C7);
+    } else if (b.isWaiting) {
       badgeBg = const Color(0xFFF59E0B).withValues(alpha: 0.15);
-      badgeText = const Color(0xFFF59E0B);
+      badgeText = const Color(0xFFD97706);
+    } else if (!isCompleted) {
+      badgeBg = const Color(0xFFC59B27).withValues(alpha: 0.15);
+      badgeText = const Color(0xFF8A6208);
     }
 
     final services = b.services;
@@ -1611,7 +1690,7 @@ class _BookingCardItemState extends State<_BookingCardItem> {
                           color: AppTheme.accentGold.withValues(alpha: 0.4)),
                     ),
                     child: Text(
-                      '#' + b.bookingCode,
+                      '#${b.bookingCode}',
                       style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           color: AppTheme.accentGold,
@@ -1738,16 +1817,16 @@ class _BookingCardItemState extends State<_BookingCardItem> {
             ],
             Divider(height: 14, color: AppTheme.borderColor),
           ],
-          Text('Thợ tạo mẫu: ' + b.stylistName,
+          Text('Thợ tạo mẫu: ${b.stylistName}',
               style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
           const SizedBox(height: 4),
-          Text('Giờ hẹn: ' + b.timeSlot + ' • Ngày ' + b.date,
+          Text('Giờ hẹn: ${b.timeSlot} • Ngày ${b.date}',
               style: const TextStyle(
                   fontSize: 12.5,
                   color: AppTheme.accentGold,
                   fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          Text('Chi nhánh: ' + b.branchName,
+          Text('Chi nhánh: ${b.branchName}',
               style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
           const SizedBox(height: 10),
           Row(
@@ -1821,7 +1900,7 @@ class _BookingCardItemState extends State<_BookingCardItem> {
                           color: AppTheme.textPrimary)),
                   onPressed: widget.onRate,
                 ),
-              if (!isCancelled && !isCompleted)
+              if (canCancel)
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFDC2626)),

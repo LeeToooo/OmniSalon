@@ -5,11 +5,15 @@ import 'package:omni_salon_mobile/core/theme/app_theme.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String email;
+  final String otpPurpose;
+  final Future<Map<String, dynamic>> Function(String otp)? onVerifyOtp;
   final VoidCallback onVerificationSuccess;
 
   const OtpVerificationScreen({
     super.key,
     required this.email,
+    this.otpPurpose = 'REGISTER',
+    this.onVerifyOtp,
     required this.onVerificationSuccess,
   });
 
@@ -59,7 +63,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   String get _currentOtp => _controllers.map((c) => c.text).join();
 
   Future<void> _handleVerify() async {
-    final code = _currentOtp;
+    if (_isVerifying) return;
+    final code = _currentOtp.trim();
     if (code.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -73,15 +78,17 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
     setState(() => _isVerifying = true);
 
-    final isValid = await AuthService.verifyGmailOtp(widget.email, _currentOtp);
+    final res = widget.onVerifyOtp != null
+        ? await widget.onVerifyOtp!(code)
+        : await AuthService.verifyGmailOtp(widget.email, code, purpose: widget.otpPurpose);
 
     if (!mounted) return;
     setState(() => _isVerifying = false);
 
-    if (isValid) {
+    if (res['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Xác thực tài khoản thành công!', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          content: Text(res['message']?.toString() ?? 'Xác thực tài khoản thành công!', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
           backgroundColor: AppTheme.charcoal,
           behavior: SnackBarBehavior.floating,
         ),
@@ -90,7 +97,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Mã OTP không đúng hoặc đã hết hạn. Hãy thử lại.', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          content: Text(res['message']?.toString() ?? 'Mã OTP không đúng hoặc đã hết hạn. Hãy thử lại.', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
           backgroundColor: AppTheme.statusDanger,
           behavior: SnackBarBehavior.floating,
         ),
@@ -102,18 +109,26 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     if (_resendCountdown > 0 || _isResending) return;
 
     setState(() => _isResending = true);
-    await AuthService.sendGmailOtp(widget.email);
+    final res = await AuthService.sendGmailOtp(widget.email, purpose: widget.otpPurpose);
     if (!mounted) return;
     setState(() => _isResending = false);
 
+    final ok = res['success'] == true;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Đã gửi lại mã OTP về ${widget.email}', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
-        backgroundColor: AppTheme.charcoal,
+        content: Text(
+          ok
+              ? 'Đã gửi lại mã OTP về ${widget.email}'
+              : (res['message']?.toString() ?? 'Không thể gửi lại mã OTP.'),
+          style: AppTheme.bodyMedium(color: AppTheme.textLight),
+        ),
+        backgroundColor: ok ? AppTheme.charcoal : AppTheme.statusDanger,
         behavior: SnackBarBehavior.floating,
       ),
     );
-    _startCountdown();
+    if (ok) {
+      _startCountdown();
+    }
   }
 
   @override
@@ -238,7 +253,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     foregroundColor: AppTheme.charcoal,
                   ),
                   child: _isVerifying
-                      ? SizedBox(
+                      ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.charcoal),

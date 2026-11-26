@@ -151,9 +151,17 @@
       }
 
       const workstationDate = this.filterDate || todayStr;
-      const workstationBookings = bookings.filter(b => {
+      const workstationAllForDate = bookings.filter(b => {
         const bDate = b.date || b.bookingDate;
         return bDate === workstationDate;
+      });
+      const completedTodayCount = workstationAllForDate.filter(b => {
+        const st = (b.status || '').toLowerCase();
+        return st === 'completed' || st.includes('hoàn thành');
+      }).length;
+      const workstationBookings = workstationAllForDate.filter(b => {
+        const st = (b.status || '').toLowerCase();
+        return st !== 'completed' && st !== 'cancelled' && !st.includes('hoàn thành') && !st.includes('hủy');
       });
 
       this.dispatchBranchFilter = this.dispatchBranchFilter || 'all';
@@ -163,9 +171,6 @@
             ? stylists.filter(s => s.branchId === this.dispatchBranchFilter || s.MaChiNhanh === this.dispatchBranchFilter)
             : (this.filterBranch !== 'all' ? stylists.filter(s => s.branchId === this.filterBranch || s.MaChiNhanh === this.filterBranch) : stylists));
       scopedStylists = scopedStylists.filter(s => !(s.role || s.ChucVu || '').toLowerCase().includes('thu ngân'));
-      if (scopedStylists.length === 0) {
-        scopedStylists = stylists.filter(s => !(s.role || s.ChucVu || '').toLowerCase().includes('thu ngân')).slice(0, 6);
-      }
 
       this.dispatchPage = this.dispatchPage || 1;
       const dispatchTotalPages = Math.max(1, Math.ceil(scopedStylists.length / this.pageSize));
@@ -225,16 +230,34 @@
                 </select>
               `}
             </div>
-            <div style="font-size: 12px; color: var(--text-secondary);">
-              Ca hẹn ngày <strong style="color: var(--brand-accent, #C59B27);">${SalonUtils.formatDate(workstationDate)}</strong> • Tự động highlight ca gần nhất
+            <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span style="background: rgba(16, 185, 129, 0.12); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 10px; border-radius: 999px; font-weight: 700;">
+                Đã xong hôm nay: ${completedTodayCount} ca
+              </span>
+              <span>Ca hoạt động ngày <strong style="color: var(--brand-accent, #C59B27);">${SalonUtils.formatDate(workstationDate)}</strong></span>
             </div>
           </div>
 
           <div class="admin-kanban-board stylist-timeline-board">
             ${pagedWorkstations.map((st, sIdx) => {
               const globalChairNum = (this.dispatchPage - 1) * this.pageSize + sIdx + 1;
-              const stBookings = workstationBookings.filter(b => b.stylistId === st.id || (b.stylistName && b.stylistName.includes(st.name)));
-              const hasInProgress = stBookings.some(b => (b.status || '').toLowerCase() === 'in_progress');
+              const statusPriority = (rawSt) => {
+                const s = (rawSt || '').toLowerCase().trim();
+                if (s === 'in_progress' || s.includes('đang phục vụ')) return 1;
+                if (s === 'waiting' || s.includes('chờ vào ghế')) return 2;
+                return 3;
+              };
+              const stBookings = workstationBookings
+                .filter(b => b.stylistId === st.id || (b.stylistName && b.stylistName.includes(st.name)))
+                .sort((a, b) => {
+                  const pDiff = statusPriority(a.status) - statusPriority(b.status);
+                  if (pDiff !== 0) return pDiff;
+                  return String(a.timeSlot || '').localeCompare(String(b.timeSlot || ''));
+                });
+              const hasInProgress = stBookings.some(b => {
+                const s = (b.status || '').toLowerCase();
+                return s === 'in_progress' || s.includes('đang phục vụ');
+              });
               const statusClass = hasInProgress ? 'stylist-status-busy' : 'stylist-status-available';
               const statusText = hasInProgress ? 'Đang Phục Vụ' : 'Ghế Rảnh';
 
@@ -249,7 +272,7 @@
                     <span class="stylist-col-status ${statusClass}">${statusText}</span>
                   </div>
 
-                  <div class="workstation-cards-container stylist-col-cards-list">
+                  <div class="workstation-cards-container stylist-col-cards-list" style="max-height: 460px; overflow-y: auto; padding-right: 4px;">
                     ${stBookings.length === 0 ? `
                       <div class="timeline-empty-notice" style="padding: 24px 12px; text-align: center; color: var(--text-secondary); font-size: 12px; border: 1px dashed var(--border-color); border-radius: 12px; background: rgba(255,255,255,0.02);">
                         Ghế đang trống ca ${SalonUtils.formatDate(workstationDate)} • Sẵn sàng nhận khách Walk-in

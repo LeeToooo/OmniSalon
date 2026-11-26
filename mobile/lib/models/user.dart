@@ -26,8 +26,8 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id']?.toString() ?? json['MaTaiKhoan']?.toString() ?? '',
-      maKhachHang: json['MaKhachHang']?.toString(),
-      maNhanVien: json['MaNhanVien']?.toString(),
+      maKhachHang: json['MaKhachHang']?.toString() ?? json['customerId']?.toString(),
+      maNhanVien: json['MaNhanVien']?.toString() ?? json['staffId']?.toString(),
       username: json['username']?.toString() ?? json['TenDangNhap']?.toString() ?? '',
       fullName: json['fullName']?.toString() ?? json['HoTen']?.toString() ?? json['name']?.toString() ?? 'Khách Hàng',
       phone: json['phone']?.toString() ?? json['SoDienThoai']?.toString() ?? '',
@@ -41,7 +41,9 @@ class UserModel {
   Map<String, dynamic> toJson() => {
     'id': id,
     'MaKhachHang': maKhachHang,
+    'customerId': maKhachHang,
     'MaNhanVien': maNhanVien,
+    'staffId': maNhanVien,
     'username': username,
     'fullName': fullName,
     'phone': phone,

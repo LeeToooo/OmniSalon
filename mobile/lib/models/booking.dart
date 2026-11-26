@@ -109,23 +109,7 @@ class Booking {
       durationMinutes: int.tryParse(json['durationMinutes']?.toString() ?? '45') ?? 45,
       estimatedEndTime: json['endTime'] ?? json['estimatedEndTime'] ?? '',
       totalPrice: priceNum.toInt(),
-      status: () {
-        final rawStatus = (json['status'] ?? json['TrangThai'] ?? 'Confirmed').toString();
-        final rawDate = (json['date'] ?? json['NgayHen'] ?? '').toString().trim();
-        if (rawDate.isNotEmpty) {
-          try {
-            final bDate = DateTime.parse(rawDate.split('T')[0]);
-            final now = DateTime.now();
-            final todayMidnight = DateTime(now.year, now.month, now.day);
-            final isPastDate = bDate.isBefore(todayMidnight);
-            final isNotDone = rawStatus != 'Completed' && rawStatus != 'Cancelled' && rawStatus != 'Đã hủy' && rawStatus != 'Hoàn thành';
-            if (isPastDate && isNotDone) {
-              return 'Cancelled';
-            }
-          } catch (_) {}
-        }
-        return rawStatus;
-      }(),
+      status: (json['status'] ?? json['TrangThai'] ?? 'Confirmed').toString(),
       notes: json['notes'] ?? json['GhiChu'] ?? '',
       createdAt: json['createdAt'] ?? '',
       serviceImage: formattedImg,
@@ -178,13 +162,27 @@ class Booking {
 
   bool get isCompleted =>
       status.toLowerCase() == 'completed' ||
-      status == 'Hoàn thành' ||
+      status.toLowerCase().contains('hoàn thành') ||
+      status.toLowerCase().contains('hoàn tất') ||
       status.toLowerCase() == 'hoan_thanh';
+
+  bool get isInProgress {
+    final s = status.toLowerCase().trim();
+    return s == 'in_progress' || s.contains('đang phục vụ') || s.contains('progress');
+  }
+
+  bool get isWaiting {
+    final s = status.toLowerCase().trim();
+    return s == 'waiting' || s.contains('chờ vào ghế') || s == 'cho_vao_ghe';
+  }
+
+  bool get canCancel => !isCancelled && !isCompleted && !isInProgress;
 
   String get displayStatus {
     if (isCancelled) return 'Đã Hủy';
     if (isCompleted) return 'Hoàn Thành';
-    if (status.toLowerCase().contains('progress') || status == 'In_Progress') return 'Đang Thực Hiện';
+    if (isInProgress) return 'Đang Thực Hiện';
+    if (isWaiting) return 'Chờ Vào Ghế';
     return 'Đã Xác Nhận';
   }
 }

@@ -342,7 +342,7 @@
      * Thống kê lịch hẹn theo từng thợ
      */
     _getStylistStatsMap(stylists, bookings, targetDate = null) {
-      const todayStr = targetDate || new Date().toISOString().split('T')[0];
+      const todayStr = targetDate || ((typeof SalonUtils !== 'undefined' && typeof SalonUtils.getLocalIsoDate === 'function') ? SalonUtils.getLocalIsoDate() : new Date().toISOString().split('T')[0]);
       const statsMap = new Map();
 
       // Khởi tạo map cho tất cả thợ

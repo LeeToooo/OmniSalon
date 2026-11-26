@@ -5,13 +5,7 @@
     config: {
       baseUrl: (typeof location !== 'undefined' && location.port === '3000') ? `${location.origin}/api` : 'http://localhost:3000/api',
       useLiveApi: true, // Tự động kết nối Live Database Server thời gian thực
-      timeoutMs: 30000,
-      ai: {
-        provider: (typeof localStorage !== 'undefined' && localStorage.getItem('OMNI_ai_provider')) || 'demo_smart',
-        apiKey: (typeof localStorage !== 'undefined' && localStorage.getItem('OMNI_ai_key')) || '',
-        endpoint: (typeof localStorage !== 'undefined' && localStorage.getItem('OMNI_ai_endpoint')) || 'https://api-inference.huggingface.co/models/diffusers/stable-diffusion-xl-hair-inpaint',
-        model: (typeof localStorage !== 'undefined' && localStorage.getItem('OMNI_ai_model')) || 'stabilityai/stable-diffusion-xl-base-1.0'
-      }
+      timeoutMs: 30000
     },
 
     // Http client helper
@@ -28,13 +22,24 @@
     },
 
     _enforceRole(allowedRoles, actionName = 'thao tác quản trị') {
-      // Đồ án đơn giản: Cho phép thực hiện thông suốt mọi phân hệ
+      const user = (window.Auth && typeof window.Auth.getCurrentUser === 'function') ? window.Auth.getCurrentUser() : null;
+      if (!user || !window.Auth.hasRole(allowedRoles)) {
+        if (window.UICommon && typeof window.UICommon.showToast === 'function') {
+          window.UICommon.showToast(`Bạn không có quyền ${actionName}.`, 'error');
+        }
+        return false;
+      }
       return true;
     },
 
     _enforceOwnershipOrStaff(booking, actionName = 'thao tác lịch hẹn') {
-      // Đồ án đơn giản: Cho phép thao tác thông suốt không chặn IDOR
-      return true;
+      const user = (window.Auth && typeof window.Auth.getCurrentUser === 'function') ? window.Auth.getCurrentUser() : null;
+      if (!user) return false;
+      if (window.Auth.hasRole(['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STYLIST', 'STAFF'])) {
+        return true;
+      }
+      const ownerId = booking?.customerId || booking?.MaKhachHang || booking?.userId;
+      return Boolean(ownerId && window.Auth.canAccessResource(ownerId));
     },
 
     async _request(endpoint, options = {}) {
@@ -66,82 +71,64 @@
         ...options,
         headers: this._getHeaders(options.headers)
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) return null;
-      return data;
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        return {
+          success: false,
+          status: res.status,
+          message: (data && (data.message || data.error)) || `Máy chủ trả về mã lỗi ${res.status}`,
+          ...(data && typeof data === 'object' ? data : {})
+        };
+      }
+      return data || {};
     },
 
     // Module 1: Xác Thực & Người Dùng
-    async sendOtp(email) {
-      if (this.config.useLiveApi) {
-        try {
-          const live = await this._request('/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) });
-          if (live) return live;
-        } catch (e) {
-          return { success: false, message: `Không thể kết nối máy chủ gửi OTP: ${e.message}` };
-        }
-      }
-      if (window.Auth && typeof window.Auth.sendOtp === 'function') {
-        return window.Auth.sendOtp(email);
+    async sendOtp(email, purpose = 'REGISTER') {
+      try {
+        const live = await this._request('/auth/send-otp', {
+          method: 'POST',
+          body: JSON.stringify({ email, purpose })
+        });
+        if (live) return live;
+      } catch (e) {
+        return { success: false, message: `Không thể kết nối máy chủ gửi OTP: ${e.message}` };
       }
       return { success: false, message: 'Dịch vụ gửi mã xác nhận chưa sẵn sàng.' };
     },
 
-    async verifyOtp(email, otp) {
-      if (this.config.useLiveApi) {
-        const live = await this._request('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) });
-        if (live) return live;
-      }
-      if (window.Auth && typeof window.Auth.verifyOtp === 'function') {
-        return window.Auth.verifyOtp(email, otp);
-      }
+    async verifyOtp(email, otp, purpose = 'REGISTER') {
+      const live = await this._request('/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp, purpose })
+      });
+      if (live) return live;
       return { success: false, message: 'Dịch vụ xác thực chưa sẵn sàng.' };
     },
 
     async register(userData) {
-      if (this.config.useLiveApi) {
-        const live = await this._request('/auth/register', { method: 'POST', body: JSON.stringify(userData) });
-        if (live) return live;
+      const live = await this._request('/auth/register', { method: 'POST', body: JSON.stringify(userData) });
+      if (live && live.success && live.user && live.token) {
+        if (window.Auth && typeof window.Auth.setSessionFromBackend === 'function') {
+          window.Auth.setSessionFromBackend(live.user, live.token);
+        }
       }
-      if (window.Auth && typeof window.Auth.register === 'function') {
-        return window.Auth.register(userData);
-      }
-      return { success: false, message: 'Dịch vụ xác thực chưa sẵn sàng.' };
+      return live || { success: false, message: 'Không thể kết nối máy chủ đăng ký.' };
     },
 
     async resetPassword(resetData) {
-      if (this.config.useLiveApi) {
-        const live = await this._request('/auth/reset-password', { method: 'POST', body: JSON.stringify(resetData) });
-        if (live && live.success) {
-          if (window.Auth && typeof window.Auth.resetPassword === 'function') {
-            try { window.Auth.resetPassword(resetData); } catch (e) {}
-          }
-          if (window.UserRepository && typeof window.UserRepository.syncWithServer === 'function') {
-            window.UserRepository.syncWithServer().catch(() => {});
-          }
-          return live;
-        }
-      }
-      if (window.Auth && typeof window.Auth.resetPassword === 'function') {
-        return window.Auth.resetPassword(resetData);
-      }
-      return { success: false, message: 'Dịch vụ đổi mật khẩu chưa sẵn sàng.' };
+      const live = await this._request('/auth/reset-password', { method: 'POST', body: JSON.stringify(resetData) });
+      return live || { success: false, message: 'Không thể kết nối máy chủ đặt lại mật khẩu.' };
     },
 
     async login(identifier, password) {
-      if (this.config.useLiveApi) {
-        const live = await this._request('/auth/login', { method: 'POST', body: JSON.stringify({ identifier, password }) });
-        if (live && live.success) {
-          if (window.Auth && typeof window.Auth.setSessionFromBackend === 'function') {
-            window.Auth.setSessionFromBackend(live.user, live.token);
-          }
-          return live;
+      const live = await this._request('/auth/login', { method: 'POST', body: JSON.stringify({ identifier, password }) });
+      if (live && live.success) {
+        if (window.Auth && typeof window.Auth.setSessionFromBackend === 'function') {
+          window.Auth.setSessionFromBackend(live.user, live.token);
         }
       }
-      if (window.Auth && typeof window.Auth.login === 'function') {
-        return window.Auth.login(identifier, password);
-      }
-      return { success: false, message: 'Dịch vụ xác thực chưa sẵn sàng.' };
+      return live || { success: false, message: 'Không thể kết nối máy chủ đăng nhập.' };
     },
 
     async refreshToken(refreshTokenStr) {
@@ -472,229 +459,7 @@
       return window.SalonStore ? window.SalonStore.getOrders(user.id) : [];
     },
 
-    // Module 6: AI Restyle Studio Engine
-    saveAiConfig(provider, apiKey, endpoint, model) {
-      this.config.ai.provider = provider || this.config.ai.provider;
-      this.config.ai.apiKey = apiKey !== undefined ? apiKey.trim() : this.config.ai.apiKey;
-      this.config.ai.endpoint = endpoint !== undefined ? endpoint.trim() : this.config.ai.endpoint;
-      this.config.ai.model = model !== undefined ? model.trim() : this.config.ai.model;
-
-      localStorage.setItem('OMNI_ai_provider', this.config.ai.provider);
-      localStorage.setItem('OMNI_ai_key', this.config.ai.apiKey);
-      localStorage.setItem('OMNI_ai_endpoint', this.config.ai.endpoint);
-      localStorage.setItem('OMNI_ai_model', this.config.ai.model);
-      return true;
-    },
-
-    getAiConfig() {
-      return { ...this.config.ai };
-    },
-
-    async analyzeFace(imageOrUrl) {
-      try {
-        const res = await this._fetch('/ai/analyze-face', {
-          method: 'POST',
-          body: JSON.stringify({ image: imageOrUrl })
-        });
-        if (res && res.faceShape) return res;
-      } catch (err) {
-        console.warn('[SalonApi] analyzeFace backend failed:', err.message);
-      }
-      return null;
-    },
-
-    async preprocessCustomerPhoto(imageOrUrl, backgroundMode = 'studio') {
-      try {
-        const res = await this._fetch('/ai/preprocess-customer-photo', {
-          method: 'POST',
-          body: JSON.stringify({ image: imageOrUrl, backgroundMode })
-        });
-        if (res && res.success) return res;
-      } catch (err) {
-        console.warn('[SalonApi] preprocessCustomerPhoto backend failed:', err.message);
-      }
-      return null;
-    },
-
-    async askAiBarber(message, context = {}) {
-      try {
-        const res = await this._fetch('/ai/consultation', {
-          method: 'POST',
-          body: JSON.stringify({ message, context })
-        });
-        if (res && res.reply) return res;
-      } catch (err) {
-        console.warn('[SalonApi] askAiBarber failed:', err.message);
-      }
-      return { success: true, reply: 'Master Barber OmniSalon khuyên bạn nên chọn kiểu tóc tôn dáng xương hàm và uốn phồng chân tóc nhẹ để vào nếp đẹp suốt ngày dài!' };
-    },
-
-    async segmentHairPhoto(image, hairstyleId = 'layer-korean') {
-      try {
-        const res = await this._fetch('/ai/segment-hair', {
-          method: 'POST',
-          body: JSON.stringify({ image, hairstyleId })
-        });
-        if (res && res.success) return res;
-      } catch (err) {
-        console.warn('[SalonApi] segmentHairPhoto failed:', err.message);
-      }
-      return null;
-    },
-
-    async restyleHairPhoto(options) {
-      const {
-        originalImageBase64,
-        hairstyleName,
-        hairColorName,
-        hairColorHex,
-        customPrompt = '',
-        balanceLighting = true,
-        smoothSkin = true,
-        geminiApiKey = ''
-      } = options;
-      if (!originalImageBase64) throw new Error('Vui lòng chọn hoặc chụp ảnh khuôn mặt trước khi tiến hành.');
-
-      const storedKey = (typeof localStorage !== 'undefined' && localStorage.getItem('omni_gemini_api_key')) || '';
-      const effectiveKey = (geminiApiKey || storedKey || '').trim();
-
-      // Gọi Backend Real AI Vision Engine, MediaPipe 3D Landmark Warping + Poisson Seamless Blend
-      let backendRes = null;
-      try {
-        backendRes = await this._fetch('/ai/restyle-hair', {
-          method: 'POST',
-          body: JSON.stringify({
-            image: originalImageBase64,
-            hairstyleId: hairstyleName,
-            colorId: hairColorName,
-            hairColorHex: hairColorHex,
-            customPrompt: customPrompt,
-            balanceLighting: balanceLighting !== false,
-            smoothSkin: smoothSkin !== false,
-            geminiApiKey: effectiveKey
-          })
-        });
-      } catch (backendErr) {
-        console.warn('[SalonApi] Backend /api/ai/restyle-hair note:', backendErr.message);
-      }
-
-      // Nhận kết quả ảnh từ backend
-      const finalImage = (backendRes && backendRes.resultImageUrl) ? backendRes.resultImageUrl : null;
-
-      if (!finalImage) {
-        return {
-          success: false,
-          message: backendRes?.message || 'Không thể nhận diện khuôn mặt rõ nét trong ảnh để đổi kiểu tóc. Vui lòng thử lại với ảnh chân dung rõ mặt.',
-          originalImageUrl: originalImageBase64
-        };
-      }
-
-      return {
-        success: true,
-        resultImageUrl: finalImage,
-        originalImageUrl: originalImageBase64,
-        providerUsed: backendRes?.providerUsed || 'Omni Real AI Face-Preserving Engine (MediaPipe Multiclass Segmenter + 3D Mesh)',
-        hairstyle: hairstyleName,
-        color: hairColorName,
-        faceAnalysis: backendRes ? backendRes.faceAnalysis : null,
-        suggestedService: backendRes ? backendRes.suggestedService : null,
-        suggestedProduct: backendRes ? backendRes.suggestedProduct : null
-      };
-
-    },
-
-    _generateSmartRealisticRestyle(imageBase64, hairstyleName, hairColorName, hairColorHex) {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width || 800;
-            canvas.height = img.height || 800;
-
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            const gradient = ctx.createRadialGradient(
-              canvas.width / 2, canvas.height / 2, canvas.width * 0.25,
-              canvas.width / 2, canvas.height / 2, canvas.width * 0.75
-            );
-            gradient.addColorStop(0, 'rgba(0,0,0,0)');
-            gradient.addColorStop(1, 'rgba(0,0,0,0.35)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            const hairY = canvas.height * 0.15;
-            const hairH = canvas.height * 0.38;
-            const hairGradient = ctx.createLinearGradient(0, hairY, 0, hairY + hairH);
-            hairGradient.addColorStop(0, hairColorHex || '#4a3728');
-            hairGradient.addColorStop(1, 'transparent');
-
-            ctx.save();
-            ctx.globalCompositeOperation = 'soft-light';
-            ctx.fillStyle = hairGradient;
-            ctx.beginPath();
-            ctx.ellipse(canvas.width * 0.5, hairY + hairH * 0.4, canvas.width * 0.42, hairH * 0.65, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-
-            // Watermark OMNI AI BARBER STUDIO
-            ctx.save();
-            ctx.fillStyle = 'rgba(18, 18, 20, 0.75)';
-            const badgeW = 280;
-            const badgeH = 46;
-            const badgeX = canvas.width - badgeW - 20;
-            const badgeY = canvas.height - badgeH - 20;
-
-            ctx.beginPath();
-            ctx.rect(badgeX, badgeY, badgeW, badgeH);
-            ctx.fill();
-
-            ctx.strokeStyle = '#c85a44';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 13px Inter, sans-serif';
-            ctx.fillText('OMNI AI BARBER STUDIO', badgeX + 16, badgeY + 20);
-
-            ctx.fillStyle = '#c85a44';
-            ctx.font = '11px Inter, sans-serif';
-            ctx.fillText(`Kiểu: ${hairstyleName} • ${hairColorName}`, badgeX + 16, badgeY + 36);
-            ctx.restore();
-
-            resolve({
-              success: true,
-              resultImageUrl: canvas.toDataURL('image/jpeg', 0.92),
-              providerUsed: 'OMNI AI Vision Neural Engine',
-              hairstyle: hairstyleName,
-              color: hairColorName
-            });
-          };
-
-          img.onerror = () => {
-            resolve({
-              success: true,
-              resultImageUrl: imageBase64,
-              providerUsed: 'Standard Filter',
-              hairstyle: hairstyleName,
-              color: hairColorName
-            });
-          };
-          img.src = imageBase64;
-        }, 1200);
-      });
-    },
-
-    async testGeminiApiKey(apiKey) {
-      return await this._fetch('/ai/test-key', {
-        method: 'POST',
-        body: JSON.stringify({ apiKey: (apiKey || '').trim() })
-      });
-    },
-
-    // Module 7: Báo Cáo Thống Kê & Audit
+    // Module 6: Báo Cáo Thống Kê & Audit
     async getRevenueOverview(branchId = null) {
       this._enforceRole(['SUPER_ADMIN', 'BRANCH_MANAGER'], 'xem báo cáo doanh thu');
       const endpoint = branchId ? `/analytics/revenue?branch_id=${branchId}` : '/analytics/revenue';

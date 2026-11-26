@@ -214,12 +214,13 @@
             </button>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); gap: 16px;">
             ${bookings.map(b => {
               const statusInfo = window.SalonUtils ? window.SalonUtils.formatBookingStatus(b.status) : { label: b.status, cssClass: 'status-confirmed', key: 'confirmed' };
               const isCompleted = statusInfo.key === 'completed';
               const isCancelled = statusInfo.key === 'cancelled';
-              const isCancellable = !isCompleted && !isCancelled;
+              const isInProgress = statusInfo.key === 'in_progress';
+              const isCancellable = !isCompleted && !isCancelled && !isInProgress;
               const branch = branchMap.get(String(b.branchId)) || {};
               const stylist = stylistMap.get(String(b.stylistId)) || {};
               const service = serviceMap.get(String(b.serviceId)) || {};
@@ -290,7 +291,11 @@
                       <button type="button" class="pill-btn-outline btn-danger" style="font-size: 12px; padding: 5px 12px; color: #ef4444 !important; font-weight: 700; cursor: pointer;" onclick="CustomerWeb.cancelBookingByCustomer('${b.id}')">
                         Hủy Lịch Hẹn
                       </button>
-                    ` : ''}
+                    ` : (isInProgress ? `
+                      <span style="font-size: 11.5px; color: #0284c7; background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); padding: 4px 10px; border-radius: 8px; font-weight: 700;">
+                        Đang phục vụ tại ghế
+                      </span>
+                    ` : '')}
                   </div>
                 </div>
               `;
@@ -339,27 +344,34 @@
           <div style="display: flex; flex-direction: column; gap: 20px;">
             ${orders.map(o => {
               const oCode = o.id || o.orderCode || o.MaDonHang || 'DH';
+              const isPickup = (window.SalonUtils && typeof window.SalonUtils.isPickupOrder === 'function')
+                ? window.SalonUtils.isPickupOrder(o)
+                : Boolean(o.deliveryType === 'PICKUP_BRANCH' || (o.shippingAddress && o.shippingAddress.toLowerCase().includes('quầy')));
               const rawSt = (o.orderStatus || o.status || o.TrangThai || 'Pending').toLowerCase();
               let step = 1;
               if (rawSt.includes('hủy') || rawSt === 'cancelled') {
                 step = 0;
-              } else if (rawSt.includes('hoàn tất') || rawSt.includes('đã giao') || rawSt === 'completed' || rawSt === 'delivered') {
+              } else if (rawSt.includes('đã nhận') || rawSt.includes('hoàn tất') || rawSt.includes('đã giao') || rawSt === 'completed' || rawSt === 'delivered') {
                 step = 4;
-              } else if (rawSt.includes('đang giao') || rawSt === 'delivering' || rawSt === 'shipping' || (rawSt.includes('giao') && !rawSt.includes('đã giao'))) {
+              } else if (rawSt.includes('sẵn sàng') || rawSt === 'ready' || rawSt === 'ready_for_pickup' || rawSt.includes('đang giao') || rawSt === 'delivering' || rawSt === 'shipping' || (rawSt.includes('giao') && !rawSt.includes('đã giao'))) {
                 step = 3;
-              } else if (rawSt.includes('đóng gói') || rawSt.includes('xử lý') || rawSt === 'processing') {
+              } else if (rawSt.includes('chuẩn bị') || rawSt.includes('đóng gói') || rawSt.includes('xử lý') || rawSt === 'processing') {
                 step = 2;
               } else {
                 step = 1;
               }
 
-              // Kiểm tra điều kiện: chỉ cấm hủy khi đơn đã hủy rồi
+              // Kiểm tra điều kiện: không hủy khi đang giao / sẵn sàng tại quầy / hoàn tất / đã hủy
               const isCancellable = (window.SalonUtils && typeof window.SalonUtils.canCancelOrder === 'function')
                 ? window.SalonUtils.canCancelOrder(o)
-                : (step !== 0);
+                : (step === 1 || step === 2);
               const isDelivering = (step === 3);
               const isCompleted = (step === 4);
               const isCancelled = (step === 0);
+
+              const step2Label = isPickup ? 'Đang chuẩn bị' : 'Đang đóng gói';
+              const step3Label = isPickup ? 'Sẵn sàng tại quầy' : 'Đang giao hàng';
+              const step4Label = 'Hoàn Tất';
 
               const items = Array.isArray(o.items) ? o.items : [];
               const hasMoreThanTwo = items.length > 2;
@@ -368,7 +380,7 @@
               const orderSafeId = String(oCode).replace(/[^a-zA-Z0-9_-]/g, '_');
               const rawDate = o.createdAt || o.orderDate || o.NgayDat;
               const formattedDate = rawDate ? (window.SalonUtils ? window.SalonUtils.formatDateTime(rawDate) : String(rawDate).split('T')[0]) : 'Hôm nay';
-              const isPaid = (o.paymentStatus === 'Paid' || o.TrangThai === 'Đã thanh toán' || o.paymentStatus === 'PAID');
+              const isPaid = (o.paymentStatus === 'Paid' || o.isPaid === true || o.TrangThai === 'Đã thanh toán' || o.TrangThaiHoaDon === 'Đã thanh toán' || o.paymentStatus === 'PAID');
               const oReview = (window.store && window.store.getReviewByOrderId) ? window.store.getReviewByOrderId(oCode) : null;
 
               return `
@@ -395,37 +407,37 @@
                     <div class="order-status-timeline-large" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; padding: 18px 24px; background: var(--surface-elevated, rgba(255, 255, 255, 0.03)); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); border-radius: 14px;">
                       
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 1 ? 'background: #10B981; color: #000;' : (step === 1 ? 'background: #f59e0b; color: #000; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);')}">
-                          ${step > 1 ? '✓' : '1'}
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step >= 1 ? 'background: #10B981; color: #000;' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);'}">
+                          ${step > 1 || step === 4 ? '✓' : '1'}
                         </div>
-                        <span style="font-size: 14.5px; font-weight: ${step >= 1 ? '800' : '600'}; color: ${step === 1 ? '#f59e0b' : (step > 1 ? '#10B981' : 'var(--text-secondary, #71717a)')};">Chờ Xác Nhận</span>
+                        <span style="font-size: 14.5px; font-weight: ${step >= 1 ? '800' : '600'}; color: ${step >= 1 ? '#10B981' : 'var(--text-secondary, #71717a)'};">Chờ Xác Nhận</span>
                       </div>
 
                       <div style="font-size: 18px; font-weight: 900; color: ${step > 1 ? '#10B981' : 'var(--border-color, rgba(255,255,255,0.2))'};">→</div>
 
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 2 ? 'background: #10B981; color: #000;' : (step === 2 ? 'background: #f59e0b; color: #000; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);')}">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 2 ? 'background: #10B981; color: #000;' : (step === 2 ? 'background: #f59e0b; color: #000; box-shadow: 0 0 12px rgba(245, 158, 11, 0.45);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);')}">
                           ${step > 2 ? '✓' : '2'}
                         </div>
-                        <span style="font-size: 14.5px; font-weight: ${step >= 2 ? '800' : '600'}; color: ${step === 2 ? '#f59e0b' : (step > 2 ? '#10B981' : 'var(--text-secondary, #71717a)')};">Đang Đóng Gói</span>
+                        <span style="font-size: 14.5px; font-weight: ${step >= 2 ? '800' : '600'}; color: ${step === 2 ? '#f59e0b' : (step > 2 ? '#10B981' : 'var(--text-secondary, #71717a)')};">${step2Label}</span>
                       </div>
 
                       <div style="font-size: 18px; font-weight: 900; color: ${step > 2 ? '#10B981' : 'var(--border-color, rgba(255,255,255,0.2))'};">→</div>
 
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 3 ? 'background: #10B981; color: #000;' : (step === 3 ? 'background: #0284c7; color: #fff; box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);')}">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step > 3 ? 'background: #10B981; color: #000;' : (step === 3 ? 'background: #0284c7; color: #fff; box-shadow: 0 0 12px rgba(2, 132, 199, 0.45);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);')}">
                           ${step > 3 ? '✓' : '3'}
                         </div>
-                        <span style="font-size: 14.5px; font-weight: ${step >= 3 ? '800' : '600'}; color: ${step === 3 ? '#0284c7' : (step > 3 ? '#10B981' : 'var(--text-secondary, #71717a)')};">Đang Giao Hàng</span>
+                        <span style="font-size: 14.5px; font-weight: ${step >= 3 ? '800' : '600'}; color: ${step === 3 ? '#0284c7' : (step > 3 ? '#10B981' : 'var(--text-secondary, #71717a)')};">${step3Label}</span>
                       </div>
 
                       <div style="font-size: 18px; font-weight: 900; color: ${step === 4 ? '#10B981' : 'var(--border-color, rgba(255,255,255,0.2))'};">→</div>
 
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step === 4 ? 'background: #10B981; color: #000; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);'}">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; ${step === 4 ? 'background: #10B981; color: #000; box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);' : 'background: var(--surface-card, #fff); border: 2px solid var(--border-color, #d4d4d8); color: var(--text-secondary, #71717a);'}">
                           ${step === 4 ? '✓' : '4'}
                         </div>
-                        <span style="font-size: 14.5px; font-weight: ${step === 4 ? '800' : '600'}; color: ${step === 4 ? '#10B981' : 'var(--text-secondary, #71717a)'};">Hoàn Tất</span>
+                        <span style="font-size: 14.5px; font-weight: ${step === 4 ? '800' : '600'}; color: ${step === 4 ? '#10B981' : 'var(--text-secondary, #71717a)'};">${step4Label}</span>
                       </div>
 
                     </div>
@@ -490,7 +502,7 @@
 
                     <div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-color, rgba(255, 255, 255, 0.12)); font-size: 14.5px; color: var(--text-secondary, #575752); display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center;">
                       <div>
-                        <span>Hình thức:</span> <strong style="color: var(--text-primary, #141413); margin-left: 4px;">${o.shippingAddress || (o.deliveryType === 'PICKUP_BRANCH' ? 'Nhận tại quầy chi nhánh' : 'Giao hàng tận nơi')}</strong>
+                        <span>Hình thức:</span> <strong style="color: var(--text-primary, #141413); margin-left: 4px;">${isPickup ? 'Nhận tại quầy chi nhánh' : (window.SalonUtils ? window.SalonUtils.escapeHtml(o.shippingAddress || 'Giao hàng tận nơi') : (o.shippingAddress || 'Giao hàng tận nơi'))}</strong>
                       </div>
                       <div>
                         <span>Thanh toán:</span> <strong style="color: ${isPaid ? '#10B981' : '#f59e0b'}; margin-left: 4px;">${isPaid ? 'Đã thanh toán (VietQR)' : 'Chưa thanh toán'}</strong>
@@ -506,28 +518,28 @@
                     </div>
                   ` : ''}
 
-                  <!-- Hang nut thao tac: to, ro rang, dong bo -->
+                  <!-- Hang nut thao tac -->
                   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); padding-top: 18px;">
                     <div>
                       ${isDelivering ? `
-                        <span style="font-size: 13.5px; color: #0284c7; background: rgba(2, 132, 199, 0.12); border: 1px solid rgba(2, 132, 199, 0.35); padding: 8px 16px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                          Đơn hàng đang được vận chuyển - Không thể hủy
+                        <span style="font-size: 13.5px; color: #0284c7; background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.35); padding: 8px 16px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                          ${isPickup ? 'Đơn đã sẵn sàng tại quầy - Vui lòng đến nhận' : 'Đơn hàng đang được vận chuyển - Không thể hủy'}
                         </span>
                       ` : (isCompleted ? `
                         <span style="font-size: 13.5px; color: #10B981; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 8px 16px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                          ✓ Giao hàng thành công
+                          ✓ ${isPickup ? 'Đã nhận tại quầy' : 'Giao hàng thành công'}
                         </span>
                       ` : '')}
                     </div>
 
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                       ${(!isPaid && !isCancelled) ? `
-                        <button type="button" class="btn-order-action btn-pay" style="font-size: 13.5px; padding: 9px 20px; color: #10B981 !important; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
+                        <button type="button" class="btn-order-action btn-pay" style="font-size: 13.5px; padding: 9px 20px; color: #10B981 !important; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderPaymentModal('${oCode}')">
                           Thanh Toán VietQR
                         </button>
                       ` : ''}
 
-                      ${(!isCancelled) ? (oReview ? `
+                      ${isCompleted ? (oReview ? `
                         <button type="button" class="btn-order-action btn-review" style="font-size: 13.5px; padding: 9px 20px; color: #f59e0b !important; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="CustomerWeb.openOrderReviewModal('${oCode}')">
                           ⭐ Sửa Đánh Giá
                         </button>
@@ -541,11 +553,11 @@
                         <button type="button" class="btn-order-action btn-cancel-order" style="font-size: 13.5px; padding: 9px 20px; color: #ef4444 !important; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="ProfilePage.cancelOrder('${oCode}')">
                           ✕ Hủy Đơn Hàng
                         </button>
-                      ` : `
+                      ` : (isCancelled ? `
                         <span style="font-size: 13.5px; color: #94a3b8; background: rgba(148, 163, 184, 0.12); border: 1px solid rgba(148, 163, 184, 0.3); padding: 8px 18px; border-radius: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                           ✕ Đã hủy đơn
                         </span>
-                      `}
+                      ` : '')}
                     </div>
                   </div>
 
@@ -588,7 +600,7 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
             ${gallery.map(it => `
               <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;">
-                <img src="${it.resultImage || it.image || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80'}" alt="Tóc AI" style="width: 100%; height: 260px; object-fit: cover;">
+                <img src="${it.resultImage || it.image || '/DataPicture/ChanDungTho/Tho1.jpg'}" alt="Kiểu tóc đã thử" style="width: 100%; height: 260px; object-fit: cover;">
                 <div style="padding: 14px;">
                   <strong style="font-size: 15px; color: var(--text-primary); display: block; margin-bottom: 4px;">${window.SalonUtils ? window.SalonUtils.escapeHtml(it.styleName || 'Kiểu Tóc Nam') : (it.styleName || 'Kiểu Tóc Nam')}</strong>
                   <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">Tạo ngày: ${it.date ? (window.SalonUtils ? window.SalonUtils.formatDate(it.date) : it.date) : 'Gần đây'}</div>
@@ -642,7 +654,7 @@
       `;
     },
 
-    updateProfile() {
+    async updateProfile() {
       const name = document.getElementById('profFullName')?.value.trim();
       const phone = document.getElementById('profPhone')?.value.trim();
       const email = document.getElementById('profEmail')?.value.trim();
@@ -650,6 +662,14 @@
       if (!name) {
         if (window.UICommon) window.UICommon.showToast('Vui lòng nhập họ và tên!', 'warning');
         return;
+      }
+
+      if (window.AuthEngine && typeof window.AuthEngine.updateProfile === 'function') {
+        const res = await window.AuthEngine.updateProfile({ fullName: name, phone, email });
+        if (!res || !res.success) {
+          if (window.UICommon) window.UICommon.showToast(res?.message || 'Không thể cập nhật thông tin cá nhân!', 'error');
+          return;
+        }
       }
 
       if (window.store && typeof window.store.getCurrentUser === 'function') {

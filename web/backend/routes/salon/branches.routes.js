@@ -4,6 +4,39 @@ const { enforceAuth, extractAuthUser } = require('../../middlewares/auth_middlew
 const auditService = require('../../services/audit.service');
 const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
+function mapBranchRow(r) {
+  const addr = r.DiaChi || '';
+  let city = 'Hồ Chí Minh';
+  if (addr.includes('Hà Nội')) city = 'Hà Nội';
+  else if (addr.includes('Đà Nẵng')) city = 'Đà Nẵng';
+
+  const openT = formatTime(r.GioMoCua);
+  const closeT = formatTime(r.GioDongCua);
+  const hoursStr = `${openT} - ${closeT}`;
+
+  return {
+    id: r.MaChiNhanh,
+    MaChiNhanh: r.MaChiNhanh,
+    name: r.TenChiNhanh,
+    TenChiNhanh: r.TenChiNhanh,
+    address: addr,
+    DiaChi: addr,
+    phone: r.SoDienThoai,
+    SoDienThoai: r.SoDienThoai,
+    openTime: openT,
+    closeTime: closeT,
+    GioMoCua: openT,
+    GioDongCua: closeT,
+    openHours: hoursStr,
+    hours: hoursStr,
+    city,
+    region: city === 'Hà Nội' ? 'hn' : city === 'Đà Nẵng' ? 'dn' : 'hcm',
+    image: r.HinhAnh || '',
+    HinhAnh: r.HinhAnh || '',
+    status: r.TrangThai || 'Hoạt động'
+  };
+}
+
 async function handleBranchesRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
 
@@ -16,45 +49,39 @@ async function handleBranchesRoutes(req, res, ctx) {
              HinhAnh, TrangThai 
       FROM ChiNhanh
     `);
-    const branches = rows.map(r => {
-      const addr = r.DiaChi || '';
-      let city = 'Hồ Chí Minh';
-      if (addr.includes('Hà Nội')) city = 'Hà Nội';
-      else if (addr.includes('Đà Nẵng')) city = 'Đà Nẵng';
-
-      const openT = formatTime(r.GioMoCua);
-      const closeT = formatTime(r.GioDongCua);
-      const hoursStr = `${openT} - ${closeT}`;
-
-      return {
-        id: r.MaChiNhanh,
-        MaChiNhanh: r.MaChiNhanh,
-        name: r.TenChiNhanh,
-        TenChiNhanh: r.TenChiNhanh,
-        address: addr,
-        DiaChi: addr,
-        phone: r.SoDienThoai,
-        SoDienThoai: r.SoDienThoai,
-        openTime: openT,
-        closeTime: closeT,
-        GioMoCua: openT,
-        GioDongCua: closeT,
-        openHours: hoursStr,
-        hours: hoursStr,
-        city,
-        region: city === 'Hà Nội' ? 'hn' : city === 'Đà Nẵng' ? 'dn' : 'hcm',
-        image: r.HinhAnh || '',
-        HinhAnh: r.HinhAnh || '',
-        status: r.TrangThai || 'Hoạt động'
-      };
-    });
+    const branches = rows.map(mapBranchRow);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(branches));
     return true;
   }
 
-  // POST /api/branches - Thêm mới một chi nhánh salon
+  // GET /api/branches/:id - Chi tiết một chi nhánh salon
+  if (pathname.startsWith('/api/branches/') && method === 'GET') {
+    const branchId = decodeURIComponent(pathname.replace('/api/branches/', '').trim());
+    if (!branchId || branchId.includes('/')) return false;
+    const rows = await querySql(`
+      SELECT MaChiNhanh, TenChiNhanh, DiaChi, SoDienThoai, 
+             CONVERT(VARCHAR(8), GioMoCua) AS GioMoCua, 
+             CONVERT(VARCHAR(8), GioDongCua) AS GioDongCua, 
+             HinhAnh, TrangThai 
+      FROM ChiNhanh
+      WHERE MaChiNhanh = ?
+    `, [branchId]);
+    if (!rows || rows.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: `Không tìm thấy chi nhánh ${branchId}.` }));
+      return true;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(mapBranchRow(rows[0])));
+    return true;
+  }
+
+  // POST /api/branches - Thêm mới một chi nhánh salon (chỉ SUPER_ADMIN)
   if (pathname === '/api/branches' && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN']);
+    if (!authUser) return true;
+
     const b = parsedBody || {};
     const maxRows = await querySql(`SELECT TOP 1 MaChiNhanh FROM ChiNhanh ORDER BY LEN(MaChiNhanh) DESC, MaChiNhanh DESC`);
     let nextN = 21;
@@ -107,9 +134,8 @@ async function handleBranchesRoutes(req, res, ctx) {
       )
     `, [cnId, cnId]).catch(() => {});
 
-    const authUser = extractAuthUser(req);
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -127,8 +153,11 @@ async function handleBranchesRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/branches/:id - Cập nhật thông tin chi nhánh
+  // PUT /api/branches/:id - Cập nhật thông tin chi nhánh (chỉ SUPER_ADMIN)
   if (pathname.startsWith('/api/branches/') && method === 'PUT') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/branches/', '').trim();
     const b = parsedBody || {};
     const oldRows = await querySql(`SELECT TenChiNhanh, DiaChi, SoDienThoai, GioMoCua, GioDongCua, TrangThai FROM ChiNhanh WHERE MaChiNhanh = ?`, [id]);
@@ -156,9 +185,8 @@ async function handleBranchesRoutes(req, res, ctx) {
       ]
     );
 
-    const authUser = extractAuthUser(req);
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -177,9 +205,12 @@ async function handleBranchesRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/branches/:id - Ngừng hoạt động chi nhánh
+  // DELETE /api/branches/:id - Ngừng hoạt động chi nhánh (chỉ SUPER_ADMIN)
   // Lưu ý: Dùng Soft-delete để tránh gãy ràng buộc khóa ngoại với Lịch hẹn và Hóa đơn
   if (pathname.startsWith('/api/branches/') && method === 'DELETE') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/branches/', '').trim();
     const oldRows = await querySql(`SELECT TenChiNhanh, TrangThai FROM ChiNhanh WHERE MaChiNhanh = ?`, [id]);
     const oldBranch = (oldRows && oldRows[0]) ? oldRows[0] : null;
@@ -196,9 +227,8 @@ async function handleBranchesRoutes(req, res, ctx) {
       ) t
     `, [id, id, id, id]);
 
-    const authUser = extractAuthUser(req);
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'SUPER_ADMIN') : 'SUPER_ADMIN';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
 
     if (hasHistory && hasHistory.length > 0) {
       await querySql(`UPDATE ChiNhanh SET TrangThai = N'Ngừng hoạt động' WHERE MaChiNhanh = ?`, [id]);

@@ -2,48 +2,11 @@
 
 const https = require('https');
 const http = require('http');
-const crypto = require('crypto');
+const dns = require('dns').promises;
+const net = require('net');
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-
-// Đường dẫn lưu cấu hình AI
-const CONFIG_FILE = fs.existsSync(path.join(__dirname, '..', 'config', 'ai_config.json'))
-  ? path.join(__dirname, '..', 'config', 'ai_config.json')
-  : path.join(__dirname, 'ai_config.json');
-
-// Khởi tạo cấu hình mặc định
-function loadAiConfig() {
-  const defaultCfg = {
-    provider: process.env.AI_PROVIDER || 'pollinations', // 'pollinations' | 'gemini' | 'huggingface'
-    geminiApiKey: process.env.GEMINI_API_KEY || '',
-    huggingFaceKey: process.env.HUGGINGFACE_KEY || '',
-    model: 'flux',
-    temperature: 0.7
-  };
-  try {
-    if (fs.existsSync(CONFIG_FILE)) {
-      const data = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-      return { ...defaultCfg, ...data };
-    }
-  } catch (err) {
-    console.warn('[AI Service] Không thể đọc ai_config.json:', err.message);
-  }
-  return defaultCfg;
-}
-
-function saveAiConfig(cfg) {
-  try {
-    const targetPath = fs.existsSync(path.join(__dirname, '..', 'config'))
-      ? path.join(__dirname, '..', 'config', 'ai_config.json')
-      : CONFIG_FILE;
-    fs.writeFileSync(targetPath, JSON.stringify(cfg, null, 2), 'utf8');
-    return true;
-  } catch (err) {
-    console.error('[AI Service] Không thể lưu ai_config.json:', err.message);
-    return false;
-  }
-}
 
 // Bảng dữ liệu 12 kiểu tóc chuẩn Salon Barber chuyên nghiệp
 const HAIRSTYLES = {
@@ -54,16 +17,15 @@ const HAIRSTYLES = {
     tag: 'THỜI THƯỢNG',
     desc: 'Tỉa tầng bay bổng, uốn texture tạo độ phồng tự nhiên cho khuôn mặt Á Đông.',
     faceSuitability: {
-      OVAL: { score: 98, note: 'Tỉ lệ vàng hoàn hảo! Mái bay tôn trọn vẹn nét thanh thoát của khuôn mặt.' },
+      OVAL: { score: 98, note: 'Cân đối hài hòa! Mái bay tôn nét thanh thoát tự nhiên của khuôn mặt.' },
       SQUARE: { score: 92, note: 'Lớp layer rủ mềm mại giúp trung hòa các góc xương hàm vuông vức, tạo vẻ lịch lãm tự nhiên.' },
       ROUND: { score: 86, note: 'Nên sấy phồng chân tóc trên đỉnh để kéo dài khuôn mặt thon gọn hơn.' },
       OBLONG: { score: 96, note: 'Mái rủ tỉa tầng giúp che bớt vòm trán, rút ngắn chiều dài gương mặt cực kỳ hiệu quả.' },
       DIAMOND: { score: 94, note: 'Độ phồng 2 bên mai ôm sát xương gò má, mang lại vẻ hài hòa cân đối.' },
-      HEART: { score: 95, note: 'Cân bằng hoàn hảo giữa trán rộng và cằm thon, mang lại phong thái lãng tử.' }
+      HEART: { score: 95, note: 'Cân bằng tốt giữa trán rộng và cằm thon, mang lại phong thái lãng tử.' }
     },
-    promptDesc: 'modern Korean textured layer haircut with soft airy fringe, voluminous natural wavy texture, stylish Asian male model, barbershop studio lighting, 8k resolution, photorealistic, sharp focus',
-    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay 80g', price: 480000, category: 'Sáp vuốt tóc giữ nếp' },
-    suggestedService: { id: 'DV2', name: 'Uốn Tóc Texture / Hàn Quốc', price: 350000 }
+    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay VIP', price: 345000, category: 'Sáp vuốt tóc giữ nếp', image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg' },
+    suggestedService: { id: 'DV03', name: 'Uốn tóc xoăn Texture / Ziczac phồng Hàn Quốc', price: 650000 }
   },
   'pompadour-luxury': {
     id: 'pompadour-luxury',
@@ -73,15 +35,14 @@ const HAIRSTYLES = {
     desc: 'Độ phồng vuốt ngược pomade kết hợp đường fade sắc nét 2 bên mang lại phong thái đĩnh đạc.',
     faceSuitability: {
       OVAL: { score: 96, note: 'Rất tôn trán và ngũ quan sáng sủa của quý ông.' },
-      SQUARE: { score: 99, note: 'Lựa chọn số 1! Khối vuốt ngược làm nổi bật góc hàm vuông chữ điền đầy quyền uy và nam tính.' },
-      ROUND: { score: 97, note: 'Độ phồng cao ở đỉnh tóc giúp khuôn mặt trông dài hơn, thanh thoát vượt bậc.' },
+      SQUARE: { score: 99, note: 'Lựa chọn hàng đầu! Khối vuốt ngược làm nổi bật góc hàm vuông chữ điền đầy nam tính.' },
+      ROUND: { score: 97, note: 'Độ phồng cao ở đỉnh tóc giúp khuôn mặt trông dài và thon gọn hơn.' },
       OBLONG: { score: 78, note: 'Nên hạ bớt độ cao mái để tránh làm mặt trông dài thêm.' },
       DIAMOND: { score: 90, note: 'Cần vuốt phồng vừa phải kết hợp taper fade 2 bên để tôn gò má.' },
-      HEART: { score: 88, note: 'Tôn vầng trán thông minh, hợp vuốt pomade bóng nhẹ quý tộc.' }
+      HEART: { score: 88, note: 'Tôn vầng trán thoáng, hợp vuốt pomade bóng nhẹ lịch lãm.' }
     },
-    promptDesc: 'classic luxury pompadour haircut with high fade sides and slick back volume, styled with glossy pomade, handsome Asian gentleman, executive barbershop lighting, 8k resolution, photorealistic',
-    suggestedProduct: { id: 'SP30', name: 'Reuzel Green Medium Hold Grease 95g', price: 549000, category: 'Pomade cổ điển' },
-    suggestedService: { id: 'DV1', name: 'Cắt Tóc Tạo Kiểu Master Barber', price: 120000 }
+    suggestedProduct: { id: 'SP30', name: 'Reuzel Green Medium Hold Grease', price: 692000, category: 'Pomade cổ điển', image: 'Men_Grooming_Products/02_Pomade_Co_Dien_Va_Hien_Dai/Reuzel_Pomade/Reuzel_Green_Medium_Hold_Grease/Reuzel_Green_Medium_Hold_Grease_01.jpg' },
+    suggestedService: { id: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', price: 120000 }
   },
   'mullet-modern': {
     id: 'mullet-modern',
@@ -90,34 +51,32 @@ const HAIRSTYLES = {
     tag: 'PHONG CÁCH',
     desc: 'Gáy tỉa so le mềm mại kết hợp đường cạo viền dứt khoát và nam tính.',
     faceSuitability: {
-      OVAL: { score: 95, note: 'Tôn trọn góc nghiêng thần thánh và đường viền gáy quyến rũ.' },
+      OVAL: { score: 95, note: 'Tôn trọn góc nghiêng sắc nét và đường viền gáy gọn gàng.' },
       SQUARE: { score: 90, note: 'Phom tóc gáy dài tạo cảm giác phong trần, cân bằng góc cạnh sắc nhọn.' },
       ROUND: { score: 85, note: 'Phần mai cạo taper fade giúp bóp gọn 2 bên má tròn.' },
       OBLONG: { score: 92, note: 'Đuôi tóc sau gáy tạo cảm giác khuôn mặt đầy đặn hơn từ góc nhìn ngang.' },
-      DIAMOND: { score: 96, note: 'Cực kỳ tôn xương gò má cao và phong cách thời trang nghệ sĩ.' },
-      HEART: { score: 93, note: 'Đuôi tóc ôm gáy lấp đầy khoảng trống của chiếc cằm nhọn.' }
+      DIAMOND: { score: 96, note: 'Rất tôn xương gò má cao và phong cách thời trang trẻ trung.' },
+      HEART: { score: 93, note: 'Đuôi tóc ôm gáy lấp đầy khoảng trống của phần cằm thon.' }
     },
-    promptDesc: 'trendy modern wolf mullet haircut with textured taper fade sides and soft feathered nape, stylish Asian male, cinematic portrait lighting, 8k resolution, photorealistic',
-    suggestedProduct: { id: 'SP51', name: 'Reuzel Grooming Tonic 100ml', price: 415000, category: 'Xịt dưỡng pre-styling' },
-    suggestedService: { id: 'DV2', name: 'Uốn Tóc Texture / Con Sâu', price: 350000 }
+    suggestedProduct: { id: 'SP51', name: 'Reuzel Grooming Tonic', price: 692000, category: 'Xịt dưỡng pre-styling', image: 'Men_Grooming_Products/03_Xit_Tao_Phong_Pre_Styling/Reuzel_Grooming_Tonic/Reuzel_Grooming_Tonic/Reuzel_Grooming_Tonic_01.jpg' },
+    suggestedService: { id: 'DV03', name: 'Uốn tóc xoăn Texture / Ziczac phồng Hàn Quốc', price: 650000 }
   },
   'sidepart-gentleman': {
     id: 'sidepart-gentleman',
     name: 'Side Part 7/3 Cổ Điển',
     category: 'classic',
     tag: 'QUÝ ÔNG',
-    desc: 'Đường rẽ ngôi tỉ lệ vàng tôn phom mặt, dễ dàng chải sáp restyle suốt cả ngày.',
+    desc: 'Đường rẽ ngôi cân đối tôn phom mặt, dễ dàng chải sáp restyle suốt cả ngày.',
     faceSuitability: {
-      OVAL: { score: 99, note: 'Chuẩn phong thái doanh nhân thành đạt, chuẩn tỉ lệ vàng 10/10.' },
+      OVAL: { score: 99, note: 'Phù hợp hoàn hảo cho phong thái doanh nhân chỉn chu và cân đối.' },
       SQUARE: { score: 96, note: 'Tôn góc cạnh quai hàm chữ điền, mang lại vẻ từng trải và đĩnh đạc.' },
-      ROUND: { score: 94, note: 'Đường rẽ ngôi bất đối xứng đánh lừa thị giác, giúp mặt trông gọn gàng hơn.' },
+      ROUND: { score: 94, note: 'Đường rẽ ngôi bất đối xứng giúp tạo hiệu ứng mặt thon gọn hơn.' },
       OBLONG: { score: 90, note: 'Mái 7/3 rủ nhẹ chéo trán giúp cân bằng chiều dài khuôn mặt.' },
-      DIAMOND: { score: 93, note: 'Độ phồng chân tóc 2 bên hài hòa hoàn hảo với xương gò má.' },
+      DIAMOND: { score: 93, note: 'Độ phồng chân tóc 2 bên hài hòa tự nhiên với xương gò má.' },
       HEART: { score: 95, note: 'Nếp chải tinh tế che bớt góc trán rộng, tôn cằm thon.' }
     },
-    promptDesc: 'classic clean 7/3 side part gentleman haircut with razor part line, low fade, dapper Asian executive, studio lighting, highly detailed, photorealistic 8k',
-    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay 80g', price: 480000, category: 'Sáp vuốt tóc' },
-    suggestedService: { id: 'CBDV1', name: 'Combo Cắt Gội Quý Tộc 10 Bước', price: 200000 }
+    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay VIP', price: 345000, category: 'Sáp vuốt tóc giữ nếp', image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg' },
+    suggestedService: { id: 'CB01', name: 'Combo Quý Tộc Barber (Cắt + Gội + Cạo râu)', price: 300000 }
   },
   'buzzcut-fade': {
     id: 'buzzcut-fade',
@@ -127,15 +86,14 @@ const HAIRSTYLES = {
     desc: 'Gọn gàng, tôn trọn vẹn xương hàm và đường nét góc cạnh của gương mặt.',
     faceSuitability: {
       OVAL: { score: 92, note: 'Khoe trọn vẹn đường nét ngũ quan thanh tú, tạo cảm giác năng động thể thao.' },
-      SQUARE: { score: 97, note: 'Cực kỳ mạnh mẽ! Đường fade sắc nét tôn vinh hàm vuông góc cạnh như chiến binh.' },
+      SQUARE: { score: 97, note: 'Mạnh mẽ, dứt khoát! Đường fade sắc nét tôn vinh hàm vuông góc cạnh.' },
       ROUND: { score: 72, note: 'Dáng mặt tròn nên cân nhắc, vì tóc quá ngắn dễ để lộ má bầu bĩnh.' },
       OBLONG: { score: 75, note: 'Cần thợ fade chuẩn để không làm khuôn mặt bị kéo dài thêm.' },
       DIAMOND: { score: 86, note: 'Phong thái cá tính dứt khoát, cần chú ý đường chân tóc trán.' },
       HEART: { score: 84, note: 'Làm nổi bật xương quai hàm và ánh mắt quyết đoán.' }
     },
-    promptDesc: 'masculine high and tight buzz cut with skin fade and razor sharp hairline line-up, confident handsome Asian man, clean skin, barbershop studio light, 8k photorealistic',
-    suggestedProduct: { id: 'SP61', name: 'L’Oréal Infinium Pure Strong 500ml', price: 150000, category: 'Gôm xịt bảo vệ form' },
-    suggestedService: { id: 'DV1', name: 'Cắt Tóc Fade Chuyên Nghiệp', price: 120000 }
+    suggestedProduct: { id: 'SP61', name: "L'Oréal Professionnel Infinium Pure Strong", price: 503000, category: 'Gôm xịt bảo vệ form', image: 'Men_Grooming_Products/04_Gom_Xit_Giu_Nep_Toc_Nam/LOreal_Infinium/LOreal_Professionnel_Infinium_Pure_Strong/LOreal_Professionnel_Infinium_Pure_Strong_01.jpg' },
+    suggestedService: { id: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', price: 120000 }
   },
   'french-crop': {
     id: 'french-crop',
@@ -147,13 +105,12 @@ const HAIRSTYLES = {
       OVAL: { score: 95, note: 'Rất trẻ trung, tôn nét mặt hiện đại cá tính của các bạn trẻ.' },
       SQUARE: { score: 94, note: 'Mái bằng textured tương phản hài hòa với xương hàm vuông nam tính.' },
       ROUND: { score: 88, note: 'Fade cao 2 bên giúp thu gọn má bầu, tạo cảm giác gương mặt góc cạnh hơn.' },
-      OBLONG: { score: 98, note: 'Tuyệt tác cho mặt dài! Mái ngang che trán giúp rút ngắn chiều dài mặt ngay lập tức.' },
+      OBLONG: { score: 98, note: 'Phom tóc rất hợp cho mặt dài: mái ngang che trán giúp cân đối chiều dài mặt.' },
       DIAMOND: { score: 91, note: 'Độ phồng textured đỉnh đầu giúp cân bằng phần gò má nhô cao.' },
-      HEART: { score: 94, note: 'Che bớt trán rộng, làm gương mặt cân đối hoàn mỹ.' }
+      HEART: { score: 94, note: 'Che bớt trán rộng, giúp khuôn mặt hài hòa cân đối.' }
     },
-    promptDesc: 'modern textured french crop haircut with blunt micro fringe and high drop fade, sharp stylish Asian male, urban studio portrait, 8k resolution, photorealistic',
-    suggestedProduct: { id: 'SP72', name: 'Hanz de Fuko Quicksand 56g', price: 464000, category: 'Sáp tạo texture khô tự nhiên' },
-    suggestedService: { id: 'DV2', name: 'Uốn Phồng Chân Tóc Hàn Quốc', price: 300000 }
+    suggestedProduct: { id: 'SP05', name: 'Hanz de Fuko Quicksand', price: 879000, category: 'Sáp tạo texture khô tự nhiên', image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Quicksand/Hanz_de_Fuko_Quicksand_01.jpg' },
+    suggestedService: { id: 'DV02', name: 'Cắt & Ép Side tóc nam (Down Perm Combo)', price: 250000 }
   },
   'short-quiff': {
     id: 'short-quiff',
@@ -164,50 +121,47 @@ const HAIRSTYLES = {
     faceSuitability: {
       OVAL: { score: 97, note: 'Tôn trọn đường sống mũi và vầng trán sáng, phong thái vô cùng năng động.' },
       SQUARE: { score: 95, note: 'Độ nâng vừa phải ở ngọn tóc giúp làm mềm mại các đường nét góc cạnh của hàm.' },
-      ROUND: { score: 96, note: 'Cực kỳ khuyên dùng! Đỉnh tóc vuốt hướng lên giúp kéo dài gương mặt thon gọn.' },
+      ROUND: { score: 96, note: 'Nên ưu tiên! Đỉnh tóc vuốt hướng lên giúp kéo dài gương mặt thon gọn.' },
       OBLONG: { score: 82, note: 'Nên vuốt chếch nhẹ sang bên để tránh làm khuôn mặt trông dài hơn.' },
       DIAMOND: { score: 92, note: 'Mai taper mềm mại giúp khuôn mặt có chiều sâu và hài hòa hơn.' },
       HEART: { score: 90, note: 'Tạo điểm nhấn nam tính, cân bằng tỉ lệ giữa trán và cằm.' }
     },
-    promptDesc: 'handsome Asian male model with modern textured short quiff haircut, neat taper fade, clean barbershop studio lighting, sharp focus, 8k portrait',
-    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay 80g', price: 480000, category: 'Sáp tạo texture' },
-    suggestedService: { id: 'DV1', name: 'Cắt Tóc Fade Chuyên Nghiệp', price: 120000 }
+    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay VIP', price: 345000, category: 'Sáp vuốt tóc giữ nếp', image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg' },
+    suggestedService: { id: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', price: 120000 }
   },
   'two-block': {
     id: 'two-block',
     name: 'Two-Block 6/4 Lãng Tử',
     category: 'trends',
     tag: 'K-STYLE IDOL',
-    desc: 'Phần mai và gáy tỉa ngắn gọn, phần trên để dài rẽ ngôi 6/4 bồng bềnh chuẩn phong cách sao Hàn.',
+    desc: 'Phần mai và gáy tỉa ngắn gọn, phần trên để dài rẽ ngôi 6/4 bồng bềnh chuẩn phong cách Hàn Quốc.',
     faceSuitability: {
-      OVAL: { score: 99, note: 'Tỉ lệ vàng! Đẹp hoàn hảo từ góc chính diện đến góc nghiêng.' },
-      SQUARE: { score: 91, note: 'Mái rủ 2 bên trán giúp che bớt góc trán vuông, tạo nét lãng tử cuốn hút.' },
-      ROUND: { score: 87, note: 'Cần sấy nâng phom đỉnh đầu để tạo cảm giác khuôn mặt thanh tú.' },
-      OBLONG: { score: 97, note: 'Cực kỳ phù hợp! Tóc mái rủ che trán rút ngắn chiều dài mặt đáng kể.' },
+      OVAL: { score: 99, note: 'Rất cân đối và hài hòa từ góc chính diện đến góc nghiêng.' },
+      SQUARE: { score: 91, note: 'Mái rủ 2 bên trán giúp che bớt góc trán vuông, tạo nét lãng tử thu hút.' },
+      ROUND: { score: 87, note: 'Cần sấy nâng phom đỉnh đầu để tạo cảm giác khuôn mặt thanh thoát hơn.' },
+      OBLONG: { score: 97, note: 'Phù hợp rõ rệt! Tóc mái rủ che trán giúp cân đối chiều dài mặt.' },
       DIAMOND: { score: 95, note: 'Phom tóc ôm sát gò má giúp làm dịu độ nhô của xương gò má.' },
-      HEART: { score: 94, note: 'Đường rẽ ngôi 6/4 tôn vinh chiếc cằm thon gọn và ánh mắt sáng.' }
+      HEART: { score: 94, note: 'Đường rẽ ngôi 6/4 tôn phần cằm thon gọn và đường nét sáng.' }
     },
-    promptDesc: 'handsome Korean male idol with stylish two-block haircut, airy 6/4 parted curtain fringe bangs, soft natural texture, barbershop studio portrait, 8k',
-    suggestedProduct: { id: 'SP51', name: 'Reuzel Grooming Tonic 100ml', price: 415000, category: 'Xịt tạo phồng tự nhiên' },
-    suggestedService: { id: 'DV2', name: 'Uốn Phồng Chân Tóc Hàn Quốc', price: 300000 }
+    suggestedProduct: { id: 'SP51', name: 'Reuzel Grooming Tonic', price: 692000, category: 'Xịt tạo phồng tự nhiên', image: 'Men_Grooming_Products/03_Xit_Tao_Phong_Pre_Styling/Reuzel_Grooming_Tonic/Reuzel_Grooming_Tonic/Reuzel_Grooming_Tonic_01.jpg' },
+    suggestedService: { id: 'DV02', name: 'Cắt & Ép Side tóc nam (Down Perm Combo)', price: 250000 }
   },
   'ivy-league': {
     id: 'ivy-league',
     name: 'Ivy League Hiện Đại',
     category: 'classic',
     tag: 'DOANH NHÂN',
-    desc: 'Tóc quý tộc Mỹ kết hợp fade đương đại, mái vuốt lệch nhẹ 8/2 tạo phong thái trí thức đĩnh đạc.',
+    desc: 'Kiểu tóc cổ điển gọn gàng kết hợp fade hiện đại, mái vuốt lệch nhẹ 8/2 lịch thiệp.',
     faceSuitability: {
-      OVAL: { score: 98, note: 'Chuẩn mực quý ông! Ngũ quan sáng rõ, phong thái doanh nhân trẻ thành đạt.' },
-      SQUARE: { score: 98, note: 'Tôn vinh góc cạnh nam tính của xương quai hàm và ánh mắt quyết đoán.' },
+      OVAL: { score: 98, note: 'Gọn gàng, ngũ quan sáng rõ và phong thái lịch lãm.' },
+      SQUARE: { score: 98, note: 'Tôn góc cạnh nam tính của xương quai hàm và đường nét mạnh mẽ.' },
       ROUND: { score: 90, note: 'Đường cạo mai sắc nét giúp định hình phom mặt gọn gàng.' },
-      OBLONG: { score: 88, note: 'Chiều dài tóc ngắn vừa phải không làm mất cân đối tỉ lệ mặt.' },
-      DIAMOND: { score: 92, note: 'Cực kỳ lịch lãm, hợp với âu phục và môi trường công sở cao cấp.' },
+      OBLONG: { score: 88, note: 'Chiều dài tóc ngắn vừa phải giữ sự cân đối tự nhiên.' },
+      DIAMOND: { score: 92, note: 'Rất lịch lãm, hợp trang phục công sở và phong cách tối giản.' },
       HEART: { score: 91, note: 'Tôn vòm trán thông minh và đường viền cằm gọn gàng.' }
     },
-    promptDesc: 'dapper handsome Asian man with modern Ivy League haircut, short combed side part, neat clean taper fade, elegant gentleman, barbershop portrait, 8k',
-    suggestedProduct: { id: 'SP30', name: 'Reuzel Green Medium Hold Grease 95g', price: 549000, category: 'Pomade giữ nếp' },
-    suggestedService: { id: 'CBDV1', name: 'Combo Cắt Gội Quý Tộc 10 Bước', price: 200000 }
+    suggestedProduct: { id: 'SP30', name: 'Reuzel Green Medium Hold Grease', price: 692000, category: 'Pomade giữ nếp', image: 'Men_Grooming_Products/02_Pomade_Co_Dien_Va_Hien_Dai/Reuzel_Pomade/Reuzel_Green_Medium_Hold_Grease/Reuzel_Green_Medium_Hold_Grease_01.jpg' },
+    suggestedService: { id: 'CB01', name: 'Combo Quý Tộc Barber (Cắt + Gội + Cạo râu)', price: 300000 }
   },
   'undercut-slick': {
     id: 'undercut-slick',
@@ -216,52 +170,49 @@ const HAIRSTYLES = {
     tag: 'QUYỀN LỰC',
     desc: 'Cạo sát 2 bên mai (Skin Fade), tóc đỉnh đầu vuốt mượt bóng ra sau với pomade gốc nước.',
     faceSuitability: {
-      OVAL: { score: 96, note: 'Khoe trọn ngũ quan thanh tú, tạo vẻ sắc sảo và cuốn hút đỉnh cao.' },
-      SQUARE: { score: 99, note: 'Đỉnh cao phong độ! Đường cạo sát tương phản tôn vinh xương quai hàm chữ điền vạm vỡ.' },
+      OVAL: { score: 96, note: 'Khoe trọn ngũ quan sáng sủa, tạo vẻ sắc sảo và nam tính.' },
+      SQUARE: { score: 99, note: 'Rất hợp khuôn mặt chữ điền! Đường cạo sát tôn rõ xương quai hàm nam tính.' },
       ROUND: { score: 95, note: 'Tóc ép mượt 2 bên giúp thu hẹp bề ngang khuôn mặt hiệu quả.' },
       OBLONG: { score: 76, note: 'Cần vuốt ép sát đầu để không tăng thêm chiều cao khuôn mặt.' },
-      DIAMOND: { score: 89, note: 'Đường fade sắc nét mang lại diện mạo góc cạnh, ấn tượng.' },
+      DIAMOND: { score: 89, note: 'Đường fade sắc nét mang lại diện mạo góc cạnh, gọn gàng.' },
       HEART: { score: 88, note: 'Rất tôn sống mũi cao và đường viền quai hàm sắc bén.' }
     },
-    promptDesc: 'handsome Asian gentleman with undercut slicked back hairstyle, high skin fade, glossy pomade texture, sharp hairline line-up, barbershop portrait, 8k',
-    suggestedProduct: { id: 'SP30', name: 'Reuzel Blue High Sheen Pomade', price: 549000, category: 'Pomade bóng cao cấp' },
-    suggestedService: { id: 'DV1', name: 'Cắt Tóc Fade Chuyên Nghiệp', price: 120000 }
+    suggestedProduct: { id: 'SP34', name: 'Reuzel Blue Strong Hold Pomade', price: 692000, category: 'Pomade bóng cao cấp', image: 'Men_Grooming_Products/02_Pomade_Co_Dien_Va_Hien_Dai/Reuzel_Pomade/Reuzel_Blue_Strong_Hold_Pomade/Reuzel_Blue_Strong_Hold_Pomade_01.jpg' },
+    suggestedService: { id: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', price: 120000 }
   },
   'ripple-perm': {
     id: 'ripple-perm',
     name: 'Uốn Con Sâu / Ripple Curls',
     category: 'wavy',
-    tag: 'BÙNG NỔ CÁ TÍNH',
-    desc: 'Tóc uốn sóng lượn dập xù cá tính, tạo kết cấu bồng bềnh và độ dày tối đa cho mái tóc mỏng.',
+    tag: 'CÁ TÍNH',
+    desc: 'Tóc uốn sóng lượn tạo kết cấu bồng bềnh và tăng độ dày tự nhiên cho mái tóc mỏng.',
     faceSuitability: {
-      OVAL: { score: 96, note: 'Cực kỳ thời trang và nổi bật giữa đám đông!' },
-      SQUARE: { score: 93, note: 'Các lọn sóng xoăn uốn lượn làm mềm mại các góc cạnh cứng nhắc trên khuôn mặt.' },
-      ROUND: { score: 89, note: 'Độ phồng dập xù đỉnh đầu giúp gương mặt trông thon dài và cá tính hơn.' },
+      OVAL: { score: 96, note: 'Rất trẻ trung, thời trang và tạo điểm nhấn riêng biệt.' },
+      SQUARE: { score: 93, note: 'Các lọn sóng xoăn uốn lượn làm mềm các góc hàm sắc cạnh.' },
+      ROUND: { score: 89, note: 'Độ phồng đỉnh đầu giúp gương mặt trông thon dài và cá tính hơn.' },
       OBLONG: { score: 95, note: 'Độ phồng 2 bên mai giúp làm đầy đặn bề ngang khuôn mặt gầy.' },
-      DIAMOND: { score: 96, note: 'Sóng tóc bao quanh giúp che bớt độ nhô của gò má, mang lại vẻ nghệ sĩ.' },
-      HEART: { score: 94, note: 'Tôn nét trẻ trung, nổi loạn của phong cách streetwear.' }
+      DIAMOND: { score: 96, note: 'Sóng tóc bao quanh giúp làm dịu phần gò má cao, nhìn hài hòa hơn.' },
+      HEART: { score: 94, note: 'Hợp phong cách streetwear trẻ trung và năng động.' }
     },
-    promptDesc: 'handsome young Asian male with trendy textured ripple perm haircut, rippled wavy volume, taper fade sides, studio portrait, 8k',
-    suggestedProduct: { id: 'SP72', name: 'Hanz de Fuko Quicksand 56g', price: 464000, category: 'Sáp tạo phồng khô' },
-    suggestedService: { id: 'DV2', name: 'Uốn Tóc Texture / Con Sâu', price: 350000 }
+    suggestedProduct: { id: 'SP05', name: 'Hanz de Fuko Quicksand', price: 879000, category: 'Sáp tạo phồng khô', image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Hanz_de_Fuko/Hanz_de_Fuko_Quicksand/Hanz_de_Fuko_Quicksand_01.jpg' },
+    suggestedService: { id: 'DV05', name: 'Uốn tóc con sâu Dreadlocks / Uốn Ruffled phá cách', price: 800000 }
   },
   'mohican-fade': {
     id: 'mohican-fade',
     name: 'Mohican Ngắn & Sharp Fade',
     category: 'edgy',
     tag: 'BỤI BẶM',
-    desc: 'Mái vuốt nhọn hướng về trước, hai bên cạo fade trắng dứt khoát, toát lên vẻ bụi bặm và phá cách.',
+    desc: 'Mái vuốt nhọn hướng về trước, hai bên cạo fade trắng dứt khoát, tạo vẻ gọn gàng và năng động.',
     faceSuitability: {
-      OVAL: { score: 94, note: 'Rất khỏe khoắn, nam tính và giàu năng lượng thể thao.' },
-      SQUARE: { score: 96, note: 'Tôn vinh sự mạnh mẽ, dứt khoát của người đàn ông hành động.' },
-      ROUND: { score: 95, note: 'Đỉnh nhọn vuốt về trước giúp đánh lừa thị giác làm mặt dài và thon hơn.' },
-      OBLONG: { score: 79, note: 'Nên tỉa mái ngắn sát để không làm mặt trông dài thêm.' },
-      DIAMOND: { score: 90, note: 'Mang lại phong thái gai góc, đậm chất đường phố.' },
-      HEART: { score: 88, note: 'Làm nổi bật nét cương nghị và ánh nhìn sắc sảo.' }
+      OVAL: { score: 94, note: 'Khỏe khoắn, nam tính và giàu năng lượng thể thao.' },
+      SQUARE: { score: 96, note: 'Tôn nét mạnh mẽ, dứt khoát và gọn gàng quanh viền đầu.' },
+      ROUND: { score: 95, note: 'Đỉnh nhọn vuốt về trước giúp mặt trông thon gọn và dài hơn.' },
+      OBLONG: { score: 79, note: 'Nên tỉa mái ngắn vừa để không làm mặt trông dài thêm.' },
+      DIAMOND: { score: 90, note: 'Mang lại phong thái gọn gàng, khỏe khoắn chuẩn đường phố.' },
+      HEART: { score: 88, note: 'Tạo cảm giác cân đối giữa phần trán và hàm dưới.' }
     },
-    promptDesc: 'handsome confident Asian male with modern short mohican haircut, sharp burst fade sides, textured spiked crest, barbershop studio light, 8k',
-    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay 80g', price: 480000, category: 'Sáp vuốt tóc giữ nếp' },
-    suggestedService: { id: 'DV1', name: 'Cắt Tóc Fade Chuyên Nghiệp', price: 120000 }
+    suggestedProduct: { id: 'SP01', name: 'Apestomen Volcanic Clay VIP', price: 345000, category: 'Sáp vuốt tóc giữ nếp', image: 'Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay/Apestomen_Volcanic_Clay_01.jpg' },
+    suggestedService: { id: 'DV01', name: 'Cắt tóc nam Fade & Tạo kiểu sáp Pomade', price: 120000 }
   }
 };
 
@@ -325,8 +276,8 @@ const HAIR_COLORS = {
   }
 };
 
-// Gọi script Python phân tích ảnh
-function runPythonVisionAnalyzer(imageInput) {
+// Giải quyết đường dẫn Python Vision và chạy tiến trình phân tích/ghép tóc cục bộ
+function runPythonVisionTask(args, stdinPayload, { timeoutMs = 35000, maxBufferMb = 15, label = 'Vision' } = {}) {
   try {
     const pythonPaths = [
       'C:\\Users\\pcx\\AppData\\Local\\Programs\\Python\\Python311\\python.exe',
@@ -340,172 +291,79 @@ function runPythonVisionAnalyzer(imageInput) {
     const scriptPath = path.join(__dirname, 'vision_analyzer.py');
     if (!fs.existsSync(scriptPath)) return null;
 
-    let proc;
-    if (typeof imageInput === 'string' && fs.existsSync(imageInput)) {
-      proc = spawnSync(selectedPython, [scriptPath, imageInput], { encoding: 'utf-8', timeout: 30000, maxBuffer: 15 * 1024 * 1024 });
-    } else {
-      proc = spawnSync(selectedPython, [scriptPath], { input: imageInput || '', encoding: 'utf-8', timeout: 30000, maxBuffer: 15 * 1024 * 1024 });
+    const spawnOpts = {
+      encoding: 'utf-8',
+      timeout: timeoutMs,
+      maxBuffer: maxBufferMb * 1024 * 1024
+    };
+    if (stdinPayload !== undefined && stdinPayload !== null) {
+      spawnOpts.input = stdinPayload;
     }
 
-    if (!proc || proc.error || !proc.stdout) return null;
+    const proc = spawnSync(selectedPython, [scriptPath, ...args], spawnOpts);
+    if (!proc || proc.error || !proc.stdout) {
+      if (proc?.error) console.warn(`[Python ${label} Error]:`, proc.error.message);
+      else if (proc?.status && proc.stderr) console.warn(`[Python ${label} Stderr]:`, proc.stderr.slice(-400));
+      return null;
+    }
+
     const lines = proc.stdout.trim().split('\n');
     const jsonLine = lines.find(l => l.trim().startsWith('{') && l.trim().endsWith('}')) || lines[lines.length - 1];
     const data = JSON.parse(jsonLine);
-    if (data && data.success) return data;
+    if (data && typeof data === 'object') return data;
   } catch (e) {
-    console.warn('[Python Vision Analyzer Warning]:', e.message);
+    console.warn(`[Python ${label} Warning]:`, e.message);
   }
   return null;
+}
+
+// Gọi script Python phân tích ảnh
+function runPythonVisionAnalyzer(imageInput, includeAssets = true) {
+  if (includeAssets && typeof imageInput === 'string' && fs.existsSync(imageInput)) {
+    const data = runPythonVisionTask([imageInput], null, { timeoutMs: 30000, maxBufferMb: 15, label: 'Analyzer' });
+    return (data && data.success) ? data : null;
+  }
+  const stdinPayload = includeAssets
+    ? (imageInput || '')
+    : JSON.stringify({ image: imageInput || '', includeAssets: false });
+  const data = runPythonVisionTask([], stdinPayload, { timeoutMs: 30000, maxBufferMb: 15, label: 'Analyzer' });
+  return (data && data.success) ? data : null;
 }
 
 // Gọi script Python ghép kiểu tóc
 function runPythonVisionRestyle(options) {
-  try {
-    const pythonPaths = [
-      'C:\\Users\\pcx\\AppData\\Local\\Programs\\Python\\Python311\\python.exe',
-      'python',
-      'python3'
-    ];
-    let selectedPython = pythonPaths[0];
-    for (const p of pythonPaths) {
-      if (fs.existsSync(p)) { selectedPython = p; break; }
-    }
-    const scriptPath = path.join(__dirname, 'vision_analyzer.py');
-    if (!fs.existsSync(scriptPath)) return null;
-
-    const payload = JSON.stringify({
-      image: options.imageBase64OrUrl,
-      hairstyleId: options.hairstyleId || 'layer-korean',
-      colorHex: options.colorHex || '#141413',
-      balanceLighting: options.balanceLighting !== false,
-      smoothSkin: options.smoothSkin !== false
-    });
-
-    const proc = spawnSync(selectedPython, [scriptPath, 'restyle'], {
-      input: payload,
-      encoding: 'utf-8',
-      timeout: 45000,
-      maxBuffer: 25 * 1024 * 1024
-    });
-
-    if (!proc || proc.error || !proc.stdout) {
-      if (proc?.error) console.warn('[Python Vision Restyle Error]:', proc.error.message);
-      return null;
-    }
-
-    const lines = proc.stdout.trim().split('\n');
-    const jsonLine = lines.find(l => l.trim().startsWith('{') && l.trim().endsWith('}')) || lines[lines.length - 1];
-    const data = JSON.parse(jsonLine);
-    if (data && data.success && data.resultImageUrl) {
-      return data;
-    }
-  } catch (e) {
-    console.warn('[Python Vision Restyle Warning]:', e.message);
-  }
-  return null;
-}
-
-// Chạy Python Preprocess
-function runPythonVisionPreprocess(options) {
-  try {
-    const pythonPaths = [
-      'C:\\Users\\pcx\\AppData\\Local\\Programs\\Python\\Python311\\python.exe',
-      'python',
-      'python3'
-    ];
-    let selectedPython = pythonPaths[0];
-    for (const p of pythonPaths) {
-      if (fs.existsSync(p)) { selectedPython = p; break; }
-    }
-    const scriptPath = path.join(__dirname, 'vision_analyzer.py');
-    if (!fs.existsSync(scriptPath)) return null;
-
-    const payload = JSON.stringify({
-      image: options.imageBase64OrUrl,
-      backgroundMode: options.backgroundMode || 'studio'
-    });
-
-    const proc = spawnSync(selectedPython, [scriptPath, 'preprocess'], {
-      input: payload,
-      encoding: 'utf-8',
-      timeout: 35000,
-      maxBuffer: 25 * 1024 * 1024
-    });
-
-    if (!proc || proc.error || !proc.stdout) {
-      if (proc?.error) console.warn('[Python Vision Preprocess Error]:', proc.error.message);
-      return null;
-    }
-
-    const lines = proc.stdout.trim().split('\n');
-    const jsonLine = lines.find(l => l.trim().startsWith('{') && l.trim().endsWith('}')) || lines[lines.length - 1];
-    const data = JSON.parse(jsonLine);
-    if (data && data.success) {
-      return data;
-    }
-  } catch (e) {
-    console.warn('[Python Vision Preprocess Warning]:', e.message);
-  }
-  return null;
-}
-
-// Chạy Python Segmentation & Mask Extraction
-function runPythonVisionMask(options) {
-  try {
-    const pythonPaths = [
-      'C:\\Users\\pcx\\AppData\\Local\\Programs\\Python\\Python311\\python.exe',
-      'python',
-      'python3'
-    ];
-    let selectedPython = pythonPaths[0];
-    for (const p of pythonPaths) {
-      if (fs.existsSync(p)) { selectedPython = p; break; }
-    }
-    const scriptPath = path.join(__dirname, 'vision_analyzer.py');
-    if (!fs.existsSync(scriptPath)) return null;
-
-    const payload = JSON.stringify({
-      image: options.imageBase64OrUrl,
-      hairstyleId: options.hairstyleId || 'layer-korean'
-    });
-
-    const proc = spawnSync(selectedPython, [scriptPath, 'mask'], {
-      input: payload,
-      encoding: 'utf-8',
-      timeout: 35000,
-      maxBuffer: 25 * 1024 * 1024
-    });
-
-    if (!proc || proc.error || !proc.stdout) {
-      if (proc?.error) console.warn('[Python Vision Mask Error]:', proc.error.message);
-      return null;
-    }
-
-    const lines = proc.stdout.trim().split('\n');
-    const jsonLine = lines.find(l => l.trim().startsWith('{') && l.trim().endsWith('}')) || lines[lines.length - 1];
-    const data = JSON.parse(jsonLine);
-    if (data && data.success) {
-      return data;
-    }
-  } catch (e) {
-    console.warn('[Python Vision Mask Warning]:', e.message);
-  }
-  return null;
+  const payload = JSON.stringify({
+    image: options.imageBase64OrUrl,
+    hairstyleId: options.hairstyleId || 'layer-korean',
+    colorHex: options.colorHex || '#141413',
+    volume: options.volume || 'standard',
+    finish: options.finish || 'matte',
+    preserveBackground: options.preserveBackground !== false,
+    balanceLighting: options.balanceLighting !== false,
+    smoothSkin: options.smoothSkin !== false
+  });
+  return runPythonVisionTask(['restyle'], payload, { timeoutMs: 45000, maxBufferMb: 25, label: 'Restyle' });
 }
 
 // Phân tích hình dáng khuôn mặt từ ảnh
-async function analyzeFaceGeometry(imageBase64OrUrl) {
+async function analyzeFaceGeometry(imageBase64OrUrl, options = {}) {
+  const includeAssets = options.includeAssets !== false;
   let resolvedImage = imageBase64OrUrl;
   try {
     resolvedImage = await fetchImageAsDataUri(imageBase64OrUrl);
-  } catch (_) { }
+  } catch (err) {
+    console.warn('[AI Service] Image fetch fallback to raw input:', err.message);
+  }
 
   // CHẠY PYTHON COMPUTER VISION
-  const pyResult = runPythonVisionAnalyzer(resolvedImage);
+  const pyResult = runPythonVisionAnalyzer(resolvedImage, includeAssets);
   if (pyResult && pyResult.success) {
     const mappedScores = {};
     for (const [key, s] of Object.entries(HAIRSTYLES)) {
-      const scoreVal = (pyResult.styleScores && pyResult.styleScores[key]) || 85;
+      const scoreVal = (pyResult.styleScores && pyResult.styleScores[key] != null)
+        ? Number(pyResult.styleScores[key])
+        : null;
+      if (scoreVal === null || Number.isNaN(scoreVal)) continue;
       mappedScores[key] = {
         hairstyleId: key,
         name: s.name,
@@ -527,6 +385,7 @@ async function analyzeFaceGeometry(imageBase64OrUrl) {
       topMatch: mappedScores[bestStyleKey],
       metrics: pyResult.metrics,
       geometry: pyResult.geometry,
+      croppedGeometry: pyResult.croppedGeometry || null,
       barberAdvice: pyResult.barberAdvice,
       suggestedProduct: topStyle.suggestedProduct,
       suggestedService: topStyle.suggestedService,
@@ -552,6 +411,71 @@ async function analyzeFaceGeometry(imageBase64OrUrl) {
 
 // Tạo ảnh kiểu tóc mẫu phù hợp với khuôn mặt
 
+function isPrivateOrReservedIp(ip) {
+  if (!ip) return true;
+  const normalized = ip.toLowerCase().trim();
+  if (normalized === '::1' || normalized === '::' || normalized === '0.0.0.0') return true;
+  if (normalized.startsWith('fe80:') || normalized.startsWith('fc') || normalized.startsWith('fd') || normalized.startsWith('ff')) return true;
+  const v4 = normalized.startsWith('::ffff:') ? normalized.slice(7) : normalized;
+  if (!net.isIPv4(v4)) return normalized.includes(':');
+  const parts = v4.split('.').map(n => parseInt(n, 10));
+  if (parts.length !== 4 || parts.some(n => isNaN(n) || n < 0 || n > 255)) return true;
+  const [a, b] = parts;
+  return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) ||
+    (a === 100 && b >= 64 && b <= 127) || a >= 224;
+}
+
+async function isSafePublicImageUrl(rawUrl) {
+  let parsed;
+  try { parsed = new URL(rawUrl); } catch (_) { return false; }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+  if (parsed.username || parsed.password) return false;
+  const hostname = parsed.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+  if (!hostname || hostname === 'localhost' || hostname.endsWith('.local') || hostname.endsWith('.internal')) return false;
+  if (net.isIP(hostname)) return !isPrivateOrReservedIp(hostname);
+  try {
+    const recs = await dns.lookup(hostname, { all: true });
+    return Array.isArray(recs) && recs.length > 0 && recs.every(r => !isPrivateOrReservedIp(r.address));
+  } catch (_) {
+    return false;
+  }
+}
+
+async function downloadRemoteImageSafe(targetUrl, redirectsLeft = 2) {
+  const safe = await isSafePublicImageUrl(targetUrl);
+  if (!safe) return '';
+  return new Promise((resolve) => {
+    const client = targetUrl.startsWith('https://') ? https : http;
+    client.get(targetUrl, { timeout: 10000 }, async (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        res.resume();
+        if (redirectsLeft <= 0) return resolve('');
+        try {
+          const nextUrl = new URL(res.headers.location, targetUrl).toString();
+          resolve(await downloadRemoteImageSafe(nextUrl, redirectsLeft - 1));
+        } catch (_) {
+          resolve('');
+        }
+        return;
+      }
+      const chunks = [];
+      let total = 0;
+      res.on('data', c => {
+        total += c.length;
+        if (total <= 12 * 1024 * 1024) chunks.push(c);
+        else res.destroy();
+      });
+      res.on('end', () => {
+        if (total > 12 * 1024 * 1024 || chunks.length === 0) return resolve('');
+        const buf = Buffer.concat(chunks);
+        const mime = res.headers['content-type']?.split(';')[0] || 'image/jpeg';
+        resolve(`data:${mime};base64,${buf.toString('base64')}`);
+      });
+    }).on('error', () => resolve(''));
+  });
+}
+
 // Chuyển ảnh sang định dạng Base64
 async function fetchImageAsDataUri(imageBase64OrUrl) {
   if (!imageBase64OrUrl) return '';
@@ -559,54 +483,60 @@ async function fetchImageAsDataUri(imageBase64OrUrl) {
 
   let targetUrl = imageBase64OrUrl;
   if (typeof targetUrl === 'string' && targetUrl.includes('/api/ai/proxy-image?url=')) {
-    targetUrl = decodeURIComponent(targetUrl.split('url=')[1]);
+    try {
+      targetUrl = decodeURIComponent(targetUrl.split('url=')[1]);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  // Nếu URL trỏ về localhost hoặc emulator nội bộ, chuyển thành đường dẫn tương đối để kiểm tra thư mục công khai
+  let localCheckPath = targetUrl;
+  if (/^https?:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\d+)?\//i.test(targetUrl)) {
+    try {
+      localCheckPath = new URL(targetUrl).pathname;
+    } catch (err) {
+      console.warn('[AI Service] Invalid local URL:', err.message);
+    }
   }
 
   if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
-    return new Promise((resolve) => {
-      const client = targetUrl.startsWith('https://') ? https : http;
-      client.get(targetUrl, { timeout: 10000 }, (res) => {
-        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          const redirClient = res.headers.location.startsWith('https://') ? https : http;
-          return redirClient.get(res.headers.location, { timeout: 10000 }, (redirRes) => {
-            const chunks = [];
-            redirRes.on('data', c => chunks.push(c));
-            redirRes.on('end', () => {
-              const buf = Buffer.concat(chunks);
-              const mime = redirRes.headers['content-type']?.split(';')[0] || 'image/jpeg';
-              resolve(`data:${mime};base64,${buf.toString('base64')}`);
-            });
-          }).on('error', () => resolve(targetUrl));
-        }
-
-        const chunks = [];
-        res.on('data', c => chunks.push(c));
-        res.on('end', () => {
-          const buf = Buffer.concat(chunks);
-          const mime = res.headers['content-type']?.split(';')[0] || 'image/jpeg';
-          resolve(`data:${mime};base64,${buf.toString('base64')}`);
-        });
-      }).on('error', () => resolve(targetUrl));
-    });
+    if (localCheckPath === targetUrl) {
+      const downloaded = await downloadRemoteImageSafe(targetUrl, 2);
+      if (downloaded) return downloaded;
+      return '';
+    }
   }
 
-  // Nếu là file ảnh cục bộ trên ổ đĩa
-  const localCandidates = [
-    targetUrl,
-    path.join(__dirname, 'hairstyles', path.basename(targetUrl)),
-    path.join(__dirname, '..', '..', 'frontend', 'assets', 'hairstyles', path.basename(targetUrl)),
-    path.join(__dirname, '..', '..', 'frontend', targetUrl),
-    path.join(__dirname, '..', '..', targetUrl)
-  ];
-  for (const cPath of localCandidates) {
-    if (fs.existsSync(cPath)) {
-      try {
-        const stat = fs.statSync(cPath);
-        if (stat.isFile()) {
-          const buf = fs.readFileSync(cPath);
-          return `data:image/jpeg;base64,${buf.toString('base64')}`;
+  // Chỉ cho phép đọc ảnh cục bộ nằm trong các thư mục công khai hợp lệ
+  const cleanRel = String(localCheckPath || '').replace(/^[\/\\]+/, '').replace(/\.\./g, '');
+  if (!cleanRel.includes('\0')) {
+    const cleanDataPic = cleanRel.replace(/^DataPicture[\/\\]/i, '');
+    const safeBase = path.basename(cleanRel);
+    const allowedRoots = [
+      { base: path.resolve(__dirname, 'hairstyles'), target: path.resolve(__dirname, 'hairstyles', safeBase) },
+      { base: path.resolve(__dirname, '..', '..', 'frontend', 'assets', 'hairstyles'), target: path.resolve(__dirname, '..', '..', 'frontend', 'assets', 'hairstyles', safeBase) },
+      { base: path.resolve(__dirname, '..', '..', 'frontend', 'DataPicture'), target: path.resolve(__dirname, '..', '..', 'frontend', 'DataPicture', cleanDataPic) },
+      { base: path.resolve(__dirname, '..', '..', '..', 'DataPicture'), target: path.resolve(__dirname, '..', '..', '..', 'DataPicture', cleanDataPic) }
+    ];
+    for (const pair of allowedRoots) {
+      const rel = path.relative(pair.base, pair.target);
+      if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) continue;
+      if (fs.existsSync(pair.target)) {
+        try {
+          const realBase = fs.realpathSync(pair.base);
+          const realTarget = fs.realpathSync(pair.target);
+          const realRel = path.relative(realBase, realTarget);
+          if (!realRel || realRel.startsWith('..') || path.isAbsolute(realRel)) continue;
+          const stat = fs.statSync(realTarget);
+          if (stat.isFile()) {
+            const buf = fs.readFileSync(realTarget);
+            return `data:image/jpeg;base64,${buf.toString('base64')}`;
+          }
+        } catch (err) {
+          console.warn('[AI Service] Local file read skipped:', err.message);
         }
-      } catch (_) {}
+      }
     }
   }
 
@@ -615,223 +545,7 @@ async function fetchImageAsDataUri(imageBase64OrUrl) {
     return `data:image/jpeg;base64,${targetUrl}`;
   }
 
-  return targetUrl;
-}
-
-// Kiểm tra tính hợp lệ của Google Gemini API Key
-async function testGoogleGeminiApiKey(apiKey) {
-  if (!apiKey || apiKey.trim() === '') {
-    return { success: false, message: 'API Key không được để trống' };
-  }
-  return new Promise((resolve) => {
-    const url = new URL(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey.trim()}`);
-    const req = https.get(url, { timeout: 10000 }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          if (res.statusCode >= 200 && res.statusCode < 300) {
-            const modelCount = json.models ? json.models.length : 0;
-            resolve({
-              success: true,
-              message: `Kết nối thành công! Đã kích hoạt Google Gemini Vision (${modelCount} models khả dụng).`,
-              models: (json.models || []).map(m => (m.name || '').replace('models/', ''))
-            });
-          } else {
-            const errMsg = json.error?.message || `Lỗi Google API (HTTP ${res.statusCode})`;
-            resolve({ success: false, message: errMsg });
-          }
-        } catch (e) {
-          resolve({ success: false, message: 'Phản hồi từ Google không hợp lệ: ' + data.slice(0, 100) });
-        }
-      });
-    });
-    req.on('error', (err) => resolve({ success: false, message: 'Không thể kết nối đến Google Gemini: ' + err.message }));
-    req.on('timeout', () => { req.destroy(); resolve({ success: false, message: 'Hết thời gian chờ kết nối Google Gemini (Timeout)' }); });
-  });
-}
-
-// Tải ảnh photorealistic tóc thật từ Neural Vision Engine
-async function fetchPhotorealisticHairImage(prompt) {
-  const encodedPrompt = encodeURIComponent(prompt);
-  const seed = Math.floor(Math.random() * 100000);
-  const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=600&height=750&nologo=true&seed=${seed}&model=flux`;
-
-  return new Promise((resolve) => {
-    const handleResponse = (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        const redir = res.headers.location;
-        const client = redir.startsWith('https://') ? https : http;
-        return client.get(redir, { timeout: 25000 }, handleResponse).on('error', () => resolve(null));
-      }
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => {
-        const buf = Buffer.concat(chunks);
-        if (buf.length > 5000) {
-          const mime = res.headers['content-type']?.split(';')[0] || 'image/jpeg';
-          resolve(`data:${mime};base64,${buf.toString('base64')}`);
-        } else {
-          resolve(null);
-        }
-      });
-    };
-
-    const req = https.get(url, { timeout: 25000 }, handleResponse);
-    req.on('error', () => resolve(null));
-    req.on('timeout', () => { req.destroy(); resolve(null); });
-  });
-}
-
-// Gọi Google Gemini 2.5 Flash / Vision API để đổi tóc thật photorealistic
-async function callGoogleGeminiRestyle(options) {
-  const { apiKey, imageBase64OrUrl, hairstyle, color, customPrompt = '' } = options;
-  if (!apiKey || apiKey.trim() === '') return null;
-
-  try {
-    const dataUri = await fetchImageAsDataUri(imageBase64OrUrl);
-    if (!dataUri) return null;
-
-    let mimeType = 'image/jpeg';
-    let base64Data = '';
-    const match = dataUri.match(/^data:(image\/[a-zA-Z0-9.+_-]+);base64,(.+)$/);
-    if (match) {
-      mimeType = match[1];
-      base64Data = match[2];
-    } else {
-      base64Data = dataUri.split(',')[1] || dataUri;
-    }
-
-    if (!base64Data) return null;
-
-    // Thử gọi các model Gemini có image output nếu dự án có quota
-    const imageModels = ['gemini-2.5-flash-image', 'gemini-3.1-flash-image', 'gemini-3-pro-image', 'gemini-nano-banana-2.1'];
-    for (const model of imageModels) {
-      try {
-        const payload = JSON.stringify({
-          contents: [{
-            parts: [
-              { text: `High-end barbershop portrait of an Asian man with ${hairstyle.name} haircut, dyed in ${color.name} (${color.hex}), pristine skin, balanced studio light, 8k resolution photorealistic.` },
-              {
-                inlineData: {
-                  mimeType: mimeType || 'image/jpeg',
-                  data: base64Data
-                }
-              }
-            ]
-          }],
-          generationConfig: {
-            temperature: 0.4,
-            maxOutputTokens: 2048,
-            responseModalities: ["TEXT", "IMAGE"]
-          }
-        });
-
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
-        const url = new URL(endpoint);
-
-        const result = await new Promise((resolve, reject) => {
-          const req = https.request(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Content-Length': Buffer.byteLength(payload)
-            },
-            timeout: 15000
-          }, (res) => {
-            let respData = '';
-            res.on('data', chunk => respData += chunk);
-            res.on('end', () => {
-              try { resolve(JSON.parse(respData)); } catch (e) { reject(new Error('JSON invalid')); }
-            });
-          });
-          req.on('error', reject);
-          req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
-          req.write(payload);
-          req.end();
-        });
-
-        if (result && result.candidates && result.candidates[0] && result.candidates[0].content) {
-          const parts = result.candidates[0].content.parts || [];
-          for (const part of parts) {
-            const inline = part.inlineData || part.inline_data;
-            if (inline && inline.data) {
-              const mime = inline.mimeType || inline.mime_type || 'image/jpeg';
-              return `data:${mime};base64,${inline.data}`;
-            }
-          }
-        }
-      } catch (err) {
-        // Tiếp tục thử model tiếp theo
-      }
-    }
-
-    // Sử dụng Google Gemini 2.5 Flash
-    // để phân tích ngũ quan và tạo prompt tóc thật chuẩn xác nhất
-    let promptForPhoto = `close-up portrait photography of a handsome Asian male, styled with ${hairstyle.promptDesc || hairstyle.name}, natural realistic human hair strands, textured hair volume, hair dyed in ${color.name} (${color.hex}), perfectly balanced soft studio lighting on face, clean skin, sharp eyes, 8k resolution, 85mm portrait`;
-
-    try {
-      const visionPayload = JSON.stringify({
-        contents: [{
-          parts: [
-            {
-              text: `You are Google Gemini Barber Vision Expert.
-Analyze this customer's face shape and features.
-Output a single English prompt starting with 'close-up portrait photography of a handsome Asian male, styled with...' for a photorealistic 8k salon portrait with hairstyle: '${hairstyle.name}' (${hairstyle.promptDesc || hairstyle.desc}), hair dyed in '${color.name}' (${color.hex}), natural human hair strands.
-${customPrompt ? 'Customer preference: ' + customPrompt : ''}
-Output ONLY the prompt in one single sentence, no commentary, no markdown.`
-            },
-            {
-              inlineData: {
-                mimeType: mimeType || 'image/jpeg',
-                data: base64Data
-              }
-            }
-          ]
-        }],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 250
-        }
-      });
-
-      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()}`;
-      const visionResult = await new Promise((resolve, reject) => {
-        const req = https.request(new URL(geminiEndpoint), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(visionPayload)
-          },
-          timeout: 15000
-        }, (res) => {
-          let respData = '';
-          res.on('data', chunk => respData += chunk);
-          res.on('end', () => {
-            try { resolve(JSON.parse(respData)); } catch (e) { reject(e); }
-          });
-        });
-        req.on('error', reject);
-        req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
-        req.write(visionPayload);
-        req.end();
-      });
-
-      const textReply = visionResult?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (textReply && textReply.length > 20) {
-        promptForPhoto = textReply.replace(/[\r\n]+/g, ' ').trim();
-        console.log('[Gemini 2.5 Flash] Generated Vision Hair Prompt:', promptForPhoto.slice(0, 100) + '...');
-      }
-    } catch (vErr) {
-      console.warn('[Gemini 2.5 Flash Vision Analysis Note]:', vErr.message);
-    }
-
-    // Giữ nguyên khuôn mặt, chỉ thay đổi kiểu tóc
-  } catch (err) {
-    console.warn('[Google Gemini Restyle Failed]:', err.message);
-  }
-  return null;
+  return '';
 }
 
 async function generateAiHairRestyle(options) {
@@ -840,22 +554,50 @@ async function generateAiHairRestyle(options) {
     hairstyleId = 'layer-korean',
     colorId = 'natural-black',
     customPrompt = '',
+    volume = 'standard',
+    finish = 'matte',
+    preserveBackground = true,
     balanceLighting = true,
-    smoothSkin = true,
-    geminiApiKey = ''
+    smoothSkin = true
   } = options;
 
   const style = HAIRSTYLES[hairstyleId] || HAIRSTYLES['layer-korean'];
   const color = HAIR_COLORS[colorId] || HAIR_COLORS['natural-black'];
   const colorHex = options.colorHex || options.hairColorHex || color.hex || '#141413';
 
-  // Ghép kiểu tóc mới vào khuôn mặt gốc
-  let pyRestyle = null;
+  // Suy luận nhẹ tùy chọn từ ghi chú của khách nếu khách gõ thêm mô tả
+  const noteLower = String(customPrompt || '').toLowerCase();
+  let effectiveVolume = ['natural', 'standard', 'high'].includes(volume) ? volume : 'standard';
+  let effectiveFinish = ['matte', 'gloss'].includes(finish) ? finish : 'matte';
+  if (effectiveVolume === 'standard') {
+    if (/(bồng|phồng|cao|volume|high)/.test(noteLower)) effectiveVolume = 'high';
+    else if (/(xẹp|ôm sát|natural|tự nhiên)/.test(noteLower)) effectiveVolume = 'natural';
+  }
+  if (effectiveFinish === 'matte' && /(bóng|pomade|gloss|ướt)/.test(noteLower)) {
+    effectiveFinish = 'gloss';
+  }
+
+  // Giải mã URL / đường dẫn tĩnh nội bộ sang Base64 Data URI an toàn trước khi xử lý
+  let resolvedImage = imageBase64OrUrl;
   if (imageBase64OrUrl) {
+    try {
+      const fetched = await fetchImageAsDataUri(imageBase64OrUrl);
+      if (fetched) resolvedImage = fetched;
+    } catch (err) {
+      console.warn('[AI Service] Image resolve failed:', err.message);
+    }
+  }
+
+  // Engine 3D Local Computer Vision (MediaPipe + OpenCV)
+  let pyRestyle = null;
+  if (resolvedImage) {
     pyRestyle = runPythonVisionRestyle({
-      imageBase64OrUrl,
+      imageBase64OrUrl: resolvedImage,
       hairstyleId: style.id,
       colorHex: colorHex,
+      volume: effectiveVolume,
+      finish: effectiveFinish,
+      preserveBackground: preserveBackground !== false,
       balanceLighting,
       smoothSkin
     });
@@ -864,7 +606,11 @@ async function generateAiHairRestyle(options) {
   if (pyRestyle && pyRestyle.success && pyRestyle.resultImageUrl) {
     let faceAnalysis = pyRestyle.faceAnalysis;
     if (!faceAnalysis) {
-      try { faceAnalysis = await analyzeFaceGeometry(imageBase64OrUrl); } catch (_) {}
+      try {
+        faceAnalysis = await analyzeFaceGeometry(resolvedImage);
+      } catch (err) {
+        console.warn('[AI Service] Fallback geometry check failed:', err.message);
+      }
     }
     return {
       success: true,
@@ -883,25 +629,30 @@ async function generateAiHairRestyle(options) {
       resultImageUrl: pyRestyle.resultImageUrl,
       originalImageUrl: imageBase64OrUrl,
       isFacePreserved: true,
+      backgroundPreserved: pyRestyle.backgroundPreserved !== false,
+      volumeApplied: pyRestyle.volume || effectiveVolume,
+      finishApplied: pyRestyle.finish || effectiveFinish,
       faceBalancingApplied: {
         lightingBalance: balanceLighting !== false,
         skinSmoothing: smoothSkin !== false,
         facialSymmetry: true
       },
       customPromptApplied: customPrompt,
-      providerUsed: pyRestyle.provider || 'Omni Real AI Face-Preserving Engine (MediaPipe Multiclass Segmenter + 3D Mesh)',
+      providerUsed: pyRestyle.provider || 'Omni Vision 3D Hair Engine',
       suggestedService: style.suggestedService,
       suggestedProduct: style.suggestedProduct,
       createdAt: new Date().toISOString()
     };
   }
 
-  // Trả về thông báo lỗi nếu không tìm thấy khuôn mặt
+  // Trả về thông báo lỗi rõ ràng nếu không tìm thấy khuôn mặt
   const errMsg = (pyRestyle && pyRestyle.error) ? pyRestyle.error : 'Không thể phát hiện khuôn mặt rõ nét trong ảnh chân dung của khách hàng. Vui lòng chụp góc thẳng sáng rõ.';
   let faceAnalysis = null;
   try {
-    faceAnalysis = await analyzeFaceGeometry(imageBase64OrUrl);
-  } catch (_) {}
+    faceAnalysis = await analyzeFaceGeometry(resolvedImage || imageBase64OrUrl);
+  } catch (err) {
+    console.warn('[AI Service] Secondary face geometry check failed:', err.message);
+  }
 
   return {
     success: false,
@@ -924,13 +675,9 @@ async function generateAiHairRestyle(options) {
 module.exports = {
   HAIRSTYLES,
   HAIR_COLORS,
-  loadAiConfig,
-  saveAiConfig,
+  fetchImageAsDataUri,
   analyzeFaceGeometry,
   generateAiHairRestyle,
   runPythonVisionRestyle,
-  runPythonVisionAnalyzer,
-  runPythonVisionPreprocess,
-  runPythonVisionMask,
-  testGoogleGeminiApiKey
+  runPythonVisionAnalyzer
 };

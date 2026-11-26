@@ -65,7 +65,9 @@
         ? window.store.getStaffShifts(user.username || user.id)
         : [];
 
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = (typeof SalonUtils !== 'undefined' && typeof SalonUtils.getLocalIsoDate === 'function')
+        ? SalonUtils.getLocalIsoDate()
+        : new Date().toISOString().split('T')[0];
       const todayShift = shifts.find(s => s.date === todayStr) || {
         shiftName: isStylist ? 'Ca Sáng (08:30 - 14:30)' : 'Ca Thu Ngân Sáng (08:30 - 15:00)',
         status: 'ACTIVE',
@@ -152,7 +154,7 @@
               <div>
                 <label style="font-size: 12.5px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">Chọn Ngày Làm:</label>
                 <input type="date" id="staffShiftDateInput" class="form-control-custom" 
-                       value="${new Date(Date.now() + 86400000).toISOString().split('T')[0]}" 
+                       value="${(typeof SalonUtils !== 'undefined' && typeof SalonUtils.getLocalIsoDate === 'function') ? SalonUtils.getLocalIsoDate(1) : new Date(Date.now() + 86400000).toISOString().split('T')[0]}" 
                        style="width: 100%; height: 40px; font-size: 13px;">
               </div>
               <div>

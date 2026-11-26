@@ -254,7 +254,9 @@
         });
       });
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (!window._preserveScrollOnRender) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
 
       // Kích hoạt Micro Interactions
       this.initTiltEffects(newPageWrapper);

@@ -8,136 +8,43 @@
       croppedImage: null,
       activeBaseMode: 'cropped', // 'cropped' | 'raw'
       selectedHairstyle: 'layer-korean',
-      activeCategory: 'all', // 'all' | 'short-fade' | 'classic' | 'k-style' | 'perm-wavy' | 'long-rugged'
+      activeCategory: 'all', // 'all' | 'classic' | 'trends' | 'edgy' | 'wavy'
       selectedFaceShape: 'all', // 'all' | 'square' | 'round' | 'oval' | 'oblong' | 'diamond'
       selectedColor: 'natural-black',
       selectedVolume: 'standard', // 'natural' | 'standard' | 'high'
       selectedFinish: 'matte', // 'matte' | 'gloss'
       customBarberNotes: '',
+      faceAnalysis: null,
+      showFaceOverlay: true,
+      autoFitOnCapture: true,
+      isAnalyzingFace: false,
       isProcessing: false,
       processProgress: 0,
       hasResult: false,
       resultImage: null,
+      lastRestyleMeta: null,
+      pendingAutoAnalyze: false,
       sliderPosition: 50,
       compareMode: 'split' // 'split' | 'before' | 'after'
     },
 
-    // Danh sách kiểu tóc thịnh hành
+    // Danh sách 12 kiểu tóc chuẩn đồng bộ 100% với AI Engine Backend
     hairstyles: [
-      // --- 1. GỌN GÀNG & FADE (7 KIỂU) ---
       {
-        id: 'buzzcut-fade',
-        name: 'Buzz Cut & High Fade',
-        category: 'short-fade',
-        tag: 'DỨT KHOÁT',
-        faceShape: 'Mặt vuông, Trái xoan, Góc cạnh',
-        faceKeys: ['square', 'oval'],
-        length: 'Ngắn 1 - 2 cm',
-        volume: 'Thấp',
-        finish: 'Matte (Mờ tự nhiên)',
-        desc: 'Húi cua gọn gàng, viền cạo fade trắng sắc nét tôn trọn vẹn xương hàm và đường nét nam tính.',
-        preview: 'assets/hairstyles/buzzcut-fade.jpg',
-        result: 'assets/hairstyles/buzzcut-fade.jpg'
-      },
-      {
-        id: 'short-quiff',
-        name: 'Short Quiff & Mid Taper',
-        category: 'short-fade',
-        tag: 'NĂNG ĐỘNG',
-        faceShape: 'Mặt tròn, Mặt vuông, Trái xoan',
-        faceKeys: ['round', 'square', 'oval'],
-        length: 'Ngắn 4 - 6 cm',
-        volume: 'Tiêu chuẩn',
-        finish: 'Matte Clay',
-        desc: 'Mái vuốt ngược ngắn tự nhiên, mai cắt taper gọn gàng, tôn vầng trán sáng sủa và năng động.',
-        preview: 'assets/hairstyles/short-quiff.jpg',
-        result: 'assets/hairstyles/short-quiff.jpg'
-      },
-      {
-        id: 'french-crop',
-        name: 'French Crop Textured',
-        category: 'short-fade',
-        tag: 'HIỆN ĐẠI',
-        faceShape: 'Mặt dài, Trán cao, Trái xoan',
-        faceKeys: ['oblong', 'oval'],
-        length: 'Ngắn 3 - 5 cm',
-        volume: 'Tự nhiên',
-        finish: 'Bột tạo phồng / Matte',
-        desc: 'Mái bằng textured tỉa nhọn che khuyết điểm trán cao, fade sát 2 bên mai năng động.',
-        preview: 'assets/hairstyles/french-crop.jpg',
-        result: 'assets/hairstyles/french-crop.jpg'
-      },
-      {
-        id: 'crew-cut',
-        name: 'Crew Cut Thể Thao',
-        category: 'short-fade',
-        tag: 'THỂ THAO',
-        faceShape: 'Mặt tròn, Mặt vuông, Trái xoan',
-        faceKeys: ['round', 'square', 'oval'],
-        length: 'Ngắn 2 - 4 cm',
-        volume: 'Gọn gàng',
-        finish: 'Sáp nhẹ tự nhiên',
-        desc: 'Phom tóc thể thao kinh điển, dễ chăm sóc, vuốt nhẹ là vào nếp chuẩn mực suốt ngày dài.',
-        preview: 'assets/hairstyles/french-crop.jpg',
-        result: 'assets/hairstyles/french-crop.jpg'
-      },
-      {
-        id: 'mohican-fade',
-        name: 'Mohican Ngắn & Sharp Fade',
-        category: 'short-fade',
-        tag: 'BỤI BẶM',
-        faceShape: 'Mặt tròn, Mặt vuông',
-        faceKeys: ['round', 'square'],
-        length: 'Ngắn 3 - 5 cm',
-        volume: 'Vuốt nhọn',
-        finish: 'Matte Wax',
-        desc: 'Mái vuốt nhọn hướng về trước, hai bên cạo fade trắng dứt khoát và đậm chất cá tính.',
-        preview: 'assets/hairstyles/mohican-fade.jpg',
-        result: 'assets/hairstyles/mohican-fade.jpg'
-      },
-      {
-        id: 'high-tight',
-        name: 'High & Tight Quân Đội',
-        category: 'short-fade',
-        tag: 'MẠNH MẼ',
-        faceShape: 'Mặt vuông, Kim cương',
-        faceKeys: ['square', 'diamond'],
-        length: 'Ngắn 1 - 3 cm',
-        volume: 'Cực gọn',
-        finish: 'Tự nhiên',
-        desc: 'Cắt sát cao 2 bên đỉnh đầu, giữ lại phần chỏm tóc ngắn sắc nét, tôn phong thái kỷ luật, đĩnh đạc.',
-        preview: 'assets/hairstyles/buzzcut-fade.jpg',
-        result: 'assets/hairstyles/buzzcut-fade.jpg'
-      },
-      {
-        id: 'buzzcut-line',
-        name: 'Buzz Cut Kẻ Line Nghệ Thuật',
-        category: 'short-fade',
-        tag: 'CÁ TÍNH',
-        faceShape: 'Mặt góc cạnh, Trái xoan',
-        faceKeys: ['square', 'oval'],
-        length: 'Ngắn 1 - 2 cm',
-        volume: 'Thấp',
-        finish: 'Matte',
-        desc: 'Húi cua sắc nét kết hợp đường tattoo kẻ line dứt khoát bên vành tai mang phong cách thời thượng.',
-        preview: 'assets/hairstyles/buzzcut-fade.jpg',
-        result: 'assets/hairstyles/buzzcut-fade.jpg'
-      },
-
-      // --- 2. QUÝ ÔNG & CỔ ĐIỂN (7 KIỂU) ---
-      {
-        id: 'sidepart-gentleman',
-        name: 'Side Part 7/3 Cổ Điển',
-        category: 'classic',
-        tag: 'QUÝ ÔNG',
-        faceShape: 'Mặt vuông, Trái xoan, Mặt dài',
-        faceKeys: ['square', 'oval', 'oblong'],
-        length: 'Trung bình 6 - 8 cm',
-        volume: 'Tiêu chuẩn',
-        finish: 'Pomade Gốc Nước',
-        desc: 'Đường rẽ ngôi tỉ lệ vàng 7/3 tôn khuôn mặt, dễ dàng chải sáp restyle lịch lãm suốt cả ngày làm việc.',
-        preview: 'assets/hairstyles/sidepart-gentleman.jpg',
-        result: 'assets/hairstyles/sidepart-gentleman.jpg'
+        id: 'layer-korean',
+        name: 'Layer Texture Hàn Quốc',
+        category: 'trends',
+        tag: 'THỜI THƯỢNG',
+        faceShape: 'Mặt dài, Mặt gầy, Trái xoan',
+        faceKeys: ['oblong', 'oval', 'heart'],
+        length: 'Trung bình 7 - 10 cm',
+        volume: 'Bồng bềnh',
+        finish: 'Clay Mờ / Xịt Phồng',
+        serviceId: 'DV03',
+        suggestedProductName: 'Apestomen Volcanic Clay VIP',
+        desc: 'Tỉa tầng bay bổng, uốn texture tạo độ phồng tự nhiên cho khuôn mặt Á Đông.',
+        preview: '/assets/hairstyles/layer-korean.jpg',
+        result: '/assets/hairstyles/layer-korean.jpg'
       },
       {
         id: 'pompadour-luxury',
@@ -149,9 +56,107 @@
         length: 'Trung bình 8 - 10 cm',
         volume: 'Bồng bềnh cao',
         finish: 'Pomade Bóng / Clay',
-        desc: 'Độ phồng vuốt ngược pomade kết hợp đường fade sắc nét 2 bên mang lại phong thái doanh nhân đĩnh đạc.',
-        preview: 'assets/hairstyles/pompadour-luxury.jpg',
-        result: 'assets/hairstyles/pompadour-luxury.jpg'
+        serviceId: 'DV01',
+        suggestedProductName: 'Reuzel Green Medium Hold Grease',
+        desc: 'Độ phồng vuốt ngược pomade kết hợp đường fade sắc nét 2 bên mang lại phong thái đĩnh đạc.',
+        preview: '/assets/hairstyles/pompadour-luxury.jpg',
+        result: '/assets/hairstyles/pompadour-luxury.jpg'
+      },
+      {
+        id: 'mullet-modern',
+        name: 'Modern Mullet & Taper Fade',
+        category: 'trends',
+        tag: 'PHONG CÁCH',
+        faceShape: 'Mặt trái xoan, Mặt tròn, Kim cương',
+        faceKeys: ['oval', 'round', 'diamond'],
+        length: 'Đỉnh 7cm, Gáy 10cm',
+        volume: 'Đầy đặn',
+        finish: 'Matte Paste',
+        serviceId: 'DV03',
+        suggestedProductName: 'Reuzel Grooming Tonic',
+        desc: 'Gáy tỉa so le mềm mại kết hợp đường cạo viền dứt khoát và nam tính.',
+        preview: '/assets/hairstyles/mullet-modern.jpg',
+        result: '/assets/hairstyles/mullet-modern.jpg'
+      },
+      {
+        id: 'sidepart-gentleman',
+        name: 'Side Part 7/3 Cổ Điển',
+        category: 'classic',
+        tag: 'QUÝ ÔNG',
+        faceShape: 'Mặt vuông, Trái xoan, Mặt dài',
+        faceKeys: ['square', 'oval', 'oblong'],
+        length: 'Trung bình 6 - 8 cm',
+        volume: 'Tiêu chuẩn',
+        finish: 'Pomade Gốc Nước',
+        serviceId: 'CB01',
+        suggestedProductName: 'Apestomen Volcanic Clay VIP',
+        desc: 'Đường rẽ ngôi cân đối tôn phom mặt, dễ dàng chải sáp restyle suốt cả ngày.',
+        preview: '/assets/hairstyles/sidepart-gentleman.jpg',
+        result: '/assets/hairstyles/sidepart-gentleman.jpg'
+      },
+      {
+        id: 'buzzcut-fade',
+        name: 'Buzz Cut & High Fade',
+        category: 'edgy',
+        tag: 'DỨT KHOÁT',
+        faceShape: 'Mặt vuông, Trái xoan, Góc cạnh',
+        faceKeys: ['square', 'oval'],
+        length: 'Ngắn 1 - 2 cm',
+        volume: 'Thấp',
+        finish: 'Matte (Mờ tự nhiên)',
+        serviceId: 'DV01',
+        suggestedProductName: "L'Oréal Professionnel Infinium Pure Strong",
+        desc: 'Gọn gàng, tôn trọn vẹn xương hàm và đường nét góc cạnh của gương mặt.',
+        preview: '/assets/hairstyles/buzzcut-fade.jpg',
+        result: '/assets/hairstyles/buzzcut-fade.jpg'
+      },
+      {
+        id: 'french-crop',
+        name: 'French Crop Textured',
+        category: 'edgy',
+        tag: 'HIỆN ĐẠI',
+        faceShape: 'Mặt dài, Trán cao, Trái xoan',
+        faceKeys: ['oblong', 'oval', 'heart'],
+        length: 'Ngắn 3 - 5 cm',
+        volume: 'Tự nhiên',
+        finish: 'Bột tạo phồng / Matte',
+        serviceId: 'DV02',
+        suggestedProductName: 'Hanz de Fuko Quicksand',
+        desc: 'Mái tỉa nhọn textured ngang trán, cạo fade cao 2 bên mai năng động và trẻ trung.',
+        preview: '/assets/hairstyles/french-crop.jpg',
+        result: '/assets/hairstyles/french-crop.jpg'
+      },
+      {
+        id: 'short-quiff',
+        name: 'Short Quiff & Mid Taper',
+        category: 'trends',
+        tag: 'NĂNG ĐỘNG',
+        faceShape: 'Mặt tròn, Mặt vuông, Trái xoan',
+        faceKeys: ['round', 'square', 'oval'],
+        length: 'Ngắn 4 - 6 cm',
+        volume: 'Tiêu chuẩn',
+        finish: 'Matte Clay',
+        serviceId: 'DV01',
+        suggestedProductName: 'Apestomen Volcanic Clay VIP',
+        desc: 'Mái vuốt ngược ngắn tự nhiên, hai bên mai cắt taper gọn gàng, phù hợp cả công sở lẫn thể thao.',
+        preview: '/assets/hairstyles/short-quiff.jpg',
+        result: '/assets/hairstyles/short-quiff.jpg'
+      },
+      {
+        id: 'two-block',
+        name: 'Two-Block 6/4 Lãng Tử',
+        category: 'trends',
+        tag: 'K-STYLE IDOL',
+        faceShape: 'Mặt tròn, Trái xoan, Vuông',
+        faceKeys: ['round', 'oval', 'square'],
+        length: 'Trung bình 8 - 11 cm',
+        volume: 'Bồng bềnh',
+        finish: 'Sáp Vuốt Nhẹ / Gôm',
+        serviceId: 'DV02',
+        suggestedProductName: 'Reuzel Grooming Tonic',
+        desc: 'Phần mai và gáy tỉa ngắn gọn, phần trên để dài rẽ ngôi 6/4 bồng bềnh chuẩn phong cách sao Hàn.',
+        preview: '/assets/hairstyles/two-block.jpg',
+        result: '/assets/hairstyles/two-block.jpg'
       },
       {
         id: 'ivy-league',
@@ -163,9 +168,11 @@
         length: 'Ngắn - Vừa 4 - 6 cm',
         volume: 'Vừa phải',
         finish: 'Pomade Mờ / Sáp Cream',
-        desc: 'Phom tóc giới thượng lưu Mỹ kết hợp fade đương đại, mái vuốt lệch nhẹ tạo vẻ chững chạc, thành đạt.',
-        preview: 'assets/hairstyles/ivy-league.jpg',
-        result: 'assets/hairstyles/ivy-league.jpg'
+        serviceId: 'CB01',
+        suggestedProductName: 'Reuzel Green Medium Hold Grease',
+        desc: 'Tóc quý tộc Mỹ kết hợp fade đương đại, mái vuốt lệch nhẹ 8/2 tạo phong thái trí thức đĩnh đạc.',
+        preview: '/assets/hairstyles/ivy-league.jpg',
+        result: '/assets/hairstyles/ivy-league.jpg'
       },
       {
         id: 'undercut-slick',
@@ -177,253 +184,43 @@
         length: 'Trung bình 8 - 12 cm',
         volume: 'Mượt mà',
         finish: 'Classic Pomade',
-        desc: 'Cạo sát 2 bên mai (Skin Fade), tóc đỉnh đầu vuốt mượt bóng ra sau thể hiện quyền lực và cuốn hút.',
-        preview: 'assets/hairstyles/undercut-slick.jpg',
-        result: 'assets/hairstyles/undercut-slick.jpg'
+        serviceId: 'DV01',
+        suggestedProductName: 'Reuzel Blue Strong Hold Pomade',
+        desc: 'Cạo sát 2 bên mai (Skin Fade), tóc đỉnh đầu vuốt mượt bóng ra sau với pomade gốc nước.',
+        preview: '/assets/hairstyles/undercut-slick.jpg',
+        result: '/assets/hairstyles/undercut-slick.jpg'
       },
-      {
-        id: 'slick-back-classic',
-        name: 'Classic Slick Back Fade',
-        category: 'classic',
-        tag: 'CỔ ĐIỂN',
-        faceShape: 'Mặt vuông, Kim cương',
-        faceKeys: ['square', 'diamond'],
-        length: 'Trung bình 7 - 9 cm',
-        volume: 'Mượt ôm đầu',
-        finish: 'Pomade Bóng Nhẹ',
-        desc: 'Chải mượt ôm trọn vòm đầu về phía sau, kết hợp đường fade mượt mà chuẩn Barbershop truyền thống.',
-        preview: 'assets/hairstyles/undercut-slick.jpg',
-        result: 'assets/hairstyles/undercut-slick.jpg'
-      },
-      {
-        id: 'sidepart-82',
-        name: 'Side Part 8/2 Học Đường',
-        category: 'classic',
-        tag: 'TRẺ TRUNG',
-        faceShape: 'Mặt trái xoan, Mặt tròn',
-        faceKeys: ['oval', 'round'],
-        length: 'Trung bình 6 - 8 cm',
-        volume: 'Tự nhiên',
-        finish: 'Sáp Giữ Nếp Tự Nhiên',
-        desc: 'Ngôi 8/2 mềm mại, mái đổ tự nhiên sang một bên mang lại vẻ thư sinh, thanh lịch chuẩn công sở.',
-        preview: 'assets/hairstyles/sidepart-gentleman.jpg',
-        result: 'assets/hairstyles/sidepart-gentleman.jpg'
-      },
-      {
-        id: 'executive-contour',
-        name: 'Executive Contour Doanh Nhân',
-        category: 'classic',
-        tag: 'ĐẲNG CẤP',
-        faceShape: 'Mặt vuông, Mặt dài',
-        faceKeys: ['square', 'oblong'],
-        length: 'Trung bình 7 - 9 cm',
-        volume: 'Tiêu chuẩn',
-        finish: 'Pomade Gốc Dầu / Nước',
-        desc: 'Đường rẽ ngôi cạo chỉ (Hard Part) sắc sảo, chải ôm nếp bóng mượt chuẩn mực tiệc tối và sự kiện cao cấp.',
-        preview: 'assets/hairstyles/pompadour-luxury.jpg',
-        result: 'assets/hairstyles/pompadour-luxury.jpg'
-      },
-
-      // --- 3. K-STYLE & TRẺ TRUNG (6 KIỂU) ---
-      {
-        id: 'layer-korean',
-        name: 'Layer Texture Hàn Quốc',
-        category: 'k-style',
-        tag: 'THỜI THƯỢNG',
-        faceShape: 'Mặt dài, Mặt gầy, Trái xoan',
-        faceKeys: ['oblong', 'oval'],
-        length: 'Trung bình 7 - 10 cm',
-        volume: 'Bồng bềnh',
-        finish: 'Clay Mờ / Xịt Phồng',
-        desc: 'Tỉa tầng bay bổng, uốn texture tạo độ phồng tự nhiên giúp gương mặt hài hòa và đầy đặn hơn.',
-        preview: 'assets/hairstyles/layer-korean.jpg',
-        result: 'assets/hairstyles/layer-korean.jpg'
-      },
-      {
-        id: 'two-block',
-        name: 'Two-Block 6/4 Lãng Tử',
-        category: 'k-style',
-        tag: 'K-STYLE IDOL',
-        faceShape: 'Mặt tròn, Trái xoan, Vuông',
-        faceKeys: ['round', 'oval', 'square'],
-        length: 'Trung bình 8 - 11 cm',
-        volume: 'Bồng bềnh',
-        finish: 'Sáp Vuốt Nhẹ / Gôm',
-        desc: 'Phần mai và gáy tỉa gọn, phần trên để dài rẽ ngôi 6/4 bồng bềnh chuẩn phong cách sao Hàn.',
-        preview: 'assets/hairstyles/two-block.jpg',
-        result: 'assets/hairstyles/two-block.jpg'
-      },
-      {
-        id: 'comma-hair',
-        name: 'Comma Hair (Mái Dấu Phẩy)',
-        category: 'k-style',
-        tag: 'LÃNG TỬ',
-        faceShape: 'Mặt trái xoan, Mặt dài',
-        faceKeys: ['oval', 'oblong'],
-        length: 'Trung bình 7 - 9 cm',
-        volume: 'Tiêu chuẩn',
-        finish: 'Gôm Xịt Giữ Nếp Mái',
-        desc: 'Phần mái uốn cong hình dấu phẩy tinh tế ôm nhẹ vầng trán, tạo điểm nhấn thu hút và thanh thoát.',
-        preview: 'assets/hairstyles/two-block.jpg',
-        result: 'assets/hairstyles/two-block.jpg'
-      },
-      {
-        id: 'curtain-hair',
-        name: 'Curtain Hair 5/5 Lãng Mạn',
-        category: 'k-style',
-        tag: 'NGHỆ THUẬT',
-        faceShape: 'Mặt vuông góc cạnh, Trái xoan',
-        faceKeys: ['square', 'oval'],
-        length: 'Trung bình 9 - 12 cm',
-        volume: 'Rủ tự nhiên',
-        finish: 'Tinh Dầu Dưỡng / Sáp Kem',
-        desc: 'Rẽ ngôi giữa 5/5 bồng bềnh uốn sóng nhẹ rủ 2 bên gò má, mang đậm chất nghệ sĩ lãng tử.',
-        preview: 'assets/hairstyles/layer-korean.jpg',
-        result: 'assets/hairstyles/layer-korean.jpg'
-      },
-      {
-        id: 'mullet-modern',
-        name: 'Modern Mullet & Taper Fade',
-        category: 'k-style',
-        tag: 'PHONG CÁCH',
-        faceShape: 'Mặt trái xoan, Mặt tròn, Kim cương',
-        faceKeys: ['oval', 'round', 'diamond'],
-        length: 'Đỉnh 7cm, Gáy 10cm',
-        volume: 'Đầy đặn',
-        finish: 'Matte Paste',
-        desc: 'Gáy tỉa so le dài mềm mại kết hợp đường cạo viền taper dứt khoát, dẫn đầu xu hướng giới trẻ.',
-        preview: 'assets/hairstyles/mullet-modern.jpg',
-        result: 'assets/hairstyles/mullet-modern.jpg'
-      },
-      {
-        id: 'drop-fade-mullet',
-        name: 'Drop Fade Mullet Cá Tính',
-        category: 'k-style',
-        tag: 'CỰC CHẤT',
-        faceShape: 'Mặt tròn, Góc cạnh',
-        faceKeys: ['round', 'square'],
-        length: 'Đỉnh 6cm, Gáy 9cm',
-        volume: 'Tiêu chuẩn',
-        finish: 'Clay Giữ Nếp Cao',
-        desc: 'Đường fade cong vòng qua sau tai tạo độ chuyển mượt mà kết hợp đuôi mullet bay bổng nổi bật.',
-        preview: 'assets/hairstyles/mullet-modern.jpg',
-        result: 'assets/hairstyles/mullet-modern.jpg'
-      },
-
-      // --- 4. UỐN TEXTURE & XOĂN (5 KIỂU) ---
       {
         id: 'ripple-perm',
         name: 'Uốn Con Sâu / Ripple Curls',
-        category: 'perm-wavy',
-        tag: 'CÁ TÍNH',
+        category: 'wavy',
+        tag: 'BÙNG NỔ CÁ TÍNH',
         faceShape: 'Mặt gầy, Mặt dài, Trái xoan',
-        faceKeys: ['oblong', 'oval'],
+        faceKeys: ['oblong', 'oval', 'diamond'],
         length: 'Trung bình 7 - 9 cm',
         volume: 'Bồng bềnh cao',
         finish: 'Bọt Tạo Sóng / Dưỡng Ẩm',
-        desc: 'Tóc uốn sóng lượn dập xù ziczac cá tính, tạo kết cấu bồng bềnh và độ dày phồng tối đa cho tóc mỏng.',
-        preview: 'assets/hairstyles/ripple-perm.jpg',
-        result: 'assets/hairstyles/ripple-perm.jpg'
+        serviceId: 'DV05',
+        suggestedProductName: 'Hanz de Fuko Quicksand',
+        desc: 'Tóc uốn sóng lượn dập xù cá tính, tạo kết cấu bồng bềnh và độ dày tối đa cho mái tóc mỏng.',
+        preview: '/assets/hairstyles/ripple-perm.jpg',
+        result: '/assets/hairstyles/ripple-perm.jpg'
       },
       {
-        id: 'curly-undercut',
-        name: 'Curly Undercut Bồng Bềnh',
-        category: 'perm-wavy',
-        tag: 'ẤN TƯỢNG',
-        faceShape: 'Mặt vuông, Mặt tròn',
-        faceKeys: ['square', 'round'],
-        length: 'Trung bình 8 - 10 cm',
-        volume: 'Xoăn lượn sóng',
-        finish: 'Kem Uốn Định Hình',
-        desc: 'Mai cạo fade gọn làm nổi bật từng lọn xoăn lượn sóng trên đỉnh đầu, phong cách vừa ngầu vừa lãng mạn.',
-        preview: 'assets/hairstyles/ripple-perm.jpg',
-        result: 'assets/hairstyles/ripple-perm.jpg'
-      },
-      {
-        id: 'perm-fly',
-        name: 'Uốn Fly Texture Bay Bổng',
-        category: 'perm-wavy',
-        tag: 'BAY BỔNG',
-        faceShape: 'Mặt dài, Trán cao',
-        faceKeys: ['oblong'],
-        length: 'Trung bình 6 - 8 cm',
-        volume: 'Bay ngọn',
-        finish: 'Bột Phồng / Clay Mờ',
-        desc: 'Tỉa so le nhẹ và uốn bay ngọn tóc tạo cảm giác tóc chuyển động tự do theo gió tự nhiên.',
-        preview: 'assets/hairstyles/layer-korean.jpg',
-        result: 'assets/hairstyles/layer-korean.jpg'
-      },
-      {
-        id: 'premlock',
-        name: 'Uốn Premlock Cá Tính',
-        category: 'perm-wavy',
-        tag: 'ĐỘT PHÁ',
-        faceShape: 'Mặt tròn, Góc cạnh',
+        id: 'mohican-fade',
+        name: 'Mohican Ngắn & Sharp Fade',
+        category: 'edgy',
+        tag: 'BỤI BẶM',
+        faceShape: 'Mặt tròn, Mặt vuông',
         faceKeys: ['round', 'square'],
-        length: 'Ngắn - Vừa 4 - 7 cm',
-        volume: 'Dày đặc',
-        finish: 'Xịt Dưỡng Ẩm Afro',
-        desc: 'Kỹ thuật uốn xoăn tít châu Phi cực chất, sợi tóc đan chặt tạo độ xù dày dặn khác biệt hoàn toàn.',
-        preview: 'assets/hairstyles/ripple-perm.jpg',
-        result: 'assets/hairstyles/ripple-perm.jpg'
-      },
-      {
-        id: 'messy-quiff',
-        name: 'Messy Quiff Uốn Phồng',
-        category: 'perm-wavy',
-        tag: 'PHÓNG KHOÁNG',
-        faceShape: 'Mặt vuông, Tròn, Trái xoan',
-        faceKeys: ['square', 'round', 'oval'],
-        length: 'Trung bình 6 - 8 cm',
-        volume: 'Phồng bung lọn',
-        finish: 'Matte Clay',
-        desc: 'Uốn phồng chân tóc nhẹ giúp mái vuốt ngược bung lọn tự nhiên không bị đơ cứng, đẹp bất chấp gió bụi.',
-        preview: 'assets/hairstyles/short-quiff.jpg',
-        result: 'assets/hairstyles/short-quiff.jpg'
-      },
-
-      // --- 5. DÀI & PHONG TRẦN (3 KIỂU) ---
-      {
-        id: 'wolf-cut',
-        name: 'Wolf Cut Phong Trần',
-        category: 'long-rugged',
-        tag: 'PHONG TRẦN',
-        faceShape: 'Mặt góc cạnh, Mặt dài, Trái xoan',
-        faceKeys: ['square', 'oblong', 'oval'],
-        length: 'Dài 12 - 16 cm',
-        volume: 'Tầng so le',
-        finish: 'Tinh Dầu Dưỡng Tự Nhiên',
-        desc: 'Sự pha trộn giữa Shag và Mullet với các lớp tỉa so le dài phóng khoáng, đậm chất nghệ sĩ phong trần.',
-        preview: 'assets/hairstyles/mullet-modern.jpg',
-        result: 'assets/hairstyles/mullet-modern.jpg'
-      },
-      {
-        id: 'man-bun-undercut',
-        name: 'Man Bun & Undercut Nghệ Sĩ',
-        category: 'long-rugged',
-        tag: 'NGHỆ SĨ',
-        faceShape: 'Mặt chữ điền, Xương hàm nét',
-        faceKeys: ['square'],
-        length: 'Dài trên 15 cm',
-        volume: 'Búi cao',
-        finish: 'Dây Cột & Wax Nhẹ',
-        desc: 'Tóc búi cao nam tính trên đỉnh đầu kết hợp cạo sát gáy và mai sắc nét, toát lên khí chất đỉnh cao.',
-        preview: 'assets/hairstyles/undercut-slick.jpg',
-        result: 'assets/hairstyles/undercut-slick.jpg'
-      },
-      {
-        id: 'long-wavy-surfer',
-        name: 'Long Wavy Surfer Sóng Biển',
-        category: 'long-rugged',
-        tag: 'TỰ DO',
-        faceShape: 'Mặt trái xoan, Mặt dài',
-        faceKeys: ['oval', 'oblong'],
-        length: 'Dài 14 - 18 cm',
-        volume: 'Sóng lượn',
-        finish: 'Muối Biển Sea Salt Spray',
-        desc: 'Mái tóc dài ngang cằm uốn sóng lượn tự nhiên như sau buổi lướt sóng biển, tự do và cuốn hút.',
-        preview: 'assets/hairstyles/layer-korean.jpg',
-        result: 'assets/hairstyles/layer-korean.jpg'
+        length: 'Ngắn 3 - 5 cm',
+        volume: 'Vuốt nhọn',
+        finish: 'Matte Wax',
+        serviceId: 'DV01',
+        suggestedProductName: 'Apestomen Volcanic Clay VIP',
+        desc: 'Mái vuốt nhọn hướng về trước, hai bên cạo fade trắng dứt khoát, toát lên vẻ bụi bặm và phá cách.',
+        preview: '/assets/hairstyles/mohican-fade.jpg',
+        result: '/assets/hairstyles/mohican-fade.jpg'
       }
     ],
 
@@ -439,21 +236,18 @@
       { id: 'pure-platinum', name: 'Bạch Kim Khói', hex: '#E5E7EB', desc: 'Nổi bật, phong cách idol' }
     ],
 
-    // MẪU ẢNH CHÂN DUNG THỬ NHANH
+    // ẢNH NGƯỜI THẬT CHỤP TẠI SALON (DÙNG ĐỂ THỬ NHANH KHI CHƯA BẬT CAMERA - KHÔNG DÙNG ẢNH AI ẢO)
     demoPortraits: [
-      { name: 'Mẫu 01 (Side Part)', url: 'assets/hairstyles/sidepart-gentleman.jpg' },
-      { name: 'Mẫu 02 (Pompadour)', url: 'assets/hairstyles/pompadour-luxury.jpg' },
-      { name: 'Mẫu 03 (Layer Hàn)', url: 'assets/hairstyles/layer-korean.jpg' },
-      { name: 'Mẫu 04 (Mullet)', url: 'assets/hairstyles/mullet-modern.jpg' },
-      { name: 'Mẫu 05 (Short Quiff)', url: 'assets/hairstyles/short-quiff.jpg' },
-      { name: 'Mẫu 06 (Two-Block)', url: 'assets/hairstyles/two-block.jpg' }
+      { name: 'Ảnh thật 01 (Anh Minh)', url: '/DataPicture/ChanDungTho/Tho4.jpg' },
+      { name: 'Ảnh thật 02 (Anh Tuấn)', url: '/DataPicture/ChanDungTho/Tho2.jpg' },
+      { name: 'Ảnh thật 03 (Anh Hùng)', url: '/DataPicture/ChanDungTho/Tho7.jpg' }
     ],
 
     // DỮ LIỆU TƯ VẤN KHUÔN MẶT TỪ BARBER MASTER
     faceConsultantMap: {
       all: {
         title: 'Tư Vấn Tổng Quan Mọi Khuôn Mặt',
-        desc: 'Mỗi đường nét xương hàm và vòm trán đều có phom tóc hoàn hảo tương ứng. Hãy chọn dáng mặt của bạn bên dưới để nhận gợi ý chuẩn nhất từ Barber Master.'
+        desc: 'Mỗi đường nét xương hàm và vòm trán đều có phom tóc hoàn hảo tương ứng. Chụp camera hoặc tải ảnh chân dung để hệ thống tự động nhận diện khuôn mặt thật của bạn.'
       },
       square: {
         title: 'Mặt Vuông Chữ Điền (Nam Tính & Quyền Lực)',
@@ -464,8 +258,8 @@
         desc: 'Chiều ngang và chiều dọc gương mặt tương đương nhau. Nên ưu tiên các kiểu tóc vuốt dựng có độ phồng cao như Short Quiff, Pompadour, High Fade 2 bên để kéo dài khuôn mặt.'
       },
       oval: {
-        title: 'Mặt Trái Xoan (Tỉ Lệ Vàng Cân Đối)',
-        desc: 'Gương mặt tỉ lệ vàng lý tưởng của nam giới. Bạn có thể tự tin diện hầu hết mọi phom tóc từ Layer Hàn Quốc, Two-Block bồng bềnh đến Side Part hay Buzz Cut.'
+        title: 'Mặt Trái Xoan (Cân Đối Hài Hòa)',
+        desc: 'Gương mặt có tỉ lệ cân đối hài hòa của nam giới. Bạn có thể tự tin diện hầu hết mọi phom tóc từ Layer Hàn Quốc, Two-Block bồng bềnh đến Side Part hay Buzz Cut.'
       },
       oblong: {
         title: 'Mặt Dài & Trán Cao',
@@ -474,67 +268,72 @@
       diamond: {
         title: 'Mặt Kim Cương (Gò Má Cao)',
         desc: 'Gò má rộng trong khi trán và cằm hẹp. Các kiểu tóc uốn xoăn bồng bềnh như Ripple Perm, Modern Mullet hoặc Messy Quiff sẽ làm mềm đường nét gò má cực kỳ hiệu quả.'
+      },
+      heart: {
+        title: 'Mặt Trái Tim (Trán Rộng, Cằm Thon)',
+        desc: 'Vầng trán rộng cân xứng với phần cằm gọn gàng. Rất hợp các phom tóc có mái rủ nhẹ như French Crop, Layer Hàn Quốc hoặc Two-Block 6/4.'
       }
     },
 
     render(container, params = {}) {
       if (!container) return;
 
-      // Mặc định nạp ảnh mẫu đầu tiên nếu chưa có
-      if (!this.state.uploadedImage) {
-        this.state.uploadedImage = this.demoPortraits[0].url;
-        this.state.originalRawImage = this.demoPortraits[0].url;
-      }
-
       container.innerHTML = `
         <div class="omni-container" style="padding-top: 40px; padding-bottom: 80px; max-width: 1440px; margin: 0 auto; padding-left: clamp(16px, 3.5vw, 48px); padding-right: clamp(16px, 3.5vw, 48px); box-sizing: border-box;">
           
-          <!-- Header Hero Chuyên Nghiệp (Không AI Phô Trương) -->
+          <!-- Header Hero Chuyên Nghiệp -->
           <div style="text-align: center; margin-bottom: 32px;">
             <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; background: rgba(197, 155, 39, 0.12); border: 1px solid rgba(197, 155, 39, 0.35); border-radius: 20px; margin-bottom: 12px;">
               <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
-                OMNISALON BARBERSHOP LOOKBOOK &amp; STYLING STUDIO
+                OMNISALON BARBERSHOP CAMERA &amp; FACE-FIT STYLING
               </span>
             </div>
             <h1 class="font-serif tracking-tight leading-tight" style="font-size: clamp(28px, 4vw, 42px); font-weight: 700; color: var(--text-primary); margin: 0 0 10px;">
-              THỬ KIỂU TÓC &amp; TẠO MẪU TÓC NAM CHUYÊN NGHIỆP
+              CHỤP ẢNH NHẬN DIỆN KHUÔN MẶT &amp; THỬ KIỂU TÓC THẬT
             </h1>
             <p style="font-size: 14.5px; color: var(--text-secondary); max-width: 720px; margin: 0 auto; line-height: 1.6;">
-              Bộ sưu tập 28 kiểu tóc nam thịnh hành, phối màu nhuộm và nếp sáp chuẩn salon giúp bạn chọn phom dáng hoàn hảo nhất trước khi bước vào ghế cắt.
+              Mở camera chụp trực diện hoặc tải ảnh thật của bạn — hệ thống tự động nhận diện khuôn mặt, đo form vòm sọ 3D và gắn kiểu tóc chuẩn dáng đầu ngay lập tức.
             </p>
           </div>
 
           <!-- Studio Main Grid: 2 Cột Đối Xứng Cân Đối -->
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 28px; max-width: 1260px; margin: 0 auto; align-items: start;">
             
-            <!-- CỘT TRÁI: KHUNG ẢNH CHÂN DUNG & SO SÁNH SLIDER TRỰC QUAN -->
+            <!-- CỘT TRÁI: KHUNG ẢNH CHÂN DUNG & NHẬN DIỆN KHUÔN MẶT + SLIDER -->
             <div class="ai-studio-panel" style="border-radius: 8px; padding: 22px; background: var(--surface-card); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 16px;">
               
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                 <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
                   ẢNH CHÂN DUNG CỦA BẠN
                 </span>
-                <span id="aiUploadStatusBadge" style="font-size: 11.5px; color: #10B981; font-weight: 700;">
-                  ● ${this.state.uploadedImage ? 'Ảnh chân dung sẵn sàng' : 'Chưa có ảnh'}
-                </span>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <button type="button" id="btnToggleFaceOverlay" onclick="AiStudioPage.toggleFaceOverlay()"
+                          style="display: ${this.state.uploadedImage ? 'inline-flex' : 'none'}; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; cursor: pointer; border: 1px solid rgba(197,155,39,0.5); background: ${this.state.showFaceOverlay ? 'rgba(197,155,39,0.18)' : 'var(--surface-elevated)'}; color: #C59B27;">
+                    <span>${this.state.showFaceOverlay ? 'Ẩn khung form mặt' : 'Hiện khung form mặt'}</span>
+                  </button>
+                  <span id="aiUploadStatusBadge" style="font-size: 11.5px; color: ${this.state.uploadedImage ? '#10B981' : 'var(--text-muted)'}; font-weight: 700;">
+                    ● ${this.state.uploadedImage ? 'Đã nạp chân dung' : 'Chờ chụp / tải ảnh thật'}
+                  </span>
+                </div>
               </div>
 
-              <!-- THANH CĂN CHỈNH GÓC CHÂN DUNG (GIỮ NGUYÊN TÓC THẬT) -->
+              <!-- THANH CĂN CHỈNH GÓC CHÂN DUNG & TỰ ĐỘNG GẮN TÓC -->
               <div id="aiPreprocessBar" style="background: rgba(197, 155, 39, 0.08); border: 1px solid rgba(197, 155, 39, 0.25); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
                   <span style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
-                    Tỉ Lệ Khung Hình Chân Dung
+                    Khung Chân Dung &amp; Tự Động Bắt Form Đầu
                   </span>
-                  <span style="font-size: 11px; font-weight: 700; color: #10B981;">
-                    ● Tiêu chuẩn Studio Barbershop
-                  </span>
+                  <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--text-primary); cursor: pointer;">
+                    <input type="checkbox" id="chkAutoFitOnCapture" ${this.state.autoFitOnCapture ? 'checked' : ''} onchange="AiStudioPage.state.autoFitOnCapture = this.checked" style="accent-color: #C59B27;">
+                    <span>Tự động gắn tóc sau khi chụp/chọn</span>
+                  </label>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                   <button type="button" id="btnBaseModeCropped" onclick="AiStudioPage.switchBaseMode('cropped')" 
                           title="Tỉ lệ 3:4 chuẩn chân dung studio"
                           style="padding: 8px 10px; border-radius: 5px; font-size: 11.5px; font-weight: 800; cursor: pointer; border: 1px solid #C59B27; background: #C59B27; color: #141413; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.15s ease;">
-                    <span>Tỉ lệ 3:4 chuẩn Studio</span>
+                    <span>Tỉ lệ 3:4 chuẩn form đầu</span>
                   </button>
                   <button type="button" id="btnBaseModeRaw" onclick="AiStudioPage.switchBaseMode('raw')" 
                           title="Xem lại ảnh gốc nguyên bản ban đầu"
@@ -549,18 +348,18 @@
                    ondragover="event.preventDefault(); this.style.borderColor='#C59B27';"
                    ondragleave="this.style.borderColor='var(--border-color)';"
                    ondrop="AiStudioPage.handleDrop(event)"
-                   style="position: relative; border: 1.5px dashed var(--border-color); border-radius: 8px; background: var(--surface-elevated, #141413); overflow: hidden; min-height: 420px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                   style="position: relative; border: 1.5px dashed var(--border-color); border-radius: 8px; background: var(--surface-elevated, #141413); overflow: hidden; min-height: 460px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 
                 <!-- Input file ẩn để kích hoạt qua nút hoặc nhấp ô tải -->
                 <input type="file" id="aiStudioFileInput" accept="image/*" 
                        onchange="AiStudioPage.handleFileSelected(event)"
                        style="display: none;" />
 
-                <!-- Khung hiển thị ảnh có hỗ trợ So sánh Split-Slider mượt mà -->
+                <!-- Khung hiển thị ảnh có hỗ trợ So sánh Split-Slider mượt mà theo tỉ lệ chuẩn 3:4 -->
                 <div id="aiPortraitViewport" 
                      onmousedown="AiStudioPage.handleViewportMouseDown(event)"
                      ontouchstart="AiStudioPage.handleViewportTouchStart(event)"
-                     style="position: relative; width: 100%; height: 460px; overflow: hidden; display: ${this.state.uploadedImage ? 'block' : 'none'}; user-select: none; cursor: ${this.state.hasResult ? 'ew-resize' : 'default'}; touch-action: none;">
+                     style="position: relative; width: 100%; max-width: 440px; aspect-ratio: 3 / 4; margin: 0 auto; overflow: hidden; display: ${this.state.uploadedImage ? 'block' : 'none'}; user-select: none; cursor: ${this.state.hasResult ? 'ew-resize' : 'default'}; touch-action: none;">
                   
                   <!-- ẢNH KẾT QUẢ KIỂU TÓC MỚI (NẰM DƯỚI) -->
                   <img id="aiResultPortrait" 
@@ -578,6 +377,10 @@
                          style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; pointer-events: none; user-select: none;">
                   </div>
 
+                  <!-- LỚP HIỂN THỊ KHUNG NHẬN DIỆN KHUÔN MẶT & FORM ĐẦU 3D -->
+                  <svg id="aiFaceOverlaySvg" viewBox="0 0 100 100" preserveAspectRatio="none"
+                       style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; display: none;"></svg>
+
                   <!-- THANH TRƯỢT SO SÁNH INTERACTIVE SLIDER DIVIDER (Vùng chạm 44px dễ kéo) -->
                   <div id="aiCompareSliderDivider" 
                        onmousedown="AiStudioPage.startSliderDrag(event)"
@@ -589,11 +392,11 @@
                     </div>
                   </div>
 
-                  <!-- OVERLAY XỬ LÝ THANH LỊCH (KHÔNG CÓ LASER/RADAR SCI-FI) -->
+                  <!-- OVERLAY XỬ LÝ THANH LỊCH -->
                   <div id="aiScanHudModal" style="display: none; position: absolute; inset: 0; background: rgba(20, 20, 19, 0.88); backdrop-filter: blur(4px); flex-direction: column; align-items: center; justify-content: center; z-index: 15; padding: 24px; text-align: center;">
                     <div style="width: 42px; height: 42px; border: 3px solid rgba(255,255,255,0.15); border-top-color: #C59B27; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 14px;"></div>
-                    <div class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: #FAF8F5;" id="aiScanHudTitle">ĐANG TẠO PHOM TÓC TRÊN KHUÔN MẶT BẠN...</div>
-                    <div style="font-size: 12.5px; color: #A1A1AA; margin-top: 6px; max-width: 300px;" id="aiScanHudSub">Đang điều chỉnh góc nghiêng và hòa sắc màu nhuộm...</div>
+                    <div class="font-serif tracking-tight leading-tight" style="font-size: 16px; font-weight: 700; color: #FAF8F5;" id="aiScanHudTitle">ĐANG ĐO FORM ĐẦU &amp; GẮN TÓC THẬT...</div>
+                    <div style="font-size: 12.5px; color: #A1A1AA; margin-top: 6px; max-width: 300px;" id="aiScanHudSub">Đang điều chỉnh góc nghiêng, hòa ánh sáng &amp; màu tóc...</div>
                     <div style="width: 220px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 16px; overflow: hidden;">
                       <div id="aiScanHudProgress" style="height: 100%; width: 0%; background: #C59B27; transition: width 0.2s ease;"></div>
                     </div>
@@ -608,25 +411,34 @@
                   </div>
                 </div>
 
-                <!-- Empty state khi chưa có ảnh -->
+                <!-- Empty state khi chưa chụp / tải ảnh thật -->
                 <div id="aiEmptyUploadUI" 
-                     onclick="AiStudioPage.triggerFileInput()"
-                     style="display: ${this.state.uploadedImage ? 'none' : 'flex'}; cursor: pointer; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center;">
-                  <div style="width: 44px; height: 44px; margin-bottom: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center;">
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                     style="display: ${this.state.uploadedImage ? 'none' : 'flex'}; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; text-align: center; width: 100%; box-sizing: border-box;">
+                  <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(197, 155, 39, 0.12); border: 1px solid rgba(197, 155, 39, 0.4); margin-bottom: 14px; color: #C59B27; display: flex; align-items: center; justify-content: center;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   </div>
-                  <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 6px;">Kéo thả hoặc nhấp để chọn ảnh chân dung</h4>
-                  <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 14px;">Hỗ trợ ảnh chụp camera trước hoặc tệp JPG/PNG</p>
+                  <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 8px;">Chụp hình trực tiếp hoặc tải ảnh thật của bạn</h4>
+                  <p style="font-size: 12.5px; color: var(--text-secondary); max-width: 340px; margin: 0 0 18px; line-height: 1.5;">
+                    Hệ thống tự động phát hiện khuôn mặt, đo vòm sọ 3D và gắn kiểu tóc theo đúng form đầu thực tế (không dùng ảnh mẫu ảo).
+                  </p>
+                  <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 340px;">
+                    <button type="button" onclick="AiStudioPage.openCameraModal()" style="flex: 1; min-width: 140px; padding: 11px 14px; background: #C59B27; color: #141413; font-weight: 800; font-size: 12.5px; border: 1px solid #C59B27; border-radius: 6px; cursor: pointer;">
+                      Mở Camera Quét Mặt
+                    </button>
+                    <button type="button" onclick="AiStudioPage.triggerFileInput()" style="flex: 1; min-width: 140px; padding: 11px 14px; background: var(--surface-card); color: var(--text-primary); font-weight: 700; font-size: 12.5px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
+                      Tải Ảnh Từ Thiết Bị
+                    </button>
+                  </div>
                 </div>
               </div>
 
               <!-- Nút tải ảnh & Chụp Camera -->
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" onclick="AiStudioPage.openCameraModal()" class="nordic-btn-secondary" style="flex: 1; padding: 10px 14px; font-size: 12.5px; font-weight: 800; background: rgba(197, 155, 39, 0.14); border: 1px solid #C59B27; color: #C59B27; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <span>Chụp bằng camera</span>
+                </button>
                 <button type="button" onclick="AiStudioPage.triggerFileInput()" class="nordic-btn-secondary" style="flex: 1; padding: 10px 14px; font-size: 12.5px; font-weight: 700; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
                   <span>Tải ảnh từ thiết bị</span>
-                </button>
-                <button type="button" onclick="AiStudioPage.openCameraModal()" class="nordic-btn-secondary" style="flex: 1; padding: 10px 14px; font-size: 12.5px; font-weight: 700; background: var(--surface-elevated); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                  <span>Chụp bằng camera</span>
                 </button>
               </div>
 
@@ -646,15 +458,15 @@
                 </div>
               </div>
 
-              <!-- CHỌN ẢNH MẪU CHÂN DUNG CÓ SẴN -->
+              <!-- CHỌN NHANH ẢNH CHỤP NGƯỜI THẬT TẠI SALON -->
               <div>
                 <span class="tracking-widest" style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">
-                  HOẶC THỬ NHANH VỚI ẢNH MẪU:
+                  HOẶC TEST NHANH VỚI ẢNH CHỤP NGƯỜI THẬT TẠI TIỆM:
                 </span>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                   ${this.demoPortraits.map(dp => `
                     <button type="button" onclick="AiStudioPage.selectDemoPortrait('${dp.url}')" style="display: flex; align-items: center; gap: 6px; background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 9px; cursor: pointer; color: var(--text-primary); font-size: 11.5px; font-weight: 600;">
-                      <img src="${dp.url}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;" alt="${dp.name}">
+                      <img src="${dp.url}" style="width: 22px; height: 22px; border-radius: 50%; object-fit: cover; object-position: center top;" alt="${dp.name}">
                       <span>${dp.name}</span>
                     </button>
                   `).join('')}
@@ -663,32 +475,32 @@
 
             </div>
 
-            <!-- CỘT PHẢI: BỘ SƯU TẬP 28 KIỂU TÓC + TƯ VẤN KHUÔN MẶT + TÙY CHỈNH TẠO KIỂU -->
+            <!-- CỘT PHẢI: BỘ SƯU TẬP 12 KIỂU TÓC + TƯ VẤN KHUÔN MẶT + TÙY CHỈNH TẠO KIỂU -->
             <div class="ai-studio-panel" style="border-radius: 8px; padding: 22px; background: var(--surface-card); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 16px;">
               
-              <!-- KHỐI TƯ VẤN PHOM TÓC THEO DÁNG MẶT TỪ BARBER MASTER -->
+              <!-- KHỐI TƯ VẤN PHOM TÓC THEO DÁNG MẶT THẬT -->
               <div id="aiFaceDiagnosticBox" style="background: var(--surface-elevated); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
                   <span style="font-size: 11px; font-weight: 800; color: #C59B27; letter-spacing: 0.5px; text-transform: uppercase;">
-                    TƯ VẤN PHOM TÓC THEO DÁNG MẶT
+                    NHẬN DIỆN KHUÔN MẶT &amp; TƯ VẤN PHOM TÓC
                   </span>
-                  <span id="aiFaceShapeBadge" style="font-size: 11px; background: #C59B27; color: #141413; font-weight: 800; padding: 2px 8px; border-radius: 4px;">
-                    MẶT VUÔNG CHỮ ĐIỀN
+                  <span id="aiFaceShapeBadge" style="font-size: 11px; background: var(--surface-card); border: 1px solid rgba(197,155,39,0.5); color: #C59B27; font-weight: 800; padding: 2px 8px; border-radius: 4px;">
+                    CHỜ QUÉT ẢNH CHÂN DUNG
                   </span>
                 </div>
                 
                 <div id="aiFaceDiagnosticText" style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
-                  Góc hàm sắc nét nam tính, vòm trán rộng vững chãi. Phù hợp tuyệt vời với các phom tóc cổ điển lịch lãm: Side Part 7/3, Pompadour, Undercut hoặc Buzz Cut Fade.
+                  Hãy chụp camera hoặc chọn ảnh thật để hệ thống tự động đo tỷ lệ khuôn mặt, góc đầu 3D và gợi ý kiểu tóc hợp nhất.
                 </div>
 
                 <!-- BỘ CHỌN NHANH DÁNG MẶT CỦA BẠN -->
                 <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;">
-                  <button type="button" class="ai-faceshape-pill-btn" data-shape="all" onclick="AiStudioPage.selectFaceShape('all')" 
-                          style="white-space: nowrap; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-secondary); cursor: pointer;">
+                  <button type="button" class="ai-faceshape-pill-btn selected" data-shape="all" onclick="AiStudioPage.selectFaceShape('all')" 
+                          style="white-space: nowrap; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; border: 1px solid #C59B27; background: #C59B27; color: #141413; cursor: pointer;">
                     Tất cả
                   </button>
-                  <button type="button" class="ai-faceshape-pill-btn selected" data-shape="square" onclick="AiStudioPage.selectFaceShape('square')" 
-                          style="white-space: nowrap; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; border: 1px solid #C59B27; background: #C59B27; color: #141413; cursor: pointer;">
+                  <button type="button" class="ai-faceshape-pill-btn" data-shape="square" onclick="AiStudioPage.selectFaceShape('square')" 
+                          style="white-space: nowrap; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-card); color: var(--text-secondary); cursor: pointer;">
                     Mặt Vuông
                   </button>
                   <button type="button" class="ai-faceshape-pill-btn" data-shape="round" onclick="AiStudioPage.selectFaceShape('round')" 
@@ -710,60 +522,56 @@
                 </div>
               </div>
 
-              <!-- DANH SÁCH 28 PHOM DÁNG TÓC THỊNH HÀNH -->
+              <!-- DANH SÁCH 12 PHOM DÁNG TÓC THỊNH HÀNH -->
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
                   <span class="tracking-widest" style="font-size: 11px; font-weight: 800; color: #C59B27; text-transform: uppercase;">
                     CHỌN PHOM DÁNG TÓC BARBERSHOP
                   </span>
-                  <span style="font-size: 11px; color: var(--text-muted);" id="aiStyleCountLabel">28 kiểu tóc nam thịnh hành</span>
+                  <span style="font-size: 11px; color: var(--text-muted);" id="aiStyleCountLabel">12 kiểu tóc nam thịnh hành</span>
                 </div>
 
                 <!-- BỘ LỌC PHÂN LOẠI PHONG CÁCH -->
                 <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; scrollbar-width: none;">
                   <button type="button" class="ai-category-tab-btn" data-cat="all" onclick="AiStudioPage.filterCategory('all')" 
                           style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; border: 1px solid #C59B27; background: #C59B27; color: #141413; cursor: pointer; transition: all 0.15s ease;">
-                    Tất cả (28)
-                  </button>
-                  <button type="button" class="ai-category-tab-btn" data-cat="short-fade" onclick="AiStudioPage.filterCategory('short-fade')" 
-                          style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;">
-                    Gọn gàng &amp; Fade (7)
+                    Tất cả (12)
                   </button>
                   <button type="button" class="ai-category-tab-btn" data-cat="classic" onclick="AiStudioPage.filterCategory('classic')" 
                           style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;">
-                    Quý ông &amp; Cổ điển (7)
+                    Lịch lãm (4)
                   </button>
-                  <button type="button" class="ai-category-tab-btn" data-cat="k-style" onclick="AiStudioPage.filterCategory('k-style')" 
+                  <button type="button" class="ai-category-tab-btn" data-cat="trends" onclick="AiStudioPage.filterCategory('trends')" 
                           style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;">
-                    K-Style &amp; Trẻ trung (6)
+                    K-Style &amp; Trend (4)
                   </button>
-                  <button type="button" class="ai-category-tab-btn" data-cat="perm-wavy" onclick="AiStudioPage.filterCategory('perm-wavy')" 
+                  <button type="button" class="ai-category-tab-btn" data-cat="edgy" onclick="AiStudioPage.filterCategory('edgy')" 
                           style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;">
-                    Uốn Texture &amp; Xoăn (5)
+                    Gọn gàng &amp; Fade (3)
                   </button>
-                  <button type="button" class="ai-category-tab-btn" data-cat="long-rugged" onclick="AiStudioPage.filterCategory('long-rugged')" 
+                  <button type="button" class="ai-category-tab-btn" data-cat="wavy" onclick="AiStudioPage.filterCategory('wavy')" 
                           style="white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: var(--surface-elevated); color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;">
-                    Dài &amp; Phong trần (3)
+                    Uốn Texture (1)
                   </button>
                 </div>
 
                 <!-- LƯỚI THẺ KIỂU TÓC TRỰC QUAN -->
                 <div id="aiHairstylesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; max-height: 350px; overflow-y: auto; padding-right: 4px;">
                   ${this.hairstyles.map(h => {
-                    const isSelected = this.state.selectedHairstyle === h.id;
-                    return `
+        const isSelected = this.state.selectedHairstyle === h.id;
+        return `
                       <div id="pillStyle_${h.id}"
                            class="ai-style-card ${isSelected ? 'selected' : ''}"
                            data-category="${h.category}"
                            data-facekeys="${(h.faceKeys || []).join(',')}"
                            onclick="AiStudioPage.selectHairstyle('${h.id}')"
                            style="padding: 9px 11px; border-radius: 8px; display: flex; gap: 10px; align-items: center; cursor: pointer; border: 1.5px solid ${isSelected ? '#C59B27' : 'var(--border-color)'}; background: ${isSelected ? 'rgba(197, 155, 39, 0.1)' : 'var(--surface-elevated)'}; transition: all 0.15s ease; position: relative;">
-                        <img src="${h.preview}" alt="${h.name}" onerror="this.src='assets/hairstyles/layer-korean.jpg'" style="width: 52px; height: 52px; border-radius: 6px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15);" />
+                        <img src="${h.preview}" alt="${h.name}" onerror="this.src='/assets/hairstyles/layer-korean.jpg'" style="width: 52px; height: 52px; border-radius: 6px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15);" />
                         <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
                           <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
                             <strong style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'}; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${h.name}</strong>
-                            <span id="scoreTag_${h.id}" style="font-size: 9.5px; font-weight: 800; color: ${isSelected ? '#C59B27' : '#10B981'}; background: rgba(16, 185, 129, 0.12); padding: 1px 5px; border-radius: 3px; flex-shrink: 0;">
-                              98%
+                            <span id="scoreTag_${h.id}" style="font-size: 9.5px; font-weight: 700; color: var(--text-muted); background: var(--surface-card); border: 1px solid var(--border-color); padding: 1px 5px; border-radius: 3px; flex-shrink: 0;">
+                              Chờ quét
                             </span>
                           </div>
                           <span style="font-size: 9.5px; font-weight: 700; color: #C59B27; letter-spacing: 0.5px;">${h.tag} • ${h.length}</span>
@@ -772,7 +580,7 @@
                         ${isSelected ? '<span class="ai-check-badge" style="position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: #C59B27; color: #141413; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">✓</span>' : ''}
                       </div>
                     `;
-                  }).join('')}
+      }).join('')}
                 </div>
               </div>
 
@@ -830,8 +638,8 @@
                 </div>
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                   ${this.hairColors.map(c => {
-                    const isSelected = this.state.selectedColor === c.id;
-                    return `
+        const isSelected = this.state.selectedColor === c.id;
+        return `
                       <button type="button" 
                               id="pillColor_${c.id}"
                               class="ai-color-pill-btn ${isSelected ? 'selected' : ''}"
@@ -842,7 +650,7 @@
                         <span style="color: ${isSelected ? '#C59B27' : 'var(--text-primary)'};">${c.name}</span>
                       </button>
                     `;
-                  }).join('')}
+      }).join('')}
                 </div>
               </div>
 
@@ -903,8 +711,18 @@
         </div>
       `;
 
-      // Khởi tạo các chi tiết giao diện
+      // Khởi tạo các chi tiết giao diện & tự động phân tích nếu vừa nhận ảnh từ Trang chủ
       this._updateSelectedStyleDetail();
+      if (this.state.pendingAutoAnalyze && this.state.uploadedImage) {
+        this.state.pendingAutoAnalyze = false;
+        const pendingImg = this.state.originalRawImage || this.state.uploadedImage;
+        setTimeout(() => this.analyzeAndFitFace(pendingImg, { autoRestyle: true }), 60);
+      } else if (this.state.faceAnalysis && this.state.faceAnalysis.success) {
+        this._applyFaceAnalysisToUI(this.state.faceAnalysis);
+        if (this.state.hasResult) {
+          this.setCompareMode(this.state.compareMode || 'split');
+        }
+      }
     },
 
     _renderSelectedStyleDetailHTML() {
@@ -930,7 +748,7 @@
       if (el) el.innerHTML = this._renderSelectedStyleDetailHTML();
     },
 
-    // CHỌN DÁNG MẶT ĐỂ TƯ VẤN
+    // CHỌN DÁNG MẶT ĐỂ TƯ VẤN (KHÔNG GHI ĐÈ ĐIỂM ĐO THẬT TỪ MEDIAPIPE)
     selectFaceShape(shapeKey) {
       this.state.selectedFaceShape = shapeKey;
 
@@ -951,15 +769,36 @@
       if (titleEl) titleEl.textContent = info.title.toUpperCase();
       if (textEl) textEl.textContent = info.desc;
 
-      // Cập nhật điểm số tương thích trên các thẻ tóc
+      const realScores = this.state.faceAnalysis?.styleScores || null;
+
+      // Cập nhật nhãn gợi ý trên các thẻ tóc mà không bịa điểm % nếu chưa phân tích khuôn mặt
       this.hairstyles.forEach(h => {
         const scoreTag = document.getElementById(`scoreTag_${h.id}`);
         if (!scoreTag) return;
         const matches = (shapeKey === 'all') || (h.faceKeys && h.faceKeys.includes(shapeKey));
-        const scoreVal = matches ? '98%' : '88%';
-        scoreTag.textContent = scoreVal;
-        scoreTag.style.color = matches ? '#C59B27' : '#10B981';
-        scoreTag.style.background = matches ? 'rgba(197, 155, 39, 0.18)' : 'rgba(16, 185, 129, 0.12)';
+        if (realScores && realScores[h.id]) {
+          const sObj = realScores[h.id];
+          const val = (typeof sObj === 'object' ? sObj?.score : sObj);
+          if (val) {
+            scoreTag.textContent = `${val}%`;
+            const isTop = (shapeKey !== 'all' && matches) || sObj?.isTopMatch || Number(val) >= 95;
+            scoreTag.style.color = isTop ? '#C59B27' : '#10B981';
+            scoreTag.style.background = isTop ? 'rgba(197, 155, 39, 0.22)' : 'rgba(16, 185, 129, 0.12)';
+            scoreTag.style.border = 'none';
+            return;
+          }
+        }
+        if (shapeKey === 'all') {
+          scoreTag.textContent = 'Chờ quét';
+          scoreTag.style.color = 'var(--text-muted)';
+          scoreTag.style.background = 'var(--surface-card)';
+          scoreTag.style.border = '1px solid var(--border-color)';
+        } else {
+          scoreTag.textContent = matches ? 'Rất hợp' : 'Tham khảo';
+          scoreTag.style.color = matches ? '#C59B27' : 'var(--text-secondary)';
+          scoreTag.style.background = matches ? 'rgba(197, 155, 39, 0.18)' : 'var(--surface-card)';
+          scoreTag.style.border = matches ? '1px solid rgba(197, 155, 39, 0.4)' : '1px solid var(--border-color)';
+        }
       });
 
       if (window.UICommon) {
@@ -1015,7 +854,7 @@
       this._updateColorUI();
     },
 
-    // Chuyển chế độ xem ảnh
+    // Chuyển chế độ xem ảnh (3:4 chuẩn form đầu / ảnh gốc)
     switchBaseMode(mode) {
       this.state.activeBaseMode = mode;
       let targetImg = this.state.croppedImage || this.state.originalRawImage;
@@ -1027,6 +866,9 @@
         this.state.uploadedImage = targetImg;
         const srcImg = document.getElementById('aiSourcePortrait');
         if (srcImg) srcImg.src = targetImg;
+        if (this.state.faceAnalysis) {
+          this._renderFaceOverlaySvg(this.state.faceAnalysis);
+        }
       }
 
       const setBtnState = (btnId, isSelected) => {
@@ -1042,15 +884,177 @@
       setBtnState('btnBaseModeRaw', mode === 'raw');
     },
 
-    selectDemoPortrait(url) {
-      const proxiedUrl = (url && url.startsWith('http') && !url.includes('/api/ai/proxy-image'))
-        ? ('/api/ai/proxy-image?url=' + encodeURIComponent(url))
-        : url;
-      this.state.originalRawImage = proxiedUrl;
-      this.state.uploadedImage = proxiedUrl;
+    toggleFaceOverlay() {
+      this.state.showFaceOverlay = !this.state.showFaceOverlay;
+      const btn = document.getElementById('btnToggleFaceOverlay');
+      if (btn) {
+        btn.style.background = this.state.showFaceOverlay ? 'rgba(197,155,39,0.18)' : 'var(--surface-elevated)';
+        const span = btn.querySelector('span');
+        if (span) span.textContent = this.state.showFaceOverlay ? 'Ẩn khung form mặt' : 'Hiện khung form mặt';
+      }
+      this._renderFaceOverlaySvg(this.state.faceAnalysis);
+    },
+
+    _renderFaceOverlaySvg(faceAnalysis) {
+      const svg = document.getElementById('aiFaceOverlaySvg');
+      if (!svg) return;
+      if (!this.state.showFaceOverlay || !faceAnalysis || !faceAnalysis.success) {
+        svg.style.display = 'none';
+        svg.innerHTML = '';
+        return;
+      }
+
+      const isCropped = this.state.activeBaseMode !== 'raw' && Boolean(this.state.croppedImage);
+      const norm = (isCropped && faceAnalysis.croppedGeometry?.normalized)
+        ? faceAnalysis.croppedGeometry.normalized
+        : (faceAnalysis.geometry?.normalized || null);
+
+      if (!norm || typeof norm.centerX !== 'number') {
+        svg.style.display = 'none';
+        svg.innerHTML = '';
+        return;
+      }
+
+      const cx = norm.centerX * 100;
+      const lCheek = (norm.leftCheekX || (norm.centerX - 0.16)) * 100;
+      const rCheek = (norm.rightCheekX || (norm.centerX + 0.16)) * 100;
+      const topY = (norm.skullTopY || Math.max(0.03, (norm.foreheadY || 0.25) - 0.16)) * 100;
+      const chinY = (norm.chinY || 0.65) * 100;
+      const rx = Math.max(12, (rCheek - lCheek) * 0.56);
+      const cy = (topY + chinY) * 0.5;
+      const ry = Math.max(18, (chinY - topY) * 0.52);
+
+      const toPoints = (arr) => (Array.isArray(arr) ? arr.map(p => `${(p.x * 100).toFixed(2)},${(p.y * 100).toFixed(2)}`).join(' ') : '');
+      const hairlinePts = toPoints(norm.hairlineArc);
+      const jawPts = toPoints(norm.jawContour);
+      const shapeLabel = (faceAnalysis.faceShape?.name || 'Khuôn mặt').split(' (')[0];
+
+      svg.innerHTML = `
+        <ellipse cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" rx="${rx.toFixed(2)}" ry="${ry.toFixed(2)}"
+                 fill="none" stroke="rgba(197, 155, 39, 0.72)" stroke-width="0.55" stroke-dasharray="2.2,1.6" />
+        ${hairlinePts ? `<polyline points="${hairlinePts}" fill="none" stroke="#10B981" stroke-width="0.65" stroke-linecap="round" stroke-linejoin="round" />` : ''}
+        ${jawPts ? `<polyline points="${jawPts}" fill="none" stroke="rgba(250, 248, 245, 0.75)" stroke-width="0.5" stroke-dasharray="1.4,1.2" stroke-linecap="round" stroke-linejoin="round" />` : ''}
+        <circle cx="${cx.toFixed(2)}" cy="${topY.toFixed(2)}" r="1.05" fill="#C59B27" />
+        <rect x="3" y="2.5" width="52" height="5.5" rx="1.5" fill="rgba(20, 20, 19, 0.78)" stroke="rgba(16, 185, 129, 0.75)" stroke-width="0.35" />
+        <text x="5.2" y="6.1" fill="#10B981" font-size="2.7" font-weight="800" font-family="sans-serif">✓ BẮT FORM: ${shapeLabel.toUpperCase()}</text>
+      `;
+      svg.style.display = 'block';
+    },
+
+    _applyFaceAnalysisToUI(analysis) {
+      if (!analysis || !analysis.success) return;
+      this.state.faceAnalysis = analysis;
+
+      const shapeName = analysis.faceShape?.name || 'Đã nhận diện';
+      const shapeCode = (analysis.faceShape?.code || 'oval').toLowerCase();
+      const badgeEl = document.getElementById('aiFaceShapeBadge');
+      const textEl = document.getElementById('aiFaceDiagnosticText');
+      if (badgeEl) {
+        badgeEl.textContent = shapeName.toUpperCase();
+        badgeEl.style.background = '#C59B27';
+        badgeEl.style.color = '#141413';
+      }
+      if (textEl) {
+        const yaw = analysis.metrics?.headYawDegrees ?? 0;
+        const roll = analysis.metrics?.headRollDegrees ?? 0;
+        textEl.textContent = `${analysis.barberAdvice || ''} (Trục nghiêng: ${roll}°, xoay mặt: ${yaw}°)`;
+      }
+
+      document.querySelectorAll('.ai-faceshape-pill-btn').forEach(btn => {
+        const isAct = btn.getAttribute('data-shape') === shapeCode;
+        btn.classList.toggle('selected', isAct);
+        btn.style.background = isAct ? '#C59B27' : 'var(--surface-card)';
+        btn.style.color = isAct ? '#141413' : 'var(--text-secondary)';
+        btn.style.borderColor = isAct ? '#C59B27' : 'var(--border-color)';
+        btn.style.fontWeight = isAct ? '800' : '600';
+      });
+
+      if (analysis.styleScores) {
+        this.hairstyles.forEach(h => {
+          const scoreTag = document.getElementById(`scoreTag_${h.id}`);
+          const sObj = analysis.styleScores[h.id];
+          const val = (typeof sObj === 'object' ? sObj?.score : sObj);
+          if (scoreTag && val) {
+            scoreTag.textContent = `${val}%`;
+            const isTop = (sObj && sObj.isTopMatch) || Number(val) >= 95;
+            scoreTag.style.color = isTop ? '#C59B27' : '#10B981';
+            scoreTag.style.background = isTop ? 'rgba(197, 155, 39, 0.22)' : 'rgba(16, 185, 129, 0.12)';
+          }
+        });
+      }
+
+      this._renderFaceOverlaySvg(analysis);
+    },
+
+    async analyzeAndFitFace(rawImageSource, { autoRestyle = true } = {}) {
+      const token = (this._portraitLoadToken = (this._portraitLoadToken || 0) + 1);
+      const statusBadge = document.getElementById('aiUploadStatusBadge');
+      const toggleOverlayBtn = document.getElementById('btnToggleFaceOverlay');
+      if (toggleOverlayBtn) toggleOverlayBtn.style.display = 'inline-flex';
+      if (statusBadge) {
+        statusBadge.textContent = '● Đang phát hiện khuôn mặt & đo form đầu...';
+        statusBadge.style.color = '#C59B27';
+      }
+
+      this.state.isAnalyzingFace = true;
+      try {
+        const res = await fetch('/api/ai/analyze-face', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: rawImageSource })
+        });
+        const data = await res.json();
+        if (token !== this._portraitLoadToken) return;
+
+        if (data && data.success) {
+          if (data.croppedImageUrl) {
+            this.state.croppedImage = data.croppedImageUrl;
+            if (this.state.activeBaseMode !== 'raw') {
+              this.state.uploadedImage = data.croppedImageUrl;
+              const srcImg = document.getElementById('aiSourcePortrait');
+              if (srcImg) srcImg.src = data.croppedImageUrl;
+            }
+          }
+
+          this._applyFaceAnalysisToUI(data);
+          if (statusBadge) {
+            statusBadge.textContent = `✓ Đã nhận diện: ${data.faceShape?.name || 'Khuôn mặt'}`;
+            statusBadge.style.color = '#10B981';
+          }
+
+          if (autoRestyle && this.state.autoFitOnCapture) {
+            await this.runAiRestyle();
+          }
+        } else {
+          if (statusBadge) {
+            statusBadge.textContent = '! Không phát hiện khuôn mặt rõ nét';
+            statusBadge.style.color = '#EF4444';
+          }
+          const badgeEl = document.getElementById('aiFaceShapeBadge');
+          if (badgeEl) badgeEl.textContent = 'CHƯA THẤY KHUÔN MẶT RÕ';
+          this._renderFaceOverlaySvg(null);
+          if (window.UICommon) {
+            window.UICommon.showToast(data?.message || 'Chưa nhận diện rõ khuôn mặt trong ảnh. Vui lòng chụp thẳng góc và đủ sáng.', 'warning');
+          }
+        }
+      } catch (err) {
+        if (statusBadge) {
+          statusBadge.textContent = '! Lỗi phân tích khuôn mặt';
+          statusBadge.style.color = '#EF4444';
+        }
+      } finally {
+        this.state.isAnalyzingFace = false;
+      }
+    },
+
+    _prepareLoadedPortrait(imageSource) {
+      this.state.originalRawImage = imageSource;
+      this.state.uploadedImage = imageSource;
       this.state.croppedImage = null;
       this.state.hasResult = false;
       this.state.resultImage = null;
+      this.state.faceAnalysis = null;
+      this.state.showFaceOverlay = true;
 
       const srcImg = document.getElementById('aiSourcePortrait');
       const resImg = document.getElementById('aiResultPortrait');
@@ -1061,18 +1065,24 @@
       if (emptyUI) emptyUI.style.display = 'none';
       if (srcImg) {
         srcImg.crossOrigin = 'anonymous';
-        srcImg.src = proxiedUrl;
+        srcImg.src = imageSource;
       }
       if (resImg) {
         resImg.src = '';
         resImg.style.display = 'none';
       }
 
+      this._renderFaceOverlaySvg(null);
       this._toggleResultState(false);
       this.setCompareMode('before');
-      if (window.UICommon && typeof window.UICommon.showToast === 'function') {
-        window.UICommon.showToast('Đã nạp ảnh chân dung. Bấm "Xem trước kiểu tóc" để xem kết quả!', 'info');
-      }
+    },
+
+    selectDemoPortrait(url) {
+      const proxiedUrl = (url && url.startsWith('http') && !url.includes('/api/ai/proxy-image'))
+        ? ('/api/ai/proxy-image?url=' + encodeURIComponent(url))
+        : url;
+      this._prepareLoadedPortrait(proxiedUrl);
+      this.analyzeAndFitFace(proxiedUrl, { autoRestyle: true });
     },
 
     triggerFileInput() {
@@ -1105,27 +1115,9 @@
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        this.state.originalRawImage = e.target.result;
-        this.state.uploadedImage = e.target.result;
-        this.state.croppedImage = null;
-        this.state.hasResult = false;
-        this.state.resultImage = null;
-
-        const previewBox = document.getElementById('aiPortraitViewport');
-        const emptyUI = document.getElementById('aiEmptyUploadUI');
-        const srcImg = document.getElementById('aiSourcePortrait');
-        const resImg = document.getElementById('aiResultPortrait');
-
-        if (previewBox) previewBox.style.display = 'block';
-        if (emptyUI) emptyUI.style.display = 'none';
-        if (srcImg) srcImg.src = this.state.uploadedImage;
-        if (resImg) {
-          resImg.src = '';
-          resImg.style.display = 'none';
-        }
-
-        this._toggleResultState(false);
-        if (window.UICommon) window.UICommon.showToast('Đã tải ảnh chân dung thành công! Bấm "Xem trước kiểu tóc" để thử.', 'success');
+        const dataUrl = e.target.result;
+        this._prepareLoadedPortrait(dataUrl);
+        this.analyzeAndFitFace(dataUrl, { autoRestyle: true });
       };
       reader.readAsDataURL(file);
     },
@@ -1135,7 +1127,8 @@
       if (this.state.isProcessing) return;
 
       const sourceImg = document.getElementById('aiSourcePortrait');
-      const photoToSend = this.state.uploadedImage || (sourceImg ? sourceImg.src : '');
+      // Luôn gửi ảnh gốc ban đầu (tránh auto-crop 2 lần gây lệch khung Before/After)
+      const photoToSend = this.state.originalRawImage || this.state.uploadedImage || (sourceImg ? sourceImg.src : '');
       if (!photoToSend) {
         if (window.UICommon) window.UICommon.showToast('Vui lòng tải ảnh chân dung lên trước!', 'warning');
         return;
@@ -1169,7 +1162,10 @@
 
       try {
         if (hudProgress) hudProgress.style.width = '55%';
-        if (hudSub) hudSub.textContent = 'Đang uốn phom sọ Delaunay & tách sợi tóc tơ viền mái...';
+        if (hudSub) hudSub.textContent = 'Đang uốn phom sọ 3D, giữ nguyên hậu cảnh & hòa sắc ánh sáng phòng...';
+
+        const customPromptInput = document.getElementById('aiCustomPromptInput');
+        const customPrompt = customPromptInput ? customPromptInput.value.trim() : '';
 
         const res = await fetch('/api/ai/restyle-hair', {
           method: 'POST',
@@ -1178,7 +1174,13 @@
             image: photoToSend,
             hairstyleId: currentStyle.id,
             colorId: currentColor.id,
-            colorHex: currentColor.hex || '#141413'
+            colorHex: currentColor.hex || '#141413',
+            volume: this.state.selectedVolume || 'standard',
+            finish: this.state.selectedFinish || 'matte',
+            customPrompt,
+            balanceLighting: true,
+            smoothSkin: true,
+            preserveBackground: true
           })
         });
 
@@ -1194,6 +1196,25 @@
           const resultUrl = data.resultImageUrl;
           this.state.resultImage = resultUrl;
           this.state.hasResult = true;
+          this.state.lastRestyleMeta = {
+            suggestedService: data.suggestedService || null,
+            suggestedProduct: data.suggestedProduct || null
+          };
+
+          // Đồng bộ ảnh nguồn sang khung 3:4 chuẩn nếu đang ở chế độ Ảnh gốc để thanh trượt Before/After khớp từng pixel
+          if (this.state.activeBaseMode === 'raw' && this.state.croppedImage) {
+            this.switchBaseMode('cropped');
+          }
+
+          // Tạm ẩn khung lưới form đầu để xem tóc ghép sạch tự nhiên (vẫn có nút bật lại)
+          this.state.showFaceOverlay = false;
+          this._renderFaceOverlaySvg(null);
+          const overlayBtn = document.getElementById('btnToggleFaceOverlay');
+          if (overlayBtn) {
+            overlayBtn.style.background = 'var(--surface-elevated)';
+            const sp = overlayBtn.querySelector('span');
+            if (sp) sp.textContent = 'Hiện khung form mặt';
+          }
 
           if (resultImgEl) {
             resultImgEl.src = resultUrl;
@@ -1205,20 +1226,27 @@
 
           if (data.faceAnalysis && data.faceAnalysis.faceShape) {
             this.state.faceShape = data.faceAnalysis.faceShape.name;
+            if (!this.state.faceAnalysis) {
+              this._applyFaceAnalysisToUI({ success: true, ...data.faceAnalysis });
+              this.state.showFaceOverlay = false;
+              this._renderFaceOverlaySvg(null);
+            }
           }
 
-          // Cập nhật lời khuyên thợ
+          // Cập nhật lời khuyên thợ & sản phẩm thực tế từ SQL (không dùng tên sản phẩm bịa đặt)
           const adviceEl = document.getElementById('aiBarberAdviceText');
           const prodEl = document.getElementById('aiProductRec');
+          const volText = this.state.selectedVolume === 'high' ? 'sấy nâng chân tóc tạo độ bồng bềnh tối đa' : (this.state.selectedVolume === 'natural' ? 'sấy xuôi giữ nếp tự nhiên nhẹ nhàng' : 'sấy nâng phom vừa phải khi tóc còn ẩm');
+          const finText = this.state.selectedFinish === 'gloss' ? 'Pomade giữ nếp bóng bẩy lịch lãm' : 'Sáp Clay lì tự nhiên không bết rít';
           if (adviceEl) {
-            adviceEl.textContent = `Kiểu tóc [${currentStyle.name}] tôn trọn vẹn đường nét khuôn mặt của bạn, khuyên dùng máy sấy nâng phom chân tóc khi tóc còn ẩm và hoàn thiện với nếp ${currentStyle.finish}.`;
+            adviceEl.textContent = `Kiểu tóc [${currentStyle.name}] màu ${currentColor.name} tôn trọn đường nét gương mặt thật của bạn — khuyên ${volText} và hoàn thiện với ${finText}.`;
           }
           if (prodEl) {
-            prodEl.textContent = currentStyle.finish.includes('Pomade') ? 'Reuzel Blue Pomade' : 'Apestomen Volcanic Clay';
+            prodEl.textContent = data.suggestedProduct?.name || currentStyle.suggestedProductName || 'Apestomen Volcanic Clay VIP';
           }
 
           if (window.UICommon) {
-            window.UICommon.showToast(`Đã tạo phom tóc "${currentStyle.name}" bảo toàn gương mặt thật thành công!`, 'success');
+            window.UICommon.showToast(`Đã tạo phom tóc "${currentStyle.name}" chân thực thành công!`, 'success');
           }
         } else {
           const errMsg = (data && data.message) ? data.message : 'Không thể nhận diện khuôn mặt rõ nét trong ảnh. Vui lòng chụp góc thẳng và sáng rõ.';
@@ -1251,6 +1279,8 @@
       const btnSplit = document.getElementById('btnModeSplit');
       const btnBefore = document.getElementById('btnModeBefore');
       const btnAfter = document.getElementById('btnModeAfter');
+      const bBefore = document.getElementById('aiViewBadgeBefore');
+      const bAfter = document.getElementById('aiViewBadgeAfter');
 
       const resetBtns = () => {
         [btnSplit, btnBefore, btnAfter].forEach(b => {
@@ -1263,6 +1293,8 @@
       };
       resetBtns();
 
+      const hasRes = Boolean(this.state.hasResult);
+
       if (mode === 'split') {
         if (viewport) viewport.style.cursor = 'ew-resize';
         if (clipper) clipper.style.clipPath = `inset(0 ${100 - this.state.sliderPosition}% 0 0)`;
@@ -1270,6 +1302,8 @@
           divider.style.display = 'flex';
           divider.style.left = this.state.sliderPosition + '%';
         }
+        if (bBefore) bBefore.style.display = hasRes ? 'block' : 'none';
+        if (bAfter) bAfter.style.display = hasRes ? 'block' : 'none';
         if (btnSplit) {
           btnSplit.style.background = '#C59B27';
           btnSplit.style.color = '#141413';
@@ -1279,6 +1313,8 @@
         if (viewport) viewport.style.cursor = 'default';
         if (clipper) clipper.style.clipPath = 'inset(0 0 0 0)';
         if (divider) divider.style.display = 'none';
+        if (bBefore) bBefore.style.display = hasRes ? 'block' : 'none';
+        if (bAfter) bAfter.style.display = 'none';
         if (btnBefore) {
           btnBefore.style.background = '#C59B27';
           btnBefore.style.color = '#141413';
@@ -1288,6 +1324,8 @@
         if (viewport) viewport.style.cursor = 'default';
         if (clipper) clipper.style.clipPath = 'inset(0 100% 0 0)';
         if (divider) divider.style.display = 'none';
+        if (bBefore) bBefore.style.display = 'none';
+        if (bAfter) bAfter.style.display = hasRes ? 'block' : 'none';
         if (btnAfter) {
           btnAfter.style.background = '#C59B27';
           btnAfter.style.color = '#141413';
@@ -1381,24 +1419,39 @@
       window.addEventListener('touchcancel', onTouchEnd);
     },
 
-    // CHỤP ẢNH BẰNG CAMERA THIẾT BỊ
+    // CHỤP ẢNH BẰNG CAMERA THIẾT BỊ (NHẬN DIỆN KHUÔN MẶT TRỰC TIẾP & TỰ ĐỘNG GẮN TÓC THEO FORM ĐẦU)
     openCameraModal() {
+      this.closeCameraModal();
       const modalHtml = `
-        <div id="aiCameraModalBackdrop" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px;">
-          <div style="background: var(--surface-card, #1c1c1f); border: 1px solid var(--border-color, #333); border-radius: 8px; width: 100%; max-width: 500px; padding: 20px; box-sizing: border-box;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <strong style="color: var(--text-primary); font-size: 16px;">Chụp chân dung bằng camera</strong>
+        <div id="aiCameraModalBackdrop" style="position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px;">
+          <div style="background: var(--surface-card, #1c1c1f); border: 1px solid var(--border-color, #333); border-radius: 10px; width: 100%; max-width: 440px; padding: 18px; box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div>
+                <strong style="color: var(--text-primary); font-size: 15.5px; display: block;">Camera Quét Khuôn Mặt 3D</strong>
+                <span style="font-size: 11px; color: var(--text-secondary);">Đưa khuôn mặt vào khung oval để tự động đo form đầu</span>
+              </div>
               <button type="button" onclick="AiStudioPage.closeCameraModal()" style="background: transparent; border: none; font-size: 20px; color: var(--text-secondary); cursor: pointer;">✕</button>
             </div>
             
-            <div style="position: relative; width: 100%; height: 340px; background: #000; border-radius: 6px; overflow: hidden; margin-bottom: 14px; display: flex; align-items: center; justify-content: center;">
-              <video id="aiCameraVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+            <div style="position: relative; width: 100%; aspect-ratio: 3 / 4; max-height: 440px; margin: 0 auto 12px; background: #000; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+              <video id="aiCameraVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
               <canvas id="aiCameraCanvas" style="display: none;"></canvas>
+
+              <!-- Khung hướng dẫn căn mặt & nhận diện live -->
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;">
+                <path d="M0,0 H100 V100 H0 Z M50,18 A23,29 0 1,0 50.01,18 Z" fill="rgba(0,0,0,0.34)" fill-rule="evenodd" />
+                <ellipse id="aiCameraGuideOval" cx="50" cy="47" rx="23" ry="29" fill="none" stroke="#C59B27" stroke-width="0.9" stroke-dasharray="3,2" />
+                <line x1="50" y1="15" x2="50" y2="21" stroke="rgba(197,155,39,0.75)" stroke-width="0.6" />
+              </svg>
+
+              <div id="aiCameraFacePill" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(20, 20, 19, 0.85); color: #C59B27; border: 1px solid rgba(197,155,39,0.55); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; pointer-events: none;">
+                ● Đang bật camera &amp; dò khuôn mặt...
+              </div>
             </div>
 
             <div style="display: flex; gap: 10px;">
-              <button type="button" onclick="AiStudioPage.captureCameraShot()" style="flex: 1; padding: 12px; background: #C59B27; color: #141413; font-weight: 800; border-radius: 6px; border: 1px solid #C59B27; cursor: pointer;">
-                Chụp ảnh ngay
+              <button type="button" id="btnCaptureCameraShot" onclick="AiStudioPage.captureCameraShot()" style="flex: 1; padding: 12px; background: #C59B27; color: #141413; font-weight: 800; border-radius: 6px; border: 1px solid #C59B27; cursor: pointer;">
+                Chụp Ảnh &amp; Gắn Kiểu Tóc
               </button>
               <button type="button" onclick="AiStudioPage.closeCameraModal()" style="padding: 12px 18px; background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
                 Hủy
@@ -1410,20 +1463,102 @@
       document.body.insertAdjacentHTML('beforeend', modalHtml);
 
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 640 } })
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } } })
           .then(stream => {
             const video = document.getElementById('aiCameraVideo');
             if (video) {
               video.srcObject = stream;
               this._activeStream = stream;
+              this._startLiveCameraFaceLoop();
+            } else {
+              stream.getTracks().forEach(t => t.stop());
             }
           })
           .catch(err => {
-            console.error('Camera error:', err);
+            console.warn('Camera unavailable:', err && err.message ? err.message : err);
             if (window.UICommon) window.UICommon.showToast('Không thể mở camera: ' + err.message, 'error');
             this.closeCameraModal();
           });
+      } else {
+        if (window.UICommon) {
+          window.UICommon.showToast('Thiết bị hoặc kết nối HTTP không hỗ trợ truy cập camera trực tiếp. Vui lòng dùng HTTPS/localhost hoặc tải ảnh từ thiết bị.', 'error');
+        }
+        this.closeCameraModal();
       }
+    },
+
+    _startLiveCameraFaceLoop() {
+      if (this._camDetectTimer) clearInterval(this._camDetectTimer);
+      this._camDetectBusy = false;
+
+      const probeCanvas = document.createElement('canvas');
+      probeCanvas.width = 240;
+      probeCanvas.height = 320;
+      const probeCtx = probeCanvas.getContext('2d');
+
+      this._camDetectTimer = setInterval(async () => {
+        if (this._camDetectBusy) return;
+        const video = document.getElementById('aiCameraVideo');
+        const oval = document.getElementById('aiCameraGuideOval');
+        const pill = document.getElementById('aiCameraFacePill');
+        if (!video || !video.videoWidth || !this._activeStream) return;
+
+        this._camDetectBusy = true;
+        try {
+          const vw = video.videoWidth;
+          const vh = video.videoHeight;
+          const targetAspect = 3 / 4;
+          let sx = 0, sy = 0, sw = vw, sh = vh;
+          if (vw / vh > targetAspect) {
+            sw = vh * targetAspect;
+            sx = (vw - sw) / 2;
+          } else {
+            sh = vw / targetAspect;
+            sy = (vh - sh) / 2;
+          }
+
+          probeCtx.save();
+          probeCtx.translate(probeCanvas.width, 0);
+          probeCtx.scale(-1, 1);
+          probeCtx.drawImage(video, sx, sy, sw, sh, 0, 0, probeCanvas.width, probeCanvas.height);
+          probeCtx.restore();
+
+          const frameData = probeCanvas.toDataURL('image/jpeg', 0.7);
+          const res = await fetch('/api/ai/analyze-face', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: frameData, includeAssets: false })
+          });
+          const data = await res.json();
+
+          if (!this._activeStream) return;
+          if (data && data.success) {
+            const shapeShort = (data.faceShape?.name || 'Khuôn mặt').split(' (')[0];
+            if (oval) {
+              oval.setAttribute('stroke', '#10B981');
+              oval.removeAttribute('stroke-dasharray');
+            }
+            if (pill) {
+              pill.style.color = '#10B981';
+              pill.style.borderColor = '#10B981';
+              pill.textContent = `✓ Đã bắt mặt (${shapeShort}) • Giữ thẳng để chụp`;
+            }
+          } else {
+            if (oval) {
+              oval.setAttribute('stroke', '#C59B27');
+              oval.setAttribute('stroke-dasharray', '3,2');
+            }
+            if (pill) {
+              pill.style.color = '#C59B27';
+              pill.style.borderColor = 'rgba(197,155,39,0.55)';
+              pill.textContent = '● Đưa mặt vào giữa khung hình sáng rõ';
+            }
+          }
+        } catch (_) {
+        } finally {
+          this._camDetectBusy = false;
+        }
+      }, 750);
     },
 
     captureCameraShot() {
@@ -1431,36 +1566,40 @@
       const canvas = document.getElementById('aiCameraCanvas');
       if (!video || !canvas) return;
 
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 640;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const capturedBase64 = canvas.toDataURL('image/jpeg', 0.9);
-      this.closeCameraModal();
-
-      this.state.uploadedImage = capturedBase64;
-      this.state.hasResult = false;
-      this.state.resultImage = null;
-
-      const srcImg = document.getElementById('aiSourcePortrait');
-      const resImg = document.getElementById('aiResultPortrait');
-      const previewBox = document.getElementById('aiPortraitViewport');
-      const emptyUI = document.getElementById('aiEmptyUploadUI');
-
-      if (previewBox) previewBox.style.display = 'block';
-      if (emptyUI) emptyUI.style.display = 'none';
-      if (srcImg) srcImg.src = capturedBase64;
-      if (resImg) {
-        resImg.src = '';
-        resImg.style.display = 'none';
+      const vw = video.videoWidth || 640;
+      const vh = video.videoHeight || 640;
+      const targetAspect = 3 / 4;
+      let sx = 0, sy = 0, sw = vw, sh = vh;
+      if (vw / vh > targetAspect) {
+        sw = vh * targetAspect;
+        sx = (vw - sw) / 2;
+      } else {
+        sh = vw / targetAspect;
+        sy = (vh - sh) / 2;
       }
 
-      this._toggleResultState(false);
-      if (window.UICommon) window.UICommon.showToast('Đã chụp ảnh thành công! Bấm "Xem trước kiểu tóc" để xem kết quả.', 'success');
+      canvas.width = 600;
+      canvas.height = 800;
+      const ctx = canvas.getContext('2d');
+      ctx.save();
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+
+      const capturedBase64 = canvas.toDataURL('image/jpeg', 0.94);
+      this.closeCameraModal();
+
+      this._prepareLoadedPortrait(capturedBase64);
+      this.analyzeAndFitFace(capturedBase64, { autoRestyle: true });
     },
 
     closeCameraModal() {
+      if (this._camDetectTimer) {
+        clearInterval(this._camDetectTimer);
+        this._camDetectTimer = null;
+      }
+      this._camDetectBusy = false;
       if (this._activeStream) {
         this._activeStream.getTracks().forEach(track => track.stop());
         this._activeStream = null;
@@ -1504,8 +1643,10 @@
         noteText += ` | Yêu cầu riêng: ${userNote}`;
       }
 
+      const targetServiceId = this.state.lastRestyleMeta?.suggestedService?.id || currentStyle.serviceId || 'DV01';
+
       if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
-        window.AppRouter.navigate(`/booking?service=srv-haircut-men&notes=${encodeURIComponent(noteText)}`);
+        window.AppRouter.navigate(`/booking?service=${encodeURIComponent(targetServiceId)}&notes=${encodeURIComponent(noteText)}`);
       } else if (window.CustomerWeb && typeof window.CustomerWeb.switchTab === 'function') {
         window.CustomerWeb.switchTab('booking');
       }
@@ -1572,7 +1713,7 @@
         card.classList.toggle('selected', isSelected);
         card.style.borderColor = isSelected ? '#C59B27' : 'var(--border-color)';
         card.style.background = isSelected ? 'rgba(197, 155, 39, 0.12)' : 'var(--surface-elevated)';
-        
+
         let check = card.querySelector('.ai-check-badge');
         if (isSelected && !check) {
           const badge = document.createElement('span');

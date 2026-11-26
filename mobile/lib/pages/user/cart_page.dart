@@ -13,12 +13,16 @@ import 'package:omni_salon_mobile/pages/user/vietqr_payment_page.dart';
 
 class CartScreen extends StatefulWidget {
   final List<OrderItem> cart;
+  final String? branchId;
+  final String? branchName;
   final VoidCallback? onUpdateCart;
   final VoidCallback? onNavigateToShop;
 
   const CartScreen({
     super.key,
     required this.cart,
+    this.branchId,
+    this.branchName,
     this.onUpdateCart,
     this.onNavigateToShop,
   });
@@ -29,14 +33,13 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
+  final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
 
   String _selectedPayment = 'VietQR Chuyển Khoản';
-  final int _discountAmount = 0;
-  String? _appliedVoucher;
   bool _isCheckingOut = false;
 
   @override
@@ -66,7 +69,7 @@ class _CartScreenState extends State<CartScreen> {
   static const int _shippingFee = 30000;
 
   int get _subtotal => widget.cart.fold<int>(0, (sum, i) => sum + (i.price * i.quantity));
-  int get _finalTotal => widget.cart.isEmpty ? 0 : ((_subtotal - _discountAmount + _shippingFee) > 0 ? (_subtotal - _discountAmount + _shippingFee) : 0);
+  int get _finalTotal => widget.cart.isEmpty ? 0 : (_subtotal + _shippingFee);
 
   void _showRequireLoginDialog() {
     showDialog(
@@ -230,23 +233,17 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
+    final isFormValid = _formKey.currentState?.validate() ?? true;
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     final address = _addressController.text.trim();
-    if (name.isEmpty || phone.isEmpty) {
+    if (!isFormValid || name.isEmpty || phone.isEmpty || address.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Vui lòng nhập họ tên và số điện thoại nhận hàng!', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
-          backgroundColor: AppTheme.statusDanger,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-    if (address.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Vui lòng nhập địa chỉ nhận hàng!', style: AppTheme.bodyMedium(color: AppTheme.textLight)),
+          content: Text(
+            'Vui lòng nhập đầy đủ họ tên, số điện thoại và địa chỉ nhận hàng!',
+            style: AppTheme.bodyMedium(color: AppTheme.textLight),
+          ),
           backgroundColor: AppTheme.statusDanger,
           behavior: SnackBarBehavior.floating,
         ),
@@ -256,21 +253,23 @@ class _CartScreenState extends State<CartScreen> {
 
     setState(() => _isCheckingOut = true);
 
-    // Không dùng timestamp random, DH057533... mà để server/database sinh mã chuẩn DH01, DH02...
+    final effectiveBranchId = widget.branchId ?? MainScaffold.of(context)?.selectedBranch?.id ?? 'CN01';
+    final effectiveBranchName = widget.branchName ?? MainScaffold.of(context)?.selectedBranch?.name ?? 'Omni Salon Barber';
+
     final newOrder = SalonOrder(
       id: '',
       orderCode: '',
       userId: AuthService.currentUser?.id,
-      branchId: MainScaffold.of(context)?.selectedBranch?.id ?? 'CN01',
-      branchName: MainScaffold.of(context)?.selectedBranch?.name ?? 'Omni Salon Barber',
+      branchId: effectiveBranchId,
+      branchName: effectiveBranchName,
       customerName: name,
       customerPhone: phone,
       shippingAddress: address,
       items: List.from(widget.cart),
       totalAmount: _finalTotal,
-      discountAmount: _discountAmount,
+      discountAmount: 0,
       shippingFee: _shippingFee,
-      voucherCode: _appliedVoucher,
+      voucherCode: null,
       paymentMethod: _selectedPayment,
       paymentStatus: _selectedPayment.contains('VietQR') ? 'Chưa thanh toán (VietQR)' : 'Chưa thanh toán (COD)',
       orderStatus: 'Đang xử lý',
@@ -279,7 +278,27 @@ class _CartScreenState extends State<CartScreen> {
 
     final finalOrderAmount = _finalTotal;
     final paymentUsed = _selectedPayment;
-    final assignedOrderCode = await ApiService.createOrder(newOrder);
+    final orderRes = await ApiService.createOrderDetailed(newOrder);
+
+    if (!mounted) return;
+
+    if (orderRes['success'] != true || (orderRes['orderCode']?.toString() ?? '').isEmpty) {
+      setState(() => _isCheckingOut = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            orderRes['message']?.toString() ?? 'Đặt hàng thất bại. Vui lòng kiểm tra lại giỏ hàng và tồn kho.',
+            style: AppTheme.bodyMedium(color: AppTheme.textLight),
+          ),
+          backgroundColor: AppTheme.statusDanger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final assignedOrderCode = orderRes['orderCode'].toString();
+    final serverTotal = (orderRes['totalAmount'] as num?)?.toInt() ?? finalOrderAmount;
 
     setState(() {
       widget.cart.clear();
@@ -287,9 +306,7 @@ class _CartScreenState extends State<CartScreen> {
     });
 
     if (widget.onUpdateCart != null) widget.onUpdateCart!();
-    if (!mounted) return;
-
-    _showSuccessDialog(assignedOrderCode ?? 'DH01', finalOrderAmount, paymentUsed);
+    _showSuccessDialog(assignedOrderCode, serverTotal > 0 ? serverTotal : finalOrderAmount, paymentUsed);
   }
 
   void _showSuccessDialog(String orderCode, [int orderAmount = 0, String paymentUsed = '']) {
@@ -579,36 +596,46 @@ class _CartScreenState extends State<CartScreen> {
                     const SizedBox(height: 16),
 
                     // Thông tin giao hàng
-                    Text('THÔNG TIN GIAO HÀNG', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _nameController,
-                      style: AppTheme.bodyMedium(),
-                      decoration: const InputDecoration(
-                        labelText: 'Họ tên người nhận *',
-                        prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('THÔNG TIN GIAO HÀNG', style: AppTheme.labelUppercase(fontSize: 10.5, color: AppTheme.accentGold)),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _nameController,
+                            style: AppTheme.bodyMedium(),
+                            decoration: const InputDecoration(
+                              labelText: 'Họ tên người nhận *',
+                              prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
+                            ),
+                            validator: (val) => (val == null || val.trim().isEmpty) ? 'Vui lòng nhập họ tên người nhận!' : null,
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            style: AppTheme.bodyMedium(),
+                            decoration: const InputDecoration(
+                              labelText: 'Số điện thoại *',
+                              prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                            ),
+                            validator: (val) => (val == null || val.trim().isEmpty) ? 'Vui lòng nhập số điện thoại!' : null,
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _addressController,
+                            style: AppTheme.bodyMedium(),
+                            decoration: const InputDecoration(
+                              labelText: 'Địa chỉ nhận hàng *',
+                              hintText: 'Nhập số nhà, tên đường, phường, quận...',
+                              prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+                            ),
+                            validator: (val) => (val == null || val.trim().isEmpty) ? 'Vui lòng nhập địa chỉ nhận hàng!' : null,
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      style: AppTheme.bodyMedium(),
-                      decoration: const InputDecoration(
-                        labelText: 'Số điện thoại *',
-                        prefixIcon: Icon(Icons.phone_outlined, size: 20),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: _addressController,
-                      style: AppTheme.bodyMedium(),
-                      decoration: const InputDecoration(
-                        labelText: 'Địa chỉ nhận hàng *',
-                        hintText: 'Nhập số nhà, tên đường, phường, quận...',
-                        prefixIcon: Icon(Icons.location_on_outlined, size: 20),
-                      ),
-                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Vui lòng nhập địa chỉ nhận hàng!' : null,
                     ),
                     const SizedBox(height: 20),
 
@@ -641,10 +668,6 @@ class _CartScreenState extends State<CartScreen> {
                       child: Column(
                         children: [
                           _buildPriceRow('Tạm tính:', currencyFormat.format(_subtotal)),
-                          if (_discountAmount > 0) ...[
-                            const SizedBox(height: 6),
-                            _buildPriceRow('Giảm giá ($_appliedVoucher):', '-${currencyFormat.format(_discountAmount)}', isDiscount: true),
-                          ],
                           const SizedBox(height: 6),
                           _buildPriceRow('Phí vận chuyển:', currencyFormat.format(_shippingFee)),
                           Divider(color: AppTheme.borderColorSubtle),

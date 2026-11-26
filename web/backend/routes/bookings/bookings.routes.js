@@ -1,10 +1,11 @@
 const { querySql } = require('../../database/db');
-const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const { enforceAuth, extractAuthUser, isStaffRole } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
 const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 const {
   formatTime,
   formatDate,
+  getLocalIsoDate,
   computeEndTime,
   resolveOrCreateCustomer,
   generateNextBookingId,
@@ -19,8 +20,11 @@ const {
 async function handleBookingRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
 
-  // POST /api/bookings/auto-cancel-overdue - Kích hoạt tự động hủy lịch hẹn & đơn hàng quá hạn qua 12h đêm
+  // POST /api/bookings/auto-cancel-overdue - Kích hoạt tự động hủy lịch hẹn quá hạn (chỉ Admin/Quản lý)
   if (pathname === '/api/bookings/auto-cancel-overdue' && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const result = await autoCancelOverdueBookingsAndOrders();
     clearDbSnapshotCache();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -43,10 +47,19 @@ async function handleBookingRoutes(req, res, ctx) {
     const date = parsedUrl.searchParams.get('date') || todayIso;
     const stylistId = (parsedUrl.searchParams.get('stylistId') || '').trim();
 
-    let bookedRows = [];
+    const duration = Math.max(15, parseInt(parsedUrl.searchParams.get('duration') || parsedUrl.searchParams.get('durationMinutes') || '45', 10) || 45);
+    const parseTimeToMinutes = (val) => {
+      if (!val) return null;
+      const parts = String(val).trim().split(':');
+      if (parts.length < 2) return null;
+      return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    };
+
+    let bookedIntervals = [];
     if (stylistId && stylistId !== 'all') {
-      bookedRows = await querySql(
-        `SELECT CONVERT(VARCHAR(8), lh.GioBatDau) AS GioBatDau 
+      const rows = await querySql(
+        `SELECT CONVERT(VARCHAR(8), lh.GioBatDau) AS GioBatDau,
+                CONVERT(VARCHAR(8), lh.GioKetThuc) AS GioKetThuc
          FROM LichHen lh
          LEFT JOIN NhanVien nv ON lh.MaNhanVien = nv.MaNhanVien
          WHERE (lh.MaNhanVien = ? OR nv.HoTen LIKE ?) 
@@ -54,23 +67,64 @@ async function handleBookingRoutes(req, res, ctx) {
            AND lh.TrangThai NOT IN (N'Đã hủy')`,
         [stylistId, `%${stylistId}%`, date]
       );
+      bookedIntervals = (rows || []).map(r => {
+        const startMin = parseTimeToMinutes(r.GioBatDau);
+        const rawEnd = parseTimeToMinutes(r.GioKetThuc);
+        const endMin = (rawEnd !== null && startMin !== null && rawEnd > startMin) ? rawEnd : (startMin !== null ? startMin + 45 : null);
+        return { startMin, endMin };
+      }).filter(it => it.startMin !== null && it.endMin !== null);
     } else {
-      bookedRows = await querySql(
-        `SELECT CONVERT(VARCHAR(8), GioBatDau) AS GioBatDau 
-         FROM LichHen 
-         WHERE CONVERT(VARCHAR(10), NgayHen, 120) = ? AND TrangThai NOT IN (N'Đã hủy')`,
-        [date]
-      );
+      const [rows, activeStaffRows] = await Promise.all([
+        querySql(
+          `SELECT lh.MaNhanVien,
+                  CONVERT(VARCHAR(8), lh.GioBatDau) AS GioBatDau,
+                  CONVERT(VARCHAR(8), lh.GioKetThuc) AS GioKetThuc
+           FROM LichHen lh
+           WHERE CONVERT(VARCHAR(10), lh.NgayHen, 120) = ? AND lh.TrangThai NOT IN (N'Đã hủy')`,
+          [date]
+        ),
+        querySql(`SELECT COUNT(*) AS TotalStaff FROM NhanVien WHERE TrangThai = N'Đang làm việc'`)
+      ]);
+      const totalActiveStaff = Math.max(1, parseInt(activeStaffRows?.[0]?.TotalStaff || 1, 10));
+      bookedIntervals = (rows || []).map(r => {
+        const startMin = parseTimeToMinutes(r.GioBatDau);
+        const rawEnd = parseTimeToMinutes(r.GioKetThuc);
+        const endMin = (rawEnd !== null && startMin !== null && rawEnd > startMin) ? rawEnd : (startMin !== null ? startMin + 45 : null);
+        return { stylistId: r.MaNhanVien, startMin, endMin };
+      }).filter(it => it.startMin !== null && it.endMin !== null);
+
+      const allSlots = [
+        '08:30', '09:30', '10:30', '11:30',
+        '13:30', '14:30', '15:30', '16:30',
+        '17:30', '18:30', '19:30', '20:30'
+      ];
+      const isToday = (date === todayIso);
+      const isPastDate = (date < todayIso);
+
+      const slots = allSlots.map(t => {
+        const [h, min] = t.split(':').map(Number);
+        const slotStart = (h || 0) * 60 + (min || 0);
+        const slotEnd = slotStart + duration;
+        const isPast = isPastDate || (isToday && slotStart <= currentMinutes);
+        const busyStaffSet = new Set(
+          bookedIntervals
+            .filter(it => slotStart < it.endMin && slotEnd > it.startMin)
+            .map(it => it.stylistId || '__busy')
+        );
+        const isBooked = busyStaffSet.size >= totalActiveStaff;
+        return {
+          time: t,
+          available: !isPast && !isBooked,
+          isPast,
+          isBooked,
+          reason: isPast ? 'Đã qua' : (isBooked ? 'Kín lịch' : 'Còn chỗ')
+        };
+      });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify(slots));
+      return true;
     }
 
-    const formatTimeStr = (val) => {
-      if (!val) return '';
-      const str = String(val).trim();
-      const parts = str.split(':');
-      return parts.length >= 2 ? `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}` : str.substring(0, 5);
-    };
-
-    const bookedTimes = new Set(bookedRows.map(r => formatTimeStr(r.GioBatDau)));
     const allSlots = [
       '08:30', '09:30', '10:30', '11:30',
       '13:30', '14:30', '15:30', '16:30',
@@ -82,8 +136,9 @@ async function handleBookingRoutes(req, res, ctx) {
     const slots = allSlots.map(t => {
       const [h, min] = t.split(':').map(Number);
       const slotStart = (h || 0) * 60 + (min || 0);
+      const slotEnd = slotStart + duration;
       const isPast = isPastDate || (isToday && slotStart <= currentMinutes);
-      const isBooked = bookedTimes.has(t);
+      const isBooked = bookedIntervals.some(it => slotStart < it.endMin && slotEnd > it.startMin);
       return {
         time: t,
         available: !isPast && !isBooked,
@@ -97,10 +152,34 @@ async function handleBookingRoutes(req, res, ctx) {
     return true;
   }
 
-  // GET /api/bookings/lookup - Tra cứu nhanh lịch hẹn theo mã, tên hoặc số điện thoại
+  // GET /api/bookings/lookup - Tra cứu nhanh lịch hẹn (bắt buộc đăng nhập & lọc theo quyền/chủ sở hữu)
   if (pathname === '/api/bookings/lookup' && method === 'GET') {
+    const authUser = enforceAuth(req, res);
+    if (!authUser) return true;
+
     await checkAndAutoCancelOnRequest();
     const q = (parsedUrl.searchParams.get('q') || '').trim();
+    if (!q && !isStaffRole(authUser)) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify([]));
+      return true;
+    }
+
+    const params = [`%${q}%`, `%${q}%`, `%${q}%`];
+    let ownerFilter = '';
+    if (!isStaffRole(authUser)) {
+      if (!authUser.customerId) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify([]));
+        return true;
+      }
+      ownerFilter = ' AND lh.MaKhachHang = ? ';
+      params.push(authUser.customerId);
+    } else if (!authUser.isSuperAdmin && authUser.branchId) {
+      ownerFilter = ' AND lh.MaChiNhanh = ? ';
+      params.push(authUser.branchId);
+    }
+
     const rows = await querySql(
       `SELECT lh.MaLichHen, lh.MaKhachHang, lh.MaNhanVien, lh.MaChiNhanh,
               CONVERT(VARCHAR(10), lh.NgayHen, 120) AS NgayHen,
@@ -120,13 +199,14 @@ async function handleBookingRoutes(req, res, ctx) {
        LEFT JOIN KhachHang kh ON lh.MaKhachHang = kh.MaKhachHang
        LEFT JOIN NhanVien nv ON lh.MaNhanVien = nv.MaNhanVien
        LEFT JOIN ChiNhanh cn ON lh.MaChiNhanh = cn.MaChiNhanh
-       WHERE lh.MaLichHen LIKE ? OR kh.SoDienThoai LIKE ? OR kh.HoTen LIKE ?
+       WHERE (lh.MaLichHen LIKE ? OR kh.SoDienThoai LIKE ? OR kh.HoTen LIKE ?)
+       ${ownerFilter}
        ORDER BY 
          CASE WHEN lh.MaLichHen LIKE 'LH[0-9]%' 
               THEN CAST(SUBSTRING(lh.MaLichHen, 3, 10) AS INT) 
               ELSE 0 END DESC,
          lh.NgayHen DESC, lh.GioBatDau DESC`,
-      [`%${q}%`, `%${q}%`, `%${q}%`]
+      params
     );
 
     const allBookingItems = await querySql(`
@@ -191,23 +271,30 @@ async function handleBookingRoutes(req, res, ctx) {
     return true;
   }
 
-  // GET /api/bookings - Danh sách toàn bộ lịch hẹn
-  if (pathname === '/api/bookings' && method === 'GET') {
+  // GET /api/bookings hoặc /api/bookings/my-history - Danh sách lịch hẹn (lọc theo quyền & chủ sở hữu JWT)
+  if ((pathname === '/api/bookings' || pathname === '/api/bookings/my-history') && method === 'GET') {
+    const authUser = enforceAuth(req, res);
+    if (!authUser) return true;
+
     await checkAndAutoCancelOnRequest();
-    const authUser = extractAuthUser(req);
+    const isMyHistory = (pathname === '/api/bookings/my-history');
     const branchParam = parsedUrl.searchParams.get('branch_id');
     let effectiveBranch = branchParam;
 
-    if (authUser) {
-      const roleUpper = String(authUser.role || authUser.vaiTroSql || '').toUpperCase();
-      const isMgr = (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER')) && !roleUpper.includes('ADMIN') && !roleUpper.includes('QUẢN TRỊ');
-      if (isMgr && authUser.branchId) {
-        if (branchParam && branchParam !== 'all' && branchParam !== authUser.branchId) {
-          res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem lịch hẹn của chi nhánh mình phụ trách.' }));
-          return true;
-        }
-        effectiveBranch = authUser.branchId;
+    if (!isMyHistory && !authUser.isSuperAdmin && isStaffRole(authUser) && authUser.branchId) {
+      if (branchParam && branchParam !== 'all' && branchParam !== authUser.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Bạn chỉ được xem lịch hẹn của chi nhánh mình phụ trách.' }));
+        return true;
+      }
+      effectiveBranch = authUser.branchId;
+    }
+
+    if ((isMyHistory || !isStaffRole(authUser)) && !authUser.customerId) {
+      if (!isMyHistory || !authUser.staffId) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify([]));
+        return true;
       }
     }
 
@@ -237,10 +324,25 @@ async function handleBookingRoutes(req, res, ctx) {
       LEFT JOIN NhanVien nv ON lh.MaNhanVien = nv.MaNhanVien
       LEFT JOIN ChiNhanh cn ON lh.MaChiNhanh = cn.MaChiNhanh
     `;
+    const conditions = [];
     const params = [];
-    if (effectiveBranch && effectiveBranch !== 'all') {
-      q += ` WHERE lh.MaChiNhanh = ?`;
+    if (isMyHistory) {
+      if (authUser.customerId) {
+        conditions.push(`lh.MaKhachHang = ?`);
+        params.push(authUser.customerId);
+      } else {
+        conditions.push(`lh.MaNhanVien = ?`);
+        params.push(authUser.staffId);
+      }
+    } else if (!isStaffRole(authUser)) {
+      conditions.push(`lh.MaKhachHang = ?`);
+      params.push(authUser.customerId);
+    } else if (effectiveBranch && effectiveBranch !== 'all') {
+      conditions.push(`lh.MaChiNhanh = ?`);
       params.push(effectiveBranch);
+    }
+    if (conditions.length > 0) {
+      q += ` WHERE ` + conditions.join(' AND ');
     }
     q += ` ORDER BY 
          CASE WHEN lh.MaLichHen LIKE 'LH[0-9]%' 
@@ -320,17 +422,21 @@ async function handleBookingRoutes(req, res, ctx) {
   // POST /api/bookings - Tạo lịch hẹn mới từ giao diện khách hàng hoặc quầy tiếp tân
   // Quy trình: Phân giải khách hàng -> Chọn chi nhánh & thợ -> Tính giờ kết thúc -> Lưu CSDL
   if (pathname === '/api/bookings' && method === 'POST') {
+    const authUser = extractAuthUser(req);
     const booking = parsedBody || {};
 
     // Backend luôn là Single Source of Truth cho mã lịch hẹn (LH01 -> LH23 -> LH24...)
     // Tự sinh mã tăng dần chuẩn từ CSDL SQL Server để Web và Mobile luôn đồng đều, không nhảy cóc
     const id = await generateNextBookingId();
 
-    const custName = (booking.customerName || 'Khách Hàng').trim();
-    const custPhone = (booking.customerPhone || '').replace(/\s+/g, '').trim();
-    const custEmail = (booking.customerEmail || '').trim();
+    const custName = (booking.customerName || authUser?.fullName || 'Khách Hàng').trim();
+    const custPhone = (booking.customerPhone || authUser?.phone || '').replace(/\s+/g, '').trim();
+    const custEmail = (booking.customerEmail || authUser?.email || '').trim();
+    const requestedCustomerId = (authUser && !isStaffRole(authUser) && authUser.customerId)
+      ? authUser.customerId
+      : (booking.customerId || booking.userId);
     const khId = await resolveOrCreateCustomer({
-      customerId: booking.customerId || booking.userId,
+      customerId: requestedCustomerId,
       customerName: custName,
       customerPhone: custPhone,
       customerEmail: custEmail
@@ -343,14 +449,12 @@ async function handleBookingRoutes(req, res, ctx) {
       cnId = (firstBranch && firstBranch[0]) ? firstBranch[0].MaChiNhanh : 'CN01';
     }
 
-    let nvId = booking.stylistId;
+    let nvId = (booking.stylistId && String(booking.stylistId).toLowerCase() !== 'all' && String(booking.stylistId).toLowerCase() !== 'auto')
+      ? String(booking.stylistId).trim()
+      : null;
     if (nvId) {
       const validStylist = await querySql('SELECT MaNhanVien FROM NhanVien WHERE MaNhanVien = ?', [nvId]);
       if (!validStylist || validStylist.length === 0) nvId = null;
-    }
-    if (!nvId) {
-      const defaultStylist = await querySql(`SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaChiNhanh = ? AND TrangThai = N'Đang làm việc'`, [cnId]);
-      nvId = (defaultStylist && defaultStylist[0]) ? defaultStylist[0].MaNhanVien : 'NV02';
     }
 
     const srvInfo = await resolveServiceInfo(booking.serviceId, booking.serviceName);
@@ -379,6 +483,64 @@ async function handleBookingRoutes(req, res, ctx) {
         error: `Khung giờ ${rawTime} ngày ${date} đã trôi qua so với thời gian hiện tại! Vui lòng chọn khung giờ khác.`
       }));
       return true;
+    }
+
+    // Kiểm tra trùng lịch theo giao khoảng [startTime, endTime) hoặc tự động chọn thợ rảnh trong khung giờ tại chi nhánh
+    if (!nvId) {
+      const freeStylist = await querySql(`
+        SELECT TOP 1 nv.MaNhanVien
+        FROM NhanVien nv
+        WHERE nv.MaChiNhanh = ?
+          AND nv.TrangThai = N'Đang làm việc'
+          AND NOT EXISTS (
+            SELECT 1 FROM LichHen lh
+            WHERE lh.MaNhanVien = nv.MaNhanVien
+              AND CONVERT(VARCHAR(10), lh.NgayHen, 120) = ?
+              AND lh.TrangThai NOT IN (N'Đã hủy')
+              AND CAST(? AS TIME) < ISNULL(lh.GioKetThuc, DATEADD(MINUTE, 45, lh.GioBatDau))
+              AND CAST(? AS TIME) > lh.GioBatDau
+          )
+        ORDER BY (
+          SELECT COUNT(*) FROM LichHen lh2
+          WHERE lh2.MaNhanVien = nv.MaNhanVien
+            AND CONVERT(VARCHAR(10), lh2.NgayHen, 120) = ?
+            AND lh2.TrangThai NOT IN (N'Đã hủy')
+        ) ASC
+      `, [cnId, date, startTime, endTime, date]);
+
+      if (!freeStylist || !freeStylist[0]) {
+        const anyStaff = await querySql(`SELECT TOP 1 MaNhanVien FROM NhanVien WHERE MaChiNhanh = ? AND TrangThai = N'Đang làm việc'`, [cnId]);
+        if (anyStaff && anyStaff[0] && !isWalkinOrWaiting) {
+          res.writeHead(409, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            success: false,
+            error: `Tất cả thợ tại chi nhánh đã kín lịch trong khung giờ ${startTime.slice(0, 5)}–${endTime.slice(0, 5)} ngày ${date}. Vui lòng chọn giờ khác.`
+          }));
+          return true;
+        }
+        nvId = (anyStaff && anyStaff[0]) ? anyStaff[0].MaNhanVien : 'NV02';
+      } else {
+        nvId = freeStylist[0].MaNhanVien;
+      }
+    } else if (!isWalkinOrWaiting) {
+      const conflicts = await querySql(`
+        SELECT TOP 1 MaLichHen, CONVERT(VARCHAR(5), GioBatDau, 108) AS GioBatDau, CONVERT(VARCHAR(5), ISNULL(GioKetThuc, DATEADD(MINUTE, 45, GioBatDau)), 108) AS GioKetThuc
+        FROM LichHen
+        WHERE MaNhanVien = ?
+          AND CONVERT(VARCHAR(10), NgayHen, 120) = ?
+          AND TrangThai NOT IN (N'Đã hủy')
+          AND CAST(? AS TIME) < ISNULL(GioKetThuc, DATEADD(MINUTE, 45, GioBatDau))
+          AND CAST(? AS TIME) > GioBatDau
+      `, [nvId, date, startTime, endTime]);
+      if (conflicts && conflicts.length > 0) {
+        const cf = conflicts[0];
+        res.writeHead(409, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+          success: false,
+          error: `Thợ ${nvId} đã có lịch hẹn #${cf.MaLichHen} (${cf.GioBatDau}–${cf.GioKetThuc}) ngày ${date}. Vui lòng chọn khung giờ hoặc thợ khác.`
+        }));
+        return true;
+      }
     }
 
     const cleanNotes = (booking.notes || '').replace(/^Khách:\s*[^|;]+(\|.*)?$/i, '').trim();
@@ -459,7 +621,6 @@ async function handleBookingRoutes(req, res, ctx) {
       console.warn('[ThongBao] Lỗi tạo thông báo đặt lịch:', e.message);
     }
 
-    const authUser = extractAuthUser(req);
     const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : `${custName} (${custPhone})`;
     const actorRole = authUser ? (authUser.role || 'CUSTOMER') : 'CUSTOMER';
 
@@ -501,20 +662,57 @@ async function handleBookingRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT / PATCH / DELETE /api/bookings/:id - Cập nhật trạng thái
-  if (pathname.startsWith('/api/bookings/') && (method === 'DELETE' || method === 'PUT' || method === 'PATCH')) {
+  // POST/PUT/PATCH/DELETE /api/bookings/:id - Cập nhật trạng thái hoặc check-in (bắt buộc JWT & kiểm tra quyền/chủ sở hữu)
+  if (pathname.startsWith('/api/bookings/') && (method === 'DELETE' || method === 'PUT' || method === 'PATCH' || (method === 'POST' && (pathname.endsWith('/checkin') || pathname.endsWith('/cancel'))))) {
+    const authUser = enforceAuth(req, res);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/bookings/', '').replace('/cancel', '').replace('/status', '').replace('/checkin', '').trim();
     const b = parsedBody || {};
-    const authUser = extractAuthUser(req);
 
-    const oldRows = await querySql(`SELECT TrangThai, MaChiNhanh, MaKhachHang, NgayHen, GioBatDau FROM LichHen WHERE MaLichHen = ?`, [id]);
+    const oldRows = await querySql(`SELECT TrangThai, MaChiNhanh, MaKhachHang, MaNhanVien, CONVERT(VARCHAR(10), NgayHen, 120) AS NgayHen, CONVERT(VARCHAR(8), GioBatDau) AS GioBatDau, CONVERT(VARCHAR(8), GioKetThuc) AS GioKetThuc FROM LichHen WHERE MaLichHen = ?`, [id]);
     const oldData = (oldRows && oldRows[0]) ? oldRows[0] : null;
+    if (!oldData) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Không tìm thấy lịch hẹn.' }));
+      return true;
+    }
+
+    const isCancel = (method === 'DELETE' || b.status === 'Cancelled' || b.status === 'cancelled' || b.status === 'Đã hủy' || pathname.includes('/cancel'));
+    const isReschedule = Boolean(!isCancel && (b.date || b.timeSlot) && !pathname.includes('/checkin') && !b.status);
+    const staffUser = isStaffRole(authUser);
+
+    if (!staffUser) {
+      if (!authUser.customerId || oldData.MaKhachHang !== authUser.customerId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Bạn chỉ được phép hủy hoặc đổi giờ lịch hẹn của chính mình.' }));
+        return true;
+      }
+      if (!isCancel && !isReschedule) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Khách hàng không thể tự chuyển trạng thái check-in hoặc hoàn thành.' }));
+        return true;
+      }
+    } else if (!authUser.isSuperAdmin && authUser.branchId && oldData.MaChiNhanh && oldData.MaChiNhanh !== authUser.branchId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Bạn chỉ được thao tác lịch hẹn thuộc chi nhánh mình phụ trách.' }));
+      return true;
+    }
 
     let action = 'UPDATE_BOOKING_STATUS';
     let newStatus = 'Đã xác nhận';
     let afterData = {};
 
-    if (method === 'DELETE' || b.status === 'Cancelled' || b.status === 'cancelled' || b.status === 'Đã hủy' || pathname.includes('/cancel')) {
+    if (isCancel) {
+      const prevSt = (oldData.TrangThai || '').toLowerCase().trim();
+      if (prevSt.includes('đang phục vụ') || prevSt === 'in_progress' || prevSt.includes('hoàn thành') || prevSt === 'completed') {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+          success: false,
+          message: 'Không thể hủy lịch hẹn đang phục vụ tại ghế hoặc đã hoàn thành!'
+        }));
+        return true;
+      }
       action = 'CANCEL_BOOKING';
       newStatus = 'Đã hủy';
       const reason = b.cancellationReason || b.reason || 'Khách hủy lịch';
@@ -538,10 +736,32 @@ async function handleBookingRoutes(req, res, ctx) {
       afterData = { TrangThai: newStatus };
     } else if (b.date || b.timeSlot) {
       action = 'RESCHEDULE_BOOKING';
-      const newDate = b.date || b.bookingDate || new Date().toISOString().split('T')[0];
-      const newTime = b.timeSlot ? (b.timeSlot.length === 5 ? `${b.timeSlot}:00` : b.timeSlot) : '09:00:00';
+      const newDate = b.date || b.bookingDate || oldData.NgayHen || getLocalIsoDate();
+      const newTime = b.timeSlot ? (b.timeSlot.length === 5 ? `${b.timeSlot}:00` : b.timeSlot) : (oldData.GioBatDau || '09:00:00');
       const dur = parseInt(b.duration || b.durationMinutes || 45, 10);
       const newEndTime = computeEndTime(newTime, dur);
+
+      if (oldData.MaNhanVien) {
+        const overlaps = await querySql(`
+          SELECT TOP 1 MaLichHen, CONVERT(VARCHAR(5), GioBatDau, 108) AS GioBatDau
+          FROM LichHen
+          WHERE MaNhanVien = ?
+            AND MaLichHen <> ?
+            AND CONVERT(VARCHAR(10), NgayHen, 120) = ?
+            AND TrangThai NOT IN (N'Đã hủy')
+            AND CAST(? AS TIME) < ISNULL(GioKetThuc, DATEADD(MINUTE, 45, GioBatDau))
+            AND CAST(? AS TIME) > GioBatDau
+        `, [oldData.MaNhanVien, id, newDate, newTime, newEndTime]);
+        if (overlaps && overlaps.length > 0) {
+          res.writeHead(409, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            success: false,
+            message: `Thợ ${oldData.MaNhanVien} đã có lịch hẹn #${overlaps[0].MaLichHen} trùng khung giờ mới. Vui lòng chọn giờ khác.`
+          }));
+          return true;
+        }
+      }
+
       await querySql(`UPDATE LichHen SET NgayHen = ?, GioBatDau = ?, GioKetThuc = ?, TrangThai = N'Đã xác nhận' WHERE MaLichHen = ?`, [newDate, newTime, newEndTime, id]);
       afterData = { NgayHen: newDate, GioBatDau: newTime, GioKetThuc: newEndTime, TrangThai: 'Đã xác nhận' };
     } else {
@@ -550,9 +770,9 @@ async function handleBookingRoutes(req, res, ctx) {
       afterData = { TrangThai: newStatus };
     }
 
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Khách Hàng';
-    const actorRole = authUser ? (authUser.role || 'CUSTOMER') : 'CUSTOMER';
-    const branchId = oldData ? oldData.MaChiNhanh : (b.branchId || null);
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
+    const branchId = oldData.MaChiNhanh || (b.branchId || null);
 
     auditService.logAudit({
       actor: actorName,

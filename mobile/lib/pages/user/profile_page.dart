@@ -15,11 +15,25 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  int? _bookingCount;
+
   @override
   void initState() {
     super.initState();
     AuthService.userNotifier.addListener(_onAuthChanged);
     AppTheme.isDarkModeNotifier.addListener(_onThemeChanged);
+    _loadBookingCount();
+  }
+
+  Future<void> _loadBookingCount() async {
+    if (!AuthService.isLoggedIn) {
+      if (mounted) setState(() => _bookingCount = null);
+      return;
+    }
+    try {
+      final list = await ApiService.fetchBookings();
+      if (mounted) setState(() => _bookingCount = list.length);
+    } catch (_) {}
   }
 
   @override
@@ -36,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _onAuthChanged() {
     if (mounted) {
       setState(() {});
+      _loadBookingCount();
     }
   }
 
@@ -121,7 +136,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildStatCol('LỊCH ĐÃ CẮT', isLoggedIn ? '8 Lần' : '--'),
+                          child: _buildStatCol(
+                            'LỊCH ĐÃ CẮT',
+                            isLoggedIn
+                                ? (_bookingCount != null ? '$_bookingCount Lần' : '...')
+                                : '--',
+                          ),
                         ),
                         Container(width: 1, height: 26, color: AppTheme.borderColor),
                         Expanded(
@@ -358,6 +378,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       await AuthService.logout();
+                      if (!mounted) return;
                       setState(() {});
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -691,46 +712,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Các phom tóc 3D bạn đã thử nghiệm bằng AI Neural Engine được lưu trữ tại đây để bạn tiện trao đổi với Master Stylist khi đến salon.',
-              style: AppTheme.bodySmall(color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 14),
             Container(
-              padding: const EdgeInsets.all(12),
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppTheme.surfaceElevated,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: AppTheme.borderColor),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Image.network(
-                      ApiService.getImageUrl('DataPicture/DichVu_Men/CBDV1.jpg'),
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 50,
-                        height: 50,
-                        color: AppTheme.surfaceElevated,
-                        child: const Icon(Icons.content_cut, size: 20),
-                      ),
-                    ),
+                  Icon(Icons.auto_awesome_outlined, color: AppTheme.accentGold.withValues(alpha: 0.8), size: 28),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Chưa có kiểu tóc AI nào được lưu',
+                    style: AppTheme.bodySmall(fontWeight: FontWeight.w700),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Layer Texture Tự Nhiên', style: AppTheme.bodySmall(fontWeight: FontWeight.w700)),
-                        Text('Tông màu: Đen Tự Nhiên • Độ dài: 8cm', style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary)),
-                      ],
-                    ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Hãy mở mục Thử Kiểu Tóc AI để chụp hoặc tải ảnh chân dung và xem trước các mẫu tóc thật phù hợp với khuôn mặt bạn.',
+                    style: AppTheme.bodySmall(fontSize: 11, color: AppTheme.textSecondary),
+                    textAlign: TextAlign.center,
                   ),
-                  const Icon(Icons.check_circle_rounded, color: AppTheme.accentGold, size: 18),
                 ],
               ),
             ),

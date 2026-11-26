@@ -1331,8 +1331,11 @@
 
     async viewReceiptDetailModal(receiptId) {
       let receipt = null;
+      const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('OMNISALON_JWT_ACCESS_TOKEN') : '';
       try {
-        const res = await fetch(`${window.store.liveServerUrl}/inventory/receipts/${receiptId}`);
+        const res = await fetch(`${window.store.liveServerUrl}/inventory/receipts/${receiptId}`, {
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        });
         if (res.ok) {
           receipt = await res.json();
         }

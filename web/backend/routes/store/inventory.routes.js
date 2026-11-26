@@ -1,5 +1,5 @@
 const { querySql } = require('../../database/db');
-const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const { enforceAuth, extractAuthUser } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
 const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
@@ -8,8 +8,17 @@ function getUserRoleInfo(authUser) {
   const role = String(authUser.role || authUser.vaiTroSql || authUser.VaiTro || authUser.ChucVu || '').toUpperCase();
   const username = String(authUser.username || authUser.TenDangNhap || '').toLowerCase();
   const isSuper = role === 'SUPER_ADMIN' || role === 'ADMIN' || role.includes('QUẢN TRỊ') || username === 'admin';
-  const isManager = !isSuper && (role === 'BRANCH_MANAGER' || role === 'QUẢN LÝ' || role.includes('QUẢN LÝ') || role.includes('QUAN_LY'));
-  const isStaff = !isSuper && !isManager && (role === 'STAFF' || role === 'CASHIER' || role === 'STYLIST' || role.includes('THỢ') || role.includes('THU NGÂN') || role.includes('NHÂN VIÊN'));
+  const isManager = !isSuper && (role === 'BRANCH_MANAGER' || role === 'MANAGER' || role === 'QUẢN LÝ' || role.includes('QUẢN LÝ') || role.includes('QUAN_LY'));
+  const isStaff = !isSuper && !isManager && (
+    role === 'STAFF' ||
+    role === 'CASHIER' ||
+    role === 'BARBER' ||
+    role === 'STYLIST' ||
+    role.includes('THỢ') ||
+    role.includes('KỸ THUẬT') ||
+    role.includes('THU NGÂN') ||
+    role.includes('NHÂN VIÊN')
+  );
   const branchId = authUser.branchId || authUser.MaChiNhanh || null;
   const staffId = authUser.staffId || authUser.MaNhanVien || authUser.id || null;
   return { isSuper, isManager, isStaff, branchId, staffId };
@@ -20,23 +29,21 @@ async function handleInventoryRoutes(req, res, ctx) {
   const authUser = extractAuthUser(req);
   const userInfo = getUserRoleInfo(authUser);
 
-  // GET /api/inventory - Báo cáo tồn kho theo từng chi nhánh salon
+  // GET /api/inventory - Báo cáo tồn kho theo từng chi nhánh salon (chỉ Admin/Quản lý)
   if ((pathname === '/api/inventory' || pathname === '/api/admin/inventory') && method === 'GET') {
-    if (authUser && userInfo.isStaff) {
-      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, error: 'Nhân viên không có quyền truy cập dữ liệu tồn kho.' }));
-      return true;
-    }
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
 
     const branchParam = parsedUrl.searchParams.get('branch_id');
     let effectiveBranch = branchParam;
-    if (userInfo.isManager && userInfo.branchId) {
-      if (branchParam && branchParam !== 'all' && branchParam !== userInfo.branchId) {
+    if (reqInfo.isManager && reqInfo.branchId) {
+      if (branchParam && branchParam !== 'all' && branchParam !== reqInfo.branchId) {
         res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem tồn kho của chi nhánh mình phụ trách.' }));
         return true;
       }
-      effectiveBranch = userInfo.branchId;
+      effectiveBranch = reqInfo.branchId;
     }
 
     let q = `
@@ -71,27 +78,31 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/inventory/:productId/stock - Cập nhật thủ công số lượng tồn kho
+  // PUT /api/inventory/:productId/stock - Cập nhật thủ công số lượng tồn kho (chỉ Admin/Quản lý)
   if (pathname.includes('/inventory/') && pathname.includes('/stock') && method === 'PUT') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
+
     const parts = pathname.split('/');
     const prodId = parts[3];
     const { stock, branchId } = parsedBody || {};
     let bId = branchId || 'CN01';
-    if (userInfo.isManager && userInfo.branchId) {
-      if (branchId && branchId !== userInfo.branchId) {
+    if (reqInfo.isManager && reqInfo.branchId) {
+      if (branchId && branchId !== reqInfo.branchId) {
         res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được cập nhật tồn kho của chi nhánh mình.' }));
         return true;
       }
-      bId = userInfo.branchId;
+      bId = reqInfo.branchId;
     }
     await querySql(
       `UPDATE TonKho SET SoLuongTon = ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?`,
       [stock, prodId, bId]
     );
 
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản lý kho';
-    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const actorName = reqUser.fullName || reqUser.name || reqUser.username;
+    const actorRole = reqUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -109,18 +120,22 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // GET /api/inventory/receipts - Danh sách các phiếu nhập hàng từ nhà cung cấp
+  // GET /api/inventory/receipts - Danh sách các phiếu nhập hàng từ nhà cung cấp (nội bộ)
   if (pathname === '/api/inventory/receipts' && method === 'GET') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STAFF']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
+
     const branchParam = parsedUrl.searchParams.get('branch_id');
     let effectiveBranch = branchParam;
 
-    if (userInfo.isManager && userInfo.branchId) {
-      if (branchParam && branchParam !== 'all' && branchParam !== userInfo.branchId) {
+    if (reqInfo.isManager && reqInfo.branchId) {
+      if (branchParam && branchParam !== 'all' && branchParam !== reqInfo.branchId) {
         res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem phiếu nhập của chi nhánh mình phụ trách.' }));
         return true;
       }
-      effectiveBranch = userInfo.branchId;
+      effectiveBranch = reqInfo.branchId;
     }
 
     let q = `
@@ -139,9 +154,9 @@ async function handleInventoryRoutes(req, res, ctx) {
       WHERE 1=1
     `;
     const params = [];
-    if (userInfo.isStaff && userInfo.staffId) {
+    if (reqInfo.isStaff && reqInfo.staffId) {
       q += ` AND pnk.MaNhanVien = ?`;
-      params.push(userInfo.staffId);
+      params.push(reqInfo.staffId);
     } else if (effectiveBranch && effectiveBranch !== 'all') {
       q += ` AND pnk.MaChiNhanh = ?`;
       params.push(effectiveBranch);
@@ -180,8 +195,12 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // GET /api/inventory/receipts/:id - Xem chi tiết các lô hàng và giá nhập trong phiếu
+  // GET /api/inventory/receipts/:id - Xem chi tiết phiếu nhập (nội bộ)
   if (pathname.startsWith('/api/inventory/receipts/') && !pathname.endsWith('/approve') && !pathname.endsWith('/reject') && method === 'GET') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STAFF']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
+
     const receiptId = pathname.replace('/api/inventory/receipts/', '').trim();
     const pnkRows = await querySql(
       `SELECT pnk.*, cn.TenChiNhanh, ncc.TenNhaCungCap, nv1.HoTen AS TenNguoiLap, nv2.HoTen AS TenNguoiDuyet
@@ -194,19 +213,19 @@ async function handleInventoryRoutes(req, res, ctx) {
       [receiptId]
     );
     if (pnkRows.length === 0) {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ error: 'Không tìm thấy phiếu nhập' }));
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiếu nhập' }));
       return true;
     }
     const r = pnkRows[0];
 
     // Kiem tra phan quyen xem chi tiet
-    if (userInfo.isStaff && userInfo.staffId && r.MaNhanVien !== userInfo.staffId) {
+    if (reqInfo.isStaff && reqInfo.staffId && r.MaNhanVien !== reqInfo.staffId) {
       res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: 'Nhân viên chỉ được xem phiếu do mình lập.' }));
       return true;
     }
-    if (userInfo.isManager && userInfo.branchId && r.MaChiNhanh !== userInfo.branchId) {
+    if (reqInfo.isManager && reqInfo.branchId && r.MaChiNhanh !== reqInfo.branchId) {
       res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: 'Quản lý chỉ được xem phiếu thuộc chi nhánh mình phụ trách.' }));
       return true;
@@ -253,22 +272,26 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/inventory/receipts - Nhập lô hàng mới vào kho
+  // POST /api/inventory/receipts - Nhập lô hàng mới vào kho (nội bộ)
   if (pathname === '/api/inventory/receipts' && method === 'POST') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STAFF']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
+
     const { branchId, supplierId, staffId, items, total, status } = parsedBody || {};
     let bId = branchId || 'CN01';
     let stId = staffId || 'NV01';
-    if (userInfo.staffId) stId = userInfo.staffId;
+    if (reqInfo.staffId) stId = reqInfo.staffId;
 
-    if (userInfo.isManager && userInfo.branchId) {
-      if (branchId && branchId !== userInfo.branchId) {
+    if (reqInfo.isManager && reqInfo.branchId) {
+      if (branchId && branchId !== reqInfo.branchId) {
         res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được lập phiếu cho chi nhánh mình phụ trách.' }));
         return true;
       }
-      bId = userInfo.branchId;
-    } else if (userInfo.isStaff && userInfo.branchId) {
-      bId = userInfo.branchId;
+      bId = reqInfo.branchId;
+    } else if (reqInfo.isStaff && reqInfo.branchId) {
+      bId = reqInfo.branchId;
     }
 
     const sId = supplierId || 'NCC01';
@@ -277,7 +300,7 @@ async function handleInventoryRoutes(req, res, ctx) {
     // Phan quyen tu dong duyet
     let isAutoApprove = false;
     let stt = 'Chờ duyệt';
-    if (userInfo.isSuper || userInfo.isManager) {
+    if (reqInfo.isSuper || reqInfo.isManager) {
       isAutoApprove = true;
       stt = 'Đã duyệt';
     } else {
@@ -370,18 +393,15 @@ async function handleInventoryRoutes(req, res, ctx) {
 
   // POST /api/inventory/receipts/:id/approve - Quản lý duyệt phiếu nhập kho
   if (pathname.startsWith('/api/inventory/receipts/') && pathname.endsWith('/approve') && method === 'POST') {
-    const id = pathname.replace('/api/inventory/receipts/', '').replace('/approve', '').trim();
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
 
-    // Kiem tra phan quyen phe duyet
-    if (authUser && userInfo.isStaff) {
-      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, error: 'Nhân viên không có quyền phê duyệt phiếu nhập kho.' }));
-      return true;
-    }
+    const id = pathname.replace('/api/inventory/receipts/', '').replace('/approve', '').trim();
 
     const pnkRows = await querySql('SELECT MaPhieuNhap, MaChiNhanh, TrangThai FROM PhieuNhapKho WHERE MaPhieuNhap = ?', [id]);
     if (!pnkRows || pnkRows.length === 0) {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiếu nhập #' + id }));
       return true;
     }
@@ -390,7 +410,7 @@ async function handleInventoryRoutes(req, res, ctx) {
     const bId = receipt.MaChiNhanh;
 
     // Quan ly chi nhanh chi duoc duyet phieu cua chi nhanh minh phu trach
-    if (userInfo.isManager && userInfo.branchId && userInfo.branchId !== bId) {
+    if (reqInfo.isManager && reqInfo.branchId && reqInfo.branchId !== bId) {
       res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được phê duyệt phiếu nhập của chi nhánh mình phụ trách.' }));
       return true;
@@ -402,25 +422,12 @@ async function handleInventoryRoutes(req, res, ctx) {
       return true;
     }
 
-    const approverId = userInfo.staffId || (parsedBody && parsedBody.approverId) || 'NV01';
+    const approverId = reqInfo.staffId || 'NV01';
     await querySql("UPDATE PhieuNhapKho SET TrangThai = N'Đã duyệt', NgayDuyet = GETDATE(), MaNguoiDuyet = ? WHERE MaPhieuNhap = ?", [approverId, id]);
+    // Trigger trg_PhieuNhapKho_CapNhatTonKho trong SQL Server tự động cộng TonKho khi TrangThai chuyển sang Đã duyệt.
 
-    // Cong ton kho cho tung san pham trong phieu nhap
-    const ctpnRows = await querySql('SELECT MaSanPham, SoLuong FROM ChiTietPhieuNhap WHERE MaPhieuNhap = ?', [id]);
-    if (ctpnRows && ctpnRows.length > 0) {
-      for (const it of ctpnRows) {
-        await querySql(
-          `IF EXISTS (SELECT 1 FROM TonKho WHERE MaSanPham = ? AND MaChiNhanh = ?)
-             UPDATE TonKho SET SoLuongTon = SoLuongTon + ?, NgayCapNhat = GETDATE() WHERE MaSanPham = ? AND MaChiNhanh = ?
-           ELSE
-             INSERT INTO TonKho (MaSanPham, MaChiNhanh, SoLuongTon, MucCanhBao, NgayCapNhat) VALUES (?, ?, ?, 5, GETDATE())`,
-          [it.MaSanPham, bId, it.SoLuong, it.MaSanPham, bId, it.MaSanPham, bId, it.SoLuong]
-        );
-      }
-    }
-
-    const appActor = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản lý chi nhánh';
-    const appRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const appActor = reqUser.fullName || reqUser.name || reqUser.username;
+    const appRole = reqUser.role;
     auditService.logAudit({
       actor: appActor,
       role: appRole,
@@ -440,18 +447,15 @@ async function handleInventoryRoutes(req, res, ctx) {
 
   // POST /api/inventory/receipts/:id/reject - Quản lý từ chối phiếu nhập kho kèm lý do bắt buộc
   if (pathname.startsWith('/api/inventory/receipts/') && pathname.endsWith('/reject') && method === 'POST') {
-    const id = pathname.replace('/api/inventory/receipts/', '').replace('/reject', '').trim();
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
 
-    // Kiem tra phan quyen tu choi
-    if (authUser && userInfo.isStaff) {
-      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, error: 'Nhân viên không có quyền từ chối phiếu nhập kho.' }));
-      return true;
-    }
+    const id = pathname.replace('/api/inventory/receipts/', '').replace('/reject', '').trim();
 
     const pnkRows = await querySql('SELECT MaPhieuNhap, MaChiNhanh, TrangThai FROM PhieuNhapKho WHERE MaPhieuNhap = ?', [id]);
     if (!pnkRows || pnkRows.length === 0) {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiếu nhập #' + id }));
       return true;
     }
@@ -460,7 +464,7 @@ async function handleInventoryRoutes(req, res, ctx) {
     const bId = receipt.MaChiNhanh;
 
     // Quan ly chi nhanh chi duoc tu choi phieu cua chi nhanh minh phu trach
-    if (userInfo.isManager && userInfo.branchId && userInfo.branchId !== bId) {
+    if (reqInfo.isManager && reqInfo.branchId && reqInfo.branchId !== bId) {
       res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được từ chối phiếu nhập của chi nhánh mình phụ trách.' }));
       return true;
@@ -473,11 +477,11 @@ async function handleInventoryRoutes(req, res, ctx) {
       return true;
     }
 
-    const approverId = userInfo.staffId || (parsedBody && parsedBody.approverId) || 'NV01';
+    const approverId = reqInfo.staffId || 'NV01';
     await querySql("UPDATE PhieuNhapKho SET TrangThai = N'Đã từ chối', LyDoTuChoi = ?, NgayDuyet = GETDATE(), MaNguoiDuyet = ? WHERE MaPhieuNhap = ?", [reason, approverId, id]);
 
-    const rejActor = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản lý chi nhánh';
-    const rejRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const rejActor = reqUser.fullName || reqUser.name || reqUser.username;
+    const rejRole = reqUser.role;
     auditService.logAudit({
       actor: rejActor,
       role: rejRole,
@@ -495,31 +499,36 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // GET /api/inventory/low-stock - View cảnh báo các mặt hàng sắp hết tồn kho
+  // GET /api/inventory/low-stock - View cảnh báo các mặt hàng sắp hết tồn kho (chỉ Admin/Quản lý)
   if (pathname === '/api/inventory/low-stock' && method === 'GET') {
-    const rows = await querySql(`SELECT * FROM vw_SanPhamCanhBaoTonThap`);
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
+
+    let rows = await querySql(`SELECT * FROM vw_SanPhamCanhBaoTonThap`);
+    if (reqInfo.isManager && reqInfo.branchId && Array.isArray(rows)) {
+      rows = rows.filter(r => !r.MaChiNhanh || r.MaChiNhanh === reqInfo.branchId);
+    }
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify(rows));
+    res.end(JSON.stringify(rows || []));
     return true;
   }
 
-  // GET /api/inventory/lots - Danh sách các lô hàng kèm ngày hết hạn
+  // GET /api/inventory/lots - Danh sách các lô hàng kèm ngày hết hạn (chỉ Admin/Quản lý)
   if ((pathname === '/api/inventory/lots' || pathname === '/api/admin/fefo' || pathname === '/api/inventory/fefo-lots') && method === 'GET') {
-    if (authUser && userInfo.isStaff) {
-      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, error: 'Nhân viên không có quyền truy cập dữ liệu lô hàng FEFO.' }));
-      return true;
-    }
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
 
     const branchParam = parsedUrl.searchParams.get('branch_id');
     let effectiveBranch = branchParam;
-    if (userInfo.isManager && userInfo.branchId) {
-      if (branchParam && branchParam !== 'all' && branchParam !== userInfo.branchId) {
+    if (reqInfo.isManager && reqInfo.branchId) {
+      if (branchParam && branchParam !== 'all' && branchParam !== reqInfo.branchId) {
         res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem lô hàng FEFO của chi nhánh mình phụ trách.' }));
         return true;
       }
-      effectiveBranch = userInfo.branchId;
+      effectiveBranch = reqInfo.branchId;
     }
 
     let q = `SELECT * FROM vw_GiaBanTheoLoHienTai`;
@@ -553,11 +562,15 @@ async function handleInventoryRoutes(req, res, ctx) {
 
   // Nhà cung cấp
 
-  // GET /api/suppliers - Danh sách nhà cung cấp
+  // GET /api/suppliers - Danh sách nhà cung cấp (nội bộ)
   if (pathname === '/api/suppliers' && method === 'GET') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STAFF']);
+    if (!reqUser) return true;
+    const reqInfo = getUserRoleInfo(reqUser);
+
     const rows = await querySql(`SELECT MaNhaCungCap, TenNhaCungCap, SoDienThoai, Email, DiaChi, TrangThai FROM NhaCungCap`);
     const suppliers = rows.map(r => {
-      if (userInfo.isStaff) {
+      if (reqInfo.isStaff) {
         return {
           id: r.MaNhaCungCap,
           MaNhaCungCap: r.MaNhaCungCap,
@@ -585,13 +598,16 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/suppliers - Thêm nhà cung cấp mới
+  // POST /api/suppliers - Thêm nhà cung cấp mới (chỉ Admin/Quản lý)
   if (pathname === '/api/suppliers' && method === 'POST') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+
     const body = parsedBody || {};
     const maxRows = await querySql(`SELECT TOP 1 MaNhaCungCap FROM NhaCungCap ORDER BY LEN(MaNhaCungCap) DESC, MaNhaCungCap DESC`);
     let nextN = 6;
     if (maxRows && maxRows[0]) {
-      const m = maxRows[0].MaNhaCungCap.match(/NCC(\\d+)/i);
+      const m = maxRows[0].MaNhaCungCap.match(/NCC(\d+)/i);
       if (m) nextN = parseInt(m[1], 10) + 1;
     }
     const nccId = (body.id || body.MaNhaCungCap || ('NCC' + (nextN < 10 ? '0' + nextN : nextN))).trim();
@@ -610,8 +626,11 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/suppliers/:id - Sửa nhà cung cấp
+  // PUT /api/suppliers/:id - Sửa nhà cung cấp (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/suppliers/') && method === 'PUT') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+
     const id = pathname.replace('/api/suppliers/', '').trim();
     const body = parsedBody || {};
     await querySql(
@@ -623,8 +642,11 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/suppliers/:id - Xóa nhà cung cấp
+  // DELETE /api/suppliers/:id - Xóa nhà cung cấp (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/suppliers/') && method === 'DELETE') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+
     const id = pathname.replace('/api/suppliers/', '').trim();
     await querySql(`DELETE FROM NhaCungCap WHERE MaNhaCungCap = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -634,16 +656,21 @@ async function handleInventoryRoutes(req, res, ctx) {
 
   // Quy tac giam gia theo han dung FEFO
 
-  // GET /api/inventory/discount-rules - Danh sách quy tắc giảm giá cận hạn
+  // GET /api/inventory/discount-rules - Danh sách quy tắc giảm giá cận hạn (nội bộ)
   if (pathname === '/api/inventory/discount-rules' && method === 'GET') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER', 'BARBER', 'STAFF']);
+    if (!reqUser) return true;
+
     const rows = await querySql(`SELECT * FROM QuyTacGiamGiaTheoHan ORDER BY PhanTramGiam ASC`);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(rows));
     return true;
   }
 
-  // POST /api/inventory/discount-rules - Thêm quy tắc mới
+  // POST /api/inventory/discount-rules - Thêm quy tắc mới (chỉ Admin/Quản lý)
   if (pathname === '/api/inventory/discount-rules' && method === 'POST') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
     const body = parsedBody || {};
     let id = (body.id || body.MaQuyTac || '').trim();
     if (!id) {
@@ -670,8 +697,11 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/inventory/discount-rules/:id - Sửa quy tắc
+  // PUT /api/inventory/discount-rules/:id - Sửa quy tắc (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/inventory/discount-rules/') && method === 'PUT') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+
     const id = pathname.replace('/api/inventory/discount-rules/', '').trim();
     const body = parsedBody || {};
     await querySql(
@@ -683,8 +713,11 @@ async function handleInventoryRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/inventory/discount-rules/:id - Xóa quy tắc
+  // DELETE /api/inventory/discount-rules/:id - Xóa quy tắc (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/inventory/discount-rules/') && method === 'DELETE') {
+    const reqUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!reqUser) return true;
+
     const id = pathname.replace('/api/inventory/discount-rules/', '').trim();
     await querySql(`DELETE FROM QuyTacGiamGiaTheoHan WHERE MaQuyTac = ?`, [id]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

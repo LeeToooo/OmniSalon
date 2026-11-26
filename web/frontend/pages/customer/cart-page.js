@@ -183,7 +183,7 @@
                       <div class="cart-row-packshot" onclick="if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;" title="Xem chi tiết ${item.name}">
                         <img src="${SalonUtils.formatImageUrl(item.image)}" 
                              alt="${item.name}" 
-                             onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=200&q=80');">
+                             onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
                       </div>
 
                       <div class="cart-row-info">
@@ -664,7 +664,8 @@
       const isVietQr = this.checkoutData.paymentMethod === 'VIETQR';
       const isVnPay = this.checkoutData.paymentMethod === 'VNPAY';
       const finalAmount = order.totalAmount || 0;
-      const vietQrUrl = `https://img.vietqr.io/image/970422-0908123456-compact2.png?amount=${finalAmount}&addInfo=OMNI%20${orderCode}&accountName=OMNI%20SALON%20VIETNAM`;
+      const cleanOrderCode = String(orderCode).replace(/^#/, '');
+      const vietQrUrl = `https://api.vietqr.io/image/970422-0900000000-compact.jpg?amount=${finalAmount}&addInfo=${encodeURIComponent('THANHTOAN ' + cleanOrderCode)}&accountName=OMNISALON%20ENTERPRISE`;
 
       return `
         <div style="max-width: 640px; margin: 0 auto; background: var(--surface-card, #13161F); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 36px 24px; text-align: center;">
@@ -701,10 +702,10 @@
               <div style="font-size: 12px; color: #64748B; margin-bottom: 12px;">Mở ứng dụng ngân hàng và quét mã để chuyển khoản tự động</div>
               <img src="${vietQrUrl}" alt="Mã VietQR Thanh Toán" style="max-width: 240px; width: 100%; border-radius: 8px; margin: 0 auto 12px; display: block;" onerror="this.style.display='none'">
               <div style="font-size: 12.5px; line-height: 1.6; text-align: left; background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                <div><strong>Ngân hàng:</strong> MB Bank</div>
-                <div><strong>Số tài khoản:</strong> 0908123456</div>
-                <div><strong>Chủ tài khoản:</strong> OMNI SALON VIETNAM</div>
-                <div><strong>Nội dung:</strong> OMNI ${orderCode}</div>
+                <div><strong>Ngân hàng:</strong> MB BANK (Quân Đội)</div>
+                <div><strong>Số tài khoản:</strong> 0900000000</div>
+                <div><strong>Chủ tài khoản:</strong> OMNISALON ENTERPRISE</div>
+                <div><strong>Nội dung:</strong> THANHTOAN ${this.escapeHtml(cleanOrderCode)}</div>
               </div>
             </div>
           ` : ''}
@@ -729,7 +730,7 @@
       return `
         <div class="cart-recom-item" onclick="if(window.AppRouter) window.AppRouter.navigate('/product?id=${p.id || p.MaSanPham}');">
           <div class="cart-recom-packshot">
-            <img src="${img}" alt="${name}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=200&q=80');">
+            <img src="${img}" alt="${name}" onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/Men_Grooming_Products/01_Sap_Vuot_Toc_Clay_Wax/Apestomen/Apestomen_Volcanic_Clay.jpg');">
           </div>
           <div class="cart-recom-name" title="${name}">${name}</div>
           <div class="cart-recom-price">${SalonUtils.formatCurrency(price)}</div>

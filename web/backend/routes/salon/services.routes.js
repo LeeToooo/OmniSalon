@@ -1,7 +1,142 @@
 const { querySql } = require('../../database/db');
-const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const { enforceAuth } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
 const { clearDbSnapshotCache } = require('../auth/accounts.routes');
+
+async function fetchServicesList(serviceIdFilter = null) {
+  const whereClause = serviceIdFilter ? 'WHERE MaDichVu = ?' : '';
+  const whereParams = serviceIdFilter ? [serviceIdFilter] : [];
+  const [rows, promoRows, kmDichVuRows, reviewRows] = await Promise.all([
+    querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaDichVu) ASC, MaDichVu ASC) AS stt, MaDichVu AS real_id, MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu ${whereClause}`, whereParams),
+    querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai, DoiTuongApDung, CONVERT(VARCHAR(10), NgayBatDau, 120) AS NgayBatDau, CONVERT(VARCHAR(10), NgayKetThuc, 120) AS NgayKetThuc FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND (DoiTuongApDung IS NULL OR DoiTuongApDung NOT LIKE N'%Hội viên%') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
+    querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`),
+    querySql(`SELECT dg.SoSao, ctlh.MaDichVu FROM DanhGia dg JOIN ChiTietLichHen ctlh ON dg.MaLichHen = ctlh.MaLichHen WHERE ctlh.MaDichVu IS NOT NULL`)
+  ]);
+
+  const ratingMap = new Map();
+  (reviewRows || []).forEach(rv => {
+    if (!ratingMap.has(rv.MaDichVu)) ratingMap.set(rv.MaDichVu, []);
+    ratingMap.get(rv.MaDichVu).push(Number(rv.SoSao || 5));
+  });
+
+  return rows.map((r, index) => {
+    const origPrice = parseFloat(r.Gia || 0);
+
+    const matchedPromoLink = (kmDichVuRows || []).find(km => km.MaDichVu === r.MaDichVu);
+    const matchedPromo = matchedPromoLink ? promoRows.find(p => p.MaKhuyenMai === matchedPromoLink.MaKhuyenMai) : null;
+
+    let finalPrice = origPrice;
+    let discountPercent = 0;
+    let promoInfo = null;
+
+    if (matchedPromo) {
+      if (matchedPromo.HinhThuc && matchedPromo.HinhThuc.includes('%')) {
+        discountPercent = parseFloat(matchedPromo.GiaTriGiam || 0);
+        finalPrice = Math.round(origPrice * (1 - (discountPercent / 100)));
+      } else {
+        const discountAmt = parseFloat(matchedPromo.GiaTriGiam || 0);
+        finalPrice = Math.max(0, origPrice - discountAmt);
+        discountPercent = origPrice > 0 ? Math.round((discountAmt / origPrice) * 100) : 0;
+      }
+      promoInfo = {
+        code: matchedPromo.MaKhuyenMai,
+        name: matchedPromo.TenKhuyenMai,
+        discountPercent
+      };
+    }
+
+    const ratings = ratingMap.get(r.MaDichVu) || [];
+    const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 5.0;
+
+    let category = 'Cắt & Tạo Kiểu';
+    const textToClassify = ((r.TenDichVu || '') + ' ' + (r.MoTa || '')).toLowerCase();
+    if (textToClassify.includes('uốn') || textToClassify.includes('nhuộm') || textToClassify.includes('tẩy')) {
+      category = 'Uốn & Nhuộm';
+    } else if (textToClassify.includes('râu') || textToClassify.includes('cạo mặt') || textToClassify.includes('ráy tai') || textToClassify.includes('facial') || textToClassify.includes('dưỡng sinh') || textToClassify.includes('gội') || textToClassify.includes('massage') || textToClassify.includes('phục hồi') || textToClassify.includes('chăm sóc')) {
+      category = 'Dưỡng Sinh & Râu';
+    }
+
+    return {
+      stt: Number(r.stt || (index + 1)),
+      real_id: r.real_id || r.MaDichVu,
+      id: r.MaDichVu,
+      MaDichVu: r.MaDichVu,
+      name: r.TenDichVu,
+      TenDichVu: r.TenDichVu,
+      description: r.MoTa,
+      MoTa: r.MoTa,
+      category,
+      LoaiDichVu: category,
+      duration: r.ThoiLuong ? `${r.ThoiLuong} phút` : '45 phút',
+      durationMinutes: r.ThoiLuong || 45,
+      ThoiLuong: r.ThoiLuong || 45,
+      price: finalPrice,
+      originalPrice: origPrice,
+      Gia: origPrice,
+      discountPercent,
+      promotion: promoInfo,
+      rating: avgRating,
+      reviewCount: ratings.length,
+      image: r.HinhAnh || '',
+      HinhAnh: r.HinhAnh || '',
+      status: r.TrangThai || 'Kinh doanh'
+    };
+  });
+}
+
+async function fetchCombosList(comboIdFilter = null) {
+  const whereClause = comboIdFilter ? 'WHERE MaCombo = ?' : '';
+  const whereParams = comboIdFilter ? [comboIdFilter] : [];
+  const [rows, detailRows] = await Promise.all([
+    querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaCombo) ASC, MaCombo ASC) AS stt, MaCombo AS real_id, MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu ${whereClause}`, whereParams),
+    querySql(`SELECT ct.MaCombo, ct.MaDichVu, ct.SoLuong, dv.TenDichVu, dv.Gia, dv.ThoiLuong 
+              FROM ChiTietComboDichVu ct 
+              LEFT JOIN DichVu dv ON ct.MaDichVu = dv.MaDichVu`)
+  ]);
+
+  const comboMap = new Map();
+  (detailRows || []).forEach(ct => {
+    if (!comboMap.has(ct.MaCombo)) comboMap.set(ct.MaCombo, []);
+    comboMap.get(ct.MaCombo).push({
+      id: ct.MaDichVu,
+      MaDichVu: ct.MaDichVu,
+      name: ct.TenDichVu || ct.MaDichVu,
+      TenDichVu: ct.TenDichVu || ct.MaDichVu,
+      quantity: ct.SoLuong || 1,
+      SoLuong: ct.SoLuong || 1,
+      price: parseFloat(ct.Gia || 0),
+      duration: ct.ThoiLuong || 0
+    });
+  });
+
+  return (rows || []).map((r, index) => {
+    const details = comboMap.get(r.MaCombo) || [];
+    const serviceIds = details.map(d => d.id || d.MaDichVu);
+    return {
+      stt: Number(r.stt || (index + 1)),
+      real_id: r.real_id || r.MaCombo,
+      id: r.MaCombo,
+      MaCombo: r.MaCombo,
+      name: r.TenCombo,
+      TenCombo: r.TenCombo,
+      description: r.MoTa,
+      MoTa: r.MoTa,
+      category: 'Combo VIP',
+      LoaiDichVu: 'Combo VIP',
+      isCombo: true,
+      price: parseFloat(r.GiaCombo || 0),
+      GiaCombo: parseFloat(r.GiaCombo || 0),
+      duration: r.ThoiLuong ? `${r.ThoiLuong} phút` : '60 phút',
+      durationMinutes: r.ThoiLuong || 60,
+      ThoiLuong: r.ThoiLuong || 60,
+      image: r.HinhAnh || '',
+      HinhAnh: r.HinhAnh || '',
+      status: r.TrangThai || 'Kinh doanh',
+      serviceIds,
+      services: details
+    };
+  });
+}
 
 async function handleServiceRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
@@ -10,93 +145,32 @@ async function handleServiceRoutes(req, res, ctx) {
 
   // GET /api/services - Lấy danh mục dịch vụ salon kèm giá khuyến mãi và số sao đánh giá
   if (pathname === '/api/services' && method === 'GET') {
-    const [rows, promoRows, kmDichVuRows, reviewRows] = await Promise.all([
-      querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaDichVu) ASC, MaDichVu ASC) AS stt, MaDichVu AS real_id, MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu`),
-      querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai, DoiTuongApDung, CONVERT(VARCHAR(10), NgayBatDau, 120) AS NgayBatDau, CONVERT(VARCHAR(10), NgayKetThuc, 120) AS NgayKetThuc FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND (DoiTuongApDung IS NULL OR DoiTuongApDung NOT LIKE N'%Hội viên%') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
-      querySql(`SELECT MaKhuyenMai, MaDichVu FROM KhuyenMai_DichVu`),
-      querySql(`SELECT dg.SoSao, ctlh.MaDichVu FROM DanhGia dg JOIN ChiTietLichHen ctlh ON dg.MaLichHen = ctlh.MaLichHen WHERE ctlh.MaDichVu IS NOT NULL`)
-    ]);
-
-    const ratingMap = new Map();
-    (reviewRows || []).forEach(rv => {
-      if (!ratingMap.has(rv.MaDichVu)) ratingMap.set(rv.MaDichVu, []);
-      ratingMap.get(rv.MaDichVu).push(Number(rv.SoSao || 5));
-    });
-
-    const services = rows.map((r, index) => {
-      const origPrice = parseFloat(r.Gia || 0);
-
-      const matchedPromoLink = (kmDichVuRows || []).find(km => km.MaDichVu === r.MaDichVu);
-      const matchedPromo = matchedPromoLink ? promoRows.find(p => p.MaKhuyenMai === matchedPromoLink.MaKhuyenMai) : null;
-
-      let finalPrice = origPrice;
-      let discountPercent = 0;
-      let promoInfo = null;
-
-      if (matchedPromo) {
-        if (matchedPromo.HinhThuc && matchedPromo.HinhThuc.includes('%')) {
-          discountPercent = parseFloat(matchedPromo.GiaTriGiam || 0);
-          finalPrice = Math.round(origPrice * (1 - (discountPercent / 100)));
-        } else {
-          const discountAmt = parseFloat(matchedPromo.GiaTriGiam || 0);
-          finalPrice = Math.max(0, origPrice - discountAmt);
-          discountPercent = origPrice > 0 ? Math.round((discountAmt / origPrice) * 100) : 0;
-        }
-        promoInfo = {
-          code: matchedPromo.MaKhuyenMai,
-          name: matchedPromo.TenKhuyenMai,
-          discountPercent
-        };
-      }
-
-      const ratings = ratingMap.get(r.MaDichVu) || [];
-      const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 5.0;
-
-      // Phân loại danh mục dịch vụ chuẩn Salon Barber
-      let category = 'Cắt & Tạo Kiểu';
-      const textToClassify = ((r.TenDichVu || '') + ' ' + (r.MoTa || '')).toLowerCase();
-      if (textToClassify.includes('uốn') || textToClassify.includes('nhuộm') || textToClassify.includes('tẩy')) {
-        category = 'Uốn & Nhuộm';
-      } else if (textToClassify.includes('râu') || textToClassify.includes('cạo mặt') || textToClassify.includes('ráy tai') || textToClassify.includes('facial') || textToClassify.includes('dưỡng sinh') || textToClassify.includes('gội') || textToClassify.includes('massage') || textToClassify.includes('phục hồi') || textToClassify.includes('chăm sóc')) {
-        category = 'Dưỡng Sinh & Râu';
-      } else {
-        category = 'Cắt & Tạo Kiểu';
-      }
-
-      return {
-        stt: Number(r.stt || (index + 1)),
-        real_id: r.real_id || r.MaDichVu,
-        id: r.MaDichVu,
-        MaDichVu: r.MaDichVu,
-        name: r.TenDichVu,
-        TenDichVu: r.TenDichVu,
-        description: r.MoTa,
-        MoTa: r.MoTa,
-        category,
-        LoaiDichVu: category,
-        duration: r.ThoiLuong ? `${r.ThoiLuong} phút` : '45 phút',
-        durationMinutes: r.ThoiLuong || 45,
-        ThoiLuong: r.ThoiLuong || 45,
-        price: finalPrice,
-        originalPrice: origPrice,
-        Gia: origPrice,
-        discountPercent,
-        promotion: promoInfo,
-        rating: avgRating,
-        reviewCount: ratings.length,
-        image: r.HinhAnh || '',
-        HinhAnh: r.HinhAnh || '',
-        status: r.TrangThai || 'Kinh doanh'
-      };
-    });
-
+    const services = await fetchServicesList(null);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(services));
     return true;
   }
 
-  // POST /api/services - Thêm mới một dịch vụ làm đẹp
+  // GET /api/services/:id - Chi tiết một dịch vụ salon
+  if (pathname.startsWith('/api/services/') && method === 'GET') {
+    const serviceId = decodeURIComponent(pathname.replace('/api/services/', '').trim());
+    if (!serviceId || serviceId.includes('/')) return false;
+    const services = await fetchServicesList(serviceId);
+    if (!services || services.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: `Không tìm thấy dịch vụ ${serviceId}.` }));
+      return true;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(services[0]));
+    return true;
+  }
+
+  // POST /api/services - Thêm mới một dịch vụ làm đẹp (chỉ Admin/Quản lý)
   if (pathname === '/api/services' && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const body = parsedBody || {};
     const maxRows = await querySql(`SELECT TOP 1 MaDichVu FROM DichVu ORDER BY LEN(MaDichVu) DESC, MaDichVu DESC`);
     let nextN = 11;
@@ -117,9 +191,8 @@ async function handleServiceRoutes(req, res, ctx) {
       [dvId, name, desc, duration, price, image, status]
     );
 
-    const authUser = extractAuthUser(req);
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -136,8 +209,11 @@ async function handleServiceRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/services/:id - Cập nhật thông tin dịch vụ
+  // PUT /api/services/:id - Cập nhật thông tin dịch vụ (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/services/') && method === 'PUT') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/services/', '').trim();
     const body = parsedBody || {};
     const oldRows = await querySql(`SELECT TenDichVu, Gia, ThoiLuong, TrangThai FROM DichVu WHERE MaDichVu = ?`, [id]);
@@ -163,9 +239,8 @@ async function handleServiceRoutes(req, res, ctx) {
       ]
     );
 
-    const authUser = extractAuthUser(req);
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -183,27 +258,37 @@ async function handleServiceRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/services/:id - Xóa dịch vụ khỏi bảng DichVu trong SQL
+  // DELETE /api/services/:id - Xóa dịch vụ khỏi bảng DichVu trong SQL (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/services/') && method === 'DELETE') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/services/', '').trim();
     const oldRows = await querySql(`SELECT TenDichVu, Gia FROM DichVu WHERE MaDichVu = ?`, [id]);
     const oldService = (oldRows && oldRows[0]) ? oldRows[0] : null;
 
     try {
-      await querySql(`
-        DECLARE @id VARCHAR(30) = ?;
-        ALTER TABLE ChiTietLichHen NOCHECK CONSTRAINT FK_ChiTietLichHen_DichVu;
-        ALTER TABLE ChiTietHoaDon_DichVu NOCHECK CONSTRAINT FK_ChiTietHoaDonDichVu_DichVu;
-        DELETE FROM ChiTietComboDichVu WHERE MaDichVu = @id;
-        DELETE FROM KhuyenMai_DichVu WHERE MaDichVu = @id;
-        DELETE FROM DichVu WHERE MaDichVu = @id;
-        ALTER TABLE ChiTietLichHen CHECK CONSTRAINT FK_ChiTietLichHen_DichVu;
-        ALTER TABLE ChiTietHoaDon_DichVu CHECK CONSTRAINT FK_ChiTietHoaDonDichVu_DichVu;
-      `, [id]);
+      const refCheck = await querySql(`
+        SELECT TOP 1 1 AS HasRef FROM (
+          SELECT MaDichVu FROM ChiTietLichHen WHERE MaDichVu = ?
+          UNION ALL
+          SELECT MaDichVu FROM ChiTietHoaDon_DichVu WHERE MaDichVu = ?
+        ) t
+      `, [id, id]);
 
-      const authUser = extractAuthUser(req);
-      const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-      const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+      let softDeleted = false;
+      if (refCheck && refCheck.length > 0) {
+        softDeleted = true;
+        await querySql(`DELETE FROM KhuyenMai_DichVu WHERE MaDichVu = ?`, [id]);
+        await querySql(`UPDATE DichVu SET TrangThai = N'Ngừng phục vụ' WHERE MaDichVu = ?`, [id]);
+      } else {
+        await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaDichVu = ?`, [id]);
+        await querySql(`DELETE FROM KhuyenMai_DichVu WHERE MaDichVu = ?`, [id]);
+        await querySql(`DELETE FROM DichVu WHERE MaDichVu = ?`, [id]);
+      }
+
+      const actorName = authUser.fullName || authUser.name || authUser.username;
+      const actorRole = authUser.role;
       auditService.logAudit({
         actor: actorName,
         role: actorRole,
@@ -211,12 +296,19 @@ async function handleServiceRoutes(req, res, ctx) {
         entityType: 'DichVu',
         entityId: id,
         before: oldService,
-        details: `${actorName} (${actorRole}) xóa dịch vụ #${id} (${oldService?.TenDichVu || ''})`
+        details: `${actorName} (${actorRole}) ${softDeleted ? 'ngừng phục vụ' : 'xóa'} dịch vụ #${id} (${oldService?.TenDichVu || ''})`
       }).catch(() => {});
 
       clearDbSnapshotCache();
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: true, message: 'Đã xóa dịch vụ khỏi bảng DichVu trong SQL.', id }));
+      res.end(JSON.stringify({
+        success: true,
+        softDeleted,
+        message: softDeleted
+          ? 'Dịch vụ đã có lịch sử lịch hẹn/hóa đơn nên được chuyển sang Ngừng phục vụ.'
+          : 'Đã xóa dịch vụ khỏi bảng DichVu trong SQL.',
+        id
+      }));
       return true;
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -229,62 +321,32 @@ async function handleServiceRoutes(req, res, ctx) {
 
   // GET /api/combos - Lấy danh sách gói combo khuyến mãi trọn gói kèm dịch vụ con
   if (pathname === '/api/combos' && method === 'GET') {
-    const [rows, detailRows] = await Promise.all([
-      querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaCombo) ASC, MaCombo ASC) AS stt, MaCombo AS real_id, MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu`),
-      querySql(`SELECT ct.MaCombo, ct.MaDichVu, ct.SoLuong, dv.TenDichVu, dv.Gia, dv.ThoiLuong 
-                FROM ChiTietComboDichVu ct 
-                LEFT JOIN DichVu dv ON ct.MaDichVu = dv.MaDichVu`)
-    ]);
-
-    const comboMap = new Map();
-    (detailRows || []).forEach(ct => {
-      if (!comboMap.has(ct.MaCombo)) comboMap.set(ct.MaCombo, []);
-      comboMap.get(ct.MaCombo).push({
-        id: ct.MaDichVu,
-        MaDichVu: ct.MaDichVu,
-        name: ct.TenDichVu || ct.MaDichVu,
-        TenDichVu: ct.TenDichVu || ct.MaDichVu,
-        quantity: ct.SoLuong || 1,
-        SoLuong: ct.SoLuong || 1,
-        price: parseFloat(ct.Gia || 0),
-        duration: ct.ThoiLuong || 0
-      });
-    });
-
-    const combos = (rows || []).map((r, index) => {
-      const details = comboMap.get(r.MaCombo) || [];
-      const serviceIds = details.map(d => d.id || d.MaDichVu);
-      return {
-        stt: Number(r.stt || (index + 1)),
-        real_id: r.real_id || r.MaCombo,
-        id: r.MaCombo,
-        MaCombo: r.MaCombo,
-        name: r.TenCombo,
-        TenCombo: r.TenCombo,
-        description: r.MoTa,
-        MoTa: r.MoTa,
-        category: 'Combo VIP',
-        LoaiDichVu: 'Combo VIP',
-        isCombo: true,
-        price: parseFloat(r.GiaCombo || 0),
-        GiaCombo: parseFloat(r.GiaCombo || 0),
-        duration: r.ThoiLuong ? `${r.ThoiLuong} phút` : '60 phút',
-        durationMinutes: r.ThoiLuong || 60,
-        ThoiLuong: r.ThoiLuong || 60,
-        image: r.HinhAnh || '',
-        HinhAnh: r.HinhAnh || '',
-        status: r.TrangThai || 'Kinh doanh',
-        serviceIds,
-        services: details
-      };
-    });
+    const combos = await fetchCombosList(null);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(combos));
     return true;
   }
 
-  // POST /api/combos - Thêm combo gói mới kèm chi tiết dịch vụ con
+  // GET /api/combos/:id - Chi tiết một gói combo dịch vụ
+  if (pathname.startsWith('/api/combos/') && method === 'GET') {
+    const comboId = decodeURIComponent(pathname.replace('/api/combos/', '').trim());
+    if (!comboId || comboId.includes('/')) return false;
+    const combos = await fetchCombosList(comboId);
+    if (!combos || combos.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: `Không tìm thấy gói combo ${comboId}.` }));
+      return true;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(combos[0]));
+    return true;
+  }
+
+  // POST /api/combos - Thêm combo gói mới kèm chi tiết dịch vụ con (chỉ Admin/Quản lý)
   if (pathname === '/api/combos' && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const body = parsedBody || {};
     const name = (body.name || body.TenCombo || '').trim();
     const price = parseFloat(body.price || body.GiaCombo || 0);
@@ -354,9 +416,8 @@ async function handleServiceRoutes(req, res, ctx) {
     `;
     await querySql(sqlBatch, params);
 
-    const authUser = extractAuthUser(req);
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -388,8 +449,11 @@ async function handleServiceRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/combos/:id - Sửa thông tin combo và chi tiết dịch vụ con
+  // PUT /api/combos/:id - Sửa thông tin combo và chi tiết dịch vụ con (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/combos/') && method === 'PUT') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/combos/', '').trim();
     const body = parsedBody || {};
     const rawServices = body.serviceIds || body.services;
@@ -461,9 +525,8 @@ async function handleServiceRoutes(req, res, ctx) {
       );
     }
 
-    const authUser = extractAuthUser(req);
-    const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-    const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+    const actorName = authUser.fullName || authUser.name || authUser.username;
+    const actorRole = authUser.role;
     auditService.logAudit({
       actor: actorName,
       role: actorRole,
@@ -480,35 +543,51 @@ async function handleServiceRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/combos/:id - Xóa combo khỏi bảng ComboDichVu trong SQL
+  // DELETE /api/combos/:id - Xóa combo khỏi bảng ComboDichVu trong SQL (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/combos/') && method === 'DELETE') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/combos/', '').trim();
     try {
-      await querySql(`
-        DECLARE @id VARCHAR(30) = ?;
-        ALTER TABLE ChiTietLichHen NOCHECK CONSTRAINT FK_ChiTietLichHen_Combo;
-        ALTER TABLE ChiTietHoaDon_DichVu NOCHECK CONSTRAINT FK_ChiTietHoaDonDichVu_Combo;
-        DELETE FROM ChiTietComboDichVu WHERE MaCombo = @id;
-        DELETE FROM ComboDichVu WHERE MaCombo = @id;
-        ALTER TABLE ChiTietLichHen CHECK CONSTRAINT FK_ChiTietLichHen_Combo;
-        ALTER TABLE ChiTietHoaDon_DichVu CHECK CONSTRAINT FK_ChiTietHoaDonDichVu_Combo;
-      `, [id]);
+      const refCheck = await querySql(`
+        SELECT TOP 1 1 AS HasRef FROM (
+          SELECT MaCombo FROM ChiTietLichHen WHERE MaCombo = ?
+          UNION ALL
+          SELECT MaCombo FROM ChiTietHoaDon_DichVu WHERE MaCombo = ?
+        ) t
+      `, [id, id]);
 
-      const authUser = extractAuthUser(req);
-      const actorName = authUser ? (authUser.fullName || authUser.name || authUser.username) : 'Quản trị viên';
-      const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';
+      let softDeleted = false;
+      if (refCheck && refCheck.length > 0) {
+        softDeleted = true;
+        await querySql(`UPDATE ComboDichVu SET TrangThai = N'Ngừng áp dụng' WHERE MaCombo = ?`, [id]);
+      } else {
+        await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?`, [id]);
+        await querySql(`DELETE FROM ComboDichVu WHERE MaCombo = ?`, [id]);
+      }
+
+      const actorName = authUser.fullName || authUser.name || authUser.username;
+      const actorRole = authUser.role;
       auditService.logAudit({
         actor: actorName,
         role: actorRole,
         action: 'DELETE_COMBO',
         entityType: 'ComboDichVu',
         entityId: id,
-        details: `${actorName} (${actorRole}) xóa combo #${id}`
+        details: `${actorName} (${actorRole}) ${softDeleted ? 'ngừng áp dụng' : 'xóa'} combo #${id}`
       }).catch(() => {});
 
       clearDbSnapshotCache();
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: true, message: 'Đã xóa combo khỏi bảng ComboDichVu trong SQL.', id }));
+      res.end(JSON.stringify({
+        success: true,
+        softDeleted,
+        message: softDeleted
+          ? 'Combo đã có lịch sử lịch hẹn/hóa đơn nên được chuyển sang Ngừng áp dụng.'
+          : 'Đã xóa combo khỏi bảng ComboDichVu trong SQL.',
+        id
+      }));
       return true;
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });

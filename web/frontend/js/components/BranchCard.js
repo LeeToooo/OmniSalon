@@ -105,7 +105,7 @@
       const rawImage = b.image || b.HinhAnh || '';
       const image = (typeof window.SalonUtils !== 'undefined' && typeof window.SalonUtils.formatImageUrl === 'function')
         ? window.SalonUtils.formatImageUrl(rawImage)
-        : (rawImage || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80');
+        : (rawImage || '/DataPicture/ChiNhanh_Omni/CN1.jpg');
 
       const opStatus = this.getOperatingStatus(hours);
 
@@ -188,7 +188,7 @@
                  loading="lazy" 
                  class="branch-cover-img branch-img"
                  style="width: 100% !important; height: 100% !important; max-height: 220px !important; object-fit: cover !important; display: block !important; object-position: ${data.imagePosition || 'center'}; transform-origin: ${data.imagePosition || '50% 50%'}; ${data.imageZoom && data.imageZoom !== 1 ? 'transform: scale(' + data.imageZoom + ') !important;' : ''} transition: transform 0.12s ease-out, object-position 0.12s ease-out;"
-                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=600&q=80');">
+                 onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : (this.onerror=null, this.src='/DataPicture/ChiNhanh_Omni/CN1.jpg');">
             
             <!-- Huy hieu quan -->
             <div class="branch-badges-top">

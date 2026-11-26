@@ -88,8 +88,8 @@ const BookingService = {
         (
           SELECT 
             dv.TenDichVu,
-            dv.GiaTien,
-            ct.GhiChu
+            dv.Gia,
+            ct.ThanhTien
           FROM ChiTietLichHen ct
           JOIN DichVu dv ON ct.MaDichVu = dv.MaDichVu
           WHERE ct.MaLichHen = lh.MaLichHen
@@ -185,7 +185,7 @@ const BookingService = {
     let finalStylistId = stylistId;
     if (!finalStylistId || finalStylistId === 'all') {
       const availableStylists = await querySql(
-        `SELECT TOP 1 MaNhanVien FROM NhanVien WHERE TrangThaiLamViec = N'Đang làm việc' AND (MaChiNhanh = ? OR ? IS NULL)`,
+        `SELECT TOP 1 MaNhanVien FROM NhanVien WHERE TrangThai = N'Đang làm việc' AND (MaChiNhanh = ? OR ? IS NULL)`,
         [branchId || null, branchId || null]
       );
       finalStylistId = availableStylists.length > 0 ? availableStylists[0].MaNhanVien : null;
@@ -210,9 +210,9 @@ const BookingService = {
       const serviceInfo = await resolveServiceInfo(itemId);
       if (serviceInfo) {
         await querySql(
-          `INSERT INTO ChiTietLichHen (MaChiTietLH, MaLichHen, MaDichVu, DonGiaTaiThoiDiem, GhiChu)
-           VALUES (?, ?, ?, ?, ?)`,
-          [ctlhId, newBookingId, serviceInfo.id, serviceInfo.price, note]
+          `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, SoLuong, DonGia, ThanhTien)
+           VALUES (?, ?, ?, 1, ?, ?)`,
+          [ctlhId, newBookingId, serviceInfo.id, serviceInfo.price, serviceInfo.price]
         );
       }
     }

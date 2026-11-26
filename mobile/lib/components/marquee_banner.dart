@@ -13,7 +13,7 @@ class MarqueeBanner extends StatefulWidget {
     this.items = const [
       'AUTHENTIC BARBERSHOP',
       'PHONG CÁCH QUÝ ÔNG',
-      'MÔ PHỎNG KIỂU TÓC 3D',
+      'THỬ KIỂU TÓC AI 3D',
       'BẢO HÀNH KIỂU TÓC 7 NGÀY',
       'MASTER BARBER GIÀU KINH NGHIỆM',
       'DƯỢC LIỆU CAO CẤP',

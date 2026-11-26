@@ -425,18 +425,23 @@ CREATE TABLE DanhGia
     MaKhachHang VARCHAR(20) NOT NULL,
     MaLichHen VARCHAR(20) NULL,
     MaDonHang VARCHAR(20) NULL,
+    MaSanPham VARCHAR(20) NULL,
+    MaDichVu VARCHAR(20) NULL,
     SoSao INT CHECK (SoSao BETWEEN 1 AND 5),
     NoiDung NVARCHAR(500),
     HinhAnh NVARCHAR(200),
     NgayDanhGia DATETIME DEFAULT GETDATE(),
     TrangThai NVARCHAR(20) DEFAULT N'Hiển thị',
     CoFlag BIT DEFAULT 0,
+    PhanHoiAdmin NVARCHAR(500) NULL,
+    NgayPhanHoi DATETIME NULL,
     CONSTRAINT FK_DanhGia_KhachHang FOREIGN KEY (MaKhachHang) REFERENCES KhachHang(MaKhachHang),
     CONSTRAINT FK_DanhGia_LichHen FOREIGN KEY (MaLichHen) REFERENCES LichHen(MaLichHen),
     CONSTRAINT FK_DanhGia_DonHang FOREIGN KEY (MaDonHang) REFERENCES DonHang(MaDonHang),
+    CONSTRAINT FK_DanhGia_SanPham FOREIGN KEY (MaSanPham) REFERENCES SanPham(MaSanPham),
+    CONSTRAINT FK_DanhGia_DichVu FOREIGN KEY (MaDichVu) REFERENCES DichVu(MaDichVu),
     CONSTRAINT CK_DanhGia_DoiTuong CHECK (
-        (MaLichHen IS NOT NULL AND MaDonHang IS NULL) OR
-        (MaLichHen IS NULL AND MaDonHang IS NOT NULL)
+        MaLichHen IS NOT NULL OR MaDonHang IS NOT NULL OR MaSanPham IS NOT NULL OR MaDichVu IS NOT NULL
     )
 );
 GO
@@ -693,14 +698,22 @@ BEGIN
         WHERE i.TrangThai = N'Đã hủy' AND d.TrangThai <> N'Đã hủy'
     )
     BEGIN
-        -- Hoàn lại số lượng cho từng lô trong ChiTietPhieuNhap
+        ;WITH CancelledQty AS (
+            SELECT ctdh.MaChiTietPhieuNhap, SUM(ctdh.SoLuong) AS SoLuongHoan
+            FROM ChiTietDonHang ctdh
+            JOIN inserted i ON ctdh.MaDonHang = i.MaDonHang
+            JOIN deleted d ON i.MaDonHang = d.MaDonHang
+            WHERE i.TrangThai = N'Đã hủy' AND d.TrangThai <> N'Đã hủy'
+              AND ctdh.MaChiTietPhieuNhap IS NOT NULL
+            GROUP BY ctdh.MaChiTietPhieuNhap
+        )
         UPDATE ctpn
-        SET ctpn.SoLuongConLai = ctpn.SoLuongConLai + ctdh.SoLuong
+        SET ctpn.SoLuongConLai = CASE
+            WHEN ctpn.SoLuongConLai + cq.SoLuongHoan > ctpn.SoLuong THEN ctpn.SoLuong
+            ELSE ctpn.SoLuongConLai + cq.SoLuongHoan
+        END
         FROM ChiTietPhieuNhap ctpn
-        JOIN ChiTietDonHang ctdh ON ctpn.MaChiTietPhieuNhap = ctdh.MaChiTietPhieuNhap
-        JOIN inserted i ON ctdh.MaDonHang = i.MaDonHang
-        JOIN deleted d ON i.MaDonHang = d.MaDonHang
-        WHERE i.TrangThai = N'Đã hủy' AND d.TrangThai <> N'Đã hủy';
+        JOIN CancelledQty cq ON ctpn.MaChiTietPhieuNhap = cq.MaChiTietPhieuNhap;
 
         -- Hoàn lại số lượng tổng tồn kho cho ChiNhanh
         UPDATE tk
@@ -781,6 +794,7 @@ BEGIN
     FROM ChiTietPhieuNhap ctpn
     INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
     WHERE pnk.MaChiNhanh = @MaChiNhanh
+      AND pnk.TrangThai = N'Đã duyệt'
       AND ctpn.MaSanPham = @MaSanPham
       AND ctpn.SoLuongConLai > 0
       AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0;
@@ -821,6 +835,7 @@ BEGIN
             ORDER BY km.GiaTriGiam DESC
         ) AS km_sp
         WHERE pnk.MaChiNhanh = @MaChiNhanh
+          AND pnk.TrangThai = N'Đã duyệt'
           AND ctpn.MaSanPham = @MaSanPham
           AND ctpn.SoLuongConLai > 0
           AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
@@ -895,6 +910,7 @@ BEGIN
     FROM ChiTietPhieuNhap ctpn
     INNER JOIN PhieuNhapKho pnk ON ctpn.MaPhieuNhap = pnk.MaPhieuNhap
     WHERE pnk.MaChiNhanh = @MaChiNhanh
+      AND pnk.TrangThai = N'Đã duyệt'
       AND ctpn.MaSanPham = @MaSanPham
       AND ctpn.SoLuongConLai > 0
       AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0;
@@ -935,6 +951,7 @@ BEGIN
             ORDER BY km.GiaTriGiam DESC
         ) AS km_sp
         WHERE pnk.MaChiNhanh = @MaChiNhanh
+          AND pnk.TrangThai = N'Đã duyệt'
           AND ctpn.MaSanPham = @MaSanPham
           AND ctpn.SoLuongConLai > 0
           AND DATEDIFF(DAY, CAST(GETDATE() AS DATE), ctpn.HanSuDung) > 0
@@ -1744,15 +1761,21 @@ ALTER TABLE ChiTietHoaDon_SanPham DISABLE TRIGGER trg_ChiTietHoaDonSanPham_TruTo
 
 INSERT INTO HoaDon (MaHoaDon, MaKhachHang, MaLichHen, MaDonHang, MaChiNhanh, NgayLap, TongTien, TrangThai, MaSoHoaDon) VALUES
 ('HD01', 'KH01', 'LH01', NULL,   'CN01', '2026-10-10 10:15:00', 408000, N'Đã thanh toán', 'HD-20261010-001'),
-('HD02', 'KH11', NULL,   'DH01', 'CN11', '2026-10-05 10:00:00', 286000, N'Đã thanh toán', 'HD-20261005-002');
+('HD02', 'KH11', NULL,   'DH01', 'CN11', '2026-10-05 10:00:00', 286000, N'Đã thanh toán', 'HD-20261005-002'),
+('HD03', 'KH12', NULL,   'DH02', 'CN12', '2026-10-05 10:20:00', 525000, N'Đã thanh toán', 'HD-20261005-003'),
+('HD04', 'KH14', NULL,   'DH04', 'CN14', '2026-10-06 14:25:00', 360000, N'Đã thanh toán', 'HD-20261006-004'),
+('HD05', 'KH15', NULL,   'DH05', 'CN15', '2026-10-06 15:50:00', 620000, N'Đã thanh toán', 'HD-20261006-005');
 
 INSERT INTO ChiTietHoaDon_DichVu (MaChiTietHDDV, MaHoaDon, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien) VALUES
 ('CTHDDV01', 'HD01', 'DV01', NULL, 1, 120000, 120000);
 
--- HD01: SP01 lấy từ lô CTPN01001 (CN01). HD02: SP71 lấy từ CTPN11071 (CN11)
+-- HD01: SP01 lấy từ lô CTPN01001 (CN01). HD02..HD05 đồng bộ hóa đơn sản phẩm từ đơn hàng
 INSERT INTO ChiTietHoaDon_SanPham (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES
 ('CTHD20261010000001', 'HD01', 'SP01', 'CTPN01001', 1, 480000, 40.00, 288000, 288000),
-('CTHD20261005000002', 'HD02', 'SP71', 'CTPN11071', 1, 286000,  0.00, 286000, 286000);
+('CTHD20261005000002', 'HD02', 'SP71', 'CTPN11071', 1, 286000,  0.00, 286000, 286000),
+('CTHD20261005000003', 'HD03', 'SP77', 'CTPN12077', 1, 525000,  0.00, 525000, 525000),
+('CTHD20261006000004', 'HD04', 'SP89', 'CTPN14089', 1, 360000,  0.00, 360000, 360000),
+('CTHD20261006000005', 'HD05', 'SP95', 'CTPN15095', 1, 620000,  0.00, 620000, 620000);
 
 UPDATE ChiTietPhieuNhap 
 SET SoLuongConLai = SoLuongConLai - 1 
@@ -1764,10 +1787,13 @@ WHERE MaSanPham = 'SP01' AND MaChiNhanh = 'CN01';
 
 ALTER TABLE ChiTietHoaDon_SanPham ENABLE TRIGGER trg_ChiTietHoaDonSanPham_TruTonKho;
 
--- Thanh toán: NV61 (CN01) và NV71 (CN11)
+-- Thanh toán: NV61 (CN01) và các chi nhánh đơn hàng
 INSERT INTO ThanhToan (MaThanhToan, MaHoaDon, MaNhanVien, SoTien, PhuongThuc, ThoiGianThanhToan, TrangThai, MaGiaoDich) VALUES
 ('TT01', 'HD01', 'NV61', 408000, N'Chuyển khoản QR', '2026-10-10 10:20:00', N'Thành công', 'VNPAY9872123'),
-('TT02', 'HD02', 'NV71', 286000, N'Tiền mặt',        '2026-10-05 10:05:00', N'Thành công', 'CASH001');
+('TT02', 'HD02', 'NV71', 286000, N'Tiền mặt',        '2026-10-05 10:05:00', N'Thành công', 'CASH001'),
+('TT03', 'HD03', 'NV72', 525000, N'Tiền mặt',        '2026-10-05 10:25:00', N'Thành công', 'CASH002'),
+('TT04', 'HD04', 'NV74', 360000, N'Chuyển khoản QR', '2026-10-06 14:30:00', N'Thành công', 'VNPAY9872124'),
+('TT05', 'HD05', 'NV75', 620000, N'Tiền mặt',        '2026-10-06 15:55:00', N'Thành công', 'CASH003');
 
 -- Đánh giá phản hồi khách hàng (Gồm cả Lịch Hẹn dịch vụ & Đơn Hàng mỹ phẩm đã mua)
 INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag) VALUES

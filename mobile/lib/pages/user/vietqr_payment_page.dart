@@ -108,20 +108,10 @@ class _VietQrPaymentPageState extends State<VietQrPaymentPage> {
       _startCountdownTimer();
       _startStatusPolling();
     } else {
-      final fallbackDesc = widget.description ?? 'THANHTOAN ${widget.orderId}';
-      final fallbackUrl = ApiService.getVietQrImageUrl(
-        accountNo: _accountNumber,
-        amount: widget.amount.toInt(),
-        description: fallbackDesc,
-      );
       setState(() {
         _isLoading = false;
-        _qrCodeUrl = fallbackUrl;
-        _qrData = fallbackUrl;
-        _transferContent = fallbackDesc;
+        _errorMessage = res['message']?.toString() ?? 'Không thể kết nối cổng thanh toán PayOS/VietQR. Vui lòng thử lại sau.';
       });
-      _startCountdownTimer();
-      _startStatusPolling();
     }
   }
 

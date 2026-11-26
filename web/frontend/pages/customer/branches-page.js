@@ -220,8 +220,8 @@
               </div>
             </div>
 
-            <!-- LƯỚI CHI NHÁNH EDITORIAL (4 CỘT TRÀN VIỀN 2 BÊN, HIỂN THỊ 8 CHI NHÁNH/TRANG) -->
-            <div id="branchesCardsGrid" class="branches-grid-container" style="display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: clamp(14px, 1.4vw, 22px) !important; width: 100% !important; max-width: 100% !important; margin: 0 auto 36px auto !important; padding: 0 !important; box-sizing: border-box !important;">
+            <!-- LƯỚI CHI NHÁNH EDITORIAL (TỰ ĐỘNG RESPONSIVE: 4 CỘT TRÊN DESKTOP, CO GỌN TRÊN MOBILE) -->
+            <div id="branchesCardsGrid" class="branches-grid-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: clamp(14px, 1.4vw, 22px); width: 100%; max-width: 100%; margin: 0 auto 36px auto; padding: 0; box-sizing: border-box;">
               ${this.renderBranchCardsHTML(branches)}
             </div>
 

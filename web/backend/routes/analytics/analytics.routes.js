@@ -1,28 +1,25 @@
 const { querySql } = require('../../database/db');
-const { extractAuthUser } = require('../../middlewares/auth_middleware');
+const { enforceAuth } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
 
 async function handleAnalyticsRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl } = ctx;
 
-  // GET /api/analytics/revenue - Báo cáo tổng doanh thu và số lượng hóa đơn
-  // Tham số: branch_id
+  // GET /api/analytics/revenue - Báo cáo tổng doanh thu (chỉ Admin/Quản lý chi nhánh)
   if (pathname === '/api/analytics/revenue' && method === 'GET') {
-    const authUser = extractAuthUser(req);
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const branchParam = parsedUrl.searchParams.get('branch_id');
     let effectiveBranch = branchParam;
 
-    if (authUser) {
-      const roleUpper = String(authUser.role || authUser.vaiTroSql || '').toUpperCase();
-      const isMgr = (roleUpper.includes('QUẢN LÝ') || roleUpper.includes('BRANCH_MANAGER')) && !roleUpper.includes('ADMIN') && !roleUpper.includes('QUẢN TRỊ');
-      if (isMgr && authUser.branchId) {
-        if (branchParam && branchParam !== 'all' && branchParam !== authUser.branchId) {
-          res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem doanh thu của chi nhánh mình phụ trách.' }));
-          return true;
-        }
-        effectiveBranch = authUser.branchId;
+    if (authUser.role === 'BRANCH_MANAGER' && authUser.branchId) {
+      if (branchParam && branchParam !== 'all' && branchParam !== authUser.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem doanh thu của chi nhánh mình phụ trách.' }));
+        return true;
       }
+      effectiveBranch = authUser.branchId;
     }
 
     let q = `
@@ -47,11 +44,28 @@ async function handleAnalyticsRoutes(req, res, ctx) {
     return true;
   }
 
-  // GET /api/analytics/stylists/:id/commissions - Tính tiền hoa hồng cho stylist
-  // Quy tắc nghiệp vụ: Stylist nhận 20% trên tổng giá trị các lịch hẹn đã 'Hoàn thành'
+  // GET /api/analytics/stylists/:id/commissions - Tính tiền hoa hồng (Admin, Quản lý cùng chi nhánh, hoặc chính Thợ cắt)
   if (pathname.includes('/analytics/stylists/') && pathname.includes('/commissions')) {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'BARBER']);
+    if (!authUser) return true;
+
     const parts = pathname.split('/');
     const stylistId = parts[4];
+
+    if (authUser.role === 'BARBER' && authUser.staffId !== stylistId) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Thợ cắt chỉ được xem hoa hồng của chính mình.' }));
+      return true;
+    }
+    if (authUser.role === 'BRANCH_MANAGER' && authUser.branchId) {
+      const nvRows = await querySql('SELECT MaChiNhanh FROM NhanVien WHERE MaNhanVien = ?', [stylistId]);
+      if (nvRows?.[0]?.MaChiNhanh && nvRows[0].MaChiNhanh !== authUser.branchId) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: 'Quản lý chỉ được xem hoa hồng nhân viên chi nhánh mình.' }));
+        return true;
+      }
+    }
+
     const rows = await querySql(
       `SELECT COUNT(*) AS TongLich, ISNULL(SUM(TongTien), 0) AS TongTien
        FROM LichHen 
@@ -73,14 +87,10 @@ async function handleAnalyticsRoutes(req, res, ctx) {
     return true;
   }
 
-  // GET /api/audit/logs hoặc /api/audit hoặc /api/analytics/audit-logs - Xem nhật ký kiểm toán (Phân quyền: SUPER_ADMIN, BRANCH_MANAGER)
+  // GET /api/audit/logs hoặc /api/audit hoặc /api/analytics/audit-logs - Xem nhật ký kiểm toán
   if ((pathname === '/api/audit/logs' || pathname === '/api/audit' || pathname === '/api/analytics/audit-logs') && method === 'GET') {
-    const authUser = extractAuthUser(req);
-    if (!authUser) {
-      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ success: false, error: 'Yêu cầu đăng nhập để truy cập nhật ký kiểm toán.' }));
-      return true;
-    }
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
 
     try {
       const branchId = parsedUrl.searchParams.get('branch_id');
@@ -101,14 +111,17 @@ async function handleAnalyticsRoutes(req, res, ctx) {
     }
   }
 
-  // POST /api/audit/logs hoặc /api/audit - Ghi nhận nhật ký kiểm toán mới
+  // POST /api/audit/logs hoặc /api/audit - Ghi nhận nhật ký kiểm toán (danh tính lấy từ JWT phía server)
   if ((pathname === '/api/audit/logs' || pathname === '/api/audit') && method === 'POST') {
-    const authUser = extractAuthUser(req);
-    const body = ctx.parsedBody || {};
+    const authUser = enforceAuth(req, res);
+    if (!authUser) return true;
 
-    const actor = authUser ? (authUser.fullName || authUser.name || authUser.username) : (body.actor || 'Hệ Thống');
-    const role = authUser ? (authUser.role || 'CUSTOMER') : (body.role || 'SYSTEM');
-    const branchId = body.branchId || authUser?.branchId || null;
+    const body = ctx.parsedBody || {};
+    const actor = authUser.fullName || authUser.name || authUser.username || authUser.id;
+    const role = authUser.role;
+    const branchId = authUser.isSuperAdmin
+      ? (body.branchId || authUser.branchId || null)
+      : (authUser.branchId || null);
 
     const log = await auditService.logAudit({
       actor,

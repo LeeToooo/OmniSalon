@@ -1,59 +1,116 @@
 const { querySql } = require('../../database/db');
 const { resolveOrCreateCustomer } = require('../../services/helper_service');
+const { enforceAuth, extractAuthUser, isStaffRole } = require('../../middlewares/auth_middleware');
+const auditService = require('../../services/audit.service');
+const { clearDbSnapshotCache } = require('../auth/accounts.routes');
+
+function mapReviewRow(r, canSeePhone) {
+  const productId = r.MaSanPham || r.MaSanPhamDon || null;
+  const serviceId = r.MaDichVu || r.MaDichVuLich || null;
+  const targetName =
+    r.TenSanPhamDirect ||
+    r.TenDichVuDirect ||
+    r.TenSanPhamDon ||
+    r.TenDichVuLich ||
+    (r.MaLichHen ? `Lịch #${r.MaLichHen}` : (r.MaDonHang ? `Đơn #${r.MaDonHang}` : 'Omni Salon'));
+  return {
+    id: r.MaDanhGia,
+    MaDanhGia: r.MaDanhGia,
+    customerId: r.MaKhachHang,
+    customerName: r.TenKhachHang || 'Khách Hàng',
+    customerPhone: canSeePhone ? (r.SdtKhachHang || '') : '',
+    bookingId: r.MaLichHen || null,
+    MaLichHen: r.MaLichHen || null,
+    orderId: r.MaDonHang || null,
+    MaDonHang: r.MaDonHang || null,
+    productId,
+    MaSanPham: r.MaSanPham || productId,
+    serviceId,
+    MaDichVu: r.MaDichVu || serviceId,
+    targetName,
+    rating: Number(r.SoSao || 5),
+    SoSao: Number(r.SoSao || 5),
+    comment: r.NoiDung || '',
+    NoiDung: r.NoiDung || '',
+    adminReply: r.PhanHoiAdmin || '',
+    PhanHoiAdmin: r.PhanHoiAdmin || '',
+    replyDate: r.NgayPhanHoiStr || r.NgayPhanHoi || null,
+    NgayPhanHoi: r.NgayPhanHoiStr || r.NgayPhanHoi || null,
+    image: r.HinhAnh || null,
+    date: r.NgayDanhGiaStr || r.NgayDanhGia,
+    NgayDanhGia: r.NgayDanhGiaStr || r.NgayDanhGia,
+    status: r.TrangThai || 'Hiển thị',
+    TrangThai: r.TrangThai || 'Hiển thị'
+  };
+}
 
 async function handleReviewRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
-  // GET /api/reviews - Lấy danh sách đánh giá lọc theo productId, serviceId, orderId hoặc customerId
+
+  // GET /api/reviews - Lấy danh sách đánh giá (hỗ trợ include_hidden=true cho quản trị)
   if (pathname === '/api/reviews' && method === 'GET') {
+    const authUser = extractAuthUser(req);
+    const canSeePhone = isStaffRole(authUser);
+    const includeHidden = parsedUrl.searchParams.get('include_hidden') === 'true' && canSeePhone;
+    const statusFilterClause = includeHidden ? '' : " AND (dg.TrangThai IS NULL OR dg.TrangThai <> N'Đã ẩn')";
+
     const orderIdParam = parsedUrl.searchParams.get('order_id') || parsedUrl.searchParams.get('orderId');
     const customerIdParam = parsedUrl.searchParams.get('customer_id') || parsedUrl.searchParams.get('customerId');
     const productIdParam = parsedUrl.searchParams.get('product_id') || parsedUrl.searchParams.get('productId');
     const serviceIdParam = parsedUrl.searchParams.get('service_id') || parsedUrl.searchParams.get('serviceId');
 
+    const baseSelect = `
+      dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.MaSanPham, dg.MaDichVu,
+      dg.SoSao, dg.NoiDung, dg.HinhAnh, dg.NgayDanhGia,
+      CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGiaStr,
+      dg.TrangThai, dg.PhanHoiAdmin,
+      CONVERT(VARCHAR(19), dg.NgayPhanHoi, 120) AS NgayPhanHoiStr,
+      kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
+      sp.TenSanPham AS TenSanPhamDirect,
+      dv.TenDichVu AS TenDichVuDirect,
+      (SELECT TOP 1 sp2.TenSanPham FROM ChiTietDonHang ctdh2 JOIN SanPham sp2 ON ctdh2.MaSanPham = sp2.MaSanPham WHERE ctdh2.MaDonHang = dg.MaDonHang) AS TenSanPhamDon,
+      (SELECT TOP 1 ctdh2.MaSanPham FROM ChiTietDonHang ctdh2 WHERE ctdh2.MaDonHang = dg.MaDonHang) AS MaSanPhamDon,
+      (SELECT TOP 1 ISNULL(dv2.TenDichVu, cb2.TenCombo) FROM ChiTietLichHen ctlh2 LEFT JOIN DichVu dv2 ON ctlh2.MaDichVu = dv2.MaDichVu LEFT JOIN ComboDichVu cb2 ON ctlh2.MaCombo = cb2.MaCombo WHERE ctlh2.MaLichHen = dg.MaLichHen) AS TenDichVuLich,
+      (SELECT TOP 1 ISNULL(ctlh2.MaDichVu, ctlh2.MaCombo) FROM ChiTietLichHen ctlh2 WHERE ctlh2.MaLichHen = dg.MaLichHen) AS MaDichVuLich
+    `;
+
     let queryStr = '';
     const params = [];
 
     if (productIdParam) {
-      // Đánh giá sản phẩm: Đơn hàng -> Chi tiết đơn hàng -> Mã sản phẩm
       queryStr = `
-        SELECT DISTINCT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
-               dg.NgayDanhGia,
-               CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGiaStr,
-               dg.TrangThai,
-               kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
+        SELECT DISTINCT ${baseSelect}
         FROM DanhGia dg
-        JOIN DonHang dh ON dg.MaDonHang = dh.MaDonHang
-        JOIN ChiTietDonHang ctdh ON dh.MaDonHang = ctdh.MaDonHang
+        LEFT JOIN DonHang dh ON dg.MaDonHang = dh.MaDonHang
+        LEFT JOIN ChiTietDonHang ctdh ON dh.MaDonHang = ctdh.MaDonHang
         LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
-        WHERE dg.TrangThai = N'Hiển thị' AND ctdh.MaSanPham = ?
+        LEFT JOIN SanPham sp ON dg.MaSanPham = sp.MaSanPham
+        LEFT JOIN DichVu dv ON dg.MaDichVu = dv.MaDichVu
+        WHERE (dg.MaSanPham = ? OR ctdh.MaSanPham = ?) ${statusFilterClause}
         ORDER BY dg.NgayDanhGia DESC
       `;
-      params.push(productIdParam);
+      params.push(productIdParam, productIdParam);
     } else if (serviceIdParam) {
-      // Đánh giá dịch vụ / combo: Lịch hẹn -> Chi tiết lịch hẹn -> Mã dịch vụ hoặc Mã combo
       queryStr = `
-        SELECT DISTINCT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
-               dg.NgayDanhGia,
-               CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGiaStr,
-               dg.TrangThai,
-               kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
+        SELECT DISTINCT ${baseSelect}
         FROM DanhGia dg
-        JOIN LichHen lh ON dg.MaLichHen = lh.MaLichHen
-        JOIN ChiTietLichHen ctlh ON lh.MaLichHen = ctlh.MaLichHen
+        LEFT JOIN LichHen lh ON dg.MaLichHen = lh.MaLichHen
+        LEFT JOIN ChiTietLichHen ctlh ON lh.MaLichHen = ctlh.MaLichHen
         LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
-        WHERE dg.TrangThai = N'Hiển thị' AND (ctlh.MaDichVu = ? OR ctlh.MaCombo = ?)
+        LEFT JOIN SanPham sp ON dg.MaSanPham = sp.MaSanPham
+        LEFT JOIN DichVu dv ON dg.MaDichVu = dv.MaDichVu
+        WHERE (dg.MaDichVu = ? OR ctlh.MaDichVu = ? OR ctlh.MaCombo = ?) ${statusFilterClause}
         ORDER BY dg.NgayDanhGia DESC
       `;
-      params.push(serviceIdParam, serviceIdParam);
+      params.push(serviceIdParam, serviceIdParam, serviceIdParam);
     } else {
       queryStr = `
-        SELECT dg.MaDanhGia, dg.MaKhachHang, dg.MaLichHen, dg.MaDonHang, dg.SoSao, dg.NoiDung, dg.HinhAnh,
-               CONVERT(VARCHAR(19), dg.NgayDanhGia, 120) AS NgayDanhGiaStr,
-               dg.TrangThai,
-               kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang
+        SELECT ${baseSelect}
         FROM DanhGia dg
         LEFT JOIN KhachHang kh ON dg.MaKhachHang = kh.MaKhachHang
-        WHERE dg.TrangThai = N'Hiển thị'
+        LEFT JOIN SanPham sp ON dg.MaSanPham = sp.MaSanPham
+        LEFT JOIN DichVu dv ON dg.MaDichVu = dv.MaDichVu
+        WHERE 1 = 1 ${statusFilterClause}
       `;
       if (orderIdParam) {
         queryStr += ' AND dg.MaDonHang = ?';
@@ -65,41 +122,35 @@ async function handleReviewRoutes(req, res, ctx) {
       queryStr += ' ORDER BY dg.NgayDanhGia DESC';
     }
 
-    let rows = await querySql(queryStr, params);
-    if (!rows) rows = [];
-
-    const mapped = rows.map(r => ({
-      id: r.MaDanhGia,
-      MaDanhGia: r.MaDanhGia,
-      customerId: r.MaKhachHang,
-      customerName: r.TenKhachHang || 'Khách Hàng',
-      customerPhone: r.SdtKhachHang || '',
-      bookingId: r.MaLichHen,
-      orderId: r.MaDonHang,
-      rating: r.SoSao,
-      comment: r.NoiDung,
-      image: r.HinhAnh,
-      date: r.NgayDanhGiaStr || r.NgayDanhGia,
-      status: r.TrangThai
-    }));
+    const rows = (await querySql(queryStr, params)) || [];
+    const mapped = rows.map(r => mapReviewRow(r, canSeePhone));
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(mapped));
     return true;
   }
 
-  // POST /api/reviews - Gửi đánh giá phản hồi, mã đơn hàng hoặc mã lịch hẹn phải có 1 giá trị
+  // POST /api/reviews - Gửi đánh giá trực tiếp cho sản phẩm / dịch vụ hoặc qua đơn hàng / lịch hẹn
   if (pathname === '/api/reviews' && method === 'POST') {
+    const authUser = enforceAuth(req, res);
+    if (!authUser) return true;
+
     try {
       const r = parsedBody || {};
-      const comment = (r.comment || r.content || r.NoiDung || 'Dịch vụ và sản phẩm rất tốt!').trim();
+      const comment = (r.comment || r.content || r.NoiDung || '').trim();
+      if (!comment || comment.length < 3) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Vui lòng nhập nội dung nhận xét ít nhất 3 ký tự.' }));
+        return true;
+      }
       const stars = Math.min(5, Math.max(1, parseInt(r.rating || r.SoSao || 5, 10)));
       let dhId = (r.orderId || r.MaDonHang || '').trim() || null;
       let lhId = (r.bookingId || r.MaLichHen || '').trim() || null;
-      const prodId = (r.productId || r.MaSanPham || '').trim();
-      const serviceId = (r.serviceId || r.MaDichVu || '').trim();
+      let maSanPham = (r.productId || r.MaSanPham || '').trim() || null;
+      let maDichVu = (r.serviceId || r.MaDichVu || '').trim() || null;
 
-      // Chuẩn hóa mã khách hàng nếu có tiền tố tài khoản
-      let rawKhId = (r.customerId || r.userId || '').trim();
+      let rawKhId = isStaffRole(authUser)
+        ? ((r.customerId || r.userId || authUser.customerId || '').trim())
+        : ((authUser.customerId || r.customerId || '').trim());
       if (rawKhId.startsWith('TK_')) rawKhId = rawKhId.substring(3);
 
       let khId = null;
@@ -113,135 +164,110 @@ async function handleReviewRoutes(req, res, ctx) {
       if (!khId) {
         khId = await resolveOrCreateCustomer({
           customerId: rawKhId,
-          customerName: r.customerName || 'Khách Hàng',
-          customerPhone: r.customerPhone || ''
+          customerName: r.customerName || authUser.fullName || 'Khách Hàng',
+          customerPhone: r.customerPhone || authUser.phone || ''
         });
       }
 
-      // Xử lý đơn hàng hoặc lịch hẹn để đảm bảo CK_DanhGia_DoiTuong
       if (dhId) {
-        let orderRows = await querySql('SELECT MaDonHang, MaKhachHang, TrangThai FROM DonHang WHERE MaDonHang = ?', [dhId]);
-        if (orderRows && orderRows.length > 0) {
-          if (!khId) khId = orderRows[0].MaKhachHang;
-        } else {
-          await querySql(
-            `INSERT INTO DonHang (MaDonHang, MaKhachHang, MaChiNhanh, NgayDat, TongTien, DiaChiGiaoHang, HinhThucNhan, TrangThai, GhiChu)
-             VALUES (?, ?, 'CN01', GETDATE(), 432000, N'Nhận tại chi nhánh Omni Salon', N'Nhận tại quầy', N'Đã giao', N'Đồng bộ đánh giá khách hàng')`,
-            [dhId, khId]
-          ).catch(() => {});
+        const orderRows = await querySql('SELECT MaDonHang, MaKhachHang, TrangThai FROM DonHang WHERE MaDonHang = ?', [dhId]);
+        if (!orderRows || orderRows.length === 0) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, message: `Không tìm thấy đơn hàng #${dhId} để đánh giá.` }));
+          return true;
+        }
+        if (!isStaffRole(authUser) && orderRows[0].MaKhachHang !== khId) {
+          res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, message: 'Bạn chỉ được đánh giá đơn hàng của chính mình.' }));
+          return true;
+        }
+        if (String(orderRows[0].TrangThai || '').trim() === 'Đã hủy') {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, message: 'Không thể gửi đánh giá cho đơn hàng đã hủy.' }));
+          return true;
         }
         lhId = null;
       } else if (lhId) {
-        const bookingRows = await querySql('SELECT MaLichHen, MaKhachHang FROM LichHen WHERE MaLichHen = ?', [lhId]);
-        if (bookingRows && bookingRows[0] && !khId) {
-          khId = bookingRows[0].MaKhachHang;
-        } else if (!bookingRows || bookingRows.length === 0) {
-          await querySql(
-            `INSERT INTO LichHen (MaLichHen, MaKhachHang, MaChiNhanh, MaNhanVien, NgayHen, GioBatDau, GioKetThuc, TongTien, TrangThai, GhiChu)
-             VALUES (?, ?, 'CN01', 'NV02', CAST(GETDATE() AS DATE), '10:00:00', '10:45:00', 330000, N'Đã hoàn thành', N'Đồng bộ đánh giá lịch hẹn')`,
-            [lhId, khId]
-          ).catch(() => {});
+        const bookingRows = await querySql('SELECT MaLichHen, MaKhachHang, TrangThai FROM LichHen WHERE MaLichHen = ?', [lhId]);
+        if (!bookingRows || !bookingRows[0]) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, message: `Không tìm thấy lịch hẹn #${lhId} để đánh giá.` }));
+          return true;
+        }
+        if (!isStaffRole(authUser) && bookingRows[0].MaKhachHang !== khId) {
+          res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, message: 'Bạn chỉ được đánh giá lịch hẹn của chính mình.' }));
+          return true;
+        }
+        if (String(bookingRows[0].TrangThai || '').trim() === 'Đã hủy') {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, message: 'Không thể gửi đánh giá cho lịch hẹn đã hủy.' }));
+          return true;
         }
         dhId = null;
-      } else if (prodId) {
-        // Khách hàng đánh giá sản phẩm trực tiếp từ PDP
-        // Tìm xem đã có đơn hàng nào của khách chứa sản phẩm này chưa
-        const existingOrder = await querySql(
-          `SELECT TOP 1 dh.MaDonHang 
-           FROM DonHang dh 
-           JOIN ChiTietDonHang ctdh ON dh.MaDonHang = ctdh.MaDonHang 
-           WHERE dh.MaKhachHang = ? AND ctdh.MaSanPham = ?`,
-          [khId, prodId]
-        );
-        if (existingOrder && existingOrder.length > 0) {
-          dhId = existingOrder[0].MaDonHang;
-        } else {
-          // Tạo mã đơn ngắn phù hợp cột MaDonHang tối đa 20 ký tự
-          const randSuffix = Math.floor(1000 + Math.random() * 9000);
-          dhId = `DH_${prodId.replace(/[^A-Za-z0-9]/g, '').slice(0, 8)}_${randSuffix}`.slice(0, 20);
-          
-          await querySql(
-            `INSERT INTO DonHang (MaDonHang, MaKhachHang, MaChiNhanh, NgayDat, TongTien, DiaChiGiaoHang, HinhThucNhan, TrangThai, GhiChu)
-             VALUES (?, ?, 'CN01', GETDATE(), 350000, N'Chi nhánh Omni Salon', N'Nhận tại quầy', N'Đã giao', N'Đơn hàng tự động lưu trữ cho đánh giá sản phẩm')`,
-            [dhId, khId]
-          ).catch(() => {});
-
-          let lotRow = await querySql('SELECT TOP 1 MaChiTietPhieuNhap, DonGiaNhap FROM ChiTietPhieuNhap WHERE MaSanPham = ?', [prodId]);
-          const lotId = (lotRow && lotRow[0]) ? lotRow[0].MaChiTietPhieuNhap : 'CTPN01001';
-          const ctDhId = `CTDH_${randSuffix}`;
-          await querySql(
-            `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)
-             VALUES (?, ?, ?, ?, 1, 350000, 0.00, 350000, 350000)`,
-            [ctDhId, dhId, prodId, lotId]
-          ).catch((e) => { console.error('Error insert ChiTietDonHang:', e); });
+      } else if (maSanPham) {
+        const spCheck = await querySql('SELECT TOP 1 MaSanPham FROM SanPham WHERE MaSanPham = ?', [maSanPham]);
+        if (!spCheck || !spCheck[0]) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, message: `Không tìm thấy sản phẩm ${maSanPham}.` }));
+          return true;
         }
-        lhId = null;
-      } else if (serviceId) {
-        // Khách đánh giá dịch vụ trực tiếp
-        const randSuffix = Math.floor(1000 + Math.random() * 9000);
-        lhId = `LH_${serviceId.replace(/[^A-Za-z0-9]/g, '').slice(0, 8)}_${randSuffix}`.slice(0, 20);
-        await querySql(
-          `INSERT INTO LichHen (MaLichHen, MaKhachHang, MaChiNhanh, MaNhanVien, NgayHen, GioBatDau, GioKetThuc, TongTien, TrangThai, GhiChu)
-           VALUES (?, ?, 'CN01', 'NV02', CAST(GETDATE() AS DATE), '10:00:00', '10:45:00', 300000, N'Đã hoàn thành', N'Lịch hẹn tự động lưu trữ cho đánh giá dịch vụ')`,
-          [lhId, khId]
-        ).catch(() => {});
-
-        const isCombo = serviceId.toUpperCase().startsWith('CB');
-        const ctLhId = `CTLH_${randSuffix}`;
-        await querySql(
-          `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien)
-           VALUES (?, ?, ?, ?, 1, 300000, 300000)`,
-          [ctLhId, lhId, isCombo ? null : serviceId, isCombo ? serviceId : null]
-        ).catch((e) => { console.error('Error insert ChiTietLichHen:', e); });
-        dhId = null;
+      } else if (maDichVu) {
+        const dvCheck = await querySql('SELECT TOP 1 MaDichVu FROM DichVu WHERE MaDichVu = ?', [maDichVu]);
+        if (!dvCheck || !dvCheck[0]) {
+          // Nếu là Combo (CB...) thì ánh xạ sang dịch vụ thành phần đầu tiên để thỏa FK_DanhGia_DichVu
+          const cbChild = await querySql('SELECT TOP 1 MaDichVu FROM ChiTietComboDichVu WHERE MaCombo = ?', [maDichVu]).catch(() => []);
+          if (cbChild && cbChild[0]) {
+            maDichVu = cbChild[0].MaDichVu;
+          } else {
+            res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ success: false, message: `Không tìm thấy dịch vụ ${maDichVu}.` }));
+            return true;
+          }
+        }
       } else {
-        // Trường hợp chung: gán 1 lịch hẹn đại diện để thỏa mãn CK_DanhGia_DoiTuong
-        const randSuffix = Math.floor(1000 + Math.random() * 9000);
-        lhId = `LH_REV_${randSuffix}`.slice(0, 20);
-        await querySql(
-          `INSERT INTO LichHen (MaLichHen, MaKhachHang, MaChiNhanh, MaNhanVien, NgayHen, GioBatDau, GioKetThuc, TongTien, TrangThai, GhiChu)
-           VALUES (?, ?, 'CN01', 'NV02', CAST(GETDATE() AS DATE), '10:00:00', '10:45:00', 200000, N'Đã hoàn thành', N'Đánh giá phản hồi dịch vụ')`,
-          [lhId, khId]
-        ).catch(() => {});
-        dhId = null;
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: 'Thiếu thông tin sản phẩm, dịch vụ, đơn hàng hoặc lịch hẹn cần đánh giá.' }));
+        return true;
       }
 
-      // Nếu đơn hàng hoặc lịch hẹn này đã có đánh giá trước đó -> Cập nhật nội dung
+      // Cập nhật nếu đánh giá gắn với mã đơn hàng / mã lịch hẹn cụ thể đã tồn tại
       if (dhId) {
         const existingReview = await querySql('SELECT TOP 1 MaDanhGia FROM DanhGia WHERE MaDonHang = ?', [dhId]);
-        if (existingReview && existingReview.length > 0) {
+        if (existingReview && existingReview[0]) {
           const existingId = existingReview[0].MaDanhGia;
           await querySql(
             `UPDATE DanhGia SET SoSao = ?, NoiDung = ?, NgayDanhGia = GETDATE(), TrangThai = N'Hiển thị' WHERE MaDanhGia = ?`,
             [stars, comment, existingId]
           );
+          clearDbSnapshotCache('review_updated');
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({
             success: true,
             message: 'Cập nhật đánh giá thành công!',
-            review: { id: existingId, orderId: dhId, rating: stars, comment, customerId: khId }
+            review: { id: existingId, orderId: dhId, productId: maSanPham, rating: stars, comment, customerId: khId, status: 'Hiển thị' }
           }));
           return true;
         }
       } else if (lhId) {
         const existingLhReview = await querySql('SELECT TOP 1 MaDanhGia FROM DanhGia WHERE MaLichHen = ?', [lhId]);
-        if (existingLhReview && existingLhReview.length > 0) {
+        if (existingLhReview && existingLhReview[0]) {
           const existingId = existingLhReview[0].MaDanhGia;
           await querySql(
             `UPDATE DanhGia SET SoSao = ?, NoiDung = ?, NgayDanhGia = GETDATE(), TrangThai = N'Hiển thị' WHERE MaDanhGia = ?`,
             [stars, comment, existingId]
           );
+          clearDbSnapshotCache('review_updated');
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({
             success: true,
             message: 'Cập nhật đánh giá thành công!',
-            review: { id: existingId, bookingId: lhId, rating: stars, comment, customerId: khId }
+            review: { id: existingId, bookingId: lhId, serviceId: maDichVu, rating: stars, comment, customerId: khId, status: 'Hiển thị' }
           }));
           return true;
         }
       }
 
-      // Tạo mã đánh giá tự tăng chuẩn DG01, DG02...
       const allDg = await querySql(`SELECT MaDanhGia FROM DanhGia WHERE MaDanhGia LIKE 'DG%'`);
       let maxNum = 10;
       if (allDg && allDg.length > 0) {
@@ -253,27 +279,155 @@ async function handleReviewRoutes(req, res, ctx) {
           }
         });
       }
-      const dgId = 'DG' + (maxNum + 1 < 10 ? '0' + (maxNum + 1) : (maxNum + 1));
+      const nextNum = maxNum + 1;
+      const dgId = 'DG' + (nextNum < 10 ? '000' + nextNum : (nextNum < 100 ? '00' + nextNum : (nextNum < 1000 ? '0' + nextNum : nextNum)));
 
       await querySql(
-        `INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag) 
-         VALUES (?, ?, ?, ?, ?, ?, NULL, GETDATE(), N'Hiển thị', 0)`,
-        [dgId, khId, lhId, dhId, stars, comment]
+        `INSERT INTO DanhGia (MaDanhGia, MaKhachHang, MaLichHen, MaDonHang, MaSanPham, MaDichVu, SoSao, NoiDung, HinhAnh, NgayDanhGia, TrangThai, CoFlag)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, GETDATE(), N'Hiển thị', 0)`,
+        [dgId, khId, lhId, dhId, maSanPham, maDichVu, stars, comment]
       );
 
+      clearDbSnapshotCache('review_created');
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ 
-        success: true, 
+      res.end(JSON.stringify({
+        success: true,
         message: 'Gửi đánh giá thành công!',
-        review: { id: dgId, orderId: dhId, bookingId: lhId, rating: stars, comment, customerId: khId } 
+        review: {
+          id: dgId,
+          orderId: dhId,
+          bookingId: lhId,
+          productId: maSanPham,
+          serviceId: maDichVu,
+          rating: stars,
+          comment,
+          customerId: khId,
+          customerName: r.customerName || authUser.fullName || 'Khách Hàng',
+          status: 'Hiển thị',
+          date: new Date().toISOString()
+        }
       }));
       return true;
     } catch (revErr) {
       console.error('[Lỗi Đánh Giá]', revErr);
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, message: revErr.message }));
       return true;
     }
+  }
+
+  // PUT /api/reviews/:id/status - Ẩn / Hiện đánh giá (Quản trị / Quản lý)
+  if (pathname.startsWith('/api/reviews/') && pathname.endsWith('/status') && (method === 'PUT' || method === 'PATCH')) {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
+    const id = decodeURIComponent(pathname.split('/')[3] || '').trim();
+    const body = parsedBody || {};
+    const existing = await querySql('SELECT MaDanhGia, TrangThai FROM DanhGia WHERE MaDanhGia = ?', [id]);
+    if (!existing || !existing[0]) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: `Không tìm thấy đánh giá ${id}.` }));
+      return true;
+    }
+    const curStatus = existing[0].TrangThai || 'Hiển thị';
+    const requested = body.status || body.TrangThai;
+    const newStatus = requested
+      ? ((String(requested).toLowerCase().includes('ẩn') || requested === 'hidden') ? 'Đã ẩn' : 'Hiển thị')
+      : (curStatus === 'Đã ẩn' ? 'Hiển thị' : 'Đã ẩn');
+
+    await querySql('UPDATE DanhGia SET TrangThai = ? WHERE MaDanhGia = ?', [newStatus, id]);
+    clearDbSnapshotCache('review_status');
+
+    auditService.logAudit({
+      actor: authUser.fullName || authUser.name || authUser.username,
+      role: authUser.role || 'SUPER_ADMIN',
+      action: 'MODERATE_REVIEW_STATUS',
+      entityType: 'DanhGia',
+      entityId: id,
+      before: { TrangThai: curStatus },
+      after: { TrangThai: newStatus },
+      details: `${authUser.fullName || authUser.username} chuyển trạng thái đánh giá ${id} sang "${newStatus}"`
+    }).catch(() => {});
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: true, id, status: newStatus, message: `Đã chuyển trạng thái sang "${newStatus}"!` }));
+    return true;
+  }
+
+  // PUT /api/reviews/:id/reply - Phản hồi đánh giá từ Salon
+  if (pathname.startsWith('/api/reviews/') && pathname.endsWith('/reply') && (method === 'PUT' || method === 'POST')) {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER']);
+    if (!authUser) return true;
+
+    const id = decodeURIComponent(pathname.split('/')[3] || '').trim();
+    const body = parsedBody || {};
+    const replyText = String(body.reply || body.adminReply || body.PhanHoiAdmin || '').trim();
+    if (!replyText) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Nội dung phản hồi không được để trống.' }));
+      return true;
+    }
+
+    const existing = await querySql('SELECT MaDanhGia FROM DanhGia WHERE MaDanhGia = ?', [id]);
+    if (!existing || !existing[0]) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: `Không tìm thấy đánh giá ${id}.` }));
+      return true;
+    }
+
+    await querySql('UPDATE DanhGia SET PhanHoiAdmin = ?, NgayPhanHoi = GETDATE() WHERE MaDanhGia = ?', [replyText, id]);
+    clearDbSnapshotCache('review_reply');
+
+    auditService.logAudit({
+      actor: authUser.fullName || authUser.name || authUser.username,
+      role: authUser.role || 'SUPER_ADMIN',
+      action: 'REPLY_REVIEW',
+      entityType: 'DanhGia',
+      entityId: id,
+      after: { PhanHoiAdmin: replyText },
+      details: `${authUser.fullName || authUser.username} phản hồi đánh giá ${id}`
+    }).catch(() => {});
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({
+      success: true,
+      id,
+      adminReply: replyText,
+      replyDate: new Date().toISOString(),
+      message: 'Đã lưu phản hồi đánh giá thành công!'
+    }));
+    return true;
+  }
+
+  // DELETE /api/reviews/:id - Xóa đánh giá
+  if (pathname.startsWith('/api/reviews/') && method === 'DELETE') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
+    const id = decodeURIComponent(pathname.split('/')[3] || '').trim();
+    const existing = await querySql('SELECT MaDanhGia, NoiDung FROM DanhGia WHERE MaDanhGia = ?', [id]);
+    if (!existing || !existing[0]) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: `Không tìm thấy đánh giá ${id}.` }));
+      return true;
+    }
+
+    await querySql('DELETE FROM DanhGia WHERE MaDanhGia = ?', [id]);
+    clearDbSnapshotCache('review_deleted');
+
+    auditService.logAudit({
+      actor: authUser.fullName || authUser.name || authUser.username,
+      role: authUser.role || 'SUPER_ADMIN',
+      action: 'DELETE_REVIEW',
+      entityType: 'DanhGia',
+      entityId: id,
+      before: existing[0],
+      details: `${authUser.fullName || authUser.username} xóa đánh giá ${id}`
+    }).catch(() => {});
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: true, id, message: `Đã xóa đánh giá ${id}!` }));
+    return true;
   }
 
   return false;

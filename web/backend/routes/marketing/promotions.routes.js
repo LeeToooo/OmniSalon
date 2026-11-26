@@ -1,4 +1,6 @@
 const { querySql } = require('../../database/db');
+const { enforceAuth } = require('../../middlewares/auth_middleware');
+const { getLocalIsoDate } = require('../../services/helper_service');
 
 async function handlePromotionRoutes(req, res, ctx) {
   const { pathname, method, parsedBody } = ctx;
@@ -38,8 +40,11 @@ async function handlePromotionRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/promotions - Tạo chương trình khuyến mãi mới
+  // POST /api/promotions - Tạo chương trình khuyến mãi mới (chỉ Admin/Quản lý)
   if (pathname === '/api/promotions' && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const body = parsedBody || {};
     const kmRows = await querySql(`SELECT MaKhuyenMai FROM KhuyenMai`);
     const existingIds = new Set((kmRows || []).map(r => String(r.MaKhuyenMai || '').trim().toUpperCase()));
@@ -67,7 +72,7 @@ async function handlePromotionRoutes(req, res, ctx) {
     const type = body.type || body.HinhThuc || (body.discountType === 'percent' ? `Giảm ${body.value}%` : `Giảm ${body.value}đ`);
     const value = parseFloat(body.value !== undefined ? body.value : (body.GiaTriGiam || 10));
     const target = body.target || body.DoiTuongApDung || 'Tất cả khách hàng';
-    const startDate = body.startDate || body.NgayBatDau || new Date().toISOString().split('T')[0];
+    const startDate = body.startDate || body.NgayBatDau || getLocalIsoDate();
     const endDate = body.endDate || body.NgayKetThuc || '2027-12-31';
     const status = body.status || body.TrangThai || 'Đang áp dụng';
 
@@ -114,8 +119,11 @@ async function handlePromotionRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/promotions/:id - Sửa chương trình khuyến mãi
+  // PUT /api/promotions/:id - Sửa chương trình khuyến mãi (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/promotions/') && method === 'PUT') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const kmId = pathname.replace('/api/promotions/', '').trim();
     const body = parsedBody || {};
     const name = body.name || body.TenKhuyenMai;
@@ -158,8 +166,11 @@ async function handlePromotionRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/promotions/:id - Xóa chương trình khuyến mãi
+  // DELETE /api/promotions/:id - Xóa chương trình khuyến mãi (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/promotions/') && method === 'DELETE') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const id = pathname.replace('/api/promotions/', '').trim();
     await querySql(`DELETE FROM KhuyenMai_DichVu WHERE MaKhuyenMai = ?`, [id]);
     await querySql(`DELETE FROM KhuyenMai_SanPham WHERE MaKhuyenMai = ?`, [id]);
@@ -199,8 +210,11 @@ async function handlePromotionRoutes(req, res, ctx) {
     return true;
   }
 
-  // POST /api/discount-rules - Thêm quy tắc giảm giá mới vào SQL Server
+  // POST /api/discount-rules - Thêm quy tắc giảm giá mới (chỉ Admin/Quản lý)
   if (pathname === '/api/discount-rules' && method === 'POST') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const body = parsedBody || {};
     const qtRows = await querySql(`SELECT MaQuyTac FROM QuyTacGiamGiaTheoHan`);
     const existingIds = new Set((qtRows || []).map(r => String(r.MaQuyTac || '').trim().toUpperCase()));
@@ -255,8 +269,11 @@ async function handlePromotionRoutes(req, res, ctx) {
     return true;
   }
 
-  // PUT /api/discount-rules/:id - Sửa quy tắc giảm giá trong SQL Server
+  // PUT /api/discount-rules/:id - Sửa quy tắc giảm giá (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/discount-rules/') && method === 'PUT') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const ruleId = pathname.replace('/api/discount-rules/', '').trim();
     const body = parsedBody || {};
     const name = body.name || body.TenQuyTac;
@@ -281,8 +298,11 @@ async function handlePromotionRoutes(req, res, ctx) {
     return true;
   }
 
-  // DELETE /api/discount-rules/:id - Xóa quy tắc giảm giá khỏi SQL Server
+  // DELETE /api/discount-rules/:id - Xóa quy tắc giảm giá (chỉ Admin/Quản lý)
   if (pathname.startsWith('/api/discount-rules/') && method === 'DELETE') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER']);
+    if (!authUser) return true;
+
     const ruleId = pathname.replace('/api/discount-rules/', '').trim();
     await querySql(`DELETE FROM QuyTacGiamGiaTheoHan WHERE MaQuyTac = ?`, [ruleId]);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

@@ -1,10 +1,39 @@
+const crypto = require('crypto');
 const PaymentController = require('../../controllers/payment.controller');
 const vnpayService = require('../../services/vnpay_service');
+const { enforceAuth } = require('../../middlewares/auth_middleware');
 const {
   processBankTransfer,
   checkPaymentStatus,
   getRecentPayments
 } = require('../../services/payment_automation_service');
+
+function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function isValidWebhookSecret(req) {
+  const configuredSecret = (process.env.PAYMENT_WEBHOOK_SECRET || process.env.CASSO_SECURE_TOKEN || '').trim();
+  if (!configuredSecret) return { configured: false, valid: false };
+  const authHeader = String(req.headers['authorization'] || '');
+  const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const supplied = String(
+    req.headers['x-webhook-secret'] ||
+    req.headers['secure-token'] ||
+    req.headers['x-api-key'] ||
+    bearer ||
+    ''
+  ).trim();
+  if (!supplied) return { configured: true, valid: false };
+  const a = Buffer.from(supplied, 'utf8');
+  const b = Buffer.from(configuredSecret, 'utf8');
+  return { configured: true, valid: a.length === b.length && crypto.timingSafeEqual(a, b) };
+}
 
 async function handlePaymentRoutes(req, res, ctx) {
   const { pathname, method, parsedUrl, parsedBody } = ctx;
@@ -34,6 +63,18 @@ async function handlePaymentRoutes(req, res, ctx) {
   }
 
   if (pathname === '/api/payments/webhook' && method === 'POST') {
+    const authCheck = isValidWebhookSecret(req);
+    if (!authCheck.configured) {
+      res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'PAYMENT_WEBHOOK_SECRET chưa được cấu hình trên máy chủ.' }));
+      return true;
+    }
+    if (!authCheck.valid) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: 'Webhook secret không hợp lệ.' }));
+      return true;
+    }
+
     try {
       const payload = parsedBody || {};
 
@@ -94,6 +135,9 @@ async function handlePaymentRoutes(req, res, ctx) {
   }
 
   if (pathname === '/api/payments/recent' && method === 'GET') {
+    const authUser = enforceAuth(req, res, ['SUPER_ADMIN', 'BRANCH_MANAGER', 'CASHIER']);
+    if (!authUser) return true;
+
     try {
       const list = getRecentPayments ? getRecentPayments() : [];
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -126,7 +170,8 @@ async function handlePaymentRoutes(req, res, ctx) {
       res.end(JSON.stringify(result));
       return true;
     } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      const status = String(err.message || '').includes('chưa được cấu hình') ? 503 : 500;
+      res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, message: 'Lỗi tạo liên kết thanh toán VNPAY: ' + err.message }));
       return true;
     }
@@ -145,12 +190,14 @@ async function handlePaymentRoutes(req, res, ctx) {
         await vnpayService.confirmOrderPayment(verifyResult);
       }
 
-      const isSuccess = verifyResult.isSuccess;
-      const amountFmt = Number(verifyResult.amount || 0).toLocaleString('vi-VN') + ' VNĐ';
-      const orderId = verifyResult.orderId || '';
-      const bankCode = verifyResult.bankCode || 'VNPAY';
-      const txnNo = verifyResult.transactionNo || '';
-      const message = verifyResult.message || (isSuccess ? 'Giao dịch thành công' : 'Giao dịch thất bại');
+      const isSuccess = Boolean(verifyResult.isSuccess);
+      const amountFmt = escapeHtml(Number(verifyResult.amount || 0).toLocaleString('vi-VN') + ' VNĐ');
+      const rawOrderId = String(verifyResult.orderId || '');
+      const safeOrderId = escapeHtml(rawOrderId);
+      const encodedOrderId = encodeURIComponent(rawOrderId);
+      const safeBankCode = escapeHtml(verifyResult.bankCode || 'VNPAY');
+      const safeTxnNo = escapeHtml(verifyResult.transactionNo || 'N/A');
+      const safeMessage = escapeHtml(verifyResult.message || (isSuccess ? 'Giao dịch thành công' : 'Giao dịch thất bại'));
 
       const html = `<!DOCTYPE html>
 <html lang="vi">
@@ -261,12 +308,12 @@ async function handlePaymentRoutes(req, res, ctx) {
   <div class="receipt-card">
     <div class="icon-badge">${isSuccess ? '✓' : '✕'}</div>
     <h1 class="title">${isSuccess ? 'Thanh Toán VNPAY Thành Công' : 'Thanh Toán Không Thành Công'}</h1>
-    <p class="subtitle">${message}</p>
+    <p class="subtitle">${safeMessage}</p>
 
     <div class="detail-table">
       <div class="detail-row">
         <span class="label">Mã giao dịch / Đơn hàng:</span>
-        <span class="value">${orderId}</span>
+        <span class="value">${safeOrderId}</span>
       </div>
       <div class="detail-row">
         <span class="label">Số tiền:</span>
@@ -274,11 +321,11 @@ async function handlePaymentRoutes(req, res, ctx) {
       </div>
       <div class="detail-row">
         <span class="label">Mã giao dịch VNPAY:</span>
-        <span class="value">${txnNo || 'N/A'}</span>
+        <span class="value">${safeTxnNo}</span>
       </div>
       <div class="detail-row">
         <span class="label">Ngân hàng thanh toán:</span>
-        <span class="value">${bankCode}</span>
+        <span class="value">${safeBankCode}</span>
       </div>
       <div class="detail-row">
         <span class="label">Cổng xử lý:</span>
@@ -286,7 +333,7 @@ async function handlePaymentRoutes(req, res, ctx) {
       </div>
     </div>
 
-    <a href="/?vnpay_status=${isSuccess ? 'success' : 'failed'}&orderId=${encodeURIComponent(orderId)}" class="action-btn">
+    <a href="/?vnpay_status=${isSuccess ? 'success' : 'failed'}&orderId=${encodedOrderId}" class="action-btn">
       Quay Về Cửa Hàng OmniSalon
     </a>
     <p class="redirect-note">Tự động chuyển về trang chủ sau <span id="countdown">4</span> giây...</p>
@@ -294,12 +341,13 @@ async function handlePaymentRoutes(req, res, ctx) {
   <script>
     let timeLeft = 4;
     const counter = document.getElementById('countdown');
+    const targetHref = ${JSON.stringify(`/?vnpay_status=${isSuccess ? 'success' : 'failed'}&orderId=${encodedOrderId}`)};
     const timer = setInterval(() => {
       timeLeft--;
       if (counter) counter.textContent = timeLeft;
       if (timeLeft <= 0) {
         clearInterval(timer);
-        window.location.href = '/?vnpay_status=${isSuccess ? 'success' : 'failed'}&orderId=${encodeURIComponent(orderId)}';
+        window.location.href = targetHref;
       }
     }, 1000);
   </script>

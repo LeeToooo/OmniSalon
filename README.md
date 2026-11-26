@@ -40,7 +40,7 @@ OmniSalon cung cấp giải pháp vận hành đồng bộ thời gian thực ch
   ├── middlewares/ (Xác thực JWT, RBAC Guard, Error handling)
   ├── routes/ (Auth, Salon, Bookings, Store, Marketing, Analytics, AI, Payment)
   ├── services/ (Helper, Audit, Auto-cancel, OTP, PayOS, VNPay)
-  └── ai_engine/ (Google Gemini 2.5 Flash + Python MediaPipe Restyle)
+  └── ai_engine/ (Python MediaPipe 3D Vision & OpenCV Hair Restyle)
          │
          │  ODBC Driver 17 / msnodesqlv8
          ▼
@@ -51,9 +51,7 @@ OmniSalon cung cấp giải pháp vận hành đồng bộ thời gian thực ch
 - **Frontend**: Single Page Application (SPA) viết bằng JavaScript thuần (Vanilla JS ES6+), không phụ thuộc framework nặng, chia module rõ ràng theo chức năng.
 - **Backend**: Node.js REST API Server gọn nhẹ, không dùng thư viện cồng kềnh, phân tách tầng rõ ràng giữa `routes` và `services`.
 - **Cơ sở dữ liệu**: Microsoft SQL Server (`QL_SALON.sql`), hỗ trợ kết nối qua ODBC Driver 17/18, tích hợp bộ đệm In-Memory Snapshot fail-safe khi mất kết nối CSDL.
-- **Trí tuệ nhân tạo (AI)**:
-  - Client-side: Canvas AR uốn phom tóc nhiều lớp theo khuôn mặt người dùng.
-  - Server-side: Tích hợp Google Gemini 2.5 Flash và Python MediaPipe phân tích cấu trúc xương mặt, tách nền và ghép kiểu tóc chuẩn góc nhìn chân dung.
+- **Trí tuệ nhân tạo (AI)**: Python MediaPipe 3D Face Mesh & OpenCV phân tích cấu trúc xương mặt, tách nền, xóa tóc cũ và ghép kiểu tóc theo góc đầu chân dung ngay tại máy chủ.
 - **Thanh toán**: Tự động sinh mã VietQR theo chuẩn Napas 24/7 và cổng thanh toán PayOS.
 
 ---
@@ -193,7 +191,7 @@ OmniSalon/
 │   │   ├── services/                # Nghiệp vụ: audit, helper, auto-cancel, OTP...
 │   │   ├── middlewares/             # Xác thực token JWT & kiểm tra phân quyền RBAC
 │   │   ├── database/                # Kết nối CSDL SQL Server (db.js, setup_db.js)
-│   │   └── ai_engine/               # Module Computer Vision & Gemini Restyle
+│   │   └── ai_engine/               # Module Computer Vision (MediaPipe & OpenCV Restyle)
 │   │
 │   └── frontend/                    # Tầng giao diện Single Page Application
 │       ├── index.html               # File HTML trung tâm liên kết toàn bộ tài nguyên

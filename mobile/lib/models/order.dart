@@ -97,6 +97,43 @@ class SalonOrder {
 
   String get orderDate => createdAt;
 
+  bool get isPickupOrder =>
+      shippingAddress.toLowerCase().contains('quầy') ||
+      paymentMethod.toLowerCase().contains('quầy');
+
+  bool get isPaid =>
+      paymentStatus.toLowerCase() == 'paid' ||
+      paymentStatus.toLowerCase().contains('đã thanh toán') ||
+      paymentStatus.toLowerCase().contains('đã trả');
+
+  String get displayPaymentStatus => isPaid ? 'Đã thanh toán' : 'Chưa thanh toán';
+
+  bool get isCancelled {
+    final s = orderStatus.toLowerCase();
+    return s.contains('hủy') || s == 'cancelled';
+  }
+
+  bool get isCompleted {
+    final s = orderStatus.toLowerCase();
+    return s.contains('hoàn tất') ||
+        s.contains('đã giao') ||
+        s.contains('đã nhận') ||
+        s == 'completed' ||
+        s == 'delivered';
+  }
+
+  bool get isDeliveringOrReady {
+    final s = orderStatus.toLowerCase();
+    return s.contains('đang giao') ||
+        s.contains('sẵn sàng') ||
+        s == 'delivering' ||
+        s == 'shipping' ||
+        s == 'ready' ||
+        s == 'ready_for_pickup';
+  }
+
+  bool get canCancel => !isCancelled && !isCompleted && !isDeliveringOrReady;
+
   factory SalonOrder.fromJson(Map<String, dynamic> json) {
     var rawItems = json['items'];
     List<OrderItem> itemsList = [];
@@ -127,20 +164,36 @@ class SalonOrder {
       }
     }
 
-    final rawStatus = json['orderStatus'] ?? json['TrangThai'] ?? 'Đang xử lý';
+    final isPickup = (json['deliveryType']?.toString().toUpperCase() == 'PICKUP_BRANCH') ||
+        (json['receiveMethod']?.toString().toLowerCase().contains('quầy') ?? false) ||
+        (json['shippingAddress']?.toString().toLowerCase().contains('quầy') ?? false) ||
+        (json['DiaChiGiaoHang']?.toString().toLowerCase().contains('quầy') ?? false);
+
+    final rawStatus = json['TrangThai'] ?? json['orderStatus'] ?? 'Chờ xác nhận';
     String normStatus = rawStatus.toString();
-    final lowStatus = normStatus.toLowerCase();
+    final lowStatus = normStatus.toLowerCase().trim();
     if (lowStatus.contains('hủy') || lowStatus == 'cancelled') {
       normStatus = 'Đã hủy';
+    } else if (lowStatus.contains('đã nhận')) {
+      normStatus = 'Đã nhận tại quầy';
     } else if (lowStatus.contains('hoàn tất') || lowStatus.contains('đã giao') || lowStatus == 'completed' || lowStatus == 'delivered') {
-      normStatus = 'Hoàn tất';
+      normStatus = isPickup ? 'Đã nhận tại quầy' : 'Hoàn tất';
+    } else if (lowStatus.contains('sẵn sàng') || lowStatus == 'ready' || lowStatus == 'ready_for_pickup') {
+      normStatus = 'Sẵn sàng tại quầy';
     } else if (lowStatus.contains('đang giao') || lowStatus == 'delivering' || lowStatus == 'shipping') {
-      normStatus = 'Đang giao';
+      normStatus = isPickup ? 'Sẵn sàng tại quầy' : 'Đang giao hàng';
+    } else if (lowStatus.contains('chuẩn bị')) {
+      normStatus = 'Đang chuẩn bị';
+    } else if (lowStatus.contains('đóng gói') || lowStatus.contains('xử lý') || lowStatus == 'processing') {
+      normStatus = isPickup ? 'Đang chuẩn bị' : 'Đang đóng gói';
     } else if (lowStatus.contains('chờ') || lowStatus == 'pending') {
       normStatus = 'Chờ xác nhận';
-    } else if (lowStatus.contains('xử lý') || lowStatus == 'processing') {
-      normStatus = 'Đang xử lý';
     }
+
+    final rawPayStatus = (json['paymentStatus'] ?? '').toString().toLowerCase().trim();
+    final normPayStatus = (rawPayStatus == 'paid' || rawPayStatus.contains('đã thanh toán') || json['isPaid'] == true)
+        ? 'Đã thanh toán'
+        : 'Chưa thanh toán';
 
     return SalonOrder(
       id: json['id'] ?? json['MaDonHang'] ?? '',
@@ -156,10 +209,10 @@ class SalonOrder {
       discountAmount: discountNum.toInt(),
       shippingFee: resolvedShippingFee,
       voucherCode: json['voucherCode'],
-      paymentMethod: json['paymentMethod'] ?? 'Tiền mặt',
-      paymentStatus: json['paymentStatus'] ?? 'Chưa thanh toán',
+      paymentMethod: json['paymentMethod'] ?? (isPickup ? 'Thanh toán tại quầy' : 'VietQR'),
+      paymentStatus: normPayStatus,
       orderStatus: normStatus,
-      createdAt: json['createdAt'] ?? json['orderDate'] ?? '',
+      createdAt: json['createdAt'] ?? json['orderDate'] ?? json['NgayDat'] ?? '',
     );
   }
 

@@ -84,13 +84,19 @@ class MainScaffoldState extends State<MainScaffold> {
   void _onAuthChanged() async {
     final currentUser = AuthService.userNotifier.value;
     final currentId = currentUser?.id;
-    if (_lastUserId != currentId) {
-      final existingItems = List<OrderItem>.from(_sharedCart);
+    final prevId = _lastUserId;
+    if (prevId != currentId) {
       _lastUserId = currentId;
-      if (existingItems.isNotEmpty) {
-        await _saveCartForUser(currentId);
-      } else {
+      if (prevId != null) {
+        await _saveCartForUser(prevId);
         await _loadCartForUser(currentId);
+      } else {
+        final guestItems = List<OrderItem>.from(_sharedCart);
+        await _loadCartForUser(currentId);
+        if (_sharedCart.isEmpty && guestItems.isNotEmpty && currentId != null) {
+          _sharedCart.addAll(guestItems);
+          await _saveCartForUser(currentId);
+        }
       }
     }
     if (mounted) setState(() {});
@@ -169,6 +175,8 @@ class MainScaffoldState extends State<MainScaffold> {
       MaterialPageRoute(
         builder: (_) => CartScreen(
           cart: _sharedCart,
+          branchId: _selectedBranch?.id,
+          branchName: _selectedBranch?.name,
           onUpdateCart: () {
             _saveCartForUser(AuthService.currentUser?.id);
             setState(() {});
@@ -199,7 +207,7 @@ class MainScaffoldState extends State<MainScaffold> {
         preselectedServiceId: _preselectedServiceId,
         preselectedStylistId: _preselectedStylistId,
       ),
-      AiStylingScreen(),
+      const AiStylingScreen(),
       ShopScreen(
         cartItems: _sharedCart,
         onAddToCart: addToCart,
@@ -256,7 +264,7 @@ class MainScaffoldState extends State<MainScaffold> {
                     constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
                       '$cartCount',
-                      style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: AppTheme.charcoal),
+                      style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: AppTheme.charcoal),
                       textAlign: TextAlign.center,
                     ),
                   ),

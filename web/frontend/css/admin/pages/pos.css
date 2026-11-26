@@ -95,10 +95,10 @@
 .pos-item-card-img {
   width: 100%;
   height: 100px;
-  object-fit: cover;
-  background: var(--surface-elevated, #161A26);
+  object-fit: contain;
+  background: #FFFFFF;
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
-  padding: 2px;
+  padding: 6px;
   border-radius: 10px;
   margin-bottom: 8px;
   transition: all 0.2s ease;
@@ -300,7 +300,7 @@ html.light .pos-item-card:hover,
 
 html.light .pos-item-card-img,
 [data-theme="light"] .pos-item-card-img {
-  background-color: #F8FAFC !important;
+  background-color: #FFFFFF !important;
   border: 1px solid #E2E8F0 !important;
 }
 
@@ -388,8 +388,8 @@ body.dark .pos-item-card:hover,
 
 html.dark .pos-item-card-img,
 body.dark .pos-item-card-img,
-[data-theme="dark"] .pos-item-card-img-img {
-  background-color: var(--bg-primary, #141413) !important;
+[data-theme="dark"] .pos-item-card-img {
+  background-color: #FFFFFF !important;
   border: 1px solid var(--border-color, #2A2A28) !important;
 }
 

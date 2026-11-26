@@ -30,7 +30,9 @@ function getDynamicServerInstances() {
     if (scOut.includes('MSSQLSERVER')) {
       instances.push('.', 'localhost');
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[SetupDB] Windows service discovery skipped:', e.message);
+  }
 
   instances.push('.\\SQLEXPRESS', 'localhost\\SQLEXPRESS', '.', 'localhost', '(local)\\SQLEXPRESS');
   return [...new Set(instances)];
@@ -44,7 +46,9 @@ function findSqlCmd() {
     const res = execSync('where sqlcmd', { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8' }).trim();
     const firstLine = res.split(/\r?\n/)[0].trim();
     if (firstLine && fs.existsSync(firstLine)) return firstLine;
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[SetupDB] sqlcmd not found on PATH, checking standard install paths:', e.message);
+  }
 
   // Check well-known install locations
   const candidates = [
