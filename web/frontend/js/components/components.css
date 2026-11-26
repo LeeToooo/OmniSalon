@@ -400,7 +400,6 @@ body.light .btn-barber-add-cart:hover:not(:disabled) {
   box-shadow: none !important;
 }
 
-
 /* Nút hành động chính */
 .btn-flat-cta {
   display: inline-flex !important;
@@ -477,9 +476,7 @@ body.dark .btn-flat-outline:hover:not(:disabled) {
   background: #121622 !important;
 }
 
-/* =========================================================================
-   TASTE-SKILL VERTICAL BRANCH CARD (ANH TREN, CHU DUOI THEO YEU CAU)
-   ========================================================================= */
+/* TASTE-SKILL VERTICAL BRANCH CARD (ANH TREN, CHU DUOI THEO YEU CAU) */
 
 .branch-clean-card {
   position: relative !important;
@@ -1003,11 +1000,7 @@ body.dark .clean-tab-btn:hover {
   padding: 0 !important;
 }
 
-
-
-/* ==========================================================================
-   OMNI SALON - PRODUCT CARD LEVENTS MINIMAL STYLING & HIGH CONTRAST
-   ========================================================================== */
+/* OMNI SALON - PRODUCT CARD LEVENTS MINIMAL STYLING & HIGH CONTRAST */
 
 /* Nhãn góc trên chuẩn Levents: Vuông vắn sắc cạnh, không bo tròn, không hiệu ứng AI */
 .flat-discount-badge {
@@ -1141,11 +1134,7 @@ html.light .btn-barber-buy-now:hover {
   transform: translateY(-1px) !important;
 }
 
-
-
-/* ==========================================================================
-   IMAGE 1 STUDIO STANDARD - PRODUCT CARD & OBJECT-FIT CONTAIN (FIX VOLCANIC CLAY)
-   ========================================================================== */
+/* IMAGE 1 STUDIO STANDARD - PRODUCT CARD & OBJECT-FIT CONTAIN (FIX VOLCANIC CLAY) */
 
 .product-clean-card {
   position: relative !important;
@@ -1376,11 +1365,7 @@ html.light .btn-card-add-bag:hover:not(:disabled) {
   cursor: not-allowed !important;
 }
 
-
-
-/* ==========================================================================
-   MEGA MENU & SHOP LOOKBOOK (4RAU STANDARD - IMAGE 1 & IMAGE 2)
-   ========================================================================== */
+/* MEGA MENU & SHOP LOOKBOOK (4RAU STANDARD - IMAGE 1 & IMAGE 2) */
 
 /* 1. Header Mega Menu Dropdown */
 .nav-mega-parent {
@@ -2042,7 +2027,6 @@ html.light .btn-clear-to-lookbook {
   width: 100%;
 }
 
-
 /* HEADER SAFE MARGIN FIX (TASTE-SKILL 0 FAIL) */
 .web-header-inner {
   padding: 10px clamp(24px, 3vw, 48px) !important;
@@ -2096,10 +2080,7 @@ html.light .btn-clear-to-lookbook {
   }
 }
 
-
-/* ==========================================================================
-   HEADER PERFECT CENTER ALIGNMENT ("Thanh menu để ra giữa")
-   ========================================================================== */
+/* HEADER PERFECT CENTER ALIGNMENT ("Thanh menu để ra giữa") */
 .web-header-inner {
   display: grid !important;
   grid-template-columns: 1fr auto 1fr !important;
@@ -2156,10 +2137,7 @@ html.light .btn-clear-to-lookbook {
   }
 }
 
-
-/* ==========================================================================
-   ZOOMED & FLUID HEADER (TRÀN 2 BÊN, KHÔNG TRỐNG MÉP, MENU TO RÕ)
-   ========================================================================== */
+/* ZOOMED & FLUID HEADER (TRÀN 2 BÊN, KHÔNG TRỐNG MÉP, MENU TO RÕ) */
 
 /* 1. Header Inner tràn viền 2 bên, loại bỏ hoàn toàn max-width gây khoảng trống đen */
 .web-main-header {
@@ -2392,7 +2370,6 @@ html.light .btn-clear-to-lookbook {
   }
 }
 
-
 .logo-sub-text {
   font-size: 13px !important;
   font-weight: 700 !important;
@@ -2403,9 +2380,7 @@ html.light .btn-clear-to-lookbook {
   display: inline-block !important;
 }
 
-/* =========================================================================
-   MANUAL CONTROLS DOCK: DPAD 4 CHIEU & ZOOM STEPPERS (TASTE-SKILL TACTILE)
-   ========================================================================= */
+/* MANUAL CONTROLS DOCK: DPAD 4 CHIEU & ZOOM STEPPERS (TASTE-SKILL TACTILE) */
 
 .branch-manual-controls-dock {
   background: var(--surface-elevated, #f8f8f7) !important;
@@ -2562,9 +2537,7 @@ body.dark .btn-quick-pos {
   color: var(--text-muted, #71717a) !important;
 }
 
-/* =========================================================================
-   FLOATING MANUAL CONTROLS PILL (DISCREET & SLEEK ON PHOTO)
-   ========================================================================= */
+/* FLOATING MANUAL CONTROLS PILL (DISCREET & SLEEK ON PHOTO) */
 
 .branch-photo-float-bar {
   position: absolute !important;
@@ -2659,8 +2632,6 @@ body.dark .btn-quick-pos {
   }
 }
 
-
-
 /* Split Layout cho Form Nha Cung Cap Admin */
 .supplier-crud-split-layout {
   display: grid;
@@ -2675,7 +2646,6 @@ body.dark .btn-quick-pos {
     gap: 24px !important;
   }
 }
-
 
 /* Split Layout cho Form Dich Vu / Catalog Admin */
 .catalog-crud-split-layout {

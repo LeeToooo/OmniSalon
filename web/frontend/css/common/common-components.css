@@ -1,12 +1,4 @@
-/* ==========================================================================
-   Omni Salon - Common UI Components (css/components/common-components.css)
-   - Modal / Dialog / Popup Shells (.modal-overlay, .modal-content-shell, .modal-wide)
-   - Product Preview Card & Image Wrapper in Modal
-   - Form Controls & Labels (.sub-label, .form-control-custom, textarea)
-   - Common Action Buttons (.btn-submit-terracotta, .btn-cancel, .btn-delete-confirm-danger, .pill-btn-outline)
-   - Common Badges & Status Pills (.badge-terracotta, .status-pill-pulse, .pulse-dot, .header-role-badge)
-   - Toast & Alert Notifications (.toast-container, .toast-pill-message, .toast-card-icon, variants)
-   ========================================================================== */
+/* Omni Salon - Common UI Components (css/components/common-components.css) */
 
 /* --- 1. MODAL / DIALOG / POPUP & FORM CONTROLS & COMMON BUTTONS --- */
 
@@ -544,7 +536,6 @@ body.light .dropdown-admin-card-btn .admin-card-arrow,
   white-space: nowrap !important;
   flex-shrink: 0 !important;
 }
-
 
 .pulse-dot {
   width: 6px;

@@ -243,7 +243,7 @@
     },
 
     /**
-     * Xác nhận thanh toán đơn hàng (Mock / Demo / Sandbox)
+     * Xác nhận thanh toán đơn hàng VietQR
      * @param {string|number} orderId 
      */
     async confirmOrderPaidMock(orderId) {

@@ -1,7 +1,4 @@
-/* ==========================================================================
-   CUSTOMER CART, MINI-CART & CHECKOUT CSS
-   OmniSalon Design System - Drawer Cart, Mini-Cart Dropdown & Checkout Page
-   ========================================================================== */
+/* CUSTOMER CART, MINI-CART & CHECKOUT CSS */
 
 /* Ngăn kéo giỏ hàng */
 .cart-drawer-shell {
@@ -1369,9 +1366,6 @@ body.light .mini-cart-trash-btn:hover,
   background: var(--surface-elevated, #F8FAFC);
   transform: translateY(-1px);
 }
-
-
-
 
 .cart-stepper-flow {
   display: flex;

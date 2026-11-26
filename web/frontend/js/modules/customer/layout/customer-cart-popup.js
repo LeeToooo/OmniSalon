@@ -32,7 +32,6 @@
         <div class="mini-cart-items-list">
           ${cart.map(item => `
             <div class="mini-cart-item" data-product-id="${item.productId}">
-              <!-- Packshot nền trắng tinh tế chuẩn Image 2 -->
               <div class="mini-cart-img-wrap" onclick="CustomerWeb.closeCartPopup(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;" title="${item.name}">
                 <img src="${typeof SalonUtils !== 'undefined' && SalonUtils.formatImageUrl ? SalonUtils.formatImageUrl(item.image) : item.image}" 
                      alt="${item.name}" 

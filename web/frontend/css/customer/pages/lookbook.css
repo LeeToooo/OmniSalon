@@ -1,7 +1,4 @@
-/* ==========================================================================
-   CUSTOMER LOOKBOOK, AI TRY-ON & GALLERY CSS
-   OmniSalon Design System - AI Restyle & Showcase Lookbook
-   ========================================================================== */
+/* CUSTOMER LOOKBOOK, AI TRY-ON & GALLERY CSS */
 
 /* Giao diện thử kiểu tóc thông minh */
 .ai-restyle-modal-box {
@@ -672,5 +669,4 @@ html.light .btn-clear-to-lookbook {
   gap: 24px;
   width: 100%;
 }
-
 

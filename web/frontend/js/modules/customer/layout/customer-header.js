@@ -86,7 +86,6 @@
               <a href="/services" data-route="/services" class="nav-link ${currentTab === 'services' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('services')">Dịch vụ</a>
               <a href="/stylists" data-route="/stylists" class="nav-link ${currentTab === 'stylists' ? 'active' : ''}" onclick="event.preventDefault(); CustomerWeb.switchTab('stylists')">Thợ tạo mẫu</a>
               <a href="/booking" data-route="/booking" class="nav-link ${currentTab === 'booking' ? 'active' : ''} text-highlight" onclick="event.preventDefault(); CustomerWeb.switchTab('booking')">Đặt lịch</a>
-              <!-- CỬA HÀNG (MEGA MENU - CHUẨN ẢNH 2 4RAU) -->
               <div class="nav-mega-parent" id="navShopMegaWrap"
                    onmouseenter="CustomerWeb.handleMegaEnter('shop')"
                    onmouseleave="CustomerWeb.handleMegaLeave('shop')">
@@ -101,7 +100,6 @@
                 </div>
               </div>
 
-              <!-- CHI NHÁNH (MEGA MENU - CHUẨN ẢNH 2 4RAU) -->
               <div class="nav-mega-parent" id="navBranchesMegaWrap"
                    onmouseenter="CustomerWeb.handleMegaEnter('branches')"
                    onmouseleave="CustomerWeb.handleMegaLeave('branches')">

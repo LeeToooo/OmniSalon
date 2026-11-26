@@ -1,10 +1,4 @@
-/* ==========================================================================
-   Omni Salon - Customer Specific Components (css/components/customer-components.css)
-   - Cổng thông tin khách hàng: Thanh tab điều hướng (.portal-nav-tabs, .portal-tab-btn)
-   - Thẻ bộ sưu tập ảnh tạo kiểu (.portal-ai-card)
-   - Dòng thời gian trạng thái đơn hàng (.order-status-timeline, .order-status-timeline-large)
-   - Thẻ đơn hàng cao cấp & Nút thao tác (.order-card-premium, .btn-order-action)
-   ========================================================================== */
+/* Omni Salon - Customer Specific Components (css/components/customer-components.css) */
 
 /* Thanh tab cổng thông tin khách hàng */
 .portal-nav-tabs::-webkit-scrollbar {

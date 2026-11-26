@@ -1,15 +1,4 @@
-/* ==========================================================================
-   Omni Salon - Admin Dashboard Shell Layout (css/layout/admin-layout.css)
-   - Toàn màn hình tràn viền: body.admin-mode, .admin-dashboard-layout
-   - Thanh menu dọc: .admin-sidebar, brand, user box, branch status
-   - Danh mục điều hướng: .admin-sidebar-nav-container, groups, items
-   - Chân sidebar: .admin-sidebar-footer, action buttons, version
-   - Khung nội dung chính: .admin-main-viewport
-   - Thanh công cụ trên cùng: .admin-topbar, breadcrumbs, badges, theme toggle
-   - Cơ chế thu gọn / mở rộng Sidebar: .admin-sidebar-collapse-btn, edge toggle, topbar toggle
-   - Mobile overlay & Drawer: .admin-sidebar-overlay
-   - Đồng bộ chế độ sáng (Light Mode) cho Admin Shell
-   ========================================================================== */
+/* Omni Salon - Admin Dashboard Shell Layout (css/layout/admin-layout.css) */
 
 /* Trung tâm quản trị salon */
 
@@ -57,11 +46,6 @@ body:has(.admin-dashboard-layout) .page-perspective-wrapper {
   height: 100vh !important;
   max-height: 100vh !important;
   overflow: hidden !important;
-}
-
-body.admin-mode .mobile-bottom-nav,
-body:has(.admin-dashboard-layout) .mobile-bottom-nav {
-  display: none !important;
 }
 
 body.admin-mode .page-view,
@@ -699,7 +683,6 @@ html.light .admin-mobile-menu-toggle {
   background: #FFFFFF;
   border-color: #E2E8F0;
 }
-
 
 /* --- Cơ chế thu gọn Sidebar (Thò / Thụt) & Nút Toggle --- */
 

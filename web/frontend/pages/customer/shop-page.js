@@ -1193,8 +1193,8 @@
                          onerror="typeof SalonUtils !== 'undefined' && SalonUtils.handleImgError ? SalonUtils.handleImgError(this) : null">
 
                     <!-- Dải chấm tròn chuẩn 4RAU -->
-                    <div class="pdp-stage-dots-4rau">
-                      ${detailImages.map((_, idx) => `<span class="pdp-dot-4rau ${idx === 0 ? 'active' : ''}" id="pdpDot_${idx}" onclick="ShopPage.switchDetailImage('${detailImages[idx]}', document.querySelectorAll('.pdp-thumb-item')[${idx}], ${idx})"></span>`).join('')}
+                    <div class="pdp-stage-dots">
+                      ${detailImages.map((_, idx) => `<span class="pdp-dot ${idx === 0 ? 'active' : ''}" id="pdpDot_${idx}" onclick="ShopPage.switchDetailImage('${detailImages[idx]}', document.querySelectorAll('.pdp-thumb-item')[${idx}], ${idx})"></span>`).join('')}
                     </div>
 
                     <!-- Badge số lượng ảnh 1/4 chuẩn 4RAU -->
@@ -1206,16 +1206,16 @@
               <!-- CỘT PHẢI: THÔNG TIN CHI TIẾT & MUA HÀNG -->
               <div class="pdp-info-wrap">
                 <!-- 1. Category / Brand Badge -->
-                <div class="pdp-4rau-brand-badge" style="color: #C59B27; font-weight: 700; letter-spacing: 0.05em;">${'OMNI SALON • ' + displayBrand.toUpperCase()}</div>
+                <div class="pdp-brand-badge" style="color: #C59B27; font-weight: 700; letter-spacing: 0.05em;">${'OMNI SALON • ' + displayBrand.toUpperCase()}</div>
 
                 <!-- 2. Tiêu Đề Sản Phẩm -->
-                <h1 class="pdp-4rau-title font-serif tracking-tight leading-tight" style="font-size: clamp(26px, 3.2vw, 36px); font-weight: 700; color: var(--text-primary); margin: 0 0 10px;">
+                <h1 class="pdp-title font-serif tracking-tight leading-tight" style="font-size: clamp(26px, 3.2vw, 36px); font-weight: 700; color: var(--text-primary); margin: 0 0 10px;">
                   ${prod.name || prod.TenSanPham}
                 </h1>
 
                 <!-- 3. Thanh Phụ: Đã Bán • Còn Hàng -->
-                <div class="pdp-4rau-subbar">
-                  <div class="pdp-4rau-sold">
+                <div class="pdp-subbar">
+                  <div class="pdp-sold">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
                       <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -1223,47 +1223,47 @@
                     </svg>
                     <span>Đã bán <strong>${Number(prod.salesCount || prod.DaBan || prod.reviewCount || 0)}</strong></span>
                   </div>
-                  <div class="pdp-4rau-instock">
-                    <span class="pdp-4rau-dot" style="background: ${isExpired ? '#ef4444' : '#10B981'};"></span>
+                  <div class="pdp-instock">
+                    <span class="pdp-dot" style="background: ${isExpired ? '#ef4444' : '#10B981'};"></span>
                     <span>${isExpired ? 'Hết hạn sử dụng' : 'Còn hàng'}</span>
                   </div>
                 </div>
 
                 <!-- 4. Khung Giá Nổi Bật -->
-                <div class="pdp-4rau-price-box">
+                <div class="pdp-price-box">
                   ${isExpired ? `
-                    <span class="pdp-4rau-price" style="color: #dc2626; font-weight: 800; font-size: 22px;">Đã hết hạn (Thu hồi tiêu hủy)</span>
+                    <span class="pdp-price" style="color: #dc2626; font-weight: 800; font-size: 22px;">Đã hết hạn (Thu hồi tiêu hủy)</span>
                   ` : `
-                    <span class="pdp-4rau-price" style="color: #C59B27; font-weight: 800; font-size: 26px;">${SalonUtils.formatCurrency(actualPrice)}</span>
+                    <span class="pdp-price" style="color: #C59B27; font-weight: 800; font-size: 26px;">${SalonUtils.formatCurrency(actualPrice)}</span>
                     ${hasDiscount ? `
-                      <span class="pdp-4rau-old-price">${SalonUtils.formatCurrency(originalPrice)}</span>
-                      <span class="pdp-4rau-discount-tag" style="background: ${fefoDiscount > 0 ? '#fee2e2' : 'rgba(197, 155, 39, 0.15)'}; color: ${fefoDiscount > 0 ? '#dc2626' : '#C59B27'}; border: 1px solid ${fefoDiscount > 0 ? '#fca5a5' : 'rgba(197, 155, 39, 0.3)'};">${'-' + (fefoDiscount || discountPercent) + '%'}</span>
+                      <span class="pdp-old-price">${SalonUtils.formatCurrency(originalPrice)}</span>
+                      <span class="pdp-discount-tag" style="background: ${fefoDiscount > 0 ? '#fee2e2' : 'rgba(197, 155, 39, 0.15)'}; color: ${fefoDiscount > 0 ? '#dc2626' : '#C59B27'}; border: 1px solid ${fefoDiscount > 0 ? '#fca5a5' : 'rgba(197, 155, 39, 0.3)'};">${'-' + (fefoDiscount || discountPercent) + '%'}</span>
                     ` : ''}
                   `}
                 </div>
 
                 <!-- 5. CHI TIẾT ĐẶC TÍNH SẢN PHẨM (Tương phản cao trên nền tối) -->
-                <div class="pdp-4rau-section">
-                  <div class="pdp-4rau-heading">CHI TIẾT ĐẶC TÍNH:</div>
-                  <div class="pdp-4rau-details-list">
+                <div class="pdp-section">
+                  <div class="pdp-heading">CHI TIẾT ĐẶC TÍNH:</div>
+                  <div class="pdp-details-list">
                     ${detailsList.map(item => `
-                      <div class="pdp-4rau-detail-item"><span class="pdp-bullet-gold">▪</span> <span>${item}</span></div>
+                      <div class="pdp-detail-item"><span class="pdp-bullet-gold">▪</span> <span>${item}</span></div>
                     `).join('')}
                   </div>
                 </div>
 
                 <!-- 6. Phân Loại / Dung Tích -->
-                <div class="pdp-4rau-field-row">
-                  <span class="pdp-4rau-field-label">${variantLabel}</span>
-                  <div class="pdp-4rau-chips-wrap" id="pdpVariantGroup">
+                <div class="pdp-field-row">
+                  <span class="pdp-field-label">${variantLabel}</span>
+                  <div class="pdp-chips-wrap" id="pdpVariantGroup">
                     ${variants.map((v, i) => `
-                      <button type="button" class="pdp-4rau-chip ${i === 0 ? 'active' : ''}" onclick="ShopPage.selectVariant(this, '${v}', '${prod.id}')">${v}</button>
+                      <button type="button" class="pdp-chip ${i === 0 ? 'active' : ''}" onclick="ShopPage.selectVariant(this, '${v}', '${prod.id}')">${v}</button>
                     `).join('')}
                   </div>
                 </div>
 
                 <!-- 7. Chọn Chi Nhánh Còn Hàng -->
-                <div class="pdp-4rau-field-row" style="align-items: center; justify-content: flex-start; margin-top: 4px; margin-bottom: 14px;">
+                <div class="pdp-field-row" style="align-items: center; justify-content: flex-start; margin-top: 4px; margin-bottom: 14px;">
                   <button type="button" class="btn-check-branch-stock" onclick="ShopPage.openBranchStockModal('${prod.id}')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -1274,17 +1274,17 @@
                 </div>
 
                 <!-- 8. Số Lượng Chọn -->
-                <div class="pdp-4rau-field-row">
-                  <span class="pdp-4rau-field-label">SỐ LƯỢNG:</span>
-                  <div class="pdp-4rau-stepper">
-                    <button type="button" class="pdp-4rau-step-btn" onclick="ShopPage.changeDetailQty(-1)" aria-label="Giảm số lượng">−</button>
-                    <input type="text" id="pdpDetailQtyInput" value="1" readonly class="pdp-4rau-step-input" aria-label="Số lượng sản phẩm">
-                    <button type="button" class="pdp-4rau-step-btn" onclick="ShopPage.changeDetailQty(1)" aria-label="Tăng số lượng">+</button>
+                <div class="pdp-field-row">
+                  <span class="pdp-field-label">SỐ LƯỢNG:</span>
+                  <div class="pdp-stepper">
+                    <button type="button" class="pdp-step-btn" onclick="ShopPage.changeDetailQty(-1)" aria-label="Giảm số lượng">−</button>
+                    <input type="text" id="pdpDetailQtyInput" value="1" readonly class="pdp-step-input" aria-label="Số lượng sản phẩm">
+                    <button type="button" class="pdp-step-btn" onclick="ShopPage.changeDetailQty(1)" aria-label="Tăng số lượng">+</button>
                   </div>
                 </div>
 
                 <!-- 9. Cụm Nút CTA Chuẩn Levents: Thêm Giỏ & Mua Ngay Song Hành Tương Phản Cao -->
-                <div class="pdp-4rau-cta-row">
+                <div class="pdp-cta-row">
                   ${isExpired ? `
                     <button type="button" class="pdp-btn-add-cart disabled" disabled style="opacity: 0.5; cursor: not-allowed; background: #64748b;">
                       <span>Không thể mua (Đã hết hạn)</span>
@@ -1298,12 +1298,12 @@
                       </svg>
                       <span>Thêm vào giỏ</span>
                     </button>
-                    <button type="button" class="pdp-4rau-btn-buynow" onclick="ShopPage.handleDetailBuyNow('${prod.id}')">
+                    <button type="button" class="pdp-btn-buynow" onclick="ShopPage.handleDetailBuyNow('${prod.id}')">
                       <span>Mua ngay</span>
                       <span style="font-size: 15px; margin-left: 2px;">→</span>
                     </button>
                   `}
-                  <button type="button" class="pdp-4rau-btn-wish" onclick="ShopPage.toggleWishlist('${prod.id}', this)" title="Lưu vào danh sách yêu thích" aria-label="Yêu thích">
+                  <button type="button" class="pdp-btn-wish" onclick="ShopPage.toggleWishlist('${prod.id}', this)" title="Lưu vào danh sách yêu thích" aria-label="Yêu thích">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                     </svg>
@@ -1391,23 +1391,22 @@
                 </div>
 
                 <!-- 11. Chia Sẻ  - Facebook • Zalo • Sao Chép Link -  -->
-                <div class="pdp-4rau-share-row">
-                  <span class="pdp-4rau-share-label">Chia sẻ:</span>
-                  <button type="button" class="pdp-4rau-share-btn fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank')">
+                <div class="pdp-share-row">
+                  <span class="pdp-share-label">Chia sẻ:</span>
+                  <button type="button" class="pdp-share-btn fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
                     <span>Facebook</span>
                   </button>
-                  <button type="button" class="pdp-4rau-share-btn zalo" onclick="window.open('https://chat.zalo.me/', '_blank')">
+                  <button type="button" class="pdp-share-btn zalo" onclick="window.open('https://chat.zalo.me/', '_blank')">
                     <strong>Z</strong> <span>Nhắn Zalo</span>
                   </button>
-                  <button type="button" class="pdp-4rau-share-btn copy" onclick="ShopPage.copyProductLink()">
+                  <button type="button" class="pdp-share-btn copy" onclick="ShopPage.copyProductLink()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                     <span>Sao chép link</span>
                   </button>
                 </div>
               </div>
             </div>
-
 
             <!-- 3. SECTION TABS CHI TIẾT  - FULL WIDTH CONTAINER -  -->
             <div class="pdp-tabs-wrapper">
@@ -1613,7 +1612,7 @@
       }
       document.querySelectorAll('.pdp-thumb-item').forEach(el => el.classList.remove('active'));
       if (thumbEl) thumbEl.classList.add('active');
-      document.querySelectorAll('.pdp-dot, .pdp-dot-4rau').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.pdp-dot, .pdp-dot').forEach(el => el.classList.remove('active'));
       const activeDot = document.getElementById(`pdpDot_${idx}`);
       if (activeDot) activeDot.classList.add('active');
       const counter = document.getElementById('pdpImgCounter');
@@ -1630,7 +1629,7 @@
     },
 
     selectVariant(btnEl, variantVal, productId) {
-      document.querySelectorAll('.pdp-variant-btn, .pdp-4rau-chip').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.pdp-variant-btn, .pdp-chip').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
       this.selectedVariant = variantVal;
 
@@ -1655,11 +1654,11 @@
 
       this.currentPdpPrice = newPrice;
 
-      const priceEl = document.querySelector('.pdp-4rau-price');
+      const priceEl = document.querySelector('.pdp-price');
       if (priceEl && window.SalonUtils) {
         priceEl.textContent = SalonUtils.formatCurrency(newPrice);
       }
-      const oldPriceEl = document.querySelector('.pdp-4rau-old-price');
+      const oldPriceEl = document.querySelector('.pdp-old-price');
       if (oldPriceEl && window.SalonUtils) {
         oldPriceEl.textContent = SalonUtils.formatCurrency(newOldPrice);
       }

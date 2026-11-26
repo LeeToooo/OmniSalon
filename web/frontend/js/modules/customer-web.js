@@ -46,9 +46,6 @@
       }
     },
 
-
-
-
     initGlobalListeners() {
       // Đóng dropdown tìm kiếm khi click ra ngoài
       document.addEventListener('click', (e) => {

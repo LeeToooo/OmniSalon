@@ -1,6 +1,4 @@
-/* ==========================================================================
-   MODULE: ADMIN POS & CASHIER (QUẦY THU NGÂN, BÁN HÀNG & HÓA ĐƠN)
-   ========================================================================== */
+/* MODULE: ADMIN POS & CASHIER (QUẦY THU NGÂN, BÁN HÀNG & HÓA ĐƠN) */
 
 /* Quầy thu ngân và quản lý danh mục */
 
@@ -583,5 +581,4 @@ html.dark .pos-qr-val-gold,
 body.dark .pos-qr-val-gold {
   color: #fbbf24 !important;
 }
-
 

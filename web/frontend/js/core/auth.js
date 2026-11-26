@@ -954,8 +954,6 @@
       }
     }
 
-
-
     onAuthStateChanged(callback) {
       if (typeof callback === 'function') {
         this.listeners.push(callback);

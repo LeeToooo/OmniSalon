@@ -1,16 +1,4 @@
-/* ==========================================================================
-   Omni Salon - Phân Hệ Quản Trị: Quản Lý Kho & Lập Phiếu Nhập Xuất (Inventory)
-   File: web/frontend/css/admin/pages/inventory.css
-   
-   1. Thanh trạng thái kho hàng tinh gọn (Inventory Status Bar)
-   2. Thẻ cảnh báo tồn kho & Hiệu ứng nhấp nháy khẩn cấp (Stock Badges)
-   3. Bố cục Split Layout (Form thông tin & Xem trước sản phẩm / đối tác)
-   4. Form thêm / sửa sản phẩm kho ở đáy trang (Product Bottom Editor)
-   5. Bảng chi tiết & Form lập phiếu nhập kho đa mặt hàng (Receipt Bottom Editor)
-   6. Form quản lý nhà cung cấp hàng hóa (Supplier Bottom Editor)
-   7. Huy hiệu trạng thái phiếu & Tổng kết tiền hàng
-   8. Đồng bộ giao diện sáng (Light Mode) cho phân hệ Kho
-   ========================================================================== */
+/* Omni Salon - Phân Hệ Quản Trị: Quản Lý Kho & Lập Phiếu Nhập Xuất (Inventory) */
 
 /* --------------------------------------------------------------------------
    1. THANH TRẠNG THÁI KHO HÀNG TINH GỌN (INVENTORY STATUS BAR)
@@ -199,7 +187,6 @@ body.light .inv-status-badge.inv-status-ok,
     gap: 24px !important;
   }
 }
-
 
 /* Split Layout cho Form Nha Cung Cap Admin */
 .supplier-crud-split-layout {

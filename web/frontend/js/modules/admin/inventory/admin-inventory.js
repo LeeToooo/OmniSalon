@@ -2221,7 +2221,6 @@
       this._recalculateReceiptGrandTotal();
     },
 
-
     // Bottom editor cho nhà cung cấp hàng hóa (2 cột liền mạch 1:1)
     _renderSupplierBottomEditor() {
       return `

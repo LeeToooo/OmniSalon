@@ -1,7 +1,4 @@
-/* ==========================================================================
-   CUSTOMER SHOP & PRODUCT CATALOG (PLP) CSS
-   OmniSalon Design System - Retail Shop, Product Cards & Filter Bar
-   ========================================================================== */
+/* CUSTOMER SHOP & PRODUCT CATALOG (PLP) CSS */
 
 /* Giao diện thẻ sản phẩm chất lượng cao */
 
@@ -583,9 +580,7 @@
   }
 }
 
-/* ==========================================================================
-   IMAGE 1 STUDIO STANDARD - PRODUCT CARD & OBJECT-FIT CONTAIN (FIX VOLCANIC CLAY)
-   ========================================================================== */
+/* IMAGE 1 STUDIO STANDARD - PRODUCT CARD & OBJECT-FIT CONTAIN (FIX VOLCANIC CLAY) */
 
 .product-clean-card {
   position: relative !important;
@@ -815,5 +810,4 @@ html.light .btn-card-add-bag:hover:not(:disabled) {
   opacity: 0.35 !important;
   cursor: not-allowed !important;
 }
-
 

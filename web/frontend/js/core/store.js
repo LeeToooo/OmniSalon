@@ -761,7 +761,6 @@
       } catch (_) { }
     }
 
-
     getSqlBaselineData() {
       // 20 Chi Nhánh chính thức từ CSDL QL_SALON.sql
       const branches = [

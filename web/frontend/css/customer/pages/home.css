@@ -1,6 +1,4 @@
-/* ==========================================================================
-   MODULE: CUSTOMER HOME (TRANG CHỦ KHÁCH HÀNG)
-   ========================================================================== */
+/* MODULE: CUSTOMER HOME (TRANG CHỦ KHÁCH HÀNG) */
 
 /* Lưới bento trang chủ */
 .bento-asymmetric-grid {
@@ -251,7 +249,6 @@ body.light .bento-editorial-card,
   line-height: 1.5;
 }
 
-
 /* Thư viện hình ảnh khoảnh khắc khách hàng */
 .moments-horizontal-scroll {
   display: flex;
@@ -283,7 +280,6 @@ body.light .bento-editorial-card,
 .moment-card:hover .moment-img {
   transform: scale(1.05);
 }
-
 
 /* Lưới sản phẩm mới và bán chạy năm cột */
 .products-grid-5 {
@@ -380,7 +376,6 @@ body.light .bento-editorial-card,
   font-size: 14px;
   font-weight: 800;
 }
-
 
 /* Tin tức xu hướng tóc */
 .underground-top-layout {
@@ -526,7 +521,6 @@ body.light .bento-editorial-card,
   background: #222;
 }
 
-
 /* Khám phá hệ thống chi nhánh salon */
 .branches-split-layout {
   display: grid;
@@ -660,7 +654,6 @@ body.light .bento-editorial-card,
   color: var(--color-terracotta);
 }
 
-
 /* Bộ sưu tập mẫu tóc nổi bật trong tháng */
 .hairstyles-showcase-grid {
   display: grid;
@@ -702,7 +695,6 @@ body.light .bento-editorial-card,
   color: #666;
   line-height: 1.4;
 }
-
 
 /* Dòng chữ chạy giới thiệu dịch vụ */
 .services-ticker-container {
@@ -761,7 +753,6 @@ body.light .bento-editorial-card,
   text-transform: uppercase;
 }
 
-
 /* Video ngắn nổi bật */
 .videos-preview-row {
   display: flex;
@@ -815,7 +806,6 @@ body.light .bento-editorial-card,
   text-align: left;
 }
 
-
 /* Các đối tác thương hiệu hợp tác */
 .collab-boxes-grid {
   display: grid;
@@ -858,7 +848,6 @@ body.light .bento-editorial-card,
   letter-spacing: 0.08em;
   text-decoration: underline;
 }
-
 
 /* Chân trang trang web (Web Footer Component) */
 .web-footer {

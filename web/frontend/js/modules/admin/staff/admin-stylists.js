@@ -381,7 +381,6 @@
       `, 'queue');
     },
 
-
     // Inline bottom stylist editor (form thêm & sửa nhân sự nằm dưới bảng)
     _renderStylistBottomEditor(user, branches) {
       const isSuper = this.isSuperAdmin(user);

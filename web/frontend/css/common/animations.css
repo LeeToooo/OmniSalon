@@ -1,7 +1,4 @@
-/* ==========================================================================
-   COMMON ANIMATIONS, KEYFRAMES & MOTION SYSTEM
-   OmniSalon Design System - Global Keyframes & Transitions
-   ========================================================================== */
+/* COMMON ANIMATIONS, KEYFRAMES & MOTION SYSTEM */
 
 [data-theme="light"] .shimmer-wave,
 [data-theme="light"] .md3-shimmer {
@@ -89,10 +86,7 @@
   }
 }
 
-/* ========================================================
-   TASTE-SKILL MOTION LAYER (Transform & Opacity Only)
-   Choreographed entrances + reduced-motion fallback
-   ======================================================== */
+/* TASTE-SKILL MOTION LAYER (Transform & Opacity Only) */
 @keyframes tasteEnter {
   from {
     opacity: 0;

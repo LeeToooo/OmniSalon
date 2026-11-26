@@ -1,7 +1,4 @@
-/* ==========================================================================
-   BASE THEME ENGINE & HIGH CONTRAST DARK / LIGHT SYSTEM
-   OmniSalon Design System - Theme Variables, Switches & Color Locks
-   ========================================================================== */
+/* BASE THEME ENGINE & HIGH CONTRAST DARK / LIGHT SYSTEM */
 
 /* Hệ thống giao diện sáng tối */
 /* Quản lý giao diện sáng tối trung tâm */
@@ -243,7 +240,6 @@ body.light .theme-toggle-btn .theme-icon-sun {
   opacity: 0;
   transform: rotate(90deg) scale(0.5);
 }
-
 
 .theme-switcher-icon-wrap {
   width: 32px;
@@ -1260,7 +1256,6 @@ body.light .home-ai-file-name {
   color: var(--text-secondary) !important;
 }
 
-
 [data-theme="light"] .form-control-custom,
 html.light .form-control-custom,
 body.light .form-control-custom {
@@ -1846,8 +1841,6 @@ body.light .hero-tagline {
   margin-bottom: 28px;
 }
 
-
-
 .admin-kpi-card-rich {
   background: var(--surface-card, #121214) !important;
   border: 1px solid var(--border-color, #222225) !important;
@@ -1955,7 +1948,6 @@ body.light .admin-kpi-card-rich {
   gap: 8px;
   width: 100%;
 }
-
 
 .announcement-left {
   display: inline-flex;
@@ -2176,7 +2168,6 @@ html.light .web-nav-links .nav-link-admin {
   box-shadow: 0 2px 8px rgba(197, 155, 39, 0.3);
 }
 
-
 /* Các thành phần giao diện salon cao cấp */
 
 .web-nav-links .text-highlight {
@@ -2364,7 +2355,6 @@ html.light .web-nav-links .nav-link-admin {
   border: 2px solid #0B0D13;
 }
 
-
 /* Nâng cấp tìm kiếm trực tiếp và câu hỏi thường gặp */
 
 /* Thanh tìm kiếm nhanh trên thanh đầu trang */
@@ -2374,7 +2364,6 @@ html.light .web-nav-links .nav-link-admin {
   transition: width 0.25s ease;
   flex-shrink: 0;
 }
-
 
 .web-search-box-wrap:focus-within {
   width: 240px;
@@ -2625,8 +2614,6 @@ html.light .web-nav-links .nav-link-admin {
   width: 100%;
   box-sizing: border-box;
 }
-
-
 
 .service-card-item {
   background: #11141D !important;
@@ -2924,7 +2911,6 @@ html.light .web-nav-links .nav-link-admin {
   box-sizing: border-box;
 }
 
-
 /* Vệt sáng mờ phía sau ảnh chính */
 .nordic-editorial-hero::before {
   content: '';
@@ -2951,8 +2937,6 @@ html.light .web-nav-links .nav-link-admin {
   padding: 0 clamp(24px, 3.5vw, 64px) !important;
   box-sizing: border-box !important;
 }
-
-
 
 /* Thanh nút lọc danh mục */
 .nordic-filter-strip {
@@ -3046,8 +3030,6 @@ html.light .web-nav-links .nav-link-admin {
   box-sizing: border-box;
 }
 
-
-
 /* Bảng đặt lịch phẳng và thẳng hàng */
 #bookingContainer,
 .booking-page-shell,
@@ -3081,7 +3063,6 @@ html.light .web-nav-links .nav-link-admin {
   transform: none !important;
   border-color: rgba(251, 191, 36, 0.6) !important;
 }
-
 
 /* Tinh chỉnh trang chủ và cân đối giao diện */
 /* Giao diện trang chủ độ tương phản cao */
@@ -3897,7 +3878,6 @@ body.dark #branchNextPageBtn {
   color: var(--brand-accent, #C59B27) !important;
 }
 
-
 /* Thanh phân trang bảng quản trị */
 .admin-pagination-bar {
   display: flex;
@@ -4117,7 +4097,6 @@ body {
   font-size: 11px;
 }
 
-
 /* Ẩn biểu tượng mắt mặc định của trình duyệt để dùng biểu tượng riêng */
 input::-ms-reveal,
 input::-ms-clear {
@@ -4144,9 +4123,6 @@ input::-ms-clear {
   width: 100% !important;
   box-sizing: border-box !important;
 }
-
-
-
 
 /* Thẻ dịch vụ tự kéo giãn tỷ lệ thuận */
 .service-editorial-card {
@@ -4459,8 +4435,6 @@ tr:nth-child(2) .booking-service-badge .service-tooltip-content::after {
   flex-shrink: 0;
 }
 
-
-
 /* Hairline border cleanup for marketing page */
 .web-main-header {
   border-bottom: none !important;
@@ -4471,9 +4445,7 @@ tr:nth-child(2) .booking-service-badge .service-tooltip-content::after {
   border-bottom: none !important;
 }
 
-/* ========================================================
-   OMNISALON DESIGN TASTE HARMONIZATION (Anti-Slop Master Rules)
-   ======================================================== */
+/* OMNISALON DESIGN TASTE HARMONIZATION (Anti-Slop Master Rules) */
 
 /* 2. Remove all static rest shadows */
 .header-user-btn,
@@ -4492,10 +4464,7 @@ tr:nth-child(2) .booking-service-badge .service-tooltip-content::after {
   box-shadow: none !important;
 }
 
-/* ========================================================
-   OMNISALON CLEAN ARCHITECTURE & DUAL THEME HARMONIZATION
-   Supports Dark (Charcoal Gold) & Light (Warm Cream) natively
-   ======================================================== */
+/* OMNISALON CLEAN ARCHITECTURE & DUAL THEME HARMONIZATION */
 
 /* 1. Header & Marquee Flat Editorial Styling */
 .web-main-header {
@@ -4619,26 +4588,8 @@ html.dark .footer-phone-text,
 .service-cat-pill,
 .footer-bottom-bar,
 .footer-col-heading,
-.footer-desc,
-.mobile-bottom-nav span {
+.footer-desc {
   font-size: 13.5px !important;
-}
-
-
-html.light .mobile-bottom-nav,
-body.light .mobile-bottom-nav,
-[data-theme="light"] .mobile-bottom-nav,
-html.dark .mobile-bottom-nav,
-body.dark .mobile-bottom-nav,
-[data-theme="dark"] .mobile-bottom-nav,
-.mobile-bottom-nav {
-  padding-left: 20px !important;
-  padding-right: 20px !important;
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
-  box-sizing: border-box !important;
-  border: none !important;
-  border-top: none !important;
-  box-shadow: none !important;
 }
 
 /* 7. Footer clean borders */
@@ -4648,14 +4599,7 @@ body.dark .mobile-bottom-nav,
   box-shadow: none !important;
 }
 
-
-
-
-
-
-/* ==========================================================================
-   MEGA MENU & SHOP LOOKBOOK (4RAU STANDARD - IMAGE 1 & IMAGE 2)
-   ========================================================================== */
+/* Mega Menu & Shop Lookbook */
 
 /* 1. Header Mega Menu Dropdown */
 .nav-mega-parent {
@@ -4725,8 +4669,6 @@ html.light .header-mega-menu {
   padding: 30px 36px;
   box-sizing: border-box;
 }
-
-
 
 .mega-column {
   display: flex;
@@ -4844,11 +4786,7 @@ html.light .mega-col-title {
   pointer-events: auto !important;
 }
 
-
-
-/* ==========================================================================
-   FLUID & BALANCED RESPONSIVE HEADER (ĐỀU THEO SCALE TỪNG MÀN HÌNH)
-   ========================================================================== */
+/* FLUID & BALANCED RESPONSIVE HEADER (ĐỀU THEO SCALE TỪNG MÀN HÌNH) */
 
 .web-main-header {
   width: 100% !important;
@@ -5169,13 +5107,7 @@ html.light .mega-col-title {
   font-weight: 800 !important;
 }
 
-
-
-
-
-/* ========================================================
-   LUXURY BARBERSHOP HEADER AUTH & USER DROPDOWN REDESIGN
-   ======================================================== */
+/* LUXURY BARBERSHOP HEADER AUTH & USER DROPDOWN REDESIGN */
 
 /* 1. Direct CTA Dang Nhap tren Header khi chua dang nhap */
 .header-auth-cta-btn {
@@ -5338,7 +5270,6 @@ body.dark .header-role-badge {
   border-radius: 12px !important;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1) !important;
 }
-
 
 /* Taste-Skill v2 App Screen Rules: Quiet App Title, Tabular Numerals, Clean Alignment */
 .admin-topbar-heading {

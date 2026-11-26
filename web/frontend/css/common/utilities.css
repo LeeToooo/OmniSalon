@@ -1,7 +1,4 @@
-/* ==========================================================================
-   COMMON UTILITIES & HELPERS CSS
-   OmniSalon Design System - Utility Classes & Layout Helpers
-   ========================================================================== */
+/* COMMON UTILITIES & HELPERS CSS */
 
 @media (max-width: 1024px) {
 
@@ -50,9 +47,6 @@
 .flex-col {
   flex-direction: column;
 }
-
-
-
 
 /* Tiện ích Flexbox & Display bổ sung */
 .d-flex { display: flex !important; }

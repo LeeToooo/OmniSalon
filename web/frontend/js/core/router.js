@@ -221,8 +221,6 @@
         return;
       }
 
-
-
       const currentView = container.querySelector('.page-view');
 
       if (currentView) {
@@ -281,7 +279,7 @@
     },
 
     syncActiveNav(route) {
-      const navLinks = document.querySelectorAll('.web-nav-links .nav-link, .link-nav-route, .mobile-bottom-nav a');
+      const navLinks = document.querySelectorAll('.web-nav-links .nav-link, .link-nav-route');
       navLinks.forEach(link => {
         const targetRoute = link.getAttribute('data-route') || link.getAttribute('href');
         if (!targetRoute) return;

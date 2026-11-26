@@ -1,16 +1,4 @@
-/* ==========================================================================
-   Omni Salon - Phân Hệ Quản Trị: Quản Lý Mặt Hàng & Dịch Vụ / Bảng Giá (Catalog)
-   File: web/frontend/css/admin/pages/catalog.css
-   
-   - Thanh Subtabs phân loại (Dịch Vụ Cắt Tóc / Gói Combo VIP)
-   - Thanh công cụ tìm kiếm và lọc mặt hàng
-   - Bảng quản lý dịch vụ / combo & niêm yết giá
-   - Bố cục Split Layout (Form thông tin & Xem trước trực tiếp)
-   - Khung chỉnh sửa đáy trang (Inline Bottom Editor)
-   - Bộ chọn dịch vụ cấu thành gói Combo VIP
-   - Thẻ xem trước thực tế (Catalog Live Preview Card)
-   - Trạng thái rỗng (Empty State) & Báo cáo dữ liệu
-   ========================================================================== */
+/* Omni Salon - Phân Hệ Quản Trị: Quản Lý Mặt Hàng & Dịch Vụ / Bảng Giá (Catalog) */
 
 /* --------------------------------------------------------------------------
    1. BỐ CỤC CHUNG & SPLIT LAYOUT FORM CATALOG

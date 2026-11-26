@@ -1,12 +1,4 @@
-/* ==========================================================================
-   Omni Salon - CSS Reset & Base Elements (css/base/reset.css)
-   - Reset Box Sizing, Margin & Padding
-   - Base HTML, Body & Container Layouts
-   - Typography Headings (H1 - H4) & Utilities
-   - Image & Link Reset
-   - Form Controls & Button Interaction Reset
-   - Glass Panel & Scrollbar
-   ========================================================================== */
+/* Omni Salon - CSS Reset & Base Elements (css/base/reset.css) */
 
 /* Đặt lại định dạng cơ bản */
 *,
@@ -164,10 +156,7 @@ button:active,
   box-sizing: border-box !important;
 }
 
-
-/* ==========================================================================
-   GLOBAL SCROLLBAR CLEANUP & SMOOTH BEHAVIOR
-   ========================================================================== */
+/* GLOBAL SCROLLBAR CLEANUP & SMOOTH BEHAVIOR */
 /* Ẩn hoàn toàn thanh cuộn (scrollbar) để giao diện phẳng, tinh gọn, không rác thị giác */
 .admin-dashboard-layout,
 .admin-dashboard-layout *,

@@ -181,10 +181,10 @@ const UICommon = {
     if (preselectedServiceId) query.push(`service=${preselectedServiceId}`);
     if (preselectedBranchId) query.push(`branch=${preselectedBranchId}`);
     if (preselectedStylistId) query.push(`stylist=${preselectedStylistId}`);
-    
+
     let url = '/booking';
     if (query.length > 0) url += '?' + query.join('&');
-    
+
     if (window.AppRouter && typeof window.AppRouter.navigate === 'function') {
       window.AppRouter.navigate(url);
     } else {
@@ -916,7 +916,6 @@ const UICommon = {
       <div class="cart-items-wrapper">
         ${cart.map(item => `
           <div class="cart-drawer-item">
-            <!-- Packshot sản phẩm nền trắng bo góc chuẩn Image 1 -->
             <div class="cart-drawer-packshot-box" onclick="UICommon.closeCartDrawer(); if(window.AppRouter) window.AppRouter.navigate('/product?id=${item.productId}');" style="cursor: pointer;" title="${item.name}">
               <img src="${SalonUtils.formatImageUrl(item.image || item.HinhAnh)}" 
                    alt="${item.name}" 
@@ -1302,8 +1301,8 @@ const UICommon = {
     const discount = this.cartState.discountAmount || 0;
     const finalTotal = Math.max(0, subtotal - discount);
 
-    const paymentMethodDisplay = (paymentMethodKey === 'VIETQR') 
-      ? 'Chuyển khoản trực tuyến VietQR' 
+    const paymentMethodDisplay = (paymentMethodKey === 'VIETQR')
+      ? 'Chuyển khoản trực tuyến VietQR'
       : (isPickup ? 'Thanh toán tiền mặt tại quầy' : 'Tiền mặt khi nhận hàng (COD)');
 
     // Tạo đơn hàng qua store
@@ -1347,9 +1346,9 @@ const UICommon = {
     const modalBody = document.getElementById('globalModalBody');
     if (!modal || !modalBody) return;
 
-    const isPickup = (order.deliveryType === 'PICKUP_BRANCH') || 
-                     (order.shippingAddress && order.shippingAddress.toLowerCase().includes('quầy')) ||
-                     (order.deliveryAddress && order.deliveryAddress.toLowerCase().includes('chi nhánh'));
+    const isPickup = (order.deliveryType === 'PICKUP_BRANCH') ||
+      (order.shippingAddress && order.shippingAddress.toLowerCase().includes('quầy')) ||
+      (order.deliveryAddress && order.deliveryAddress.toLowerCase().includes('chi nhánh'));
 
     const qrUrl = `https://api.vietqr.io/image/970407-19036789999011-compact.jpg?amount=${order.totalAmount}&addInfo=${encodeURIComponent(order.id)}&accountName=${encodeURIComponent('CONG TY OMNI SALON')}`;
 
@@ -1442,7 +1441,7 @@ const UICommon = {
             return;
           }
         }
-      } catch (_) {}
+      } catch (_) { }
 
       this._orderPollingTimer = setTimeout(checkOnce, 2500);
     };
@@ -1497,7 +1496,7 @@ const UICommon = {
     }
   },
 
-    openProductDetailModal(productId) {
+  openProductDetailModal(productId) {
     if (typeof this.closeGlobalModal === 'function') {
       this.closeGlobalModal();
     }
