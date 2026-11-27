@@ -127,6 +127,50 @@ async function applyPerformanceOptimizations() {
       END
     `);
 
+    // Cơ chế bảo toàn dữ liệu lịch sử lịch hẹn & đơn hàng khi xóa dịch vụ / sản phẩm khỏi bảng danh mục
+    await querySql(`
+      -- 1. Bổ sung cột snapshot TenDichVu / TenSanPham nếu chưa có
+      IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ChiTietLichHen') AND name = 'TenDichVu')
+        ALTER TABLE ChiTietLichHen ADD TenDichVu NVARCHAR(255) NULL;
+
+      IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ChiTietHoaDon_DichVu') AND name = 'TenDichVu')
+        ALTER TABLE ChiTietHoaDon_DichVu ADD TenDichVu NVARCHAR(255) NULL;
+
+      IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ChiTietDonHang') AND name = 'TenSanPham')
+        ALTER TABLE ChiTietDonHang ADD TenSanPham NVARCHAR(255) NULL;
+
+      IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ChiTietHoaDon_SanPham') AND name = 'TenSanPham')
+        ALTER TABLE ChiTietHoaDon_SanPham ADD TenSanPham NVARCHAR(255) NULL;
+
+      -- 2. Gỡ bỏ các ràng buộc khóa ngoại chặn DELETE để cho phép xóa bản ghi khỏi DichVu / SanPham mà vẫn giữ trọn vẹn dữ liệu lịch hẹn, hóa đơn cũ
+      IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_ChiTietLichHen_DichVu')
+        ALTER TABLE ChiTietLichHen DROP CONSTRAINT FK_ChiTietLichHen_DichVu;
+
+      IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_ChiTietHoaDonDichVu_DichVu')
+        ALTER TABLE ChiTietHoaDon_DichVu DROP CONSTRAINT FK_ChiTietHoaDonDichVu_DichVu;
+
+      IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_DanhGia_DichVu')
+        ALTER TABLE DanhGia DROP CONSTRAINT FK_DanhGia_DichVu;
+
+      IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_ChiTietCombo_DichVu')
+        ALTER TABLE ChiTietComboDichVu DROP CONSTRAINT FK_ChiTietCombo_DichVu;
+
+      IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_ChiTietDonHang_SanPham')
+        ALTER TABLE ChiTietDonHang DROP CONSTRAINT FK_ChiTietDonHang_SanPham;
+
+      IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_ChiTietHoaDonSanPham_SanPham')
+        ALTER TABLE ChiTietHoaDon_SanPham DROP CONSTRAINT FK_ChiTietHoaDonSanPham_SanPham;
+
+      IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_ChiTietPhieuNhap_SanPham')
+        ALTER TABLE ChiTietPhieuNhap DROP CONSTRAINT FK_ChiTietPhieuNhap_SanPham;
+
+      IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_TonKho_SanPham')
+        ALTER TABLE TonKho DROP CONSTRAINT FK_TonKho_SanPham;
+
+      IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_DanhGia_SanPham')
+        ALTER TABLE DanhGia DROP CONSTRAINT FK_DanhGia_SanPham;
+    `).catch(() => {});
+
     // Đảm bảo có tài khoản Quản trị viên tối cao, Super Admin trong CSDL SQL
     await querySql(`
       IF NOT EXISTS (SELECT 1 FROM NhanVien WHERE MaNhanVien = 'NV00')

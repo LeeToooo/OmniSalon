@@ -93,7 +93,7 @@ async function handleStaffRoutes(req, res, ctx) {
 
     const stylists = rows.map(r => {
       const ratings = ratingMap.get(r.MaNhanVien) || [];
-      const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 0;
+      const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 5.0;
 
       return {
         id: r.MaNhanVien,
@@ -235,7 +235,7 @@ async function handleStaffRoutes(req, res, ctx) {
       WHERE lh.MaNhanVien = ?
     `, [r.MaNhanVien]).catch(() => []);
     const ratings = (reviewRows || []).map(rv => Number(rv.SoSao || 5));
-    const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 0;
+    const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)) : 5.0;
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({

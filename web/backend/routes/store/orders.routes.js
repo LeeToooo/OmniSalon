@@ -79,7 +79,7 @@ async function handleOrderRoutes(req, res, ctx) {
 
     const allOrderItems = await querySql(`
       SELECT ctdh.MaChiTietDonHang, ctdh.MaDonHang, ctdh.MaSanPham, ctdh.SoLuong, ctdh.DonGiaThucTe, ctdh.ThanhTien,
-             sp.TenSanPham, sp.HinhAnh
+             ISNULL(sp.TenSanPham, ctdh.TenSanPham) AS TenSanPham, sp.HinhAnh
       FROM ChiTietDonHang ctdh
       LEFT JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham
       ${orderIdParam ? 'WHERE ctdh.MaDonHang = ?' : ''}
@@ -290,10 +290,11 @@ async function handleOrderRoutes(req, res, ctx) {
             const discPct = parseFloat(ctpnRow[0].PhanTramGiam || 0);
             const unitPrice = Math.round(parseFloat(ctpnRow[0].GiaBanThucTe || origPrice));
 
+            const prodName = it.name || it.productName || (await querySql('SELECT TenSanPham FROM SanPham WHERE MaSanPham = ?', [prodId]))?.[0]?.TenSanPham || null;
             // Trigger trg_ChiTietDonHang_TruTonKho tự động trừ SoLuongConLai & TonKho khi INSERT ChiTietDonHang
             await querySql(
-              `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              [ctdhId, id, prodId, loId, qty, origPrice, discPct, unitPrice, unitPrice * qty]
+              `INSERT INTO ChiTietDonHang (MaChiTietDonHang, MaDonHang, MaSanPham, TenSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [ctdhId, id, prodId, prodName, loId, qty, origPrice, discPct, unitPrice, unitPrice * qty]
             );
           }
         }
@@ -646,8 +647,11 @@ async function handleOrderRoutes(req, res, ctx) {
             const existingItems = await querySql('SELECT TOP 1 1 FROM ChiTietHoaDon_SanPham WHERE MaHoaDon = ?', [hdId]);
             if (!existingItems || existingItems.length === 0) {
               const orderItems = await querySql(
-                `SELECT MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien 
-                 FROM ChiTietDonHang WHERE MaDonHang = ?`,
+                `SELECT ctdh.MaSanPham, ISNULL(sp.TenSanPham, ctdh.TenSanPham) AS TenSanPham, ctdh.MaChiTietPhieuNhap, 
+                        ctdh.SoLuong, ctdh.DonGiaGoc, ctdh.PhanTramGiamGia, ctdh.DonGiaThucTe, ctdh.ThanhTien 
+                 FROM ChiTietDonHang ctdh
+                 LEFT JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham
+                 WHERE ctdh.MaDonHang = ?`,
                 [actualId]
               );
               if (orderItems && orderItems.length > 0) {
@@ -655,12 +659,13 @@ async function handleOrderRoutes(req, res, ctx) {
                   const it = orderItems[idx];
                   const cthdId = `CTHD${Date.now().toString().slice(-8)}${idx + 1}`.slice(0, 30);
                   await querySql(
-                    `INSERT INTO ChiTietHoaDon_SanPham (MaChiTietHDSanPham, MaHoaDon, MaSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    `INSERT INTO ChiTietHoaDon_SanPham (MaChiTietHDSanPham, MaHoaDon, MaSanPham, TenSanPham, MaChiTietPhieuNhap, SoLuong, DonGiaGoc, PhanTramGiamGia, DonGiaThucTe, ThanhTien)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
                       cthdId,
                       hdId,
                       it.MaSanPham,
+                      it.TenSanPham || null,
                       it.MaChiTietPhieuNhap || null,
                       Number(it.SoLuong || 1),
                       Number(it.DonGiaGoc || it.DonGiaThucTe || 0),

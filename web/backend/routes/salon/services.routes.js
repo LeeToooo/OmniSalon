@@ -3,9 +3,17 @@ const { enforceAuth } = require('../../middlewares/auth_middleware');
 const auditService = require('../../services/audit.service');
 const { clearDbSnapshotCache } = require('../auth/accounts.routes');
 
-async function fetchServicesList(serviceIdFilter = null) {
-  const whereClause = serviceIdFilter ? 'WHERE MaDichVu = ?' : '';
-  const whereParams = serviceIdFilter ? [serviceIdFilter] : [];
+async function fetchServicesList(serviceIdFilter = null, includeDiscontinued = false) {
+  const whereClauses = [];
+  const whereParams = [];
+  if (serviceIdFilter) {
+    whereClauses.push('MaDichVu = ?');
+    whereParams.push(serviceIdFilter);
+  }
+  if (!includeDiscontinued) {
+    whereClauses.push("(TrangThai IS NULL OR (TrangThai NOT LIKE N'%Ngừng%' AND TrangThai NOT LIKE N'%Ngưng%' AND TrangThai NOT LIKE N'%Xóa%' AND TrangThai NOT LIKE N'%Tạm ngưng%'))");
+  }
+  const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
   const [rows, promoRows, kmDichVuRows, reviewRows] = await Promise.all([
     querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaDichVu) ASC, MaDichVu ASC) AS stt, MaDichVu AS real_id, MaDichVu, TenDichVu, MoTa, ThoiLuong, Gia, HinhAnh, TrangThai, CONVERT(VARCHAR(10), NgayApDung, 120) AS NgayApDung FROM DichVu ${whereClause}`, whereParams),
     querySql(`SELECT MaKhuyenMai, TenKhuyenMai, HinhThuc, GiaTriGiam, TrangThai, DoiTuongApDung, CONVERT(VARCHAR(10), NgayBatDau, 120) AS NgayBatDau, CONVERT(VARCHAR(10), NgayKetThuc, 120) AS NgayKetThuc FROM KhuyenMai WHERE (TrangThai = N'Đang áp dụng' OR TrangThai = N'Áp dụng') AND (DoiTuongApDung IS NULL OR DoiTuongApDung NOT LIKE N'%Hội viên%') AND CAST(GETDATE() AS DATE) BETWEEN NgayBatDau AND NgayKetThuc`),
@@ -84,9 +92,17 @@ async function fetchServicesList(serviceIdFilter = null) {
   });
 }
 
-async function fetchCombosList(comboIdFilter = null) {
-  const whereClause = comboIdFilter ? 'WHERE MaCombo = ?' : '';
-  const whereParams = comboIdFilter ? [comboIdFilter] : [];
+async function fetchCombosList(comboIdFilter = null, includeDiscontinued = false) {
+  const whereClauses = [];
+  const whereParams = [];
+  if (comboIdFilter) {
+    whereClauses.push('MaCombo = ?');
+    whereParams.push(comboIdFilter);
+  }
+  if (!includeDiscontinued) {
+    whereClauses.push("(TrangThai IS NULL OR (TrangThai NOT LIKE N'%Ngừng%' AND TrangThai NOT LIKE N'%Ngưng%' AND TrangThai NOT LIKE N'%Xóa%' AND TrangThai NOT LIKE N'%Tạm ngưng%'))");
+  }
+  const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
   const [rows, detailRows] = await Promise.all([
     querySql(`SELECT ROW_NUMBER() OVER (ORDER BY LEN(MaCombo) ASC, MaCombo ASC) AS stt, MaCombo AS real_id, MaCombo, TenCombo, MoTa, GiaCombo, ThoiLuong, HinhAnh, TrangThai FROM ComboDichVu ${whereClause}`, whereParams),
     querySql(`SELECT ct.MaCombo, ct.MaDichVu, ct.SoLuong, dv.TenDichVu, dv.Gia, dv.ThoiLuong 
@@ -139,13 +155,14 @@ async function fetchCombosList(comboIdFilter = null) {
 }
 
 async function handleServiceRoutes(req, res, ctx) {
-  const { pathname, method, parsedBody } = ctx;
+  const { pathname, method, parsedBody, parsedUrl } = ctx;
 
   // Dịch vụ lẻ
 
   // GET /api/services - Lấy danh mục dịch vụ salon kèm giá khuyến mãi và số sao đánh giá
   if (pathname === '/api/services' && method === 'GET') {
-    const services = await fetchServicesList(null);
+    const includeDiscontinued = parsedUrl?.searchParams?.get('all') === 'true' || parsedUrl?.searchParams?.get('include_discontinued') === 'true' || parsedUrl?.searchParams?.get('includeDiscontinued') === 'true';
+    const services = await fetchServicesList(null, includeDiscontinued);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(services));
     return true;
@@ -155,7 +172,7 @@ async function handleServiceRoutes(req, res, ctx) {
   if (pathname.startsWith('/api/services/') && method === 'GET') {
     const serviceId = decodeURIComponent(pathname.replace('/api/services/', '').trim());
     if (!serviceId || serviceId.includes('/')) return false;
-    const services = await fetchServicesList(serviceId);
+    const services = await fetchServicesList(serviceId, true);
     if (!services || services.length === 0) {
       res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, message: `Không tìm thấy dịch vụ ${serviceId}.` }));
@@ -268,24 +285,18 @@ async function handleServiceRoutes(req, res, ctx) {
     const oldService = (oldRows && oldRows[0]) ? oldRows[0] : null;
 
     try {
-      const refCheck = await querySql(`
-        SELECT TOP 1 1 AS HasRef FROM (
-          SELECT MaDichVu FROM ChiTietLichHen WHERE MaDichVu = ?
-          UNION ALL
-          SELECT MaDichVu FROM ChiTietHoaDon_DichVu WHERE MaDichVu = ?
-        ) t
-      `, [id, id]);
-
-      let softDeleted = false;
-      if (refCheck && refCheck.length > 0) {
-        softDeleted = true;
-        await querySql(`DELETE FROM KhuyenMai_DichVu WHERE MaDichVu = ?`, [id]);
-        await querySql(`UPDATE DichVu SET TrangThai = N'Ngừng phục vụ' WHERE MaDichVu = ?`, [id]);
-      } else {
-        await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaDichVu = ?`, [id]);
-        await querySql(`DELETE FROM KhuyenMai_DichVu WHERE MaDichVu = ?`, [id]);
-        await querySql(`DELETE FROM DichVu WHERE MaDichVu = ?`, [id]);
+      // 1. Lưu snapshot tên dịch vụ vào các bảng lịch hẹn & hóa đơn lịch sử trước khi xóa bảng danh mục
+      if (oldService?.TenDichVu) {
+        await querySql(`UPDATE ChiTietLichHen SET TenDichVu = ? WHERE MaDichVu = ? AND (TenDichVu IS NULL OR TenDichVu = '')`, [oldService.TenDichVu, id]).catch(() => {});
+        await querySql(`UPDATE ChiTietHoaDon_DichVu SET TenDichVu = ? WHERE MaDichVu = ? AND (TenDichVu IS NULL OR TenDichVu = '')`, [oldService.TenDichVu, id]).catch(() => {});
       }
+
+      // 2. Dọn các bảng liên kết phụ
+      await querySql(`DELETE FROM KhuyenMai_DichVu WHERE MaDichVu = ?`, [id]).catch(() => {});
+      await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaDichVu = ?`, [id]).catch(() => {});
+
+      // 3. XÓA VĨNH VIỄN KHỎI BẢNG DichVu TRONG SQL (Toàn bộ lịch hẹn cũ trong ChiTietLichHen vẫn giữ nguyên)
+      await querySql(`DELETE FROM DichVu WHERE MaDichVu = ?`, [id]);
 
       const actorName = authUser.fullName || authUser.name || authUser.username;
       const actorRole = authUser.role;
@@ -296,17 +307,14 @@ async function handleServiceRoutes(req, res, ctx) {
         entityType: 'DichVu',
         entityId: id,
         before: oldService,
-        details: `${actorName} (${actorRole}) ${softDeleted ? 'ngừng phục vụ' : 'xóa'} dịch vụ #${id} (${oldService?.TenDichVu || ''})`
+        details: `${actorName} (${actorRole}) đã xóa vĩnh viễn dịch vụ #${id} (${oldService?.TenDichVu || ''}) khỏi bảng DichVu trong SQL`
       }).catch(() => {});
 
       clearDbSnapshotCache();
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({
         success: true,
-        softDeleted,
-        message: softDeleted
-          ? 'Dịch vụ đã có lịch sử lịch hẹn/hóa đơn nên được chuyển sang Ngừng phục vụ.'
-          : 'Đã xóa dịch vụ khỏi bảng DichVu trong SQL.',
+        message: 'Đã xóa hoàn toàn dịch vụ khỏi bảng DichVu trong SQL. Toàn bộ lịch hẹn đã đặt vẫn được bảo toàn nguyên vẹn.',
         id
       }));
       return true;
@@ -321,7 +329,8 @@ async function handleServiceRoutes(req, res, ctx) {
 
   // GET /api/combos - Lấy danh sách gói combo khuyến mãi trọn gói kèm dịch vụ con
   if (pathname === '/api/combos' && method === 'GET') {
-    const combos = await fetchCombosList(null);
+    const includeDiscontinued = parsedUrl?.searchParams?.get('all') === 'true' || parsedUrl?.searchParams?.get('include_discontinued') === 'true' || parsedUrl?.searchParams?.get('includeDiscontinued') === 'true';
+    const combos = await fetchCombosList(null, includeDiscontinued);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(combos));
     return true;
@@ -331,7 +340,7 @@ async function handleServiceRoutes(req, res, ctx) {
   if (pathname.startsWith('/api/combos/') && method === 'GET') {
     const comboId = decodeURIComponent(pathname.replace('/api/combos/', '').trim());
     if (!comboId || comboId.includes('/')) return false;
-    const combos = await fetchCombosList(comboId);
+    const combos = await fetchCombosList(comboId, true);
     if (!combos || combos.length === 0) {
       res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ success: false, message: `Không tìm thấy gói combo ${comboId}.` }));
@@ -558,14 +567,13 @@ async function handleServiceRoutes(req, res, ctx) {
         ) t
       `, [id, id]);
 
-      let softDeleted = false;
-      if (refCheck && refCheck.length > 0) {
-        softDeleted = true;
-        await querySql(`UPDATE ComboDichVu SET TrangThai = N'Ngừng áp dụng' WHERE MaCombo = ?`, [id]);
-      } else {
-        await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?`, [id]);
-        await querySql(`DELETE FROM ComboDichVu WHERE MaCombo = ?`, [id]);
-      }
+      // 1. Lưu snapshot tên combo vào các bảng lịch hẹn cũ trước khi xóa
+      await querySql(`UPDATE ctlh SET TenDichVu = cb.TenCombo FROM ChiTietLichHen ctlh JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo WHERE ctlh.MaCombo = ? AND (ctlh.TenDichVu IS NULL OR ctlh.TenDichVu = '')`, [id]).catch(() => {});
+      await querySql(`UPDATE cthd SET TenDichVu = cb.TenCombo FROM ChiTietHoaDon_DichVu cthd JOIN ComboDichVu cb ON cthd.MaCombo = cb.MaCombo WHERE cthd.MaCombo = ? AND (cthd.TenDichVu IS NULL OR cthd.TenDichVu = '')`, [id]).catch(() => {});
+
+      // 2. Dọn liên kết con và XÓA VĨNH VIỄN khỏi ComboDichVu
+      await querySql(`DELETE FROM ChiTietComboDichVu WHERE MaCombo = ?`, [id]).catch(() => {});
+      await querySql(`DELETE FROM ComboDichVu WHERE MaCombo = ?`, [id]);
 
       const actorName = authUser.fullName || authUser.name || authUser.username;
       const actorRole = authUser.role;

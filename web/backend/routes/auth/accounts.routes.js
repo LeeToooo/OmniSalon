@@ -144,9 +144,25 @@ function filterDatabaseForUser(dbData, authUser) {
 
   return {
     branches: dbData.branches || [],
-    services: dbData.services || [],
-    combos: dbData.combos || [],
-    stylists: isStaff ? (dbData.stylists || []) : (dbData.stylists || []).map(sanitizePublicStylist),
+    services: isStaff
+      ? (dbData.services || [])
+      : (dbData.services || []).filter(s => {
+          const st = String(s.TrangThai || s.status || '').toLowerCase();
+          return !st.includes('ngừng') && !st.includes('ngưng') && !st.includes('xóa');
+        }),
+    combos: isStaff
+      ? (dbData.combos || [])
+      : (dbData.combos || []).filter(c => {
+          const st = String(c.TrangThai || c.status || '').toLowerCase();
+          return !st.includes('ngừng') && !st.includes('ngưng') && !st.includes('xóa');
+        }),
+    stylists: isStaff
+      ? (dbData.stylists || [])
+      : (dbData.stylists || []).map(s => {
+          const clean = sanitizePublicStylist(s);
+          if (!clean.rating || clean.rating <= 0) clean.rating = 5.0;
+          return clean;
+        }),
     categories: dbData.categories || [],
     suppliers: isStaff ? (dbData.suppliers || []) : [],
     products: dbData.products || [],

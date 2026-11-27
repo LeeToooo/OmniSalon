@@ -189,7 +189,7 @@ async function handleBookingRoutes(req, res, ctx) {
               kh.HoTen AS TenKhachHang, kh.SoDienThoai AS SdtKhachHang,
               nv.HoTen AS TenNhanVien, cn.TenChiNhanh,
               (
-                SELECT TOP 1 ISNULL(dv.TenDichVu, cb.TenCombo) 
+                SELECT TOP 1 ISNULL(dv.TenDichVu, ISNULL(cb.TenCombo, ctlh.TenDichVu)) 
                 FROM ChiTietLichHen ctlh 
                 LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
                 LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo
@@ -211,7 +211,7 @@ async function handleBookingRoutes(req, res, ctx) {
 
     const allBookingItems = await querySql(`
       SELECT ctlh.MaChiTietLichHen, ctlh.MaLichHen, ctlh.MaDichVu, ctlh.MaCombo, ctlh.SoLuong, ctlh.DonGia, ctlh.ThanhTien,
-             ISNULL(dv.TenDichVu, cb.TenCombo) AS TenDichVu,
+             ISNULL(dv.TenDichVu, ISNULL(cb.TenCombo, ctlh.TenDichVu)) AS TenDichVu,
              ISNULL(dv.HinhAnh, cb.HinhAnh) AS HinhAnh,
              ISNULL(dv.ThoiLuong, cb.ThoiLuong) AS ThoiLuong,
              ISNULL(dv.Gia, cb.GiaCombo) AS Gia
@@ -308,7 +308,7 @@ async function handleBookingRoutes(req, res, ctx) {
              nv.HoTen AS TenNhanVien,
              cn.TenChiNhanh,
              (
-               SELECT TOP 1 ISNULL(dv.TenDichVu, cb.TenCombo) 
+               SELECT TOP 1 ISNULL(dv.TenDichVu, ISNULL(cb.TenCombo, ctlh.TenDichVu)) 
                FROM ChiTietLichHen ctlh 
                LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
                LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo
@@ -353,7 +353,7 @@ async function handleBookingRoutes(req, res, ctx) {
 
     const allBookingItems = await querySql(`
       SELECT ctlh.MaChiTietLichHen, ctlh.MaLichHen, ctlh.MaDichVu, ctlh.MaCombo, ctlh.SoLuong, ctlh.DonGia, ctlh.ThanhTien,
-             ISNULL(dv.TenDichVu, cb.TenCombo) AS TenDichVu,
+             ISNULL(dv.TenDichVu, ISNULL(cb.TenCombo, ctlh.TenDichVu)) AS TenDichVu,
              ISNULL(dv.HinhAnh, cb.HinhAnh) AS HinhAnh,
              ISNULL(dv.ThoiLuong, cb.ThoiLuong) AS ThoiLuong,
              ISNULL(dv.Gia, cb.GiaCombo) AS Gia
@@ -598,10 +598,21 @@ async function handleBookingRoutes(req, res, ctx) {
         }
       }
 
+      let itName = it.name || it.serviceName || '';
+      if (!itName) {
+        if (sId) {
+          const dvRow = await querySql('SELECT TenDichVu FROM DichVu WHERE MaDichVu = ?', [sId]);
+          if (dvRow && dvRow[0]) itName = dvRow[0].TenDichVu;
+        } else if (cbId) {
+          const cbRow = await querySql('SELECT TenCombo FROM ComboDichVu WHERE MaCombo = ?', [cbId]);
+          if (cbRow && cbRow[0]) itName = cbRow[0].TenCombo;
+        }
+      }
+
       const ctlhId = await generateNextCtlhId();
       await querySql(
-        `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, MaCombo, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, ?, 1, ?, ?)`,
-        [ctlhId, id, sId, cbId, itPrice, itPrice]
+        `INSERT INTO ChiTietLichHen (MaChiTietLichHen, MaLichHen, MaDichVu, MaCombo, TenDichVu, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
+        [ctlhId, id, sId, cbId, itName || null, itPrice, itPrice]
       );
     }
 

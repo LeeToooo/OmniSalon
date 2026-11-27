@@ -105,6 +105,11 @@ if errorlevel 1 (
     if exist "%LOCALAPPDATA%\Programs\Git\cmd\git.exe" set "PATH=%LOCALAPPDATA%\Programs\Git\cmd;%PATH%"
 )
 
+REM Tự động thêm Android SDK platform-tools & emulator vào PATH nếu có
+if exist "%LOCALAPPDATA%\Android\Sdk\platform-tools" (
+    set "PATH=%LOCALAPPDATA%\Android\Sdk\platform-tools;%LOCALAPPDATA%\Android\Sdk\emulator;%PATH%"
+)
+
 REM Kiểm tra Flutter SDK
 where flutter >nul 2>nul
 if errorlevel 1 (
@@ -169,8 +174,41 @@ if "%dev_choice%"=="2" goto RUN_DEV_WINDOWS
 goto RUN_DEV_CHROME
 
 :RUN_DEV_ANDROID
-echo [*] Đang khởi chạy trên Android...
-call flutter run -d android
+echo [*] Đang tìm kiếm thiết bị Android hoặc máy ảo kết nối...
+set "ANDROID_DEV_ID="
+if exist "%~dp0mobile\get_device.js" (
+    for /f "usebackq delims=" %%i in (`node "%~dp0mobile\get_device.js"`) do set "ANDROID_DEV_ID=%%i"
+)
+
+if "%ANDROID_DEV_ID%"=="" (
+    goto ANDROID_FALLBACK
+)
+
+echo [*] Đã kết nối với thiết bị: %ANDROID_DEV_ID%
+where adb >nul 2>nul
+if not errorlevel 1 (
+    adb -s %ANDROID_DEV_ID% reverse tcp:3000 tcp:3000 >nul 2>&1
+)
+echo [*] Đang khởi chạy ứng dụng lên thiết bị %ANDROID_DEV_ID%...
+call flutter run -d %ANDROID_DEV_ID%
+if errorlevel 1 goto ANDROID_FALLBACK
+goto EXIT_SCRIPT
+
+:ANDROID_FALLBACK
+echo.
+echo ==================================================
+echo [CẢNH BÁO] Không tìm thấy thiết bị Android hoặc máy ảo đang chạy!
+echo.
+echo Để chạy ứng dụng trên Android:
+echo   - Cách 1: Mở Android Studio và bật máy ảo (AVD Pixel) lên trước.
+echo   - Cách 2: Cắm điện thoại Android vào máy tính qua cáp USB và BẬT "Gỡ lỗi USB" (USB Debugging).
+echo   - Cách 3: Chạy trên Google Chrome (Lựa chọn [1] - Khuyên dùng vì nhanh, nhẹ và trực quan).
+echo ==================================================
+echo.
+set "fb_choice=1"
+set /p fb_choice="Bạn có muốn tự động mở trên Google Chrome (Khuyên dùng) không? [1: Có, 0: Thoát] (Mặc định: 1): "
+if "%fb_choice%"=="" set "fb_choice=1"
+if "%fb_choice%"=="1" goto RUN_DEV_CHROME
 goto EXIT_SCRIPT
 
 :RUN_DEV_WINDOWS

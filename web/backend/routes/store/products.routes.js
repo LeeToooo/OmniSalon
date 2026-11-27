@@ -357,16 +357,18 @@ async function handleProductRoutes(req, res, ctx) {
         ) t
       `, [id, id, id]);
 
-      let softDeleted = false;
-      if (refCheck && refCheck.length > 0) {
-        softDeleted = true;
-        await querySql(`DELETE FROM KhuyenMai_SanPham WHERE MaSanPham = ?`, [id]);
-        await querySql(`UPDATE SanPham SET TrangThaiKinhDoanh = N'Ngừng bán' WHERE MaSanPham = ?`, [id]);
-      } else {
-        await querySql(`DELETE FROM KhuyenMai_SanPham WHERE MaSanPham = ?`, [id]);
-        await querySql(`DELETE FROM TonKho WHERE MaSanPham = ?`, [id]);
-        await querySql(`DELETE FROM SanPham WHERE MaSanPham = ?`, [id]);
+      // 1. Lưu snapshot tên sản phẩm vào các bảng đơn hàng & hóa đơn cũ trước khi xóa
+      if (oldProd?.TenSanPham) {
+        await querySql(`UPDATE ChiTietDonHang SET TenSanPham = ? WHERE MaSanPham = ? AND (TenSanPham IS NULL OR TenSanPham = '')`, [oldProd.TenSanPham, id]).catch(() => {});
+        await querySql(`UPDATE ChiTietHoaDon_SanPham SET TenSanPham = ? WHERE MaSanPham = ? AND (TenSanPham IS NULL OR TenSanPham = '')`, [oldProd.TenSanPham, id]).catch(() => {});
       }
+
+      // 2. Dọn bảng liên kết phụ
+      await querySql(`DELETE FROM KhuyenMai_SanPham WHERE MaSanPham = ?`, [id]).catch(() => {});
+      await querySql(`DELETE FROM TonKho WHERE MaSanPham = ?`, [id]).catch(() => {});
+
+      // 3. XÓA VĨNH VIỄN KHỎI BẢNG SanPham TRONG SQL (Đơn hàng và hóa đơn cũ vẫn giữ nguyên)
+      await querySql(`DELETE FROM SanPham WHERE MaSanPham = ?`, [id]);
 
       const actorName = authUser.fullName || authUser.name || authUser.username;
       const actorRole = authUser ? (authUser.role || 'BRANCH_MANAGER') : 'BRANCH_MANAGER';

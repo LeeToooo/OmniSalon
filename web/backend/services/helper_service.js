@@ -449,7 +449,7 @@ async function getFullSqlDatabase() {
                      nv.HoTen AS TenNhanVien,
                      cn.TenChiNhanh,
                      (
-                       SELECT TOP 1 ISNULL(dv.TenDichVu, cb.TenCombo) 
+                       SELECT TOP 1 ISNULL(dv.TenDichVu, ISNULL(cb.TenCombo, ctlh.TenDichVu)) 
                        FROM ChiTietLichHen ctlh 
                        LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu 
                        LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo
@@ -577,20 +577,20 @@ async function getFullSqlDatabase() {
               JOIN ChiNhanh cn ON tk.MaChiNhanh = cn.MaChiNhanh`),
     querySql(`SELECT ctdh.MaChiTietDonHang, ctdh.MaDonHang, ctdh.MaSanPham, ctdh.MaChiTietPhieuNhap, 
                      ctdh.SoLuong, ctdh.DonGiaGoc, ctdh.PhanTramGiamGia, ctdh.DonGiaThucTe, ctdh.ThanhTien, 
-                     sp.TenSanPham, sp.HinhAnh 
+                     ISNULL(sp.TenSanPham, ctdh.TenSanPham) AS TenSanPham, sp.HinhAnh 
               FROM ChiTietDonHang ctdh 
-              JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham`),
+              LEFT JOIN SanPham sp ON ctdh.MaSanPham = sp.MaSanPham`),
     querySql(`SELECT ctdv.MaChiTietHDDV, ctdv.MaHoaDon, ctdv.MaDichVu, ctdv.MaCombo, ctdv.SoLuong, ctdv.DonGia, ctdv.ThanhTien,
-                     ISNULL(dv.TenDichVu, cb.TenCombo) AS TenDichVu
+                     ISNULL(dv.TenDichVu, ISNULL(cb.TenCombo, ctdv.TenDichVu)) AS TenDichVu
               FROM ChiTietHoaDon_DichVu ctdv
               LEFT JOIN DichVu dv ON ctdv.MaDichVu = dv.MaDichVu
               LEFT JOIN ComboDichVu cb ON ctdv.MaCombo = cb.MaCombo`).catch(() => []),
     querySql(`SELECT ctsp.MaChiTietHDSanPham, ctsp.MaHoaDon, ctsp.MaSanPham, ctsp.SoLuong, ctsp.DonGiaThucTe, ctsp.ThanhTien,
-                     sp.TenSanPham, sp.HinhAnh
+                     ISNULL(sp.TenSanPham, ctsp.TenSanPham) AS TenSanPham, sp.HinhAnh
               FROM ChiTietHoaDon_SanPham ctsp
-              JOIN SanPham sp ON ctsp.MaSanPham = sp.MaSanPham`).catch(() => []),
+              LEFT JOIN SanPham sp ON ctsp.MaSanPham = sp.MaSanPham`).catch(() => []),
     querySql(`SELECT ctlh.MaChiTietLichHen, ctlh.MaLichHen, ctlh.MaDichVu, ctlh.MaCombo, ctlh.SoLuong, ctlh.DonGia, ctlh.ThanhTien,
-                     ISNULL(dv.TenDichVu, cb.TenCombo) AS TenDichVu
+                     ISNULL(dv.TenDichVu, ISNULL(cb.TenCombo, ctlh.TenDichVu)) AS TenDichVu
               FROM ChiTietLichHen ctlh
               LEFT JOIN DichVu dv ON ctlh.MaDichVu = dv.MaDichVu
               LEFT JOIN ComboDichVu cb ON ctlh.MaCombo = cb.MaCombo`).catch(() => [])
@@ -660,8 +660,8 @@ async function getFullSqlDatabase() {
     const isProgress = (r.TrangThai === 'Đang phục vụ' || r.TrangThai === 'In_Progress' || r.TrangThai === 'in_progress');
     const uiStatus = (r.TrangThai === 'Hoàn thành' || r.TrangThai === 'Completed') ? 'Completed' :
       ((r.TrangThai === 'Đã hủy' || r.TrangThai === 'Cancelled') ? 'Cancelled' :
-      (isProgress ? 'in_progress' :
-      ((r.TrangThai === 'Chờ vào ghế' || r.TrangThai === 'Waiting' || r.TrangThai === 'waiting') ? 'waiting' : 'Confirmed')));
+        (isProgress ? 'in_progress' :
+          ((r.TrangThai === 'Chờ vào ghế' || r.TrangThai === 'Waiting' || r.TrangThai === 'waiting') ? 'waiting' : 'Confirmed')));
 
     return {
       id: r.MaLichHen,
